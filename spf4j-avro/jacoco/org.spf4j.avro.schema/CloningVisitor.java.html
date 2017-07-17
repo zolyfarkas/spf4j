@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CloningVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.schema</a> &gt; <span class="el_source">CloningVisitor.java</span></div><h1>CloningVisitor.java</h1><pre class="source lang-java linenums">
+package org.spf4j.avro.schema;
+
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.function.BiConsumer;
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import static org.apache.avro.Schema.Type.RECORD;
+
+/**
+ * this visitor will create a clone of the original Schema with docs and other nonesential fields stripped
+ * by default. what attributes are copied is customizable.
+ * @author zoly
+ */
+public final class CloningVisitor implements SchemaVisitor&lt;Schema&gt; {
+
+<span class="fc" id="L19">  private final IdentityHashMap&lt;Schema, Schema&gt; replace = new IdentityHashMap&lt;&gt;();</span>
+
+  private final Schema root;
+
+  private final BiConsumer&lt;Field, Field&gt; copyField;
+  private final BiConsumer&lt;Schema, Schema&gt; copySchema;
+  private final boolean copyDocs;
+
+  public CloningVisitor(final Schema root) {
+<span class="fc" id="L28">    this(SchemaUtils.FIELD_ESENTIALS,</span>
+            SchemaUtils.SCHEMA_ESENTIALS, false, root);
+<span class="fc" id="L30">  }</span>
+
+  public CloningVisitor(final BiConsumer&lt;Field, Field&gt; copyField,
+          final BiConsumer&lt;Schema, Schema&gt; copySchema,
+<span class="fc" id="L34">          final boolean copyDocs, final Schema root) {</span>
+<span class="fc" id="L35">    this.copyField = copyField;</span>
+<span class="fc" id="L36">    this.copySchema = copySchema;</span>
+<span class="fc" id="L37">    this.copyDocs = copyDocs;</span>
+<span class="fc" id="L38">    this.root = root;</span>
+<span class="fc" id="L39">  }</span>
+
+  @Override
+  public SchemaVisitorAction visitTerminal(final Schema terminal) {
+<span class="fc" id="L43">    Schema.Type type = terminal.getType();</span>
+    Schema newSchema;
+<span class="pc bpc" id="L45" title="3 of 5 branches missed.">    switch (type) {</span>
+      case RECORD: // recursion.
+      case ARRAY:
+      case MAP:
+      case UNION:
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (!replace.containsKey(terminal)) {</span>
+<span class="nc" id="L51">          throw new IllegalStateException(&quot;Schema &quot; + terminal + &quot; must be already processed&quot;);</span>
+        }
+<span class="fc" id="L53">        return SchemaVisitorAction.CONTINUE;</span>
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+<span class="fc" id="L62">        newSchema = Schema.create(type);</span>
+<span class="fc" id="L63">      break;</span>
+      case ENUM:
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        newSchema = Schema.createEnum(terminal.getName(), copyDocs ? terminal.getDoc() : null,</span>
+<span class="nc" id="L66">                terminal.getNamespace(), terminal.getEnumSymbols());</span>
+<span class="nc" id="L67">        break;</span>
+      case FIXED:
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        newSchema = Schema.createFixed(terminal.getName(), copyDocs ? terminal.getDoc() : null,</span>
+<span class="nc" id="L70">                terminal.getNamespace(), terminal.getFixedSize());</span>
+<span class="nc" id="L71">        break;</span>
+      default:
+<span class="nc" id="L73">        throw new IllegalStateException(&quot;Unsupported schema &quot; + terminal);</span>
+    }
+<span class="fc" id="L75">    copySchema.accept(terminal, newSchema);</span>
+<span class="fc" id="L76">    replace.put(terminal, newSchema);</span>
+<span class="fc" id="L77">    return SchemaVisitorAction.CONTINUE;</span>
+  }
+
+  @Override
+  public SchemaVisitorAction visitNonTerminal(final Schema nt) {
+<span class="fc" id="L82">    Schema.Type type = nt.getType();</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    if  (type == RECORD) {</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        Schema newSchema = Schema.createRecord(nt.getName(), copyDocs ? nt.getDoc() : null,</span>
+<span class="fc" id="L85">                nt.getNamespace(), nt.isError());</span>
+<span class="fc" id="L86">        copySchema.accept(nt, newSchema);</span>
+<span class="fc" id="L87">        replace.put(nt, newSchema);</span>
+    }
+<span class="fc" id="L89">    return SchemaVisitorAction.CONTINUE;</span>
+  }
+
+  @Override
+  public SchemaVisitorAction afterVisitNonTerminal(final Schema nt) {
+<span class="fc" id="L94">     Schema.Type type = nt.getType();</span>
+     Schema newSchema;
+<span class="pc bpc" id="L96" title="3 of 5 branches missed.">     switch (type) {</span>
+       case RECORD:
+<span class="fc" id="L98">         newSchema = replace.get(nt);</span>
+<span class="fc" id="L99">         List&lt;Schema.Field&gt; fields = nt.getFields();</span>
+<span class="fc" id="L100">         List&lt;Schema.Field&gt; newFields = new ArrayList&lt;&gt;(fields.size());</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">         for (Schema.Field field : fields) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">          Schema.Field newField = new Schema.Field(field.name(), replace.get(field.schema()),</span>
+<span class="pc" id="L103">                  copyDocs ? field.doc() : null, field.defaultVal(), field.order());</span>
+<span class="fc" id="L104">          copyField.accept(field, newField);</span>
+<span class="fc" id="L105">          newFields.add(newField);</span>
+<span class="fc" id="L106">         }</span>
+<span class="fc" id="L107">         newSchema.setFields(newFields);</span>
+<span class="fc" id="L108">         return SchemaVisitorAction.CONTINUE;</span>
+       case UNION:
+<span class="nc" id="L110">          List&lt;Schema&gt; types = nt.getTypes();</span>
+<span class="nc" id="L111">          List&lt;Schema&gt; newTypes = new ArrayList&lt;&gt;(types.size());</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">          for (Schema sch : types) {</span>
+<span class="nc" id="L113">            newTypes.add(replace.get(sch));</span>
+<span class="nc" id="L114">          }</span>
+<span class="nc" id="L115">          newSchema = Schema.createUnion(newTypes);</span>
+
+<span class="nc" id="L117">          break;</span>
+       case ARRAY:
+<span class="fc" id="L119">         newSchema = Schema.createArray(replace.get(nt.getElementType()));</span>
+<span class="fc" id="L120">         break;</span>
+       case MAP:
+<span class="nc" id="L122">         newSchema = Schema.createMap(replace.get(nt.getValueType()));</span>
+<span class="nc" id="L123">         break;</span>
+       default:
+<span class="nc" id="L125">         throw new IllegalStateException(&quot;Illegal type &quot; + type + &quot;, schema &quot; + nt);</span>
+     }
+<span class="fc" id="L127">     copySchema.accept(nt, newSchema);</span>
+<span class="fc" id="L128">     replace.put(nt, newSchema);</span>
+<span class="fc" id="L129">     return SchemaVisitorAction.CONTINUE;</span>
+  }
+
+  @Override
+  public Schema get() {
+<span class="fc" id="L134">    return replace.get(root);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L139">    return &quot;CloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

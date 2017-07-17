@@ -58,7 +58,7 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
 
 
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
     @Override
     public T get()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
@@ -72,7 +72,7 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
             try {
 <span class="nc" id="L73">                pool.recycle(result, e);</span>
 <span class="nc" id="L74">            } catch (RuntimeException ex) {</span>
-<span class="nc" id="L75">                throw Throwables.suppress(new RuntimeException(ex), e);</span>
+<span class="nc" id="L75">                throw Throwables.suppress(ex, e);</span>
 <span class="nc" id="L76">            }</span>
 <span class="nc" id="L77">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook &quot; + borrowHook, e);</span>
         }
@@ -101,7 +101,7 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
 <span class="nc bnc" id="L101" title="All 2 branches missed.">        if (pool instanceof Scanable) {</span>
 <span class="nc" id="L102">            return ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);</span>
         } else {
-<span class="nc" id="L104">            throw new RuntimeException(&quot;Wrapped pool &quot; + pool + &quot; is not scanable&quot;);</span>
+<span class="nc" id="L104">            throw new UnsupportedOperationException(&quot;Wrapped pool &quot; + pool + &quot; is not scanable&quot;);</span>
         }
     }
 

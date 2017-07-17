@@ -84,25 +84,30 @@ public final class CALLREF extends Instruction {
 <span class="nc bnc" id="L84" title="All 3 branches missed.">                switch (p.getType()) {</span>
                     case DETERMINISTIC:
 <span class="nc" id="L86">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
-<span class="nc" id="L87">                        obj = context.getResultCache().getResult(p, Arrays.asList(parameters), new SyncCallable(nctx));</span>
+<span class="nc" id="L87">                        obj = context.getResultCache().getResult(p, Arrays.asList(parameters),</span>
+<span class="nc" id="L88">                                () -&gt; nctx.call());</span>
 
-<span class="nc" id="L89">                        break;</span>
+<span class="nc" id="L90">                        break;</span>
                     case NONDETERMINISTIC:
-<span class="nc" id="L91">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
-<span class="nc" id="L92">                        obj = Program.executeSync(nctx);</span>
-<span class="nc" id="L93">                        break;</span>
+<span class="nc" id="L92">                        nctx = context.getSyncSubProgramContext(p, parameters);</span>
+                        try {
+<span class="nc" id="L94">                          obj = nctx.call();</span>
+<span class="nc" id="L95">                        } catch (SuspendedException ex) {</span>
+<span class="nc" id="L96">                          throw new ZExecutionException(&quot;Suspension not supported for &quot; + p, ex);</span>
+<span class="nc" id="L97">                        }</span>
+                        break;
                     default:
-<span class="nc" id="L95">                        throw new UnsupportedOperationException(p.getType().toString());</span>
+<span class="nc" id="L100">                        throw new UnsupportedOperationException(p.getType().toString());</span>
                 }
-<span class="nc" id="L97">                return obj;</span>
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            } else if (function instanceof Method) {</span>
+<span class="nc" id="L102">                return obj;</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">            } else if (function instanceof Method) {</span>
                 try {
-<span class="fc" id="L100">                    return ((Method) function).invoke(context, parameters);</span>
-<span class="nc" id="L101">                } catch (Exception ex) {</span>
-<span class="nc" id="L102">                    throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
+<span class="fc" id="L105">                    return ((Method) function).invoke(context, parameters);</span>
+<span class="nc" id="L106">                } catch (Exception ex) {</span>
+<span class="nc" id="L107">                    throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
                 }
             } else {
-<span class="nc" id="L105">                throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
+<span class="nc" id="L110">                throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
             }
 
         }

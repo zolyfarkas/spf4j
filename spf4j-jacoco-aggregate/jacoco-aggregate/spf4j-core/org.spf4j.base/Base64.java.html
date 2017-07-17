@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Base64.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Base64.java</span></div><h1>Base64.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+
+import java.io.IOException;
+import java.nio.CharBuffer;
+
+/**
+ * &quot;improved&quot; implementation based on DataTypeConverterImpl performance should be same/slightly faster than the JDK
+ * equivalent But most importantly you can encode/decode parts of a String, which should reduce the need of copying
+ * objects and reduce the amount of garbage created.
+ *
+ * @author zoly
+ */
+<span class="pc bpc" id="L13" title="1 of 2 branches missed.">public final class Base64 {</span>
+
+<span class="fc" id="L15">  private static final byte[] DECODE_MAP = initDecodeMap();</span>
+
+<span class="fc" id="L17">  private static final char[] ENCODE_MAP = initEncodeMap();</span>
+
+  private static final byte PADDING = 127;
+
+<span class="nc" id="L21">  private Base64() {</span>
+<span class="nc" id="L22">  }</span>
+
+  private static byte[] initDecodeMap() {
+<span class="fc" id="L25">    byte[] map = new byte[128];</span>
+    int i;
+<span class="fc bfc" id="L27" title="All 2 branches covered.">    for (i = 0; i &lt; 128; i++) {</span>
+<span class="fc" id="L28">      map[i] = -1;</span>
+    }
+
+<span class="fc bfc" id="L31" title="All 2 branches covered.">    for (i = 'A'; i &lt;= 'Z'; i++) {</span>
+<span class="fc" id="L32">      map[i] = (byte) (i - 'A');</span>
+    }
+<span class="fc bfc" id="L34" title="All 2 branches covered.">    for (i = 'a'; i &lt;= 'z'; i++) {</span>
+<span class="fc" id="L35">      map[i] = (byte) (i - 'a' + 26);</span>
+    }
+<span class="fc bfc" id="L37" title="All 2 branches covered.">    for (i = '0'; i &lt;= '9'; i++) {</span>
+<span class="fc" id="L38">      map[i] = (byte) (i - '0' + 52);</span>
+    }
+<span class="fc" id="L40">    map['+'] = 62;</span>
+<span class="fc" id="L41">    map['/'] = 63;</span>
+<span class="fc" id="L42">    map['='] = PADDING;</span>
+
+<span class="fc" id="L44">    return map;</span>
+  }
+
+  /**
+   * computes the length of binary data speculatively.
+   *
+   * &lt;p&gt;
+   * Our requirement is to create byte[] of the exact length to store the binary data. If we do this in a
+   * straight-forward way, it takes two passes over the data. Experiments show that this is a non-trivial overhead (35%
+   * or so is spent on the first pass in calculating the length.)
+   *
+   * &lt;p&gt;
+   * So the approach here is that we compute the length speculatively, without looking at the whole contents. The
+   * obtained speculative value is never less than the actual length of the binary data, but it may be bigger. So if the
+   * speculation goes wrong, we'll pay the cost of reallocation and buffer copying.
+   *
+   * &lt;p&gt;
+   * If the base64 text is tightly packed with no indentation nor illegal char (like what most web services produce),
+   * then the speculation of this method will be correct, so we get the performance benefit.
+   */
+  private static int guessLength(final CharSequence text, final int from, final int len) {
+<span class="fc" id="L65">    final int to = from + len;</span>
+
+    // compute the tail '=' chars
+<span class="fc" id="L68">    int j = to - 1;</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    for (; j &gt;= 0; j--) {</span>
+<span class="fc" id="L70">      byte code = DECODE_MAP[text.charAt(j)];</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">      if (code != PADDING) {</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (code == -1) { // most likely this base64 text is indented. go with the upper bound</span>
+<span class="nc" id="L73">          return len / 4 * 3;</span>
+        }
+        break;
+      }
+    }
+
+<span class="fc" id="L79">    j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size</span>
+<span class="fc" id="L80">    int padSize = to - j;</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">    if (padSize &gt; 2) { // something is wrong with base64. be safe and go with the upper bound</span>
+<span class="nc" id="L82">      return len / 4 * 3;</span>
+    }
+
+    // so far this base64 looks like it's unindented tightly packed base64.
+    // take a chance and create an array with the expected size
+<span class="fc" id="L87">    return len / 4 * 3 - padSize;</span>
+  }
+
+  private static int guessLength(final char[] text, final int from, final int len) {
+<span class="nc" id="L91">    final int to = from + len;</span>
+
+    // compute the tail '=' chars
+<span class="nc" id="L94">    int j = to - 1;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    for (; j &gt;= 0; j--) {</span>
+<span class="nc" id="L96">      byte code = DECODE_MAP[text[j]];</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">      if (code != PADDING) {</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (code == -1) { // most likely this base64 text is indented. go with the upper bound</span>
+<span class="nc" id="L99">          return len / 4 * 3;</span>
+        }
+        break;
+      }
+    }
+
+<span class="nc" id="L105">    j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size</span>
+<span class="nc" id="L106">    int padSize = to - j;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (padSize &gt; 2) { // something is wrong with base64. be safe and go with the upper bound</span>
+<span class="nc" id="L108">      return len / 4 * 3;</span>
+    }
+
+    // so far this base64 looks like it's unindented tightly packed base64.
+    // take a chance and create an array with the expected size
+<span class="nc" id="L113">    return len / 4 * 3 - padSize;</span>
+  }
+
+  public static byte[] decodeBase64(final CharSequence text) {
+<span class="nc" id="L117">    return Base64.decodeBase64(text, 0, text.length());</span>
+  }
+
+  public static byte[] decodeBase64(final String text) {
+<span class="fc" id="L121">    return Base64.decodeBase64(text, 0, text.length());</span>
+  }
+
+  public static byte[] decodeBase64(final String text, final int from, final int length) {
+<span class="fc" id="L125">    return decodeBase64((CharSequence) text, from, length);</span>
+  }
+
+  public static byte[] decodeBase64V2(final String text, final int from, final int length) {
+<span class="nc" id="L129">    char[] steal = Strings.steal(text);</span>
+<span class="nc" id="L130">    return decodeBase64(steal, from, length);</span>
+  }
+
+  /**
+   * @param text base64Binary data is likely to be long, and decoding requires each character to be accessed twice (once
+   * for counting length, another for decoding.)
+   * @param from the index of the first character in the sequence.
+   * @param len - the number of characters to decode.
+   * @return - the decoded byte array.
+   *
+   */
+  public static byte[] decodeBase64(final CharSequence text, final int from, final int len) {
+<span class="fc" id="L142">    final int buflen = guessLength(text, from, len);</span>
+<span class="fc" id="L143">    final byte[] out = new byte[buflen];</span>
+<span class="fc" id="L144">    int o = 0;</span>
+
+    int i;
+
+<span class="fc" id="L148">    final byte[] quadruplet = new byte[4];</span>
+<span class="fc" id="L149">    int q = 0;</span>
+
+    // convert each quadruplet to three bytes.
+<span class="fc" id="L152">    int to = from + len;</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">    for (i = from; i &lt; to; i++) {</span>
+<span class="fc" id="L154">      char ch = text.charAt(i);</span>
+<span class="fc" id="L155">      byte v = DECODE_MAP[ch];</span>
+
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">      if (v != -1) {</span>
+<span class="fc" id="L158">        quadruplet[q++] = v;</span>
+      }
+
+<span class="fc bfc" id="L161" title="All 2 branches covered.">      if (q == 4) {</span>
+        // quadruplet is now filled.
+<span class="fc" id="L163">        out[o++] = (byte) ((quadruplet[0] &lt;&lt; 2) | (quadruplet[1] &gt;&gt; 4));</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        if (quadruplet[2] != PADDING) {</span>
+<span class="fc" id="L165">          out[o++] = (byte) ((quadruplet[1] &lt;&lt; 4) | (quadruplet[2] &gt;&gt; 2));</span>
+        }
+<span class="fc bfc" id="L167" title="All 2 branches covered.">        if (quadruplet[3] != PADDING) {</span>
+<span class="fc" id="L168">          out[o++] = (byte) ((quadruplet[2] &lt;&lt; 6) | (quadruplet[3]));</span>
+        }
+<span class="fc" id="L170">        q = 0;</span>
+      }
+    }
+
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">    if (buflen == o) { // speculation worked out to be OK</span>
+<span class="fc" id="L175">      return out;</span>
+    }
+
+    // we overestimated, so need to create a new buffer
+<span class="nc" id="L179">    byte[] nb = new byte[o];</span>
+<span class="nc" id="L180">    System.arraycopy(out, 0, nb, 0, o);</span>
+<span class="nc" id="L181">    return nb;</span>
+  }
+
+  public static byte[] decodeBase64(final char[] text, final int from, final int len) {
+<span class="nc" id="L185">    final int buflen = guessLength(text, from, len);</span>
+<span class="nc" id="L186">    final byte[] out = new byte[buflen];</span>
+<span class="nc" id="L187">    int o = 0;</span>
+
+    int i;
+
+<span class="nc" id="L191">    final byte[] quadruplet = new byte[4];</span>
+<span class="nc" id="L192">    int q = 0;</span>
+
+    // convert each quadruplet to three bytes.
+<span class="nc" id="L195">    int to = from + len;</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    for (i = from; i &lt; to; i++) {</span>
+<span class="nc" id="L197">      char ch = text[i];</span>
+<span class="nc" id="L198">      byte v = DECODE_MAP[ch];</span>
+
+<span class="nc bnc" id="L200" title="All 2 branches missed.">      if (v != -1) {</span>
+<span class="nc" id="L201">        quadruplet[q++] = v;</span>
+      }
+
+<span class="nc bnc" id="L204" title="All 2 branches missed.">      if (q == 4) {</span>
+        // quadruplet is now filled.
+<span class="nc" id="L206">        out[o++] = (byte) ((quadruplet[0] &lt;&lt; 2) | (quadruplet[1] &gt;&gt; 4));</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        if (quadruplet[2] != PADDING) {</span>
+<span class="nc" id="L208">          out[o++] = (byte) ((quadruplet[1] &lt;&lt; 4) | (quadruplet[2] &gt;&gt; 2));</span>
+        }
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (quadruplet[3] != PADDING) {</span>
+<span class="nc" id="L211">          out[o++] = (byte) ((quadruplet[2] &lt;&lt; 6) | (quadruplet[3]));</span>
+        }
+<span class="nc" id="L213">        q = 0;</span>
+      }
+    }
+
+<span class="nc bnc" id="L217" title="All 2 branches missed.">    if (buflen == o) { // speculation worked out to be OK</span>
+<span class="nc" id="L218">      return out;</span>
+    }
+
+    // we overestimated, so need to create a new buffer
+<span class="nc" id="L222">    byte[] nb = new byte[o];</span>
+<span class="nc" id="L223">    System.arraycopy(out, 0, nb, 0, o);</span>
+<span class="nc" id="L224">    return nb;</span>
+  }
+
+  private static char[] initEncodeMap() {
+<span class="fc" id="L228">    char[] map = new char[64];</span>
+    int i;
+<span class="fc bfc" id="L230" title="All 2 branches covered.">    for (i = 0; i &lt; 26; i++) {</span>
+<span class="fc" id="L231">      map[i] = (char) ('A' + i);</span>
+    }
+<span class="fc bfc" id="L233" title="All 2 branches covered.">    for (i = 26; i &lt; 52; i++) {</span>
+<span class="fc" id="L234">      map[i] = (char) ('a' + (i - 26));</span>
+    }
+<span class="fc bfc" id="L236" title="All 2 branches covered.">    for (i = 52; i &lt; 62; i++) {</span>
+<span class="fc" id="L237">      map[i] = (char) ('0' + (i - 52));</span>
+    }
+<span class="fc" id="L239">    map[62] = '+';</span>
+<span class="fc" id="L240">    map[63] = '/';</span>
+
+<span class="fc" id="L242">    return map;</span>
+  }
+
+  public static char encode(final int i) {
+<span class="fc" id="L246">    return ENCODE_MAP[i &amp; 0x3F];</span>
+  }
+
+  public static byte encodeByte(final int i) {
+<span class="nc" id="L250">    return (byte) ENCODE_MAP[i &amp; 0x3F];</span>
+  }
+
+  public static String encodeBase64(final byte[] input) {
+<span class="fc" id="L254">    return Base64.encodeBase64(input, 0, input.length);</span>
+  }
+
+  public static String encodeBase64(final byte[] input, final int offset, final int len) {
+<span class="fc" id="L258">    char[] buf = TLScratch.getCharsTmp((((len + 2) / 3) * 4));</span>
+<span class="fc" id="L259">    int ptr = Base64.encodeBase64(input, offset, len, buf, 0);</span>
+<span class="fc" id="L260">    return new String(buf, 0, ptr);</span>
+  }
+
+  /**
+   * Alternate implementation, should be better for large data.
+   *
+   * @param input - the byte array to encode
+   * @param offset - the index of the first byte that is to be encoded.
+   * @param len - the number of bytes to encode.
+   * @return - the encoded String.
+   */
+  public static CharSequence encodeBase64V2(final byte[] input, final int offset, final int len) {
+<span class="nc" id="L272">    char[] buf = new char[(((len + 2) / 3) * 4)];</span>
+<span class="nc" id="L273">    int ptr = encodeBase64(input, offset, len, buf, 0);</span>
+<span class="nc bnc" id="L274" title="All 4 branches missed.">    assert ptr == buf.length;</span>
+<span class="nc" id="L275">    return CharBuffer.wrap(buf);</span>
+  }
+
+  public static void encodeBase64(final byte[] input, final int offset, final int len, final Appendable result)
+          throws IOException {
+<span class="nc bnc" id="L280" title="All 2 branches missed.">    for (int i = offset; i &lt; len; i += 3) {</span>
+<span class="nc bnc" id="L281" title="All 3 branches missed.">      switch (len - i) {</span>
+        case 1:
+<span class="nc" id="L283">          result.append(encode(input[i] &gt;&gt; 2));</span>
+<span class="nc" id="L284">          result.append(encode(((input[i]) &amp; 0x3) &lt;&lt; 4));</span>
+<span class="nc" id="L285">          result.append(&quot;==&quot;);</span>
+<span class="nc" id="L286">          break;</span>
+        case 2:
+<span class="nc" id="L288">          result.append(encode(input[i] &gt;&gt; 2));</span>
+<span class="nc" id="L289">          result.append(encode(</span>
+                  ((input[i] &amp; 0x3) &lt;&lt; 4)
+                  | ((input[i + 1] &gt;&gt; 4) &amp; 0xF)));
+<span class="nc" id="L292">          result.append(encode((input[i + 1] &amp; 0xF) &lt;&lt; 2));</span>
+<span class="nc" id="L293">          result.append('=');</span>
+<span class="nc" id="L294">          break;</span>
+        default:
+<span class="nc" id="L296">          result.append(encode(input[i] &gt;&gt; 2));</span>
+<span class="nc" id="L297">          result.append(encode(</span>
+                  ((input[i] &amp; 0x3) &lt;&lt; 4)
+                  | ((input[i + 1] &gt;&gt; 4) &amp; 0xF)));
+<span class="nc" id="L300">          result.append(encode(</span>
+                  ((input[i + 1] &amp; 0xF) &lt;&lt; 2)
+                  | ((input[i + 2] &gt;&gt; 6) &amp; 0x3)));
+<span class="nc" id="L303">          result.append(encode(input[i + 2] &amp; 0x3F));</span>
+          break;
+      }
+    }
+<span class="nc" id="L307">  }</span>
+
+  /**
+   * Encodes a byte array into a char array by doing base64 encoding.
+   *
+   * The caller must supply a big enough buffer.
+   *
+   * @param input - the byte array to encode.
+   * @param offset - the index of the first byte to encode.
+   * @param len - the number of bytes to encode.
+   * @param output - the destination character array to encode to.
+   * @param cptr - the index of the first character to encode to.
+   * @return the value of {@code ptr+((len+2)/3)*4}, which is the new offset in the output buffer where the further
+   * bytes should be placed.
+   */
+  public static int encodeBase64(final byte[] input, final int offset,
+          final int len, final char[] output, final int cptr) {
+<span class="fc" id="L324">    int ptr = cptr;</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">    for (int i = offset; i &lt; len; i += 3) {</span>
+<span class="pc bpc" id="L326" title="1 of 3 branches missed.">      switch (len - i) {</span>
+        case 1:
+<span class="nc" id="L328">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
+<span class="nc" id="L329">          output[ptr++] = encode(((input[i]) &amp; 0x3) &lt;&lt; 4);</span>
+<span class="nc" id="L330">          output[ptr++] = '=';</span>
+<span class="nc" id="L331">          output[ptr++] = '=';</span>
+<span class="nc" id="L332">          break;</span>
+        case 2:
+<span class="fc" id="L334">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
+<span class="fc" id="L335">          output[ptr++] = encode(</span>
+                  ((input[i] &amp; 0x3) &lt;&lt; 4)
+                  | ((input[i + 1] &gt;&gt; 4) &amp; 0xF));
+<span class="fc" id="L338">          output[ptr++] = encode((input[i + 1] &amp; 0xF) &lt;&lt; 2);</span>
+<span class="fc" id="L339">          output[ptr++] = '=';</span>
+<span class="fc" id="L340">          break;</span>
+        default:
+<span class="fc" id="L342">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
+<span class="fc" id="L343">          output[ptr++] = encode(</span>
+                  ((input[i] &amp; 0x3) &lt;&lt; 4)
+                  | ((input[i + 1] &gt;&gt; 4) &amp; 0xF));
+<span class="fc" id="L346">          output[ptr++] = encode(</span>
+                  ((input[i + 1] &amp; 0xF) &lt;&lt; 2)
+                  | ((input[i + 2] &gt;&gt; 6) &amp; 0x3));
+<span class="fc" id="L349">          output[ptr++] = encode(input[i + 2] &amp; 0x3F);</span>
+          break;
+      }
+    }
+<span class="fc" id="L353">    return ptr;</span>
+  }
+
+  /**
+   * Encodes a byte array into another byte array by first doing base64 encoding then encoding the result in ASCII.
+   *
+   * The caller must supply a big enough buffer.
+   *
+   * @param input - the byte array to encode.
+   * @param offset - the index of the first byte to encode.
+   * @param len - the number of bytes to encode.
+   * @param out - the destination byte array that represents an ASCII string to encode to.
+   * @param cptr - the index of the first byte in the destination array to encode to.
+   * @return the value of {@code ptr+((len+2)/3)*4}, which is the new offset in the output buffer where the further
+   * bytes should be placed.
+   */
+  public static int encodeBase64(final byte[] input, final int offset, final int len,
+          final byte[] out, final int cptr) {
+<span class="nc" id="L371">    int ptr = cptr;</span>
+<span class="nc" id="L372">    byte[] buf = out;</span>
+<span class="nc" id="L373">    int max = len + offset;</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">    for (int i = offset; i &lt; max; i += 3) {</span>
+<span class="nc bnc" id="L375" title="All 3 branches missed.">      switch (max - i) {</span>
+        case 1:
+<span class="nc" id="L377">          buf[ptr++] = encodeByte(input[i] &gt;&gt; 2);</span>
+<span class="nc" id="L378">          buf[ptr++] = encodeByte(((input[i]) &amp; 0x3) &lt;&lt; 4);</span>
+<span class="nc" id="L379">          buf[ptr++] = '=';</span>
+<span class="nc" id="L380">          buf[ptr++] = '=';</span>
+<span class="nc" id="L381">          break;</span>
+        case 2:
+<span class="nc" id="L383">          buf[ptr++] = encodeByte(input[i] &gt;&gt; 2);</span>
+<span class="nc" id="L384">          buf[ptr++] = encodeByte(</span>
+                  ((input[i] &amp; 0x3) &lt;&lt; 4)
+                  | ((input[i + 1] &gt;&gt; 4) &amp; 0xF));
+<span class="nc" id="L387">          buf[ptr++] = encodeByte((input[i + 1] &amp; 0xF) &lt;&lt; 2);</span>
+<span class="nc" id="L388">          buf[ptr++] = '=';</span>
+<span class="nc" id="L389">          break;</span>
+        default:
+<span class="nc" id="L391">          buf[ptr++] = encodeByte(input[i] &gt;&gt; 2);</span>
+<span class="nc" id="L392">          buf[ptr++] = encodeByte(</span>
+                  ((input[i] &amp; 0x3) &lt;&lt; 4)
+                  | ((input[i + 1] &gt;&gt; 4) &amp; 0xF));
+<span class="nc" id="L395">          buf[ptr++] = encodeByte(</span>
+                  ((input[i + 1] &amp; 0xF) &lt;&lt; 2)
+                  | ((input[i + 2] &gt;&gt; 6) &amp; 0x3));
+<span class="nc" id="L398">          buf[ptr++] = encodeByte(input[i + 2] &amp; 0x3F);</span>
+          break;
+      }
+    }
+
+<span class="nc" id="L403">    return ptr;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

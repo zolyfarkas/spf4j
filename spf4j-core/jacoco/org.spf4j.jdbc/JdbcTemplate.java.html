@@ -47,7 +47,7 @@ public final class JdbcTemplate {
                 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
                 public R call(final long deadlineNanos)
                         throws SQLException {
-<span class="pc" id="L50">                  try (Connection conn = dataSource.getConnection()) {</span>
+<span class="fc" id="L50">                  try (Connection conn = dataSource.getConnection()) {</span>
 <span class="fc" id="L51">                    boolean autocomit = conn.getAutoCommit();</span>
 <span class="pc bpc" id="L52" title="1 of 2 branches missed.">                    if (autocomit) {</span>
 <span class="fc" id="L53">                      conn.setAutoCommit(false);</span>
@@ -56,15 +56,15 @@ public final class JdbcTemplate {
 <span class="fc" id="L56">                      R result = handler.handle(conn, deadlineNanos);</span>
 <span class="fc" id="L57">                      conn.commit();</span>
 <span class="fc" id="L58">                      return result;</span>
-<span class="nc" id="L59">                    } catch (SQLException | RuntimeException ex) {</span>
-<span class="nc" id="L60">                      conn.rollback();</span>
-<span class="nc" id="L61">                      throw ex;</span>
+<span class="fc" id="L59">                    } catch (SQLException | RuntimeException ex) {</span>
+<span class="fc" id="L60">                      conn.rollback();</span>
+<span class="fc" id="L61">                      throw ex;</span>
                     } finally {
-<span class="pc bpc" id="L63" title="3 of 4 branches missed.">                      if (autocomit) {</span>
-<span class="pc" id="L64">                        conn.setAutoCommit(true);</span>
+<span class="pc bpc" id="L63" title="2 of 4 branches missed.">                      if (autocomit) {</span>
+<span class="fc" id="L64">                        conn.setAutoCommit(true);</span>
                       }
                     }
-<span class="pc bpc" id="L67" title="6 of 8 branches missed.">                  }</span>
+<span class="pc bpc" id="L67" title="4 of 8 branches missed.">                  }</span>
                 }
               }, 2, 1000, SQLException.class);
 <span class="nc" id="L70">    } catch (TimeoutException ex) {</span>

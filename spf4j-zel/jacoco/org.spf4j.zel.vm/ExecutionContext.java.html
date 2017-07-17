@@ -41,6 +41,8 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
 @ParametersAreNonnullByDefault
 public final class ExecutionContext implements VMExecutor.Suspendable&lt;Object&gt; {
 
+<span class="fc" id="L44">  private final Object[] tuple = new Object[2];</span>
+
   @Nonnull
   private MathContext mathContext;
 
@@ -82,18 +84,18 @@ public final class ExecutionContext implements VMExecutor.Suspendable&lt;Object&
   private final boolean isChildContext;
 
   private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service,
-<span class="fc" id="L85">          final Program program, final Object[] localMem) {</span>
-<span class="fc" id="L86">    this.io = parent.io;</span>
-<span class="fc" id="L87">    this.mem = localMem;</span>
-<span class="fc" id="L88">    this.globalMem = parent.globalMem;</span>
-<span class="fc" id="L89">    this.execService = service;</span>
-<span class="fc" id="L90">    this.stack = new SimpleStack&lt;&gt;(8);</span>
-<span class="fc" id="L91">    this.code = program;</span>
-<span class="fc" id="L92">    this.resultCache = parent.resultCache;</span>
-<span class="fc" id="L93">    this.ip = 0;</span>
-<span class="fc" id="L94">    isChildContext = true;</span>
-<span class="fc" id="L95">    this.mathContext = MathContext.DECIMAL128;</span>
-<span class="fc" id="L96">  }</span>
+<span class="fc" id="L87">          final Program program, final Object[] localMem) {</span>
+<span class="fc" id="L88">    this.io = parent.io;</span>
+<span class="fc" id="L89">    this.mem = localMem;</span>
+<span class="fc" id="L90">    this.globalMem = parent.globalMem;</span>
+<span class="fc" id="L91">    this.execService = service;</span>
+<span class="fc" id="L92">    this.stack = new SimpleStack&lt;&gt;(8);</span>
+<span class="fc" id="L93">    this.code = program;</span>
+<span class="fc" id="L94">    this.resultCache = parent.resultCache;</span>
+<span class="fc" id="L95">    this.ip = 0;</span>
+<span class="fc" id="L96">    isChildContext = true;</span>
+<span class="fc" id="L97">    this.mathContext = MathContext.DECIMAL128;</span>
+<span class="fc" id="L98">  }</span>
 
   /**
    * additional constructor that allows you to set the standard Input/Output streams
@@ -106,88 +108,88 @@ public final class ExecutionContext implements VMExecutor.Suspendable&lt;Object&
   ExecutionContext(final Program program, final Object[] globalMem,
           @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
-<span class="nc" id="L109">    this(program, globalMem, new Object[program.getLocalMemSize()],</span>
-<span class="nc bnc" id="L110" title="All 2 branches missed.">            program.hasDeterministicFunctions() ? new SimpleResultCache() : null,</span>
+<span class="nc" id="L111">    this(program, globalMem, new Object[program.getLocalMemSize()],</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            program.hasDeterministicFunctions() ? new SimpleResultCache() : null,</span>
             io, execService);
-<span class="nc" id="L112">  }</span>
+<span class="nc" id="L114">  }</span>
 
   ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
           @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
-<span class="fc" id="L117">    this(program, globalMem, localMem,</span>
-<span class="fc bfc" id="L118" title="All 2 branches covered.">            program.hasDeterministicFunctions() ? new SimpleResultCache() : null,</span>
+<span class="fc" id="L119">    this(program, globalMem, localMem,</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">            program.hasDeterministicFunctions() ? new SimpleResultCache() : null,</span>
             io, execService);
-<span class="fc" id="L120">  }</span>
+<span class="fc" id="L122">  }</span>
 
   ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
           @Nullable final ResultCache resultCache,
           @Nullable final ProcessIO io,
-<span class="fc" id="L125">          @Nullable final VMExecutor execService) {</span>
-<span class="fc" id="L126">    this.code = program;</span>
-<span class="fc" id="L127">    this.io = io;</span>
-<span class="fc" id="L128">    this.execService = execService;</span>
-<span class="fc" id="L129">    this.stack = new SimpleStack&lt;&gt;(8);</span>
-<span class="fc" id="L130">    this.ip = 0;</span>
-<span class="fc" id="L131">    this.mem = localMem;</span>
-<span class="fc" id="L132">    this.globalMem = globalMem;</span>
-<span class="fc" id="L133">    this.resultCache = resultCache;</span>
-<span class="fc" id="L134">    isChildContext = false;</span>
-<span class="fc" id="L135">    this.mathContext = MathContext.DECIMAL128;</span>
-<span class="fc" id="L136">  }</span>
+<span class="fc" id="L127">          @Nullable final VMExecutor execService) {</span>
+<span class="fc" id="L128">    this.code = program;</span>
+<span class="fc" id="L129">    this.io = io;</span>
+<span class="fc" id="L130">    this.execService = execService;</span>
+<span class="fc" id="L131">    this.stack = new SimpleStack&lt;&gt;(8);</span>
+<span class="fc" id="L132">    this.ip = 0;</span>
+<span class="fc" id="L133">    this.mem = localMem;</span>
+<span class="fc" id="L134">    this.globalMem = globalMem;</span>
+<span class="fc" id="L135">    this.resultCache = resultCache;</span>
+<span class="fc" id="L136">    isChildContext = false;</span>
+<span class="fc" id="L137">    this.mathContext = MathContext.DECIMAL128;</span>
+<span class="fc" id="L138">  }</span>
 
   public ProcessIO getIo() {
-<span class="fc" id="L139">    return io;</span>
+<span class="fc" id="L141">    return io;</span>
   }
 
 
   @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public Object[] getMem() {
-<span class="nc" id="L145">    return mem;</span>
+<span class="nc" id="L147">    return mem;</span>
   }
 
   public void globalPoke(final int addr, final Object value) {
-<span class="fc" id="L149">    globalMem[addr] = value;</span>
-<span class="fc" id="L150">  }</span>
+<span class="fc" id="L151">    globalMem[addr] = value;</span>
+<span class="fc" id="L152">  }</span>
 
   public void localPoke(final int addr, final Object value) {
-<span class="fc" id="L153">    mem[addr] = value;</span>
-<span class="fc" id="L154">  }</span>
+<span class="fc" id="L155">    mem[addr] = value;</span>
+<span class="fc" id="L156">  }</span>
 
   public Object localPeek(final int addr) {
-<span class="fc" id="L157">    return mem[addr];</span>
+<span class="fc" id="L159">    return mem[addr];</span>
   }
 
   public Object globalPeek(final int addr) {
-<span class="fc" id="L161">    return globalMem[addr];</span>
+<span class="fc" id="L163">    return globalMem[addr];</span>
   }
 
   public Program getProgram() {
-<span class="fc" id="L165">    return code;</span>
+<span class="fc" id="L167">    return code;</span>
   }
 
   public void incrementInstructionPointer() {
-<span class="fc" id="L169">    ip++;</span>
-<span class="fc" id="L170">  }</span>
+<span class="fc" id="L171">    ip++;</span>
+<span class="fc" id="L172">  }</span>
 
   public void terminate() {
-<span class="fc" id="L173">    terminated = true;</span>
-<span class="fc" id="L174">  }</span>
+<span class="fc" id="L175">    terminated = true;</span>
+<span class="fc" id="L176">  }</span>
 
   // TODO: Need to employ Either here
   @SuppressFBWarnings(&quot;URV_UNRELATED_RETURN_VALUES&quot;)
   public Object executeSyncOrAsync()
           throws ExecutionException, InterruptedException {
-<span class="pc bpc" id="L180" title="1 of 4 branches missed.">    if (this.execService != null &amp;&amp; this.code.getExecType() == Program.ExecutionType.ASYNC) {</span>
-<span class="fc bfc" id="L181" title="All 2 branches covered.">      if (this.isChildContext()) {</span>
-<span class="fc" id="L182">        return this.execService.submitInternal(VMExecutor.synchronize(this));</span>
+<span class="pc bpc" id="L182" title="1 of 4 branches missed.">    if (this.execService != null &amp;&amp; this.code.getExecType() == Program.ExecutionType.ASYNC) {</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">      if (this.isChildContext()) {</span>
+<span class="fc" id="L184">        return this.execService.submitInternal(VMExecutor.synchronize(this));</span>
       } else {
-<span class="fc" id="L184">        return this.execService.submit(VMExecutor.synchronize(this));</span>
+<span class="fc" id="L186">        return this.execService.submit(VMExecutor.synchronize(this));</span>
       }
     } else {
       try {
-<span class="fc" id="L188">        return this.call();</span>
-<span class="nc" id="L189">      } catch (SuspendedException ex) {</span>
-<span class="nc" id="L190">        throw new RuntimeException(ex);</span>
+<span class="fc" id="L190">        return this.call();</span>
+<span class="nc" id="L191">      } catch (SuspendedException ex) {</span>
+<span class="nc" id="L192">        throw new ExecutionException(&quot;Suspending not supported in current context &quot; + this, ex);</span>
       }
     }
   }
@@ -196,62 +198,62 @@ public final class ExecutionContext implements VMExecutor.Suspendable&lt;Object&
   // TODO: Need to employ Either here
   public Object executeAsync()
           throws ExecutionException, InterruptedException {
-<span class="pc bpc" id="L199" title="1 of 2 branches missed.">    if (this.execService != null) {</span>
-<span class="pc bpc" id="L200" title="1 of 2 branches missed.">      if (this.isChildContext()) {</span>
-<span class="fc" id="L201">        return this.execService.submitInternal(VMExecutor.synchronize(this));</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">    if (this.execService != null) {</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">      if (this.isChildContext()) {</span>
+<span class="fc" id="L203">        return this.execService.submitInternal(VMExecutor.synchronize(this));</span>
       } else {
-<span class="nc" id="L203">        return this.execService.submit(VMExecutor.synchronize(this));</span>
+<span class="nc" id="L205">        return this.execService.submit(VMExecutor.synchronize(this));</span>
       }
     } else {
       try {
-<span class="nc" id="L207">        return this.call();</span>
-<span class="nc" id="L208">      } catch (SuspendedException ex) {</span>
-<span class="nc" id="L209">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L209">        return this.call();</span>
+<span class="nc" id="L210">      } catch (SuspendedException ex) {</span>
+<span class="nc" id="L211">        throw new ExecutionException(&quot;Suspending not supported for &quot; + this, ex);</span>
       }
     }
   }
 
   public void suspend(final VMFuture&lt;Object&gt; future) throws SuspendedException {
-<span class="fc" id="L215">    suspendedAt = Arrays.asList(future);</span>
-<span class="fc" id="L216">    throw SuspendedException.INSTANCE;</span>
+<span class="fc" id="L217">    suspendedAt = Arrays.asList(future);</span>
+<span class="fc" id="L218">    throw SuspendedException.INSTANCE;</span>
   }
 
   public void suspend(final List&lt;VMFuture&lt;Object&gt;&gt; futures) throws SuspendedException {
-<span class="fc" id="L220">    suspendedAt = futures;</span>
-<span class="fc" id="L221">    throw SuspendedException.INSTANCE;</span>
+<span class="fc" id="L222">    suspendedAt = futures;</span>
+<span class="fc" id="L223">    throw SuspendedException.INSTANCE;</span>
   }
 
 
   @Override
   public Object call()
           throws ExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L228">    suspendedAt = null;</span>
-<span class="fc" id="L229">    Operator.MATH_CONTEXT.set(getMathContext());</span>
-<span class="fc" id="L230">    Instruction[] instructions = code.getInstructions();</span>
+<span class="fc" id="L230">    suspendedAt = null;</span>
+<span class="fc" id="L231">    Operator.MATH_CONTEXT.set(getMathContext());</span>
+<span class="fc" id="L232">    Instruction[] instructions = code.getInstructions();</span>
     try {
-<span class="fc bfc" id="L232" title="All 2 branches covered.">      while (!terminated) {</span>
-<span class="fc" id="L233">        Instruction icode = instructions[ip];</span>
-<span class="fc" id="L234">        ip += icode.execute(ExecutionContext.this);</span>
-<span class="fc" id="L235">      }</span>
-<span class="pc bpc" id="L236" title="1 of 2 branches missed.">      if (!isStackEmpty()) {</span>
-<span class="fc" id="L237">        Object result = popSyncStackVal();</span>
-<span class="fc" id="L238">        syncStackVals();</span>
-<span class="fc" id="L239">        return result;</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">      while (!terminated) {</span>
+<span class="fc" id="L235">        Instruction icode = instructions[ip];</span>
+<span class="fc" id="L236">        ip += icode.execute(ExecutionContext.this);</span>
+<span class="fc" id="L237">      }</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">      if (!isStackEmpty()) {</span>
+<span class="fc" id="L239">        Object result = popSyncStackVal();</span>
+<span class="fc" id="L240">        syncStackVals();</span>
+<span class="fc" id="L241">        return result;</span>
       } else {
-<span class="nc" id="L241">        return null;</span>
+<span class="nc" id="L243">        return null;</span>
       }
-<span class="fc" id="L243">    } catch (SuspendedException | InterruptedException e) {</span>
-<span class="fc" id="L244">      throw e;</span>
-<span class="fc" id="L245">    } catch (ZExecutionException e) {</span>
-<span class="fc" id="L246">      e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),</span>
-<span class="fc" id="L247">              code.getDebug()[ip].getRow()));</span>
-<span class="fc" id="L248">      throw e;</span>
+<span class="fc" id="L245">    } catch (SuspendedException | InterruptedException e) {</span>
+<span class="fc" id="L246">      throw e;</span>
+<span class="fc" id="L247">    } catch (ZExecutionException e) {</span>
+<span class="fc" id="L248">      e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),</span>
+<span class="fc" id="L249">              code.getDebug()[ip].getRow()));</span>
+<span class="fc" id="L250">      throw e;</span>
     }
   }
 
   @Override
   public List&lt;VMFuture&lt;Object&gt;&gt; getSuspendedAt() {
-<span class="fc" id="L254">    return suspendedAt;</span>
+<span class="fc" id="L256">    return suspendedAt;</span>
   }
 
 
@@ -261,79 +263,77 @@ public final class ExecutionContext implements VMExecutor.Suspendable&lt;Object&
    * @return Object
    */
   public Object popSyncStackVal() throws SuspendedException, ExecutionException {
-<span class="fc" id="L264">    Object result = this.stack.peek();</span>
-<span class="fc bfc" id="L265" title="All 2 branches covered.">    if (result instanceof VMFuture&lt;?&gt;) {</span>
-<span class="fc" id="L266">      final VMFuture&lt;Object&gt; resFut = (VMFuture&lt;Object&gt;) result;</span>
-<span class="fc" id="L267">      Either&lt;Object, ? extends ExecutionException&gt; resultStore = resFut.getResultStore();</span>
-<span class="pc bpc" id="L268" title="1 of 2 branches missed.">      if (resultStore != null) {</span>
-<span class="fc" id="L269">        this.stack.remove();</span>
-<span class="fc" id="L270">        return FutureBean.processResult(resultStore);</span>
+<span class="fc" id="L266">    Object result = this.stack.peek();</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">    if (result instanceof VMFuture&lt;?&gt;) {</span>
+<span class="fc" id="L268">      final VMFuture&lt;Object&gt; resFut = (VMFuture&lt;Object&gt;) result;</span>
+<span class="fc" id="L269">      Either&lt;Object, ? extends ExecutionException&gt; resultStore = resFut.getResultStore();</span>
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">      if (resultStore != null) {</span>
+<span class="fc" id="L271">        this.stack.remove();</span>
+<span class="fc" id="L272">        return FutureBean.processResult(resultStore);</span>
       } else {
-<span class="nc" id="L272">        suspend(resFut);</span>
-<span class="nc" id="L273">        throw new IllegalThreadStateException();</span>
+<span class="nc" id="L274">        suspend(resFut);</span>
+<span class="nc" id="L275">        throw new IllegalThreadStateException();</span>
       }
     } else {
-<span class="fc" id="L276">      this.stack.remove();</span>
-<span class="fc" id="L277">      return result;</span>
+<span class="fc" id="L278">      this.stack.remove();</span>
+<span class="fc" id="L279">      return result;</span>
     }
   }
 
   public void syncStackVal() throws SuspendedException, ExecutionException {
-<span class="fc" id="L282">    Object result = this.stack.peek();</span>
-<span class="fc bfc" id="L283" title="All 2 branches covered.">    if (result instanceof VMFuture&lt;?&gt;) {</span>
-<span class="fc" id="L284">      final VMFuture&lt;Object&gt; resFut = (VMFuture&lt;Object&gt;) result;</span>
-<span class="fc" id="L285">      Either&lt;Object, ? extends ExecutionException&gt; resultStore = resFut.getResultStore();</span>
-<span class="fc bfc" id="L286" title="All 2 branches covered.">      if (resultStore == null) {</span>
-<span class="nc" id="L287">        suspend(resFut);</span>
-<span class="nc" id="L288">        throw new IllegalThreadStateException();</span>
+<span class="fc" id="L284">    Object result = this.stack.peek();</span>
+<span class="fc bfc" id="L285" title="All 2 branches covered.">    if (result instanceof VMFuture&lt;?&gt;) {</span>
+<span class="fc" id="L286">      final VMFuture&lt;Object&gt; resFut = (VMFuture&lt;Object&gt;) result;</span>
+<span class="fc" id="L287">      Either&lt;Object, ? extends ExecutionException&gt; resultStore = resFut.getResultStore();</span>
+<span class="fc bfc" id="L288" title="All 2 branches covered.">      if (resultStore == null) {</span>
+<span class="nc" id="L289">        suspend(resFut);</span>
+<span class="nc" id="L290">        throw new IllegalThreadStateException();</span>
       } else {
-<span class="fc" id="L290">        this.stack.replaceFromTop(0, FutureBean.processResult(resultStore));</span>
+<span class="fc" id="L292">        this.stack.replaceFromTop(0, FutureBean.processResult(resultStore));</span>
       }
     }
-<span class="fc" id="L293">  }</span>
+<span class="fc" id="L295">  }</span>
 
   public void syncStackVals() throws SuspendedException, ExecutionException {
-<span class="fc bfc" id="L296" title="All 2 branches covered.">    for (int i = 0; i &lt; stack.size(); i++) {</span>
-<span class="fc" id="L297">      Object result = this.stack.peekFromTop(i);</span>
-<span class="fc bfc" id="L298" title="All 2 branches covered.">      if (result instanceof VMFuture&lt;?&gt;) {</span>
-<span class="fc" id="L299">        final VMFuture&lt;Object&gt; resFut = (VMFuture&lt;Object&gt;) result;</span>
-<span class="fc" id="L300">        Either&lt;Object, ? extends ExecutionException&gt; resultStore = resFut.getResultStore();</span>
-<span class="fc bfc" id="L301" title="All 2 branches covered.">        if (resultStore == null) {</span>
-<span class="nc" id="L302">          suspend(resFut);</span>
-<span class="nc" id="L303">          throw new IllegalThreadStateException();</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">    for (int i = 0; i &lt; stack.size(); i++) {</span>
+<span class="fc" id="L299">      Object result = this.stack.peekFromTop(i);</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">      if (result instanceof VMFuture&lt;?&gt;) {</span>
+<span class="fc" id="L301">        final VMFuture&lt;Object&gt; resFut = (VMFuture&lt;Object&gt;) result;</span>
+<span class="fc" id="L302">        Either&lt;Object, ? extends ExecutionException&gt; resultStore = resFut.getResultStore();</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">        if (resultStore == null) {</span>
+<span class="nc" id="L304">          suspend(resFut);</span>
+<span class="nc" id="L305">          throw new IllegalThreadStateException();</span>
         } else {
-<span class="fc" id="L305">          this.stack.replaceFromTop(i, FutureBean.processResult(resultStore));</span>
+<span class="fc" id="L307">          this.stack.replaceFromTop(i, FutureBean.processResult(resultStore));</span>
         }
       }
     }
-<span class="fc" id="L309">  }</span>
+<span class="fc" id="L311">  }</span>
 
   public Object[] popStackVals(final int nvals) {
-<span class="fc" id="L312">    return stack.pop(nvals);</span>
+<span class="fc" id="L314">    return stack.pop(nvals);</span>
   }
 
   public void popStackVals(final Object[] to, final int nvals) {
-<span class="fc" id="L316">    stack.popTo(to, nvals);</span>
-<span class="fc" id="L317">  }</span>
+<span class="fc" id="L318">    stack.popTo(to, nvals);</span>
+<span class="fc" id="L319">  }</span>
 
   public Object popStackVal() {
-<span class="fc" id="L320">    return stack.pop();</span>
+<span class="fc" id="L322">    return stack.pop();</span>
   }
 
   public int getNrStackVals() {
-<span class="nc" id="L324">    return stack.size();</span>
+<span class="nc" id="L326">    return stack.size();</span>
   }
 
   public Object[] popSyncStackVals(final int nvals) throws SuspendedException, ExecutionException {
-<span class="fc bfc" id="L328" title="All 2 branches covered.">    if (nvals == 0) {</span>
-<span class="fc" id="L329">      return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">    if (nvals == 0) {</span>
+<span class="fc" id="L331">      return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
     }
-<span class="fc" id="L331">    Object[] result = new Object[nvals];</span>
-<span class="fc" id="L332">    popSyncStackVals(result);</span>
-<span class="fc" id="L333">    return result;</span>
+<span class="fc" id="L333">    Object[] result = new Object[nvals];</span>
+<span class="fc" id="L334">    popSyncStackVals(result);</span>
+<span class="fc" id="L335">    return result;</span>
   }
-
-<span class="fc" id="L336">  private final Object[] tuple = new Object[2];</span>
 
   @SuppressFBWarnings
   public Object[] tuple() {

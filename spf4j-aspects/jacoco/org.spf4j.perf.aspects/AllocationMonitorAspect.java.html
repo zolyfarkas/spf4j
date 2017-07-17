@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AllocationMonitorAspect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-aspects</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.aspects</a> &gt; <span class="el_source">AllocationMonitorAspect.java</span></div><h1>AllocationMonitorAspect.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.aspects;
+
+import org.spf4j.base.InstrumentationHelper;
+import org.spf4j.perf.MeasurementRecorderSource;
+import org.spf4j.perf.impl.RecorderFactory;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+
+/**
+ * Aspect that intercepts all memory allocations in your code.
+ * where and how much has been allocated is stored in a tsdb database.
+ * this class needs to remain object allocation free to work!
+ *
+ * @author zoly
+ */
+@Aspect
+<span class="fc" id="L36">public final class AllocationMonitorAspect {</span>
+
+
+<span class="fc" id="L39">   private static final boolean RECORD_OBJECT_SIZE =</span>
+<span class="fc" id="L40">            Boolean.getBoolean(&quot;spf4j.perf.allocations.recordSize&quot;);</span>
+
+   private static final MeasurementRecorderSource RECORDER;
+
+   public static final int SAMPLE_TIME_MILLIS;
+
+   static {
+<span class="fc" id="L47">       SAMPLE_TIME_MILLIS = Integer.getInteger(&quot;spf4j.perf.allocations.sampleTimeMillis&quot;, 300000);</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">       if (RECORD_OBJECT_SIZE) {</span>
+<span class="nc" id="L49">           RECORDER = RecorderFactory.createScalableCountingRecorderSource(&quot;allocations&quot;, &quot;bytes&quot;,</span>
+            SAMPLE_TIME_MILLIS);
+       } else {
+<span class="fc" id="L52">           RECORDER = RecorderFactory.createScalableCountingRecorderSource(&quot;allocations&quot;, &quot;instances&quot;,</span>
+            SAMPLE_TIME_MILLIS);
+       }
+<span class="fc" id="L55">   }</span>
+
+    @AfterReturning(pointcut = &quot;call(*.new(..))&quot;, returning = &quot;obj&quot;, argNames = &quot;jp,obj&quot;)
+    public void afterAllocation(final JoinPoint jp, final Object obj) {
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (RECORD_OBJECT_SIZE) {</span>
+<span class="nc" id="L60">            RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).</span>
+<span class="nc" id="L61">                    record(InstrumentationHelper.getObjectSize(obj));</span>
+        } else {
+<span class="fc" id="L63">            RECORDER.getRecorder(jp.getSourceLocation().getWithinType()).record(1);</span>
+        }
+<span class="fc" id="L65">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

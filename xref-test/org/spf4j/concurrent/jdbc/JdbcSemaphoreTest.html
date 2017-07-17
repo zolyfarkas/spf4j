@@ -84,120 +84,159 @@
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>  
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>    }
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>    @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testReleaseAck(<strong class="jxr_keyword">final</strong> DataSource ds, <strong class="jxr_keyword">final</strong> String semName, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxReservations)
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>            <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException, TimeoutException {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>      JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, semName, maxReservations);
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <em class="jxr_comment">// test update;</em>
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">int</strong> totalPermits = semaphore.totalPermits();
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">int</strong> acquire = totalPermits - 1;
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>      semaphore.acquire(acquire, 1, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>      Assert.assertEquals(1, semaphore.permitsOwned());
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">int</strong> nrPermits = semaphore.totalPermits();
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>      semaphore.updatePermits(nrPermits + 1);
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>      Assert.assertEquals(nrPermits + 1, semaphore.totalPermits());
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>      semaphore.updatePermits(nrPermits);
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Assert.assertEquals(nrPermits, semaphore.totalPermits());
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>      semaphore.reducePermits(2);
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>      Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>      semaphore.release(acquire);
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>      semaphore.increasePermits(2);
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>      Assert.assertEquals(totalPermits, semaphore.totalPermits());
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>    @Test
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSingleProcessLock() <strong class="jxr_keyword">throws</strong> SQLException, IOException, InterruptedException, TimeoutException {
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      JdbcDataSource ds = <strong class="jxr_keyword">new</strong> JdbcDataSource();
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      ds.setURL(<span class="jxr_string">"jdbc:h2:mem:test"</span>);
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      ds.setUser(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      ds.setPassword(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">try</strong> (Connection conn = ds.getConnection()) { <em class="jxr_comment">// only to keep the schema arround in thsi section</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>        createSchemaObjects(ds);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>        JdbcLock lock = <strong class="jxr_keyword">new</strong> JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, <span class="jxr_string">"testLock"</span>, 10);
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>        lock.lock();
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>        Assert.assertFalse(lock.tryLock());
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>        lock.unlock();
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      }
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>    }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>    @Test(expected = SQLException.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSingleMultipleInstance() <strong class="jxr_keyword">throws</strong> SQLException, IOException, InterruptedException, TimeoutException {
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>  
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>     Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>     semaphore.release(1);
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>     Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>     semaphore.release(1);
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     semaphore.release(1);
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>     Assert.assertEquals(maxReservations, semaphore.availablePermits());
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>     Assert.assertEquals(maxReservations, semaphore.totalPermits());
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>     semaphore.reducePermits(1);
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>     Assert.assertEquals(maxReservations - 1, semaphore.totalPermits());
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>     Assert.assertEquals(maxReservations - 1, semaphore.availablePermits());
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>     Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>     Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>     semaphore.release(1);
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>       semaphore.release(1);
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>       Assert.fail(<span class="jxr_string">"should not be allow to release!"</span>);
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>     } <strong class="jxr_keyword">catch</strong> (IllegalStateException ex) {
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>       Assert.assertTrue(ex.getMessage().contains(<span class="jxr_string">"Trying to release more than you own"</span>));
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>     }
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>     semaphore.increasePermits(1);
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>     Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>     semaphore.reducePermits(1);
-<a class="jxr_linenumber" name="L123" href="#L123">123</a>     semaphore.release(2);
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>     Assert.assertFalse(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>   }
-<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>   @Test
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>   @SuppressFBWarnings(<span class="jxr_string">"AFBR_ABNORMAL_FINALLY_BLOCK_RETURN"</span>)
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testMultiProcess() <strong class="jxr_keyword">throws</strong> SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>     Server server = Server.createTcpServer(<strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-tcpPort"</span>, <span class="jxr_string">"9123"</span>, <span class="jxr_string">"-tcpAllowOthers"</span>}).start();
-<a class="jxr_linenumber" name="L132" href="#L132">132</a> 
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>     File tempDB = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">"h2db"</span>);
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>     String connStr = <span class="jxr_string">"jdbc:h2:tcp://localhost:9123/nio:"</span> + tempDB.getAbsolutePath() + <span class="jxr_string">";AUTO_SERVER=TRUE"</span>;
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>       JdbcDataSource ds = <strong class="jxr_keyword">new</strong> JdbcDataSource();
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>       ds.setURL(connStr);
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>       ds.setUser(<span class="jxr_string">"sa"</span>);
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>       ds.setPassword(<span class="jxr_string">"sa"</span>);
-<a class="jxr_linenumber" name="L140" href="#L140">140</a> 
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>       createSchemaObjects(ds);
-<a class="jxr_linenumber" name="L142" href="#L142">142</a>       testReleaseAck(ds, <span class="jxr_string">"testSem"</span>, 2);
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>       JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, <span class="jxr_string">"test_sem2"</span>, 3);
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>);
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>);
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>       Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>       JdbcHeartBeat.stopHeartBeats();
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>       server.stop();
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>     } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>       <strong class="jxr_keyword">if</strong> (!tempDB.delete()) {
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Cannot delete "</span> + tempDB);
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>       }
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>     }
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>   }
-<a class="jxr_linenumber" name="L156" href="#L156">156</a> 
-<a class="jxr_linenumber" name="L157" href="#L157">157</a> 
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>   @Test
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testMultiProcess2() <strong class="jxr_keyword">throws</strong> SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>     Server server = Server.createTcpServer(<strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-tcpPort"</span>, <span class="jxr_string">"9123"</span>, <span class="jxr_string">"-tcpAllowOthers"</span>}).start();
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>     <strong class="jxr_keyword">try</strong>  {
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>     File tempDB = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">"h2db"</span>);
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>     tempDB.deleteOnExit();
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>     String connStr = <span class="jxr_string">"jdbc:h2:tcp://localhost:9123/nio:"</span> + tempDB.getAbsolutePath() + <span class="jxr_string">";AUTO_SERVER=TRUE"</span>;
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>       JdbcDataSource ds = <strong class="jxr_keyword">new</strong> JdbcDataSource();
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>       ds.setURL(connStr);
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>       ds.setUser(<span class="jxr_string">"sa"</span>);
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>       ds.setPassword(<span class="jxr_string">"sa"</span>);
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>       createSchemaObjects(ds);
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>       JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, <span class="jxr_string">"test_sem2"</span>, 1, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>       String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>).toString();
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>       String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>).toString();
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>       Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS));
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>       System.out.println(<span class="jxr_string">"P1:"</span>);
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>       System.out.println(o1);
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>       System.out.println(<span class="jxr_string">"P2:"</span>);
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>       System.out.println(o2);
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>       String [] nr1 = o1.split(<span class="jxr_string">"\n"</span>);
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>       String [] nr2 = o2.split(<span class="jxr_string">"\n"</span>);
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>       <strong class="jxr_keyword">int</strong> totatl = nr1.length + nr2.length;
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>       Set&lt;String&gt; numbers = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(totatl);
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>       numbers.addAll(Arrays.asList(nr1));
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>       numbers.addAll(Arrays.asList(nr2));
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>       Assert.assertEquals(totatl, numbers.size());
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     JdbcDataSource ds = <strong class="jxr_keyword">new</strong> JdbcDataSource();
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     ds.setURL(<span class="jxr_string">"jdbc:h2:mem:test"</span>);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     ds.setUser(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     ds.setPassword(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">try</strong> (Connection conn = ds.getConnection()) { <em class="jxr_comment">// only to keep the schema arround in this section</em>
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>       createSchemaObjects(ds);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>       JdbcLock lock = <strong class="jxr_keyword">new</strong> JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, <span class="jxr_string">"testLock"</span>, 10);
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>       JdbcLock lock2 = <strong class="jxr_keyword">new</strong> JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, <span class="jxr_string">"testLock"</span>, 10);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>       lock.lock();
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>       Assert.assertFalse(lock.tryLock());
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>       lock.unlock();
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>       lock2.lock();
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>       lock.unlock();
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>     }
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> 
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>   }
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> 
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> 
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>   @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testReleaseAck(<strong class="jxr_keyword">final</strong> DataSource ds, <strong class="jxr_keyword">final</strong> String semName, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxReservations)
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>           <strong class="jxr_keyword">throws</strong> SQLException, InterruptedException, TimeoutException {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, semName, maxReservations);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> 
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>     <em class="jxr_comment">// test update;</em>
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     <strong class="jxr_keyword">int</strong> totalPermits = semaphore.totalPermits();
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     <strong class="jxr_keyword">int</strong> acquire = totalPermits - 1;
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     semaphore.acquire(acquire, 1, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>     Assert.assertEquals(1, semaphore.permitsOwned());
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     <strong class="jxr_keyword">int</strong> nrPermits = semaphore.totalPermits();
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>     semaphore.updatePermits(nrPermits + 1);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     Assert.assertEquals(nrPermits + 1, semaphore.totalPermits());
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     semaphore.updatePermits(nrPermits);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     Assert.assertEquals(nrPermits, semaphore.totalPermits());
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     semaphore.reducePermits(2);
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     Assert.assertFalse(semaphore.tryAcquire(2, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     semaphore.release(acquire);
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     semaphore.increasePermits(2);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     Assert.assertEquals(totalPermits, semaphore.totalPermits());
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> 
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     semaphore.release(1);
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>     Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     semaphore.release(1);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>     semaphore.release(1);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     Assert.assertEquals(maxReservations, semaphore.availablePermits());
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     Assert.assertEquals(maxReservations, semaphore.totalPermits());
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     semaphore.reducePermits(1);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     Assert.assertEquals(maxReservations - 1, semaphore.totalPermits());
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     Assert.assertEquals(maxReservations - 1, semaphore.availablePermits());
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     Assert.assertTrue(semaphore.tryAcquire(1, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     Assert.assertFalse(semaphore.tryAcquire(1, 2, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     semaphore.release(1);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>       semaphore.release(1);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>       Assert.fail(<span class="jxr_string">"should not be allow to release!"</span>);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>     } <strong class="jxr_keyword">catch</strong> (IllegalStateException ex) {
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>       Assert.assertTrue(ex.getMessage().contains(<span class="jxr_string">"Trying to release more than you own"</span>));
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     }
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     semaphore.increasePermits(1);
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     Assert.assertTrue(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>     semaphore.reducePermits(1);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     semaphore.release(2);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>     Assert.assertFalse(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L164" href="#L164">164</a> 
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>   }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>   @Test
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>   @SuppressFBWarnings(<span class="jxr_string">"AFBR_ABNORMAL_FINALLY_BLOCK_RETURN"</span>)
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testMultiProcess() <strong class="jxr_keyword">throws</strong> SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     Server server = Server.createTcpServer(<strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-tcpPort"</span>, <span class="jxr_string">"9123"</span>, <span class="jxr_string">"-tcpAllowOthers"</span>}).start();
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     File tempDB = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">"h2db"</span>);
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>     String connStr = <span class="jxr_string">"jdbc:h2:tcp://localhost:9123/nio:"</span> + tempDB.getAbsolutePath() + <span class="jxr_string">";AUTO_SERVER=TRUE"</span>;
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>       JdbcDataSource ds = <strong class="jxr_keyword">new</strong> JdbcDataSource();
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>       ds.setURL(connStr);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>       ds.setUser(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>       ds.setPassword(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> 
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>       createSchemaObjects(ds);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>       testReleaseAck(ds, <span class="jxr_string">"testSem"</span>, 2);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>       JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, <span class="jxr_string">"test_sem2"</span>, 3);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>       org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>       Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>       JdbcHeartBeat.stopHeartBeats();
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>       server.stop();
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>     }
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>   }
-<a class="jxr_linenumber" name="L191" href="#L191">191</a> 
-<a class="jxr_linenumber" name="L192" href="#L192">192</a> }
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>       <strong class="jxr_keyword">if</strong> (!tempDB.delete()) {
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Cannot delete "</span> + tempDB);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>       }
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     }
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>   }
+<a class="jxr_linenumber" name="L195" href="#L195">195</a> 
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> 
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>   @Test
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testMultiProcess2() <strong class="jxr_keyword">throws</strong> SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     Server server = Server.createTcpServer(<strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-tcpPort"</span>, <span class="jxr_string">"9123"</span>, <span class="jxr_string">"-tcpAllowOthers"</span>}).start();
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <strong class="jxr_keyword">try</strong>  {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     File tempDB = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">"h2db"</span>);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     tempDB.deleteOnExit();
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     String connStr = <span class="jxr_string">"jdbc:h2:tcp://localhost:9123/nio:"</span> + tempDB.getAbsolutePath() + <span class="jxr_string">";AUTO_SERVER=TRUE"</span>;
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>       JdbcDataSource ds = <strong class="jxr_keyword">new</strong> JdbcDataSource();
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>       ds.setURL(connStr);
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>       ds.setUser(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>       ds.setPassword(<span class="jxr_string">"sa"</span>);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>       createSchemaObjects(ds);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>       JdbcSemaphore semaphore = <strong class="jxr_keyword">new</strong> JdbcSemaphore(ds, <span class="jxr_string">"test_sem2"</span>, 1, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>       String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>).toString();
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>       String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.<strong class="jxr_keyword">class</strong>, 10000, connStr, <span class="jxr_string">"test_sem2"</span>).toString();
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>       Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS));
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>       System.out.println(<span class="jxr_string">"P1:"</span>);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>       System.out.println(o1);
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>       System.out.println(<span class="jxr_string">"P2:"</span>);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>       System.out.println(o2);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>       String [] nr1 = o1.split(<span class="jxr_string">"\n"</span>);
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>       String [] nr2 = o2.split(<span class="jxr_string">"\n"</span>);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>       <strong class="jxr_keyword">int</strong> totatl = nr1.length + nr2.length;
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>       Set&lt;String&gt; numbers = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(totatl);
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>       numbers.addAll(Arrays.asList(nr1));
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>       numbers.addAll(Arrays.asList(nr2));
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>       Assert.assertEquals(totatl, numbers.size());
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>       JdbcHeartBeat.stopHeartBeats();
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>       server.stop();
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>     }
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>   }
+<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
+<a class="jxr_linenumber" name="L231" href="#L231">231</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017. All rights reserved.</div>

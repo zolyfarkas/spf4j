@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RetryAspect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-aspects</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.aspects</a> &gt; <span class="el_source">RetryAspect.java</span></div><h1>RetryAspect.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.aspects;
+
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.spf4j.annotations.Retry;
+import org.spf4j.annotations.VoidPredicate;
+import org.spf4j.base.Callables;
+import org.spf4j.base.Callables.TimeoutCallable;
+
+/**
+ * Aspect that measures execution time and does performance logging for all methods annotated with: PerformanceMonitor
+ * annotation.
+ *
+ * @author zoly
+ */
+@Aspect
+<span class="nc" id="L37">public final class RetryAspect {</span>
+
+
+<span class="nc" id="L40">    private static final ThreadLocal&lt;Long&gt; DEADLINE = new ThreadLocal&lt;Long&gt;() {</span>
+
+        @Override
+        protected Long initialValue() {
+<span class="nc" id="L44">            return Long.MAX_VALUE;</span>
+        }
+
+    };
+
+
+    public static long getDeadline() {
+<span class="nc" id="L51">        return DEADLINE.get();</span>
+    }
+
+    @Around(value = &quot;execution(@org.spf4j.annotations.Retry * *(..)) &amp;&amp; @annotation(annot)&quot;,
+            argNames = &quot;pjp,annot&quot;)
+    public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
+            throws Throwable {
+
+<span class="nc" id="L59">        return Callables.executeWithRetry(new TimeoutCallable&lt;Object, Exception&gt;(annot.timeoutMillis()) {</span>
+
+            @Override
+            public Object call(final long dealine) throws Exception {
+<span class="nc" id="L63">                DEADLINE.set(dealine);</span>
+                try {
+<span class="nc" id="L65">                    return pjp.proceed();</span>
+<span class="nc" id="L66">                } catch (Exception | Error e) {</span>
+<span class="nc" id="L67">                  throw e;</span>
+<span class="nc" id="L68">                } catch (Throwable ex) {</span>
+<span class="nc" id="L69">                    throw new UncheckedExecutionException(ex);</span>
+                } finally {
+<span class="nc" id="L71">                    DEADLINE.set(Long.MAX_VALUE);</span>
+                }
+            }
+<span class="nc" id="L74">        }, annot.immediateRetries(), annot.retryDelayMillis(),</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY</span>
+<span class="nc" id="L76">                        : annot.exRetry().newInstance(), Exception.class);</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

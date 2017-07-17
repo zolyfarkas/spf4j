@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Scanner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-asm</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.asm</a> &gt; <span class="el_source">Scanner.java</span></div><h1>Scanner.java</h1><pre class="source lang-java linenums">
-package org.spf4j.base.asm;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Scanner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-asm</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.asm</a> &gt; <span class="el_source">Scanner.java</span></div><h1>Scanner.java</h1><pre class="source lang-java linenums">package org.spf4j.base.asm;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
@@ -20,60 +19,49 @@ import org.objectweb.asm.ClassReader;
  */
 public final class Scanner {
 
+<span class="nc" id="L22">  private Scanner() {</span>
+<span class="nc" id="L23">  }</span>
 
+  @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // Findbugs does not like try with resources.
+  public static List&lt;Invocation&gt; findUsages(final Supplier&lt;InputStream&gt; classSupplier,
+          final Set&lt;Method&gt; invokedMethods)
+          throws IOException {
+<span class="pc" id="L29">    try (InputStream is = classSupplier.get()) {</span>
+<span class="fc" id="L30">      ClassReader reader = new ClassReader(is);</span>
+<span class="fc" id="L31">      List&lt;Invocation&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L32">      reader.accept(new MethodInvocationClassVisitor(result, invokedMethods), 0);</span>
+<span class="fc" id="L33">      return result;</span>
+<span class="pc bpc" id="L34" title="6 of 8 branches missed.">    }</span>
+  }
 
-<span class="nc" id="L25">    private Scanner() { }</span>
-
-
-    @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // Findbugs does not like try with resources.
-    public static List&lt;Invocation&gt; findUsages(final Supplier&lt;InputStream&gt; classSupplier,
-            final Set&lt;Method&gt; invokedMethods)
-                        throws IOException {
-<span class="pc" id="L32">        try (InputStream is = classSupplier.get()) {</span>
-<span class="fc" id="L33">            ClassReader reader = new ClassReader(is);</span>
-<span class="fc" id="L34">            List&lt;Invocation&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L35">            reader.accept(new MethodInvocationClassVisitor(result, invokedMethods), 0);</span>
-<span class="fc" id="L36">            return result;</span>
-<span class="pc bpc" id="L37" title="6 of 8 branches missed.">        }</span>
+  public static List&lt;Invocation&gt; findUsages(final Class&lt;?&gt; clasz, final Set&lt;Method&gt; invokedMethods) {
+    try {
+<span class="fc" id="L39">      return findUsages(clasz.getClassLoader(), clasz.getName().replaceAll(&quot;\\.&quot;, &quot;/&quot;) + &quot;.class&quot;, invokedMethods);</span>
+<span class="nc" id="L40">    } catch (IOException ex) {</span>
+<span class="nc" id="L41">      NoClassDefFoundError toThrow = new NoClassDefFoundError(&quot;Cannot reload &quot; + clasz);</span>
+<span class="nc" id="L42">      toThrow.addSuppressed(ex);</span>
+<span class="nc" id="L43">      throw toThrow;</span>
     }
+  }
 
-    public static List&lt;Invocation&gt; findUsages(final Class&lt;?&gt; clasz, final Set&lt;Method&gt; invokedMethods) {
-<span class="fc" id="L41">        return findUsages(clasz.getClassLoader(), clasz.getName().replaceAll(&quot;\\.&quot;, &quot;/&quot;) + &quot;.class&quot;, invokedMethods);</span>
-    }
+  public static List&lt;Invocation&gt; findUsages(final ClassLoader cl,
+          final String claszResourcePath, final Set&lt;Method&gt; invokedMethods) throws IOException {
+<span class="fc" id="L49">      return findUsages(() -&gt; new BufferedInputStream(cl.getResourceAsStream(claszResourcePath)), invokedMethods);</span>
+  }
 
-    public static List&lt;Invocation&gt; findUsages(final ClassLoader cl,
-            final String claszResourcePath, final Set&lt;Method&gt; invokedMethods) {
-<span class="fc" id="L46">        Supplier&lt;InputStream&gt; supplier = new Supplier&lt;InputStream&gt;() {</span>
-
-            @Override
-            public InputStream get() {
-<span class="fc" id="L50">                return new BufferedInputStream(cl.getResourceAsStream(claszResourcePath));</span>
-            }
-        };
-        try {
-<span class="fc" id="L54">            return findUsages(supplier, invokedMethods);</span>
-<span class="nc" id="L55">        } catch (IOException ex) {</span>
-<span class="nc" id="L56">            throw new RuntimeException(ex);</span>
-        }
-    }
-
-
-
-    public static List&lt;Invocation&gt; findUsages(final String packageName, final Set&lt;Method&gt; invokedMethods)
-            throws IOException {
-<span class="fc" id="L64">        final ClassLoader cl = ClassLoader.getSystemClassLoader();</span>
-<span class="fc" id="L65">        ClassPath cp = ClassPath.from(cl);</span>
-<span class="fc" id="L66">        ImmutableSet&lt;ClassPath.ClassInfo&gt; classes = cp.getAllClasses();</span>
-<span class="fc" id="L67">        List&lt;Invocation&gt; result = new ArrayList();</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        for (ClassPath.ClassInfo info : classes) {</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">            if (info.getName().startsWith(packageName)) {</span>
-<span class="fc" id="L70">                result.addAll(findUsages(cl, info.getResourceName(), invokedMethods));</span>
-            }
-<span class="fc" id="L72">        }</span>
-<span class="fc" id="L73">        return result;</span>
-    }
-
-
+  public static List&lt;Invocation&gt; findUsages(final String packageName, final Set&lt;Method&gt; invokedMethods)
+          throws IOException {
+<span class="fc" id="L54">    final ClassLoader cl = ClassLoader.getSystemClassLoader();</span>
+<span class="fc" id="L55">    ClassPath cp = ClassPath.from(cl);</span>
+<span class="fc" id="L56">    ImmutableSet&lt;ClassPath.ClassInfo&gt; classes = cp.getAllClasses();</span>
+<span class="fc" id="L57">    List&lt;Invocation&gt; result = new ArrayList();</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">    for (ClassPath.ClassInfo info : classes) {</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">      if (info.getName().startsWith(packageName)) {</span>
+<span class="fc" id="L60">        result.addAll(findUsages(cl, info.getResourceName(), invokedMethods));</span>
+      }
+<span class="fc" id="L62">    }</span>
+<span class="fc" id="L63">    return result;</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

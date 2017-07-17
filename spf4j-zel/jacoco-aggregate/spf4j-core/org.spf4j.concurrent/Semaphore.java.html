@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Semaphore.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">Semaphore.java</span></div><h1>Semaphore.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+package org.spf4j.concurrent;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+/**
+ * A interface that abstracts a semaphore.
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public interface Semaphore {
+
+  /**
+   * Acquire one permit.
+   * @param timeout  time to wait for permit to become available.
+   * @param unit  units of time.
+   * @throws InterruptedException - operation interrupted.
+   * @throws TimeoutException - timed out.
+   */
+  default void acquire(final long timeout, final TimeUnit unit)
+          throws InterruptedException, TimeoutException {
+<span class="fc" id="L42">    acquire(1, timeout, unit);</span>
+<span class="fc" id="L43">  }</span>
+
+
+  /**
+   * Acquire a arbitrary number of permits.
+   * @param nrPermits - numer of permits to acquire.
+   * @param timeout - time to wait for permit to become available.
+   * @param unit - units of time.
+   * @throws InterruptedException - operation interrupted.
+   * @throws TimeoutException - timed out.
+   */
+  default void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException, TimeoutException {
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (!tryAcquire(nrPermits, timeout, unit)) {</span>
+<span class="nc" id="L57">      throw new TimeoutException(&quot;Cannot acquire timeout after &quot; + timeout + &quot; &quot; + unit);</span>
+    }
+<span class="fc" id="L59">  }</span>
+
+  /**
+   * try to acquire a permit.
+   * @param timeout  time to wait for permit to become available.
+   * @param unit  units of time.
+   * @return  true if permit acquired, false if timed out.
+   * @throws InterruptedException - operation interrupted.
+   */
+  @CheckReturnValue
+  default boolean tryAcquire(final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+<span class="fc" id="L71">    return tryAcquire(1, timeout, unit);</span>
+  };
+
+  /**
+   * try to acquire a number of permits.
+   * @param nrPermits  number of permits to acquire.
+   * @param timeout  time to wait for permits to become available.
+   * @param unit  units of time.
+   * @return  true if permits acquired, false if timed out.
+   * @throws InterruptedException - operation interrupted.
+   */
+  @CheckReturnValue
+  boolean tryAcquire(int nrPermits, long timeout, TimeUnit unit)
+          throws InterruptedException;
+
+  /**
+   * release 1 permit.
+   */
+  default void release() {
+<span class="fc" id="L90">    release(1);</span>
+<span class="fc" id="L91">  }</span>
+
+  /**
+   * release a number of permits.
+   * @param nrPermits  the number of permits to release.
+   */
+  void release(int nrPermits);
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

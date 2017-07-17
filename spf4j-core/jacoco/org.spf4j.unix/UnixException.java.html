@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnixException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.unix</a> &gt; <span class="el_source">UnixException.java</span></div><h1>UnixException.java</h1><pre class="source lang-java linenums">package org.spf4j.unix;
+
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
+import java.nio.file.NoSuchFileException;
+import javax.annotation.Nonnull;
+
+/**
+ * Internal exception thrown by native methods when error detected.
+ */
+public final class UnixException extends Exception {
+
+  private static final long serialVersionUID = 1L;
+
+  private final int errno;
+  private final String msg;
+
+<span class="nc" id="L20">  public UnixException(final String msg, final int errNo) {</span>
+<span class="nc" id="L21">    this.errno = errNo;</span>
+<span class="nc" id="L22">    this.msg = msg;</span>
+<span class="nc" id="L23">  }</span>
+
+  public int errno() {
+<span class="nc" id="L26">    return errno;</span>
+  }
+
+  public String errorString() {
+<span class="nc bnc" id="L30" title="All 2 branches missed.">    if (msg != null) {</span>
+<span class="nc" id="L31">      return msg;</span>
+    } else {
+<span class="nc" id="L33">      return &quot;No message available, strerror invocation not implemented yet&quot;;</span>
+    }
+  }
+
+  @Override
+  public String getMessage() {
+<span class="nc" id="L39">    return errorString();</span>
+  }
+
+  /**
+   * Map well known errors to specific exceptions where possible; otherwise return more general FileSystemException.
+   */
+  @Nonnull
+  public IOException translateToIOException(final String file, final String other) {
+    // created with message rather than errno
+<span class="nc bnc" id="L48" title="All 2 branches missed.">    if (msg != null) {</span>
+<span class="nc" id="L49">      return new IOException(msg);</span>
+    }
+
+    // handle specific cases
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    if (errno() == UnixConstants.EACCES) {</span>
+<span class="nc" id="L54">      return new AccessDeniedException(file, other, null);</span>
+    }
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (errno() == UnixConstants.ENOENT) {</span>
+<span class="nc" id="L57">      return new NoSuchFileException(file, other, null);</span>
+    }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (errno() == UnixConstants.EEXIST) {</span>
+<span class="nc" id="L60">      return new FileAlreadyExistsException(file, other, null);</span>
+    }
+
+    // fallback to the more general exception
+<span class="nc" id="L64">    return new FileSystemException(file, other, errorString());</span>
+  }
+
+  public void rethrowAsIOException(final String file) throws IOException {
+<span class="nc" id="L68">    IOException x = translateToIOException(file, null);</span>
+<span class="nc" id="L69">    throw x;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

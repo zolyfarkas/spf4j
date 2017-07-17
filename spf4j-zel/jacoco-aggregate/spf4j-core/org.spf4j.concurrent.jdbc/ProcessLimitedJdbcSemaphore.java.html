@@ -18,8 +18,8 @@
 
 package org.spf4j.concurrent.jdbc;
 
+import org.spf4j.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  *
@@ -37,77 +37,29 @@ public final class ProcessLimitedJdbcSemaphore implements Semaphore {
 <span class="nc" id="L37">  }</span>
 
   @Override
-  public void acquire(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
-<span class="nc bnc" id="L41" title="All 2 branches missed.">    if (semaphore.tryAcquire(timeout, unit)) {</span>
-      try {
-<span class="nc" id="L43">        jdbcSemaphore.acquire(timeout, unit);</span>
-<span class="nc" id="L44">      } catch (InterruptedException | TimeoutException | RuntimeException e) {</span>
-<span class="nc" id="L45">        semaphore.release();</span>
-<span class="nc" id="L46">        throw e;</span>
-<span class="nc" id="L47">      }</span>
-    } else {
-<span class="nc" id="L49">      throw new TimeoutException(&quot;Timeout out after &quot; + timeout + ' ' + unit);</span>
-    }
-<span class="nc" id="L51">  }</span>
-
-  @Override
-  public void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
-          throws InterruptedException, TimeoutException {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (semaphore.tryAcquire(nrPermits, timeout, unit)) {</span>
-      try {
-<span class="nc" id="L58">        jdbcSemaphore.acquire(nrPermits, timeout, unit);</span>
-<span class="nc" id="L59">      } catch (InterruptedException | TimeoutException | RuntimeException e) {</span>
-<span class="nc" id="L60">        semaphore.release();</span>
-<span class="nc" id="L61">        throw e;</span>
-<span class="nc" id="L62">      }</span>
-    } else {
-<span class="nc" id="L64">      throw new TimeoutException(&quot;Timeout out after &quot; + timeout + ' ' + unit);</span>
-    }
-<span class="nc" id="L66">  }</span>
-
-  @Override
-  public void release() {
-<span class="nc" id="L70">    jdbcSemaphore.release();</span>
-<span class="nc" id="L71">    semaphore.release();</span>
-<span class="nc" id="L72">  }</span>
-
-  @Override
   public void release(final int nrReservations) {
-<span class="nc" id="L76">    jdbcSemaphore.release(nrReservations);</span>
-<span class="nc" id="L77">    semaphore.release();</span>
-<span class="nc" id="L78">  }</span>
+<span class="nc" id="L41">    jdbcSemaphore.release(nrReservations);</span>
+<span class="nc" id="L42">    semaphore.release(nrReservations);</span>
+<span class="nc" id="L43">  }</span>
 
-  @Override
-  public boolean tryAcquire(final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">    if (semaphore.tryAcquire(timeout, unit)) {</span>
-      try {
-<span class="nc" id="L84">        return jdbcSemaphore.tryAcquire(timeout, unit);</span>
-<span class="nc" id="L85">      } catch (InterruptedException | RuntimeException e) {</span>
-<span class="nc" id="L86">        semaphore.release();</span>
-<span class="nc" id="L87">        throw e;</span>
-      }
-    } else {
-<span class="nc" id="L90">      return false;</span>
-    }
-  }
 
   @Override
   public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (semaphore.tryAcquire(nrPermits, timeout, unit)) {</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">    if (semaphore.tryAcquire(nrPermits, timeout, unit)) {</span>
       try {
-<span class="nc" id="L98">        return jdbcSemaphore.tryAcquire(nrPermits, timeout, unit);</span>
-<span class="nc" id="L99">      } catch (InterruptedException | RuntimeException e) {</span>
-<span class="nc" id="L100">        semaphore.release();</span>
-<span class="nc" id="L101">        throw e;</span>
+<span class="nc" id="L50">        return jdbcSemaphore.tryAcquire(nrPermits, timeout, unit);</span>
+<span class="nc" id="L51">      } catch (InterruptedException | RuntimeException e) {</span>
+<span class="nc" id="L52">        semaphore.release();</span>
+<span class="nc" id="L53">        throw e;</span>
       }
     } else {
-<span class="nc" id="L104">      return false;</span>
+<span class="nc" id="L56">      return false;</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L110">    return &quot;ProcessLimitedJdbcSemaphore{&quot; + &quot;jdbcSemaphore=&quot; + jdbcSemaphore + &quot;, semaphore=&quot; + semaphore + '}';</span>
+<span class="nc" id="L62">    return &quot;ProcessLimitedJdbcSemaphore{&quot; + &quot;jdbcSemaphore=&quot; + jdbcSemaphore + &quot;, semaphore=&quot; + semaphore + '}';</span>
   }
 
 

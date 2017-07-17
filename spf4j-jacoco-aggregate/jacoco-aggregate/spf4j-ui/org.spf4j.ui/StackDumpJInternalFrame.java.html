@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StackDumpJInternalFrame.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ui</a> &gt; <span class="el_source">StackDumpJInternalFrame.java</span></div><h1>StackDumpJInternalFrame.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+//CHECKSTYLE:OFF
+package org.spf4j.ui;
+
+import com.google.protobuf.CodedInputStream;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import org.spf4j.stackmonitor.SampleNode;
+import org.spf4j.stackmonitor.proto.Converter;
+import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
+
+/**
+ * will need to add some standard filtering:
+ *
+ * Pair.of(sun.misc.Unsafe.class.getName(), &quot;park&quot;));
+ * Pair.of(java.lang.Object.class.getName(), &quot;wait&quot;));
+ * Pair.of(java.lang.Thread.class.getName(), &quot;sleep&quot;));
+ * Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketAccept&quot;));
+ * Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketConnect&quot;));
+ * @author zoly
+ */
+@SuppressFBWarnings({&quot;FCBL_FIELD_COULD_BE_LOCAL&quot;, &quot;SE_BAD_FIELD&quot; })
+public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
+
+    private SampleNode samples;
+
+    /**
+     * Creates new form StackDumpJInternalFrame
+     */
+    public StackDumpJInternalFrame(final File sampleFile, final boolean isPro) throws IOException {
+<span class="nc" id="L50">        super(sampleFile.getPath());</span>
+<span class="nc" id="L51">        initComponents();</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (sampleFile.getName().endsWith(&quot;ssdump&quot;)) {</span>
+<span class="nc" id="L53">            try (BufferedInputStream bis = new BufferedInputStream(</span>
+<span class="nc" id="L54">                    Files.newInputStream(sampleFile.toPath()))) {</span>
+<span class="nc" id="L55">                final CodedInputStream is = CodedInputStream.newInstance(bis);</span>
+<span class="nc" id="L56">                is.setRecursionLimit(Short.MAX_VALUE);</span>
+<span class="nc" id="L57">                samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));</span>
+<span class="nc bnc" id="L58" title="All 8 branches missed.">            }</span>
+        } else {
+<span class="nc" id="L60">            samples = org.spf4j.ssdump2.Converter.load(sampleFile);</span>
+        }
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (samples == null) {</span>
+<span class="nc" id="L63">          samples = new SampleNode(new StackTraceElement[] {new StackTraceElement(&quot;NO SAMPLES&quot;, &quot;&quot;, &quot;&quot;, -1)}, 0);</span>
+        }
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (isPro) {</span>
+<span class="nc" id="L66">            ssScrollPanel.setViewportView(new ZStackPanel(samples));</span>
+        } else {
+<span class="nc" id="L68">            ssScrollPanel.setViewportView(new FlameStackPanel(samples));</span>
+        }
+<span class="nc" id="L70">        ssScrollPanel.setVisible(true);</span>
+<span class="nc" id="L71">        pack();</span>
+
+<span class="nc" id="L73">    }</span>
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @SuppressFBWarnings
+    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+<span class="nc" id="L85">        ssScrollPanel = new javax.swing.JScrollPane();</span>
+
+<span class="nc" id="L87">        setClosable(true);</span>
+<span class="nc" id="L88">        setIconifiable(true);</span>
+<span class="nc" id="L89">        setMaximizable(true);</span>
+<span class="nc" id="L90">        setResizable(true);</span>
+
+<span class="nc" id="L92">        ssScrollPanel.setAutoscrolls(true);</span>
+
+<span class="nc" id="L94">        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
+<span class="nc" id="L95">        getContentPane().setLayout(layout);</span>
+<span class="nc" id="L96">        layout.setHorizontalGroup(</span>
+<span class="nc" id="L97">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L98">            .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)</span>
+        );
+<span class="nc" id="L100">        layout.setVerticalGroup(</span>
+<span class="nc" id="L101">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L102">            .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 328, Short.MAX_VALUE)</span>
+        );
+
+<span class="nc" id="L105">        pack();</span>
+<span class="nc" id="L106">    }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane ssScrollPanel;
+    // End of variables declaration//GEN-END:variables
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

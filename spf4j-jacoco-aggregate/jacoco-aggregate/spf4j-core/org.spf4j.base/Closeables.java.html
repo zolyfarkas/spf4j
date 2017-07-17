@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Closeables.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Closeables.java</span></div><h1>Closeables.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Closeables {
+
+<span class="nc" id="L17">  private Closeables() {</span>
+<span class="nc" id="L18">  }</span>
+
+  @Nullable
+  @CheckReturnValue
+  public static Exception closeAll(final AutoCloseable... closeables) {
+<span class="nc" id="L23">    return closeAll(null, closeables);</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static Exception closeAll(@Nullable final Exception propagate, final AutoCloseable... closeables) {
+<span class="nc" id="L29">    Exception ex = propagate;</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">    for (AutoCloseable closeable : closeables) {</span>
+      try {
+<span class="nc" id="L32">        closeable.close();</span>
+<span class="nc" id="L33">      } catch (Exception ex1) {</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L35">          ex = ex1;</span>
+        } else {
+<span class="nc" id="L37">          ex = Throwables.suppress(ex1, ex);</span>
+        }
+<span class="nc" id="L39">      }</span>
+    }
+<span class="nc" id="L41">    return ex;</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static IOException closeAll(final Closeable... closeables) {
+<span class="fc" id="L47">    return closeAll(null, closeables);</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static IOException closeAll(@Nullable final Exception propagate, final Closeable... closeables) {
+    IOException ex;
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    if (propagate == null) {</span>
+<span class="fc" id="L55">      ex = null;</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    } else if (propagate instanceof IOException) {</span>
+<span class="nc" id="L57">      ex = (IOException) propagate;</span>
+    } else {
+<span class="nc" id="L59">      ex = new IOException(propagate);</span>
+    }
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    for (Closeable closeable : closeables) {</span>
+      try {
+<span class="fc" id="L63">        closeable.close();</span>
+<span class="nc" id="L64">      } catch (IOException ex1) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L66">          ex = ex1;</span>
+        } else {
+<span class="nc" id="L68">          ex = Throwables.suppress(ex1, ex);</span>
+        }
+<span class="fc" id="L70">      }</span>
+    }
+<span class="fc" id="L72">    return ex;</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static Exception closeAll(final Iterable&lt;? extends AutoCloseable&gt; closeables) {
+<span class="fc" id="L78">    return closeAll(null, closeables);</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static Exception closeAll(@Nullable final Exception propagate,
+          final Iterable&lt;? extends AutoCloseable&gt; closeables) {
+<span class="fc" id="L85">    Exception ex = propagate;</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">    for (AutoCloseable closeable : closeables) {</span>
+      try {
+<span class="fc" id="L88">        closeable.close();</span>
+<span class="nc" id="L89">      } catch (Exception ex1) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L91">          ex = ex1;</span>
+        } else {
+<span class="nc" id="L93">          ex = Throwables.suppress(ex1, ex);</span>
+        }
+<span class="fc" id="L95">      }</span>
+<span class="fc" id="L96">    }</span>
+<span class="fc" id="L97">    return ex;</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static IOException closeSelectorChannels(final Selector selector) {
+<span class="fc" id="L103">    return closeSelectorChannels(null, selector);</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static IOException closeSelectorChannels(@Nullable final IOException propagate, final Selector selector) {
+<span class="fc" id="L109">    IOException ex = propagate;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    for (SelectionKey key : selector.keys()) {</span>
+<span class="fc" id="L111">      SelectableChannel channel = key.channel();</span>
+      try {
+<span class="fc" id="L113">        channel.close();</span>
+<span class="nc" id="L114">      } catch (IOException ex2) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L116">          ex = ex2;</span>
+        } else {
+<span class="nc" id="L118">          ex = Throwables.suppress(ex, ex2);</span>
+        }
+<span class="fc" id="L120">      }</span>
+<span class="fc" id="L121">    }</span>
+<span class="fc" id="L122">    return ex;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

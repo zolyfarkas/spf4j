@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OpenFilesSampler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.io</a> &gt; <span class="el_source">OpenFilesSampler.java</span></div><h1>OpenFilesSampler.java</h1><pre class="source lang-java linenums">
+/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.io;
+
+import java.io.Closeable;
+import java.io.IOException;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.impl.RecorderFactory;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.Runtime;
+import org.spf4j.base.SysExits;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
+
+/**
+ * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
+ * data recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
+ * startMemoryUsageSampling.
+ *
+ * @author zoly
+ */
+public final class OpenFilesSampler {
+
+
+  private static ScheduledFuture&lt;?&gt; samplingFuture;
+  private static AccumulatorRunnable accumulator;
+
+<span class="fc" id="L49">  private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);</span>
+
+<span class="fc" id="L51">  private static volatile CharSequence lastWarnLsof = &quot;&quot;;</span>
+
+  static {
+<span class="fc" id="L54">    Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+      @Override
+      public void doRun() throws IOException {
+<span class="fc" id="L57">        stop();</span>
+<span class="fc" id="L58">      }</span>
+    });
+<span class="fc" id="L60">    Registry.export(OpenFilesSampler.class);</span>
+<span class="fc" id="L61">  }</span>
+
+<span class="nc" id="L63">  private OpenFilesSampler() {</span>
+<span class="nc" id="L64">  }</span>
+
+  public static void start(final long sampleTimeMillis) {
+<span class="nc" id="L67">    start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,</span>
+            Runtime.Ulimit.MAX_NR_OPENFILES, true);
+<span class="nc" id="L69">  }</span>
+
+  @JmxExport
+  public static void start(@JmxExport(&quot;sampleTimeMillis&quot;) final long sampleTimeMillis,
+          @JmxExport(&quot;shutdownOnError&quot;) final boolean shutdownOnError) {
+<span class="nc" id="L74">    start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,</span>
+            Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
+<span class="nc" id="L76">  }</span>
+
+  @JmxExport
+  public static String getWarnLsofDetail() {
+<span class="nc" id="L80">    return lastWarnLsof.toString();</span>
+  }
+
+  public static void start(final long sampleTimeMillis,
+          final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
+<span class="fc" id="L85">    start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);</span>
+<span class="fc" id="L86">  }</span>
+
+  public static synchronized void start(final long sampleTimeMillis,
+          final int warnThreshold, final int errorThreshold, final boolean shutdownOnError,
+          final int aggTimeMillis) {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (samplingFuture == null) {</span>
+<span class="fc" id="L92">      accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,</span>
+              warnThreshold, aggTimeMillis);
+<span class="fc" id="L94">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulator,</span>
+              sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
+    } else {
+<span class="nc" id="L97">      throw new IllegalStateException(&quot;Open file usage sampling already started &quot; + samplingFuture);</span>
+    }
+<span class="fc" id="L99">  }</span>
+
+  @JmxExport
+  public static synchronized void stop() throws IOException {
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
+<span class="fc" id="L104">      samplingFuture.cancel(false);</span>
+<span class="fc" id="L105">      samplingFuture = null;</span>
+      try {
+<span class="fc" id="L107">        accumulator.close();</span>
+      } finally {
+<span class="pc" id="L109">        accumulator = null;</span>
+<span class="fc" id="L110">      }</span>
+    }
+<span class="fc" id="L112">  }</span>
+
+  @JmxExport
+  public static synchronized boolean isStarted() {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    return samplingFuture != null;</span>
+  }
+
+  @JmxExport
+  public static String getLsof() {
+<span class="nc" id="L121">    CharSequence lsofOutput = Runtime.getLsofOutput();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    return lsofOutput == null ? &quot;unable to obtain lsof&quot; : lsofOutput.toString();</span>
+  }
+
+  @JmxExport
+  public static int getMaxNrOpenFiles() {
+<span class="nc" id="L127">    return Runtime.Ulimit.MAX_NR_OPENFILES;</span>
+  }
+
+  @JmxExport
+  public static int getNrOpenFiles() {
+<span class="nc" id="L132">    return Runtime.getNrOpenFiles();</span>
+  }
+
+  @JmxExport
+  public static int getWarnThreshold() {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (accumulator == null) {</span>
+<span class="nc" id="L138">      return -1;</span>
+    }
+<span class="nc" id="L140">    return accumulator.getWarnThreshold();</span>
+  }
+
+  @JmxExport
+  public static int getErrorThreshold() {
+<span class="nc bnc" id="L145" title="All 2 branches missed.">    if (accumulator == null) {</span>
+<span class="nc" id="L146">      return -1;</span>
+    }
+<span class="nc" id="L148">    return accumulator.getErrorThreshold();</span>
+  }
+
+
+  private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
+
+    private final int errorThreshold;
+    private final boolean shutdownOnError;
+    private final int warnThreshold;
+    private final MeasurementRecorder nrOpenFiles;
+
+    AccumulatorRunnable(final int errorThreshold, final boolean shutdownOnError,
+<span class="fc" id="L160">            final int warnThreshold, final int aggMillis) {</span>
+<span class="fc" id="L161">      this.errorThreshold = errorThreshold;</span>
+<span class="fc" id="L162">      this.shutdownOnError = shutdownOnError;</span>
+<span class="fc" id="L163">      this.warnThreshold = warnThreshold;</span>
+<span class="fc" id="L164">      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder(&quot;nr-open-files&quot;, &quot;count&quot;, aggMillis);</span>
+<span class="fc" id="L165">    }</span>
+
+    @Override
+    public void doRun() {
+<span class="fc" id="L169">      long time = System.currentTimeMillis();</span>
+<span class="fc" id="L170">      int nrOf = Runtime.getNrOpenFiles();</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">      if (nrOf &gt; errorThreshold) {</span>
+<span class="nc" id="L172">        lastWarnLsof = Runtime.getLsofOutput();</span>
+<span class="nc" id="L173">        LOG.error(&quot;Nr open files is {} and exceeds error threshold {}, detail:\n{}&quot;,</span>
+<span class="nc" id="L174">                nrOf, errorThreshold, lastWarnLsof);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (shutdownOnError) {</span>
+<span class="nc" id="L176">          Runtime.goDownWithError(null, SysExits.EX_IOERR);</span>
+        }
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">      } else if (nrOf &gt; warnThreshold) {</span>
+<span class="nc" id="L179">        lastWarnLsof = Runtime.getLsofOutput();</span>
+<span class="nc" id="L180">        LOG.warn(&quot;Nr open files is {} and exceeds warn threshold {}, detail:\n{} &quot;,</span>
+<span class="nc" id="L181">                nrOf, warnThreshold, lastWarnLsof);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (!Runtime.gc(60000)) {</span>
+<span class="nc" id="L183">          LOG.warn(&quot;Unable to trigger GC although running low on file resources&quot;);</span>
+        } else {
+<span class="nc" id="L185">          LOG.warn(&quot;gc executed nr open files reduced by {} files&quot;, nrOf - Runtime.getNrOpenFiles());</span>
+        }
+      }
+<span class="fc" id="L188">      this.nrOpenFiles.recordAt(time, nrOf);</span>
+<span class="fc" id="L189">    }</span>
+
+    @Override
+    public void close() throws IOException {
+<span class="fc" id="L193">        this.nrOpenFiles.close();</span>
+<span class="fc" id="L194">    }</span>
+
+    public int getErrorThreshold() {
+<span class="nc" id="L197">      return errorThreshold;</span>
+    }
+
+    public boolean isShutdownOnError() {
+<span class="nc" id="L201">      return shutdownOnError;</span>
+    }
+
+    public int getWarnThreshold() {
+<span class="nc" id="L205">      return warnThreshold;</span>
+    }
+
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

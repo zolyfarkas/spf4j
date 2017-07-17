@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DataFragment.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">DataFragment.java</span></div><h1>DataFragment.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.tsdb;
+
+import gnu.trove.list.array.TIntArrayList;
+import java.io.ByteArrayInputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
+import org.spf4j.io.ByteArrayBuilder;
+
+/**
+ * @deprecated please use org.spf4j.tsdb2
+ * @author zoly
+ */
+@Deprecated
+final class DataFragment {
+
+    private long location;
+    private long nextDataFragment;
+    private final long startTimeMillis;
+    private List&lt;long[]&gt; data;
+    private TIntArrayList timestamps;
+
+<span class="nc" id="L45">    DataFragment(final long startTimeMillis) {</span>
+<span class="nc" id="L46">        this.location = 0;</span>
+<span class="nc" id="L47">        this.nextDataFragment = 0;</span>
+<span class="nc" id="L48">        this.startTimeMillis = startTimeMillis;</span>
+<span class="nc" id="L49">        data = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L50">        timestamps = new TIntArrayList();</span>
+<span class="nc" id="L51">    }</span>
+
+<span class="nc" id="L53">    DataFragment(final RandomAccessFile raf) throws IOException {</span>
+<span class="nc" id="L54">        location = raf.getFilePointer();</span>
+<span class="nc" id="L55">        this.nextDataFragment = raf.readLong();</span>
+<span class="nc" id="L56">        this.startTimeMillis = raf.readLong();</span>
+<span class="nc" id="L57">        int nrSamples = raf.readInt();</span>
+<span class="nc" id="L58">        int samplesLength = raf.readInt();</span>
+<span class="nc" id="L59">        int bufferSize = nrSamples * (samplesLength * 8 + 4);</span>
+<span class="nc" id="L60">        byte[] buffer = new byte[bufferSize];</span>
+<span class="nc" id="L61">        raf.readFully(buffer);</span>
+<span class="nc" id="L62">        loadData(nrSamples, samplesLength, new DataInputStream(new ByteArrayInputStream(buffer)));</span>
+<span class="nc" id="L63">    }</span>
+
+    public void writeTo(final DataOutput dos) throws IOException {
+<span class="nc" id="L66">        dos.writeLong(nextDataFragment);</span>
+<span class="nc" id="L67">        dos.writeLong(startTimeMillis);</span>
+<span class="nc" id="L68">        dos.writeInt(data.size());</span>
+<span class="nc" id="L69">        dos.writeInt(data.get(0).length);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        for (int i = 0; i &lt; timestamps.size(); i++) {</span>
+<span class="nc" id="L71">            dos.writeInt(timestamps.get(i));</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            for (long value : data.get(i)) {</span>
+<span class="nc" id="L73">                dos.writeLong(value);</span>
+            }
+        }
+<span class="nc" id="L76">    }</span>
+
+    public void writeTo(final RandomAccessFile raf) throws IOException {
+<span class="nc" id="L79">        try (ByteArrayBuilder bos = new ByteArrayBuilder()) {</span>
+<span class="nc" id="L80">            DataOutput dos = new DataOutputStream(bos);</span>
+<span class="nc" id="L81">            writeTo(dos);</span>
+<span class="nc" id="L82">            raf.seek(location);</span>
+<span class="nc" id="L83">            raf.write(bos.getBuffer(), 0, bos.size());</span>
+<span class="nc bnc" id="L84" title="All 8 branches missed.">        }</span>
+<span class="nc" id="L85">    }</span>
+
+    public void addData(final long timestamp, final long[] dataRow) {
+<span class="nc" id="L88">        data.add(dataRow);</span>
+<span class="nc" id="L89">        timestamps.add((int) (timestamp - startTimeMillis));</span>
+<span class="nc" id="L90">    }</span>
+
+    public void setNextDataFragment(final long pnextDataFragment, final RandomAccessFile raf) throws IOException {
+<span class="nc" id="L93">        this.nextDataFragment = pnextDataFragment;</span>
+<span class="nc" id="L94">        setNextDataFragment(location, nextDataFragment, raf);</span>
+<span class="nc" id="L95">    }</span>
+
+    public static void setNextDataFragment(final long dataFragmentPosition, final long nextDataFragment,
+            final RandomAccessFile raf) throws IOException {
+<span class="nc" id="L99">        raf.seek(dataFragmentPosition);</span>
+<span class="nc" id="L100">        raf.writeLong(nextDataFragment);</span>
+<span class="nc" id="L101">    }</span>
+
+    public long getNextDataFragment() {
+<span class="nc" id="L104">        return nextDataFragment;</span>
+    }
+
+    public long getLocation() {
+<span class="nc" id="L108">        return location;</span>
+    }
+
+    private void loadData(final int nrSamples, final int samplesLength, final DataInput raf) throws IOException {
+<span class="nc" id="L112">        data = new ArrayList(nrSamples);</span>
+<span class="nc" id="L113">        timestamps = new TIntArrayList(nrSamples);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        for (int i = 0; i &lt; nrSamples; i++) {</span>
+<span class="nc" id="L115">            timestamps.add(raf.readInt());</span>
+<span class="nc" id="L116">            long[] row = new long[samplesLength];</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            for (int j = 0; j &lt; samplesLength; j++) {</span>
+<span class="nc" id="L118">                row[j] = raf.readLong();</span>
+            }
+<span class="nc" id="L120">            data.add(row);</span>
+        }
+<span class="nc" id="L122">    }</span>
+
+    public long getStartTimeMillis() {
+<span class="nc" id="L125">        return startTimeMillis;</span>
+    }
+
+    public int getNrRows() {
+<span class="nc" id="L129">        return data.size();</span>
+    }
+
+    public List&lt;long[]&gt; getData() {
+<span class="nc" id="L133">        return data;</span>
+    }
+
+    public TIntArrayList getTimestamps() {
+<span class="nc" id="L137">        return timestamps;</span>
+    }
+
+    public void setLocation(final long location) {
+<span class="nc" id="L141">        this.location = location;</span>
+<span class="nc" id="L142">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L146">        return &quot;DataFragment{&quot; + &quot;location=&quot; + location + &quot;, nextDataFragment=&quot; + nextDataFragment</span>
+                + &quot;, startTimeMillis=&quot; + startTimeMillis + &quot;, data=&quot; + data + &quot;, timestamps=&quot; + timestamps + '}';
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

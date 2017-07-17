@@ -35,30 +35,30 @@ public final class SLEEP extends Instruction {
 
     private static final long serialVersionUID = -104479947741779060L;
 
-<span class="fc" id="L38">    private SLEEP() {</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L38">    public static final Instruction INSTANCE = new SLEEP();</span>
+
+<span class="fc" id="L40">    private SLEEP() {</span>
+<span class="fc" id="L41">    }</span>
 
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException, InterruptedException, ExecutionException {
-<span class="fc" id="L44">        Number param = (Number) context.popSyncStackVal();</span>
-<span class="fc" id="L45">        final long sleepMillis = param.longValue();</span>
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">            if (context.getExecService() == null) {</span>
-<span class="nc" id="L48">                Thread.sleep(sleepMillis);</span>
+<span class="fc" id="L46">        Number param = (Number) context.popSyncStackVal();</span>
+<span class="fc" id="L47">        final long sleepMillis = param.longValue();</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (context.getExecService() == null) {</span>
+<span class="nc" id="L50">                Thread.sleep(sleepMillis);</span>
             } else {
-<span class="fc" id="L50">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
-<span class="fc" id="L51">                DefaultScheduler.INSTANCE.schedule(</span>
+<span class="fc" id="L52">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
+<span class="fc" id="L53">                DefaultScheduler.INSTANCE.schedule(</span>
                         new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-<span class="fc" id="L53">                context.incrementInstructionPointer();</span>
-<span class="nc" id="L54">                context.suspend(future);</span>
+<span class="fc" id="L55">                context.incrementInstructionPointer();</span>
+<span class="nc" id="L56">                context.suspend(future);</span>
             }
         }
-<span class="nc" id="L57">        return 1;</span>
+<span class="nc" id="L59">        return 1;</span>
 
     }
-
-<span class="fc" id="L61">    public static final Instruction INSTANCE = new SLEEP();</span>
 
     @Override
     public Object[] getParameters() {

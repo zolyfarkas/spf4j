@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InverseGrayScale.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.chart</a> &gt; <span class="el_source">InverseGrayScale.java</span></div><h1>InverseGrayScale.java</h1><pre class="source lang-java linenums"> /*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.perf.impl.chart;
+
+import java.awt.Color;
+import java.awt.Paint;
+import java.io.Serializable;
+import org.jfree.chart.renderer.PaintScale;
+import org.jfree.util.PublicCloneable;
+import org.spf4j.base.CloneFailedException;
+
+/**
+ * A paint scale that returns shades of gray.
+ *
+ * @since 1.0.4
+ */
+public final class InverseGrayScale
+        implements PaintScale, PublicCloneable, Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /** The lower bound. */
+    private final double lowerBound;
+
+    /** The upper bound. */
+    private final double upperBound;
+
+    /**
+     * The alpha transparency (0-255).
+     *
+     * @since 1.0.13
+     */
+    private final int alpha;
+
+    /**
+     * Creates a new &lt;code&gt;GrayPaintScale&lt;/code&gt; instance with default values.
+     */
+    public InverseGrayScale() {
+<span class="nc" id="L54">        this(0.0, 1.0);</span>
+<span class="nc" id="L55">    }</span>
+
+    /**
+     * Creates a new paint scale for values in the specified range.
+     *
+     * @param lowerBound  the lower bound.
+     * @param upperBound  the upper bound.
+     *
+     * @throws IllegalArgumentException if &lt;code&gt;lowerBound&lt;/code&gt; is not
+     *       less than &lt;code&gt;upperBound&lt;/code&gt;.
+     */
+    public InverseGrayScale(final double lowerBound, final double upperBound) {
+<span class="nc" id="L67">        this(lowerBound, upperBound, 255);</span>
+<span class="nc" id="L68">    }</span>
+
+    /**
+     * Creates a new paint scale for values in the specified range.
+     *
+     * @param lowerBound  the lower bound.
+     * @param upperBound  the upper bound.
+     * @param alpha  the alpha transparency (0-255).
+     *
+     * @throws IllegalArgumentException if &lt;code&gt;lowerBound&lt;/code&gt; is not
+     *       less than &lt;code&gt;upperBound&lt;/code&gt;, or &lt;code&gt;alpha&lt;/code&gt; is not in
+     *       the range 0 to 255.
+     *
+     * @since 1.0.13
+     */
+<span class="nc" id="L83">    public InverseGrayScale(final double lowerBound, final double upperBound, final int alpha) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (lowerBound &gt;= upperBound) {</span>
+<span class="nc" id="L85">            throw new IllegalArgumentException(</span>
+                    &quot;Requires &quot; + lowerBound + &quot; &lt; &quot; + upperBound + '.');
+        }
+<span class="nc bnc" id="L88" title="All 4 branches missed.">        if (alpha &lt; 0 || alpha &gt; 255) {</span>
+<span class="nc" id="L89">            throw new IllegalArgumentException(</span>
+                    &quot;Requires alpha in the range 0 to 255. and not &quot; + alpha);
+
+        }
+<span class="nc" id="L93">        this.lowerBound = lowerBound;</span>
+<span class="nc" id="L94">        this.upperBound = upperBound;</span>
+<span class="nc" id="L95">        this.alpha = alpha;</span>
+<span class="nc" id="L96">    }</span>
+
+    /**
+     * Returns the lower bound.
+     *
+     * @return The lower bound.
+     *
+     * @see #getUpperBound()
+     */
+    @Override
+    public double getLowerBound() {
+<span class="nc" id="L107">        return this.lowerBound;</span>
+    }
+
+    /**
+     * Returns the upper bound.
+     *
+     * @return The upper bound.
+     *
+     * @see #getLowerBound()
+     */
+    @Override
+    public double getUpperBound() {
+<span class="nc" id="L119">        return this.upperBound;</span>
+    }
+
+    /**
+     * Returns the alpha transparency that was specified in the constructor.
+     *
+     * @return The alpha transparency (in the range 0 to 255).
+     *
+     * @since 1.0.13
+     */
+    public int getAlpha() {
+<span class="nc" id="L130">        return this.alpha;</span>
+    }
+
+    /**
+     * Returns a paint for the specified value.
+     *
+     * @param value  the value (must be within the range specified by the
+     *         lower and upper bounds for the scale).
+     *
+     * @return A paint for the specified value.
+     */
+    @Override
+    public Paint getPaint(final double value) {
+<span class="nc" id="L143">        double v = Math.max(value, this.lowerBound);</span>
+<span class="nc" id="L144">        v = Math.min(v, this.upperBound);</span>
+        int g;
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (value &gt;= 1) {</span>
+<span class="nc" id="L147">            g = 240 -  (int) ((v - this.lowerBound) / (this.upperBound</span>
+                - this.lowerBound) * 240.0);
+        } else {
+<span class="nc" id="L150">            g = 255 -  (int) ((v - this.lowerBound) / (this.upperBound</span>
+                - this.lowerBound) * 15.0);
+        }
+        // FIXME:  it probably makes sense to allocate an array of 256 Colors
+        // and lazily populate this array...
+
+<span class="nc" id="L156">        return new Color(g, g, g, this.alpha);</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L162">            return false;</span>
+        }
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L165">            return false;</span>
+        }
+<span class="nc" id="L167">        final InverseGrayScale other = (InverseGrayScale) obj;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (Double.doubleToLongBits(this.lowerBound) != Double.doubleToLongBits(other.lowerBound)) {</span>
+<span class="nc" id="L169">            return false;</span>
+        }
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (Double.doubleToLongBits(this.upperBound) != Double.doubleToLongBits(other.upperBound)) {</span>
+<span class="nc" id="L172">            return false;</span>
+        }
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        return this.alpha == other.alpha;</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L179">        int hash = 3;</span>
+<span class="nc" id="L180">        hash = 97 * hash</span>
+<span class="nc" id="L181">                + (int) (Double.doubleToLongBits(this.lowerBound) ^ (Double.doubleToLongBits(this.lowerBound) &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L182">        hash = 97 * hash</span>
+<span class="nc" id="L183">                + (int) (Double.doubleToLongBits(this.upperBound) ^ (Double.doubleToLongBits(this.upperBound) &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L184">        return  97 * hash + this.alpha;</span>
+    }
+
+
+
+    /**
+     * Returns a clone of this &lt;code&gt;GrayPaintScale&lt;/code&gt; instance.
+     *
+     * @return A clone.
+     *
+     */
+    @Override
+    public InverseGrayScale clone() {
+        try {
+<span class="nc" id="L198">            return (InverseGrayScale) super.clone();</span>
+<span class="nc" id="L199">        } catch (CloneNotSupportedException ex) {</span>
+<span class="nc" id="L200">           throw new CloneFailedException(&quot;Failed cloning &quot; + this,  ex);</span>
+        }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L206">        return &quot;InverseGrayScale{&quot; + &quot;lowerBound=&quot; + lowerBound + &quot;, upperBound=&quot; + upperBound</span>
+                + &quot;, alpha=&quot; + alpha + '}';
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

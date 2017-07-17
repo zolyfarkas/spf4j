@@ -377,7 +377,7 @@
 <a class="jxr_linenumber" name="L369" href="#L369">369</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L370" href="#L370">370</a>       <strong class="jxr_keyword">return</strong> ectx.call();
 <a class="jxr_linenumber" name="L371" href="#L371">371</a>     } <strong class="jxr_keyword">catch</strong> (SuspendedException ex) {
-<a class="jxr_linenumber" name="L372" href="#L372">372</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ExecutionException(<span class="jxr_string">"Suspension not supported in sync calls "</span> + ectx, ex);
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>     }
 <a class="jxr_linenumber" name="L374" href="#L374">374</a>   }
 <a class="jxr_linenumber" name="L375" href="#L375">375</a> 
@@ -401,203 +401,143 @@
 <a class="jxr_linenumber" name="L393" href="#L393">393</a>   }
 <a class="jxr_linenumber" name="L394" href="#L394">394</a> 
 <a class="jxr_linenumber" name="L395" href="#L395">395</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L396" href="#L396">396</a> <em class="jxr_javadoccomment">   * get a value of a variable from memory, this function is syntax safe</em>
-<a class="jxr_linenumber" name="L397" href="#L397">397</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L398" href="#L398">398</a> <em class="jxr_javadoccomment">   * @param mem Map</em>
-<a class="jxr_linenumber" name="L399" href="#L399">399</a> <em class="jxr_javadoccomment">   * @param name String</em>
-<a class="jxr_linenumber" name="L400" href="#L400">400</a> <em class="jxr_javadoccomment">   * @throws Exception</em>
-<a class="jxr_linenumber" name="L401" href="#L401">401</a> <em class="jxr_javadoccomment">   * @return Object</em>
-<a class="jxr_linenumber" name="L402" href="#L402">402</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object getValue(@Nonnull <strong class="jxr_keyword">final</strong> java.util.Map mem, @Nonnull <strong class="jxr_keyword">final</strong> String name)
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>           <strong class="jxr_keyword">throws</strong> CompileException, InterruptedException, ExecutionException {
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>     <strong class="jxr_keyword">return</strong> Program.compile(name + ';').execute(mem);
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>   }
-<a class="jxr_linenumber" name="L407" href="#L407">407</a> 
-<a class="jxr_linenumber" name="L408" href="#L408">408</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L409" href="#L409">409</a> <em class="jxr_javadoccomment">   * Load a value into memory Have to go through the VM so that the assignement is acurate</em>
-<a class="jxr_linenumber" name="L410" href="#L410">410</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L411" href="#L411">411</a> <em class="jxr_javadoccomment">   * @param mem</em>
-<a class="jxr_linenumber" name="L412" href="#L412">412</a> <em class="jxr_javadoccomment">   * @param name String</em>
-<a class="jxr_linenumber" name="L413" href="#L413">413</a> <em class="jxr_javadoccomment">   * @param value Object</em>
-<a class="jxr_linenumber" name="L414" href="#L414">414</a> <em class="jxr_javadoccomment">   * @throws java.lang.InterruptedException</em>
-<a class="jxr_linenumber" name="L415" href="#L415">415</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addValue(@Nonnull <strong class="jxr_keyword">final</strong> java.util.Map mem, @Nonnull <strong class="jxr_keyword">final</strong> String name,
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>           <strong class="jxr_keyword">final</strong> Object value)
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>           <strong class="jxr_keyword">throws</strong> CompileException, InterruptedException, ExecutionException {
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>     Program.compile(name + '=' + value + ';').execute(mem);
-<a class="jxr_linenumber" name="L420" href="#L420">420</a>   }
-<a class="jxr_linenumber" name="L421" href="#L421">421</a> 
-<a class="jxr_linenumber" name="L422" href="#L422">422</a> 
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L424" href="#L424">424</a> <em class="jxr_javadoccomment">   * Output Core, in hierarchical tab indented mode</em>
-<a class="jxr_linenumber" name="L425" href="#L425">425</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L426" href="#L426">426</a> <em class="jxr_javadoccomment">   * @param name</em>
-<a class="jxr_linenumber" name="L427" href="#L427">427</a> <em class="jxr_javadoccomment">   * @param mem</em>
-<a class="jxr_linenumber" name="L428" href="#L428">428</a> <em class="jxr_javadoccomment">   * @param indent</em>
-<a class="jxr_linenumber" name="L429" href="#L429">429</a> <em class="jxr_javadoccomment">   * @param maxIndent</em>
-<a class="jxr_linenumber" name="L430" href="#L430">430</a> <em class="jxr_javadoccomment">   * @return</em>
-<a class="jxr_linenumber" name="L431" href="#L431">431</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>   @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>   @CheckReturnValue
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String dumpCore(<strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> Object mem, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> indent, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIndent) {
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>     <strong class="jxr_keyword">if</strong> (mem == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L436" href="#L436">436</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>     }
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>     <strong class="jxr_keyword">if</strong> (maxIndent &gt; 0 &amp;&amp; indent &gt; maxIndent) {
-<a class="jxr_linenumber" name="L439" href="#L439">439</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>     }
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>     StringBuilder result = <strong class="jxr_keyword">new</strong> StringBuilder();
-<a class="jxr_linenumber" name="L442" href="#L442">442</a>     <strong class="jxr_keyword">if</strong> (mem instanceof java.util.Map) {
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>       org.spf4j.base.Strings.appendSpaces(result, indent);
-<a class="jxr_linenumber" name="L444" href="#L444">444</a>       result.append(name).append('\n');
-<a class="jxr_linenumber" name="L445" href="#L445">445</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Object, Object&gt; elem : ((Map&lt;Object, Object&gt;) mem).entrySet()) {
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>         result.append(dumpCore(elem.getKey().toString(), elem.getValue(), indent + 1, maxIndent));
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>       }
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>      org.spf4j.base.Strings.appendSpaces(result, indent);
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>       result.append(name).append('=').append(mem).append('\n');
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>     }
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>     <strong class="jxr_keyword">return</strong> result.toString();
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>   }
-<a class="jxr_linenumber" name="L454" href="#L454">454</a> 
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L456" href="#L456">456</a> <em class="jxr_javadoccomment">   * *</em>
-<a class="jxr_linenumber" name="L457" href="#L457">457</a> <em class="jxr_javadoccomment">   * This allows to run ZEL in an interactive mode</em>
-<a class="jxr_linenumber" name="L458" href="#L458">458</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L459" href="#L459">459</a> <em class="jxr_javadoccomment">   * @param args</em>
-<a class="jxr_linenumber" name="L460" href="#L460">460</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L461" href="#L461">461</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) <strong class="jxr_keyword">throws</strong> IOException, InterruptedException {
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>     LOGGER.info(<span class="jxr_string">"ZEL Shell"</span>);
-<a class="jxr_linenumber" name="L463" href="#L463">463</a>     System.out.println(<span class="jxr_string">"ZEL Shell"</span>);
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>     Map&lt;String, Integer&gt; localSymTable = Collections.emptyMap();
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>     Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; gmemPair = ZEL_GLOBAL_FUNC.build();
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>     Map&lt;String, Integer&gt; globalSymTable = gmemPair.getSecond();
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>     Object[] mem = <strong class="jxr_keyword">new</strong> Object[]{};
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>     Object[] gmem = gmemPair.getFirst();
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>     <a href="../../../../org/spf4j/zel/vm/ResultCache.html">ResultCache</a> resCache = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/SimpleResultCache.html">SimpleResultCache</a>();
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>     InputStreamReader inp = <strong class="jxr_keyword">new</strong> InputStreamReader(System.in, Charsets.UTF_8);
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>     BufferedReader br = <strong class="jxr_keyword">new</strong> BufferedReader(inp);
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>     org.spf4j.base.Runtime.queueHookAtBeginning(<strong class="jxr_keyword">new</strong> Runnable() {
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>       @Override
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="L475" href="#L475">475</a>         terminated = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>       }
-<a class="jxr_linenumber" name="L477" href="#L477">477</a>     });
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>     <strong class="jxr_keyword">while</strong> (!terminated) {
-<a class="jxr_linenumber" name="L479" href="#L479">479</a>       System.out.print(<span class="jxr_string">"zel&gt;"</span>);
-<a class="jxr_linenumber" name="L480" href="#L480">480</a>       String line = br.readLine();
-<a class="jxr_linenumber" name="L481" href="#L481">481</a>       <strong class="jxr_keyword">if</strong> (line != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>         <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"QUIT"</span>.equalsIgnoreCase(line)) {
-<a class="jxr_linenumber" name="L483" href="#L483">483</a>           terminated = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L484" href="#L484">484</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L485" href="#L485">485</a>           <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L486" href="#L486">486</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> prog = Program.compile(line, localSymTable, gmem, globalSymTable);
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>             localSymTable = prog.getLocalSymbolTable();
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>             globalSymTable = prog.getGlobalSymbolTable();
-<a class="jxr_linenumber" name="L489" href="#L489">489</a>             gmem = prog.getGlobalMem();
-<a class="jxr_linenumber" name="L490" href="#L490">490</a>             <strong class="jxr_keyword">long</strong> startTime = System.nanoTime();
-<a class="jxr_linenumber" name="L491" href="#L491">491</a>             Pair&lt;Object, ExecutionContext&gt; res = prog.execute(
-<a class="jxr_linenumber" name="L492" href="#L492">492</a>                     VMExecutor.Lazy.DEFAULT, ProcessIOStreams.DEFAULT, resCache, mem);
-<a class="jxr_linenumber" name="L493" href="#L493">493</a>             <strong class="jxr_keyword">long</strong> elapsed = System.nanoTime() - startTime;
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>             <strong class="jxr_keyword">final</strong> Object result = res.getFirst();
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>             System.out.println(<span class="jxr_string">"result&gt;"</span> + result);
-<a class="jxr_linenumber" name="L496" href="#L496">496</a>             System.out.println(<span class="jxr_string">"type&gt;"</span> +  (result == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"none"</span> : result.getClass()));
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>             System.out.println(<span class="jxr_string">"executed in&gt;"</span> + elapsed + <span class="jxr_string">" ns"</span>);
-<a class="jxr_linenumber" name="L498" href="#L498">498</a> 
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> execCtx = res.getSecond();
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>             mem = execCtx.getMem();
-<a class="jxr_linenumber" name="L501" href="#L501">501</a>             resCache = execCtx.getResultCache();
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>           } <strong class="jxr_keyword">catch</strong> (CompileException ex) {
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>             System.out.println(<span class="jxr_string">"Syntax Error: "</span> + Throwables.getStackTraceAsString(ex));
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>           } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
-<a class="jxr_linenumber" name="L505" href="#L505">505</a>             System.out.println(<span class="jxr_string">"Execution Error: "</span> + Throwables.getStackTraceAsString(ex));
-<a class="jxr_linenumber" name="L506" href="#L506">506</a>           }
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>         }
-<a class="jxr_linenumber" name="L508" href="#L508">508</a>       }
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>     }
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>   }
-<a class="jxr_linenumber" name="L511" href="#L511">511</a> 
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>   <strong class="jxr_keyword">public</strong> String toAssemblyString() {
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>     StringBuilder result = <strong class="jxr_keyword">new</strong> StringBuilder();
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>     result.append(<span class="jxr_string">"Program: \n"</span>);
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; instructions.length; i++) {
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>       Object obj = instructions[i];
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>       result.append(Strings.padEnd(Integer.toString(i), 8, ' '));
-<a class="jxr_linenumber" name="L518" href="#L518">518</a>       result.append(':');
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>       result.append(obj);
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>       result.append('\n');
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>     }
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>     result.append(<span class="jxr_string">"execType = "</span>).append(<strong class="jxr_keyword">this</strong>.execType).append('\n');
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>     result.append(<span class="jxr_string">"type = "</span>).append(<strong class="jxr_keyword">this</strong>.type).append('\n');
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>     <strong class="jxr_keyword">return</strong> result.toString();
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>   }
-<a class="jxr_linenumber" name="L526" href="#L526">526</a> 
-<a class="jxr_linenumber" name="L527" href="#L527">527</a>   @Override
-<a class="jxr_linenumber" name="L528" href="#L528">528</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L529" href="#L529">529</a>     <strong class="jxr_keyword">return</strong> source;
+<a class="jxr_linenumber" name="L396" href="#L396">396</a> <em class="jxr_javadoccomment">   * *</em>
+<a class="jxr_linenumber" name="L397" href="#L397">397</a> <em class="jxr_javadoccomment">   * This allows to run ZEL in an interactive mode</em>
+<a class="jxr_linenumber" name="L398" href="#L398">398</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L399" href="#L399">399</a> <em class="jxr_javadoccomment">   * @param args</em>
+<a class="jxr_linenumber" name="L400" href="#L400">400</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) <strong class="jxr_keyword">throws</strong> IOException, InterruptedException {
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>     LOGGER.info(<span class="jxr_string">"ZEL Shell"</span>);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>     System.out.println(<span class="jxr_string">"ZEL Shell"</span>);
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>     Map&lt;String, Integer&gt; localSymTable = Collections.emptyMap();
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>     Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; gmemPair = ZEL_GLOBAL_FUNC.build();
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>     Map&lt;String, Integer&gt; globalSymTable = gmemPair.getSecond();
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>     Object[] mem = <strong class="jxr_keyword">new</strong> Object[]{};
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>     Object[] gmem = gmemPair.getFirst();
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>     <a href="../../../../org/spf4j/zel/vm/ResultCache.html">ResultCache</a> resCache = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/SimpleResultCache.html">SimpleResultCache</a>();
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>     InputStreamReader inp = <strong class="jxr_keyword">new</strong> InputStreamReader(System.in, Charsets.UTF_8);
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>     BufferedReader br = <strong class="jxr_keyword">new</strong> BufferedReader(inp);
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>     org.spf4j.base.Runtime.queueHookAtBeginning(<strong class="jxr_keyword">new</strong> Runnable() {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>       @Override
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>         terminated = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>       }
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>     });
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>     <strong class="jxr_keyword">while</strong> (!terminated) {
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>       System.out.print(<span class="jxr_string">"zel&gt;"</span>);
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>       String line = br.readLine();
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>       <strong class="jxr_keyword">if</strong> (line != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"QUIT"</span>.equalsIgnoreCase(line)) {
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>           terminated = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>           <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> prog = Program.compile(line, localSymTable, gmem, globalSymTable);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>             localSymTable = prog.getLocalSymbolTable();
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             globalSymTable = prog.getGlobalSymbolTable();
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>             gmem = prog.getGlobalMem();
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>             <strong class="jxr_keyword">long</strong> startTime = System.nanoTime();
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>             Pair&lt;Object, ExecutionContext&gt; res = prog.execute(
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>                     VMExecutor.Lazy.DEFAULT, ProcessIOStreams.DEFAULT, resCache, mem);
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>             <strong class="jxr_keyword">long</strong> elapsed = System.nanoTime() - startTime;
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>             <strong class="jxr_keyword">final</strong> Object result = res.getFirst();
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>             System.out.println(<span class="jxr_string">"result&gt;"</span> + result);
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>             System.out.println(<span class="jxr_string">"type&gt;"</span> +  (result == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"none"</span> : result.getClass()));
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>             System.out.println(<span class="jxr_string">"executed in&gt;"</span> + elapsed + <span class="jxr_string">" ns"</span>);
+<a class="jxr_linenumber" name="L438" href="#L438">438</a> 
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> execCtx = res.getSecond();
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>             mem = execCtx.getMem();
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>             resCache = execCtx.getResultCache();
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>           } <strong class="jxr_keyword">catch</strong> (CompileException ex) {
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>             System.out.println(<span class="jxr_string">"Syntax Error: "</span> + Throwables.getStackTraceAsString(ex));
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>           } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>             System.out.println(<span class="jxr_string">"Execution Error: "</span> + Throwables.getStackTraceAsString(ex));
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>           }
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>         }
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>       }
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>     }
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>   }
+<a class="jxr_linenumber" name="L451" href="#L451">451</a> 
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>   <strong class="jxr_keyword">public</strong> String toAssemblyString() {
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>     StringBuilder result = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>     result.append(<span class="jxr_string">"Program: \n"</span>);
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; instructions.length; i++) {
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>       Object obj = instructions[i];
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>       result.append(Strings.padEnd(Integer.toString(i), 8, ' '));
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>       result.append(':');
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>       result.append(obj);
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>       result.append('\n');
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>     }
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>     result.append(<span class="jxr_string">"execType = "</span>).append(<strong class="jxr_keyword">this</strong>.execType).append('\n');
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>     result.append(<span class="jxr_string">"type = "</span>).append(<strong class="jxr_keyword">this</strong>.type).append('\n');
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>     <strong class="jxr_keyword">return</strong> result.toString();
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>   }
+<a class="jxr_linenumber" name="L466" href="#L466">466</a> 
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>   @Override
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>     <strong class="jxr_keyword">return</strong> source;
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>   }
+<a class="jxr_linenumber" name="L471" href="#L471">471</a> 
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L473" href="#L473">473</a> <em class="jxr_javadoccomment">   * @return the type</em>
+<a class="jxr_linenumber" name="L474" href="#L474">474</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>   <strong class="jxr_keyword">public</strong> Program.Type getType() {
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     <strong class="jxr_keyword">return</strong> type;
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>   }
+<a class="jxr_linenumber" name="L478" href="#L478">478</a> 
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> contains(<strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Instruction&gt; instr) {
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>     Boolean res = itterate(<strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">HasClass</a>(instr));
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>     <strong class="jxr_keyword">if</strong> (res == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>       <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>     }
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>     <strong class="jxr_keyword">return</strong> res;
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>   }
+<a class="jxr_linenumber" name="L486" href="#L486">486</a> 
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>   @Nullable
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>   <strong class="jxr_keyword">public</strong> &lt;T&gt; T itterate(<strong class="jxr_keyword">final</strong> Function&lt;Object, T&gt; func) {
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>     <strong class="jxr_keyword">for</strong> (Instruction code : instructions) {
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>       T res = func.apply(code);
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>       <strong class="jxr_keyword">if</strong> (res != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>         <strong class="jxr_keyword">return</strong> res;
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>       }
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>       <strong class="jxr_keyword">for</strong> (Object param : code.getParameters()) {
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>         res = func.apply(param);
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>         <strong class="jxr_keyword">if</strong> (res != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>           <strong class="jxr_keyword">return</strong> res;
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>         }
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>         <strong class="jxr_keyword">if</strong> (param instanceof Program) {
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>           res = ((Program) param).itterate(func);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>         }
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <strong class="jxr_keyword">if</strong> (res != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>           <strong class="jxr_keyword">return</strong> res;
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         }
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>       }
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>     }
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>   }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a> 
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>   <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a>[] getInstructions() {
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>     <strong class="jxr_keyword">return</strong> instructions;
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>   }
+<a class="jxr_linenumber" name="L513" href="#L513">513</a> 
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">HasClass</a> <strong class="jxr_keyword">implements</strong> Function&lt;Object, Boolean&gt; {
+<a class="jxr_linenumber" name="L515" href="#L515">515</a> 
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Instruction&gt; instr;
+<a class="jxr_linenumber" name="L517" href="#L517">517</a> 
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">HasClass</a>(<strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Instruction&gt; instr) {
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>       <strong class="jxr_keyword">this</strong>.instr = instr;
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>     }
+<a class="jxr_linenumber" name="L521" href="#L521">521</a> 
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>     @Override
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>     @SuppressFBWarnings(<span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>)
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>     <strong class="jxr_keyword">public</strong> Boolean apply(@Nonnull <strong class="jxr_keyword">final</strong> Object input) {
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>       <strong class="jxr_keyword">if</strong> (input.getClass() == instr) {
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>         <strong class="jxr_keyword">return</strong> Boolean.TRUE;
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>       }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>     }
 <a class="jxr_linenumber" name="L530" href="#L530">530</a>   }
 <a class="jxr_linenumber" name="L531" href="#L531">531</a> 
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L533" href="#L533">533</a> <em class="jxr_javadoccomment">   * @return the type</em>
-<a class="jxr_linenumber" name="L534" href="#L534">534</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L535" href="#L535">535</a>   <strong class="jxr_keyword">public</strong> Program.Type getType() {
-<a class="jxr_linenumber" name="L536" href="#L536">536</a>     <strong class="jxr_keyword">return</strong> type;
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>   }
-<a class="jxr_linenumber" name="L538" href="#L538">538</a> 
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> contains(<strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Instruction&gt; instr) {
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>     Boolean res = itterate(<strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">HasClass</a>(instr));
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>     <strong class="jxr_keyword">if</strong> (res == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>       <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>     }
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>     <strong class="jxr_keyword">return</strong> res;
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>   }
-<a class="jxr_linenumber" name="L546" href="#L546">546</a> 
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>   @Nullable
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>   <strong class="jxr_keyword">public</strong> &lt;T&gt; T itterate(<strong class="jxr_keyword">final</strong> Function&lt;Object, T&gt; func) {
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>     <strong class="jxr_keyword">for</strong> (Instruction code : instructions) {
-<a class="jxr_linenumber" name="L550" href="#L550">550</a>       T res = func.apply(code);
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>       <strong class="jxr_keyword">if</strong> (res != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L552" href="#L552">552</a>         <strong class="jxr_keyword">return</strong> res;
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>       }
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>       <strong class="jxr_keyword">for</strong> (Object param : code.getParameters()) {
-<a class="jxr_linenumber" name="L555" href="#L555">555</a>         res = func.apply(param);
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>         <strong class="jxr_keyword">if</strong> (res != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>           <strong class="jxr_keyword">return</strong> res;
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>         }
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>         <strong class="jxr_keyword">if</strong> (param instanceof Program) {
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>           res = ((Program) param).itterate(func);
-<a class="jxr_linenumber" name="L561" href="#L561">561</a>         }
-<a class="jxr_linenumber" name="L562" href="#L562">562</a>         <strong class="jxr_keyword">if</strong> (res != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L563" href="#L563">563</a>           <strong class="jxr_keyword">return</strong> res;
-<a class="jxr_linenumber" name="L564" href="#L564">564</a>         }
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>       }
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>     }
-<a class="jxr_linenumber" name="L567" href="#L567">567</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L568" href="#L568">568</a>   }
-<a class="jxr_linenumber" name="L569" href="#L569">569</a> 
-<a class="jxr_linenumber" name="L570" href="#L570">570</a>   <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a>[] getInstructions() {
-<a class="jxr_linenumber" name="L571" href="#L571">571</a>     <strong class="jxr_keyword">return</strong> instructions;
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>   }
-<a class="jxr_linenumber" name="L573" href="#L573">573</a> 
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">HasClass</a> <strong class="jxr_keyword">implements</strong> Function&lt;Object, Boolean&gt; {
-<a class="jxr_linenumber" name="L575" href="#L575">575</a> 
-<a class="jxr_linenumber" name="L576" href="#L576">576</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Instruction&gt; instr;
-<a class="jxr_linenumber" name="L577" href="#L577">577</a> 
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/vm/Program.html">HasClass</a>(<strong class="jxr_keyword">final</strong> Class&lt;? <strong class="jxr_keyword">extends</strong> Instruction&gt; instr) {
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>       <strong class="jxr_keyword">this</strong>.instr = instr;
-<a class="jxr_linenumber" name="L580" href="#L580">580</a>     }
-<a class="jxr_linenumber" name="L581" href="#L581">581</a> 
-<a class="jxr_linenumber" name="L582" href="#L582">582</a>     @Override
-<a class="jxr_linenumber" name="L583" href="#L583">583</a>     @SuppressFBWarnings(<span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>)
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>     <strong class="jxr_keyword">public</strong> Boolean apply(@Nonnull <strong class="jxr_keyword">final</strong> Object input) {
-<a class="jxr_linenumber" name="L585" href="#L585">585</a>       <strong class="jxr_keyword">if</strong> (input.getClass() == instr) {
-<a class="jxr_linenumber" name="L586" href="#L586">586</a>         <strong class="jxr_keyword">return</strong> Boolean.TRUE;
-<a class="jxr_linenumber" name="L587" href="#L587">587</a>       }
-<a class="jxr_linenumber" name="L588" href="#L588">588</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L589" href="#L589">589</a>     }
-<a class="jxr_linenumber" name="L590" href="#L590">590</a>   }
-<a class="jxr_linenumber" name="L591" href="#L591">591</a> 
-<a class="jxr_linenumber" name="L592" href="#L592">592</a> }
+<a class="jxr_linenumber" name="L532" href="#L532">532</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017. All rights reserved.</div>

@@ -42,20 +42,22 @@ public final class IntMath {
      * If you need a thread-safe random, please use JDK ThreadLocalRandom, which will be your best option.
      */
     @NotThreadSafe
-<span class="fc" id="L45">    public static final class XorShift32 implements IntSequence {</span>
+    public static final class XorShift32 implements IntSequence {
         // XorShift128 PRNG with a 2^32-1 period.
-<span class="fc" id="L47">        private int x = (int) System.currentTimeMillis();</span>
-        {
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">          while (x == 0) {</span>
-<span class="nc" id="L50">            x = (int) System.currentTimeMillis();</span>
+        private int x;
+
+<span class="fc" id="L49">        public XorShift32() {</span>
+<span class="fc" id="L50">          x = (int) System.currentTimeMillis();</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">          while (x == 0) {</span>
+<span class="nc" id="L52">            x = (int) System.currentTimeMillis();</span>
           }
-<span class="fc" id="L52">        }</span>
+<span class="fc" id="L54">        }</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L56">            x ^= (x &lt;&lt; 6);</span>
-<span class="fc" id="L57">            x ^= (x &gt;&gt;&gt; 21);</span>
-<span class="fc" id="L58">            return x ^ (x &lt;&lt; 7);</span>
+<span class="fc" id="L58">            x ^= (x &lt;&lt; 6);</span>
+<span class="fc" id="L59">            x ^= (x &gt;&gt;&gt; 21);</span>
+<span class="fc" id="L60">            return x ^ (x &lt;&lt; 7);</span>
         }
     }
 
@@ -66,46 +68,46 @@ public final class IntMath {
      */
     @ThreadSafe
     @Deprecated
-<span class="nc" id="L69">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
+<span class="nc" id="L71">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
 
 
-<span class="nc" id="L72">      public static final class Singleton {</span>
+<span class="nc" id="L74">      public static final class Singleton {</span>
 
-<span class="nc" id="L74">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
+<span class="nc" id="L76">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
 
       }
 
-<span class="nc" id="L78">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
+<span class="nc" id="L80">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
 
       @Override
       public int nextInt() {
-<span class="nc" id="L82">        return rnd.get().nextInt();</span>
+<span class="nc" id="L84">        return rnd.get().nextInt();</span>
       }
 
-<span class="nc" id="L85">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
+<span class="nc" id="L87">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
 
         @Override
         protected XorShift32 initialValue() {
-<span class="nc" id="L89">          return new XorShift32();</span>
+<span class="nc" id="L91">          return new XorShift32();</span>
         }
       }
     }
 
 
     @NotThreadSafe
-<span class="fc" id="L96">    public static final class XorShift128 implements IntSequence {</span>
+<span class="fc" id="L98">    public static final class XorShift128 implements IntSequence {</span>
         // XorShift128 PRNG with a 2^128-1 period.
-<span class="fc" id="L98">        private int x = System.identityHashCode(this);</span>
-<span class="fc" id="L99">        private int y = -938745813;</span>
-<span class="fc" id="L100">        private int z = 452465366;</span>
-<span class="fc" id="L101">        private int w = 1343246171;</span>
+<span class="fc" id="L100">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L101">        private int y = -938745813;</span>
+<span class="fc" id="L102">        private int z = 452465366;</span>
+<span class="fc" id="L103">        private int w = 1343246171;</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L105">            int t = x ^ (x &lt;&lt; 15);</span>
-<span class="fc" id="L106">            x = y; y = z; z = w;</span>
-<span class="fc" id="L107">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
-<span class="fc" id="L108">            return w;</span>
+<span class="fc" id="L107">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="fc" id="L108">            x = y; y = z; z = w;</span>
+<span class="fc" id="L109">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="fc" id="L110">            return w;</span>
         }
     }
 

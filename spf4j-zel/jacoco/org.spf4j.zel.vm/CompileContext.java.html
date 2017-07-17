@@ -17,11 +17,12 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import org.spf4j.zel.instr.Instruction;
 
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;CD_CIRCULAR_DEPENDENCY&quot;)
+@SuppressFBWarnings(&quot;CD_CIRCULAR_DEPENDENCY&quot;)
 public final class CompileContext implements ParsingContext {
 
     private final ProgramBuilder prog;
@@ -30,67 +31,58 @@ public final class CompileContext implements ParsingContext {
 
     private Instruction last;
 
-<span class="fc" id="L33">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
-<span class="fc" id="L34">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
-<span class="fc" id="L35">        this.staticMemBuilder = staticMemBuilder;</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L34">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L35">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
+<span class="fc" id="L36">        this.staticMemBuilder = staticMemBuilder;</span>
+<span class="fc" id="L37">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     public void generateCode(final Location[] locs, final Instruction... args) {
-<span class="fc" id="L41">        prog.addAll(args, Arrays.asList(locs));</span>
-<span class="fc" id="L42">        last = args[args.length - 1];</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L42">        prog.addAll(args, Arrays.asList(locs));</span>
+<span class="fc" id="L43">        last = args[args.length - 1];</span>
+<span class="fc" id="L44">    }</span>
 
     @Override
     public void generateCodeAll(final ParsingContext parsingContext) {
-<span class="fc" id="L47">        prog.addAll(parsingContext.getProgramBuilder());</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L48">        prog.addAll(parsingContext.getProgramBuilder());</span>
+<span class="fc" id="L49">    }</span>
 
     @Override
     public int getAddress() {
-<span class="fc" id="L52">        return prog.size();</span>
+<span class="fc" id="L53">        return prog.size();</span>
     }
-
-    /**
-     * Do no aditional processing
-     *
-     * @param obj Object
-     */
-    @Override
-    public void process(final Object obj) {
-<span class="nc" id="L62">    }</span>
 
 
     @Override
     public ProgramBuilder getProgramBuilder() {
-<span class="fc" id="L67">        return prog;</span>
+<span class="fc" id="L59">        return prog;</span>
     }
 
     @Override
     public CompileContext createSubContext() {
-<span class="fc" id="L72">        return new CompileContext(staticMemBuilder);</span>
+<span class="fc" id="L64">        return new CompileContext(staticMemBuilder);</span>
     }
 
     @Override
     public void staticSymbol(final String name, final Object object) {
-<span class="fc" id="L77">        staticMemBuilder.addSymbol(name, object);</span>
-<span class="fc" id="L78">    }</span>
+<span class="fc" id="L69">        staticMemBuilder.addSymbol(name, object);</span>
+<span class="fc" id="L70">    }</span>
 
     @Override
     public Instruction getLast() {
-<span class="fc" id="L82">       return last;</span>
+<span class="fc" id="L74">       return last;</span>
     }
 
     @Override
     public void generateCode(final Location loc, final Instruction instr) {
-<span class="fc" id="L87">        prog.add(instr, loc);</span>
-<span class="fc" id="L88">        last = instr;</span>
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L79">        prog.add(instr, loc);</span>
+<span class="fc" id="L80">        last = instr;</span>
+<span class="fc" id="L81">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L93">        return &quot;CompileContext{&quot; + &quot;prog=&quot; + prog + &quot;, staticMemBuilder=&quot; + staticMemBuilder + &quot;, last=&quot; + last + '}';</span>
+<span class="nc" id="L85">        return &quot;CompileContext{&quot; + &quot;prog=&quot; + prog + &quot;, staticMemBuilder=&quot; + staticMemBuilder + &quot;, last=&quot; + last + '}';</span>
     }
 
 }

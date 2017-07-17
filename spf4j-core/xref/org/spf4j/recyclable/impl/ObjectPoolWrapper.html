@@ -66,7 +66,7 @@
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>  
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>      @edu.umd.cs.findbugs.annotations.SuppressWarnings(<span class="jxr_string">"LEST_LOST_EXCEPTION_STACK_TRACE"</span>)
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(<span class="jxr_string">"LEST_LOST_EXCEPTION_STACK_TRACE"</span>)
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      @Override
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">public</strong> T get()
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>              <strong class="jxr_keyword">throws</strong> ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
@@ -80,7 +80,7 @@
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>              <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>                  pool.recycle(result, e);
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  <strong class="jxr_keyword">throw</strong> Throwables.suppress(<strong class="jxr_keyword">new</strong> RuntimeException(ex), e);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  <strong class="jxr_keyword">throw</strong> Throwables.suppress(ex, e);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>              }
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/recyclable/ObjectBorrowException.html">ObjectBorrowException</a>(<span class="jxr_string">"Exception while executing borrow hook "</span> + borrowHook, e);
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>          }
@@ -109,7 +109,7 @@
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>         <strong class="jxr_keyword">if</strong> (pool instanceof Scanable) {
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>             <strong class="jxr_keyword">return</strong> ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Wrapped pool "</span> + pool + <span class="jxr_string">" is not scanable"</span>);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UnsupportedOperationException(<span class="jxr_string">"Wrapped pool "</span> + pool + <span class="jxr_string">" is not scanable"</span>);
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>         }
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>     }
 <a class="jxr_linenumber" name="L107" href="#L107">107</a> 

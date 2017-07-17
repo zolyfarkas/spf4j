@@ -27,64 +27,63 @@ public final class ZExecutionException extends ExecutionException {
 
     private static final long serialVersionUID = 8823469923479284L;
 
+<span class="pc" id="L30">    private final List&lt;ZelFrame&gt; zelframes = new ArrayList&lt;&gt;();</span>
+
     public ZExecutionException(final String message, final Exception e) {
-<span class="nc" id="L31">        super(message, e);</span>
-<span class="nc" id="L32">        this.payload = null;</span>
-<span class="nc" id="L33">    }</span>
+<span class="nc" id="L33">        super(message, e);</span>
+<span class="nc" id="L34">        this.payload = null;</span>
+<span class="nc" id="L35">    }</span>
 
 
     public ZExecutionException(final Exception e) {
-<span class="nc" id="L37">        super(e);</span>
-<span class="nc" id="L38">        this.payload = null;</span>
-<span class="nc" id="L39">    }</span>
+<span class="nc" id="L39">        super(e);</span>
+<span class="nc" id="L40">        this.payload = null;</span>
+<span class="nc" id="L41">    }</span>
 
     public ZExecutionException(final String msg) {
-<span class="nc" id="L42">        super(msg);</span>
-<span class="nc" id="L43">        this.payload = null;</span>
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L44">        super(msg);</span>
+<span class="nc" id="L45">        this.payload = null;</span>
+<span class="nc" id="L46">    }</span>
 
     public ZExecutionException(final Object object) {
-<span class="fc" id="L47">        super();</span>
-<span class="fc" id="L48">        this.payload = object;</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L49">        super();</span>
+<span class="fc" id="L50">        this.payload = object;</span>
+<span class="fc" id="L51">    }</span>
 
 
     private final Object payload;
 
     public Object getPayload() {
-<span class="nc" id="L55">        return payload;</span>
+<span class="nc" id="L57">        return payload;</span>
     }
 
 
     public void addZelFrame(final ZelFrame frame) {
-<span class="fc" id="L60">        zelframes.add(frame);</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L62">        zelframes.add(frame);</span>
+<span class="fc" id="L63">    }</span>
 
     public List&lt;ZelFrame&gt; getZelframes() {
-<span class="nc" id="L64">        return zelframes;</span>
+<span class="nc" id="L66">        return zelframes;</span>
     }
-
-
-<span class="pc" id="L68">    private final List&lt;ZelFrame&gt; zelframes = new ArrayList&lt;&gt;();</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L72">        String msg = super.toString();</span>
-<span class="nc" id="L73">        StringBuilder result = new StringBuilder(1024);</span>
-<span class="nc" id="L74">        result.append(msg);</span>
-<span class="nc" id="L75">        result.append('\n');</span>
-<span class="nc" id="L76">        result.append(&quot;Zel trace:\n&quot;);</span>
-<span class="nc" id="L77">        Set&lt;String&gt; sourceIds = new HashSet&lt;&gt;();</span>
-<span class="nc bnc" id="L78" title="All 2 branches missed.">        for (ZelFrame frame : zelframes) {</span>
-<span class="nc" id="L79">            result.append(frame);</span>
-<span class="nc" id="L80">            result.append('\n');</span>
-<span class="nc" id="L81">            sourceIds.add(frame.getSource());</span>
-<span class="nc" id="L82">        }</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        for (String sourceId : sourceIds) {</span>
-<span class="nc" id="L84">            result.append(sourceId).append(&quot;:\n&quot;);</span>
-<span class="nc" id="L85">            result.append(ZelFrame.getDetail(sourceId)).append('\n');</span>
-<span class="nc" id="L86">        }</span>
-<span class="nc" id="L87">        return result.toString();</span>
+<span class="nc" id="L71">        String msg = super.toString();</span>
+<span class="nc" id="L72">        StringBuilder result = new StringBuilder(1024);</span>
+<span class="nc" id="L73">        result.append(msg);</span>
+<span class="nc" id="L74">        result.append('\n');</span>
+<span class="nc" id="L75">        result.append(&quot;Zel trace:\n&quot;);</span>
+<span class="nc" id="L76">        Set&lt;String&gt; sourceIds = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (ZelFrame frame : zelframes) {</span>
+<span class="nc" id="L78">            result.append(frame);</span>
+<span class="nc" id="L79">            result.append('\n');</span>
+<span class="nc" id="L80">            sourceIds.add(frame.getSource());</span>
+<span class="nc" id="L81">        }</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (String sourceId : sourceIds) {</span>
+<span class="nc" id="L83">            result.append(sourceId).append(&quot;:\n&quot;);</span>
+<span class="nc" id="L84">            result.append(ZelFrame.getDetail(sourceId)).append('\n');</span>
+<span class="nc" id="L85">        }</span>
+<span class="nc" id="L86">        return result.toString();</span>
     }
 
 

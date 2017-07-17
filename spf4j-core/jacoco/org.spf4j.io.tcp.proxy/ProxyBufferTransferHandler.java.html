@@ -41,7 +41,7 @@ import org.spf4j.io.tcp.SelectorEventHandler;
 @ParametersAreNonnullByDefault
 public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
-<span class="nc" id="L44">    private static final Logger LOG = LoggerFactory.getLogger(ProxyBufferTransferHandler.class);</span>
+<span class="fc" id="L44">    private static final Logger LOG = LoggerFactory.getLogger(ProxyBufferTransferHandler.class);</span>
 
     private final SocketChannel channel;
 
@@ -68,60 +68,60 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
             @Nullable final SnifferFactory snifferFactory,
             final SocketChannel channel, final Selector selector, final ExecutorService exec,
             final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
-<span class="nc" id="L71">            final UpdateablePriorityQueue.ElementRef deadlineActionRef) {</span>
-<span class="nc" id="L72">        this.in = in;</span>
-<span class="nc" id="L73">        this.out = out;</span>
-<span class="nc" id="L74">        this.exec = exec;</span>
-<span class="nc" id="L75">        this.channel = channel;</span>
-<span class="nc" id="L76">        this.selector = selector;</span>
-<span class="nc" id="L77">        this.deadlineActionRef = deadlineActionRef;</span>
-<span class="nc" id="L78">        this.connected = channel.isConnected();</span>
-<span class="nc" id="L79">        this.snifferFactory = snifferFactory;</span>
-<span class="nc" id="L80">        this.tasksToRunBySelector = tasksToRunBySelector;</span>
-<span class="nc" id="L81">        readRun = new ReadFromChannel(in, channel);</span>
-<span class="nc" id="L82">        writeRun = new WriteToChannel(out, channel);</span>
-<span class="nc" id="L83">    }</span>
+<span class="fc" id="L71">            final UpdateablePriorityQueue.ElementRef deadlineActionRef) {</span>
+<span class="fc" id="L72">        this.in = in;</span>
+<span class="fc" id="L73">        this.out = out;</span>
+<span class="fc" id="L74">        this.exec = exec;</span>
+<span class="fc" id="L75">        this.channel = channel;</span>
+<span class="fc" id="L76">        this.selector = selector;</span>
+<span class="fc" id="L77">        this.deadlineActionRef = deadlineActionRef;</span>
+<span class="fc" id="L78">        this.connected = channel.isConnected();</span>
+<span class="fc" id="L79">        this.snifferFactory = snifferFactory;</span>
+<span class="fc" id="L80">        this.tasksToRunBySelector = tasksToRunBySelector;</span>
+<span class="fc" id="L81">        readRun = new ReadFromChannel(in, channel);</span>
+<span class="fc" id="L82">        writeRun = new WriteToChannel(out, channel);</span>
+<span class="fc" id="L83">    }</span>
 
     @Override
     public SelectionKey initialInterestRegistration() throws ClosedChannelException {
-<span class="nc" id="L87">        SelectionKey tkey = channel.register(selector, SelectionKey.OP_READ</span>
+<span class="fc" id="L87">        SelectionKey tkey = channel.register(selector, SelectionKey.OP_READ</span>
                 | SelectionKey.OP_CONNECT, this);
-<span class="nc" id="L89">        final ReadInterest readInterest = new ReadInterest(tkey);</span>
-<span class="nc" id="L90">        final WriteInterest writeInterest = new WriteInterest(tkey);</span>
-<span class="nc" id="L91">        out.setIsDataInBufferHook(new DataAvailableToWriteHook(tasksToRunBySelector, writeInterest, selector));</span>
-<span class="nc" id="L92">        in.setIsRoomInBufferHook(new RoomToReadHook(tasksToRunBySelector, readInterest, selector));</span>
-<span class="nc" id="L93">        return tkey;</span>
+<span class="fc" id="L89">        final ReadInterest readInterest = new ReadInterest(tkey);</span>
+<span class="fc" id="L90">        final WriteInterest writeInterest = new WriteInterest(tkey);</span>
+<span class="fc" id="L91">        out.setIsDataInBufferHook(new DataAvailableToWriteHook(tasksToRunBySelector, writeInterest, selector));</span>
+<span class="fc" id="L92">        in.setIsRoomInBufferHook(new RoomToReadHook(tasksToRunBySelector, readInterest, selector));</span>
+<span class="fc" id="L93">        return tkey;</span>
     }
 
     @Override
     public boolean canRunAsync() {
-<span class="nc" id="L98">        return true;</span>
+<span class="fc" id="L98">        return true;</span>
     }
 
     @Override
     public synchronized void runAsync(final SelectionKey sKey) throws IOException {
-<span class="nc bnc" id="L103" title="All 4 branches missed.">        if (!connected &amp;&amp; sKey.isConnectable()) {</span>
-<span class="nc" id="L104">            sKey.interestOps(sKey.interestOps() &amp; (~SelectionKey.OP_CONNECT));</span>
-<span class="nc" id="L105">            connected = channel.finishConnect();</span>
-<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (connected) {</span>
-<span class="nc" id="L107">                LOG.debug(&quot;Connected to {}&quot;, channel);</span>
-<span class="nc" id="L108">                deadlineActionRef.remove();</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (snifferFactory != null) {</span>
-<span class="nc" id="L110">                    in.setIncomingSniffer(snifferFactory.get(channel));</span>
+<span class="pc bpc" id="L103" title="1 of 4 branches missed.">        if (!connected &amp;&amp; sKey.isConnectable()) {</span>
+<span class="fc" id="L104">            sKey.interestOps(sKey.interestOps() &amp; (~SelectionKey.OP_CONNECT));</span>
+<span class="fc" id="L105">            connected = channel.finishConnect();</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">            if (connected) {</span>
+<span class="fc" id="L107">                LOG.debug(&quot;Connected to {}&quot;, channel);</span>
+<span class="fc" id="L108">                deadlineActionRef.remove();</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">                if (snifferFactory != null) {</span>
+<span class="fc" id="L110">                    in.setIncomingSniffer(snifferFactory.get(channel));</span>
                 }
             }
         }
-<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (connected) {</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">            if (sKey.isReadable()) {</span>
-<span class="nc" id="L116">                exec.execute(readRun);</span>
-<span class="nc" id="L117">                sKey.interestOps(sKey.interestOps() &amp; (~SelectionKey.OP_READ));</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (connected) {</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">            if (sKey.isReadable()) {</span>
+<span class="fc" id="L116">                exec.execute(readRun);</span>
+<span class="fc" id="L117">                sKey.interestOps(sKey.interestOps() &amp; (~SelectionKey.OP_READ));</span>
             }
-<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (sKey.isWritable()) {</span>
-<span class="nc" id="L120">                exec.execute(writeRun);</span>
-<span class="nc" id="L121">                sKey.interestOps(sKey.interestOps() &amp; (~SelectionKey.OP_WRITE));</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">            if (sKey.isWritable()) {</span>
+<span class="fc" id="L120">                exec.execute(writeRun);</span>
+<span class="fc" id="L121">                sKey.interestOps(sKey.interestOps() &amp; (~SelectionKey.OP_WRITE));</span>
             }
         }
-<span class="nc" id="L124">    }</span>
+<span class="fc" id="L124">    }</span>
 
     @Override
     public void run(final SelectionKey skey) {
@@ -132,28 +132,28 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
         private final SelectionKey tKey;
 
-<span class="nc" id="L135">        ReadInterest(final SelectionKey key) {</span>
-<span class="nc" id="L136">            tKey = key;</span>
-<span class="nc" id="L137">        }</span>
+<span class="fc" id="L135">        ReadInterest(final SelectionKey key) {</span>
+<span class="fc" id="L136">            tKey = key;</span>
+<span class="fc" id="L137">        }</span>
 
         @Override
         public void run() {
-<span class="nc" id="L141">            tKey.interestOps(tKey.interestOps() | SelectionKey.OP_READ);</span>
-<span class="nc" id="L142">        }</span>
+<span class="fc" id="L141">            tKey.interestOps(tKey.interestOps() | SelectionKey.OP_READ);</span>
+<span class="fc" id="L142">        }</span>
     }
 
     private static class WriteInterest implements Runnable {
 
         private final SelectionKey tKey;
 
-<span class="nc" id="L149">        WriteInterest(final SelectionKey key) {</span>
-<span class="nc" id="L150">            this.tKey = key;</span>
-<span class="nc" id="L151">        }</span>
+<span class="fc" id="L149">        WriteInterest(final SelectionKey key) {</span>
+<span class="fc" id="L150">            this.tKey = key;</span>
+<span class="fc" id="L151">        }</span>
 
         @Override
         public void run() {
-<span class="nc" id="L155">            tKey.interestOps(tKey.interestOps() | SelectionKey.OP_WRITE);</span>
-<span class="nc" id="L156">        }</span>
+<span class="fc" id="L155">            tKey.interestOps(tKey.interestOps() | SelectionKey.OP_WRITE);</span>
+<span class="fc" id="L156">        }</span>
     }
 
     private static class DataAvailableToWriteHook extends AbstractRunnable {
@@ -164,17 +164,17 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
         DataAvailableToWriteHook(final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
                 final WriteInterest writeInterest, final Selector selector) {
-<span class="nc" id="L167">            super(false);</span>
-<span class="nc" id="L168">            this.tasksToRunBySelector = tasksToRunBySelector;</span>
-<span class="nc" id="L169">            this.writeInterest = writeInterest;</span>
-<span class="nc" id="L170">            this.selector = selector;</span>
-<span class="nc" id="L171">        }</span>
+<span class="fc" id="L167">            super(false);</span>
+<span class="fc" id="L168">            this.tasksToRunBySelector = tasksToRunBySelector;</span>
+<span class="fc" id="L169">            this.writeInterest = writeInterest;</span>
+<span class="fc" id="L170">            this.selector = selector;</span>
+<span class="fc" id="L171">        }</span>
 
         @Override
         public void doRun() throws InterruptedException  {
-<span class="nc" id="L175">            tasksToRunBySelector.put(writeInterest);</span>
-<span class="nc" id="L176">            selector.wakeup();</span>
-<span class="nc" id="L177">        }</span>
+<span class="fc" id="L175">            tasksToRunBySelector.put(writeInterest);</span>
+<span class="fc" id="L176">            selector.wakeup();</span>
+<span class="fc" id="L177">        }</span>
     }
 
     private static class RoomToReadHook extends AbstractRunnable {
@@ -185,17 +185,17 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
         RoomToReadHook(final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
                 final ReadInterest readInterest, final Selector selector) {
-<span class="nc" id="L188">            super(false);</span>
-<span class="nc" id="L189">            this.tasksToRunBySelector = tasksToRunBySelector;</span>
-<span class="nc" id="L190">            this.readInterest = readInterest;</span>
-<span class="nc" id="L191">            this.selector = selector;</span>
-<span class="nc" id="L192">        }</span>
+<span class="fc" id="L188">            super(false);</span>
+<span class="fc" id="L189">            this.tasksToRunBySelector = tasksToRunBySelector;</span>
+<span class="fc" id="L190">            this.readInterest = readInterest;</span>
+<span class="fc" id="L191">            this.selector = selector;</span>
+<span class="fc" id="L192">        }</span>
 
         @Override
         public void doRun() throws InterruptedException {
-<span class="nc" id="L196">            tasksToRunBySelector.put(readInterest);</span>
-<span class="nc" id="L197">            selector.wakeup();</span>
-<span class="nc" id="L198">        }</span>
+<span class="fc" id="L196">            tasksToRunBySelector.put(readInterest);</span>
+<span class="fc" id="L197">            selector.wakeup();</span>
+<span class="fc" id="L198">        }</span>
     }
 
     private static class ReadFromChannel extends AbstractRunnable {
@@ -204,16 +204,16 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final SocketChannel channel;
 
         ReadFromChannel(final TransferBuffer in, final SocketChannel channel) {
-<span class="nc" id="L207">            super(true);</span>
-<span class="nc" id="L208">            this.in = in;</span>
-<span class="nc" id="L209">            this.channel = channel;</span>
-<span class="nc" id="L210">        }</span>
+<span class="fc" id="L207">            super(true);</span>
+<span class="fc" id="L208">            this.in = in;</span>
+<span class="fc" id="L209">            this.channel = channel;</span>
+<span class="fc" id="L210">        }</span>
 
       @Override
       public void doRun() {
-<span class="nc" id="L214">        int read = in.read(channel);</span>
-<span class="nc" id="L215">        LOG.debug(&quot;Read {} bytes from {}&quot;, read, channel);</span>
-<span class="nc" id="L216">      }</span>
+<span class="fc" id="L214">        int read = in.read(channel);</span>
+<span class="fc" id="L215">        LOG.debug(&quot;Read {} bytes from {}&quot;, read, channel);</span>
+<span class="fc" id="L216">      }</span>
     }
 
     private static class WriteToChannel extends AbstractRunnable {
@@ -222,16 +222,16 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
         private final SocketChannel channel;
 
         WriteToChannel(final TransferBuffer out, final SocketChannel channel) {
-<span class="nc" id="L225">            super(true);</span>
-<span class="nc" id="L226">            this.out = out;</span>
-<span class="nc" id="L227">            this.channel = channel;</span>
-<span class="nc" id="L228">        }</span>
+<span class="fc" id="L225">            super(true);</span>
+<span class="fc" id="L226">            this.out = out;</span>
+<span class="fc" id="L227">            this.channel = channel;</span>
+<span class="fc" id="L228">        }</span>
 
         @Override
         public void doRun() {
-<span class="nc" id="L232">                int written = out.write(channel);</span>
-<span class="nc" id="L233">                LOG.debug(&quot;Written {} bytes to {}&quot;, written, channel);</span>
-<span class="nc" id="L234">        }</span>
+<span class="fc" id="L232">                int written = out.write(channel);</span>
+<span class="fc" id="L233">                LOG.debug(&quot;Written {} bytes to {}&quot;, written, channel);</span>
+<span class="fc" id="L234">        }</span>
     }
 
     @Override

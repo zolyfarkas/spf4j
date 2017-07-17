@@ -29,27 +29,27 @@ public final class DEC extends Instruction {
 
     private static final long serialVersionUID = 6127414006563169983L;
 
-<span class="nc" id="L32">    private DEC() {</span>
-<span class="nc" id="L33">    }</span>
+<span class="nc" id="L32">    public static final Instruction INSTANCE = new DEC();</span>
+
+<span class="nc" id="L34">    private DEC() {</span>
+<span class="nc" id="L35">    }</span>
 
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
     public int execute(final ExecutionContext context)
             throws SuspendedException, ExecutionException, InterruptedException {
-<span class="nc" id="L40">        final Object val = context.popSyncStackVal();</span>
-<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (val instanceof AssignableValue) {</span>
-<span class="nc" id="L42">            AssignableValue aval = (AssignableValue) val;</span>
-<span class="nc" id="L43">            Number nr = (Number) aval.get();</span>
-<span class="nc" id="L44">            Number result = (Number) Operators.apply(Operator.Enum.Sub, nr, 1);</span>
-<span class="nc" id="L45">            aval.assign(result);</span>
-<span class="nc" id="L46">        } else {</span>
-<span class="nc" id="L47">            context.push(Operators.apply(Operator.Enum.Sub, val, 1));</span>
+<span class="nc" id="L42">        final Object val = context.popSyncStackVal();</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (val instanceof AssignableValue) {</span>
+<span class="nc" id="L44">            AssignableValue aval = (AssignableValue) val;</span>
+<span class="nc" id="L45">            Number nr = (Number) aval.get();</span>
+<span class="nc" id="L46">            Number result = (Number) Operators.apply(Operator.Enum.Sub, nr, 1);</span>
+<span class="nc" id="L47">            aval.assign(result);</span>
+<span class="nc" id="L48">        } else {</span>
+<span class="nc" id="L49">            context.push(Operators.apply(Operator.Enum.Sub, val, 1));</span>
         }
-<span class="nc" id="L49">        return 1;</span>
+<span class="nc" id="L51">        return 1;</span>
     }
-
-<span class="nc" id="L52">    public static final Instruction INSTANCE = new DEC();</span>
 
     @Override
     public Object[] getParameters() {

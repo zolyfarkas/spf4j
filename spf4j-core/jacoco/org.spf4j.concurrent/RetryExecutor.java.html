@@ -17,6 +17,7 @@
  */
 package org.spf4j.concurrent;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -43,12 +44,12 @@ import org.spf4j.base.TimeoutRunnable;
 public class RetryExecutor {
 
   public static final
-<span class="fc" id="L46">          ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Object, Object&gt;, Callable&lt;Object&gt;&gt; NO_RETRY_SUPPLIER</span>
-<span class="fc" id="L47">          = new ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Object, Object&gt;, Callable&lt;Object&gt;&gt;() {</span>
+<span class="fc" id="L47">          ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Object, Object&gt;, Callable&lt;Object&gt;&gt; NO_RETRY_SUPPLIER</span>
+<span class="fc" id="L48">          = new ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Object, Object&gt;, Callable&lt;Object&gt;&gt;() {</span>
 
     @Override
     public Callables.RetryPredicate&lt;Object, Object&gt; get(final Callable&lt;Object&gt; parameter) {
-<span class="fc" id="L51">      return Callables.RetryPredicate.NORETRY_DELAY_PREDICATE;</span>
+<span class="fc" id="L52">      return Callables.RetryPredicate.NORETRY_DELAY_PREDICATE;</span>
     }
   };
 
@@ -57,7 +58,7 @@ public class RetryExecutor {
    * can contain: DelayedCallables for execution. (delayed retries) or FailedExecutionResults for results.
    *
    */
-<span class="fc" id="L60">  private final DelayQueue&lt;FailedExecutionResult&gt; executionEvents = new DelayQueue&lt;&gt;();</span>
+<span class="fc" id="L61">  private final DelayQueue&lt;FailedExecutionResult&gt; executionEvents = new DelayQueue&lt;&gt;();</span>
   private final
           ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Object, Object&gt;, Callable&lt;?&gt;&gt;
           resultRetryPredicateSupplier;
@@ -67,27 +68,27 @@ public class RetryExecutor {
   private volatile RetryManager retryManager;
   private Future&lt;?&gt; retryManagerFuture;
   private final BlockingQueue&lt;Future&lt;?&gt;&gt; completionQueue;
-<span class="fc" id="L70">  private final Object sync = new Object();</span>
+<span class="fc" id="L71">  private final Object sync = new Object();</span>
 
   private void startRetryManager() {
-<span class="fc bfc" id="L73" title="All 2 branches covered.">    if (this.retryManager == null) {</span>
-<span class="fc" id="L74">      synchronized (sync) {</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (this.retryManager == null) {</span>
-<span class="fc" id="L76">          this.retryManager = new RetryManager();</span>
-<span class="fc" id="L77">          this.retryManagerFuture = DefaultExecutor.INSTANCE.submit(retryManager);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">    if (this.retryManager == null) {</span>
+<span class="fc" id="L75">      synchronized (sync) {</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (this.retryManager == null) {</span>
+<span class="fc" id="L77">          this.retryManager = new RetryManager();</span>
+<span class="fc" id="L78">          this.retryManagerFuture = DefaultExecutor.INSTANCE.submit(retryManager);</span>
         }
-<span class="pc" id="L79">      }</span>
+<span class="pc" id="L80">      }</span>
     }
-<span class="fc" id="L81">  }</span>
+<span class="fc" id="L82">  }</span>
 
   private void shutdownRetryManager() {
-<span class="fc" id="L84">    synchronized (sync) {</span>
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">      if (this.retryManager != null) {</span>
-<span class="fc" id="L86">        retryManager.shutdown();</span>
-<span class="fc" id="L87">        retryManager = null;</span>
+<span class="fc" id="L85">    synchronized (sync) {</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">      if (this.retryManager != null) {</span>
+<span class="fc" id="L87">        retryManager.shutdown();</span>
+<span class="fc" id="L88">        retryManager = null;</span>
       }
-<span class="pc" id="L89">    }</span>
-<span class="fc" id="L90">  }</span>
+<span class="pc" id="L90">    }</span>
+<span class="fc" id="L91">  }</span>
 
   /**
    * this class represents either a execution failure notification or a retry command.
@@ -99,56 +100,56 @@ public class RetryExecutor {
     private final long deadline;
 
     FailedExecutionResult(@Nullable final ExecutionException exception,
-<span class="fc" id="L102">            final RetryableCallable callable, final long delay) {</span>
-<span class="fc" id="L103">      this.exception = exception;</span>
-<span class="fc" id="L104">      this.callable = callable;</span>
-<span class="fc" id="L105">      this.deadline = delay + System.currentTimeMillis();</span>
-<span class="fc" id="L106">    }</span>
+<span class="fc" id="L103">            final RetryableCallable callable, final long delay) {</span>
+<span class="fc" id="L104">      this.exception = exception;</span>
+<span class="fc" id="L105">      this.callable = callable;</span>
+<span class="fc" id="L106">      this.deadline = delay + System.currentTimeMillis();</span>
+<span class="fc" id="L107">    }</span>
 
     @Override
     public long getDelay(final TimeUnit unit) {
-<span class="fc" id="L110">      return unit.convert(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L111">      return unit.convert(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);</span>
     }
 
     @Override
     public int compareTo(final Delayed o) {
-<span class="fc" id="L115">      long tDelay = getDelay(TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L116">      long oDelay = o.getDelay(TimeUnit.MILLISECONDS);</span>
-<span class="fc bfc" id="L117" title="All 2 branches covered.">      if (tDelay &gt; oDelay) {</span>
-<span class="fc" id="L118">        return 1;</span>
-<span class="fc bfc" id="L119" title="All 2 branches covered.">      } else if (tDelay &lt; oDelay) {</span>
-<span class="fc" id="L120">        return -1;</span>
+<span class="fc" id="L116">      long tDelay = getDelay(TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L117">      long oDelay = o.getDelay(TimeUnit.MILLISECONDS);</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">      if (tDelay &gt; oDelay) {</span>
+<span class="fc" id="L119">        return 1;</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">      } else if (tDelay &lt; oDelay) {</span>
+<span class="fc" id="L121">        return -1;</span>
       } else {
-<span class="fc" id="L122">        return 0;</span>
+<span class="fc" id="L123">        return 0;</span>
       }
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">      if (obj == null) {</span>
-<span class="nc" id="L129">        return false;</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">      if (obj == null) {</span>
+<span class="nc" id="L130">        return false;</span>
       } else {
-<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (obj instanceof FailedExecutionResult) {</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">          return this.compareTo((FailedExecutionResult) obj) == 0;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (obj instanceof FailedExecutionResult) {</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">          return this.compareTo((FailedExecutionResult) obj) == 0;</span>
         } else {
-<span class="nc" id="L134">          return false;</span>
+<span class="nc" id="L135">          return false;</span>
         }
       }
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L141">      int hash = 7;</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">      return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);</span>
+<span class="nc" id="L142">      int hash = 7;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">      return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);</span>
     }
 
     @Nullable
     public ExecutionException getException() {
-<span class="fc" id="L147">      return exception;</span>
+<span class="fc" id="L148">      return exception;</span>
     }
 
     public RetryableCallable&lt;Object&gt; getCallable() {
-<span class="fc" id="L151">      return callable;</span>
+<span class="fc" id="L152">      return callable;</span>
     }
 
   }
@@ -165,124 +166,124 @@ public class RetryExecutor {
     RetryableCallable(final Callable&lt;T&gt; callable, @Nullable final FutureBean&lt;T&gt; future,
             final FailedExecutionResult previousResult,
             final Callables.RetryPredicate&lt;?, T&gt; resultRetryPredicate,
-<span class="fc" id="L168">            final Callables.RetryPredicate&lt;Exception, T&gt; exceptionRetryPredicate) {</span>
-<span class="fc" id="L169">      this.callable = callable;</span>
-<span class="fc" id="L170">      this.future = future;</span>
-<span class="fc" id="L171">      this.previousResult = previousResult;</span>
-<span class="fc" id="L172">      this.resultRetryPredicate = (Callables.RetryPredicate&lt;Object, T&gt;) resultRetryPredicate;</span>
-<span class="fc" id="L173">      this.exceptionRetryPredicate = exceptionRetryPredicate;</span>
-<span class="fc" id="L174">    }</span>
+<span class="fc" id="L169">            final Callables.RetryPredicate&lt;Exception, T&gt; exceptionRetryPredicate) {</span>
+<span class="fc" id="L170">      this.callable = callable;</span>
+<span class="fc" id="L171">      this.future = future;</span>
+<span class="fc" id="L172">      this.previousResult = previousResult;</span>
+<span class="fc" id="L173">      this.resultRetryPredicate = (Callables.RetryPredicate&lt;Object, T&gt;) resultRetryPredicate;</span>
+<span class="fc" id="L174">      this.exceptionRetryPredicate = exceptionRetryPredicate;</span>
+<span class="fc" id="L175">    }</span>
 
     RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean&lt;T&gt; future,
             @Nullable final FailedExecutionResult previousResult,
             final Callables.RetryPredicate&lt;?, T&gt; resultRetryPredicate,
             final Callables.RetryPredicate&lt;Exception, T&gt; exceptionRetryPredicate) {
-<span class="nc" id="L180">      this(new Callable() {</span>
+<span class="nc" id="L181">      this(new Callable() {</span>
 
         @Override
         public Object call() {
-<span class="nc" id="L184">          task.run();</span>
-<span class="nc" id="L185">          return result;</span>
+<span class="nc" id="L185">          task.run();</span>
+<span class="nc" id="L186">          return result;</span>
         }
       }, future, previousResult, resultRetryPredicate, exceptionRetryPredicate);
-<span class="nc" id="L188">    }</span>
+<span class="nc" id="L189">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;REC_CATCH_EXCEPTION&quot;)
     public T call() {
       try {
-<span class="fc" id="L194">        T result = callable.call();</span>
-<span class="fc" id="L195">        Callables.RetryDecision&lt;T&gt; decision = this.resultRetryPredicate.getDecision(sync, callable);</span>
-<span class="fc" id="L196">        final Callables.RetryDecision.Type decisionType = decision.getDecisionType();</span>
-<span class="pc bpc" id="L197" title="2 of 3 branches missed.">        switch (decisionType) {</span>
+<span class="fc" id="L195">        T result = callable.call();</span>
+<span class="fc" id="L196">        Callables.RetryDecision&lt;T&gt; decision = this.resultRetryPredicate.getDecision(sync, callable);</span>
+<span class="fc" id="L197">        final Callables.RetryDecision.Type decisionType = decision.getDecisionType();</span>
+<span class="pc bpc" id="L198" title="2 of 3 branches missed.">        switch (decisionType) {</span>
           case Retry:
-<span class="nc" id="L199">            final long delay = decision.getDelayMillis();</span>
-<span class="nc" id="L200">            startRetryManager();</span>
-<span class="nc" id="L201">            this.callable = decision.getNewCallable();</span>
-<span class="nc" id="L202">            executionEvents.add(new FailedExecutionResult(null, this, delay));</span>
-<span class="nc" id="L203">            break;</span>
+<span class="nc" id="L200">            final long delay = decision.getDelayMillis();</span>
+<span class="nc" id="L201">            startRetryManager();</span>
+<span class="nc" id="L202">            this.callable = decision.getNewCallable();</span>
+<span class="nc" id="L203">            executionEvents.add(new FailedExecutionResult(null, this, delay));</span>
+<span class="nc" id="L204">            break;</span>
           case Abort:
-<span class="pc bpc" id="L205" title="1 of 2 branches missed.">            if (future != null) {</span>
-<span class="fc" id="L206">              future.setResult(result);</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">            if (future != null) {</span>
+<span class="fc" id="L207">              future.setResult(result);</span>
             }
             break;
           default:
-<span class="nc" id="L210">            throw new IllegalStateException(&quot;Invalid decision type&quot; + decisionType);</span>
+<span class="nc" id="L211">            throw new IllegalStateException(&quot;Invalid decision type&quot; + decisionType);</span>
         }
-<span class="fc" id="L212">        return null;</span>
-<span class="fc" id="L213">      } catch (Exception e) {</span>
-<span class="fc" id="L214">        Callables.RetryDecision&lt;T&gt; decision = this.exceptionRetryPredicate.getDecision(e, callable);</span>
-<span class="fc" id="L215">        final Callables.RetryDecision.Type decisionType = decision.getDecisionType();</span>
-<span class="pc bpc" id="L216" title="2 of 3 branches missed.">        switch (decisionType) {</span>
+<span class="fc" id="L213">        return null;</span>
+<span class="fc" id="L214">      } catch (Exception e) {</span>
+<span class="fc" id="L215">        Callables.RetryDecision&lt;T&gt; decision = this.exceptionRetryPredicate.getDecision(e, callable);</span>
+<span class="fc" id="L216">        final Callables.RetryDecision.Type decisionType = decision.getDecisionType();</span>
+<span class="pc bpc" id="L217" title="2 of 3 branches missed.">        switch (decisionType) {</span>
           case Retry:
-<span class="fc" id="L218">            final long delay = decision.getDelayMillis();</span>
-<span class="fc" id="L219">            startRetryManager();</span>
-<span class="fc" id="L220">            this.callable = decision.getNewCallable();</span>
-<span class="fc" id="L221">            startRetryManager();</span>
-<span class="fc bfc" id="L222" title="All 2 branches covered.">            if (previousResult != null) {</span>
-<span class="fc" id="L223">              final ExecutionException exception = previousResult.getException();</span>
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">              if (exception != null) {</span>
-<span class="fc" id="L225">                e = Throwables.suppress(e, exception);</span>
+<span class="fc" id="L219">            final long delay = decision.getDelayMillis();</span>
+<span class="fc" id="L220">            startRetryManager();</span>
+<span class="fc" id="L221">            this.callable = decision.getNewCallable();</span>
+<span class="fc" id="L222">            startRetryManager();</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">            if (previousResult != null) {</span>
+<span class="fc" id="L224">              final ExecutionException exception = previousResult.getException();</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">              if (exception != null) {</span>
+<span class="fc" id="L226">                e = Throwables.suppress(e, exception);</span>
               }
             }
-<span class="fc" id="L228">            executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, delay));</span>
-<span class="fc" id="L229">            break;</span>
+<span class="fc" id="L229">            executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, delay));</span>
+<span class="fc" id="L230">            break;</span>
           case Abort:
-<span class="nc bnc" id="L231" title="All 2 branches missed.">            if (future != null) {</span>
-<span class="nc" id="L232">              future.setExceptionResult(new ExecutionException(e));</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            if (future != null) {</span>
+<span class="nc" id="L233">              future.setExceptionResult(new ExecutionException(e));</span>
             }
             break;
           default:
-<span class="nc" id="L236">            throw new IllegalStateException(&quot;Invalid decision type&quot; + decisionType, e);</span>
+<span class="nc" id="L237">            throw new IllegalStateException(&quot;Invalid decision type&quot; + decisionType, e);</span>
         }
-<span class="fc" id="L238">        return null;</span>
+<span class="fc" id="L239">        return null;</span>
       }
     }
 
     @Override
     public void run() {
-<span class="fc" id="L244">      call();</span>
-<span class="fc" id="L245">    }</span>
+<span class="fc" id="L245">      call();</span>
+<span class="fc" id="L246">    }</span>
 
     public FailedExecutionResult getPreviousResult() {
-<span class="nc" id="L248">      return previousResult;</span>
+<span class="nc" id="L249">      return previousResult;</span>
     }
 
     public void setPreviousResult(final FailedExecutionResult previousResult) {
-<span class="fc" id="L252">      this.previousResult = previousResult;</span>
-<span class="fc" id="L253">    }</span>
+<span class="fc" id="L253">      this.previousResult = previousResult;</span>
+<span class="fc" id="L254">    }</span>
 
   }
 
   private class RetryManager extends AbstractRunnable {
 
-<span class="fc" id="L259">    RetryManager() {</span>
-<span class="fc" id="L260">      super(&quot;RetryManager&quot;);</span>
-<span class="fc" id="L261">      isRunning = true;</span>
-<span class="fc" id="L262">    }</span>
+<span class="fc" id="L260">    RetryManager() {</span>
+<span class="fc" id="L261">      super(&quot;RetryManager&quot;);</span>
+<span class="fc" id="L262">      isRunning = true;</span>
+<span class="fc" id="L263">    }</span>
 
     public void shutdown() {
-<span class="fc" id="L265">      isRunning = false;</span>
-<span class="fc" id="L266">    }</span>
+<span class="fc" id="L266">      isRunning = false;</span>
+<span class="fc" id="L267">    }</span>
 
     private volatile boolean isRunning;
 
     @Override
     public void doRun() {
-<span class="pc bpc" id="L272" title="1 of 2 branches missed.">      while (isRunning) {</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">      while (isRunning) {</span>
         try {
-<span class="fc" id="L274">          FailedExecutionResult event = executionEvents.poll(1000, TimeUnit.SECONDS);</span>
-<span class="pc bpc" id="L275" title="1 of 2 branches missed.">          if (event != null) {</span>
-<span class="fc" id="L276">            final RetryableCallable&lt;Object&gt; callable = event.getCallable();</span>
-<span class="fc" id="L277">            callable.setPreviousResult(event);</span>
-<span class="fc" id="L278">            executionService.execute(callable);</span>
+<span class="fc" id="L275">          FailedExecutionResult event = executionEvents.poll(1000, TimeUnit.SECONDS);</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">          if (event != null) {</span>
+<span class="fc" id="L277">            final RetryableCallable&lt;Object&gt; callable = event.getCallable();</span>
+<span class="fc" id="L278">            callable.setPreviousResult(event);</span>
+<span class="fc" id="L279">            executionService.execute(callable);</span>
           }
-<span class="nc" id="L280">        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L281">          isRunning = false;</span>
-<span class="nc" id="L282">          break;</span>
-<span class="fc" id="L283">        }</span>
+<span class="nc" id="L281">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L282">          isRunning = false;</span>
+<span class="nc" id="L283">          break;</span>
+<span class="fc" id="L284">        }</span>
       }
-<span class="nc" id="L285">    }</span>
+<span class="nc" id="L286">    }</span>
 
   }
 
@@ -291,103 +292,103 @@ public class RetryExecutor {
           final ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Exception, Object&gt;,
                   Callable&lt;Object&gt;&gt; exceptionRetryPredicateSupplier,
           @Nullable final BlockingQueue&lt;Future&lt;?&gt;&gt; completionQueue) {
-<span class="fc" id="L294">    this(exec, (ParameterizedSupplier) NO_RETRY_SUPPLIER,</span>
+<span class="fc" id="L295">    this(exec, (ParameterizedSupplier) NO_RETRY_SUPPLIER,</span>
             (ParameterizedSupplier) exceptionRetryPredicateSupplier, completionQueue);
-<span class="fc" id="L296">  }</span>
+<span class="fc" id="L297">  }</span>
 
   public RetryExecutor(final ExecutorService exec,
           final ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Object, Object&gt;,
                   Callable&lt;?&gt;&gt; resultRetryPredicateSupplier,
           final ParameterizedSupplier&lt;Callables.RetryPredicate&lt;Exception, Object&gt;,
                   Callable&lt;?&gt;&gt; exceptionRetryPredicateSupplier,
-<span class="fc" id="L303">          @Nullable final BlockingQueue&lt;Future&lt;?&gt;&gt; completionQueue) {</span>
-<span class="fc" id="L304">    executionService = exec;</span>
-<span class="fc" id="L305">    this.resultRetryPredicateSupplier = resultRetryPredicateSupplier;</span>
-<span class="fc" id="L306">    this.exceptionRetryPredicateSupplier = exceptionRetryPredicateSupplier;</span>
-<span class="fc" id="L307">    this.completionQueue = completionQueue;</span>
-<span class="fc" id="L308">  }</span>
+<span class="fc" id="L304">          @Nullable final BlockingQueue&lt;Future&lt;?&gt;&gt; completionQueue) {</span>
+<span class="fc" id="L305">    executionService = exec;</span>
+<span class="fc" id="L306">    this.resultRetryPredicateSupplier = resultRetryPredicateSupplier;</span>
+<span class="fc" id="L307">    this.exceptionRetryPredicateSupplier = exceptionRetryPredicateSupplier;</span>
+<span class="fc" id="L308">    this.completionQueue = completionQueue;</span>
+<span class="fc" id="L309">  }</span>
 
   public final void shutdown() {
-<span class="fc" id="L311">    shutdownRetryManager();</span>
-<span class="fc" id="L312">    executionService.shutdown();</span>
-<span class="fc" id="L313">  }</span>
+<span class="fc" id="L312">    shutdownRetryManager();</span>
+<span class="fc" id="L313">    executionService.shutdown();</span>
+<span class="fc" id="L314">  }</span>
 
   public final List&lt;Runnable&gt; shutdownNow() {
-<span class="nc" id="L316">    shutdownRetryManager();</span>
-<span class="nc" id="L317">    return executionService.shutdownNow();</span>
+<span class="nc" id="L317">    shutdownRetryManager();</span>
+<span class="nc" id="L318">    return executionService.shutdownNow();</span>
   }
 
   public final boolean isShutdown() {
-<span class="nc" id="L321">    return executionService.isShutdown();</span>
+<span class="nc" id="L322">    return executionService.isShutdown();</span>
   }
 
   public final boolean isTerminated() {
-<span class="nc" id="L325">    return executionService.isTerminated();</span>
+<span class="nc" id="L326">    return executionService.isTerminated();</span>
   }
 
   public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
     try {
-<span class="nc" id="L330">      this.retryManagerFuture.get();</span>
-<span class="nc" id="L331">    } catch (ExecutionException ex) {</span>
-<span class="nc" id="L332">      throw new RuntimeException(ex);</span>
-<span class="nc" id="L333">    }</span>
-<span class="nc" id="L334">    return executionService.awaitTermination(timeout, unit);</span>
+<span class="nc" id="L331">      this.retryManagerFuture.get();</span>
+<span class="nc" id="L332">    } catch (ExecutionException ex) {</span>
+<span class="nc" id="L333">      throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L334">    }</span>
+<span class="nc" id="L335">    return executionService.awaitTermination(timeout, unit);</span>
   }
 
   private FutureBean&lt;?&gt; createFutureBean() {
-<span class="fc bfc" id="L338" title="All 2 branches covered.">    if (completionQueue == null) {</span>
-<span class="fc" id="L339">      return new FutureBean&lt;&gt;();</span>
+<span class="fc bfc" id="L339" title="All 2 branches covered.">    if (completionQueue == null) {</span>
+<span class="fc" id="L340">      return new FutureBean&lt;&gt;();</span>
     } else {
-<span class="fc" id="L341">      return new FutureBean&lt;Object&gt;() {</span>
+<span class="fc" id="L342">      return new FutureBean&lt;Object&gt;() {</span>
         @Override
         public void done() {
-<span class="fc" id="L344">          completionQueue.add(this);</span>
-<span class="fc" id="L345">        }</span>
+<span class="fc" id="L345">          completionQueue.add(this);</span>
+<span class="fc" id="L346">        }</span>
       };
     }
   }
 
   public final &lt;A, E extends Exception&gt; Future&lt;A&gt; submit(final Callables.TimeoutCallable&lt;A, E&gt; task) {
-<span class="nc" id="L351">    FutureBean&lt;?&gt; result = createFutureBean();</span>
-<span class="nc" id="L352">    executionService.execute(new RetryableCallable(task, result, null,</span>
-<span class="nc" id="L353">            resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),</span>
-<span class="nc" id="L354">            exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));</span>
-<span class="nc" id="L355">    return (Future&lt;A&gt;) result;</span>
+<span class="nc" id="L352">    FutureBean&lt;?&gt; result = createFutureBean();</span>
+<span class="nc" id="L353">    executionService.execute(new RetryableCallable(task, result, null,</span>
+<span class="nc" id="L354">            resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),</span>
+<span class="nc" id="L355">            exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));</span>
+<span class="nc" id="L356">    return (Future&lt;A&gt;) result;</span>
   }
 
   public final &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;A&gt; task) {
-<span class="fc" id="L359">    FutureBean&lt;?&gt; result = createFutureBean();</span>
-<span class="fc" id="L360">    executionService.execute(new RetryableCallable(task, result, null,</span>
-<span class="fc" id="L361">            resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),</span>
-<span class="fc" id="L362">            exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));</span>
-<span class="fc" id="L363">    return (Future&lt;A&gt;) result;</span>
+<span class="fc" id="L360">    FutureBean&lt;?&gt; result = createFutureBean();</span>
+<span class="fc" id="L361">    executionService.execute(new RetryableCallable(task, result, null,</span>
+<span class="fc" id="L362">            resultRetryPredicateSupplier.get((Callable&lt;Object&gt;) task),</span>
+<span class="fc" id="L363">            exceptionRetryPredicateSupplier.get((Callable&lt;Object&gt;) task)));</span>
+<span class="fc" id="L364">    return (Future&lt;A&gt;) result;</span>
   }
 
   public final &lt;A, E extends Exception&gt; Future&lt;A&gt; submit(final TimeoutRunnable&lt;E&gt; task, final A result) {
-<span class="nc" id="L367">    FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
-<span class="nc" id="L368">    executionService.execute(new RetryableCallable(task, result, resultFuture, null,</span>
-<span class="nc" id="L369">            resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),</span>
-<span class="nc" id="L370">            exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));</span>
-<span class="nc" id="L371">    return (Future&lt;A&gt;) resultFuture;</span>
+<span class="nc" id="L368">    FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
+<span class="nc" id="L369">    executionService.execute(new RetryableCallable(task, result, resultFuture, null,</span>
+<span class="nc" id="L370">            resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),</span>
+<span class="nc" id="L371">            exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));</span>
+<span class="nc" id="L372">    return (Future&lt;A&gt;) resultFuture;</span>
   }
 
   public final &lt;E extends Exception&gt; Future&lt;?&gt; submit(final TimeoutRunnable&lt;E&gt; task) {
-<span class="nc" id="L375">    FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
-<span class="nc" id="L376">    executionService.execute(new RetryableCallable(task, null, resultFuture, null,</span>
-<span class="nc" id="L377">            resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),</span>
-<span class="nc" id="L378">            exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));</span>
-<span class="nc" id="L379">    return resultFuture;</span>
+<span class="nc" id="L376">    FutureBean&lt;?&gt; resultFuture = createFutureBean();</span>
+<span class="nc" id="L377">    executionService.execute(new RetryableCallable(task, null, resultFuture, null,</span>
+<span class="nc" id="L378">            resultRetryPredicateSupplier.get((Callable&lt;?&gt;) task),</span>
+<span class="nc" id="L379">            exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) task)));</span>
+<span class="nc" id="L380">    return resultFuture;</span>
   }
 
   public final &lt;E extends Exception&gt; void execute(final TimeoutRunnable&lt;E&gt; command) {
-<span class="nc" id="L383">    executionService.execute(new RetryableCallable(command, null, null, null,</span>
-<span class="nc" id="L384">            resultRetryPredicateSupplier.get((Callable&lt;?&gt;) command),</span>
-<span class="nc" id="L385">            exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) command)));</span>
-<span class="nc" id="L386">  }</span>
+<span class="nc" id="L384">    executionService.execute(new RetryableCallable(command, null, null, null,</span>
+<span class="nc" id="L385">            resultRetryPredicateSupplier.get((Callable&lt;?&gt;) command),</span>
+<span class="nc" id="L386">            exceptionRetryPredicateSupplier.get((Callable&lt;?&gt;) command)));</span>
+<span class="nc" id="L387">  }</span>
 
   @Override
   public final String toString() {
-<span class="nc" id="L390">    return &quot;RetryExecutor{&quot; + &quot;executionService=&quot; + executionService + &quot;, executionEvents=&quot;</span>
+<span class="nc" id="L391">    return &quot;RetryExecutor{&quot; + &quot;executionService=&quot; + executionService + &quot;, executionEvents=&quot;</span>
             + executionEvents + &quot;, resultRetryPredicateSupplier=&quot; + resultRetryPredicateSupplier
             + &quot;, exceptionRetryPredicateSupplier=&quot; + exceptionRetryPredicateSupplier + &quot;, retryManager=&quot;
             + retryManager + &quot;, retryManagerFuture=&quot; + retryManagerFuture + &quot;, completionQueue=&quot;

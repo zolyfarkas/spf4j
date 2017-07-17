@@ -19,16 +19,16 @@ import org.spf4j.jmx.Registry;
 @Beta
 public abstract class RestartableServiceImpl implements RestartableService {
 
-<span class="nc" id="L22">    private static final Logger LOG = LoggerFactory.getLogger(RestartableServiceImpl.class);</span>
+<span class="fc" id="L22">    private static final Logger LOG = LoggerFactory.getLogger(RestartableServiceImpl.class);</span>
 
     private final Supplier&lt;Service&gt; supplier;
 
     private volatile Service guavaService;
 
-<span class="nc" id="L28">    public RestartableServiceImpl(final Supplier&lt;Service&gt; supplier) {</span>
-<span class="nc" id="L29">        this.supplier = supplier;</span>
-<span class="nc" id="L30">        this.guavaService = supplier.get();</span>
-<span class="nc" id="L31">    }</span>
+<span class="fc" id="L28">    public RestartableServiceImpl(final Supplier&lt;Service&gt; supplier) {</span>
+<span class="fc" id="L29">        this.supplier = supplier;</span>
+<span class="fc" id="L30">        this.guavaService = supplier.get();</span>
+<span class="fc" id="L31">    }</span>
 
     public final void registerToJmx() {
 <span class="nc" id="L34">        Registry.export(RestartableService.class.getName(), getServiceName(), this);</span>
@@ -38,35 +38,35 @@ public abstract class RestartableServiceImpl implements RestartableService {
     @SuppressFBWarnings(&quot;SF_SWITCH_FALLTHROUGH&quot;) // this is on purpose.
     @JmxExport
     public final synchronized Service startAsync() {
-<span class="nc" id="L41">        final Service svc = guavaService;</span>
-<span class="nc" id="L42">        final State state = svc.state();</span>
-<span class="nc bnc" id="L43" title="All 4 branches missed.">        switch (state) {</span>
+<span class="fc" id="L41">        final Service svc = guavaService;</span>
+<span class="fc" id="L42">        final State state = svc.state();</span>
+<span class="pc bpc" id="L43" title="2 of 4 branches missed.">        switch (state) {</span>
             case NEW:
-<span class="nc" id="L45">                svc.startAsync();</span>
-<span class="nc" id="L46">                break;</span>
+<span class="fc" id="L45">                svc.startAsync();</span>
+<span class="fc" id="L46">                break;</span>
             case FAILED:
 <span class="nc" id="L48">                LOG.warn(&quot;Restarting a failed service&quot;, svc.failureCause());</span>
 <span class="nc" id="L49">                restart();</span>
 <span class="nc" id="L50">                break;</span>
             case TERMINATED:
-<span class="nc" id="L52">                restart();</span>
-<span class="nc" id="L53">                break;</span>
+<span class="fc" id="L52">                restart();</span>
+<span class="fc" id="L53">                break;</span>
             default:
 <span class="nc" id="L55">                throw new IllegalStateException(&quot;Service is in invalid state &quot; + state);</span>
         }
-<span class="nc" id="L57">        return this;</span>
+<span class="fc" id="L57">        return this;</span>
     }
 
     private void restart() {
-<span class="nc" id="L61">        Service newSvc = supplier.get();</span>
-<span class="nc" id="L62">        guavaService = newSvc;</span>
-<span class="nc" id="L63">        newSvc.startAsync();</span>
-<span class="nc" id="L64">    }</span>
+<span class="fc" id="L61">        Service newSvc = supplier.get();</span>
+<span class="fc" id="L62">        guavaService = newSvc;</span>
+<span class="fc" id="L63">        newSvc.startAsync();</span>
+<span class="fc" id="L64">    }</span>
 
     @Override
     @JmxExport
     public final boolean isRunning() {
-<span class="nc" id="L69">        return guavaService.isRunning();</span>
+<span class="fc" id="L69">        return guavaService.isRunning();</span>
     }
 
     @Override
@@ -78,20 +78,20 @@ public abstract class RestartableServiceImpl implements RestartableService {
     @Override
     @JmxExport
     public final Service stopAsync() {
-<span class="nc" id="L81">        guavaService.stopAsync();</span>
-<span class="nc" id="L82">        return this;</span>
+<span class="fc" id="L81">        guavaService.stopAsync();</span>
+<span class="fc" id="L82">        return this;</span>
     }
 
     @Override
     @JmxExport
     public final void awaitRunning() {
-<span class="nc" id="L88">        guavaService.awaitRunning();</span>
-<span class="nc" id="L89">    }</span>
+<span class="fc" id="L88">        guavaService.awaitRunning();</span>
+<span class="fc" id="L89">    }</span>
 
     @Override
     public final void awaitRunning(final long timeout, final TimeUnit unit) throws TimeoutException {
-<span class="nc" id="L93">        guavaService.awaitRunning(timeout, unit);</span>
-<span class="nc" id="L94">    }</span>
+<span class="fc" id="L93">        guavaService.awaitRunning(timeout, unit);</span>
+<span class="fc" id="L94">    }</span>
 
     @Override
     @JmxExport
@@ -101,8 +101,8 @@ public abstract class RestartableServiceImpl implements RestartableService {
 
     @Override
     public final void awaitTerminated(final long timeout, final TimeUnit unit) throws TimeoutException {
-<span class="nc" id="L104">        guavaService.awaitTerminated(timeout, unit);</span>
-<span class="nc" id="L105">    }</span>
+<span class="fc" id="L104">        guavaService.awaitTerminated(timeout, unit);</span>
+<span class="fc" id="L105">    }</span>
 
     @Override
     @JmxExport
@@ -117,9 +117,9 @@ public abstract class RestartableServiceImpl implements RestartableService {
 
     @Override
     public final void close() {
-<span class="nc" id="L120">        guavaService.stopAsync().awaitTerminated();</span>
-<span class="nc" id="L121">        Registry.unregister(RestartableService.class.getName(), getServiceName());</span>
-<span class="nc" id="L122">    }</span>
+<span class="fc" id="L120">        guavaService.stopAsync().awaitTerminated();</span>
+<span class="fc" id="L121">        Registry.unregister(RestartableService.class.getName(), getServiceName());</span>
+<span class="fc" id="L122">    }</span>
 
     @Override
     public final String toString() {

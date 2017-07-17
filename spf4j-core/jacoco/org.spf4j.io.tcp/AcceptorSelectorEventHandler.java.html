@@ -37,7 +37,7 @@ import org.spf4j.ds.UpdateablePriorityQueue;
 @SuppressFBWarnings(&quot;HES_EXECUTOR_NEVER_SHUTDOWN&quot;)
 public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
 
-<span class="nc" id="L40">    private static final Logger LOG = LoggerFactory.getLogger(AcceptorSelectorEventHandler.class);</span>
+<span class="fc" id="L40">    private static final Logger LOG = LoggerFactory.getLogger(AcceptorSelectorEventHandler.class);</span>
 
     private final ClientHandler clientHandler;
     private final ServerSocketChannel serverChannel;
@@ -49,37 +49,37 @@ public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
     public AcceptorSelectorEventHandler(final ServerSocketChannel channel,
             final ClientHandler clientHandler, final Selector selector, final ExecutorService exec,
             final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
-<span class="nc" id="L52">            final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions) {</span>
-<span class="nc" id="L53">        this.serverChannel = channel;</span>
-<span class="nc" id="L54">        this.clientHandler = clientHandler;</span>
-<span class="nc" id="L55">        this.selector = selector;</span>
-<span class="nc" id="L56">        this.exec = exec;</span>
-<span class="nc" id="L57">        this.tasksToRunBySelector = tasksToRunBySelector;</span>
-<span class="nc" id="L58">        this.deadlineActions = deadlineActions;</span>
-<span class="nc" id="L59">    }</span>
+<span class="fc" id="L52">            final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions) {</span>
+<span class="fc" id="L53">        this.serverChannel = channel;</span>
+<span class="fc" id="L54">        this.clientHandler = clientHandler;</span>
+<span class="fc" id="L55">        this.selector = selector;</span>
+<span class="fc" id="L56">        this.exec = exec;</span>
+<span class="fc" id="L57">        this.tasksToRunBySelector = tasksToRunBySelector;</span>
+<span class="fc" id="L58">        this.deadlineActions = deadlineActions;</span>
+<span class="fc" id="L59">    }</span>
 
     @Override
     public void run(final SelectionKey key) throws IOException {
-<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (!key.isAcceptable()) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (!key.isAcceptable()) {</span>
 <span class="nc" id="L64">                throw new IllegalStateException(&quot;selection key must be acceptable &quot; + key);</span>
             }
             SocketChannel clientChannel;
-<span class="nc bnc" id="L67" title="All 2 branches missed.">            while ((clientChannel = serverChannel.accept()) != null) {</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            while ((clientChannel = serverChannel.accept()) != null) {</span>
                 try {
-<span class="nc" id="L69">                    LOG.debug(&quot;Accepted {}&quot;, clientChannel);</span>
-<span class="nc" id="L70">                    clientChannel.configureBlocking(false);</span>
-<span class="nc" id="L71">                    clientHandler.handle(selector, clientChannel, exec, tasksToRunBySelector, deadlineActions);</span>
+<span class="fc" id="L69">                    LOG.debug(&quot;Accepted {}&quot;, clientChannel);</span>
+<span class="fc" id="L70">                    clientChannel.configureBlocking(false);</span>
+<span class="fc" id="L71">                    clientHandler.handle(selector, clientChannel, exec, tasksToRunBySelector, deadlineActions);</span>
 <span class="nc" id="L72">                } catch (IOException ex) {</span>
 <span class="nc" id="L73">                    clientChannel.close();</span>
 <span class="nc" id="L74">                    throw ex;</span>
-<span class="nc" id="L75">                }</span>
+<span class="fc" id="L75">                }</span>
             }
-<span class="nc" id="L77">    }</span>
+<span class="fc" id="L77">    }</span>
 
 
     @Override
     public boolean canRunAsync() {
-<span class="nc" id="L82">        return false;</span>
+<span class="fc" id="L82">        return false;</span>
     }
 
     @Override
@@ -89,7 +89,7 @@ public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
 
     @Override
     public SelectionKey initialInterestRegistration() throws ClosedChannelException {
-<span class="nc" id="L92">        return serverChannel.register(selector, SelectionKey.OP_ACCEPT, this);</span>
+<span class="fc" id="L92">        return serverChannel.register(selector, SelectionKey.OP_ACCEPT, this);</span>
     }
 
     @Override

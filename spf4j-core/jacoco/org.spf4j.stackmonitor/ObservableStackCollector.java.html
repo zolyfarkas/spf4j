@@ -33,26 +33,26 @@ public final class ObservableStackCollector extends AbstractStackCollector {
 
   private final ConcurrentMap&lt;Thread, Consumer&lt;StackTraceElement[]&gt;&gt; stConsumers;
 
-  public ObservableStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
-<span class="nc" id="L37">    this(FastStackCollector.createNameBasedFilter(collectForMain, xtraIgnoredThreads));</span>
-<span class="nc" id="L38">  }</span>
+<span class="nc" id="L36">  private Thread[] requestFor = new Thread[]{};</span>
 
-<span class="nc" id="L40">  public ObservableStackCollector(final Predicate&lt;Thread&gt; threadFilter) {</span>
-<span class="nc" id="L41">    this.threadFilter = threadFilter;</span>
-<span class="nc" id="L42">    this.stConsumers = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="nc" id="L43">  }</span>
+  public ObservableStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
+<span class="nc" id="L39">    this(FastStackCollector.createNameBasedFilter(collectForMain, xtraIgnoredThreads));</span>
+<span class="nc" id="L40">  }</span>
+
+<span class="nc" id="L42">  public ObservableStackCollector(final Predicate&lt;Thread&gt; threadFilter) {</span>
+<span class="nc" id="L43">    this.threadFilter = threadFilter;</span>
+<span class="nc" id="L44">    this.stConsumers = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L45">  }</span>
 
   @Nullable
   public Consumer&lt;StackTraceElement[]&gt; registerConsumer(final Thread thread,
           final Consumer&lt;StackTraceElement[]&gt; consumer) {
-<span class="nc" id="L48">    return stConsumers.put(thread, consumer);</span>
+<span class="nc" id="L50">    return stConsumers.put(thread, consumer);</span>
   }
 
   public Consumer&lt;StackTraceElement[]&gt; unregisterConsumer(final Thread thread) {
-<span class="nc" id="L52">    return stConsumers.remove(thread);</span>
+<span class="nc" id="L54">    return stConsumers.remove(thread);</span>
   }
-
-<span class="nc" id="L55">  private Thread[] requestFor = new Thread[]{};</span>
 
   @Override
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)

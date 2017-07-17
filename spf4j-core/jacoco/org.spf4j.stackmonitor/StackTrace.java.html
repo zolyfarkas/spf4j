@@ -26,57 +26,55 @@ import java.util.Arrays;
  */
 public final class StackTrace {
 
-    private final StackTraceElement[] stackTrace;
+<span class="fc" id="L29">  public static final StackTraceElement[] EMPTY_STACK_TRACE</span>
+        = new StackTraceElement[0];
 
-    private final int relevantFramesStart;
+  private final StackTraceElement[] stackTrace;
 
-    @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
-<span class="fc" id="L34">    public StackTrace(final StackTraceElement[] stackTrace, final int relevantFramesStart) {</span>
-<span class="fc" id="L35">        this.stackTrace = stackTrace;</span>
-<span class="fc" id="L36">        this.relevantFramesStart = relevantFramesStart;</span>
-<span class="fc" id="L37">    }</span>
+  private final int relevantFramesStart;
 
-    public static StackTrace from(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
-<span class="nc" id="L40">        return new StackTrace(stackTrace, relevantFramesStart);</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L37">  public StackTrace(final StackTraceElement[] stackTrace, final int relevantFramesStart) {</span>
+<span class="fc" id="L38">    this.stackTrace = stackTrace;</span>
+<span class="fc" id="L39">    this.relevantFramesStart = relevantFramesStart;</span>
+<span class="fc" id="L40">  }</span>
+
+  public static StackTrace from(final StackTraceElement[] stackTrace, final int relevantFramesStart) {
+<span class="nc" id="L43">    return new StackTrace(stackTrace, relevantFramesStart);</span>
+  }
+
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
+  public StackTraceElement[] getStackTrace() {
+<span class="nc" id="L48">    return stackTrace;</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L53">    int hash = 7;</span>
+<span class="nc" id="L54">    return 53 * hash + Arrays.deepHashCode(this.stackTrace);</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L60">      return false;</span>
     }
-
-    @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
-    public StackTraceElement[] getStackTrace() {
-<span class="nc" id="L45">        return stackTrace;</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L63">      return false;</span>
     }
+<span class="nc" id="L65">    final StackTrace other = (StackTrace) obj;</span>
+<span class="nc" id="L66">    return org.spf4j.base.Arrays.deepEquals(this.stackTrace, other.stackTrace, relevantFramesStart);</span>
+  }
 
-    @Override
-    public int hashCode() {
-<span class="nc" id="L50">        int hash = 7;</span>
-<span class="nc" id="L51">        return 53 * hash + Arrays.deepHashCode(this.stackTrace);</span>
+  @Override
+  public String toString() {
+<span class="fc" id="L71">    StringBuilder result = new StringBuilder();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    for (int i = relevantFramesStart; i &lt; stackTrace.length; i++) {</span>
+<span class="fc" id="L73">      StackTraceElement elem = stackTrace[i];</span>
+<span class="fc" id="L74">      result.append(elem.getMethodName()).append('@').append(elem.getClassName()).append(&quot;-&gt;&quot;);</span>
     }
-
-    @Override
-    public boolean equals(final Object obj) {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L57">            return false;</span>
-        }
-<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L60">            return false;</span>
-        }
-<span class="nc" id="L62">        final StackTrace other = (StackTrace) obj;</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (!org.spf4j.base.Arrays.deepEquals(this.stackTrace, other.stackTrace, relevantFramesStart)) {</span>
-<span class="nc" id="L64">            return false;</span>
-        }
-<span class="nc" id="L66">        return true;</span>
-    }
-
-    @Override
-    public String toString() {
-<span class="fc" id="L71">        StringBuilder result = new StringBuilder();</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">        for (int i = relevantFramesStart; i &lt; stackTrace.length; i++) {</span>
-<span class="fc" id="L73">            StackTraceElement elem = stackTrace[i];</span>
-<span class="fc" id="L74">            result.append(elem.getMethodName()).append('@').append(elem.getClassName()).append(&quot;-&gt;&quot;);</span>
-        }
-<span class="fc" id="L76">        return result.toString();</span>
-    }
-
-
+<span class="fc" id="L76">    return result.toString();</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

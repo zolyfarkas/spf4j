@@ -33,26 +33,23 @@ import sun.misc.Unsafe;
 @SuppressFBWarnings(&quot;IICU_INCORRECT_INTERNAL_CLASS_USE&quot;)
 public final class AlmostSafe {
 
-<span class="nc" id="L36">    private AlmostSafe() { }</span>
-
     public static final Unsafe USF;
+
+<span class="nc" id="L38">    private AlmostSafe() { }</span>
 
     static {
 
-<span class="nc" id="L42">        USF = AccessController.doPrivileged(new PrivilegedAction&lt;Unsafe&gt;() {</span>
-            @Override
-            public Unsafe run() {
-                try {
-<span class="nc" id="L46">                    Field theUnsafe = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);</span>
-<span class="nc" id="L47">                    theUnsafe.setAccessible(true);</span>
-<span class="nc" id="L48">                    return (Unsafe) theUnsafe.get(null);</span>
-<span class="nc" id="L49">                } catch (IllegalArgumentException | IllegalAccessException</span>
-                        | NoSuchFieldException | SecurityException ex) {
-<span class="nc" id="L51">                    throw new ExceptionInInitializerError(ex);</span>
-                }
-            }
+<span class="nc" id="L42">        USF = AccessController.doPrivileged((PrivilegedAction&lt;Unsafe&gt;) () -&gt; {</span>
+          try {
+<span class="nc" id="L44">            Field theUnsafe = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);</span>
+<span class="nc" id="L45">            theUnsafe.setAccessible(true);</span>
+<span class="nc" id="L46">            return (Unsafe) theUnsafe.get(null);</span>
+<span class="nc" id="L47">          } catch (IllegalArgumentException | IllegalAccessException</span>
+                  | NoSuchFieldException | SecurityException ex) {
+<span class="nc" id="L49">            throw new ExceptionInInitializerError(ex);</span>
+          }
         });
-<span class="nc" id="L55">    }</span>
+<span class="nc" id="L52">    }</span>
 
 
 

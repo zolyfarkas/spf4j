@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RunListenerRegister.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-junit</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.junit</a> &gt; <span class="el_source">RunListenerRegister.java</span></div><h1>RunListenerRegister.java</h1><pre class="source lang-java linenums">package org.spf4j.junit;
+
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.junit.runner.Description;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+
+/**
+ * A utility JUnit RunListenerRegister that allows registering run listeners dynamically with a static method.
+ * @author zoly
+ */
+public final class RunListenerRegister extends RunListener {
+
+  private static RunListenerRegister listenerRegister;
+
+  private final CopyOnWriteArrayList&lt;RunListener&gt; listeners;
+
+<span class="nc" id="L19">  public RunListenerRegister() {</span>
+<span class="nc" id="L20">    listeners = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="nc" id="L21">    synchronized (RunListenerRegister.class) {</span>
+<span class="nc bnc" id="L22" title="All 2 branches missed.">      if (listenerRegister == null) {</span>
+<span class="nc" id="L23">        listenerRegister = this;</span>
+      } else {
+<span class="nc" id="L25">        throw new ExceptionInInitializerError(&quot;Attempting to instantiate second RunListenerRegister instance: &quot;</span>
+                + this + &quot;, existing: &quot; + listenerRegister);
+      }
+<span class="nc" id="L28">    }</span>
+<span class="nc" id="L29">  }</span>
+
+  public static boolean tryAddRunListener(final RunListener listener, final boolean first) {
+<span class="nc" id="L32">    synchronized (RunListenerRegister.class) {</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">      if (listenerRegister != null) {</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (first) {</span>
+<span class="nc" id="L35">          listenerRegister.listeners.add(0, listener);</span>
+        } else {
+<span class="nc" id="L37">          listenerRegister.listeners.add(listener);</span>
+        }
+<span class="nc" id="L39">        return true;</span>
+      } else {
+<span class="nc" id="L41">        return false;</span>
+      }
+<span class="nc" id="L43">    }</span>
+  }
+
+  public static void addRunListener(final RunListener listener, final boolean first) {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    if (!tryAddRunListener(listener, first)) {</span>
+<span class="nc" id="L48">      System.err.println(&quot;Ignoring &quot; + listener + &quot; registration,&quot;</span>
+                + &quot; please start junit with RunListenerRegister run listener,&quot;
+                + &quot;for more detail see http://maven.apache.org/surefire/maven-surefire-plugin/examples/junit.html&quot;);
+    }
+<span class="nc" id="L52">  }</span>
+
+
+  public static boolean removeRunListener(final RunListener listener) {
+<span class="nc" id="L56">    synchronized (RunListenerRegister.class) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      if (listenerRegister != null) {</span>
+<span class="nc" id="L58">        return listenerRegister.listeners.remove(listener);</span>
+      } else {
+<span class="nc" id="L60">        return false;</span>
+      }
+<span class="nc" id="L62">    }</span>
+  }
+
+  @Override
+  public void testIgnored(final Description description) throws Exception {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L68">      listener.testIgnored(description);</span>
+<span class="nc" id="L69">    }</span>
+<span class="nc" id="L70">  }</span>
+
+  @Override
+  public void testAssumptionFailure(final Failure failure) {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L75">      listener.testAssumptionFailure(failure);</span>
+<span class="nc" id="L76">    }</span>
+<span class="nc" id="L77">  }</span>
+
+  @Override
+  public void testFailure(final Failure failure) throws Exception {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L82">      listener.testFailure(failure);</span>
+<span class="nc" id="L83">    }</span>
+<span class="nc" id="L84">  }</span>
+
+  @Override
+  public void testFinished(final Description description) throws Exception {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L89">      listener.testFinished(description);</span>
+<span class="nc" id="L90">    }</span>
+<span class="nc" id="L91">  }</span>
+
+  @Override
+  public void testStarted(final Description description) throws Exception {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L96">      listener.testStarted(description);</span>
+<span class="nc" id="L97">    }</span>
+<span class="nc" id="L98">  }</span>
+
+  @Override
+  public void testRunFinished(final Result result) throws Exception {
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L103">      listener.testRunFinished(result);</span>
+<span class="nc" id="L104">    }</span>
+<span class="nc" id="L105">  }</span>
+
+  @Override
+  public void testRunStarted(final Description description) throws Exception {
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    for (RunListener listener : listeners) {</span>
+<span class="nc" id="L110">      listener.testRunStarted(description);</span>
+<span class="nc" id="L111">    }</span>
+<span class="nc" id="L112">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L116">    return &quot;RunListenerRegister{&quot; + &quot;listeners=&quot; + listeners + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

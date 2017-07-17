@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Converter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor.proto</a> &gt; <span class="el_source">Converter.java</span></div><h1>Converter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.stackmonitor.proto;
+
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import org.spf4j.base.Method;
+import org.spf4j.stackmonitor.SampleNode;
+import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nonnull;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Converter {
+
+<span class="nc" id="L39">    private Converter() { }</span>
+
+
+    public static void saveToFile(@Nonnull final File file, @Nonnull final SampleNode input) throws IOException {
+<span class="nc" id="L43">        try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="nc" id="L44">                Files.newOutputStream(file.toPath()))) {</span>
+<span class="nc" id="L45">            fromSampleNodeToProto(input).writeTo(bos);</span>
+<span class="nc bnc" id="L46" title="All 8 branches missed.">        }</span>
+<span class="nc" id="L47">    }</span>
+
+    public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
+<span class="nc" id="L50">        return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getMethodName())</span>
+<span class="nc" id="L51">                .setDeclaringClass(m.getDeclaringClass())</span>
+<span class="nc" id="L52">                .build();</span>
+    }
+
+    public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final SampleNode node) {
+
+        ProtoSampleNodes.SampleNode.Builder resultBuilder
+<span class="nc" id="L58">                = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());</span>
+
+<span class="nc" id="L60">        Map&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (subNodes != null) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">           for (Map.Entry&lt;Method, SampleNode&gt; entry : subNodes.entrySet()) {</span>
+<span class="nc" id="L63">               resultBuilder.addSubNodes(</span>
+<span class="nc" id="L64">               ProtoSampleNodes.SamplePair.newBuilder().setMethod(fromMethodToProto(entry.getKey())).</span>
+<span class="nc" id="L65">                        setNode(fromSampleNodeToProto(entry.getValue())).build());</span>
+<span class="nc" id="L66">           }</span>
+        }
+<span class="nc" id="L68">        return resultBuilder.build();</span>
+    }
+
+
+
+    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
+
+<span class="nc" id="L75">        TMap&lt;Method, SampleNode&gt; subNodes = null;</span>
+
+<span class="nc" id="L77">        List&lt;ProtoSampleNodes.SamplePair&gt; sns =  node.getSubNodesList();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (sns != null) {</span>
+<span class="nc" id="L79">            subNodes = new THashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            for (ProtoSampleNodes.SamplePair pair : sns) {</span>
+<span class="nc" id="L81">                final ProtoSampleNodes.Method method = pair.getMethod();</span>
+<span class="nc" id="L82">                subNodes.put(new Method(method.getDeclaringClass(),</span>
+<span class="nc" id="L83">                        method.getMethodName()),</span>
+<span class="nc" id="L84">                        fromProtoToSampleNode(pair.getNode()));</span>
+<span class="nc" id="L85">            }</span>
+        }
+<span class="nc" id="L87">        return new SampleNode(node.getCount(), subNodes);</span>
+
+
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

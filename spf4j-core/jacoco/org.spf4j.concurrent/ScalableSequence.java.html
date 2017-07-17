@@ -29,32 +29,32 @@ public final class ScalableSequence implements Sequence {
 
     private final long bucketSize;
 
+    private final ThreadLocal&lt;Bucket&gt; buckets;
+
     private static final class Bucket {
 
         private long current;
         private long max;
 
-<span class="fc" id="L37">        Bucket(final long start, final long end) {</span>
-<span class="fc" id="L38">            this.current = start;</span>
-<span class="fc" id="L39">            this.max = end;</span>
-<span class="fc" id="L40">        }</span>
+<span class="fc" id="L39">        Bucket(final long start, final long end) {</span>
+<span class="fc" id="L40">            this.current = start;</span>
+<span class="fc" id="L41">            this.max = end;</span>
+<span class="fc" id="L42">        }</span>
 
         public void reset(final long start, final long end) {
-<span class="fc" id="L43">            this.current = start;</span>
-<span class="fc" id="L44">            this.max = end;</span>
-<span class="fc" id="L45">        }</span>
+<span class="fc" id="L45">            this.current = start;</span>
+<span class="fc" id="L46">            this.max = end;</span>
+<span class="fc" id="L47">        }</span>
 
         public boolean hasValue() {
-<span class="fc bfc" id="L48" title="All 2 branches covered.">            return current &lt; max;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            return current &lt; max;</span>
         }
 
         public long getValue() {
-<span class="fc" id="L52">            return current++;</span>
+<span class="fc" id="L54">            return current++;</span>
         }
 
     }
-
-    private final ThreadLocal&lt;Bucket&gt; buckets;
 
 <span class="fc" id="L59">    public ScalableSequence(final long start, final int bucketSize) {</span>
 <span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (bucketSize &lt; 10) {</span>

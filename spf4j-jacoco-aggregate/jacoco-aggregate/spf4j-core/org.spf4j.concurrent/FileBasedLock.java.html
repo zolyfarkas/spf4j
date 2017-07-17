@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FileBasedLock.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">FileBasedLock.java</span></div><h1>FileBasedLock.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.concurrent;
+
+import com.google.common.base.Charsets;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.WillClose;
+
+/**
+ * File based Lock implementation, that can be used as IPC method.
+ *
+ * @author zoly
+ */
+public final class FileBasedLock implements Lock, java.io.Closeable {
+
+<span class="fc" id="L45">  private static final LoadingCache&lt;String, FileBasedLock&gt; FILE_LOCKS =</span>
+<span class="fc" id="L46">          CacheBuilder.newBuilder().weakValues().build(new CacheLoader&lt;String, FileBasedLock&gt;() {</span>
+    @Override
+    @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
+    public FileBasedLock load(final String lockFile) throws IOException {
+<span class="fc" id="L50">      return new FileBasedLock(new File(lockFile));</span>
+    }
+  });
+
+  private final RandomAccessFile file;
+  private final ReentrantLock jvmLock;
+  private FileLock fileLock;
+
+  @SuppressFBWarnings(&quot;PREDICTABLE_RANDOM&quot;)
+  private static int next(final int maxVal) {
+<span class="nc" id="L60">    return ThreadLocalRandom.current().nextInt(maxVal);</span>
+  }
+
+<span class="fc" id="L63">  private FileBasedLock(final File lockFile) throws IOException {</span>
+<span class="fc" id="L64">    file = new RandomAccessFile(lockFile, &quot;rws&quot;);</span>
+<span class="fc" id="L65">    jvmLock = new ReentrantLock();</span>
+<span class="fc" id="L66">    fileLock = null;</span>
+<span class="fc" id="L67">  }</span>
+
+
+  /**
+   * Returns a FileBasedLock implementation.
+   *
+   * FileBasedLock will hold onto a File Descriptor during the entire life of the instance.
+   * FileBasedLock is a reentrant lock. (it can be acquired multiple times by the same thread)
+   *
+   * @param lockFile the file to lock on.
+   * @return
+   * @throws IOException
+   */
+  public static FileBasedLock getLock(final File lockFile) throws IOException {
+<span class="fc" id="L81">    String filePath = lockFile.getCanonicalPath();</span>
+    try {
+<span class="fc" id="L83">      return FILE_LOCKS.get(filePath);</span>
+<span class="nc" id="L84">    } catch (ExecutionException ex) {</span>
+<span class="nc" id="L85">      throw new IOException(ex);</span>
+    }
+  }
+
+  @Override
+  @SuppressFBWarnings(&quot;MDM_WAIT_WITHOUT_TIMEOUT&quot;)
+  public void lock() {
+<span class="fc" id="L92">    jvmLock.lock();</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (jvmLock.getHoldCount() &gt; 1) {</span>
+      // reentered, we already have the file lock
+<span class="fc" id="L95">      return;</span>
+    }
+    try {
+<span class="fc" id="L98">      fileLock = file.getChannel().lock();</span>
+<span class="fc" id="L99">      writeHolderInfo();</span>
+<span class="nc" id="L100">    } catch (IOException ex) {</span>
+<span class="nc" id="L101">      jvmLock.unlock();</span>
+<span class="nc" id="L102">      throw new LockRuntimeException(ex);</span>
+<span class="nc" id="L103">    } catch (Throwable ex) {</span>
+<span class="nc" id="L104">      jvmLock.unlock();</span>
+<span class="nc" id="L105">      throw ex;</span>
+<span class="fc" id="L106">    }</span>
+<span class="fc" id="L107">  }</span>
+
+  @Override
+  @SuppressFBWarnings({&quot;MDM_WAIT_WITHOUT_TIMEOUT&quot;, &quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;, &quot;MDM_THREAD_YIELD&quot;})
+  public void lockInterruptibly() throws InterruptedException {
+<span class="nc" id="L112">    jvmLock.lockInterruptibly();</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (jvmLock.getHoldCount() &gt; 1) {</span>
+      // reentered, we already have the file lock
+<span class="nc" id="L115">      return;</span>
+    }
+    try {
+<span class="nc" id="L118">      final FileChannel channel = file.getChannel();</span>
+<span class="nc" id="L119">      boolean interrupted = false;</span>
+      //CHECKSTYLE:OFF
+<span class="nc bnc" id="L121" title="All 4 branches missed.">      while ((fileLock = channel.tryLock()) == null &amp;&amp; !(interrupted = Thread.interrupted())) {</span>
+        //CHECKSTYLE:ON
+<span class="nc" id="L123">        Thread.sleep(next(1000));</span>
+      }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">      if (interrupted) {</span>
+<span class="nc" id="L126">        throw new InterruptedException();</span>
+      }
+<span class="nc" id="L128">      writeHolderInfo();</span>
+<span class="nc" id="L129">    } catch (InterruptedException | RuntimeException ex) {</span>
+<span class="nc" id="L130">      jvmLock.unlock();</span>
+<span class="nc" id="L131">      throw ex;</span>
+<span class="nc" id="L132">    } catch (IOException ex) {</span>
+<span class="nc" id="L133">      jvmLock.unlock();</span>
+<span class="nc" id="L134">      throw new LockRuntimeException(ex);</span>
+<span class="nc" id="L135">    }</span>
+<span class="nc" id="L136">  }</span>
+
+  @Override
+  @SuppressFBWarnings(&quot;MDM_THREAD_FAIRNESS&quot;)
+  public boolean tryLock() {
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">    if (jvmLock.tryLock()) {</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">      if (jvmLock.getHoldCount() &gt; 1) {</span>
+        // reentrant
+<span class="fc" id="L144">        return true;</span>
+      }
+      try {
+<span class="fc" id="L147">        fileLock = file.getChannel().tryLock();</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (fileLock != null) {</span>
+<span class="fc" id="L149">          writeHolderInfo();</span>
+<span class="fc" id="L150">          return true;</span>
+        } else {
+<span class="nc" id="L152">          jvmLock.unlock();</span>
+<span class="nc" id="L153">          return false;</span>
+        }
+<span class="nc" id="L155">      } catch (IOException ex) {</span>
+<span class="nc" id="L156">        jvmLock.unlock();</span>
+<span class="nc" id="L157">        throw new LockRuntimeException(ex);</span>
+<span class="nc" id="L158">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L159">        jvmLock.unlock();</span>
+<span class="nc" id="L160">        throw ex;</span>
+      }
+    } else {
+<span class="nc" id="L163">      return false;</span>
+    }
+  }
+
+  @SuppressFBWarnings({&quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;, &quot;MDM_THREAD_YIELD&quot;})
+  @Override
+  public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">    if (jvmLock.tryLock(time, unit)) {</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">      if (jvmLock.getHoldCount() &gt;  1) {</span>
+        // reentered, we already have the file lock
+<span class="fc" id="L173">        return true;</span>
+      }
+      try {
+<span class="nc" id="L176">        long waitTime = 0;</span>
+<span class="nc" id="L177">        long maxWaitTime = unit.toMillis(time);</span>
+<span class="nc" id="L178">        boolean interrupted = false;</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        while (waitTime &lt; maxWaitTime</span>
+                //CHECKSTYLE:OFF
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                &amp;&amp; (fileLock = file.getChannel().tryLock()) == null</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                &amp;&amp; !(interrupted = Thread.interrupted())) {</span>
+          //CHECKSTYLE:ON
+<span class="nc" id="L184">          Thread.sleep(next(1000));</span>
+<span class="nc" id="L185">          waitTime++;</span>
+        }
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (interrupted) {</span>
+<span class="nc" id="L188">          throw new InterruptedException();</span>
+        }
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (fileLock != null) {</span>
+<span class="nc" id="L191">          writeHolderInfo();</span>
+<span class="nc" id="L192">          return true;</span>
+        } else {
+<span class="nc" id="L194">          jvmLock.unlock();</span>
+<span class="nc" id="L195">          return false;</span>
+        }
+<span class="nc" id="L197">      } catch (InterruptedException | RuntimeException ex) {</span>
+<span class="nc" id="L198">        jvmLock.unlock();</span>
+<span class="nc" id="L199">        throw ex;</span>
+<span class="nc" id="L200">      } catch (IOException ex) {</span>
+<span class="nc" id="L201">        jvmLock.unlock();</span>
+<span class="nc" id="L202">        throw new LockRuntimeException(ex);</span>
+      }
+    } else {
+<span class="nc" id="L205">      return false;</span>
+    }
+  }
+
+  @Override
+  public void unlock() {
+    try {
+<span class="fc bfc" id="L212" title="All 2 branches covered.">      if (jvmLock.getHoldCount() == 1) {</span>
+<span class="fc" id="L213">        fileLock.release();</span>
+      }
+<span class="nc" id="L215">    } catch (IOException ex) {</span>
+<span class="nc" id="L216">      throw new LockRuntimeException(ex);</span>
+    } finally {
+<span class="pc" id="L218">      jvmLock.unlock();</span>
+<span class="fc" id="L219">    }</span>
+<span class="fc" id="L220">  }</span>
+
+  @Override
+  public Condition newCondition() {
+<span class="nc" id="L224">    throw new UnsupportedOperationException();</span>
+  }
+
+  /**
+   * will release lock if owned, will not nothing if not owned.
+   */
+  @Override
+  @WillClose
+  public void close() {
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">    if (jvmLock.getHoldCount() &gt; 0) {</span>
+<span class="nc" id="L234">      unlock();</span>
+    }
+<span class="fc" id="L236">  }</span>
+
+  @Override
+  protected void finalize() throws Throwable  {
+<span class="nc" id="L240">    try (RandomAccessFile f = file) {</span>
+<span class="nc" id="L241">      super.finalize();</span>
+<span class="nc bnc" id="L242" title="All 8 branches missed.">    }</span>
+<span class="nc" id="L243">  }</span>
+
+  private void writeHolderInfo() throws IOException {
+<span class="fc" id="L246">    file.seek(0);</span>
+<span class="fc" id="L247">    byte[] data = getContextInfo().getBytes(Charsets.UTF_8);</span>
+<span class="fc" id="L248">    file.write(data);</span>
+<span class="fc" id="L249">    file.setLength(data.length);</span>
+<span class="fc" id="L250">    file.getChannel().force(true);</span>
+<span class="fc" id="L251">  }</span>
+
+  public static String getContextInfo() {
+<span class="fc" id="L254">    return org.spf4j.base.Runtime.PROCESS_ID + ':' + Thread.currentThread().getName();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L259">    return &quot;FileBasedLock{&quot; + &quot;file=&quot; + file + '}';</span>
+  }
+
+  public int getLocalHoldCount() {
+<span class="nc" id="L263">    return jvmLock.getHoldCount();</span>
+  }
+
+  @SuppressFBWarnings(&quot;MDM_LOCK_ISLOCKED&quot;)
+  public boolean isHeldByCurrentThread() {
+<span class="nc" id="L268">    return jvmLock.isHeldByCurrentThread();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

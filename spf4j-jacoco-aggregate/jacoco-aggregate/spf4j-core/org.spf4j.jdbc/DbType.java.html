@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DbType.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jdbc</a> &gt; <span class="el_source">DbType.java</span></div><h1>DbType.java</h1><pre class="source lang-java linenums">
+package org.spf4j.jdbc;
+
+/**
+ *
+ * @author zoly
+ */
+<span class="fc" id="L8">public enum DbType {</span>
+<span class="fc" id="L9">  ORACLE, H2, SYBASE_ASE, SYBASE_IQ, MSSQL, MYSQL, POSTGRES, COCKROACH_DB;</span>
+
+  /**
+   * Default database type to use in all jdbc APIs if a DBtype is not provided.
+   */
+<span class="fc" id="L14">  public static final DbType DEFAULT = DbType.valueOf(System.getProperty(&quot;spf4j.jdbc.defaultDbType&quot;, &quot;H2&quot;));</span>
+
+
+  /**
+   * Return the SQL for a current time millis since a EPOCH...
+   *
+   * @param dbType - the database type.
+   * @return - the sql fragment taht returns the current sql millis.
+   * @throws ExceptionInInitializerError
+   */
+  public static String getCurrTSSqlFn(final DbType dbType) throws ExceptionInInitializerError {
+<span class="pc bpc" id="L25" title="5 of 6 branches missed.">    switch (dbType) {</span>
+      case H2:
+<span class="fc" id="L27">        return &quot;TIMESTAMPDIFF('MILLISECOND', timestamp '1970-01-01 00:00:00', CURRENT_TIMESTAMP())&quot;;</span>
+      case ORACLE:
+<span class="nc" id="L29">        return &quot;(SYSDATE - TO_DATE('01-01-1970 00:00:00', 'DD-MM-YYYY HH24:MI:SS')) * 24 * 3600000&quot;;</span>
+      case MSSQL:
+<span class="nc" id="L31">        return &quot;DATEDIFF(ms, '1970-01-01 00:00:00', GETUTCDATE())&quot;;</span>
+      case POSTGRES:
+<span class="nc" id="L33">        return &quot;extract(epoch FROM now()) * 1000&quot;;</span>
+      case COCKROACH_DB:
+<span class="nc" id="L35">        return &quot;extract(epoch_nanosecond from now()) / 1e6&quot;;</span>
+      default:
+<span class="nc" id="L37">        throw new IllegalArgumentException(&quot;Database not supported &quot; + dbType);</span>
+    }
+  }
+
+  /**
+   * Return the SQL for a current time millis since a EPOCH...
+   *
+   * @param dbType - the database type.
+   * @return - the sql fragment taht returns the current sql millis.
+   * @throws ExceptionInInitializerError
+   */
+  public String getCurrTSSqlFn() throws ExceptionInInitializerError {
+<span class="fc" id="L49">    return getCurrTSSqlFn(this);</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -1,29 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AttributedString.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.text</a> &gt; <span class="el_source">AttributedString.java</span></div><h1>AttributedString.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AttributedString.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.text</a> &gt; <span class="el_source">AttributedString.java</span></div><h1>AttributedString.java</h1><pre class="source lang-java linenums">//CHECKSTYLE:OFF
+// This class is based of the Open JDK class. But it is heavilly cleaned up.
+
+/*
  * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  */
-//CHECKSTYLE:OFF
-// This class is based of the JDK class. But it is heavilly cleaned up.
+
 package org.spf4j.text;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -40,6 +23,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 
 /**
  * An AttributedString holds text and related attribute information. It
@@ -87,62 +71,56 @@ public final class AttributedString {
      * @throws NullPointerException if iterators is null
      */
     @SuppressFBWarnings(&quot;WEM_WEAK_EXCEPTION_MESSAGING&quot;)
-<span class="nc" id="L90">    AttributedString(AttributedCharacterIterator[] iterators) {</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (iterators == null) {</span>
-<span class="nc" id="L92">            throw new NullPointerException(&quot;Iterators must not be null&quot;);</span>
-        }
-<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (iterators.length == 0) {</span>
-<span class="nc" id="L95">            text = &quot;&quot;;</span>
+<span class="nc" id="L74">    AttributedString(@Nonnull AttributedCharacterIterator[] iterators) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (iterators.length == 0) {</span>
+<span class="nc" id="L76">            text = &quot;&quot;;</span>
         }
         else {
             // Build the String contents
-<span class="nc" id="L99">            StringBuilder buffer = new StringBuilder();</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">            for (int counter = 0; counter &lt; iterators.length; counter++) {</span>
-<span class="nc" id="L101">                appendContents(buffer, iterators[counter]);</span>
+<span class="nc" id="L80">            StringBuilder buffer = new StringBuilder();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            for (int counter = 0; counter &lt; iterators.length; counter++) {</span>
+<span class="nc" id="L82">                appendContents(buffer, iterators[counter]);</span>
             }
 
-<span class="nc" id="L104">            text = buffer.toString();</span>
+<span class="nc" id="L85">            text = buffer.toString();</span>
 
-<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (text.length() &gt; 0) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (text.length() &gt; 0) {</span>
                 // Determine the runs, creating a new run when the attributes
                 // differ.
-<span class="nc" id="L109">                int offset = 0;</span>
-<span class="nc" id="L110">                Map&lt;Attribute,Object&gt; last = null;</span>
+<span class="nc" id="L90">                int offset = 0;</span>
+<span class="nc" id="L91">                Map&lt;Attribute,Object&gt; last = null;</span>
 
-<span class="nc bnc" id="L112" title="All 2 branches missed.">                for (int counter = 0; counter &lt; iterators.length; counter++) {</span>
-<span class="nc" id="L113">                    AttributedCharacterIterator iterator = iterators[counter];</span>
-<span class="nc" id="L114">                    int start = iterator.getBeginIndex();</span>
-<span class="nc" id="L115">                    int end = iterator.getEndIndex();</span>
-<span class="nc" id="L116">                    int index = start;</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                for (int counter = 0; counter &lt; iterators.length; counter++) {</span>
+<span class="nc" id="L94">                    AttributedCharacterIterator iterator = iterators[counter];</span>
+<span class="nc" id="L95">                    int start = iterator.getBeginIndex();</span>
+<span class="nc" id="L96">                    int end = iterator.getEndIndex();</span>
+<span class="nc" id="L97">                    int index = start;</span>
 
-<span class="nc bnc" id="L118" title="All 2 branches missed.">                    while (index &lt; end) {</span>
-<span class="nc" id="L119">                        iterator.setIndex(index);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                    while (index &lt; end) {</span>
+<span class="nc" id="L100">                        iterator.setIndex(index);</span>
 
-<span class="nc" id="L121">                        Map&lt;Attribute,Object&gt; attrs = iterator.getAttributes();</span>
+<span class="nc" id="L102">                        Map&lt;Attribute,Object&gt; attrs = iterator.getAttributes();</span>
 
-<span class="nc bnc" id="L123" title="All 2 branches missed.">                        if (mapsDiffer(last, attrs)) {</span>
-<span class="nc" id="L124">                            setAttributes(attrs, index - start + offset);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                        if (mapsDiffer(last, attrs)) {</span>
+<span class="nc" id="L105">                            setAttributes(attrs, index - start + offset);</span>
                         }
-<span class="nc" id="L126">                        last = attrs;</span>
-<span class="nc" id="L127">                        index = iterator.getRunLimit();</span>
-<span class="nc" id="L128">                    }</span>
-<span class="nc" id="L129">                    offset += (end - start);</span>
+<span class="nc" id="L107">                        last = attrs;</span>
+<span class="nc" id="L108">                        index = iterator.getRunLimit();</span>
+<span class="nc" id="L109">                    }</span>
+<span class="nc" id="L110">                    offset += (end - start);</span>
                 }
             }
         }
-<span class="nc" id="L133">    }</span>
+<span class="nc" id="L114">    }</span>
 
     /**
      * Constructs an AttributedString instance with the given text.
      * @param text The text for this attributed string.
      * @exception NullPointerException if &lt;code&gt;text&lt;/code&gt; is null.
      */
-<span class="nc" id="L140">    public AttributedString(String text) {</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (text == null) {</span>
-<span class="nc" id="L142">            throw new NullPointerException();</span>
-        }
-<span class="nc" id="L144">        this.text = text;</span>
-<span class="nc" id="L145">    }</span>
+<span class="nc" id="L121">    public AttributedString(@Nonnull String text) {</span>
+<span class="nc" id="L122">        this.text = text;</span>
+<span class="nc" id="L123">    }</span>
 
     /**
      * Constructs an AttributedString instance with the given text and attributes.
@@ -154,36 +132,33 @@ public final class AttributedString {
      * and the attributes parameter is not an empty Map (attributes
      * cannot be applied to a 0-length range).
      */
-    public AttributedString(String text,
-                            Map&lt;? extends Attribute, ?&gt; attributes)
-<span class="nc" id="L159">    {</span>
-<span class="nc bnc" id="L160" title="All 4 branches missed.">        if (text == null || attributes == null) {</span>
-<span class="nc" id="L161">            throw new NullPointerException();</span>
-        }
-<span class="nc" id="L163">        this.text = text;</span>
+    public AttributedString(@Nonnull String text,
+                            @Nonnull Map&lt;? extends Attribute, ?&gt; attributes)
+<span class="nc" id="L137">    {</span>
+<span class="nc" id="L138">        this.text = text;</span>
 
-<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (text.length() == 0) {</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (attributes.isEmpty())</span>
-<span class="nc" id="L167">                return;</span>
-<span class="nc" id="L168">            throw new IllegalArgumentException(&quot;Can't add attribute to 0-length text: &quot; + attributes);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (text.length() == 0) {</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (attributes.isEmpty())</span>
+<span class="nc" id="L142">                return;</span>
+<span class="nc" id="L143">            throw new IllegalArgumentException(&quot;Can't add attribute to 0-length text: &quot; + attributes);</span>
         }
 
-<span class="nc" id="L171">        int attributeCount = attributes.size();</span>
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (attributeCount &gt; 0) {</span>
-<span class="nc" id="L173">            createRunAttributeDataVectors();</span>
-<span class="nc" id="L174">            ArrayList&lt;Attribute&gt; newRunAttributes = new ArrayList&lt;&gt;(attributeCount);</span>
-<span class="nc" id="L175">            ArrayList&lt;Object&gt; newRunAttributeValues = new ArrayList&lt;&gt;(attributeCount);</span>
-<span class="nc" id="L176">            runAttributes[0] = newRunAttributes;</span>
-<span class="nc" id="L177">            runAttributeValues[0] = newRunAttributeValues;</span>
+<span class="nc" id="L146">        int attributeCount = attributes.size();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (attributeCount &gt; 0) {</span>
+<span class="nc" id="L148">            createRunAttributeDataVectors();</span>
+<span class="nc" id="L149">            ArrayList&lt;Attribute&gt; newRunAttributes = new ArrayList&lt;&gt;(attributeCount);</span>
+<span class="nc" id="L150">            ArrayList&lt;Object&gt; newRunAttributeValues = new ArrayList&lt;&gt;(attributeCount);</span>
+<span class="nc" id="L151">            runAttributes[0] = newRunAttributes;</span>
+<span class="nc" id="L152">            runAttributeValues[0] = newRunAttributeValues;</span>
 
-<span class="nc" id="L179">            Iterator&lt;? extends Map.Entry&lt;? extends Attribute, ?&gt;&gt; iterator = attributes.entrySet().iterator();</span>
-<span class="nc bnc" id="L180" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
-<span class="nc" id="L181">                Map.Entry&lt;? extends Attribute, ?&gt; entry = iterator.next();</span>
-<span class="nc" id="L182">                newRunAttributes.add(entry.getKey());</span>
-<span class="nc" id="L183">                newRunAttributeValues.add(entry.getValue());</span>
-<span class="nc" id="L184">            }</span>
+<span class="nc" id="L154">            Iterator&lt;? extends Map.Entry&lt;? extends Attribute, ?&gt;&gt; iterator = attributes.entrySet().iterator();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
+<span class="nc" id="L156">                Map.Entry&lt;? extends Attribute, ?&gt; entry = iterator.next();</span>
+<span class="nc" id="L157">                newRunAttributes.add(entry.getKey());</span>
+<span class="nc" id="L158">                newRunAttributeValues.add(entry.getValue());</span>
+<span class="nc" id="L159">            }</span>
         }
-<span class="nc" id="L186">    }</span>
+<span class="nc" id="L161">    }</span>
 
     /**
      * Constructs an AttributedString instance with the given attributed
@@ -195,8 +170,8 @@ public final class AttributedString {
         // If performance is critical, this constructor should be
         // implemented here rather than invoking the constructor for a
         // subrange. We can avoid some range checking in the loops.
-<span class="nc" id="L198">        this(text, text.getBeginIndex(), text.getEndIndex(), null);</span>
-<span class="nc" id="L199">    }</span>
+<span class="nc" id="L173">        this(text, text.getBeginIndex(), text.getEndIndex(), null);</span>
+<span class="nc" id="L174">    }</span>
 
     /**
      * Constructs an AttributedString instance with the subrange of
@@ -218,8 +193,8 @@ public final class AttributedString {
     public AttributedString(AttributedCharacterIterator text,
                             int beginIndex,
                             int endIndex) {
-<span class="nc" id="L221">        this(text, beginIndex, endIndex, null);</span>
-<span class="nc" id="L222">    }</span>
+<span class="nc" id="L196">        this(text, beginIndex, endIndex, null);</span>
+<span class="nc" id="L197">    }</span>
 
     /**
      * Constructs an AttributedString instance with the subrange of
@@ -244,83 +219,79 @@ public final class AttributedString {
      * @see java.text.Annotation
      */
     @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
-    public AttributedString(AttributedCharacterIterator text,
+    public AttributedString(@Nonnull AttributedCharacterIterator text,
                             int beginIndex,
                             int endIndex,
-<span class="nc" id="L250">                            Attribute[] attributes) {</span>
-<span class="nc bnc" id="L251" title="All 2 branches missed.">        if (text == null) {</span>
-<span class="nc" id="L252">            throw new NullPointerException();</span>
-        }
-
+<span class="nc" id="L225">                            Attribute[] attributes) {</span>
         // Validate the given subrange
-<span class="nc" id="L256">        int textBeginIndex = text.getBeginIndex();</span>
-<span class="nc" id="L257">        int textEndIndex = text.getEndIndex();</span>
-<span class="nc bnc" id="L258" title="All 6 branches missed.">        if (beginIndex &lt; textBeginIndex || endIndex &gt; textEndIndex || beginIndex &gt; endIndex)</span>
-<span class="nc" id="L259">            throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ' ' + endIndex);</span>
+<span class="nc" id="L227">        int textBeginIndex = text.getBeginIndex();</span>
+<span class="nc" id="L228">        int textEndIndex = text.getEndIndex();</span>
+<span class="nc bnc" id="L229" title="All 6 branches missed.">        if (beginIndex &lt; textBeginIndex || endIndex &gt; textEndIndex || beginIndex &gt; endIndex)</span>
+<span class="nc" id="L230">            throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ' ' + endIndex);</span>
 
         // Copy the given string
-<span class="nc" id="L262">        StringBuilder textBuffer = new StringBuilder(endIndex - beginIndex);</span>
-<span class="nc" id="L263">        text.setIndex(beginIndex);</span>
-<span class="nc bnc" id="L264" title="All 2 branches missed.">        for (char c = text.current(); text.getIndex() &lt; endIndex; c = text.next())</span>
-<span class="nc" id="L265">            textBuffer.append(c);</span>
-<span class="nc" id="L266">        this.text = textBuffer.toString();</span>
+<span class="nc" id="L233">        StringBuilder textBuffer = new StringBuilder(endIndex - beginIndex);</span>
+<span class="nc" id="L234">        text.setIndex(beginIndex);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        for (char c = text.current(); text.getIndex() &lt; endIndex; c = text.next())</span>
+<span class="nc" id="L236">            textBuffer.append(c);</span>
+<span class="nc" id="L237">        this.text = textBuffer.toString();</span>
 
-<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (beginIndex == endIndex)</span>
-<span class="nc" id="L269">            return;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (beginIndex == endIndex)</span>
+<span class="nc" id="L240">            return;</span>
 
         // Select attribute keys to be taken care of
-<span class="nc" id="L272">        HashSet&lt;Attribute&gt; keys = new HashSet&lt;&gt;();</span>
-<span class="nc bnc" id="L273" title="All 2 branches missed.">        if (attributes == null) {</span>
-<span class="nc" id="L274">            keys.addAll(text.getAllAttributeKeys());</span>
+<span class="nc" id="L243">        HashSet&lt;Attribute&gt; keys = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (attributes == null) {</span>
+<span class="nc" id="L245">            keys.addAll(text.getAllAttributeKeys());</span>
         } else {
-<span class="nc bnc" id="L276" title="All 2 branches missed.">            for (int i = 0; i &lt; attributes.length; i++)</span>
-<span class="nc" id="L277">                keys.add(attributes[i]);</span>
-<span class="nc" id="L278">            keys.retainAll(text.getAllAttributeKeys());</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">            for (int i = 0; i &lt; attributes.length; i++)</span>
+<span class="nc" id="L248">                keys.add(attributes[i]);</span>
+<span class="nc" id="L249">            keys.retainAll(text.getAllAttributeKeys());</span>
         }
-<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (keys.isEmpty())</span>
-<span class="nc" id="L281">            return;</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        if (keys.isEmpty())</span>
+<span class="nc" id="L252">            return;</span>
 
         // Get and set attribute runs for each attribute name. Need to
         // scan from the top of the text so that we can discard any
         // Annotation that is no longer applied to a subset text segment.
-<span class="nc" id="L286">        Iterator&lt;Attribute&gt; itr = keys.iterator();</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">        while (itr.hasNext()) {</span>
-<span class="nc" id="L288">            Attribute attributeKey = itr.next();</span>
-<span class="nc" id="L289">            text.setIndex(textBeginIndex);</span>
-<span class="nc bnc" id="L290" title="All 2 branches missed.">            while (text.getIndex() &lt; endIndex) {</span>
-<span class="nc" id="L291">                int start = text.getRunStart(attributeKey);</span>
-<span class="nc" id="L292">                int limit = text.getRunLimit(attributeKey);</span>
-<span class="nc" id="L293">                Object value = text.getAttribute(attributeKey);</span>
+<span class="nc" id="L257">        Iterator&lt;Attribute&gt; itr = keys.iterator();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        while (itr.hasNext()) {</span>
+<span class="nc" id="L259">            Attribute attributeKey = itr.next();</span>
+<span class="nc" id="L260">            text.setIndex(textBeginIndex);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">            while (text.getIndex() &lt; endIndex) {</span>
+<span class="nc" id="L262">                int start = text.getRunStart(attributeKey);</span>
+<span class="nc" id="L263">                int limit = text.getRunLimit(attributeKey);</span>
+<span class="nc" id="L264">                Object value = text.getAttribute(attributeKey);</span>
 
-<span class="nc bnc" id="L295" title="All 2 branches missed.">                if (value != null) {</span>
-<span class="nc bnc" id="L296" title="All 2 branches missed.">                    if (value instanceof Annotation) {</span>
-<span class="nc bnc" id="L297" title="All 4 branches missed.">                        if (start &gt;= beginIndex &amp;&amp; limit &lt;= endIndex) {</span>
-<span class="nc" id="L298">                            addAttribute(attributeKey, value, start - beginIndex, limit - beginIndex);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                if (value != null) {</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                    if (value instanceof Annotation) {</span>
+<span class="nc bnc" id="L268" title="All 4 branches missed.">                        if (start &gt;= beginIndex &amp;&amp; limit &lt;= endIndex) {</span>
+<span class="nc" id="L269">                            addAttribute(attributeKey, value, start - beginIndex, limit - beginIndex);</span>
                         } else {
-<span class="nc bnc" id="L300" title="All 2 branches missed.">                            if (limit &gt; endIndex)</span>
-<span class="nc" id="L301">                                break;</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">                            if (limit &gt; endIndex)</span>
+<span class="nc" id="L272">                                break;</span>
                         }
                     } else {
                         // if the run is beyond the given (subset) range, we
                         // don't need to process further.
-<span class="nc bnc" id="L306" title="All 2 branches missed.">                        if (start &gt;= endIndex)</span>
-<span class="nc" id="L307">                            break;</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">                        if (limit &gt; beginIndex) {</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                        if (start &gt;= endIndex)</span>
+<span class="nc" id="L278">                            break;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                        if (limit &gt; beginIndex) {</span>
                             // attribute is applied to any subrange
-<span class="nc bnc" id="L310" title="All 2 branches missed.">                            if (start &lt; beginIndex)</span>
-<span class="nc" id="L311">                                start = beginIndex;</span>
-<span class="nc bnc" id="L312" title="All 2 branches missed.">                            if (limit &gt; endIndex)</span>
-<span class="nc" id="L313">                                limit = endIndex;</span>
-<span class="nc bnc" id="L314" title="All 2 branches missed.">                            if (start != limit) {</span>
-<span class="nc" id="L315">                                addAttribute(attributeKey, value, start - beginIndex, limit - beginIndex);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">                            if (start &lt; beginIndex)</span>
+<span class="nc" id="L282">                                start = beginIndex;</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                            if (limit &gt; endIndex)</span>
+<span class="nc" id="L284">                                limit = endIndex;</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                            if (start != limit) {</span>
+<span class="nc" id="L286">                                addAttribute(attributeKey, value, start - beginIndex, limit - beginIndex);</span>
                             }
                         }
                     }
                 }
-<span class="nc" id="L320">                text.setIndex(limit);</span>
-<span class="nc" id="L321">            }</span>
-<span class="nc" id="L322">        }</span>
-<span class="nc" id="L323">    }</span>
+<span class="nc" id="L291">                text.setIndex(limit);</span>
+<span class="nc" id="L292">            }</span>
+<span class="nc" id="L293">        }</span>
+<span class="nc" id="L294">    }</span>
 
     /**
      * Adds an attribute to the entire string.
@@ -332,17 +303,17 @@ public final class AttributedString {
      */
     public void addAttribute(Attribute attribute, Object value) {
 
-<span class="nc bnc" id="L335" title="All 2 branches missed.">        if (attribute == null) {</span>
-<span class="nc" id="L336">            throw new NullPointerException();</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        if (attribute == null) {</span>
+<span class="nc" id="L307">            throw new NullPointerException();</span>
         }
 
-<span class="nc" id="L339">        int len = length();</span>
-<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (len == 0) {</span>
-<span class="nc" id="L341">            throw new IllegalArgumentException(&quot;Can't add attribute to 0-length text: &quot; + attribute);</span>
+<span class="nc" id="L310">        int len = length();</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (len == 0) {</span>
+<span class="nc" id="L312">            throw new IllegalArgumentException(&quot;Can't add attribute to 0-length text: &quot; + attribute);</span>
         }
 
-<span class="nc" id="L344">        addAttributeImpl(attribute, value, 0, len);</span>
-<span class="nc" id="L345">    }</span>
+<span class="nc" id="L315">        addAttributeImpl(attribute, value, 0, len);</span>
+<span class="nc" id="L316">    }</span>
 
     /**
      * Adds an attribute to a subrange of the string.
@@ -358,16 +329,16 @@ public final class AttributedString {
     public void addAttribute(Attribute attribute, Object value,
             int beginIndex, int endIndex) {
 
-<span class="nc bnc" id="L361" title="All 2 branches missed.">        if (attribute == null) {</span>
-<span class="nc" id="L362">            throw new NullPointerException();</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if (attribute == null) {</span>
+<span class="nc" id="L333">            throw new NullPointerException();</span>
         }
 
-<span class="nc bnc" id="L365" title="All 6 branches missed.">        if (beginIndex &lt; 0 || endIndex &gt; length() || beginIndex &gt;= endIndex) {</span>
-<span class="nc" id="L366">            throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ',' + endIndex);</span>
+<span class="nc bnc" id="L336" title="All 6 branches missed.">        if (beginIndex &lt; 0 || endIndex &gt; length() || beginIndex &gt;= endIndex) {</span>
+<span class="nc" id="L337">            throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ',' + endIndex);</span>
         }
 
-<span class="nc" id="L369">        addAttributeImpl(attribute, value, beginIndex, endIndex);</span>
-<span class="nc" id="L370">    }</span>
+<span class="nc" id="L340">        addAttributeImpl(attribute, value, beginIndex, endIndex);</span>
+<span class="nc" id="L341">    }</span>
 
     /**
      * Adds a set of attributes to a subrange of the string.
@@ -385,71 +356,71 @@ public final class AttributedString {
     public void addAttributes(Map&lt;? extends Attribute, ?&gt; attributes,
                               int beginIndex, int endIndex)
     {
-<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (attributes == null) {</span>
-<span class="nc" id="L389">            throw new NullPointerException();</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        if (attributes == null) {</span>
+<span class="nc" id="L360">            throw new NullPointerException();</span>
         }
 
-<span class="nc bnc" id="L392" title="All 6 branches missed.">        if (beginIndex &lt; 0 || endIndex &gt; length() || beginIndex &gt; endIndex) {</span>
-<span class="nc" id="L393">            throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ',' + endIndex);</span>
+<span class="nc bnc" id="L363" title="All 6 branches missed.">        if (beginIndex &lt; 0 || endIndex &gt; length() || beginIndex &gt; endIndex) {</span>
+<span class="nc" id="L364">            throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ',' + endIndex);</span>
         }
-<span class="nc bnc" id="L395" title="All 2 branches missed.">        if (beginIndex == endIndex) {</span>
-<span class="nc bnc" id="L396" title="All 2 branches missed.">            if (attributes.isEmpty())</span>
-<span class="nc" id="L397">                return;</span>
-<span class="nc" id="L398">            throw new IllegalArgumentException(&quot;Can't add attribute to 0-length text&quot; + attributes);</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        if (beginIndex == endIndex) {</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">            if (attributes.isEmpty())</span>
+<span class="nc" id="L368">                return;</span>
+<span class="nc" id="L369">            throw new IllegalArgumentException(&quot;Can't add attribute to 0-length text&quot; + attributes);</span>
         }
 
         // make sure we have run attribute data vectors
-<span class="nc bnc" id="L402" title="All 2 branches missed.">        if (runCount == 0) {</span>
-<span class="nc" id="L403">            createRunAttributeDataVectors();</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">        if (runCount == 0) {</span>
+<span class="nc" id="L374">            createRunAttributeDataVectors();</span>
         }
 
         // break up runs if necessary
-<span class="nc" id="L407">        int beginRunIndex = ensureRunBreak(beginIndex);</span>
-<span class="nc" id="L408">        int endRunIndex = ensureRunBreak(endIndex);</span>
+<span class="nc" id="L378">        int beginRunIndex = ensureRunBreak(beginIndex);</span>
+<span class="nc" id="L379">        int endRunIndex = ensureRunBreak(endIndex);</span>
 
-<span class="nc" id="L410">        Iterator&lt;? extends Map.Entry&lt;? extends Attribute, ?&gt;&gt; iterator =</span>
-<span class="nc" id="L411">            attributes.entrySet().iterator();</span>
-<span class="nc bnc" id="L412" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
-<span class="nc" id="L413">            Map.Entry&lt;? extends Attribute, ?&gt; entry = iterator.next();</span>
-<span class="nc" id="L414">            addAttributeRunData(entry.getKey(), entry.getValue(), beginRunIndex, endRunIndex);</span>
-<span class="nc" id="L415">        }</span>
-<span class="nc" id="L416">    }</span>
+<span class="nc" id="L381">        Iterator&lt;? extends Map.Entry&lt;? extends Attribute, ?&gt;&gt; iterator =</span>
+<span class="nc" id="L382">            attributes.entrySet().iterator();</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L384">            Map.Entry&lt;? extends Attribute, ?&gt; entry = iterator.next();</span>
+<span class="nc" id="L385">            addAttributeRunData(entry.getKey(), entry.getValue(), beginRunIndex, endRunIndex);</span>
+<span class="nc" id="L386">        }</span>
+<span class="nc" id="L387">    }</span>
 
     private synchronized void addAttributeImpl(Attribute attribute, Object value,
             int beginIndex, int endIndex) {
 
         // make sure we have run attribute data vectors
-<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (runCount == 0) {</span>
-<span class="nc" id="L423">            createRunAttributeDataVectors();</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">        if (runCount == 0) {</span>
+<span class="nc" id="L394">            createRunAttributeDataVectors();</span>
         }
 
         // break up runs if necessary
-<span class="nc" id="L427">        int beginRunIndex = ensureRunBreak(beginIndex);</span>
-<span class="nc" id="L428">        int endRunIndex = ensureRunBreak(endIndex);</span>
+<span class="nc" id="L398">        int beginRunIndex = ensureRunBreak(beginIndex);</span>
+<span class="nc" id="L399">        int endRunIndex = ensureRunBreak(endIndex);</span>
 
-<span class="nc" id="L430">        addAttributeRunData(attribute, value, beginRunIndex, endRunIndex);</span>
-<span class="nc" id="L431">    }</span>
+<span class="nc" id="L401">        addAttributeRunData(attribute, value, beginRunIndex, endRunIndex);</span>
+<span class="nc" id="L402">    }</span>
 
     private final void createRunAttributeDataVectors() {
         // use temporary variables so things remain consistent in case of an exception
-<span class="nc" id="L435">        int newRunStarts[] = new int[ARRAY_SIZE_INCREMENT];</span>
+<span class="nc" id="L406">        int newRunStarts[] = new int[ARRAY_SIZE_INCREMENT];</span>
 
         @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L438">        ArrayList&lt;Attribute&gt; newRunAttributes[] = (ArrayList&lt;Attribute&gt;[]) new ArrayList&lt;?&gt;[ARRAY_SIZE_INCREMENT];</span>
+<span class="nc" id="L409">        ArrayList&lt;Attribute&gt; newRunAttributes[] = (ArrayList&lt;Attribute&gt;[]) new ArrayList&lt;?&gt;[ARRAY_SIZE_INCREMENT];</span>
 
         @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L441">        ArrayList&lt;Object&gt; newRunAttributeValues[] = (ArrayList&lt;Object&gt;[]) new ArrayList&lt;?&gt;[ARRAY_SIZE_INCREMENT];</span>
+<span class="nc" id="L412">        ArrayList&lt;Object&gt; newRunAttributeValues[] = (ArrayList&lt;Object&gt;[]) new ArrayList&lt;?&gt;[ARRAY_SIZE_INCREMENT];</span>
 
-<span class="nc" id="L443">        runStarts = newRunStarts;</span>
-<span class="nc" id="L444">        runAttributes = newRunAttributes;</span>
-<span class="nc" id="L445">        runAttributeValues = newRunAttributeValues;</span>
-<span class="nc" id="L446">        runArraySize = ARRAY_SIZE_INCREMENT;</span>
-<span class="nc" id="L447">        runCount = 1; // assume initial run starting at index 0</span>
-<span class="nc" id="L448">    }</span>
+<span class="nc" id="L414">        runStarts = newRunStarts;</span>
+<span class="nc" id="L415">        runAttributes = newRunAttributes;</span>
+<span class="nc" id="L416">        runAttributeValues = newRunAttributeValues;</span>
+<span class="nc" id="L417">        runArraySize = ARRAY_SIZE_INCREMENT;</span>
+<span class="nc" id="L418">        runCount = 1; // assume initial run starting at index 0</span>
+<span class="nc" id="L419">    }</span>
 
     // ensure there's a run break at offset, return the index of the run
     private final int ensureRunBreak(int offset) {
-<span class="nc" id="L452">        return ensureRunBreak(offset, true);</span>
+<span class="nc" id="L423">        return ensureRunBreak(offset, true);</span>
     }
 
     /**
@@ -464,101 +435,101 @@ public final class AttributedString {
      * &lt;/ul&gt;
      */
     private final int ensureRunBreak(int offset, boolean copyAttrs) {
-<span class="nc bnc" id="L467" title="All 2 branches missed.">        if (offset == length()) {</span>
-<span class="nc" id="L468">            return runCount;</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">        if (offset == length()) {</span>
+<span class="nc" id="L439">            return runCount;</span>
         }
 
         // search for the run index where this offset should be
-<span class="nc" id="L472">        int runIndex = 0;</span>
-<span class="nc bnc" id="L473" title="All 4 branches missed.">        while (runIndex &lt; runCount &amp;&amp; runStarts[runIndex] &lt; offset) {</span>
-<span class="nc" id="L474">            runIndex++;</span>
+<span class="nc" id="L443">        int runIndex = 0;</span>
+<span class="nc bnc" id="L444" title="All 4 branches missed.">        while (runIndex &lt; runCount &amp;&amp; runStarts[runIndex] &lt; offset) {</span>
+<span class="nc" id="L445">            runIndex++;</span>
         }
 
         // if the offset is at a run start already, we're done
-<span class="nc bnc" id="L478" title="All 4 branches missed.">        if (runIndex &lt; runCount &amp;&amp; runStarts[runIndex] == offset) {</span>
-<span class="nc" id="L479">            return runIndex;</span>
+<span class="nc bnc" id="L449" title="All 4 branches missed.">        if (runIndex &lt; runCount &amp;&amp; runStarts[runIndex] == offset) {</span>
+<span class="nc" id="L450">            return runIndex;</span>
         }
 
         // we'll have to break up a run
         // first, make sure we have enough space in our arrays
-<span class="nc bnc" id="L484" title="All 2 branches missed.">        if (runCount == runArraySize) {</span>
-<span class="nc" id="L485">            int newArraySize = runArraySize + ARRAY_SIZE_INCREMENT;</span>
-<span class="nc" id="L486">            int newRunStarts[] = new int[newArraySize];</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">        if (runCount == runArraySize) {</span>
+<span class="nc" id="L456">            int newArraySize = runArraySize + ARRAY_SIZE_INCREMENT;</span>
+<span class="nc" id="L457">            int newRunStarts[] = new int[newArraySize];</span>
 
             @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L489">            ArrayList&lt;Attribute&gt; newRunAttributes[] = (ArrayList&lt;Attribute&gt;[]) new ArrayList&lt;?&gt;[newArraySize];</span>
+<span class="nc" id="L460">            ArrayList&lt;Attribute&gt; newRunAttributes[] = (ArrayList&lt;Attribute&gt;[]) new ArrayList&lt;?&gt;[newArraySize];</span>
 
             @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L492">            ArrayList&lt;Object&gt; newRunAttributeValues[] = (ArrayList&lt;Object&gt;[]) new ArrayList&lt;?&gt;[newArraySize];</span>
+<span class="nc" id="L463">            ArrayList&lt;Object&gt; newRunAttributeValues[] = (ArrayList&lt;Object&gt;[]) new ArrayList&lt;?&gt;[newArraySize];</span>
 
-<span class="nc bnc" id="L494" title="All 2 branches missed.">            for (int i = 0; i &lt; runArraySize; i++) {</span>
-<span class="nc" id="L495">                newRunStarts[i] = runStarts[i];</span>
-<span class="nc" id="L496">                newRunAttributes[i] = runAttributes[i];</span>
-<span class="nc" id="L497">                newRunAttributeValues[i] = runAttributeValues[i];</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">            for (int i = 0; i &lt; runArraySize; i++) {</span>
+<span class="nc" id="L466">                newRunStarts[i] = runStarts[i];</span>
+<span class="nc" id="L467">                newRunAttributes[i] = runAttributes[i];</span>
+<span class="nc" id="L468">                newRunAttributeValues[i] = runAttributeValues[i];</span>
             }
-<span class="nc" id="L499">            runStarts = newRunStarts;</span>
-<span class="nc" id="L500">            runAttributes = newRunAttributes;</span>
-<span class="nc" id="L501">            runAttributeValues = newRunAttributeValues;</span>
-<span class="nc" id="L502">            runArraySize = newArraySize;</span>
+<span class="nc" id="L470">            runStarts = newRunStarts;</span>
+<span class="nc" id="L471">            runAttributes = newRunAttributes;</span>
+<span class="nc" id="L472">            runAttributeValues = newRunAttributeValues;</span>
+<span class="nc" id="L473">            runArraySize = newArraySize;</span>
         }
 
         // make copies of the attribute information of the old run that the new one used to be part of
         // use temporary variables so things remain consistent in case of an exception
-<span class="nc" id="L507">        ArrayList&lt;Attribute&gt; newRunAttributes = null;</span>
-<span class="nc" id="L508">        ArrayList&lt;Object&gt; newRunAttributeValues = null;</span>
+<span class="nc" id="L478">        ArrayList&lt;Attribute&gt; newRunAttributes = null;</span>
+<span class="nc" id="L479">        ArrayList&lt;Object&gt; newRunAttributeValues = null;</span>
 
-<span class="nc bnc" id="L510" title="All 2 branches missed.">        if (copyAttrs) {</span>
-<span class="nc" id="L511">            ArrayList&lt;Attribute&gt; oldRunAttributes = runAttributes[runIndex - 1];</span>
-<span class="nc" id="L512">            ArrayList&lt;Object&gt; oldRunAttributeValues = runAttributeValues[runIndex - 1];</span>
-<span class="nc bnc" id="L513" title="All 2 branches missed.">            if (oldRunAttributes != null) {</span>
-<span class="nc" id="L514">                newRunAttributes = new ArrayList&lt;&gt;(oldRunAttributes);</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">        if (copyAttrs) {</span>
+<span class="nc" id="L482">            ArrayList&lt;Attribute&gt; oldRunAttributes = runAttributes[runIndex - 1];</span>
+<span class="nc" id="L483">            ArrayList&lt;Object&gt; oldRunAttributeValues = runAttributeValues[runIndex - 1];</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">            if (oldRunAttributes != null) {</span>
+<span class="nc" id="L485">                newRunAttributes = new ArrayList&lt;&gt;(oldRunAttributes);</span>
             }
-<span class="nc bnc" id="L516" title="All 2 branches missed.">            if (oldRunAttributeValues != null) {</span>
-<span class="nc" id="L517">                newRunAttributeValues =  new ArrayList&lt;&gt;(oldRunAttributeValues);</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">            if (oldRunAttributeValues != null) {</span>
+<span class="nc" id="L488">                newRunAttributeValues =  new ArrayList&lt;&gt;(oldRunAttributeValues);</span>
             }
         }
 
         // now actually break up the run
-<span class="nc" id="L522">        runCount++;</span>
-<span class="nc bnc" id="L523" title="All 2 branches missed.">        for (int i = runCount - 1, j = i - 1; i &gt; runIndex; i--, j--) {</span>
-<span class="nc" id="L524">            runStarts[i] = runStarts[j];</span>
-<span class="nc" id="L525">            runAttributes[i] = runAttributes[j];</span>
-<span class="nc" id="L526">            runAttributeValues[i] = runAttributeValues[j];</span>
+<span class="nc" id="L493">        runCount++;</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">        for (int i = runCount - 1, j = i - 1; i &gt; runIndex; i--, j--) {</span>
+<span class="nc" id="L495">            runStarts[i] = runStarts[j];</span>
+<span class="nc" id="L496">            runAttributes[i] = runAttributes[j];</span>
+<span class="nc" id="L497">            runAttributeValues[i] = runAttributeValues[j];</span>
         }
-<span class="nc" id="L528">        runStarts[runIndex] = offset;</span>
-<span class="nc" id="L529">        runAttributes[runIndex] = newRunAttributes;</span>
-<span class="nc" id="L530">        runAttributeValues[runIndex] = newRunAttributeValues;</span>
+<span class="nc" id="L499">        runStarts[runIndex] = offset;</span>
+<span class="nc" id="L500">        runAttributes[runIndex] = newRunAttributes;</span>
+<span class="nc" id="L501">        runAttributeValues[runIndex] = newRunAttributeValues;</span>
 
-<span class="nc" id="L532">        return runIndex;</span>
+<span class="nc" id="L503">        return runIndex;</span>
     }
 
     // add the attribute attribute/value to all runs where beginRunIndex &lt;= runIndex &lt; endRunIndex
     private void addAttributeRunData(Attribute attribute, Object value,
             int beginRunIndex, int endRunIndex) {
 
-<span class="nc bnc" id="L539" title="All 2 branches missed.">        for (int i = beginRunIndex; i &lt; endRunIndex; i++) {</span>
-<span class="nc" id="L540">            int keyValueIndex = -1; // index of key and value in our vectors; assume we don't have an entry yet</span>
-<span class="nc" id="L541">           ArrayList&lt;Attribute&gt; runAttribute = runAttributes[i];</span>
-<span class="nc bnc" id="L542" title="All 2 branches missed.">            if (runAttribute == null) {</span>
-<span class="nc" id="L543">                ArrayList&lt;Attribute&gt; newRunAttributes = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L544">                ArrayList&lt;Object&gt; newRunAttributeValues = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L545">                runAttributes[i] = runAttribute = newRunAttributes;</span>
-<span class="nc" id="L546">                runAttributeValues[i] = newRunAttributeValues;</span>
-<span class="nc" id="L547">            } else {</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">        for (int i = beginRunIndex; i &lt; endRunIndex; i++) {</span>
+<span class="nc" id="L511">            int keyValueIndex = -1; // index of key and value in our vectors; assume we don't have an entry yet</span>
+<span class="nc" id="L512">           ArrayList&lt;Attribute&gt; runAttribute = runAttributes[i];</span>
+<span class="nc bnc" id="L513" title="All 2 branches missed.">            if (runAttribute == null) {</span>
+<span class="nc" id="L514">                ArrayList&lt;Attribute&gt; newRunAttributes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L515">                ArrayList&lt;Object&gt; newRunAttributeValues = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L516">                runAttributes[i] = runAttribute = newRunAttributes;</span>
+<span class="nc" id="L517">                runAttributeValues[i] = newRunAttributeValues;</span>
+<span class="nc" id="L518">            } else {</span>
                 // check whether we have an entry already
-<span class="nc" id="L549">                keyValueIndex = runAttributes[i].indexOf(attribute);</span>
+<span class="nc" id="L520">                keyValueIndex = runAttributes[i].indexOf(attribute);</span>
             }
 
-<span class="nc bnc" id="L552" title="All 2 branches missed.">            if (keyValueIndex == -1) {</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">            if (keyValueIndex == -1) {</span>
                 // create new entry
-<span class="nc" id="L554">                runAttribute.add(attribute);</span>
-<span class="nc" id="L555">                runAttributeValues[i].add(value);</span>
+<span class="nc" id="L525">                runAttribute.add(attribute);</span>
+<span class="nc" id="L526">                runAttributeValues[i].add(value);</span>
             } else {
                 // update existing entry
-<span class="nc" id="L558">                runAttributeValues[i].set(keyValueIndex, value);</span>
+<span class="nc" id="L529">                runAttributeValues[i].set(keyValueIndex, value);</span>
             }
         }
-<span class="nc" id="L561">    }</span>
+<span class="nc" id="L532">    }</span>
 
     /**
      * Creates an AttributedCharacterIterator instance that provides access to the entire contents of
@@ -567,7 +538,7 @@ public final class AttributedString {
      * @return An iterator providing access to the text and its attributes.
      */
     public AttributedCharacterIterator getIterator() {
-<span class="nc" id="L570">      return new AttributedStringIterator(0, length());</span>
+<span class="nc" id="L541">      return new AttributedStringIterator(0, length());</span>
     }
 
     // all (with the exception of length) reading operations are private,
@@ -576,84 +547,84 @@ public final class AttributedString {
     // length is package private so that CharacterIteratorFieldDelegate can
     // access it without creating an AttributedCharacterIterator.
     int length() {
-<span class="nc" id="L579">        return text.length();</span>
+<span class="nc" id="L550">        return text.length();</span>
     }
 
     private char charAt(int index) {
-<span class="nc" id="L583">        return text.charAt(index);</span>
+<span class="nc" id="L554">        return text.charAt(index);</span>
     }
 
     private synchronized Object getAttribute(Attribute attribute, int runIndex) {
-<span class="nc" id="L587">        ArrayList&lt;Attribute&gt; currentRunAttributes = runAttributes[runIndex];</span>
-<span class="nc" id="L588">        ArrayList&lt;Object&gt; currentRunAttributeValues = runAttributeValues[runIndex];</span>
-<span class="nc bnc" id="L589" title="All 2 branches missed.">        if (currentRunAttributes == null) {</span>
-<span class="nc" id="L590">            return null;</span>
+<span class="nc" id="L558">        ArrayList&lt;Attribute&gt; currentRunAttributes = runAttributes[runIndex];</span>
+<span class="nc" id="L559">        ArrayList&lt;Object&gt; currentRunAttributeValues = runAttributeValues[runIndex];</span>
+<span class="nc bnc" id="L560" title="All 2 branches missed.">        if (currentRunAttributes == null) {</span>
+<span class="nc" id="L561">            return null;</span>
         }
-<span class="nc" id="L592">        int attributeIndex = currentRunAttributes.indexOf(attribute);</span>
-<span class="nc bnc" id="L593" title="All 2 branches missed.">        if (attributeIndex != -1) {</span>
-<span class="nc" id="L594">            return currentRunAttributeValues.get(attributeIndex);</span>
+<span class="nc" id="L563">        int attributeIndex = currentRunAttributes.indexOf(attribute);</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        if (attributeIndex != -1) {</span>
+<span class="nc" id="L565">            return currentRunAttributeValues.get(attributeIndex);</span>
         }
         else {
-<span class="nc" id="L597">            return null;</span>
+<span class="nc" id="L568">            return null;</span>
         }
     }
 
     // gets an attribute value, but returns an annotation only if it's range does not extend outside the range beginIndex..endIndex
     private Object getAttributeCheckRange(Attribute attribute, int runIndex, int beginIndex, int endIndex) {
-<span class="nc" id="L603">        Object value = getAttribute(attribute, runIndex);</span>
-<span class="nc bnc" id="L604" title="All 2 branches missed.">        if (value instanceof Annotation) {</span>
+<span class="nc" id="L574">        Object value = getAttribute(attribute, runIndex);</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">        if (value instanceof Annotation) {</span>
             // need to check whether the annotation's range extends outside the iterator's range
-<span class="nc bnc" id="L606" title="All 2 branches missed.">            if (beginIndex &gt; 0) {</span>
-<span class="nc" id="L607">                int currIndex = runIndex;</span>
-<span class="nc" id="L608">                int runStart = runStarts[currIndex];</span>
-<span class="nc bnc" id="L609" title="All 2 branches missed.">                while (runStart &gt;= beginIndex &amp;&amp;</span>
-<span class="nc bnc" id="L610" title="All 2 branches missed.">                        valuesMatch(value, getAttribute(attribute, currIndex - 1))) {</span>
-<span class="nc" id="L611">                    currIndex--;</span>
-<span class="nc" id="L612">                    runStart = runStarts[currIndex];</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">            if (beginIndex &gt; 0) {</span>
+<span class="nc" id="L578">                int currIndex = runIndex;</span>
+<span class="nc" id="L579">                int runStart = runStarts[currIndex];</span>
+<span class="nc bnc" id="L580" title="All 2 branches missed.">                while (runStart &gt;= beginIndex &amp;&amp;</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">                        valuesMatch(value, getAttribute(attribute, currIndex - 1))) {</span>
+<span class="nc" id="L582">                    currIndex--;</span>
+<span class="nc" id="L583">                    runStart = runStarts[currIndex];</span>
                 }
-<span class="nc bnc" id="L614" title="All 2 branches missed.">                if (runStart &lt; beginIndex) {</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">                if (runStart &lt; beginIndex) {</span>
                     // annotation's range starts before iterator's range
-<span class="nc" id="L616">                    return null;</span>
+<span class="nc" id="L587">                    return null;</span>
                 }
             }
-<span class="nc" id="L619">            int textLength = length();</span>
-<span class="nc bnc" id="L620" title="All 2 branches missed.">            if (endIndex &lt; textLength) {</span>
-<span class="nc" id="L621">                int currIndex = runIndex;</span>
-<span class="nc bnc" id="L622" title="All 2 branches missed.">                int runLimit = (currIndex &lt; runCount - 1) ? runStarts[currIndex + 1] : textLength;</span>
-<span class="nc bnc" id="L623" title="All 2 branches missed.">                while (runLimit &lt;= endIndex &amp;&amp;</span>
-<span class="nc bnc" id="L624" title="All 2 branches missed.">                        valuesMatch(value, getAttribute(attribute, currIndex + 1))) {</span>
-<span class="nc" id="L625">                    currIndex++;</span>
-<span class="nc bnc" id="L626" title="All 2 branches missed.">                    runLimit = (currIndex &lt; runCount - 1) ? runStarts[currIndex + 1] : textLength;</span>
+<span class="nc" id="L590">            int textLength = length();</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">            if (endIndex &lt; textLength) {</span>
+<span class="nc" id="L592">                int currIndex = runIndex;</span>
+<span class="nc bnc" id="L593" title="All 2 branches missed.">                int runLimit = (currIndex &lt; runCount - 1) ? runStarts[currIndex + 1] : textLength;</span>
+<span class="nc bnc" id="L594" title="All 2 branches missed.">                while (runLimit &lt;= endIndex &amp;&amp;</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">                        valuesMatch(value, getAttribute(attribute, currIndex + 1))) {</span>
+<span class="nc" id="L596">                    currIndex++;</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">                    runLimit = (currIndex &lt; runCount - 1) ? runStarts[currIndex + 1] : textLength;</span>
                 }
-<span class="nc bnc" id="L628" title="All 2 branches missed.">                if (runLimit &gt; endIndex) {</span>
+<span class="nc bnc" id="L599" title="All 2 branches missed.">                if (runLimit &gt; endIndex) {</span>
                     // annotation's range ends after iterator's range
-<span class="nc" id="L630">                    return null;</span>
+<span class="nc" id="L601">                    return null;</span>
                 }
             }
             // annotation's range is subrange of iterator's range,
             // so we can return the value
         }
-<span class="nc" id="L636">        return value;</span>
+<span class="nc" id="L607">        return value;</span>
     }
 
     // returns whether all specified attributes have equal values in the runs with the given indices
     private boolean attributeValuesMatch(Set&lt;? extends Attribute&gt; attributes, int runIndex1, int runIndex2) {
-<span class="nc" id="L641">        Iterator&lt;? extends Attribute&gt; iterator = attributes.iterator();</span>
-<span class="nc bnc" id="L642" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
-<span class="nc" id="L643">            Attribute key = iterator.next();</span>
-<span class="nc bnc" id="L644" title="All 2 branches missed.">           if (!valuesMatch(getAttribute(key, runIndex1), getAttribute(key, runIndex2))) {</span>
-<span class="nc" id="L645">                return false;</span>
+<span class="nc" id="L612">        Iterator&lt;? extends Attribute&gt; iterator = attributes.iterator();</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L614">            Attribute key = iterator.next();</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">           if (!valuesMatch(getAttribute(key, runIndex1), getAttribute(key, runIndex2))) {</span>
+<span class="nc" id="L616">                return false;</span>
             }
-<span class="nc" id="L647">        }</span>
-<span class="nc" id="L648">        return true;</span>
+<span class="nc" id="L618">        }</span>
+<span class="nc" id="L619">        return true;</span>
     }
 
     // returns whether the two objects are either both null or equal
     private final static boolean valuesMatch(Object value1, Object value2) {
-<span class="nc bnc" id="L653" title="All 2 branches missed.">        if (value1 == null) {</span>
-<span class="nc bnc" id="L654" title="All 2 branches missed.">            return value2 == null;</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">        if (value1 == null) {</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">            return value2 == null;</span>
         } else {
-<span class="nc" id="L656">            return value1.equals(value2);</span>
+<span class="nc" id="L627">            return value1.equals(value2);</span>
         }
     }
 
@@ -663,14 +634,14 @@ public final class AttributedString {
      */
     private final void appendContents(StringBuilder buf,
                                       CharacterIterator iterator) {
-<span class="nc" id="L666">        int index = iterator.getBeginIndex();</span>
-<span class="nc" id="L667">        int end = iterator.getEndIndex();</span>
+<span class="nc" id="L637">        int index = iterator.getBeginIndex();</span>
+<span class="nc" id="L638">        int end = iterator.getEndIndex();</span>
 
-<span class="nc bnc" id="L669" title="All 2 branches missed.">        while (index &lt; end) {</span>
-<span class="nc" id="L670">            iterator.setIndex(index++);</span>
-<span class="nc" id="L671">            buf.append(iterator.current());</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        while (index &lt; end) {</span>
+<span class="nc" id="L641">            iterator.setIndex(index++);</span>
+<span class="nc" id="L642">            buf.append(iterator.current());</span>
         }
-<span class="nc" id="L673">    }</span>
+<span class="nc" id="L644">    }</span>
 
     /**
      * Sets the attributes for the range from offset to the next run break
@@ -678,37 +649,37 @@ public final class AttributedString {
      * This is only meant to be called from the constructor!
      */
     private void setAttributes(Map&lt;Attribute, Object&gt; attrs, int offset) {
-<span class="nc bnc" id="L681" title="All 2 branches missed.">        if (runCount == 0) {</span>
-<span class="nc" id="L682">            createRunAttributeDataVectors();</span>
+<span class="nc bnc" id="L652" title="All 2 branches missed.">        if (runCount == 0) {</span>
+<span class="nc" id="L653">            createRunAttributeDataVectors();</span>
         }
 
-<span class="nc" id="L685">        int index = ensureRunBreak(offset, false);</span>
+<span class="nc" id="L656">        int index = ensureRunBreak(offset, false);</span>
         int size;
 
-<span class="nc bnc" id="L688" title="All 4 branches missed.">        if (attrs != null &amp;&amp; (size = attrs.size()) &gt; 0) {</span>
-<span class="nc" id="L689">            ArrayList&lt;Attribute&gt; runAttrs = new ArrayList&lt;&gt;(size);</span>
-<span class="nc" id="L690">            ArrayList&lt;Object&gt; runValues = new ArrayList&lt;&gt;(size);</span>
-<span class="nc" id="L691">            Iterator&lt;Map.Entry&lt;Attribute, Object&gt;&gt; iterator = attrs.entrySet().iterator();</span>
+<span class="nc bnc" id="L659" title="All 4 branches missed.">        if (attrs != null &amp;&amp; (size = attrs.size()) &gt; 0) {</span>
+<span class="nc" id="L660">            ArrayList&lt;Attribute&gt; runAttrs = new ArrayList&lt;&gt;(size);</span>
+<span class="nc" id="L661">            ArrayList&lt;Object&gt; runValues = new ArrayList&lt;&gt;(size);</span>
+<span class="nc" id="L662">            Iterator&lt;Map.Entry&lt;Attribute, Object&gt;&gt; iterator = attrs.entrySet().iterator();</span>
 
-<span class="nc bnc" id="L693" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
-<span class="nc" id="L694">                Map.Entry&lt;Attribute, Object&gt; entry = iterator.next();</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
+<span class="nc" id="L665">                Map.Entry&lt;Attribute, Object&gt; entry = iterator.next();</span>
 
-<span class="nc" id="L696">                runAttrs.add(entry.getKey());</span>
-<span class="nc" id="L697">                runValues.add(entry.getValue());</span>
-<span class="nc" id="L698">            }</span>
-<span class="nc" id="L699">            runAttributes[index] = runAttrs;</span>
-<span class="nc" id="L700">            runAttributeValues[index] = runValues;</span>
+<span class="nc" id="L667">                runAttrs.add(entry.getKey());</span>
+<span class="nc" id="L668">                runValues.add(entry.getValue());</span>
+<span class="nc" id="L669">            }</span>
+<span class="nc" id="L670">            runAttributes[index] = runAttrs;</span>
+<span class="nc" id="L671">            runAttributeValues[index] = runValues;</span>
         }
-<span class="nc" id="L702">    }</span>
+<span class="nc" id="L673">    }</span>
 
     /**
      * Returns true if the attributes specified in last and attrs differ.
      */
     private static &lt;K,V&gt; boolean mapsDiffer(Map&lt;K, V&gt; last, Map&lt;K, V&gt; attrs) {
-<span class="nc bnc" id="L708" title="All 2 branches missed.">        if (last == null) {</span>
-<span class="nc bnc" id="L709" title="All 4 branches missed.">            return (attrs != null &amp;&amp; attrs.size() &gt; 0);</span>
+<span class="nc bnc" id="L679" title="All 2 branches missed.">        if (last == null) {</span>
+<span class="nc bnc" id="L680" title="All 4 branches missed.">            return (attrs != null &amp;&amp; attrs.size() &gt; 0);</span>
         }
-<span class="nc bnc" id="L711" title="All 2 branches missed.">        return (!last.equals(attrs));</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">        return (!last.equals(attrs));</span>
     }
 
 
@@ -734,287 +705,285 @@ public final class AttributedString {
         private int currentRunLimit;
 
         // constructor
-<span class="nc" id="L737">        AttributedStringIterator(int beginIndex, int endIndex) {</span>
+<span class="nc" id="L708">        AttributedStringIterator(int beginIndex, int endIndex) {</span>
 
-<span class="nc bnc" id="L739" title="All 6 branches missed.">            if (beginIndex &lt; 0 || beginIndex &gt; endIndex || endIndex &gt; length()) {</span>
-<span class="nc" id="L740">                throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ',' + endIndex);</span>
+<span class="nc bnc" id="L710" title="All 6 branches missed.">            if (beginIndex &lt; 0 || beginIndex &gt; endIndex || endIndex &gt; length()) {</span>
+<span class="nc" id="L711">                throw new IllegalArgumentException(&quot;Invalid substring range &quot; + beginIndex + ',' + endIndex);</span>
             }
 
-<span class="nc" id="L743">            this.beginIndex = beginIndex;</span>
-<span class="nc" id="L744">            this.endIndex = endIndex;</span>
-<span class="nc" id="L745">            this.currentIndex = beginIndex;</span>
-<span class="nc" id="L746">            updateRunInfo();</span>
-<span class="nc" id="L747">        }</span>
+<span class="nc" id="L714">            this.beginIndex = beginIndex;</span>
+<span class="nc" id="L715">            this.endIndex = endIndex;</span>
+<span class="nc" id="L716">            this.currentIndex = beginIndex;</span>
+<span class="nc" id="L717">            updateRunInfo();</span>
+<span class="nc" id="L718">        }</span>
 
         // Object methods. See documentation in that class.
 
         public boolean equals(Object obj) {
-<span class="nc bnc" id="L752" title="All 2 branches missed.">            if (this == obj) {</span>
-<span class="nc" id="L753">                return true;</span>
+<span class="nc bnc" id="L723" title="All 2 branches missed.">            if (this == obj) {</span>
+<span class="nc" id="L724">                return true;</span>
             }
-<span class="nc bnc" id="L755" title="All 2 branches missed.">            if (!(obj instanceof AttributedStringIterator)) {</span>
-<span class="nc" id="L756">                return false;</span>
+<span class="nc bnc" id="L726" title="All 2 branches missed.">            if (!(obj instanceof AttributedStringIterator)) {</span>
+<span class="nc" id="L727">                return false;</span>
             }
 
-<span class="nc" id="L759">            AttributedStringIterator that = (AttributedStringIterator) obj;</span>
+<span class="nc" id="L730">            AttributedStringIterator that = (AttributedStringIterator) obj;</span>
 
-<span class="nc bnc" id="L761" title="All 2 branches missed.">            if (AttributedString.this != that.getString())</span>
-<span class="nc" id="L762">                return false;</span>
-<span class="nc bnc" id="L763" title="All 6 branches missed.">            if (currentIndex != that.currentIndex || beginIndex != that.beginIndex || endIndex != that.endIndex)</span>
-<span class="nc" id="L764">                return false;</span>
-<span class="nc" id="L765">            return true;</span>
+<span class="nc bnc" id="L732" title="All 2 branches missed.">            if (AttributedString.this != that.getString())</span>
+<span class="nc" id="L733">                return false;</span>
+<span class="nc bnc" id="L734" title="All 6 branches missed.">            return !(currentIndex != that.currentIndex || beginIndex != that.beginIndex || endIndex != that.endIndex);</span>
         }
 
         public int hashCode() {
-<span class="nc" id="L769">            return text.hashCode() ^ currentIndex ^ beginIndex ^ endIndex;</span>
+<span class="nc" id="L738">            return text.hashCode() ^ currentIndex ^ beginIndex ^ endIndex;</span>
         }
 
         public AttributedStringIterator clone() {
             try {
-<span class="nc" id="L774">                return (AttributedStringIterator) super.clone();</span>
+<span class="nc" id="L743">                return (AttributedStringIterator) super.clone();</span>
             }
-<span class="nc" id="L776">            catch (CloneNotSupportedException e) {</span>
-<span class="nc" id="L777">                throw new InternalError(e);</span>
+<span class="nc" id="L745">            catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L746">                throw new InternalError(e);</span>
             }
         }
 
         // CharacterIterator methods. See documentation in that interface.
 
         public char first() {
-<span class="nc" id="L784">            return internalSetIndex(beginIndex);</span>
+<span class="nc" id="L753">            return internalSetIndex(beginIndex);</span>
         }
 
         public char last() {
-<span class="nc bnc" id="L788" title="All 2 branches missed.">            if (endIndex == beginIndex) {</span>
-<span class="nc" id="L789">                return internalSetIndex(endIndex);</span>
+<span class="nc bnc" id="L757" title="All 2 branches missed.">            if (endIndex == beginIndex) {</span>
+<span class="nc" id="L758">                return internalSetIndex(endIndex);</span>
             } else {
-<span class="nc" id="L791">                return internalSetIndex(endIndex - 1);</span>
+<span class="nc" id="L760">                return internalSetIndex(endIndex - 1);</span>
             }
         }
 
         public char current() {
-<span class="nc bnc" id="L796" title="All 2 branches missed.">            if (currentIndex == endIndex) {</span>
-<span class="nc" id="L797">                return DONE;</span>
+<span class="nc bnc" id="L765" title="All 2 branches missed.">            if (currentIndex == endIndex) {</span>
+<span class="nc" id="L766">                return DONE;</span>
             } else {
-<span class="nc" id="L799">                return charAt(currentIndex);</span>
+<span class="nc" id="L768">                return charAt(currentIndex);</span>
             }
         }
 
         public char next() {
-<span class="nc bnc" id="L804" title="All 2 branches missed.">            if (currentIndex &lt; endIndex) {</span>
-<span class="nc" id="L805">                return internalSetIndex(currentIndex + 1);</span>
+<span class="nc bnc" id="L773" title="All 2 branches missed.">            if (currentIndex &lt; endIndex) {</span>
+<span class="nc" id="L774">                return internalSetIndex(currentIndex + 1);</span>
             }
             else {
-<span class="nc" id="L808">                return DONE;</span>
+<span class="nc" id="L777">                return DONE;</span>
             }
         }
 
         public char previous() {
-<span class="nc bnc" id="L813" title="All 2 branches missed.">            if (currentIndex &gt; beginIndex) {</span>
-<span class="nc" id="L814">                return internalSetIndex(currentIndex - 1);</span>
+<span class="nc bnc" id="L782" title="All 2 branches missed.">            if (currentIndex &gt; beginIndex) {</span>
+<span class="nc" id="L783">                return internalSetIndex(currentIndex - 1);</span>
             }
             else {
-<span class="nc" id="L817">                return DONE;</span>
+<span class="nc" id="L786">                return DONE;</span>
             }
         }
 
         public char setIndex(int position) {
-<span class="nc bnc" id="L822" title="All 4 branches missed.">            if (position &lt; beginIndex || position &gt; endIndex)</span>
-<span class="nc" id="L823">                throw new IllegalArgumentException(&quot;Invalid index &quot; + position);</span>
-<span class="nc" id="L824">            return internalSetIndex(position);</span>
+<span class="nc bnc" id="L791" title="All 4 branches missed.">            if (position &lt; beginIndex || position &gt; endIndex)</span>
+<span class="nc" id="L792">                throw new IllegalArgumentException(&quot;Invalid index &quot; + position);</span>
+<span class="nc" id="L793">            return internalSetIndex(position);</span>
         }
 
         public int getBeginIndex() {
-<span class="nc" id="L828">            return beginIndex;</span>
+<span class="nc" id="L797">            return beginIndex;</span>
         }
 
         public int getEndIndex() {
-<span class="nc" id="L832">            return endIndex;</span>
+<span class="nc" id="L801">            return endIndex;</span>
         }
 
         public int getIndex() {
-<span class="nc" id="L836">            return currentIndex;</span>
+<span class="nc" id="L805">            return currentIndex;</span>
         }
 
         // AttributedCharacterIterator methods. See documentation in that interface.
 
         public int getRunStart() {
-<span class="nc" id="L842">            return currentRunStart;</span>
+<span class="nc" id="L811">            return currentRunStart;</span>
         }
 
         public int getRunStart(Attribute attribute) {
-<span class="nc bnc" id="L846" title="All 4 branches missed.">            if (currentRunStart == beginIndex || currentRunIndex == -1) {</span>
-<span class="nc" id="L847">                return currentRunStart;</span>
+<span class="nc bnc" id="L815" title="All 4 branches missed.">            if (currentRunStart == beginIndex || currentRunIndex == -1) {</span>
+<span class="nc" id="L816">                return currentRunStart;</span>
             } else {
-<span class="nc" id="L849">                Object value = getAttribute(attribute);</span>
-<span class="nc" id="L850">                int runStart = currentRunStart;</span>
-<span class="nc" id="L851">                int runIndex = currentRunIndex;</span>
-<span class="nc bnc" id="L852" title="All 2 branches missed.">                while (runStart &gt; beginIndex &amp;&amp;</span>
-<span class="nc bnc" id="L853" title="All 2 branches missed.">                        valuesMatch(value, AttributedString.this.getAttribute(attribute, runIndex - 1))) {</span>
-<span class="nc" id="L854">                    runIndex--;</span>
-<span class="nc" id="L855">                    runStart = runStarts[runIndex];</span>
+<span class="nc" id="L818">                Object value = getAttribute(attribute);</span>
+<span class="nc" id="L819">                int runStart = currentRunStart;</span>
+<span class="nc" id="L820">                int runIndex = currentRunIndex;</span>
+<span class="nc bnc" id="L821" title="All 2 branches missed.">                while (runStart &gt; beginIndex &amp;&amp;</span>
+<span class="nc bnc" id="L822" title="All 2 branches missed.">                        valuesMatch(value, AttributedString.this.getAttribute(attribute, runIndex - 1))) {</span>
+<span class="nc" id="L823">                    runIndex--;</span>
+<span class="nc" id="L824">                    runStart = runStarts[runIndex];</span>
                 }
-<span class="nc bnc" id="L857" title="All 2 branches missed.">                if (runStart &lt; beginIndex) {</span>
-<span class="nc" id="L858">                    runStart = beginIndex;</span>
+<span class="nc bnc" id="L826" title="All 2 branches missed.">                if (runStart &lt; beginIndex) {</span>
+<span class="nc" id="L827">                    runStart = beginIndex;</span>
                 }
-<span class="nc" id="L860">                return runStart;</span>
+<span class="nc" id="L829">                return runStart;</span>
             }
         }
 
         public int getRunStart(Set&lt;? extends Attribute&gt; attributes) {
-<span class="nc bnc" id="L865" title="All 4 branches missed.">            if (currentRunStart == beginIndex || currentRunIndex == -1) {</span>
-<span class="nc" id="L866">                return currentRunStart;</span>
+<span class="nc bnc" id="L834" title="All 4 branches missed.">            if (currentRunStart == beginIndex || currentRunIndex == -1) {</span>
+<span class="nc" id="L835">                return currentRunStart;</span>
             } else {
-<span class="nc" id="L868">                int runStart = currentRunStart;</span>
-<span class="nc" id="L869">                int runIndex = currentRunIndex;</span>
-<span class="nc bnc" id="L870" title="All 2 branches missed.">                while (runStart &gt; beginIndex &amp;&amp;</span>
-<span class="nc bnc" id="L871" title="All 2 branches missed.">                        AttributedString.this.attributeValuesMatch(attributes, currentRunIndex, runIndex - 1)) {</span>
-<span class="nc" id="L872">                    runIndex--;</span>
-<span class="nc" id="L873">                    runStart = runStarts[runIndex];</span>
+<span class="nc" id="L837">                int runStart = currentRunStart;</span>
+<span class="nc" id="L838">                int runIndex = currentRunIndex;</span>
+<span class="nc bnc" id="L839" title="All 2 branches missed.">                while (runStart &gt; beginIndex &amp;&amp;</span>
+<span class="nc bnc" id="L840" title="All 2 branches missed.">                        AttributedString.this.attributeValuesMatch(attributes, currentRunIndex, runIndex - 1)) {</span>
+<span class="nc" id="L841">                    runIndex--;</span>
+<span class="nc" id="L842">                    runStart = runStarts[runIndex];</span>
                 }
-<span class="nc bnc" id="L875" title="All 2 branches missed.">                if (runStart &lt; beginIndex) {</span>
-<span class="nc" id="L876">                    runStart = beginIndex;</span>
+<span class="nc bnc" id="L844" title="All 2 branches missed.">                if (runStart &lt; beginIndex) {</span>
+<span class="nc" id="L845">                    runStart = beginIndex;</span>
                 }
-<span class="nc" id="L878">                return runStart;</span>
+<span class="nc" id="L847">                return runStart;</span>
             }
         }
 
         public int getRunLimit() {
-<span class="nc" id="L883">            return currentRunLimit;</span>
+<span class="nc" id="L852">            return currentRunLimit;</span>
         }
 
         public int getRunLimit(Attribute attribute) {
-<span class="nc bnc" id="L887" title="All 4 branches missed.">            if (currentRunLimit == endIndex || currentRunIndex == -1) {</span>
-<span class="nc" id="L888">                return currentRunLimit;</span>
+<span class="nc bnc" id="L856" title="All 4 branches missed.">            if (currentRunLimit == endIndex || currentRunIndex == -1) {</span>
+<span class="nc" id="L857">                return currentRunLimit;</span>
             } else {
-<span class="nc" id="L890">                Object value = getAttribute(attribute);</span>
-<span class="nc" id="L891">                int runLimit = currentRunLimit;</span>
-<span class="nc" id="L892">                int runIndex = currentRunIndex;</span>
-<span class="nc bnc" id="L893" title="All 2 branches missed.">                while (runLimit &lt; endIndex &amp;&amp;</span>
-<span class="nc bnc" id="L894" title="All 2 branches missed.">                        valuesMatch(value, AttributedString.this.getAttribute(attribute, runIndex + 1))) {</span>
-<span class="nc" id="L895">                    runIndex++;</span>
-<span class="nc bnc" id="L896" title="All 2 branches missed.">                    runLimit = runIndex &lt; runCount - 1 ? runStarts[runIndex + 1] : endIndex;</span>
+<span class="nc" id="L859">                Object value = getAttribute(attribute);</span>
+<span class="nc" id="L860">                int runLimit = currentRunLimit;</span>
+<span class="nc" id="L861">                int runIndex = currentRunIndex;</span>
+<span class="nc bnc" id="L862" title="All 2 branches missed.">                while (runLimit &lt; endIndex &amp;&amp;</span>
+<span class="nc bnc" id="L863" title="All 2 branches missed.">                        valuesMatch(value, AttributedString.this.getAttribute(attribute, runIndex + 1))) {</span>
+<span class="nc" id="L864">                    runIndex++;</span>
+<span class="nc bnc" id="L865" title="All 2 branches missed.">                    runLimit = runIndex &lt; runCount - 1 ? runStarts[runIndex + 1] : endIndex;</span>
                 }
-<span class="nc bnc" id="L898" title="All 2 branches missed.">                if (runLimit &gt; endIndex) {</span>
-<span class="nc" id="L899">                    runLimit = endIndex;</span>
+<span class="nc bnc" id="L867" title="All 2 branches missed.">                if (runLimit &gt; endIndex) {</span>
+<span class="nc" id="L868">                    runLimit = endIndex;</span>
                 }
-<span class="nc" id="L901">                return runLimit;</span>
+<span class="nc" id="L870">                return runLimit;</span>
             }
         }
 
         public int getRunLimit(Set&lt;? extends Attribute&gt; attributes) {
-<span class="nc bnc" id="L906" title="All 4 branches missed.">            if (currentRunLimit == endIndex || currentRunIndex == -1) {</span>
-<span class="nc" id="L907">                return currentRunLimit;</span>
+<span class="nc bnc" id="L875" title="All 4 branches missed.">            if (currentRunLimit == endIndex || currentRunIndex == -1) {</span>
+<span class="nc" id="L876">                return currentRunLimit;</span>
             } else {
-<span class="nc" id="L909">                int runLimit = currentRunLimit;</span>
-<span class="nc" id="L910">                int runIndex = currentRunIndex;</span>
-<span class="nc bnc" id="L911" title="All 2 branches missed.">                while (runLimit &lt; endIndex &amp;&amp;</span>
-<span class="nc bnc" id="L912" title="All 2 branches missed.">                        AttributedString.this.attributeValuesMatch(attributes, currentRunIndex, runIndex + 1)) {</span>
-<span class="nc" id="L913">                    runIndex++;</span>
-<span class="nc bnc" id="L914" title="All 2 branches missed.">                    runLimit = runIndex &lt; runCount - 1 ? runStarts[runIndex + 1] : endIndex;</span>
+<span class="nc" id="L878">                int runLimit = currentRunLimit;</span>
+<span class="nc" id="L879">                int runIndex = currentRunIndex;</span>
+<span class="nc bnc" id="L880" title="All 2 branches missed.">                while (runLimit &lt; endIndex &amp;&amp;</span>
+<span class="nc bnc" id="L881" title="All 2 branches missed.">                        AttributedString.this.attributeValuesMatch(attributes, currentRunIndex, runIndex + 1)) {</span>
+<span class="nc" id="L882">                    runIndex++;</span>
+<span class="nc bnc" id="L883" title="All 2 branches missed.">                    runLimit = runIndex &lt; runCount - 1 ? runStarts[runIndex + 1] : endIndex;</span>
                 }
-<span class="nc bnc" id="L916" title="All 2 branches missed.">                if (runLimit &gt; endIndex) {</span>
-<span class="nc" id="L917">                    runLimit = endIndex;</span>
+<span class="nc bnc" id="L885" title="All 2 branches missed.">                if (runLimit &gt; endIndex) {</span>
+<span class="nc" id="L886">                    runLimit = endIndex;</span>
                 }
-<span class="nc" id="L919">                return runLimit;</span>
+<span class="nc" id="L888">                return runLimit;</span>
             }
         }
 
         public Map&lt;Attribute,Object&gt; getAttributes() {
-<span class="nc bnc" id="L924" title="All 6 branches missed.">            if (runAttributes == null || currentRunIndex == -1 || runAttributes[currentRunIndex] == null) {</span>
+<span class="nc bnc" id="L893" title="All 6 branches missed.">            if (runAttributes == null || currentRunIndex == -1 || runAttributes[currentRunIndex] == null) {</span>
                 // ??? would be nice to return null, but current spec doesn't allow it
                 // returning Hashtable saves AttributeMap from dealing with emptiness
-<span class="nc" id="L927">                return new Hashtable&lt;&gt;();</span>
+<span class="nc" id="L896">                return new Hashtable&lt;&gt;();</span>
             }
-<span class="nc" id="L929">            return new AttributeMap(currentRunIndex, beginIndex, endIndex);</span>
+<span class="nc" id="L898">            return new AttributeMap(currentRunIndex, beginIndex, endIndex);</span>
         }
 
         public Set&lt;Attribute&gt; getAllAttributeKeys() {
             // ??? This should screen out attribute keys that aren't relevant to the client
-<span class="nc bnc" id="L934" title="All 2 branches missed.">            if (runAttributes == null) {</span>
+<span class="nc bnc" id="L903" title="All 2 branches missed.">            if (runAttributes == null) {</span>
                 // ??? would be nice to return null, but current spec doesn't allow it
                 // returning HashSet saves us from dealing with emptiness
-<span class="nc" id="L937">                return new HashSet&lt;&gt;();</span>
+<span class="nc" id="L906">                return new HashSet&lt;&gt;();</span>
             }
-<span class="nc" id="L939">            synchronized (AttributedString.this) {</span>
+<span class="nc" id="L908">            synchronized (AttributedString.this) {</span>
                 // ??? should try to create this only once, then update if necessary,
                 // and give callers read-only view
-<span class="nc" id="L942">                Set&lt;Attribute&gt; keys = new HashSet&lt;&gt;();</span>
-<span class="nc" id="L943">                int i = 0;</span>
-<span class="nc bnc" id="L944" title="All 2 branches missed.">                while (i &lt; runCount) {</span>
-<span class="nc bnc" id="L945" title="All 6 branches missed.">                    if (runStarts[i] &lt; endIndex &amp;&amp; (i == runCount - 1 || runStarts[i + 1] &gt; beginIndex)) {</span>
-<span class="nc" id="L946">                        ArrayList&lt;Attribute&gt; currentRunAttributes = runAttributes[i];</span>
-<span class="nc bnc" id="L947" title="All 2 branches missed.">                        if (currentRunAttributes != null) {</span>
-<span class="nc" id="L948">                            int j = currentRunAttributes.size();</span>
-<span class="nc bnc" id="L949" title="All 2 branches missed.">                            while (j-- &gt; 0) {</span>
-<span class="nc" id="L950">                                keys.add(currentRunAttributes.get(j));</span>
+<span class="nc" id="L911">                Set&lt;Attribute&gt; keys = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L912">                int i = 0;</span>
+<span class="nc bnc" id="L913" title="All 2 branches missed.">                while (i &lt; runCount) {</span>
+<span class="nc bnc" id="L914" title="All 6 branches missed.">                    if (runStarts[i] &lt; endIndex &amp;&amp; (i == runCount - 1 || runStarts[i + 1] &gt; beginIndex)) {</span>
+<span class="nc" id="L915">                        ArrayList&lt;Attribute&gt; currentRunAttributes = runAttributes[i];</span>
+<span class="nc bnc" id="L916" title="All 2 branches missed.">                        if (currentRunAttributes != null) {</span>
+<span class="nc" id="L917">                            int j = currentRunAttributes.size();</span>
+<span class="nc bnc" id="L918" title="All 2 branches missed.">                            while (j-- &gt; 0) {</span>
+<span class="nc" id="L919">                                keys.add(currentRunAttributes.get(j));</span>
                             }
                         }
                     }
-<span class="nc" id="L954">                    i++;</span>
+<span class="nc" id="L923">                    i++;</span>
                 }
-<span class="nc" id="L956">                return keys;</span>
-<span class="nc" id="L957">            }</span>
+<span class="nc" id="L925">                return keys;</span>
+<span class="nc" id="L926">            }</span>
         }
 
         public Object getAttribute(Attribute attribute) {
-<span class="nc" id="L961">            int runIndex = currentRunIndex;</span>
-<span class="nc bnc" id="L962" title="All 2 branches missed.">            if (runIndex &lt; 0) {</span>
-<span class="nc" id="L963">                return null;</span>
+<span class="nc" id="L930">            int runIndex = currentRunIndex;</span>
+<span class="nc bnc" id="L931" title="All 2 branches missed.">            if (runIndex &lt; 0) {</span>
+<span class="nc" id="L932">                return null;</span>
             }
-<span class="nc" id="L965">            return AttributedString.this.getAttributeCheckRange(attribute, runIndex, beginIndex, endIndex);</span>
+<span class="nc" id="L934">            return AttributedString.this.getAttributeCheckRange(attribute, runIndex, beginIndex, endIndex);</span>
         }
 
         // internally used methods
 
         private AttributedString getString() {
-<span class="nc" id="L971">            return AttributedString.this;</span>
+<span class="nc" id="L940">            return AttributedString.this;</span>
         }
 
         // set the current index, update information about the current run if necessary,
         // return the character at the current index
         private char internalSetIndex(int position) {
-<span class="nc" id="L977">            currentIndex = position;</span>
-<span class="nc bnc" id="L978" title="All 4 branches missed.">            if (position &lt; currentRunStart || position &gt;= currentRunLimit) {</span>
-<span class="nc" id="L979">                updateRunInfo();</span>
+<span class="nc" id="L946">            currentIndex = position;</span>
+<span class="nc bnc" id="L947" title="All 4 branches missed.">            if (position &lt; currentRunStart || position &gt;= currentRunLimit) {</span>
+<span class="nc" id="L948">                updateRunInfo();</span>
             }
-<span class="nc bnc" id="L981" title="All 2 branches missed.">            if (currentIndex == endIndex) {</span>
-<span class="nc" id="L982">                return DONE;</span>
+<span class="nc bnc" id="L950" title="All 2 branches missed.">            if (currentIndex == endIndex) {</span>
+<span class="nc" id="L951">                return DONE;</span>
             } else {
-<span class="nc" id="L984">                return charAt(position);</span>
+<span class="nc" id="L953">                return charAt(position);</span>
             }
         }
 
         // update the information about the current run
         private void updateRunInfo() {
-<span class="nc bnc" id="L990" title="All 2 branches missed.">            if (currentIndex == endIndex) {</span>
-<span class="nc" id="L991">                currentRunStart = currentRunLimit = endIndex;</span>
-<span class="nc" id="L992">                currentRunIndex = -1;</span>
+<span class="nc bnc" id="L959" title="All 2 branches missed.">            if (currentIndex == endIndex) {</span>
+<span class="nc" id="L960">                currentRunStart = currentRunLimit = endIndex;</span>
+<span class="nc" id="L961">                currentRunIndex = -1;</span>
             } else {
-<span class="nc" id="L994">                synchronized (AttributedString.this) {</span>
-<span class="nc" id="L995">                    int runIndex = -1;</span>
-<span class="nc bnc" id="L996" title="All 4 branches missed.">                    while (runIndex &lt; runCount - 1 &amp;&amp; runStarts[runIndex + 1] &lt;= currentIndex)</span>
-<span class="nc" id="L997">                        runIndex++;</span>
-<span class="nc" id="L998">                    currentRunIndex = runIndex;</span>
-<span class="nc bnc" id="L999" title="All 2 branches missed.">                    if (runIndex &gt;= 0) {</span>
-<span class="nc" id="L1000">                        currentRunStart = runStarts[runIndex];</span>
-<span class="nc bnc" id="L1001" title="All 2 branches missed.">                        if (currentRunStart &lt; beginIndex)</span>
-<span class="nc" id="L1002">                            currentRunStart = beginIndex;</span>
+<span class="nc" id="L963">                synchronized (AttributedString.this) {</span>
+<span class="nc" id="L964">                    int runIndex = -1;</span>
+<span class="nc bnc" id="L965" title="All 4 branches missed.">                    while (runIndex &lt; runCount - 1 &amp;&amp; runStarts[runIndex + 1] &lt;= currentIndex)</span>
+<span class="nc" id="L966">                        runIndex++;</span>
+<span class="nc" id="L967">                    currentRunIndex = runIndex;</span>
+<span class="nc bnc" id="L968" title="All 2 branches missed.">                    if (runIndex &gt;= 0) {</span>
+<span class="nc" id="L969">                        currentRunStart = runStarts[runIndex];</span>
+<span class="nc bnc" id="L970" title="All 2 branches missed.">                        if (currentRunStart &lt; beginIndex)</span>
+<span class="nc" id="L971">                            currentRunStart = beginIndex;</span>
                     }
                     else {
-<span class="nc" id="L1005">                        currentRunStart = beginIndex;</span>
+<span class="nc" id="L974">                        currentRunStart = beginIndex;</span>
                     }
-<span class="nc bnc" id="L1007" title="All 2 branches missed.">                    if (runIndex &lt; runCount - 1) {</span>
-<span class="nc" id="L1008">                        currentRunLimit = runStarts[runIndex + 1];</span>
-<span class="nc bnc" id="L1009" title="All 2 branches missed.">                        if (currentRunLimit &gt; endIndex)</span>
-<span class="nc" id="L1010">                            currentRunLimit = endIndex;</span>
+<span class="nc bnc" id="L976" title="All 2 branches missed.">                    if (runIndex &lt; runCount - 1) {</span>
+<span class="nc" id="L977">                        currentRunLimit = runStarts[runIndex + 1];</span>
+<span class="nc bnc" id="L978" title="All 2 branches missed.">                        if (currentRunLimit &gt; endIndex)</span>
+<span class="nc" id="L979">                            currentRunLimit = endIndex;</span>
                     }
                     else {
-<span class="nc" id="L1013">                        currentRunLimit = endIndex;</span>
+<span class="nc" id="L982">                        currentRunLimit = endIndex;</span>
                     }
-<span class="nc" id="L1015">                }</span>
+<span class="nc" id="L984">                }</span>
             }
-<span class="nc" id="L1017">        }</span>
+<span class="nc" id="L986">        }</span>
 
     }
 
@@ -1026,44 +995,44 @@ public final class AttributedString {
         final int beginIndex;
         final int endIndex;
 
-<span class="nc" id="L1029">        AttributeMap(int runIndex, int beginIndex, int endIndex) {</span>
-<span class="nc" id="L1030">            this.runIndex = runIndex;</span>
-<span class="nc" id="L1031">            this.beginIndex = beginIndex;</span>
-<span class="nc" id="L1032">            this.endIndex = endIndex;</span>
-<span class="nc" id="L1033">        }</span>
+<span class="nc" id="L998">        AttributeMap(int runIndex, int beginIndex, int endIndex) {</span>
+<span class="nc" id="L999">            this.runIndex = runIndex;</span>
+<span class="nc" id="L1000">            this.beginIndex = beginIndex;</span>
+<span class="nc" id="L1001">            this.endIndex = endIndex;</span>
+<span class="nc" id="L1002">        }</span>
 
         public Set&lt;Map.Entry&lt;Attribute, Object&gt;&gt; entrySet() {
-<span class="nc" id="L1036">            HashSet&lt;Map.Entry&lt;Attribute, Object&gt;&gt; set = new HashSet&lt;&gt;();</span>
-<span class="nc" id="L1037">            synchronized (AttributedString.this) {</span>
-<span class="nc" id="L1038">                int size = runAttributes[runIndex].size();</span>
-<span class="nc bnc" id="L1039" title="All 2 branches missed.">                for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc" id="L1040">                    Attribute key = runAttributes[runIndex].get(i);</span>
-<span class="nc" id="L1041">                    Object value = runAttributeValues[runIndex].get(i);</span>
-<span class="nc bnc" id="L1042" title="All 2 branches missed.">                    if (value instanceof Annotation) {</span>
-<span class="nc" id="L1043">                        value = AttributedString.this.getAttributeCheckRange(key,</span>
+<span class="nc" id="L1005">            HashSet&lt;Map.Entry&lt;Attribute, Object&gt;&gt; set = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L1006">            synchronized (AttributedString.this) {</span>
+<span class="nc" id="L1007">                int size = runAttributes[runIndex].size();</span>
+<span class="nc bnc" id="L1008" title="All 2 branches missed.">                for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L1009">                    Attribute key = runAttributes[runIndex].get(i);</span>
+<span class="nc" id="L1010">                    Object value = runAttributeValues[runIndex].get(i);</span>
+<span class="nc bnc" id="L1011" title="All 2 branches missed.">                    if (value instanceof Annotation) {</span>
+<span class="nc" id="L1012">                        value = AttributedString.this.getAttributeCheckRange(key,</span>
                                                              runIndex, beginIndex, endIndex);
-<span class="nc bnc" id="L1045" title="All 2 branches missed.">                        if (value == null) {</span>
-<span class="nc" id="L1046">                            continue;</span>
+<span class="nc bnc" id="L1014" title="All 2 branches missed.">                        if (value == null) {</span>
+<span class="nc" id="L1015">                            continue;</span>
                         }
                     }
 
-<span class="nc" id="L1050">                    Map.Entry&lt;Attribute, Object&gt; entry = new AttributeEntry(key, value);</span>
-<span class="nc" id="L1051">                    set.add(entry);</span>
+<span class="nc" id="L1019">                    Map.Entry&lt;Attribute, Object&gt; entry = new AttributeEntry(key, value);</span>
+<span class="nc" id="L1020">                    set.add(entry);</span>
                 }
-<span class="nc" id="L1053">            }</span>
-<span class="nc" id="L1054">            return set;</span>
+<span class="nc" id="L1022">            }</span>
+<span class="nc" id="L1023">            return set;</span>
         }
 
         public Object get(Object key) {
-<span class="nc" id="L1058">            return AttributedString.this.getAttributeCheckRange((Attribute) key, runIndex, beginIndex, endIndex);</span>
+<span class="nc" id="L1027">            return AttributedString.this.getAttributeCheckRange((Attribute) key, runIndex, beginIndex, endIndex);</span>
         }
     }
 
   @Override
   public String toString() {
-<span class="nc" id="L1064">    return &quot;AttributedString{&quot; + &quot;text=&quot; + text + &quot;, runArraySize=&quot; + runArraySize</span>
-<span class="nc" id="L1065">            + &quot;, runCount=&quot; + runCount + &quot;, runStarts=&quot; + Arrays.toString(runStarts) + &quot;, runAttributes=&quot;</span>
-<span class="nc" id="L1066">            + Arrays.toString(runAttributes) + &quot;, runAttributeValues=&quot; + Arrays.toString(runAttributeValues) + '}';</span>
+<span class="nc" id="L1033">    return &quot;AttributedString{&quot; + &quot;text=&quot; + text + &quot;, runArraySize=&quot; + runArraySize</span>
+<span class="nc" id="L1034">            + &quot;, runCount=&quot; + runCount + &quot;, runStarts=&quot; + Arrays.toString(runStarts) + &quot;, runAttributes=&quot;</span>
+<span class="nc" id="L1035">            + Arrays.toString(runAttributes) + &quot;, runAttributeValues=&quot; + Arrays.toString(runAttributeValues) + '}';</span>
   }
 
 
@@ -1075,38 +1044,38 @@ class AttributeEntry implements Map.Entry&lt;Attribute,Object&gt; {
     private Attribute key;
     private Object value;
 
-<span class="nc" id="L1078">    AttributeEntry(Attribute key, Object value) {</span>
-<span class="nc" id="L1079">        this.key = key;</span>
-<span class="nc" id="L1080">        this.value = value;</span>
-<span class="nc" id="L1081">    }</span>
+<span class="nc" id="L1047">    AttributeEntry(Attribute key, Object value) {</span>
+<span class="nc" id="L1048">        this.key = key;</span>
+<span class="nc" id="L1049">        this.value = value;</span>
+<span class="nc" id="L1050">    }</span>
 
     public boolean equals(Object o) {
-<span class="nc bnc" id="L1084" title="All 2 branches missed.">        if (!(o instanceof AttributeEntry)) {</span>
-<span class="nc" id="L1085">            return false;</span>
+<span class="nc bnc" id="L1053" title="All 2 branches missed.">        if (!(o instanceof AttributeEntry)) {</span>
+<span class="nc" id="L1054">            return false;</span>
         }
-<span class="nc" id="L1087">        AttributeEntry other = (AttributeEntry) o;</span>
-<span class="nc bnc" id="L1088" title="All 6 branches missed.">        return other.key.equals(key) &amp;&amp;</span>
-<span class="nc bnc" id="L1089" title="All 2 branches missed.">            (value == null ? other.value == null : other.value.equals(value));</span>
+<span class="nc" id="L1056">        AttributeEntry other = (AttributeEntry) o;</span>
+<span class="nc bnc" id="L1057" title="All 6 branches missed.">        return other.key.equals(key) &amp;&amp;</span>
+<span class="nc bnc" id="L1058" title="All 2 branches missed.">            (value == null ? other.value == null : other.value.equals(value));</span>
     }
 
     public Attribute getKey() {
-<span class="nc" id="L1093">        return key;</span>
+<span class="nc" id="L1062">        return key;</span>
     }
 
     public Object getValue() {
-<span class="nc" id="L1097">        return value;</span>
+<span class="nc" id="L1066">        return value;</span>
     }
 
     public Object setValue(Object newValue) {
-<span class="nc" id="L1101">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L1070">        throw new UnsupportedOperationException();</span>
     }
 
     public int hashCode() {
-<span class="nc bnc" id="L1105" title="All 2 branches missed.">        return key.hashCode() ^ (value==null ? 0 : value.hashCode());</span>
+<span class="nc bnc" id="L1074" title="All 2 branches missed.">        return key.hashCode() ^ (value==null ? 0 : value.hashCode());</span>
     }
 
     public String toString() {
-<span class="nc" id="L1109">        return key.toString() + '=' + value;</span>
+<span class="nc" id="L1078">        return key.toString() + '=' + value;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

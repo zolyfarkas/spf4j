@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GenericRecordBuilder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro</a> &gt; <span class="el_source">GenericRecordBuilder.java</span></div><h1>GenericRecordBuilder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001 - 2016, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.avro;
+
+import com.google.common.annotations.Beta;
+import com.google.common.base.Preconditions;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import org.apache.avro.Protocol;
+import org.apache.avro.Schema;
+import org.apache.avro.compiler.specific.SpecificCompiler;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericEnumSymbol;
+import org.apache.avro.generic.GenericFixed;
+import org.apache.avro.specific.SpecificRecordBase;
+import org.codehaus.commons.compiler.AbstractJavaSourceClassLoader;
+import org.codehaus.commons.compiler.CompilerFactoryFactory;
+import org.spf4j.avro.schema.SchemaUtils;
+import org.spf4j.io.DeletingVisitor;
+import org.spf4j.io.SetFilesReadOnlyVisitor;
+
+/**
+ * Bytecode generating GenericRecord builder.
+ *
+ * Microbenchmarks show a 10% performance improvement. but depending on your data your performance benefits can be
+ * greater or smaller. The main benefit for this is the potential for eliminating the need for separate handling or
+ * generic records vs specific records in the avro lib...
+ *
+ * Benchmark Mode Cnt Score Error Units
+ * GenericRecordBenchmark.testAvroGenericRecordNew thrpt 10 36162498.300 ±246967.965 ops/s
+ * GenericRecordBenchmark.testSpf4jGenericRecordNew thrpt 10 39773579.353 ± 939582.354 ops/s
+ * GenericRecordBenchmark.testAvroGenericRecordNewSetGet thrpt 10 36274035.575 ± 476132.764 ops/s
+ * GenericRecordBenchmark.testSpf4jGenericRecordNewSetGet thrpt 10 40111265.012 ± 600216.931 ops/s
+ *
+ * @author zoly
+ */
+@Beta
+public final class GenericRecordBuilder implements Closeable {
+
+  private final File tmpDir;
+
+  private final GenericData.StringType stringType;
+
+  private final AbstractJavaSourceClassLoader source;
+
+  public GenericRecordBuilder(final Schema... schemas) {
+<span class="fc" id="L65">    this(GenericData.StringType.String, schemas);</span>
+<span class="fc" id="L66">  }</span>
+
+<span class="fc" id="L68">  public GenericRecordBuilder(final GenericData.StringType stringType, final Schema... schemas) {</span>
+<span class="fc" id="L69">    tmpDir = com.google.common.io.Files.createTempDir();</span>
+<span class="fc" id="L70">    this.stringType = stringType;</span>
+<span class="fc" id="L71">    generateClasses(stringType, schemas);</span>
+    try {
+<span class="fc" id="L73">      AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()</span>
+<span class="fc" id="L74">              .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());</span>
+<span class="fc" id="L75">      src.setSourcePath(new File[]{tmpDir});</span>
+<span class="fc" id="L76">      this.source = src;</span>
+<span class="nc" id="L77">    } catch (Exception ex) {</span>
+<span class="nc" id="L78">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L79">    }</span>
+<span class="fc" id="L80">  }</span>
+
+  private void generateClasses(final GenericData.StringType st, final Schema... schemas) {
+<span class="fc" id="L83">    String[] namespaces = new String[schemas.length];</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">    for (int i = 0; i &lt; schemas.length; i++) {</span>
+<span class="fc" id="L85">      String namespace = schemas[i].getNamespace();</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">      if (namespace == null) {</span>
+<span class="fc" id="L87">        namespace = &quot;&quot;;</span>
+      }
+<span class="fc" id="L89">      namespaces[i] = namespace;</span>
+    }
+<span class="fc" id="L91">    String commonPrefix = org.spf4j.base.Strings.commonPrefix(namespaces);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (commonPrefix.endsWith(&quot;.&quot;)) {</span>
+<span class="nc" id="L93">      commonPrefix = commonPrefix.substring(0, commonPrefix.length() - 1);</span>
+    }
+<span class="fc" id="L95">    Protocol proto = new Protocol(&quot;generated&quot;, commonPrefix);</span>
+<span class="fc" id="L96">    proto.setTypes(Arrays.asList(schemas));</span>
+<span class="fc" id="L97">    SpecificCompiler sc = new SpecificCompiler(proto);</span>
+<span class="fc" id="L98">    sc.setStringType(st);</span>
+    // use a custom template that does not contain the builder (janino can't compile builder).
+<span class="fc" id="L100">    sc.setTemplateDir(&quot;org/spf4j/avro/&quot;);</span>
+    try {
+<span class="fc" id="L102">      sc.compileToDestination(null, tmpDir);</span>
+<span class="nc" id="L103">    } catch (IOException ex) {</span>
+<span class="nc" id="L104">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L105">    }</span>
+    try {
+<span class="fc" id="L107">      Files.walkFileTree(tmpDir.toPath(), new SetFilesReadOnlyVisitor());</span>
+<span class="nc" id="L108">    } catch (IOException ex) {</span>
+<span class="nc" id="L109">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L110">    }</span>
+<span class="fc" id="L111">  }</span>
+
+  public Class&lt;? extends SpecificRecordBase&gt; getRecordClass(final Schema schema) {
+<span class="fc" id="L114">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+    try {
+<span class="fc" id="L116">      return (Class&lt;? extends SpecificRecordBase&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
+<span class="nc" id="L117">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L118">      throw new RuntimeException(ex);</span>
+    }
+  }
+
+  public Class&lt;? extends GenericEnumSymbol&gt; getEnumClass(final Schema schema) {
+<span class="fc" id="L123">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+    try {
+<span class="fc" id="L125">      return (Class&lt;? extends GenericEnumSymbol&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
+<span class="nc" id="L126">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L127">      throw new RuntimeException(ex);</span>
+    }
+  }
+
+  public Class&lt;? extends GenericFixed&gt; getFixedClass(final Schema schema) {
+<span class="nc" id="L132">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+    try {
+<span class="nc" id="L134">      return (Class&lt;? extends GenericFixed&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
+<span class="nc" id="L135">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L136">      throw new RuntimeException(ex);</span>
+    }
+  }
+
+  @Override
+  public void close() {
+    try {
+<span class="fc" id="L143">      Files.walkFileTree(tmpDir.toPath(), new DeletingVisitor());</span>
+<span class="nc" id="L144">    } catch (IOException ex) {</span>
+<span class="nc" id="L145">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L146">    }</span>
+<span class="fc" id="L147">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L151">    return &quot;GenericRecordBuilder{&quot; + &quot;tmpDir=&quot; + tmpDir + &quot;, stringType=&quot; + stringType + &quot;, source=&quot; + source + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

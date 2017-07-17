@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ZStackPanel.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ui</a> &gt; <span class="el_source">ZStackPanel.java</span></div><h1>ZStackPanel.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.ui;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.spf4j.base.EqualsPredicate;
+import org.spf4j.base.Pair;
+import org.spf4j.ds.Traversals;
+import org.spf4j.ds.Graph;
+import org.spf4j.ds.HashMapGraph;
+import org.spf4j.stackmonitor.InvokedMethod;
+import org.spf4j.stackmonitor.SampleNode;
+import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
+
+/**
+ * Stack panel implementation that visualizes the profile data via a &quot;flame real graph&quot;.
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;SE_BAD_FIELD&quot;)
+public final class ZStackPanel extends StackPanelBase {
+
+  private static final long serialVersionUID = 1L;
+
+  private Graph&lt;InvokedMethod, SampleNode.InvocationCount&gt; graph;
+  private Graph&lt;InvokedMethod, SampleNode.InvocationCount&gt; completeGraph;
+  private Map&lt;InvokedMethod, Rectangle2D&gt; methodLocations;
+<span class="nc" id="L51">  private double totalHeight = 0;</span>
+
+  public ZStackPanel(final SampleNode samples) {
+<span class="nc" id="L54">    super(samples);</span>
+<span class="nc" id="L55">    completeGraph = SampleNode.toGraph(samples);</span>
+<span class="nc" id="L56">    graph = null;</span>
+<span class="nc" id="L57">  }</span>
+
+  @Override
+  public int paint(final Graphics2D gr, final double width, final double rowHeight) {
+<span class="nc" id="L61">    paintGraph(gr, 0, 0, (int) width, rowHeight);</span>
+<span class="nc" id="L62">    return (int) totalHeight;</span>
+  }
+
+  private void paintGraph(
+          final Graphics2D g2, final int x, final int y, final double areaWidth, final double rowHeight) {
+
+<span class="nc" id="L68">    graph = completeGraph.copy();</span>
+<span class="nc" id="L69">    int rootSamples = graph.getEdges(InvokedMethod.ROOT).getIncomming().keySet().iterator().next().getValue();</span>
+<span class="nc" id="L70">    final double pps = areaWidth / rootSamples;</span>
+<span class="nc" id="L71">    methodLocations = new HashMap&lt;InvokedMethod, Rectangle2D&gt;();</span>
+<span class="nc" id="L72">    final Traversals.TraversalCallback&lt;InvokedMethod, SampleNode.InvocationCount&gt; traversalCallback</span>
+<span class="nc" id="L73">            = new Traversals.TraversalCallback&lt;InvokedMethod, SampleNode.InvocationCount&gt;() {</span>
+<span class="nc" id="L74">      private int counter = 0;</span>
+
+      @Override
+      public void handle(final InvokedMethod vertex, final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; edges) {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (edges.size() == 1) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">          if (vertex.equals(InvokedMethod.ROOT)) {</span>
+<span class="nc" id="L80">            int nrSamples = edges.keySet().iterator().next().getValue();</span>
+<span class="nc" id="L81">            drawMethod(vertex, nrSamples, (double) x, (double) y, (double) areaWidth,</span>
+                    (double) rowHeight);
+<span class="nc" id="L83">          } else {</span>
+<span class="nc" id="L84">            Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; fromEntry = edges.entrySet().iterator().next();</span>
+<span class="nc" id="L85">            InvokedMethod fromMethod = fromEntry.getValue();</span>
+<span class="nc" id="L86">            Rectangle2D fromMethodLocation = methodLocations.get(fromMethod);</span>
+<span class="nc" id="L87">            int relativeSamples = 0;</span>
+            for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; ens
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                    : graph.getEdges(fromMethod).getOutgoing().entrySet()) {</span>
+<span class="nc" id="L90">              InvokedMethod slm = ens.getValue();</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">              if (methodLocations.containsKey(slm) &amp;&amp; graph.getEdges(slm).getIncomming().size() == 1</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                      &amp;&amp; !fromMethod.equals(slm)) {</span>
+<span class="nc" id="L93">                relativeSamples += ens.getKey().getValue();</span>
+              }
+<span class="nc" id="L95">            }</span>
+
+<span class="nc" id="L97">            int nrSamples = fromEntry.getKey().getValue();</span>
+<span class="nc" id="L98">            double width = nrSamples * pps;</span>
+<span class="nc" id="L99">            double newX = fromMethodLocation.getX() + relativeSamples * pps;</span>
+<span class="nc" id="L100">            drawMethod(vertex, nrSamples, newX, (fromMethodLocation.getY() + rowHeight),</span>
+                    width, rowHeight);
+<span class="nc" id="L102">          }</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        } else if (edges.size() &gt; 1) {</span>
+<span class="nc" id="L104">          renderMethodLinked(edges, vertex);</span>
+        } else {
+<span class="nc" id="L106">          throw new IllegalStateException(&quot;Invalid state, there must be a way to get to node &quot; + vertex);</span>
+        }
+<span class="nc" id="L108">      }</span>
+
+      @SuppressFBWarnings(&quot;ISB_TOSTRING_APPENDING&quot;)
+      private void drawMethod(final InvokedMethod vertex, final int nrSamples,
+              final double x, final double y, final double width, final double height,
+              final Point... fromLinks) {
+<span class="nc" id="L114">        Rectangle2D.Double location = new Rectangle2D.Double(x, y, width, height);</span>
+<span class="nc" id="L115">        methodLocations.put(vertex, location);</span>
+<span class="nc" id="L116">        insert(x, y, width, height, new Sampled&lt;&gt;(vertex, nrSamples));</span>
+<span class="nc" id="L117">        double newHeight = y + height;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (totalHeight &lt; newHeight) {</span>
+<span class="nc" id="L119">          totalHeight = newHeight;</span>
+        }
+<span class="nc" id="L121">        FlameStackPanel.setElementColor(counter++, g2);</span>
+<span class="nc" id="L122">        g2.setClip((int) x, (int) y, (int) width, (int) height);</span>
+<span class="nc" id="L123">        g2.fillRect((int) x, (int) y, (int) width, (int) height);</span>
+<span class="nc" id="L124">        String val = vertex.getMethod().toString() + '-' + nrSamples;</span>
+
+<span class="nc" id="L126">        g2.setPaint(Color.BLACK);</span>
+<span class="nc" id="L127">        g2.drawString(val, (int) x, (int) (y + height - 1));</span>
+<span class="nc" id="L128">        g2.setClip(null);</span>
+<span class="nc" id="L129">        g2.setPaint(LINK_COLOR);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        for (Point divLoc : fromLinks) {</span>
+<span class="nc" id="L131">          g2.drawLine((int) divLoc.getX(), (int) divLoc.getY(),</span>
+                  (int) (x + width / 2), (int) y);
+        }
+<span class="nc" id="L134">        g2.drawRect((int) x, (int) y, (int) width, (int) height);</span>
+<span class="nc" id="L135">      }</span>
+
+      private void renderMethodLinked(final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; edges,
+              final InvokedMethod vertex) {
+<span class="nc" id="L139">        List&lt;Point&gt; fromPoints = new ArrayList&lt;&gt;(edges.size());</span>
+<span class="nc" id="L140">        double newYBase = 0;</span>
+<span class="nc" id="L141">        double newXBase = Double.MAX_VALUE;</span>
+<span class="nc" id="L142">        double newWidth = 0;</span>
+<span class="nc" id="L143">        double maxX = Double.MIN_VALUE;</span>
+<span class="nc" id="L144">        int nrSamples = 0;</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; fromEntry : edges.entrySet()) {</span>
+<span class="nc" id="L146">          Rectangle2D fromRect = methodLocations.get(fromEntry.getValue());</span>
+<span class="nc" id="L147">          newWidth += fromEntry.getKey().getValue() * pps;</span>
+<span class="nc" id="L148">          nrSamples += fromEntry.getKey().getValue();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">          if (fromRect == null) {</span>
+<span class="nc" id="L150">            continue;</span>
+          }
+<span class="nc" id="L152">          double fromX = fromRect.getX();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">          if (fromX &lt; newXBase) {</span>
+<span class="nc" id="L154">            newXBase = fromX;</span>
+          }
+<span class="nc" id="L156">          double mx = fromRect.getMaxX();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">          if (mx &gt; maxX) {</span>
+<span class="nc" id="L158">            maxX = mx;</span>
+          }
+<span class="nc" id="L160">          double newY = fromRect.getMaxY() + rowHeight;</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">          if (newY &gt; newYBase) {</span>
+<span class="nc" id="L162">            newYBase = newY;</span>
+          }
+<span class="nc" id="L164">          fromPoints.add(new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));</span>
+<span class="nc" id="L165">        }</span>
+
+<span class="nc" id="L167">        Pair&lt;List&lt;Sampled&lt;InvokedMethod&gt;&gt;, Double&gt; result = findEmptySpace(newXBase, newYBase, newWidth, maxX);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        while (!result.getFirst().isEmpty()) {</span>
+          // TODO: optimize this to increment with a better value
+<span class="nc" id="L170">          newYBase += rowHeight;</span>
+<span class="nc" id="L171">          result = findEmptySpace(newXBase, newYBase, newWidth, maxX);</span>
+        }
+<span class="nc" id="L173">        drawMethod(vertex, nrSamples, result.getSecond(), newYBase,</span>
+<span class="nc" id="L174">                newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));</span>
+<span class="nc" id="L175">      }</span>
+
+      @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
+      private Pair&lt;List&lt;Sampled&lt;InvokedMethod&gt;&gt;, Double&gt; findEmptySpace(
+              final double newXBase, final double newYBase,
+              final double newWidth, final double maxX) {
+<span class="nc" id="L181">        double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;</span>
+<span class="nc" id="L182">        tryx = fitToViewableArea(tryx, newWidth);</span>
+<span class="nc" id="L183">        List&lt;Sampled&lt;InvokedMethod&gt;&gt; methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (!methods.isEmpty()) {</span>
+<span class="nc" id="L185">          tryx = newXBase;</span>
+<span class="nc" id="L186">          tryx = fitToViewableArea(tryx, newWidth);</span>
+<span class="nc" id="L187">          methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">          if (!methods.isEmpty()) {</span>
+<span class="nc" id="L189">            tryx = maxX - newWidth;</span>
+<span class="nc" id="L190">            tryx = fitToViewableArea(tryx, newWidth);</span>
+<span class="nc" id="L191">            methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
+          }
+        }
+<span class="nc" id="L194">        return Pair.of(methods, tryx);</span>
+      }
+
+      private double fitToViewableArea(final double ptryx, final double newWidth) {
+<span class="nc" id="L198">        double tryx = ptryx;</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (tryx &lt; 0) {</span>
+<span class="nc" id="L200">          tryx = 0;</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        } else if (tryx &gt; areaWidth - newWidth) {</span>
+<span class="nc" id="L202">          tryx = areaWidth - newWidth;</span>
+        }
+<span class="nc" id="L204">        return tryx;</span>
+      }
+    };
+
+<span class="nc" id="L208">    Traversals.customTraverse(graph, InvokedMethod.ROOT, traversalCallback);</span>
+
+<span class="nc" id="L210">  }</span>
+
+  @Override
+  public String getDetail(final Point location) {
+<span class="nc" id="L214">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(location.x, location.y, 0, 0);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L216">      final Sampled&lt;InvokedMethod&gt; node = tips.get(0);</span>
+<span class="nc" id="L217">      final InvokedMethod method = node.getObj();</span>
+<span class="nc" id="L218">      final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; incomming = graph.getEdges(method).getIncomming();</span>
+<span class="nc" id="L219">      StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L220">      sb.append(method).append('-').append(node.getNrSamples())</span>
+<span class="nc" id="L221">              .append(&quot;\n invoked from: &quot;);</span>
+<span class="nc" id="L222">      appendEdgeInfo(incomming, sb);</span>
+<span class="nc" id="L223">      sb.append(&quot;\n invoking: &quot;);</span>
+<span class="nc" id="L224">      final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; outgoing = graph.getEdges(method).getOutgoing();</span>
+<span class="nc" id="L225">      appendEdgeInfo(outgoing, sb);</span>
+<span class="nc" id="L226">      return sb.toString();</span>
+    } else {
+<span class="nc" id="L228">      return null;</span>
+    }
+  }
+
+  @Override
+  public void filter() {
+<span class="nc" id="L234">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L236">      final InvokedMethod value = tips.get(0).getObj();</span>
+<span class="nc" id="L237">      samples = samples.filteredBy(new EqualsPredicate&lt;&gt;(value.getMethod()));</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">      if (samples != null) {</span>
+<span class="nc" id="L239">        this.completeGraph = SampleNode.toGraph(samples);</span>
+      } else {
+<span class="nc" id="L241">        this.completeGraph = new HashMapGraph&lt;&gt;();</span>
+      }
+<span class="nc" id="L243">      repaint();</span>
+    }
+<span class="nc" id="L245">  }</span>
+
+  private static void appendEdgeInfo(final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; incomming,
+          final StringBuilder sb) {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">    for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; entry : incomming.entrySet()) {</span>
+<span class="nc" id="L250">      int ic = entry.getKey().getValue();</span>
+<span class="nc" id="L251">      InvokedMethod method = entry.getValue();</span>
+<span class="nc" id="L252">      sb.append(method).append('-').append(ic).append(&quot;; &quot;);</span>
+<span class="nc" id="L253">    }</span>
+<span class="nc" id="L254">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

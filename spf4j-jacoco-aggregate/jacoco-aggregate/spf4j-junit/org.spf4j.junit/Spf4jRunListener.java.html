@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Spf4jRunListener.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-junit</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.junit</a> &gt; <span class="el_source">Spf4jRunListener.java</span></div><h1>Spf4jRunListener.java</h1><pre class="source lang-java linenums">package org.spf4j.junit;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.junit.runner.Description;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.spf4j.stackmonitor.FastStackCollector;
+import org.spf4j.stackmonitor.Sampler;
+
+/**
+ * A Junit run listener that will collect performance profiles for your unit tests.
+ *
+ * Works only if unit tests are NOT executed in parallel inside the same JVM.
+ *
+ * To enable this Run listener with maven, you will need to configure your maven-surefire-plugin with:
+ *
+ *       &lt;plugin&gt;
+ *       &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+ *       &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+ *       &lt;configuration&gt;
+ *         &lt;properties&gt;
+ *           &lt;property&gt;
+ *             &lt;name&gt;listener&lt;/name&gt;
+ *             &lt;value&gt;org.spf4j.junit.Spf4jRunListener&lt;/value&gt;
+ *           &lt;/property&gt;
+ *           &lt;property&gt;
+ *             &lt;name&gt;spf4j.junit.sampleTimeMillis&lt;/name&gt;
+ *             &lt;value&gt;5&lt;/value&gt;
+ *           &lt;/property&gt;
+ *         &lt;/properties&gt;
+ *       &lt;/configuration&gt;
+ *     &lt;/plugin&gt;
+ *
+ * and add spf4j-junit to your test classpath:
+ *
+ *   &lt;dependency&gt;
+ *     &lt;groupId&gt;org.spf4j&lt;/groupId&gt;
+ *     &lt;artifactId&gt;spf4j-junit&lt;/artifactId&gt;
+ *     &lt;version&gt;${spf4j.version}&lt;/version&gt;
+ *     &lt;scope&gt;test&lt;/scope&gt;
+ *   &lt;/dependency&gt;
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
+@NotThreadSafe
+public final class Spf4jRunListener extends RunListener {
+
+  private final Sampler sampler;
+
+  private final File destinationFolder;
+
+  private volatile File lastWrittenFile;
+
+<span class="fc" id="L59">  public Spf4jRunListener() {</span>
+<span class="fc" id="L60">    sampler = new Sampler(Integer.getInteger(&quot;spf4j.junit.sampleTimeMillis&quot;, 5),</span>
+<span class="fc" id="L61">          Integer.getInteger(&quot;spf4j.junit.dumpAfterMillis&quot;, Integer.MAX_VALUE),</span>
+          new FastStackCollector(true));
+
+<span class="fc" id="L64">    destinationFolder = new File(System.getProperty(&quot;spf4j.junit.destinationFolder&quot;,</span>
+          &quot;target/junit-ssdump&quot;));
+
+<span class="pc bpc" id="L67" title="3 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
+<span class="nc" id="L68">      throw new ExceptionInInitializerError(&quot;Unable to write to &quot; + destinationFolder);</span>
+    }
+<span class="fc" id="L70">  }</span>
+
+  @Override
+  public void testFailure(final Failure failure)
+          throws IOException {
+<span class="nc" id="L75">    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + &quot;.ssdump2&quot;));</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">    if (dumpToFile != null) {</span>
+<span class="nc" id="L77">      System.out.print(&quot;Profile saved to &quot; + dumpToFile);</span>
+    }
+<span class="nc" id="L79">  }</span>
+
+  @Override
+  public void testFinished(final Description description)
+          throws IOException {
+<span class="fc" id="L84">    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + &quot;.ssdump2&quot;));</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">    if (dump != null) {</span>
+<span class="fc" id="L86">      System.out.print(&quot;Profile saved to &quot; + dump);</span>
+<span class="fc" id="L87">      lastWrittenFile = dump;</span>
+    }
+<span class="fc" id="L89">  }</span>
+
+  @Override
+  public void testRunFinished(final Result result) throws InterruptedException {
+<span class="fc" id="L93">    sampler.stop();</span>
+<span class="fc" id="L94">  }</span>
+
+  @Override
+  public void testRunStarted(final Description description)  {
+<span class="fc" id="L98">   sampler.start();</span>
+<span class="fc" id="L99">  }</span>
+
+  public Sampler getSampler() {
+<span class="nc" id="L102">    return sampler;</span>
+  }
+
+  public File getDestinationFolder() {
+<span class="nc" id="L106">    return destinationFolder;</span>
+  }
+
+  public File getLastWrittenFile() {
+<span class="nc" id="L110">    return lastWrittenFile;</span>
+  }
+
+
+  @Override
+  public String toString() {
+<span class="nc" id="L116">    return &quot;Spf4jRunListener{&quot; + &quot;sampler=&quot; + sampler + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -44,8 +44,12 @@ import org.spf4j.io.csv.CsvReader;
 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // FB gets it wrong here
 public final class Csv {
 
-<span class="nc" id="L47">  private Csv() {</span>
-<span class="nc" id="L48">  }</span>
+<span class="fc" id="L47">  public static final CharSeparatedValues CSV = new CharSeparatedValues(',');</span>
+
+<span class="fc" id="L49">  private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '&quot;'};</span>
+  
+<span class="nc" id="L51">  private Csv() {</span>
+<span class="nc" id="L52">  }</span>
 
   public interface CsvHandler&lt;T&gt; extends org.spf4j.io.csv.CsvHandler&lt;T&gt; {
   }
@@ -56,64 +60,62 @@ public final class Csv {
   public interface CsvMapHandler&lt;T&gt; extends org.spf4j.io.csv.CsvMapHandler&lt;T&gt; {
   }
 
-<span class="fc" id="L59">  public static final CharSeparatedValues CSV = new CharSeparatedValues(',');</span>
-
   public static void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
-<span class="fc" id="L62">    CSV.writeCsvRow(writer, elems);</span>
-<span class="fc" id="L63">  }</span>
+<span class="fc" id="L64">    CSV.writeCsvRow(writer, elems);</span>
+<span class="fc" id="L65">  }</span>
 
   public static void writeCsvRow2(final Appendable writer, final Object obj, final Object... elems)
           throws IOException {
-<span class="fc" id="L67">    CSV.writeCsvRow2(writer, obj, elems);</span>
-<span class="fc" id="L68">  }</span>
+<span class="fc" id="L69">    CSV.writeCsvRow2(writer, obj, elems);</span>
+<span class="fc" id="L70">  }</span>
 
   public static void writeCsvRow(final Appendable writer, final long... elems) throws IOException {
-<span class="fc" id="L71">    CSV.writeCsvRow(writer, elems);</span>
-<span class="fc" id="L72">  }</span>
+<span class="fc" id="L73">    CSV.writeCsvRow(writer, elems);</span>
+<span class="fc" id="L74">  }</span>
 
   public static void writeCsvRowNoEOL(final long[] elems, final Appendable writer) throws IOException {
-<span class="nc" id="L75">    CSV.writeCsvRowNoEOL(elems, writer);</span>
-<span class="nc" id="L76">  }</span>
+<span class="nc" id="L77">    CSV.writeCsvRowNoEOL(elems, writer);</span>
+<span class="nc" id="L78">  }</span>
 
   public static void writeCsvRow(final Appendable writer, final Iterable&lt;?&gt; elems) throws IOException {
-<span class="nc" id="L79">    CSV.writeCsvRow(writer, elems);</span>
-<span class="nc" id="L80">  }</span>
+<span class="nc" id="L81">    CSV.writeCsvRow(writer, elems);</span>
+<span class="nc" id="L82">  }</span>
 
   public static void writeCsvRowNoEOL(final Iterable&lt;?&gt; elems, final Appendable writer) throws IOException {
-<span class="nc" id="L83">    CSV.writeCsvRowNoEOL(elems, writer);</span>
-<span class="nc" id="L84">  }</span>
+<span class="nc" id="L85">    CSV.writeCsvRowNoEOL(elems, writer);</span>
+<span class="nc" id="L86">  }</span>
 
   public static &lt;T&gt; T read(final File file, final Charset charset,
           final CsvMapHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="fc" id="L88">    return CSV.read(file, charset, handler);</span>
+<span class="fc" id="L90">    return CSV.read(file, charset, handler);</span>
   }
 
   public static &lt;T&gt; T read(final File file, final Charset charset,
           final CsvHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="fc" id="L93">    return CSV.read(file, charset, handler);</span>
+<span class="fc" id="L95">    return CSV.read(file, charset, handler);</span>
   }
 
   public static List&lt;Map&lt;String, String&gt;&gt; read(final Reader preader) throws IOException, CsvParseException {
-<span class="nc" id="L97">    return CSV.read(preader);</span>
+<span class="nc" id="L99">    return CSV.read(preader);</span>
   }
 
   public static &lt;T&gt; T read(final Reader preader,
           final CsvMapHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="fc" id="L102">    return CSV.read(preader, handler);</span>
+<span class="fc" id="L104">    return CSV.read(preader, handler);</span>
   }
 
   public static List&lt;String&gt; readRow(final Reader reader) throws IOException, CsvParseException {
-<span class="fc" id="L106">    return CSV.readRow(reader);</span>
+<span class="fc" id="L108">    return CSV.readRow(reader);</span>
   }
 
   public static &lt;T&gt; T readRow(final Reader reader, final CsvRowHandler&lt;T&gt; handler)
           throws IOException, CsvParseException {
-<span class="nc" id="L111">    return CSV.readRow(reader, handler);</span>
+<span class="nc" id="L113">    return CSV.readRow(reader, handler);</span>
   }
 
   public static &lt;T&gt; T read(final Reader preader,
           final CsvHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="nc" id="L116">    return CSV.read(preader, handler);</span>
+<span class="nc" id="L118">    return CSV.read(preader, handler);</span>
   }
 
   /**
@@ -127,7 +129,7 @@ public final class Csv {
    */
   public static &lt;T&gt; T readNoBom(final PushbackReader reader, final CsvHandler&lt;T&gt; handler)
           throws IOException, CsvParseException {
-<span class="nc" id="L130">    return CSV.readNoBom(reader, handler);</span>
+<span class="nc" id="L132">    return CSV.readNoBom(reader, handler);</span>
   }
 
   /**
@@ -138,18 +140,16 @@ public final class Csv {
    * @return
    */
   public static Iterable&lt;Iterable&lt;String&gt;&gt; asIterable(final Reader preader) {
-<span class="fc" id="L141">    return CSV.asIterable(preader);</span>
+<span class="fc" id="L143">    return CSV.asIterable(preader);</span>
   }
 
   public static CsvReader reader(final Reader preader) throws IOException {
-<span class="fc" id="L145">    return CSV.reader(preader);</span>
+<span class="fc" id="L147">    return CSV.reader(preader);</span>
   }
 
   public static CsvReader readerNoBOM(final PushbackReader reader) {
-<span class="fc" id="L149">    return CSV.readerNoBOM(reader);</span>
+<span class="fc" id="L151">    return CSV.readerNoBOM(reader);</span>
   }
-
-<span class="fc" id="L152">  private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '&quot;'};</span>
 
   public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
 <span class="fc bfc" id="L155" title="All 2 branches covered.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>

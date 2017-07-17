@@ -17,6 +17,7 @@
  */
 package org.spf4j.base;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.SocketException;
 import java.sql.SQLRecoverableException;
@@ -43,15 +44,12 @@ import org.slf4j.LoggerFactory;
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Callables {
 
-<span class="nc" id="L46">  private Callables() {</span>
-<span class="nc" id="L47">  }</span>
+<span class="fc" id="L47">  private static final Logger LOG = LoggerFactory.getLogger(Callables.class);</span>
 
-<span class="fc" id="L49">  private static final Logger LOG = LoggerFactory.getLogger(Callables.class);</span>
-
-<span class="fc" id="L51">  public static final SimpleRetryPredicate&lt;?&gt; RETRY_FOR_NULL_RESULT = new SimpleRetryPredicate&lt;Object&gt;() {</span>
+<span class="fc" id="L49">  public static final SimpleRetryPredicate&lt;?&gt; RETRY_FOR_NULL_RESULT = new SimpleRetryPredicate&lt;Object&gt;() {</span>
     @Override
     public SimpleAction apply(final Object input) {
-<span class="nc bnc" id="L54" title="All 2 branches missed.">      return (input != null) ? SimpleAction.ABORT : SimpleAction.RETRY;</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">      return (input != null) ? SimpleAction.ABORT : SimpleAction.RETRY;</span>
     }
   };
 
@@ -59,37 +57,39 @@ public final class Callables {
    * A decent default retry predicate. It might retry exceptions that might not be retriable.. (like IO exceptions
    * thrown by parser libraries for parsing issues...)
    */
-<span class="fc" id="L62">  public static final AdvancedRetryPredicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY</span>
-<span class="fc" id="L63">          = new AdvancedRetryPredicate&lt;Exception&gt;() {</span>
+<span class="fc" id="L60">  public static final AdvancedRetryPredicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY</span>
+<span class="fc" id="L61">          = new AdvancedRetryPredicate&lt;Exception&gt;() {</span>
     @Override
     public AdvancedAction apply(@Nonnull final Exception input) {
-<span class="fc" id="L66">      Throwable rootCause = com.google.common.base.Throwables.getRootCause(input);</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">      if (rootCause instanceof RuntimeException) {</span>
-<span class="fc" id="L68">        return AdvancedAction.ABORT;</span>
+<span class="fc" id="L64">      Throwable rootCause = com.google.common.base.Throwables.getRootCause(input);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">      if (rootCause instanceof RuntimeException) {</span>
+<span class="fc" id="L66">        return AdvancedAction.ABORT;</span>
       }
-<span class="fc" id="L70">      Throwable e = Throwables.firstCause(input,</span>
-<span class="pc bpc" id="L71" title="2 of 8 branches missed.">              (ex) -&gt; (ex instanceof SQLTransientException</span>
+<span class="fc" id="L68">      Throwable e = Throwables.firstCause(input,</span>
+<span class="pc bpc" id="L69" title="2 of 8 branches missed.">              (ex) -&gt; (ex instanceof SQLTransientException</span>
               || ex instanceof SQLRecoverableException
               || ex instanceof SocketException
               || ex instanceof TimeoutException));
-<span class="fc bfc" id="L75" title="All 2 branches covered.">      if (e != null) {</span>
-<span class="fc" id="L76">        LOG.debug(&quot;Exception encountered, retrying...&quot;, input);</span>
-<span class="fc" id="L77">        return AdvancedAction.RETRY;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">      if (e != null) {</span>
+<span class="fc" id="L74">        LOG.debug(&quot;Exception encountered, retrying...&quot;, input);</span>
+<span class="fc" id="L75">        return AdvancedAction.RETRY;</span>
       }
-<span class="fc" id="L79">      return AdvancedAction.ABORT;</span>
+<span class="fc" id="L77">      return AdvancedAction.ABORT;</span>
     }
   };
 
-<span class="fc" id="L83">  public static final Predicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY_PREDICATE</span>
-<span class="fc" id="L84">          = new Predicate&lt;Exception&gt;() {</span>
+<span class="fc" id="L81">  public static final Predicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY_PREDICATE</span>
+<span class="fc" id="L82">          = new Predicate&lt;Exception&gt;() {</span>
 
     @Override
     @SuppressFBWarnings(&quot;NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE&quot;)
     public boolean test(final Exception t) {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">      return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">      return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;</span>
     }
 
   };
+
+<span class="nc" id="L92">  private Callables() { }</span>
 
   public static &lt;T, EX extends Exception&gt; T executeWithRetry(final TimeoutCallable&lt;T, EX&gt; what,
           final int nrImmediateRetries,
@@ -181,7 +181,7 @@ public final class Callables {
 <span class="fc" id="L181">      this.maxDelay = maxDelay;</span>
 <span class="fc" id="L182">    }</span>
 
-    long nextDelay() {
+    private long nextDelay() {
 <span class="fc bfc" id="L185" title="All 2 branches covered.">      if (immediateLeft &gt; 0) {</span>
 <span class="fc" id="L186">        immediateLeft--;</span>
 <span class="fc" id="L187">        return 0;</span>
@@ -240,7 +240,7 @@ public final class Callables {
 <span class="fc" id="L240">      this.tu = tu;</span>
 <span class="fc" id="L241">    }</span>
 
-    RetryData getRetryData(final T value, final AdvancedAction action) {
+    private RetryData getRetryData(final T value, final AdvancedAction action) {
 <span class="fc" id="L244">      Object rootCauseClass = mapper.apply(value);</span>
 <span class="fc" id="L245">      RetryData data = retryRegistry.get(rootCauseClass);</span>
 <span class="fc bfc" id="L246" title="All 2 branches covered.">      if (data == null) {</span>
@@ -288,7 +288,7 @@ public final class Callables {
           }
 <span class="fc" id="L289">          return RetryDecision.retry(tu.toMillis(delay), callable);</span>
         default:
-<span class="nc" id="L291">          throw new RuntimeException(&quot;Unsupperted Retry Action &quot; + action);</span>
+<span class="nc" id="L291">          throw new UnsupportedOperationException(&quot;Unsupperted Retry Action &quot; + action);</span>
 
       }
     }
@@ -311,7 +311,7 @@ public final class Callables {
 
 
 <span class="fc" id="L313">    public TimeoutCallable(final int timeoutMillis) {</span>
-<span class="fc" id="L314">      mdeadline = System.currentTimeMillis() + timeoutMillis;</span>
+<span class="fc" id="L314">      mdeadline = overflowSafeAdd(System.currentTimeMillis(), timeoutMillis);</span>
 <span class="fc" id="L315">    }</span>
 
 <span class="fc" id="L317">    TimeoutCallable(final long deadline) {</span>
@@ -594,7 +594,7 @@ public final class Callables {
 <span class="pc bpc" id="L594" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
 <span class="fc" id="L595">        throw (EX) lastExChain;</span>
       } else {
-<span class="nc" id="L597">        throw new RuntimeException(lastExChain);</span>
+<span class="nc" id="L597">        throw new UncheckedExecutionException(lastExChain);</span>
       }
     }
 <span class="fc" id="L600">    return result;</span>
@@ -634,6 +634,21 @@ public final class Callables {
       }
 
     };
+  }
+
+  public static long overflowSafeAdd(final long currentTime, final long timeout) {
+<span class="pc bpc" id="L640" title="1 of 2 branches missed.">    if (currentTime &lt; 0) {</span>
+<span class="nc" id="L641">      throw new IllegalArgumentException(&quot;Time must be positive, not &quot; + currentTime);</span>
+    }
+<span class="pc bpc" id="L643" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L644">      return currentTime;</span>
+    }
+<span class="fc" id="L646">    long result = currentTime + timeout;</span>
+<span class="pc bpc" id="L647" title="1 of 4 branches missed.">    if ((currentTime ^ timeout) &lt; 0 || (currentTime ^ result) &gt;= 0) {</span>
+<span class="fc" id="L648">      return result;</span>
+    } else {
+<span class="fc" id="L650">      return Long.MAX_VALUE;</span>
+    }
   }
 
 }

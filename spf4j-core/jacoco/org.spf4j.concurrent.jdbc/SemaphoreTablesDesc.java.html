@@ -19,27 +19,33 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.jdbc.DbType;
 import org.spf4j.jdbc.JdbcTemplate;
 /**
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class SemaphoreTablesDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L31">  public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(</span>
-<span class="fc" id="L32">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.tableName&quot;, &quot;SEMAPHORES&quot;),</span>
-<span class="fc" id="L33">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.semaphoreNameColumn&quot;, &quot;SEMAPHORE_NAME&quot;),</span>
-<span class="fc" id="L34">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.availablePermitsColumn&quot;, &quot;AVAILABLE_PERMITS&quot;),</span>
-<span class="fc" id="L35">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.totalPermitsColumn&quot;, &quot;TOTAL_PERMITS&quot;),</span>
-<span class="fc" id="L36">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.lastUpdatedByColumn&quot;, &quot;LAST_UPDATED_BY&quot;),</span>
-<span class="fc" id="L37">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.lastUpdatedAtColumn&quot;, &quot;LAST_UPDATED_AT&quot;),</span>
-<span class="fc" id="L38">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.permitsByOwnerColumn&quot;, &quot;PERMITS_BY_OWNER&quot;),</span>
-<span class="fc" id="L39">          HeartBeatTableDesc.DEFAULT.getOwnerColumn(),</span>
-<span class="fc" id="L40">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.permitsColumn&quot;, &quot;PERMITS&quot;),</span>
+<span class="fc" id="L36">  public static final SemaphoreTablesDesc DEFAULT = new SemaphoreTablesDesc(</span>
+<span class="fc" id="L37">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.tableName&quot;, &quot;SEMAPHORES&quot;),</span>
+<span class="fc" id="L38">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.semaphoreNameColumn&quot;, &quot;SEMAPHORE_NAME&quot;),</span>
+<span class="fc" id="L39">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.availablePermitsColumn&quot;, &quot;AVAILABLE_PERMITS&quot;),</span>
+<span class="fc" id="L40">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.totalPermitsColumn&quot;, &quot;TOTAL_PERMITS&quot;),</span>
+<span class="fc" id="L41">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.lastUpdatedByColumn&quot;, &quot;LAST_UPDATED_BY&quot;),</span>
+<span class="fc" id="L42">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.lastUpdatedAtColumn&quot;, &quot;LAST_UPDATED_AT&quot;),</span>
+<span class="fc" id="L43">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.permitsByOwnerColumn&quot;, &quot;PERMITS_BY_OWNER&quot;),</span>
+<span class="fc" id="L44">          HeartBeatTableDesc.DEFAULT.getOwnerColumn(),</span>
+<span class="fc" id="L45">          System.getProperty(&quot;spf4j.jdbc.semaphore.sql.permitsColumn&quot;, &quot;PERMITS&quot;),</span>
           HeartBeatTableDesc.DEFAULT);
 
+  @Nonnull
   private final String semaphoreTableName;
   private final String semNameColumn;
   private final String availablePermitsColumn;
@@ -53,75 +59,129 @@ public final class SemaphoreTablesDesc implements Serializable {
 
   public SemaphoreTablesDesc(final String semaphoreTableName, final String semNameColumn,
           final String availablePermitsColumn,
-          final String totalPermitsColumn, final String lastModifiedColumn,
-          final String lastModifiedAtColumn, final String reservationsByOwnerTableName,
+          final String totalPermitsColumn, final String lastModifiedByColumn,
+          final String lastModifiedAtColumn, final String permitsByOwnerTableName,
           final String ownerColumn, final String ownerPermitsColumn,
-<span class="fc" id="L59">          final HeartBeatTableDesc heartBeatTableDesc) {</span>
-<span class="fc" id="L60">    JdbcTemplate.checkJdbcObjectName(semaphoreTableName);</span>
-<span class="fc" id="L61">    JdbcTemplate.checkJdbcObjectName(semNameColumn);</span>
-<span class="fc" id="L62">    JdbcTemplate.checkJdbcObjectName(availablePermitsColumn);</span>
-<span class="fc" id="L63">    JdbcTemplate.checkJdbcObjectName(totalPermitsColumn);</span>
-<span class="fc" id="L64">    JdbcTemplate.checkJdbcObjectName(lastModifiedColumn);</span>
-<span class="fc" id="L65">    JdbcTemplate.checkJdbcObjectName(lastModifiedAtColumn);</span>
-<span class="fc" id="L66">    JdbcTemplate.checkJdbcObjectName(reservationsByOwnerTableName);</span>
-<span class="fc" id="L67">    JdbcTemplate.checkJdbcObjectName(ownerColumn);</span>
-<span class="fc" id="L68">    JdbcTemplate.checkJdbcObjectName(ownerPermitsColumn);</span>
-<span class="fc" id="L69">    this.semaphoreTableName = semaphoreTableName;</span>
-<span class="fc" id="L70">    this.semNameColumn = semNameColumn;</span>
-<span class="fc" id="L71">    this.availablePermitsColumn = availablePermitsColumn;</span>
-<span class="fc" id="L72">    this.totalPermitsColumn = totalPermitsColumn;</span>
-<span class="fc" id="L73">    this.lastModifiedByColumn = lastModifiedColumn;</span>
-<span class="fc" id="L74">    this.lastModifiedAtColumn = lastModifiedAtColumn;</span>
-<span class="fc" id="L75">    this.permitsByOwnerTableName = reservationsByOwnerTableName;</span>
-<span class="fc" id="L76">    this.ownerColumn = ownerColumn;</span>
-<span class="fc" id="L77">    this.ownerPermitsColumn = ownerPermitsColumn;</span>
-<span class="fc" id="L78">    this.heartBeatTableDesc = heartBeatTableDesc;</span>
-<span class="fc" id="L79">  }</span>
+<span class="fc" id="L65">          final HeartBeatTableDesc heartBeatTableDesc) {</span>
+<span class="fc" id="L66">    JdbcTemplate.checkJdbcObjectName(semaphoreTableName);</span>
+<span class="fc" id="L67">    JdbcTemplate.checkJdbcObjectName(semNameColumn);</span>
+<span class="fc" id="L68">    JdbcTemplate.checkJdbcObjectName(availablePermitsColumn);</span>
+<span class="fc" id="L69">    JdbcTemplate.checkJdbcObjectName(totalPermitsColumn);</span>
+<span class="fc" id="L70">    JdbcTemplate.checkJdbcObjectName(lastModifiedByColumn);</span>
+<span class="fc" id="L71">    JdbcTemplate.checkJdbcObjectName(lastModifiedAtColumn);</span>
+<span class="fc" id="L72">    JdbcTemplate.checkJdbcObjectName(permitsByOwnerTableName);</span>
+<span class="fc" id="L73">    JdbcTemplate.checkJdbcObjectName(ownerColumn);</span>
+<span class="fc" id="L74">    JdbcTemplate.checkJdbcObjectName(ownerPermitsColumn);</span>
+<span class="fc" id="L75">    this.semaphoreTableName = semaphoreTableName;</span>
+<span class="fc" id="L76">    this.semNameColumn = semNameColumn;</span>
+<span class="fc" id="L77">    this.availablePermitsColumn = availablePermitsColumn;</span>
+<span class="fc" id="L78">    this.totalPermitsColumn = totalPermitsColumn;</span>
+<span class="fc" id="L79">    this.lastModifiedByColumn = lastModifiedByColumn;</span>
+<span class="fc" id="L80">    this.lastModifiedAtColumn = lastModifiedAtColumn;</span>
+<span class="fc" id="L81">    this.permitsByOwnerTableName = permitsByOwnerTableName;</span>
+<span class="fc" id="L82">    this.ownerColumn = ownerColumn;</span>
+<span class="fc" id="L83">    this.ownerPermitsColumn = ownerPermitsColumn;</span>
+<span class="fc" id="L84">    this.heartBeatTableDesc = heartBeatTableDesc;</span>
+<span class="fc" id="L85">  }</span>
 
   public String getSemaphoreTableName() {
-<span class="fc" id="L82">    return semaphoreTableName;</span>
+<span class="fc" id="L88">    return semaphoreTableName;</span>
   }
 
   public String getSemNameColumn() {
-<span class="fc" id="L86">    return semNameColumn;</span>
+<span class="fc" id="L92">    return semNameColumn;</span>
   }
 
   public String getAvailablePermitsColumn() {
-<span class="fc" id="L90">    return availablePermitsColumn;</span>
+<span class="fc" id="L96">    return availablePermitsColumn;</span>
   }
 
   public String getTotalPermitsColumn() {
-<span class="fc" id="L94">    return totalPermitsColumn;</span>
+<span class="fc" id="L100">    return totalPermitsColumn;</span>
   }
 
   public String getLastModifiedByColumn() {
-<span class="fc" id="L98">    return lastModifiedByColumn;</span>
+<span class="fc" id="L104">    return lastModifiedByColumn;</span>
   }
 
   public String getLastModifiedAtColumn() {
-<span class="fc" id="L102">    return lastModifiedAtColumn;</span>
+<span class="fc" id="L108">    return lastModifiedAtColumn;</span>
   }
 
   public String getPermitsByOwnerTableName() {
-<span class="fc" id="L106">    return permitsByOwnerTableName;</span>
+<span class="fc" id="L112">    return permitsByOwnerTableName;</span>
   }
 
   public String getOwnerColumn() {
-<span class="fc" id="L110">    return ownerColumn;</span>
+<span class="fc" id="L116">    return ownerColumn;</span>
   }
 
   public String getOwnerPermitsColumn() {
-<span class="fc" id="L114">    return ownerPermitsColumn;</span>
+<span class="fc" id="L120">    return ownerPermitsColumn;</span>
   }
 
   public HeartBeatTableDesc getHeartBeatTableDesc() {
-<span class="fc" id="L118">    return heartBeatTableDesc;</span>
+<span class="fc" id="L124">    return heartBeatTableDesc;</span>
   }
+
+  public SemaphoreTablesDesc withDbType(final DbType dbType) {
+<span class="nc" id="L128">    return new SemaphoreTablesDesc(semaphoreTableName, semNameColumn, availablePermitsColumn,</span>
+            totalPermitsColumn, lastModifiedByColumn, lastModifiedAtColumn, permitsByOwnerTableName,
+<span class="nc" id="L130">            ownerColumn, ownerPermitsColumn, heartBeatTableDesc.withDbType(dbType));</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L135">    return this.semaphoreTableName.hashCode();</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L141">      return true;</span>
+    }
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L144">      return false;</span>
+    }
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L147">      return false;</span>
+    }
+<span class="nc" id="L149">    final SemaphoreTablesDesc other = (SemaphoreTablesDesc) obj;</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">    if (!Objects.equals(this.semaphoreTableName, other.semaphoreTableName)) {</span>
+<span class="nc" id="L151">      return false;</span>
+    }
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    if (!Objects.equals(this.semNameColumn, other.semNameColumn)) {</span>
+<span class="nc" id="L154">      return false;</span>
+    }
+<span class="nc bnc" id="L156" title="All 2 branches missed.">    if (!Objects.equals(this.availablePermitsColumn, other.availablePermitsColumn)) {</span>
+<span class="nc" id="L157">      return false;</span>
+    }
+<span class="nc bnc" id="L159" title="All 2 branches missed.">    if (!Objects.equals(this.totalPermitsColumn, other.totalPermitsColumn)) {</span>
+<span class="nc" id="L160">      return false;</span>
+    }
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    if (!Objects.equals(this.lastModifiedByColumn, other.lastModifiedByColumn)) {</span>
+<span class="nc" id="L163">      return false;</span>
+    }
+<span class="nc bnc" id="L165" title="All 2 branches missed.">    if (!Objects.equals(this.lastModifiedAtColumn, other.lastModifiedAtColumn)) {</span>
+<span class="nc" id="L166">      return false;</span>
+    }
+<span class="nc bnc" id="L168" title="All 2 branches missed.">    if (!Objects.equals(this.permitsByOwnerTableName, other.permitsByOwnerTableName)) {</span>
+<span class="nc" id="L169">      return false;</span>
+    }
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (!Objects.equals(this.ownerColumn, other.ownerColumn)) {</span>
+<span class="nc" id="L172">      return false;</span>
+    }
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    if (!Objects.equals(this.ownerPermitsColumn, other.ownerPermitsColumn)) {</span>
+<span class="nc" id="L175">      return false;</span>
+    }
+<span class="nc" id="L177">    return Objects.equals(this.heartBeatTableDesc, other.heartBeatTableDesc);</span>
+  }
+
 
 
   @Override
   public String toString() {
-<span class="nc" id="L124">    return &quot;SemaphoreTablesDesc{&quot; + &quot;semaphoreTableName=&quot; + semaphoreTableName + &quot;, semNameColumn=&quot;</span>
+<span class="nc" id="L184">    return &quot;SemaphoreTablesDesc{&quot; + &quot;semaphoreTableName=&quot; + semaphoreTableName + &quot;, semNameColumn=&quot;</span>
             + semNameColumn + &quot;, availablePermitsColumn=&quot; + availablePermitsColumn
             + &quot;, totalPermitsColumn=&quot; + totalPermitsColumn + &quot;, lastModifiedByColumn=&quot;
             + lastModifiedByColumn + &quot;, lastModifiedAtColumn=&quot; + lastModifiedAtColumn

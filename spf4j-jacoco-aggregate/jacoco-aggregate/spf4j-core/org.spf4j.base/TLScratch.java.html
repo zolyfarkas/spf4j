@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TLScratch.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">TLScratch.java</span></div><h1>TLScratch.java</h1><pre class="source lang-java linenums">
+package org.spf4j.base;
+
+import java.lang.ref.SoftReference;
+
+/**
+ *
+ * @author zoly
+ */
+public final class TLScratch {
+
+<span class="fc" id="L12">  private static final ThreadLocal&lt;SoftReference&lt;byte[]&gt;&gt; BYTES_TMP = new ThreadLocal&lt;&gt;();</span>
+
+<span class="fc" id="L14">  private static final ThreadLocal&lt;SoftReference&lt;char[]&gt;&gt; CHARS_TMP = new ThreadLocal&lt;&gt;();</span>
+  
+<span class="nc" id="L16">  private TLScratch() { }</span>
+
+  /**
+   * returns a thread local byte array of at least the size requested. use only for temporary purpose. This method needs
+   * to be carefully used!
+   *
+   * @param size - the minimum size of the temporary buffer requested.
+   * @return - the temporary buffer.
+   */
+  public static byte[] getBytesTmp(final int size) {
+<span class="fc" id="L26">    SoftReference&lt;byte[]&gt; sr = BYTES_TMP.get();</span>
+    byte[] result;
+<span class="fc bfc" id="L28" title="All 2 branches covered.">    if (sr == null) {</span>
+<span class="fc" id="L29">      result = new byte[size];</span>
+<span class="fc" id="L30">      BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
+    } else {
+<span class="fc" id="L32">      result = sr.get();</span>
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">      if (result == null || result.length &lt; size) {</span>
+<span class="fc" id="L34">        result = new byte[size];</span>
+<span class="fc" id="L35">        BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
+      }
+    }
+<span class="fc" id="L38">    return result;</span>
+  }
+
+  /**
+   * returns a thread local char array of at least the requested size. Use only for temporary purpose.
+   *
+   * @param size - the minimum size of the temporary buffer requested.
+   * @return - the temporary buffer.
+   */
+  public static char[] getCharsTmp(final int size) {
+<span class="fc" id="L48">    SoftReference&lt;char[]&gt; sr = CHARS_TMP.get();</span>
+    char[] result;
+<span class="fc bfc" id="L50" title="All 2 branches covered.">    if (sr == null) {</span>
+<span class="fc" id="L51">      result = new char[size];</span>
+<span class="fc" id="L52">      CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
+    } else {
+<span class="fc" id="L54">      result = sr.get();</span>
+<span class="pc bpc" id="L55" title="1 of 4 branches missed.">      if (result == null || result.length &lt; size) {</span>
+<span class="fc" id="L56">        result = new char[size];</span>
+<span class="fc" id="L57">        CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
+      }
+    }
+<span class="fc" id="L60">    return result;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

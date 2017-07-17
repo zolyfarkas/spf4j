@@ -9,91 +9,17 @@ import javax.annotation.Nonnull;
  */
 public final class JsonUtils {
 
-<span class="nc" id="L12">  private JsonUtils() {</span>
-<span class="nc" id="L13">  }</span>
-
-  public static CharSequence toJsonString(final String str) {
-<span class="nc" id="L16">    StringBuilder sb = new StringBuilder(str.length() + 4);</span>
-<span class="nc" id="L17">    sb.append('&quot;');</span>
-<span class="nc" id="L18">    escapeJsonString(str, sb);</span>
-<span class="nc" id="L19">    sb.append('&quot;');</span>
-<span class="nc" id="L20">    return sb;</span>
-  }
-
-  public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
-<span class="nc" id="L24">    int len = toEscape.length();</span>
-<span class="nc bnc" id="L25" title="All 2 branches missed.">    for (int i = 0; i &lt; len; i++) {</span>
-<span class="nc" id="L26">      char c = toEscape.charAt(i);</span>
-<span class="nc" id="L27">      appendJsonStringEscapedChar(c, jsonString);</span>
-    }
-<span class="nc" id="L29">  }</span>
-
-  public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
-<span class="nc bnc" id="L32" title="All 7 branches missed.">    switch (c) {</span>
-      case '\\':
-      case '&quot;':
-<span class="nc" id="L35">        jsonString.append('\\');</span>
-<span class="nc" id="L36">        jsonString.append(c);</span>
-<span class="nc" id="L37">        break;</span>
-      case '\b':
-<span class="nc" id="L39">        jsonString.append(&quot;\\b&quot;);</span>
-<span class="nc" id="L40">        break;</span>
-      case '\t':
-<span class="nc" id="L42">        jsonString.append(&quot;\\t&quot;);</span>
-<span class="nc" id="L43">        break;</span>
-      case '\n':
-<span class="nc" id="L45">        jsonString.append(&quot;\\n&quot;);</span>
-<span class="nc" id="L46">        break;</span>
-      case '\f':
-<span class="nc" id="L48">        jsonString.append(&quot;\\f&quot;);</span>
-<span class="nc" id="L49">        break;</span>
-      case '\r':
-<span class="nc" id="L51">        jsonString.append(&quot;\\r&quot;);</span>
-<span class="nc" id="L52">        break;</span>
-      default:
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (c &lt; ' ') {</span>
-<span class="nc" id="L55">          jsonString.append(&quot;\\u&quot;);</span>
-<span class="nc" id="L56">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
-        } else {
-<span class="nc" id="L58">          jsonString.append(c);</span>
-        }
-    }
-<span class="nc" id="L61">  }</span>
-
-  public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
-          final int padTo) {
-<span class="nc" id="L65">    long i = nr;</span>
-<span class="nc" id="L66">    char[] buf = BUFF.get();</span>
-<span class="nc" id="L67">    int charPos = 32;</span>
-<span class="nc" id="L68">    int radix = 1 &lt;&lt; shift;</span>
-<span class="nc" id="L69">    long mask = radix - 1;</span>
-    do {
-<span class="nc" id="L71">      buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
-<span class="nc" id="L72">      i &gt;&gt;&gt;= shift;</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">    } while (i != 0);</span>
-<span class="nc" id="L74">    final int nrChars = 32 - charPos;</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (nrChars &gt; padTo) {</span>
-<span class="nc" id="L76">      throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
-              + &quot; is to small, must be at least &quot; + nrChars);
-    } else {
-<span class="nc bnc" id="L79" title="All 2 branches missed.">      for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
-<span class="nc" id="L80">        sb.append('0');</span>
-      }
-    }
-<span class="nc" id="L83">    sb.append(buf, charPos, nrChars);</span>
-<span class="nc" id="L84">  }</span>
-
-<span class="nc" id="L86">  private static final ThreadLocal&lt;char[]&gt; BUFF = new ThreadLocal&lt;char[]&gt;() {</span>
+<span class="nc" id="L12">  private static final ThreadLocal&lt;char[]&gt; BUFF = new ThreadLocal&lt;char[]&gt;() {</span>
 
     @Override
     @SuppressFBWarnings(&quot;SUA_SUSPICIOUS_UNINITIALIZED_ARRAY&quot;)
     protected char[] initialValue() {
-<span class="nc" id="L91">      return new char[64];</span>
+<span class="nc" id="L17">      return new char[64];</span>
     }
 
   };
 
-<span class="nc" id="L96">  private static final char[] DIGITS = {</span>
+<span class="nc" id="L22">  private static final char[] DIGITS = {</span>
     '0', '1', '2', '3', '4', '5',
     '6', '7', '8', '9', 'a', 'b',
     'c', 'd', 'e', 'f', 'g', 'h',
@@ -101,6 +27,81 @@ public final class JsonUtils {
     'o', 'p', 'q', 'r', 's', 't',
     'u', 'v', 'w', 'x', 'y', 'z'
   };
+
+
+<span class="nc" id="L32">  private JsonUtils() {</span>
+<span class="nc" id="L33">  }</span>
+
+  public static CharSequence toJsonString(final String str) {
+<span class="nc" id="L36">    StringBuilder sb = new StringBuilder(str.length() + 4);</span>
+<span class="nc" id="L37">    sb.append('&quot;');</span>
+<span class="nc" id="L38">    escapeJsonString(str, sb);</span>
+<span class="nc" id="L39">    sb.append('&quot;');</span>
+<span class="nc" id="L40">    return sb;</span>
+  }
+
+  public static void escapeJsonString(@Nonnull final String toEscape, final StringBuilder jsonString) {
+<span class="nc" id="L44">    int len = toEscape.length();</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">    for (int i = 0; i &lt; len; i++) {</span>
+<span class="nc" id="L46">      char c = toEscape.charAt(i);</span>
+<span class="nc" id="L47">      appendJsonStringEscapedChar(c, jsonString);</span>
+    }
+<span class="nc" id="L49">  }</span>
+
+  public static void appendJsonStringEscapedChar(final char c, final StringBuilder jsonString) {
+<span class="nc bnc" id="L52" title="All 7 branches missed.">    switch (c) {</span>
+      case '\\':
+      case '&quot;':
+<span class="nc" id="L55">        jsonString.append('\\');</span>
+<span class="nc" id="L56">        jsonString.append(c);</span>
+<span class="nc" id="L57">        break;</span>
+      case '\b':
+<span class="nc" id="L59">        jsonString.append(&quot;\\b&quot;);</span>
+<span class="nc" id="L60">        break;</span>
+      case '\t':
+<span class="nc" id="L62">        jsonString.append(&quot;\\t&quot;);</span>
+<span class="nc" id="L63">        break;</span>
+      case '\n':
+<span class="nc" id="L65">        jsonString.append(&quot;\\n&quot;);</span>
+<span class="nc" id="L66">        break;</span>
+      case '\f':
+<span class="nc" id="L68">        jsonString.append(&quot;\\f&quot;);</span>
+<span class="nc" id="L69">        break;</span>
+      case '\r':
+<span class="nc" id="L71">        jsonString.append(&quot;\\r&quot;);</span>
+<span class="nc" id="L72">        break;</span>
+      default:
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (c &lt; ' ') {</span>
+<span class="nc" id="L75">          jsonString.append(&quot;\\u&quot;);</span>
+<span class="nc" id="L76">          appendUnsignedStringPadded(jsonString, (int) c, 4, 4);</span>
+        } else {
+<span class="nc" id="L78">          jsonString.append(c);</span>
+        }
+    }
+<span class="nc" id="L81">  }</span>
+
+  public static void appendUnsignedStringPadded(final StringBuilder sb, final int nr, final int shift,
+          final int padTo) {
+<span class="nc" id="L85">    long i = nr;</span>
+<span class="nc" id="L86">    char[] buf = BUFF.get();</span>
+<span class="nc" id="L87">    int charPos = 32;</span>
+<span class="nc" id="L88">    int radix = 1 &lt;&lt; shift;</span>
+<span class="nc" id="L89">    long mask = radix - 1;</span>
+    do {
+<span class="nc" id="L91">      buf[--charPos] = DIGITS[(int) (i &amp; mask)];</span>
+<span class="nc" id="L92">      i &gt;&gt;&gt;= shift;</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    } while (i != 0);</span>
+<span class="nc" id="L94">    final int nrChars = 32 - charPos;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    if (nrChars &gt; padTo) {</span>
+<span class="nc" id="L96">      throw new IllegalArgumentException(&quot;Your pad to value &quot; + padTo</span>
+              + &quot; is to small, must be at least &quot; + nrChars);
+    } else {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">      for (int j = 0, n = padTo - nrChars; j &lt; n; j++) {</span>
+<span class="nc" id="L100">        sb.append('0');</span>
+      }
+    }
+<span class="nc" id="L103">    sb.append(buf, charPos, nrChars);</span>
+<span class="nc" id="L104">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

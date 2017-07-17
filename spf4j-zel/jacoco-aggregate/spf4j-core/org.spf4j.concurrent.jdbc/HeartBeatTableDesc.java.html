@@ -19,6 +19,8 @@
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
+import java.util.Objects;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.jdbc.DbType;
 import org.spf4j.jdbc.JdbcTemplate;
 
@@ -37,16 +39,17 @@ import org.spf4j.jdbc.JdbcTemplate;
  * INTERVAL_MILLIS - the delay between heartbeats.
  * LAST_HEARTBEAT_INSTANT_MILLIS - the millis since epoch when the last heartbeat happened.
  */
+@ParametersAreNonnullByDefault
 public final class HeartBeatTableDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L44">  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(</span>
-<span class="fc" id="L45">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.tableName&quot;, &quot;HEARTBEATS&quot;),</span>
-<span class="fc" id="L46">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.ownerColumn&quot;, &quot;OWNER&quot;),</span>
-<span class="fc" id="L47">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.intervalMillisColumn&quot;, &quot;INTERVAL_MILLIS&quot;),</span>
-<span class="fc" id="L48">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;),</span>
-<span class="fc" id="L49">          DbType.valueOf(System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.dbType&quot;, &quot;H2&quot;)));</span>
+<span class="fc" id="L47">  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(</span>
+<span class="fc" id="L48">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.tableName&quot;, &quot;HEARTBEATS&quot;),</span>
+<span class="fc" id="L49">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.ownerColumn&quot;, &quot;OWNER&quot;),</span>
+<span class="fc" id="L50">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.intervalMillisColumn&quot;, &quot;INTERVAL_MILLIS&quot;),</span>
+<span class="fc" id="L51">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;),</span>
+<span class="fc" id="L52">          DbType.valueOf(System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.dbType&quot;, &quot;H2&quot;)));</span>
 
 
   private final String tableName;
@@ -63,41 +66,80 @@ public final class HeartBeatTableDesc implements Serializable {
   private final DbType dbType;
 
   public HeartBeatTableDesc(final String tableName, final String ownerColun,
-<span class="fc" id="L66">        final String intervalColumn, final String lastHeartbeatColumn, final DbType dbType) {</span>
-<span class="fc" id="L67">    JdbcTemplate.checkJdbcObjectName(tableName);</span>
-<span class="fc" id="L68">    JdbcTemplate.checkJdbcObjectName(ownerColun);</span>
-<span class="fc" id="L69">    JdbcTemplate.checkJdbcObjectName(intervalColumn);</span>
-<span class="fc" id="L70">    JdbcTemplate.checkJdbcObjectName(lastHeartbeatColumn);</span>
-<span class="fc" id="L71">    this.tableName = tableName;</span>
-<span class="fc" id="L72">    this.ownerColumn = ownerColun;</span>
-<span class="fc" id="L73">    this.intervalColumn = intervalColumn;</span>
-<span class="fc" id="L74">    this.lastHeartbeatColumn = lastHeartbeatColumn;</span>
-<span class="fc" id="L75">    this.dbType = dbType;</span>
-<span class="fc" id="L76">  }</span>
+<span class="fc" id="L69">        final String intervalColumn, final String lastHeartbeatColumn, final DbType dbType) {</span>
+<span class="fc" id="L70">    JdbcTemplate.checkJdbcObjectName(tableName);</span>
+<span class="fc" id="L71">    JdbcTemplate.checkJdbcObjectName(ownerColun);</span>
+<span class="fc" id="L72">    JdbcTemplate.checkJdbcObjectName(intervalColumn);</span>
+<span class="fc" id="L73">    JdbcTemplate.checkJdbcObjectName(lastHeartbeatColumn);</span>
+<span class="fc" id="L74">    this.tableName = tableName;</span>
+<span class="fc" id="L75">    this.ownerColumn = ownerColun;</span>
+<span class="fc" id="L76">    this.intervalColumn = intervalColumn;</span>
+<span class="fc" id="L77">    this.lastHeartbeatColumn = lastHeartbeatColumn;</span>
+<span class="fc" id="L78">    this.dbType = dbType;</span>
+<span class="fc" id="L79">  }</span>
 
   public String getTableName() {
-<span class="fc" id="L79">    return tableName;</span>
+<span class="fc" id="L82">    return tableName;</span>
   }
 
   public String getOwnerColumn() {
-<span class="fc" id="L83">    return ownerColumn;</span>
+<span class="fc" id="L86">    return ownerColumn;</span>
   }
 
   public String getIntervalColumn() {
-<span class="fc" id="L87">    return intervalColumn;</span>
+<span class="fc" id="L90">    return intervalColumn;</span>
   }
 
   public String getLastHeartbeatColumn() {
-<span class="fc" id="L91">    return lastHeartbeatColumn;</span>
+<span class="fc" id="L94">    return lastHeartbeatColumn;</span>
   }
 
   public DbType getDbType() {
-<span class="fc" id="L95">    return dbType;</span>
+<span class="fc" id="L98">    return dbType;</span>
+  }
+
+  public HeartBeatTableDesc withDbType(final DbType pdbType) {
+<span class="nc" id="L102">    return new HeartBeatTableDesc(tableName, ownerColumn, intervalColumn, lastHeartbeatColumn, pdbType);</span>
   }
 
   @Override
+  public int hashCode() {
+<span class="nc" id="L107">    return tableName.hashCode();</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L113">      return true;</span>
+    }
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L116">      return false;</span>
+    }
+<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L119">      return false;</span>
+    }
+<span class="nc" id="L121">    final HeartBeatTableDesc other = (HeartBeatTableDesc) obj;</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    if (!Objects.equals(this.tableName, other.tableName)) {</span>
+<span class="nc" id="L123">      return false;</span>
+    }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (!Objects.equals(this.ownerColumn, other.ownerColumn)) {</span>
+<span class="nc" id="L126">      return false;</span>
+    }
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (!Objects.equals(this.intervalColumn, other.intervalColumn)) {</span>
+<span class="nc" id="L129">      return false;</span>
+    }
+<span class="nc bnc" id="L131" title="All 2 branches missed.">    if (!Objects.equals(this.lastHeartbeatColumn, other.lastHeartbeatColumn)) {</span>
+<span class="nc" id="L132">      return false;</span>
+    }
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    return this.dbType == other.dbType;</span>
+  }
+
+
+
+
+  @Override
   public String toString() {
-<span class="nc" id="L100">    return &quot;HeartbeatTableDesc{&quot; + &quot;tableName=&quot; + tableName + &quot;, ownerColun=&quot; + ownerColumn + &quot;, intervalColumn=&quot;</span>
+<span class="nc" id="L142">    return &quot;HeartbeatTableDesc{&quot; + &quot;tableName=&quot; + tableName + &quot;, ownerColun=&quot; + ownerColumn + &quot;, intervalColumn=&quot;</span>
             + intervalColumn + &quot;, lastHeartbeatColumn=&quot; + lastHeartbeatColumn + '}';
   }
 

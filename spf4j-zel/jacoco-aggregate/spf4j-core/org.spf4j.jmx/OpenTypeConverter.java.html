@@ -18,12 +18,11 @@
 package org.spf4j.jmx;
 
 import com.google.common.base.Converter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
+import java.io.InvalidObjectException;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import org.spf4j.base.Runtime.Version;
 
 /**
  *
@@ -33,103 +32,55 @@ import org.spf4j.base.Runtime.Version;
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;HE_INHERITS_EQUALS_USE_HASHCODE&quot;)
 public final class OpenTypeConverter {
 
-<span class="nc" id="L36">    private OpenTypeConverter() {</span>
-<span class="nc" id="L37">    }</span>
+<span class="nc" id="L35">  private OpenTypeConverter() {</span>
+<span class="nc" id="L36">  }</span>
 
-<span class="nc" id="L39">    private static class JMX17P {</span>
 
-        private static final Object DEFAULT_MAPPING_FACTORY;
-        private static final Method MAPPING_FOR_TYPE;
-        private static final Method MAPPING_GET_OPEN_TYPE;
-        private static final Method MAPPING_FROM_OPEN_VALUE;
-        private static final Method MAPPING_TO_OPEN_VALUE;
-
-        static {
-            try {
-<span class="fc" id="L49">                Class&lt;?&gt; mxBeanMappingFactoryClass = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanMappingFactory&quot;);</span>
-<span class="fc" id="L50">                DEFAULT_MAPPING_FACTORY = mxBeanMappingFactoryClass.getField(&quot;DEFAULT&quot;).get(null);</span>
-<span class="fc" id="L51">                MAPPING_FOR_TYPE = mxBeanMappingFactoryClass.getMethod(&quot;mappingForType&quot;,</span>
-                                java.lang.reflect.Type.class, mxBeanMappingFactoryClass);
-<span class="fc" id="L53">                Class&lt;?&gt; mxBeanMappingClass = Class.forName(&quot;com.sun.jmx.mbeanserver.MXBeanMapping&quot;);</span>
-<span class="fc" id="L54">                MAPPING_GET_OPEN_TYPE = mxBeanMappingClass.getMethod(&quot;getOpenType&quot;);</span>
-<span class="fc" id="L55">                MAPPING_FROM_OPEN_VALUE = mxBeanMappingClass.getDeclaredMethod(&quot;fromOpenValue&quot;, Object.class);</span>
-<span class="fc" id="L56">                MAPPING_TO_OPEN_VALUE = mxBeanMappingClass.getDeclaredMethod(&quot;toOpenValue&quot;, Object.class);</span>
-<span class="fc" id="L57">                AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
-
-                    @Override
-                    public Void run() {
-<span class="fc" id="L61">                        MAPPING_FOR_TYPE.setAccessible(true);</span>
-<span class="fc" id="L62">                        MAPPING_GET_OPEN_TYPE.setAccessible(true);</span>
-<span class="fc" id="L63">                        MAPPING_FROM_OPEN_VALUE.setAccessible(true);</span>
-<span class="fc" id="L64">                        MAPPING_TO_OPEN_VALUE.setAccessible(true);</span>
-<span class="fc" id="L65">                        return null;</span>
-                    }
-                });
-<span class="nc" id="L68">            } catch (ClassNotFoundException | NoSuchMethodException | SecurityException</span>
-                    | IllegalArgumentException | NoSuchFieldException | IllegalAccessException ex) {
-<span class="nc" id="L70">                throw new RuntimeException(ex);</span>
-<span class="fc" id="L71">            }</span>
-<span class="fc" id="L72">        }</span>
+  /**
+   * returns MXBeanMapping
+   */
+  private static MXBeanMapping getMXBeanMapping(final Class&lt;?&gt; type) {
+    try {
+<span class="fc" id="L44">      return MXBeanMappingFactory.DEFAULT.mappingForType(type, MXBeanMappingFactory.DEFAULT);</span>
+<span class="nc" id="L45">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L46">      throw new UnsupportedOperationException(&quot;Unsupported MX bean mapping for &quot; + type, ex);</span>
     }
+  }
 
+  public static OpenType&lt;?&gt; getOpenType(final Class&lt;?&gt; type) {
+<span class="fc" id="L51">    return getMXBeanMapping(type).getOpenType();</span>
+  }
 
-    /**
-     * returns MXBeanMapping
-     */
-    private static Object getMXBeanMapping(final Class&lt;?&gt; type) {
+  /**
+   *
+   * @param type the java type to from to convert to.
+   * @return Converter - the guava converter for the type.
+   */
+  public static Converter&lt;Object, Object&gt; getConverter(final Class&lt;?&gt; type) {
+
+<span class="fc" id="L61">    final MXBeanMapping mapping = getMXBeanMapping(type);</span>
+<span class="fc" id="L62">    return new Converter&lt;Object, Object&gt;() {</span>
+
+      @Override
+      protected Object doForward(final Object a) {
         try {
-<span class="fc" id="L81">            return JMX17P.MAPPING_FOR_TYPE.invoke(JMX17P.DEFAULT_MAPPING_FACTORY, type, JMX17P.DEFAULT_MAPPING_FACTORY);</span>
-<span class="nc" id="L82">        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L83">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L67">          return mapping.fromOpenValue(a);</span>
+<span class="nc" id="L68">        } catch (InvalidObjectException ex) {</span>
+<span class="nc" id="L69">          throw new IllegalArgumentException(&quot;Open value canot be converted: &quot; + a, ex);</span>
         }
-    }
+      }
 
-    public static OpenType&lt;?&gt; getOpenType(final Class&lt;?&gt; type) {
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() &gt;= Version.V1_7.ordinal()) {</span>
-            try {
-<span class="fc" id="L90">                return (OpenType) JMX17P.MAPPING_GET_OPEN_TYPE.invoke(getMXBeanMapping(type));</span>
-<span class="nc" id="L91">            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L92">                throw new RuntimeException(ex);</span>
-            }
-        } else {
-<span class="nc" id="L95">            throw new RuntimeException(&quot;Unsupported JVM runtime&quot; + org.spf4j.base.Runtime.JAVA_PLATFORM);</span>
+      @Override
+      protected Object doBackward(final Object b) {
+        try {
+<span class="nc" id="L76">          return mapping.toOpenValue(b);</span>
+<span class="nc" id="L77">        } catch (OpenDataException ex) {</span>
+<span class="nc" id="L78">          throw new IllegalArgumentException(&quot;Value cannot be converted to open value: &quot; + b, ex);</span>
         }
-    }
+      }
+    };
 
-    /**
-     *
-     * @param type the java type to from to convert to.
-     * @return Converter - the guava converter for the type.
-     */
-    public static Converter&lt;Object, Object&gt; getConverter(final Class&lt;?&gt; type) {
-
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (org.spf4j.base.Runtime.JAVA_PLATFORM.ordinal() &gt;= Version.V1_7.ordinal()) {</span>
-<span class="fc" id="L107">            final Object mapping = getMXBeanMapping(type);</span>
-<span class="fc" id="L108">            return new Converter&lt;Object, Object&gt;() {</span>
-
-                @Override
-                protected Object doForward(final Object a) {
-                    try {
-<span class="nc" id="L113">                        return JMX17P.MAPPING_FROM_OPEN_VALUE.invoke(mapping, a);</span>
-<span class="nc" id="L114">                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L115">                        throw new RuntimeException(ex);</span>
-                    }
-                }
-
-                @Override
-                protected Object doBackward(final Object b) {
-                    try {
-<span class="nc" id="L122">                        return JMX17P.MAPPING_TO_OPEN_VALUE.invoke(mapping, b);</span>
-<span class="nc" id="L123">                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {</span>
-<span class="nc" id="L124">                        throw new RuntimeException(ex);</span>
-                    }
-                }
-            };
-        } else {
-<span class="nc" id="L129">            throw new RuntimeException(&quot;Unsupported JVM runtime&quot; + org.spf4j.base.Runtime.JAVA_PLATFORM);</span>
-        }
-
-    }
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

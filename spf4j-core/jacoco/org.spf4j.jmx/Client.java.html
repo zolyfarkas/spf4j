@@ -40,59 +40,59 @@ import javax.management.remote.JMXServiceURL;
 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // FB gets it wrong here
 public final class Client {
 
-<span class="nc" id="L43">    private Client() { }</span>
+<span class="nc" id="L43">  private Client() {</span>
+<span class="nc" id="L44">  }</span>
 
-    /**
-     * get a an attribute from a JMX mbean.
-     * @param serviceUrl in the form of: &quot;service:jmx:rmi:///jndi/rmi://:9999/jmxrmi&quot;
-     * @param domain - mbean domain name.
-     * @param mbeanName -  mbean name.
-     * @param attribName - attribute name.
-     * @return - the attribute value.
-     * @throws java.io.IOException - IO issue communicating with mbean.
-     * @throws javax.management.InstanceNotFoundException - mbean not found.
-     * @throws javax.management.MBeanException - exception while getting the attribute.
-     * @throws javax.management.AttributeNotFoundException - attribute not found.
-     * @throws javax.management.ReflectionException - mbean reflection exception.
-     */
-    public static Object getAttribute(@Nonnull final String serviceUrl,
-            @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
-            throws IOException, InstanceNotFoundException,
-            MBeanException, AttributeNotFoundException, ReflectionException {
-<span class="fc" id="L62">        JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
-<span class="pc" id="L63">        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
-<span class="fc" id="L64">            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
-<span class="fc" id="L65">            return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);</span>
-<span class="pc bpc" id="L66" title="6 of 8 branches missed.">        }</span>
-    }
+  /**
+   * get a an attribute from a JMX mbean.
+   *
+   * @param serviceUrl in the form of: &quot;service:jmx:rmi:///jndi/rmi://:9999/jmxrmi&quot;
+   * @param domain - mbean domain name.
+   * @param mbeanName - mbean name.
+   * @param attribName - attribute name.
+   * @return - the attribute value.
+   * @throws java.io.IOException - IO issue communicating with mbean.
+   * @throws javax.management.InstanceNotFoundException - mbean not found.
+   * @throws javax.management.MBeanException - exception while getting the attribute.
+   * @throws javax.management.AttributeNotFoundException - attribute not found.
+   * @throws javax.management.ReflectionException - mbean reflection exception.
+   */
+  public static Object getAttribute(@Nonnull final String serviceUrl,
+          @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
+          throws IOException, InstanceNotFoundException,
+          MBeanException, AttributeNotFoundException, ReflectionException {
+<span class="fc" id="L64">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="pc" id="L65">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L66">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L67">      return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);</span>
+<span class="pc bpc" id="L68" title="6 of 8 branches missed.">    }</span>
+  }
 
-    public static void setAttribute(@Nonnull final String serviceUrl,
-            @Nonnull final String domain, @Nonnull final String mbeanName,
-            @Nonnull final String attribName, @Nonnull final Object attribValue)
-            throws IOException, InstanceNotFoundException,
-            MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
-<span class="fc" id="L74">        JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
-<span class="fc" id="L75">        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
-<span class="fc" id="L76">            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
-<span class="fc" id="L77">            mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
-                    new Attribute(attribName, attribValue));
-<span class="pc bpc" id="L79" title="4 of 8 branches missed.">        }</span>
-<span class="fc" id="L80">    }</span>
+  public static void setAttribute(@Nonnull final String serviceUrl,
+          @Nonnull final String domain, @Nonnull final String mbeanName,
+          @Nonnull final String attribName, @Nonnull final Object attribValue)
+          throws IOException, InstanceNotFoundException,
+          MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+<span class="fc" id="L76">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="fc" id="L77">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L78">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L79">      mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
+              new Attribute(attribName, attribValue));
+<span class="pc bpc" id="L81" title="4 of 8 branches missed.">    }</span>
+<span class="fc" id="L82">  }</span>
 
-
-    public static Object callOperation(@Nonnull final String serviceUrl,
-            @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
-            final Object ... parameters)
-            throws IOException, InstanceNotFoundException,
-            MBeanException, ReflectionException {
-<span class="fc" id="L88">        JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
-<span class="pc" id="L89">        try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
-<span class="fc" id="L90">            MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
-<span class="fc" id="L91">            return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
-                    operationName, parameters, null);
-<span class="pc bpc" id="L93" title="6 of 8 branches missed.">        }</span>
-    }
-
+  public static Object callOperation(@Nonnull final String serviceUrl,
+          @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
+          final Object... parameters)
+          throws IOException, InstanceNotFoundException,
+          MBeanException, ReflectionException {
+<span class="fc" id="L89">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="pc" id="L90">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L91">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L92">      return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
+              operationName, parameters, null);
+<span class="pc bpc" id="L94" title="6 of 8 branches missed.">    }</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

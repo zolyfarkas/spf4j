@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CallablesNanoNonInterrupt.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CallablesNanoNonInterrupt.java</span></div><h1>CallablesNanoNonInterrupt.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+package org.spf4j.base;
+
+import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Callables.AdvancedRetryPredicate;
+import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
+import org.spf4j.base.Callables.FibonacciBackoffRetryPredicate;
+import org.spf4j.base.Callables.TimeoutDelayPredicate2DelayPredicate;
+import org.spf4j.base.CallablesNano.NanoTimeoutCallable;
+import org.spf4j.base.Callables.TimeoutRetryPredicate;
+import org.spf4j.base.CallablesNano.TimeoutNanoRetryPredicate;
+
+/**
+ * Utility class for executing stuff with retry logic.
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+@Beta
+//CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
+public final class CallablesNanoNonInterrupt {
+
+<span class="nc" id="L44">    private CallablesNanoNonInterrupt() {</span>
+<span class="nc" id="L45">    }</span>
+
+
+    public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
+            final int nrImmediateRetries,
+            final long maxRetryWaitNanos, final Class&lt;EX&gt; exceptionClass)
+            throws EX {
+<span class="fc" id="L52">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+                (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
+                DEFAULT_EXCEPTION_RETRY, exceptionClass);
+    }
+
+    public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
+            final int nrImmediateRetries,
+            final long maxRetryWaitNanos,
+            final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
+            final Class&lt;EX&gt; exceptionClass)
+            throws EX {
+<span class="nc" id="L63">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+                (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
+                retryOnException, exceptionClass);
+    }
+
+    /**
+     * After the immediate retries are done,
+     * delayed retry with randomized Fibonacci values up to the specified max is executed.
+     * @param &lt;T&gt; - the type returned by the Callable that is retried.
+     * @param &lt;EX&gt; - the Exception thrown by the retried callable.
+     * @param what - the callable to retry.
+     * @param nrImmediateRetries - the number of immediate retries.
+     * @param maxWaitNanos - maximum wait time in between retries.
+     * @param retryOnReturnVal - predicate to control retry on return value;
+     * @param retryOnException - predicate to retry on thrown exception.
+     * @return the result of the callable.
+     * @throws EX - the exception declared to be thrown by the callable.
+     */
+    public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
+            final int nrImmediateRetries, final long maxWaitNanos,
+            final TimeoutNanoRetryPredicate&lt;? super T, T&gt; retryOnReturnVal,
+            final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
+            final Class&lt;EX&gt; exceptionClass)
+            throws EX {
+<span class="fc" id="L87">      final long deadline = what.getDeadline();</span>
+      try {
+<span class="fc" id="L89">        return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+                new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
+                        maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
+<span class="fc" id="L92">                        () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
+<span class="nc" id="L93">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L94">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L95">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L96">        throw new UncheckedTimeoutException(ex);</span>
+      }
+    }
+
+    public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
+            final TimeoutNanoRetryPredicate&lt;T, T&gt; retryOnReturnVal,
+            final TimeoutNanoRetryPredicate&lt;Exception, T&gt; retryOnException,
+            final Class&lt;EX&gt; exceptionClass)
+            throws EX {
+      try {
+<span class="nc" id="L106">        return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);</span>
+<span class="nc" id="L107">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L108">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L109">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L110">        throw new UncheckedTimeoutException(ex);</span>
+      }
+    }
+
+   public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
+            final TimeoutNanoRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
+            throws EX {
+      try {
+<span class="nc" id="L118">        return Callables.executeWithRetry(what,</span>
+                (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
+                retryOnException, exceptionClass);
+<span class="nc" id="L121">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L122">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L123">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L124">        throw new UncheckedTimeoutException(ex);</span>
+      }
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
