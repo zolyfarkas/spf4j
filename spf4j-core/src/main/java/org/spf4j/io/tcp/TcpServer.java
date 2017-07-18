@@ -49,8 +49,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Callables;
+import org.spf4j.base.Callables.RetryDecision;
 import org.spf4j.base.Closeables;
 import org.spf4j.concurrent.RestartableServiceImpl;
 import org.spf4j.ds.UpdateablePriorityQueue;
@@ -67,13 +70,19 @@ public final class TcpServer extends RestartableServiceImpl {
 
   private final int serverPort;
 
-  public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
+    public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
           final int serverPort,
           final int acceptBacklog) {
+      this(executor, handlerFactory, serverPort, acceptBacklog, 60000);
+    }
+
+  public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
+          final int serverPort,
+          final int acceptBacklog, final int bindTimeoutMillis) {
     super(new Supplier<Service>() {
       @Override
       public Service get() {
-        return new TcpServerGuavaService(executor, handlerFactory, serverPort, acceptBacklog);
+        return new TcpServerGuavaService(executor, handlerFactory, serverPort, acceptBacklog, bindTimeoutMillis);
       }
     });
     this.serverPort = serverPort;
@@ -95,6 +104,8 @@ public final class TcpServer extends RestartableServiceImpl {
 
     private final int acceptBacklog;
 
+    private final int bindTimeoutMillis;
+
     private volatile boolean shouldRun;
 
     private volatile Selector selector;
@@ -103,28 +114,41 @@ public final class TcpServer extends RestartableServiceImpl {
 
     public TcpServerGuavaService(final ExecutorService executor, final ClientHandler handlerFactory,
             final int serverPort,
-            final int acceptBacklog) {
+            final int acceptBacklog,
+            final int bindTimeoutMillis) {
       this.executor = executor;
       this.handlerFactory = handlerFactory;
       this.acceptBacklog = acceptBacklog;
       this.serverPort = serverPort;
       this.shouldRun = true;
       this.selector = null;
+      this.bindTimeoutMillis = bindTimeoutMillis;
     }
 
     @Override
     protected void startUp() throws Exception {
       selector = Selector.open();
       try {
-        ServerSocketChannel sc = ServerSocketChannel.open();
-        try {
-          sc.bind(new InetSocketAddress(serverPort), acceptBacklog);
-          sc.configureBlocking(false);
-          serverCh = sc;
-        } catch (IOException | RuntimeException e) {
-          sc.close();
-          throw e;
-        }
+        serverCh = Callables.executeWithRetry(
+                new Callables.TimeoutCallable<ServerSocketChannel, IOException>(bindTimeoutMillis) {
+          @Override
+          public ServerSocketChannel call(final long deadline)
+                  throws IOException, InterruptedException, TimeoutException {
+            ServerSocketChannel sc = ServerSocketChannel.open();
+            try {
+              sc.bind(new InetSocketAddress(serverPort), acceptBacklog);
+              sc.configureBlocking(false);
+              return sc;
+            } catch (IOException | RuntimeException e) {
+              sc.close();
+              throw e;
+            }
+          }
+        }, (e, deadlineMillis, what) -> {
+          String message = e.getMessage();
+          return (message != null && message.contains("Address already in use"))
+                  ? RetryDecision.retry(1000, what) : RetryDecision.abort(e);
+        }, IOException.class);
       } catch (IOException | RuntimeException e) {
         selector.close();
         throw e;

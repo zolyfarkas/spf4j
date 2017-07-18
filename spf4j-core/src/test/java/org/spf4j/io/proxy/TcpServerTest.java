@@ -51,7 +51,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
@@ -163,7 +162,6 @@ public class TcpServerTest {
             1979, 10)) {
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       server.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-      Thread.sleep(10000);
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       Assert.assertTrue(server.isRunning());
     }

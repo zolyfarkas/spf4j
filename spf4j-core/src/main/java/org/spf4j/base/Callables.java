@@ -328,7 +328,7 @@ public final class Callables {
       mdeadline = overflowSafeAdd(System.currentTimeMillis(), timeoutMillis);
     }
 
-    TimeoutCallable(final long deadline) {
+    public TimeoutCallable(final long deadline) {
       mdeadline = deadline;
 
     }
