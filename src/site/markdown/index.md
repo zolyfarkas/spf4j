@@ -22,17 +22,7 @@
 
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
- Look for latest releases on [maven central repo](http://search.maven.org/#search|ga|1|spf4j)
-
- Spf4j is available in the maven central repository, so adding it to your project is as easy as:
-
-        <dependency>
-            <groupId>org.spf4j</groupId>
-            <artifactId>spf4j-core</artifactId>
-            <version>LATEST</version>
-        </dependency>
-
- Download snapshot and release artifacts [from] (https://oss.sonatype.org/content/groups/public)
+ Available on [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/)
 
  More info can be found on the [blog] (https://blogs.zoltran.com)
 
