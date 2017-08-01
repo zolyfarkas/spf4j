@@ -67,214 +67,223 @@ import org.spf4j.stackmonitor.SampleNode;
  */
 public abstract class StackPanelBase<T> extends JPanel
         implements ActionListener, MouseListener {
-    private static final long serialVersionUID = 1L;
-    //CHECKSTYLE:OFF
-    protected SampleNode samples;
-    protected Method method;
-    private RTree<Sampled<T>> samplesRTree = new RTree<>();
-    protected int xx;
-    protected int yy;
-    //CHECKSTYLE:ON
-    private final JPopupMenu menu;
-    private final LinkedList<Pair<Method, SampleNode>> history;
 
-    public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
+  private static final long serialVersionUID = 1L;
+  //CHECKSTYLE:OFF
+  private SampleNode samples;
+  private Method method;
+  private RTree<Sampled<T>> samplesRTree = new RTree<>();
+  protected int xx;
+  protected int yy;
+  //CHECKSTYLE:ON
+  private final JPopupMenu menu;
+  private final LinkedList<Pair<Method, SampleNode>> history;
 
-    public StackPanelBase(final SampleNode samples) {
-        this.samples = samples;
-        this.method = Method.ROOT;
-        history = new LinkedList<>();
-        setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
-        final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();
-        sharedInstance.registerComponent(this);
-        sharedInstance.setDismissDelay(30000);
-        menu = buildPopupMenu(this);
-        addMouseListener(this);
+  public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
+
+  public StackPanelBase(final SampleNode samples) {
+    this.samples = samples;
+    this.method = Method.ROOT;
+    history = new LinkedList<>();
+    setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
+    final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();
+    sharedInstance.registerComponent(this);
+    sharedInstance.setDismissDelay(30000);
+    menu = buildPopupMenu(this);
+    addMouseListener(this);
+  }
+
+  public final List<Sampled<T>> search(final int x, final int y, final int w, final int h) {
+    return samplesRTree.search(new float[]{x, y}, new float[]{w, h});
+  }
+
+  public final List<Sampled<T>> search(final double x, final double y, final double w, final double h) {
+    return samplesRTree.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});
+  }
+
+  public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
+    samplesRTree.insert(new float[]{x, y}, new float[]{w, h}, sampled);
+  }
+
+  public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
+    samplesRTree.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
+  }
+
+  // disable finbugs since I don't care about internationalization for now.
+  @SuppressFBWarnings("S508C_NON_TRANSLATABLE_STRING")
+  private static JPopupMenu buildPopupMenu(final ActionListener listener) {
+    JPopupMenu result = new JPopupMenu("Actions");
+    JMenuItem filter = new JMenuItem("Filter");
+    filter.setActionCommand("FILTER");
+    filter.addActionListener(listener);
+    result.add(filter);
+    JMenuItem drill = new JMenuItem("Drill");
+    drill.setActionCommand("DRILL");
+    drill.addActionListener(listener);
+    result.add(drill);
+    JMenuItem back = new JMenuItem("Back");
+    back.setActionCommand("BACK");
+    back.addActionListener(listener);
+    result.add(back);
+    JMenuItem copy = new JMenuItem("Copy");
+    copy.setActionCommand("COPY");
+    copy.addActionListener(listener);
+    result.add(copy);
+    return result;
+  }
+
+  @Override
+  public final String getToolTipText(final MouseEvent event) {
+    Point location = event.getPoint();
+    return getDetail(location);
+  }
+
+  @Override
+  public final void paintComponent(final Graphics g) {
+    super.paintComponent(g);
+    Dimension size = getSize();
+    Insets insets = getInsets();
+    Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,
+            size.getWidth() - insets.left - insets.right,
+            size.getHeight() - insets.top - insets.bottom);
+    Graphics2D g2 = (Graphics2D) g.create();
+    try {
+      double rowHeight = g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight();
+
+      GraphicsConfiguration gc = g2.getDeviceConfiguration();
+      BufferedImage img = gc.createCompatibleImage(
+              (int) available.getWidth(), (int) available.getHeight(),
+              Transparency.TRANSLUCENT);
+
+      double width = available.getWidth();
+      samplesRTree.clear();
+      Graphics2D gr = img.createGraphics();
+      gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+      int height = paint(gr, width, rowHeight);
+      g2.drawImage(img, insets.left, insets.top, this);
+      final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
+      setPreferredSize(dimension);
+      setSize(dimension);
+    } finally {
+      g2.dispose();
     }
+  }
 
-    public final List<Sampled<T>> search(final int x, final int y, final int w, final int h) {
-      return samplesRTree.search(new float[]{x, y}, new float[]{w, h});
-    }
+  public abstract int paint(Graphics2D gr, double width, double rowHeight);
 
-    public final List<Sampled<T>> search(final double x, final double y, final double w, final double h) {
-      return samplesRTree.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});
-    }
-
-
-    public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
-      samplesRTree.insert(new float[]{x, y}, new float[]{w, h}, sampled);
-    }
-
-    public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
-      samplesRTree.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
-    }
-
-
-    // disable finbugs since I don't care about internationalization for now.
-    @SuppressFBWarnings("S508C_NON_TRANSLATABLE_STRING")
-    private static JPopupMenu buildPopupMenu(final ActionListener listener) {
-        JPopupMenu result = new JPopupMenu("Actions");
-        JMenuItem filter = new JMenuItem("Filter");
-        filter.setActionCommand("FILTER");
-        filter.addActionListener(listener);
-        result.add(filter);
-        JMenuItem drill = new JMenuItem("Drill");
-        drill.setActionCommand("DRILL");
-        drill.addActionListener(listener);
-        result.add(drill);
-        JMenuItem back = new JMenuItem("Back");
-        back.setActionCommand("BACK");
-        back.addActionListener(listener);
-        result.add(back);
-        JMenuItem copy = new JMenuItem("Copy");
-        copy.setActionCommand("COPY");
-        copy.addActionListener(listener);
-        result.add(copy);
-        return result;
-    }
-
-
-    @Override
-    public final String getToolTipText(final MouseEvent event) {
-        Point location = event.getPoint();
-        return getDetail(location);
-    }
-
-    @Override
-    public final void paintComponent(final Graphics g) {
-        super.paintComponent(g);
-        Dimension size = getSize();
-        Insets insets = getInsets();
-        Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,
-                size.getWidth() - insets.left - insets.right,
-                size.getHeight() - insets.top - insets.bottom);
-        Graphics2D g2 = (Graphics2D) g.create();
-        try {
-            double rowHeight =  g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight();
-
-            GraphicsConfiguration gc = g2.getDeviceConfiguration();
-            BufferedImage img = gc.createCompatibleImage(
-                    (int) available.getWidth(), (int) available.getHeight(),
-                    Transparency.TRANSLUCENT);
-
-            double width = available.getWidth();
-            samplesRTree.clear();
-            Graphics2D gr = img.createGraphics();
-            gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            int height = paint(gr, width, rowHeight);
-            g2.drawImage(img, insets.left, insets.top, this);
-            final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
-            setPreferredSize(dimension);
-            setSize(dimension);
-        } finally {
-            g2.dispose();
+  @Override
+  public final void actionPerformed(final ActionEvent e) {
+    final String actionCommand = e.getActionCommand();
+    switch (actionCommand) {
+      case "FILTER":
+        history.addLast(Pair.of(method, samples));
+        filter();
+        break;
+      case "DRILL":
+        history.addLast(Pair.of(method, samples));
+        drill();
+        break;
+      case "BACK":
+        Pair<Method, SampleNode> prev = history.pollLast();
+        if (prev != null) {
+          updateSamples(prev.getFirst(), prev.getSecond());
+          repaint();
         }
-    }
-
-
-    public abstract int paint(Graphics2D gr, double width, double rowHeight);
-
-    @Override
-    public final void actionPerformed(final ActionEvent e) {
-        final String actionCommand = e.getActionCommand();
-        switch (actionCommand) {
-        case "FILTER":
-          history.addLast(Pair.of(method, samples));
-          filter();
-          break;
-        case "DRILL":
-          history.addLast(Pair.of(method, samples));
-          drill();
-          break;
-        case "BACK":
-          Pair<Method, SampleNode> prev = history.pollLast();
-          if (prev != null) {
-            this.samples = prev.getSecond();
-            this.method = prev.getFirst();
-            repaint();
+        break;
+      case "COPY":
+        final String detail = getDetail(new Point(xx, yy));
+        java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
+                new Transferable() {
+          @Override
+          public DataFlavor[] getTransferDataFlavors() {
+            return new DataFlavor[]{DataFlavor.stringFlavor};
           }
-          break;
-        case "COPY":
-          final String detail = getDetail(new Point(xx, yy));
-          java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
-                  new Transferable() {
-                    @Override
-                    public DataFlavor[] getTransferDataFlavors() {
-                      return new DataFlavor[]{DataFlavor.stringFlavor};
-                    }
 
-                    @Override
-                    public boolean isDataFlavorSupported(final DataFlavor flavor) {
-                      return flavor.equals(DataFlavor.stringFlavor);
-                    }
+          @Override
+          public boolean isDataFlavorSupported(final DataFlavor flavor) {
+            return flavor.equals(DataFlavor.stringFlavor);
+          }
 
-                    @Override
-                    public Object getTransferData(final DataFlavor flavor) {
-                      return detail;
-                    }
-                  }, new ClipboardOwner() {
-                    @Override
-                    public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
-                    }
-                  });
-          break;
-        default:
-          break;
-      }
+          @Override
+          public Object getTransferData(final DataFlavor flavor) {
+            return detail;
+          }
+        }, new ClipboardOwner() {
+          @Override
+          public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
+          }
+        });
+        break;
+      default:
+        break;
     }
+  }
 
-
-
-    @Override
-    public final void mousePressed(final MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            xx = e.getX();
-            yy = e.getY();
-            menu.show(this, e.getX(), e.getY());
-        }
+  @Override
+  public final void mousePressed(final MouseEvent e) {
+    if (e.isPopupTrigger()) {
+      xx = e.getX();
+      yy = e.getY();
+      menu.show(this, e.getX(), e.getY());
     }
+  }
 
-    @Override
-    public final void mouseReleased(final MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            xx = e.getX();
-            yy = e.getY();
-            menu.show(this, e.getX(), e.getY());
-        }
+  @Override
+  public final void mouseReleased(final MouseEvent e) {
+    if (e.isPopupTrigger()) {
+      xx = e.getX();
+      yy = e.getY();
+      menu.show(this, e.getX(), e.getY());
     }
+  }
 
-    @Override
-    @SuppressFBWarnings
-    public  void mouseClicked(final MouseEvent e) {
-      // default do nothing
+  @Override
+  @SuppressFBWarnings
+  public void mouseClicked(final MouseEvent e) {
+    // default do nothing
+  }
+
+  @Override
+  @SuppressFBWarnings
+  public void mouseEntered(final MouseEvent e) {
+    // default do nothing
+  }
+
+  @Override
+  @SuppressFBWarnings
+  public void mouseExited(final MouseEvent e) {
+    // default do nothing
+  }
+
+  public static void setElementColor(final int depth, final Graphics2D g2) {
+    if (depth % 2 == 0) {
+      g2.setPaint(Color.YELLOW);
+      g2.setBackground(Color.YELLOW);
+    } else {
+      g2.setPaint(Color.ORANGE);
+      g2.setBackground(Color.ORANGE);
     }
+  }
 
-    @Override
-    @SuppressFBWarnings
-    public void mouseEntered(final MouseEvent e) {
-      // default do nothing
-    }
+  //CHECKSTYLE:OFF
+  public void updateSamples(final Method m, final SampleNode n) {
+    //CHECKSTYLE:ON
+    this.samples = n;
+    this.method = m;
+  }
 
-    @Override
-    @SuppressFBWarnings
-    public void mouseExited(final MouseEvent e) {
-      // default do nothing
-    }
+  public final SampleNode getSamples() {
+    return samples;
+  }
 
-    public static void setElementColor(final int depth, final Graphics2D g2) {
-        if (depth % 2 == 0) {
-            g2.setPaint(Color.YELLOW);
-            g2.setBackground(Color.YELLOW);
-        } else {
-            g2.setPaint(Color.ORANGE);
-            g2.setBackground(Color.ORANGE);
-        }
-    }
+  public final Method getMethod() {
+    return method;
+  }
 
-    public abstract String getDetail(Point location);
+  public abstract String getDetail(Point location);
 
-    public abstract void filter();
+  public abstract void filter();
 
-    public abstract void drill();
+  public abstract void drill();
 
 }
