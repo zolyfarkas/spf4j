@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.spf4j.base.EqualsPredicate;
+import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
@@ -245,16 +246,22 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
   }
 
   @Override
+  public void updateSamples(final Method m, final SampleNode n) {
+    super.updateSamples(m, n);
+    if (n != null) {
+      this.completeGraph = SampleNode.toGraph(n);
+    } else {
+      this.completeGraph = new HashMapGraph<>();
+    }
+  }
+
+
+  @Override
   public void filter() {
     List<Sampled<InvokedMethod>> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
       final InvokedMethod value = tips.get(0).getObj();
-      samples = samples.filteredBy(new EqualsPredicate<>(value.getMethod()));
-      if (samples != null) {
-        this.completeGraph = SampleNode.toGraph(samples);
-      } else {
-        this.completeGraph = new HashMapGraph<>();
-      }
+      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate<>(value.getMethod())));
       repaint();
     }
   }

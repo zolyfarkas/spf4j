@@ -57,7 +57,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
 
   @Override
   public int paint(final Graphics2D gr, final double width, final double rowHeight) {
-    return paintNode(method, samples, gr,
+    return paintNode(getMethod(), getSamples(), gr,
             0, 0, (int) width, (int) rowHeight, 0);
   }
 
@@ -115,7 +115,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
     List<Sampled<Pair<Method, SampleNode>>> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
       final Method value = tips.get(0).getObj().getFirst();
-      samples = samples.filteredBy(new EqualsPredicate<Method>(value));
+      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate<Method>(value)));
       repaint();
     }
   }
@@ -125,8 +125,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
     List<Sampled<Pair<Method, SampleNode>>> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
       Pair<Method, SampleNode> sample = tips.get(0).getObj();
-      samples = sample.getSecond();
-      method = sample.getFirst();
+      updateSamples(sample.getFirst(), sample.getSecond());
       repaint();
     }
   }
