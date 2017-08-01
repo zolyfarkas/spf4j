@@ -115,14 +115,14 @@ public final class Traversals {
             }
         } while (!done);
     }
-    
-    
+
+
     public static final class VertexHolder<V> implements Comparable<VertexHolder<V>> {
 
         private final V vertex;
-        
+
         private final int order;
-        
+
         private final int nrImcoming;
 
         public VertexHolder(final V vertex, final int order, final int nrImcoming) {
@@ -130,7 +130,7 @@ public final class Traversals {
             this.order = order;
             this.nrImcoming = nrImcoming;
         }
-           
+
         @Override
         public int compareTo(final VertexHolder<V> o) {
             int result = this.nrImcoming - o.nrImcoming;
@@ -164,13 +164,24 @@ public final class Traversals {
             final VertexHolder<V> other = (VertexHolder<V>) obj;
             return (this.compareTo(other) == 0);
         }
-        
-        
-        
-        
+
+
+
+
     }
-    
-    
+
+    /**
+     * Custom graph traversal, starting from a particular node and following its outgoing links
+     * with the child nodes being traversed in the order of least incoming links.
+     * will need to properly document and test this...
+     *
+     * @param <V>
+     * @param <E>
+     * @param graph
+     * @param startNode
+     * @param handler
+     */
+
     public static <V, E> void customTraverse(final Graph<V, E> graph, final V startNode,
             final TraversalCallback<V, E> handler) {
         Set<V> traversedNodes = new HashSet<V>();
@@ -225,11 +236,14 @@ public final class Traversals {
                         break;
                     }
                 }
+                if (!added) {
+                  break;
+                }
             }
         } while (!done);
     }
 
-    
-    
-    
+
+
+
 }
