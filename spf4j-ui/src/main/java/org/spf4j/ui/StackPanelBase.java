@@ -51,32 +51,39 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ToolTipManager;
+import org.spf4j.base.Method;
+import org.spf4j.base.Pair;
 import org.spf4j.ds.RTree;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
  * @author zoly
  */
-public abstract class StackPanelBase extends JPanel
+public abstract class StackPanelBase<T> extends JPanel
         implements ActionListener, MouseListener {
     private static final long serialVersionUID = 1L;
     //CHECKSTYLE:OFF
     protected SampleNode samples;
-    private RTree<Sampled<?>> tooltipDetail = new RTree<>();
+    protected Method method;
+    private RTree<Sampled<T>> samplesRTree = new RTree<>();
     protected int xx;
     protected int yy;
     //CHECKSTYLE:ON
     private final JPopupMenu menu;
+    private final LinkedList<Pair<Method, SampleNode>> history;
 
     public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
     public StackPanelBase(final SampleNode samples) {
         this.samples = samples;
+        this.method = Method.ROOT;
+        history = new LinkedList<>();
         setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
         final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();
         sharedInstance.registerComponent(this);
@@ -85,21 +92,21 @@ public abstract class StackPanelBase extends JPanel
         addMouseListener(this);
     }
 
-    public final List search(final int x, final int y, final int w, final int h) {
-      return tooltipDetail.search(new float[]{x, y}, new float[]{w, h});
+    public final List<Sampled<T>> search(final int x, final int y, final int w, final int h) {
+      return samplesRTree.search(new float[]{x, y}, new float[]{w, h});
     }
 
-    public final List search(final double x, final double y, final double w, final double h) {
-      return tooltipDetail.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});
+    public final List<Sampled<T>> search(final double x, final double y, final double w, final double h) {
+      return samplesRTree.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});
     }
 
 
     public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
-      tooltipDetail.insert(new float[]{x, y}, new float[]{w, h}, sampled);
+      samplesRTree.insert(new float[]{x, y}, new float[]{w, h}, sampled);
     }
 
     public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
-      tooltipDetail.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
+      samplesRTree.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
     }
 
 
@@ -111,6 +118,14 @@ public abstract class StackPanelBase extends JPanel
         filter.setActionCommand("FILTER");
         filter.addActionListener(listener);
         result.add(filter);
+        JMenuItem drill = new JMenuItem("Drill");
+        drill.setActionCommand("DRILL");
+        drill.addActionListener(listener);
+        result.add(drill);
+        JMenuItem back = new JMenuItem("Back");
+        back.setActionCommand("BACK");
+        back.addActionListener(listener);
+        result.add(back);
         JMenuItem copy = new JMenuItem("Copy");
         copy.setActionCommand("COPY");
         copy.addActionListener(listener);
@@ -143,7 +158,7 @@ public abstract class StackPanelBase extends JPanel
                     Transparency.TRANSLUCENT);
 
             double width = available.getWidth();
-            tooltipDetail.clear();
+            samplesRTree.clear();
             Graphics2D gr = img.createGraphics();
             gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int height = paint(gr, width, rowHeight);
@@ -151,7 +166,6 @@ public abstract class StackPanelBase extends JPanel
             final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
             setPreferredSize(dimension);
             setSize(dimension);
-
         } finally {
             g2.dispose();
         }
@@ -163,32 +177,50 @@ public abstract class StackPanelBase extends JPanel
     @Override
     public final void actionPerformed(final ActionEvent e) {
         final String actionCommand = e.getActionCommand();
-        if ("FILTER".equals(actionCommand)) {
-            filter();
-        } else if ("COPY".equals(actionCommand)) {
-            final String detail = getDetail(new Point(xx, yy));
-            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
-                    new Transferable() {
-                @Override
-                public DataFlavor[] getTransferDataFlavors() {
-                    return new DataFlavor[]{DataFlavor.stringFlavor};
-                }
+        switch (actionCommand) {
+        case "FILTER":
+          history.addLast(Pair.of(method, samples));
+          filter();
+          break;
+        case "DRILL":
+          history.addLast(Pair.of(method, samples));
+          drill();
+          break;
+        case "BACK":
+          Pair<Method, SampleNode> prev = history.pollLast();
+          if (prev != null) {
+            this.samples = prev.getSecond();
+            this.method = prev.getFirst();
+            repaint();
+          }
+          break;
+        case "COPY":
+          final String detail = getDetail(new Point(xx, yy));
+          java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
+                  new Transferable() {
+                    @Override
+                    public DataFlavor[] getTransferDataFlavors() {
+                      return new DataFlavor[]{DataFlavor.stringFlavor};
+                    }
 
-                @Override
-                public boolean isDataFlavorSupported(final DataFlavor flavor) {
-                    return flavor.equals(DataFlavor.stringFlavor);
-                }
+                    @Override
+                    public boolean isDataFlavorSupported(final DataFlavor flavor) {
+                      return flavor.equals(DataFlavor.stringFlavor);
+                    }
 
-                @Override
-                public Object getTransferData(final DataFlavor flavor) {
-                    return detail;
-                }
-            }, new ClipboardOwner() {
-                @Override
-                public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
-                }
-            });
-        }
+                    @Override
+                    public Object getTransferData(final DataFlavor flavor) {
+                      return detail;
+                    }
+                  }, new ClipboardOwner() {
+                    @Override
+                    public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
+                    }
+                  });
+          break;
+        default:
+          break;
+      }
     }
 
 
@@ -242,4 +274,7 @@ public abstract class StackPanelBase extends JPanel
     public abstract String getDetail(Point location);
 
     public abstract void filter();
+
+    public abstract void drill();
+
 }

@@ -39,82 +39,96 @@ import java.util.List;
 import java.util.Map;
 import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Method;
+import org.spf4j.base.Pair;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
  * An inverted implementation of Brendan Gregg's flame charts.
+ *
  * @author zoly
  */
-public final class FlameStackPanel extends StackPanelBase {
-    private static final long serialVersionUID = 1L;
+public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNode>> {
 
-    public FlameStackPanel(final SampleNode samples) {
-        super(samples);
-    }
+  private static final long serialVersionUID = 1L;
 
-    @Override
-    public int paint(final Graphics2D gr, final double width, final double rowHeight) {
-        return paintNode(Method.ROOT, samples, gr,
-                0, 0, (int) width, (int) rowHeight, 0);
-    }
+  public FlameStackPanel(final SampleNode samples) {
+    super(samples);
+  }
 
-    @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
-    private int paintNode(final Method method, final SampleNode node,
-            final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
-        int y = py;
-        int sampleCount = node.getSampleCount();
-        String val = method.toString() + '-' + sampleCount;
-        setElementColor(depth, g2);
-        g2.setClip(x, y, width, height);
-        g2.fillRect(x, y, width, height);
-        insert(x, y, width, height, new Sampled<>(method, sampleCount));
-        g2.setPaint(Color.BLACK);
-        g2.drawString(val, x, y + height - 1);
-        g2.setClip(null);
-        g2.setPaint(LINK_COLOR);
-        g2.drawRect(x, y, width, height);
-        Map<Method, SampleNode> children = node.getSubNodes();
-        int result = height;
-        if (children != null) {
-            y += height;
-            int relX = x;
-            double scale = (double) width / sampleCount;
-            int maxY = 0;
-            for (Map.Entry<Method, SampleNode> entry : children.entrySet()) {
-                SampleNode cnode = entry.getValue();
-                // sampleCount -> width
-                // childSampleCount -> childWidth
-                int childWidth = (int) (scale * cnode.getSampleCount());
-                if (childWidth > 0) {
-                    maxY = Math.max(maxY, paintNode(entry.getKey(), cnode, g2, relX, y, childWidth, height, depth + 1));
-                    relX += childWidth;
-                }
-            }
-            result += maxY;
+  @Override
+  public int paint(final Graphics2D gr, final double width, final double rowHeight) {
+    return paintNode(method, samples, gr,
+            0, 0, (int) width, (int) rowHeight, 0);
+  }
+
+  @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
+  private int paintNode(final Method method, final SampleNode node,
+          final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
+    int y = py;
+    int sampleCount = node.getSampleCount();
+    String val = method.toString() + '-' + sampleCount;
+    setElementColor(depth, g2);
+    g2.setClip(x, y, width, height);
+    g2.fillRect(x, y, width, height);
+    insert(x, y, width, height, new Sampled<>(Pair.of(method, node), sampleCount));
+    g2.setPaint(Color.BLACK);
+    g2.drawString(val, x, y + height - 1);
+    g2.setClip(null);
+    g2.setPaint(LINK_COLOR);
+    g2.drawRect(x, y, width, height);
+    Map<Method, SampleNode> children = node.getSubNodes();
+    int result = height;
+    if (children != null) {
+      y += height;
+      int relX = x;
+      double scale = (double) width / sampleCount;
+      int maxY = 0;
+      for (Map.Entry<Method, SampleNode> entry : children.entrySet()) {
+        SampleNode cnode = entry.getValue();
+        // sampleCount -> width
+        // childSampleCount -> childWidth
+        int childWidth = (int) (scale * cnode.getSampleCount());
+        if (childWidth > 0) {
+          maxY = Math.max(maxY, paintNode(entry.getKey(), cnode, g2, relX, y, childWidth, height, depth + 1));
+          relX += childWidth;
         }
-        return result;
+      }
+      result += maxY;
     }
+    return result;
+  }
 
-    @Override
-    @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
-    public String getDetail(final Point location) {
-        List<Sampled<Method>> tips = search(location.x, location.y, 0, 0);
-        if (tips.size() >= 1) {
-            final Sampled<Method> m = tips.get(0);
-            return m.getObj().toString() + '-' + m.getNrSamples();
-        } else {
-            return null;
-        }
+  @Override
+  @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
+  public String getDetail(final Point location) {
+    List<Sampled<Pair<Method, SampleNode>>> tips = search(location.x, location.y, 0, 0);
+    if (tips.size() >= 1) {
+      final Sampled<Pair<Method, SampleNode>> m = tips.get(0);
+      return m.getObj().toString() + '-' + m.getNrSamples();
+    } else {
+      return null;
     }
+  }
 
-    @Override
-    public void filter() {
-        List<Sampled<Method>> tips = search(xx, yy, 0, 0);
-        if (tips.size() >= 1) {
-            final Method value = tips.get(0).getObj();
-            samples = samples.filteredBy(new EqualsPredicate<Method>(value));
-            repaint();
-        }
+  @Override
+  public void filter() {
+    List<Sampled<Pair<Method, SampleNode>>> tips = search(xx, yy, 0, 0);
+    if (tips.size() >= 1) {
+      final Method value = tips.get(0).getObj().getFirst();
+      samples = samples.filteredBy(new EqualsPredicate<Method>(value));
+      repaint();
     }
+  }
+
+  @Override
+  public void drill() {
+    List<Sampled<Pair<Method, SampleNode>>> tips = search(xx, yy, 0, 0);
+    if (tips.size() >= 1) {
+      Pair<Method, SampleNode> sample = tips.get(0).getObj();
+      samples = sample.getSecond();
+      method = sample.getFirst();
+      repaint();
+    }
+  }
 
 }

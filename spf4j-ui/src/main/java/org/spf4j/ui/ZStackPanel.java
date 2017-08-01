@@ -55,19 +55,20 @@ import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
  * @author zoly
  */
 @SuppressFBWarnings("SE_BAD_FIELD")
-public final class ZStackPanel extends StackPanelBase {
+public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
 
   private static final long serialVersionUID = 1L;
 
-  private Graph<InvokedMethod, SampleNode.InvocationCount> graph;
   private Graph<InvokedMethod, SampleNode.InvocationCount> completeGraph;
   private Map<InvokedMethod, Rectangle2D> methodLocations;
   private double totalHeight = 0;
+  private InvokedMethod startFrom;
+
 
   public ZStackPanel(final SampleNode samples) {
     super(samples);
     completeGraph = SampleNode.toGraph(samples);
-    graph = null;
+    startFrom = InvokedMethod.ROOT;
   }
 
   @Override
@@ -79,8 +80,8 @@ public final class ZStackPanel extends StackPanelBase {
   private void paintGraph(
           final Graphics2D g2, final int x, final int y, final double areaWidth, final double rowHeight) {
 
-    graph = completeGraph.copy();
-    int rootSamples = graph.getEdges(InvokedMethod.ROOT).getIncomming().keySet().iterator().next().getValue();
+    final Graph<InvokedMethod, SampleNode.InvocationCount> graph = completeGraph.copy();
+    int rootSamples = graph.getEdges(startFrom).getIncomming().keySet().iterator().next().getValue();
     final double pps = areaWidth / rootSamples;
     methodLocations = new HashMap<InvokedMethod, Rectangle2D>();
     final Traversals.TraversalCallback<InvokedMethod, SampleNode.InvocationCount> traversalCallback
@@ -90,7 +91,7 @@ public final class ZStackPanel extends StackPanelBase {
       @Override
       public void handle(final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) {
         if (edges.size() == 1) {
-          if (vertex.equals(InvokedMethod.ROOT)) {
+          if (vertex.equals(startFrom)) {
             int nrSamples = edges.keySet().iterator().next().getValue();
             drawMethod(vertex, nrSamples, (double) x, (double) y, (double) areaWidth,
                     (double) rowHeight);
@@ -219,7 +220,7 @@ public final class ZStackPanel extends StackPanelBase {
       }
     };
 
-    Traversals.customTraverse(graph, InvokedMethod.ROOT, traversalCallback);
+    Traversals.customTraverse(graph, startFrom, traversalCallback);
 
   }
 
@@ -229,13 +230,13 @@ public final class ZStackPanel extends StackPanelBase {
     if (tips.size() >= 1) {
       final Sampled<InvokedMethod> node = tips.get(0);
       final InvokedMethod method = node.getObj();
-      final Map<SampleNode.InvocationCount, InvokedMethod> incomming = graph.getEdges(method).getIncomming();
+      final Map<SampleNode.InvocationCount, InvokedMethod> incomming = completeGraph.getEdges(method).getIncomming();
       StringBuilder sb = new StringBuilder();
       sb.append(method).append('-').append(node.getNrSamples())
               .append("\n invoked from: ");
       appendEdgeInfo(incomming, sb);
       sb.append("\n invoking: ");
-      final Map<SampleNode.InvocationCount, InvokedMethod> outgoing = graph.getEdges(method).getOutgoing();
+      final Map<SampleNode.InvocationCount, InvokedMethod> outgoing = completeGraph.getEdges(method).getOutgoing();
       appendEdgeInfo(outgoing, sb);
       return sb.toString();
     } else {
@@ -258,6 +259,16 @@ public final class ZStackPanel extends StackPanelBase {
     }
   }
 
+  @Override
+  public void drill() {
+    List<Sampled<InvokedMethod>> tips = search(xx, yy, 0, 0);
+    if (tips.size() >= 1) {
+      final InvokedMethod value = tips.get(0).getObj();
+      startFrom = value;
+      repaint();
+    }
+  }
+
   private static void appendEdgeInfo(final Map<SampleNode.InvocationCount, InvokedMethod> incomming,
           final StringBuilder sb) {
     for (Map.Entry<SampleNode.InvocationCount, InvokedMethod> entry : incomming.entrySet()) {
@@ -266,4 +277,6 @@ public final class ZStackPanel extends StackPanelBase {
       sb.append(method).append('-').append(ic).append("; ");
     }
   }
+
+
 }
