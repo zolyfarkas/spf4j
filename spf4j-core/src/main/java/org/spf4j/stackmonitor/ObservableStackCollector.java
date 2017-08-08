@@ -50,7 +50,7 @@ public final class ObservableStackCollector extends AbstractStackCollector {
   private Thread[] requestFor = new Thread[]{};
 
   public ObservableStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
-    this(FastStackCollector.createNameBasedFilter(collectForMain, xtraIgnoredThreads));
+    this(FastStackCollector.createNameBasedFilter(false, collectForMain, xtraIgnoredThreads));
   }
 
   public ObservableStackCollector(final Predicate<Thread> threadFilter) {
