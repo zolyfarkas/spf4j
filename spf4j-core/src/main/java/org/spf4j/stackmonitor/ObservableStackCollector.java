@@ -32,12 +32,12 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 @Beta
@@ -79,7 +79,7 @@ public final class ObservableStackCollector extends AbstractStackCollector {
     int j = 0;
     for (int i = 0; i < nrThreads; i++) {
       Thread th = threads[i];
-      if (ignore != th && !threadFilter.apply(th)) { // not interested in these traces
+      if (ignore != th && !threadFilter.test(th)) { // not interested in these traces
         requestFor[j++] = th;
       }
     }
