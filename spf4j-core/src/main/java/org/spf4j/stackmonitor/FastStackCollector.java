@@ -31,7 +31,6 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.base.Predicate;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
@@ -43,6 +42,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import org.spf4j.base.Throwables;
 
@@ -89,10 +89,16 @@ public final class FastStackCollector extends AbstractStackCollector {
       ignoredThreads.add("main");
     }
     ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));
-
-    return new ThreadNamesPredicate(ignoredThreads, collectRunnableThreadsOnly);
+    if (collectRunnableThreadsOnly) {
+      return new ThreadNamesPredicate(ignoredThreads).or((Thread t) -> Thread.State.RUNNABLE != t.getState());
+    } else {
+      return new ThreadNamesPredicate(ignoredThreads);
+    }
   }
 
+  /**
+   * @param threadFilter when returns true the thread is being ignored
+   */
   public FastStackCollector(final Predicate<Thread> threadFilter) {
     this.threadFilter = threadFilter;
   }
@@ -175,7 +181,7 @@ public final class FastStackCollector extends AbstractStackCollector {
     int j = 0;
     for (int i = 0; i < nrThreads; i++) {
       Thread th = threads[i];
-      if (ignore != th && !threadFilter.apply(th)) { // not interested in these traces
+      if (ignore != th && !threadFilter.test(th)) { // not interested in these traces
         requestFor[j++] = th;
       }
     }
@@ -196,18 +202,14 @@ public final class FastStackCollector extends AbstractStackCollector {
   public static final class ThreadNamesPredicate implements Predicate<Thread> {
 
     private final Set<String> ignoredThreadNames;
-    private final boolean collectRunnableThreadsOnly;
 
-    public ThreadNamesPredicate(final Set<String> ignoredThreadNames,
-                                final boolean collectRunnableThreadsOnly) {
+    public ThreadNamesPredicate(final Set<String> ignoredThreadNames) {
       this.ignoredThreadNames = ignoredThreadNames;
-      this.collectRunnableThreadsOnly = collectRunnableThreadsOnly;
     }
 
     @Override
-    public boolean apply(@Nonnull final Thread input) {
-      return ignoredThreadNames.contains(input.getName())
-          || (collectRunnableThreadsOnly && Thread.State.RUNNABLE != input.getState());
+    public boolean test(@Nonnull final Thread input) {
+      return ignoredThreadNames.contains(input.getName());
     }
   }
 
