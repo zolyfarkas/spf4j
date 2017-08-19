@@ -36,6 +36,13 @@ import java.util.Objects;
 import org.spf4j.base.Method;
 
 /**
+ * Class used in the invocation graph to represent a invoked method.
+ *
+ * for example in the stack:
+ *
+ * C.m1 -> C.m2 -> C.m1 -> C.m3
+ *
+ * C.m1 is invoked recursively and they will be assigned different invocation IDs. (incremental)
  *
  * @author zoly
  */
