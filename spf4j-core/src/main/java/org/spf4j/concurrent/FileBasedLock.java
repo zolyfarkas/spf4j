@@ -32,15 +32,17 @@
 package org.spf4j.concurrent;
 
 import com.google.common.base.Charsets;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -56,14 +58,8 @@ import javax.annotation.WillClose;
  */
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
-  private static final LoadingCache<String, FileBasedLock> FILE_LOCKS =
-          CacheBuilder.newBuilder().weakValues().build(new CacheLoader<String, FileBasedLock>() {
-    @Override
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public FileBasedLock load(final String lockFile) throws IOException {
-      return new FileBasedLock(new File(lockFile));
-    }
-  });
+  private static final Cache<String, FileBasedLock> FILE_LOCKS =
+          CacheBuilder.newBuilder().weakValues().build();
 
   private final RandomAccessFile file;
   private final ReentrantLock jvmLock;
@@ -74,7 +70,12 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     return ThreadLocalRandom.current().nextInt(maxVal);
   }
 
-  private FileBasedLock(final File lockFile) throws IOException {
+  private FileBasedLock(final File lockFile, final FileAttribute<?>... fileAttributes) throws IOException {
+    try {
+      Files.createFile(lockFile.toPath(), fileAttributes);
+    } catch (FileAlreadyExistsException ex) {
+      // file exists, we are ok.
+    }
     file = new RandomAccessFile(lockFile, "rws");
     jvmLock = new ReentrantLock();
     fileLock = null;
@@ -91,10 +92,11 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
    * @return
    * @throws IOException
    */
-  public static FileBasedLock getLock(final File lockFile) throws IOException {
+  public static FileBasedLock getLock(final File lockFile, final FileAttribute<?>... fileAttributes)
+          throws IOException {
     String filePath = lockFile.getCanonicalPath();
     try {
-      return FILE_LOCKS.get(filePath);
+      return FILE_LOCKS.get(filePath, () ->  new FileBasedLock(lockFile, fileAttributes));
     } catch (ExecutionException ex) {
       throw new IOException(ex);
     }
