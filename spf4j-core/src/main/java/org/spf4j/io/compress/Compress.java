@@ -37,6 +37,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -44,7 +45,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -70,46 +70,75 @@ public final class Compress {
   private Compress() {
   }
 
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @return the Path of the compressed file. It will created in the same folder as the input parent.
+   * @throws IOException
+   */
   @Nonnull
-  public static Path zip(final Path fileToCompress) throws IOException {
-    Path parent = fileToCompress.getParent();
+  public static Path zip(final Path fileOrFolderToCompress) throws IOException {
+    Path parent = fileOrFolderToCompress.getParent();
     if (parent == null) {
-      throw new IllegalArgumentException("Not a file: " + fileToCompress);
+      throw new IllegalArgumentException("Not a file: " + fileOrFolderToCompress);
     }
-    Path destFile = parent.resolve(fileToCompress.getFileName() + ".zip");
-    return zip(fileToCompress, destFile);
+    Path destFile = parent.resolve(fileOrFolderToCompress.getFileName() + ".zip");
+    zip(fileOrFolderToCompress, destFile);
+    return destFile;
   }
 
+
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @param destFile the destination zip file.
+   * @throws IOException
+   */
   @Nonnull
-  public static Path zip(final Path fileToCompress, final Path destFile) throws IOException {
-    Path fNamePath = fileToCompress.getFileName();
-    if (fNamePath == null) {
-      throw new IllegalArgumentException("Not a file: " + fileToCompress);
-    }
-    String fileName = fNamePath.toString();
-    Path parent = fileToCompress.getParent();
+  public static void zip(final Path fileOrFolderToCompress, final Path destFile) throws IOException {
+    Path parent = destFile.getParent();
     if (parent == null) {
-      throw new IllegalArgumentException("Not a file: " + fileToCompress);
+      throw new IllegalArgumentException("Parent is null for: " + fileOrFolderToCompress);
     }
-    Path tmpFile = Files.createTempFile(parent, ".", null);
+    Path tmpFile = Files.createTempFile(parent, ".", "tmp");
     try {
+      Path relativePath;
+      if (Files.isDirectory(fileOrFolderToCompress)) {
+        relativePath = fileOrFolderToCompress;
+      } else {
+        relativePath = fileOrFolderToCompress.getParent();
+      }
       try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));
               ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-        ZipEntry ze = new ZipEntry(fileName);
-        zos.putNextEntry(ze);
-        try (InputStream in = new BufferedInputStream(Files.newInputStream(fileToCompress),
-                8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
-          Streams.copy(in, zos);
-        }
+          Files.walk(fileOrFolderToCompress).forEach((path) -> {
+            if (Files.isDirectory(path)) {
+              return;
+            }
+            String fileName = relativePath.relativize(path).toString();
+            try (InputStream in = new BufferedInputStream(Files.newInputStream(path),
+                    8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
+              ZipEntry ze = new ZipEntry(fileName);
+              zos.putNextEntry(ze);
+              Streams.copy(in, zos);
+            } catch (IOException ex) {
+              throw new UncheckedIOException("Error compressing " + path, ex);
+            }
+          });
       }
       Files.move(tmpFile, destFile,
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
       Files.deleteIfExists(tmpFile);
     }
-    return destFile;
   }
 
+  /**
+   * Copy file atomic.
+   * file will be written to a tmp file in the destination folder, and atomically renamed (if file system supports)
+   * @param source
+   * @param destinationFile
+   * @throws IOException
+   */
   public static void copyFileAtomic(final Path source, final Path destinationFile) throws IOException {
     Path parent = destinationFile.getParent();
     if (parent == null) {
@@ -129,11 +158,18 @@ public final class Compress {
     }
   }
 
+
+  /**
+   * Unzip a zip archive to same folder.
+   * @param zipFile
+   * @return list of unzipped files.
+   * @throws IOException
+   */
   @Nonnull
   public static List<Path> unzip(final Path zipFile) throws IOException {
     Path parent = zipFile.getParent();
     if (parent == null) {
-      throw new IllegalArgumentException("File " + zipFile + " is not a zip file");
+      throw new IllegalArgumentException("File " + zipFile + " cannot be unzipped to null parent folder");
     }
     return unzip(zipFile, parent);
   }
@@ -157,7 +193,7 @@ public final class Compress {
     FileSystem zipFs = FileSystems.newFileSystem(URI.create("jar:" + zipFile.toUri().toURL()), Collections.emptyMap());
     try {
       for (Path root : zipFs.getRootDirectories()) {
-        Path dest =  Paths.get(destinationDirectory.toString(), root.toString());
+        Path dest =  destinationDirectory.resolve(root.toString().substring(1));
         Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
           @Override
           public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
@@ -171,7 +207,8 @@ public final class Compress {
           @Override
           public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
                   throws IOException {
-            Path np = dest.resolve(dir.toString());
+            String dirStr = dir.toString();
+            Path np = dest.resolve(dirStr.substring(1));
             Files.createDirectories(np);
             return FileVisitResult.CONTINUE;
           }

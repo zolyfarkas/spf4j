@@ -49,6 +49,28 @@ public class CompressTest {
 
   @Test
   public void testZip() throws IOException {
+    File tmpFolder = Files.createTempDir();
+    File file = File.createTempFile(".bla", ".tmp", tmpFolder);
+    String testStr = "skjfghskjdhgfjgishfgksjhgjkhdskghsfdkjhg";
+    File subFolder = new File(file.getParent(), "subFolder");
+    if (!subFolder.mkdir()) {
+      throw new IOException("Cannot create folder " + subFolder);
+    }
+    File subTestFile = new File(subFolder, "subTestFile.txt");
+    Files.asCharSink(file, Charsets.UTF_8).write(testStr);
+    Files.asCharSink(subTestFile, Charsets.UTF_8).write(testStr);
+    Path zip = Compress.zip(tmpFolder.toPath());
+    Assert.assertThat(zip.getFileName().toString(), Matchers.endsWith(".zip"));
+    Assert.assertTrue(java.nio.file.Files.exists(zip));
+    File tmpFir = Files.createTempDir();
+    List<Path> unzip = Compress.unzip(zip, tmpFir.toPath());
+    Assert.assertEquals(2, unzip.size());
+    Assert.assertEquals(testStr, Files.asCharSource(unzip.get(0).toFile(), Charsets.UTF_8).read());
+    Assert.assertEquals(testStr, Files.asCharSource(unzip.get(1).toFile(), Charsets.UTF_8).read());
+  }
+
+  @Test
+  public void testZip2() throws IOException {
     File file = File.createTempFile(".bla", ".tmp");
     String testStr = "skjfghskjdhgfjgishfgksjhgjkhdskghsfdkjhg";
     Files.write(testStr, file, Charsets.UTF_8);
@@ -60,5 +82,7 @@ public class CompressTest {
     Assert.assertEquals(1, unzip.size());
     Assert.assertEquals(testStr, Files.toString(unzip.get(0).toFile(), Charsets.UTF_8));
   }
+
+
 
 }
