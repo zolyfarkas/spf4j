@@ -167,7 +167,7 @@ public final class SampleNode implements Serializable {
     this.subNodes = subNodes;
   }
 
-  public void addSample(final StackTraceElement[] stackTrace, final int from) {
+  void addSample(final StackTraceElement[] stackTrace, final int from) {
     sampleCount++;
     if (from >= 0) {
       Method method = Method.getMethod(stackTrace[from]);
