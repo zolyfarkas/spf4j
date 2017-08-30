@@ -42,7 +42,11 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -72,9 +76,26 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     return ThreadLocalRandom.current().nextInt(maxVal);
   }
 
-  private FileBasedLock(final File lockFile, final FileAttribute<?>... fileAttributes) throws IOException {
+  private FileBasedLock(final File lockFile, final FileAttribute<?>... fileAttributes)
+          throws IOException {
     try {
-      Files.createFile(lockFile.toPath(), fileAttributes);
+      Path toPath = lockFile.toPath();
+      Files.createFile(toPath, fileAttributes);
+      if (fileAttributes.length > 0) { // create file depending on OS config will not create all requested attributes.
+        Set<PosixFilePermission> permission = EnumSet.noneOf(PosixFilePermission.class);
+        for (FileAttribute<?> attr : fileAttributes) {
+          Object value = attr.value();
+          if (value instanceof Set) {
+            Set set = (Set) value;
+            for (Object obj : set) {
+              if (obj instanceof PosixFilePermission) {
+                permission.add((PosixFilePermission) obj);
+              }
+            }
+          }
+        }
+        Files.setPosixFilePermissions(toPath, permission);
+      }
     } catch (FileAlreadyExistsException ex) {
       // file exists, we are ok.
     }

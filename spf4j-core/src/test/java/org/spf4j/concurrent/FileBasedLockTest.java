@@ -31,6 +31,7 @@
  */
 package org.spf4j.concurrent;
 
+import com.google.common.io.Files;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +39,13 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -149,6 +157,21 @@ public final class FileBasedLockTest {
       Assert.assertTrue(lock2.tryLock(1, TimeUnit.SECONDS));
       lock2.unlock();
       lock.unlock();
+    }
+
+    @Test
+    @SuppressFBWarnings("UAC_UNNECESSARY_API_CONVERSION_FILE_TO_PATH")
+    public void testFileLockPermissions() throws IOException {
+      File tmpDir = Files.createTempDir();
+      Set<PosixFilePermission> reqPermissions = EnumSet.of(PosixFilePermission.GROUP_READ,
+              PosixFilePermission.GROUP_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+      FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(reqPermissions);
+      File file = new File(tmpDir, "file.lock");
+      FileBasedLock lock = FileBasedLock.getLock(file, attr);
+      Assert.assertTrue(lock.tryLock());
+      lock.unlock();
+      Set<PosixFilePermission> actualPermissions = java.nio.file.Files.getPosixFilePermissions(file.toPath());
+      Assert.assertEquals(reqPermissions, actualPermissions);
     }
 
 }
