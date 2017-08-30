@@ -61,6 +61,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
   private static final Cache<String, FileBasedLock> FILE_LOCKS =
           CacheBuilder.newBuilder().weakValues().build();
 
+  public static final FileAttribute<?>[] NO_FILE_ATTRS = new FileAttribute<?>[0];
+
   private final RandomAccessFile file;
   private final ReentrantLock jvmLock;
   private FileLock fileLock;
@@ -100,6 +102,11 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
     } catch (ExecutionException ex) {
       throw new IOException(ex);
     }
+  }
+
+
+  public static FileBasedLock getLock(final File lockFile) throws IOException {
+    return getLock(lockFile, NO_FILE_ATTRS);
   }
 
   @Override
