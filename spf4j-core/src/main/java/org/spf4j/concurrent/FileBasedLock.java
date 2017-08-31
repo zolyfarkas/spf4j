@@ -92,7 +92,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
       // file exists, we are ok.
     }
     if (!isWindows && !requestedPermissions.isEmpty()) { // validate permissions
-      Set<PosixFilePermission> actualPermissions = java.nio.file.Files.getPosixFilePermissions(toPath);
+      Set<PosixFilePermission> actualPermissions = Files.getPosixFilePermissions(toPath);
       if (!requestedPermissions.equals(actualPermissions)) {
         Files.setPosixFilePermissions(toPath, requestedPermissions);
       }
