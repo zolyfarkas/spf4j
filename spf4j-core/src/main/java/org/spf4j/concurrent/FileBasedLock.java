@@ -45,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -78,30 +79,49 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
   private FileBasedLock(final File lockFile, final FileAttribute<?>... fileAttributes)
           throws IOException {
+    Path toPath = lockFile.toPath();
+    Set<PosixFilePermission> requestedPermissions = extractPosixPermissions(fileAttributes);
+    boolean isWindows = org.spf4j.base.Runtime.isWindows();
     try {
-      Path toPath = lockFile.toPath();
-      Files.createFile(toPath, fileAttributes);
-      if (fileAttributes.length > 0) { // create file depending on OS config will not create all requested attributes.
-        Set<PosixFilePermission> permission = EnumSet.noneOf(PosixFilePermission.class);
-        for (FileAttribute<?> attr : fileAttributes) {
-          Object value = attr.value();
-          if (value instanceof Set) {
-            Set set = (Set) value;
-            for (Object obj : set) {
-              if (obj instanceof PosixFilePermission) {
-                permission.add((PosixFilePermission) obj);
-              }
-            }
-          }
-        }
-        Files.setPosixFilePermissions(toPath, permission);
+      if (isWindows && !requestedPermissions.isEmpty()) {
+        Files.createFile(toPath);
+      } else {
+        Files.createFile(toPath, fileAttributes);
       }
     } catch (FileAlreadyExistsException ex) {
       // file exists, we are ok.
     }
+    if (!isWindows && !requestedPermissions.isEmpty()) { // validate permissions
+      Set<PosixFilePermission> actualPermissions = java.nio.file.Files.getPosixFilePermissions(toPath);
+      if (!requestedPermissions.equals(actualPermissions)) {
+        Files.setPosixFilePermissions(toPath, requestedPermissions);
+      }
+    }
+
     file = new RandomAccessFile(lockFile, "rws");
     jvmLock = new ReentrantLock();
     fileLock = null;
+  }
+
+  public static Set<PosixFilePermission> extractPosixPermissions(final FileAttribute<?>[] fileAttributes) {
+    // create file depending on OS config will not create all requested attributes.
+    Set<PosixFilePermission> permissions = null;
+    for (FileAttribute<?> attr : fileAttributes) {
+      Object value = attr.value();
+      if (value instanceof Set) {
+        Set set = (Set) value;
+        for (Object obj : set) {
+          if (obj instanceof PosixFilePermission) {
+            if (permissions == null) {
+              permissions = EnumSet.of((PosixFilePermission) obj);
+            } else {
+              permissions.add((PosixFilePermission) obj);
+            }
+          }
+        }
+      }
+    }
+    return permissions == null ? Collections.EMPTY_SET : permissions;
   }
 
 
