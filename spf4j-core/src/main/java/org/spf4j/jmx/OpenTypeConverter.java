@@ -91,7 +91,7 @@ public final class OpenTypeConverter {
    * returns MXBeanMapping or null if type is not mappable to a OpenType.
    */
   @Nullable
-  static MXBeanMapping getMXBeanMapping(final Class<?> type) {
+  public static MXBeanMapping getMXBeanMapping(final Class<?> type) {
     MXBeanMapping mapping = CACHE.getUnchecked(type);
     return mapping == NULL_MAPPING ? null : mapping;
   }
@@ -100,14 +100,14 @@ public final class OpenTypeConverter {
    * returns MXBeanMapping or null if type is not mappable to a OpenType.
    */
   @Nullable
-  static MXBeanMapping getMXBeanMappingInternal(final Class<?> type) {
+  private static MXBeanMapping getMXBeanMappingInternal(final Class<?> type) {
     try {
       if (SpecificRecordBase.class.isAssignableFrom(type)) {
         try {
           return new SpecificRecordOpenTypeMapping(type,
                   typeFromSpecificRecord((SpecificRecordBase) type.newInstance()));
         } catch (InstantiationException | IllegalAccessException ex) {
-          throw new RuntimeException(ex);
+          throw new UncheckedExecutionException(ex);
         }
       }
       return MXBeanMappingFactory.DEFAULT.mappingForType(type, new MXBeanMappingFactory() {
@@ -118,7 +118,7 @@ public final class OpenTypeConverter {
               return new SpecificRecordOpenTypeMapping(t,
                       typeFromSpecificRecord((SpecificRecordBase) ((Class) t).newInstance()));
             } catch (InstantiationException | IllegalAccessException ex) {
-              throw new RuntimeException(ex);
+              throw new UncheckedExecutionException(ex);
             }
           } else {
             return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);
@@ -136,7 +136,7 @@ public final class OpenTypeConverter {
     return mxBeanMapping == null ? null : mxBeanMapping.getOpenType();
   }
 
-  static CompositeData fromSpecificRecord(final SpecificRecordBase r) throws OpenDataException {
+  private static CompositeData fromSpecificRecord(final SpecificRecordBase r) throws OpenDataException {
     CompositeType ctype = typeFromSpecificRecord(r);
     Schema schema = r.getSchema();
     List<Schema.Field> fields = schema.getFields();
@@ -153,7 +153,7 @@ public final class OpenTypeConverter {
     return new CompositeDataSupport(ctype, names, values);
   }
 
-  static CompositeType typeFromSpecificRecord(final SpecificRecordBase r) {
+  private static CompositeType typeFromSpecificRecord(final SpecificRecordBase r) {
     Schema schema = r.getSchema();
     List<Schema.Field> fields = schema.getFields();
     int size = fields.size();
@@ -174,7 +174,7 @@ public final class OpenTypeConverter {
     }
   }
 
-  static final class SpecificRecordOpenTypeMapping extends MXBeanMapping {
+  private static final class SpecificRecordOpenTypeMapping extends MXBeanMapping {
 
     SpecificRecordOpenTypeMapping(final Type javaType, final OpenType<?> openType) {
       super(javaType, openType);
