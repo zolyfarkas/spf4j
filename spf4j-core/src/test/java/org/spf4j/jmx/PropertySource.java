@@ -40,6 +40,6 @@ public abstract class PropertySource {
     public abstract Object getProperty(final String name);
 
 
-    public abstract void setProperty(final String name, final Object value);
+    public abstract void setProperty(final String name, final String value);
 
 }

@@ -36,13 +36,13 @@ package org.spf4j.jmx;
  * @author zoly
  */
 public interface TestMXBean {
-    
+
     String [] getArray();
-    
+
     String [][] getMatrix();
-    
+
     TestEnum getEnum();
-    
+
     String getStuff();
-    
+
 }

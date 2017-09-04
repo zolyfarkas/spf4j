@@ -48,6 +48,39 @@ import javax.management.ObjectName;
 import org.spf4j.base.Reflections;
 import org.spf4j.base.Strings;
 
+/**
+ * Utility class that allows to easily export via JMX java beans.
+ *
+ * attributes can be exported as simply as:
+ *
+ *       @JmxExport
+ *       public String [][] getMatrix() {
+ *           return matrix.clone();
+ *       }
+ *
+ * for a writable attribute you will need to annotate the setter as well.
+ *
+ * Operations are as simple as:
+ *
+ *       @JmxExport(description = "test operation")
+ *       public String doStuff(@JmxExport(value = "what", description = "some param") final String what,
+ *               final String where) {
+ *           return "Doing " + what + " " + where;
+ *       }
+ *
+ * A object annotated as above can be exported via JMX as simple as Registry.export(object).
+ *
+ * The registry utility also allows you to export the content of a Map as JMX attributes:
+ *
+ * Registry.export("package", "beanName", map);
+ *
+ * OpenType conversions are made for all type where this is doable.
+ * Avro SpecificRecord's are converted to CompositeData Open type.
+ *
+ *
+ * @author Zoltan Farkas
+ */
+
 public final class Registry {
 
   private static final MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();

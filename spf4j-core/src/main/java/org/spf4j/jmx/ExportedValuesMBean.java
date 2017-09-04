@@ -32,6 +32,7 @@
 package org.spf4j.jmx;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.io.InvalidObjectException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -47,6 +48,8 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
 import org.spf4j.base.Reflections;
 
@@ -108,7 +111,11 @@ public final class ExportedValuesMBean implements DynamicMBean {
     if (result == null) {
       throw new AttributeNotFoundException(name);
     }
-    return result.get();
+    try {
+      return result.get();
+    } catch (OpenDataException ex) {
+      throw new UncheckedExecutionException(ex);
+    }
   }
 
   /**
@@ -122,7 +129,13 @@ public final class ExportedValuesMBean implements DynamicMBean {
     if (result == null) {
       throw new AttributeNotFoundException(name);
     }
-    result.set(attribute.getValue());
+    try {
+      result.set(attribute.getValue());
+    } catch (InvalidObjectException ex) {
+      InvalidAttributeValueException tex = new InvalidAttributeValueException("Invalid value " + attribute);
+      tex.addSuppressed(ex);
+      throw tex;
+    }
   }
 
   /**
@@ -132,7 +145,11 @@ public final class ExportedValuesMBean implements DynamicMBean {
   public AttributeList getAttributes(final String[] names) {
     AttributeList list = new AttributeList(names.length);
     for (String name : names) {
-      list.add(new Attribute(name, exportedValues.get(name).get()));
+      try {
+        list.add(new Attribute(name, exportedValues.get(name).get()));
+      } catch (OpenDataException ex) {
+        throw new UncheckedExecutionException(ex);
+      }
     }
     return list;
   }
@@ -149,7 +166,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
         try {
           eval.set(attr.getValue());
           result.add(attr);
-        } catch (InvalidAttributeValueException ex) {
+        } catch (InvalidAttributeValueException | InvalidObjectException ex) {
           throw new UncheckedExecutionException(ex);
         }
       }
@@ -162,7 +179,11 @@ public final class ExportedValuesMBean implements DynamicMBean {
    */
   @Override
   public Object invoke(final String name, final Object[] args, final String[] sig) {
-    return exportedOperations.get(name).invoke(args);
+    try {
+      return exportedOperations.get(name).invoke(args);
+    } catch (OpenDataException | InvalidObjectException ex) {
+      throw new UncheckedExecutionException(ex);
+    }
   }
 
   /**
@@ -196,42 +217,40 @@ public final class ExportedValuesMBean implements DynamicMBean {
     i = 0;
     for (ExportedOperation op : exportedOperations.values()) {
       MBeanParameterInfo[] paramInfos = op.getParameterInfos();
-      operations[i++] = new MBeanOperationInfo(op.getName(), op.getDescription(),
-              paramInfos, op.getReturnType().getName(), MBeanOperationInfo.UNKNOWN);
+      String description = op.getDescription();
+      if (description == null || description.isEmpty()) {
+        description = op.getName();
+      }
+      OpenType<?> openType = OpenTypeConverter.getOpenType(op.getReturnType());
+      operations[i++] = new MBeanOperationInfo(op.getName(), description, paramInfos,
+              op.getReturnType().getName(), 0, openType == null ? null
+                      : new ImmutableDescriptor(new String[]{"openType", "originalType"},
+            new Object[]{openType, op.getReturnType().getName()}));
     }
-    return new MBeanInfo(
-            this.getClass().getName(),
-            "JmxMBean",
-            attrs,
-            null, // constructors
-            operations, // operations
-            null); // notifications
+    return new MBeanInfo(objectName.toString(), "spf4j exported",
+            attrs, null, operations, null);
   }
 
   private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
     final Class<?> oClass = val.getValueClass();
     Class<?> valClass = Reflections.primitiveToWrapper(oClass);
     OpenType openType = OpenTypeConverter.getOpenType(oClass);
-    String type;
-    if (Number.class.isAssignableFrom(valClass)) {
-      type = Number.class.getName();
-    } else if (valClass == Boolean.class || valClass == String.class) {
-      type = valClass.getName();
-    } else if (Enum.class.isAssignableFrom(valClass)) {
-      type = String.class.getName();
-    } else {
-      type = openType.getTypeName();
+    String description = val.getDescription();
+    if (description == null || description.isEmpty()) {
+      description = val.getName();
     }
-
-    return new MBeanAttributeInfo(
+    if (openType != null) {
+      return new OpenMBeanAttributeInfoSupport(val.getName(), description,
+            openType, true, val.isWriteable(), valClass == Boolean.class);
+    } else {
+       return new MBeanAttributeInfo(
             val.getName(),
-            type,
+            oClass.getName(),
             val.getDescription(),
             true, // isReadable
             val.isWriteable(), // isWritable
-            valClass == Boolean.class,
-            new ImmutableDescriptor(new String[]{"openType", "originalType"},
-            new Object[]{openType, oClass.getName()}));
+            valClass == Boolean.class);
+    }
 
   }
 

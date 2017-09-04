@@ -41,7 +41,7 @@ public final class Test implements TestMXBean {
     public String[] getArray() {
         return new String [] {"test1", "test2"};
     }
-    
+
     @Override
     public String getStuff() {
         return "bla";
@@ -56,5 +56,5 @@ public final class Test implements TestMXBean {
     public TestEnum getEnum() {
         return TestEnum.VAL1;
     }
-    
+
 }

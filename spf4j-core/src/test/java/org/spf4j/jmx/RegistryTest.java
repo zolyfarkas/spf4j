@@ -32,6 +32,7 @@
 package org.spf4j.jmx;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import javax.management.AttributeNotFoundException;
@@ -40,11 +41,13 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.JMException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeData;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.base.Reflections;
 import org.spf4j.base.Runtime.Jmx;
 import org.spf4j.base.Throwables;
+import org.spf4j.tsdb2.avro.ColumnDef;
+import org.spf4j.tsdb2.avro.Type;
 
 /**
  *
@@ -126,15 +129,49 @@ public final class RegistryTest {
         }
 
         @JmxExport
+        @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
+        public File getFile() {
+            return new File("/tmp");
+        }
+
+        @JmxExport
         public String getProperty(final String name) {
             return "bla";
         }
 
         @JmxExport
-        public void setProperty(final String name, final Object value) {
+        public void setProperty(final String name, final String value) {
             //do nothing
         }
 
+
+      @JmxExport
+      public ColumnDef getColumnDef() {
+        return ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build();
+      }
+
+      @JmxExport
+      public ColumnDef getColumnDef(final String id) {
+        return ColumnDef.newBuilder().setName(id).setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build();
+      }
+
+      @JmxExport
+      public ColumnDef echo(final ColumnDef id) {
+        return id;
+      }
+
+      @JmxExport(value = "echo2", description = "bla bla bla")
+      public File echo(final File id) {
+        return id;
+      }
+
+
+      @JmxExport
+      public void print(final int nr, final boolean flag, final String bla, final ColumnDef id) {
+        System.out.println(bla + nr + flag + id);
+      }
 
     }
 
@@ -200,6 +237,24 @@ public final class RegistryTest {
         Assert.assertEquals("caca", prop);
         Assert.assertEquals("caca", props.get("propKey"));
 
+        CompositeData cd = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "columnDef");
+        System.out.println("CD=" + cd);
+        Assert.assertEquals("bla", cd.get("name"));
+
+        CompositeData cd2 = (CompositeData) Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "getColumnDef", "bubu");
+        System.out.println("CD2=" + cd2);
+        Assert.assertEquals("bubu", cd2.get("name"));
+
+        CompositeData cd3 = (CompositeData) Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "echo", cd2);
+        System.out.println("CD3=" + cd3);
+        Assert.assertEquals("bubu", cd3.get("name"));
+
+        Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "test", "Test", "print", 3, Boolean.TRUE, "caca", cd2);
+
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "stringVal", "bla bla");
 
@@ -214,6 +269,7 @@ public final class RegistryTest {
         } catch (InvalidAttributeValueException e) {
             Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
         }
+//        Thread.sleep(1000000000);
 
     }
 
@@ -279,7 +335,7 @@ public final class RegistryTest {
     @Test
     public void testClassLocator() throws IOException, InstanceNotFoundException, MBeanException, ReflectionException {
         Registry.export(Jmx.class);
-        Reflections.PackageInfo info = (Reflections.PackageInfo) Client.callOperation(
+        CompositeData info = (CompositeData) Client.callOperation(
                 "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 Jmx.class.getPackage().getName(),
                 Jmx.class.getSimpleName(), "getPackageInfo", Registry.class.getName());

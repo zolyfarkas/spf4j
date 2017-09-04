@@ -29,32 +29,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io;
+package org.spf4j.jmx;
 
-import java.util.function.Function;
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
-
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import java.io.File;
+import org.junit.Assert;
+import org.junit.Test;
+import org.spf4j.tsdb2.avro.ColumnDef;
+import org.spf4j.tsdb2.avro.Type;
 
 /**
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-@ParametersAreNonnullByDefault
-public interface ObjectAppenderSupplier extends Function<Class, ObjectAppender> {
 
-    @Nonnull
-    <T> ObjectAppender<? super T> get(Class<T> type);
 
-    default ObjectAppender apply(Class clasz) {
-      return get(clasz);
-    }
+public class OpenTypeConverterTest {
 
-    ObjectAppenderSupplier TO_STRINGER = new ObjectAppenderSupplier() {
-        @Override
-        public <T> ObjectAppender<T> get(final Class<T> type) {
-            return (ObjectAppender<T>) ObjectAppender.TOSTRING_APPENDER;
-        }
-    };
+
+
+  @Test
+  public void testConverter() {
+    MXBeanMapping mxBeanMapping = OpenTypeConverter.getMXBeanMapping(File.class);
+    Assert.assertNull(mxBeanMapping);
+  }
+
+  @Test
+  public void testConverter2() {
+    MXBeanMapping mxBeanMapping2 = OpenTypeConverter.getMXBeanMapping(ColumnDef[].class);
+    Assert.assertNotNull(mxBeanMapping2);
+  }
 
 }

@@ -31,19 +31,21 @@
  */
 package org.spf4j.jmx;
 
+import java.io.InvalidObjectException;
 import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenDataException;
 
 public interface ExportedValue<T> {
-    
+
     String getName();
-    
+
     String getDescription();
-    
-    T get();
-    
-    void set(T value) throws InvalidAttributeValueException;
-    
+
+    T get() throws OpenDataException;
+
+    void set(T value) throws InvalidAttributeValueException, InvalidObjectException;
+
     boolean isWriteable();
-    
+
     Class<? extends T> getValueClass();
 }

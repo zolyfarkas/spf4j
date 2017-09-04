@@ -31,21 +31,23 @@
  */
 package org.spf4j.jmx;
 
+import java.io.InvalidObjectException;
 import javax.management.MBeanParameterInfo;
+import javax.management.openmbean.OpenDataException;
 
 /**
  *
  * @author zoly
  */
 public interface ExportedOperation {
-        
+
     String getName();
-    
+
     String getDescription();
-    
-    Object invoke(Object[] parameters);
-    
+
+    Object invoke(Object[] parameters) throws OpenDataException, InvalidObjectException;
+
     MBeanParameterInfo[] getParameterInfos();
-    
+
     Class<?> getReturnType();
 }

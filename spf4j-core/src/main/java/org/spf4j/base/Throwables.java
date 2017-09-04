@@ -36,7 +36,6 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayDeque;
@@ -390,12 +389,12 @@ public final class Throwables {
       return;
     }
     if (pInfo.hasInfo()) {
-      URL jarSourceUrl = pInfo.getUrl();
+      String jarSourceUrl = pInfo.getUrl();
       String version = pInfo.getVersion();
       to.append('[');
       if (jarSourceUrl != null) {
         if (detail == PackageDetail.SHORT) {
-          String url = jarSourceUrl.toString();
+          String url = jarSourceUrl;
           int lastIndexOf = url.lastIndexOf('/');
           if (lastIndexOf >= 0) {
             int lpos = url.length() - 1;
@@ -413,7 +412,7 @@ public final class Throwables {
             to.append(url);
           }
         } else {
-          to.append(jarSourceUrl.toString());
+          to.append(jarSourceUrl);
         }
       } else {
         to.append("na");

@@ -525,17 +525,17 @@ public final class Reflections {
 
     private static final long serialVersionUID = 1L;
 
-    private final URL url;
+    private final String url;
     private final String version;
 
     @ConstructorProperties({"url", "version"})
-    public PackageInfo(@Nullable final URL url, @Nullable final String version) {
+    public PackageInfo(@Nullable final String url, @Nullable final String version) {
       this.url = url;
       this.version = version;
     }
 
     @Nullable
-    public URL getUrl() {
+    public String getUrl() {
       return url;
     }
 
@@ -599,7 +599,7 @@ public final class Reflections {
       return NONE;
     }
     String version = aPackage.getImplementationVersion();
-    return new PackageInfo(jarSourceUrl, version);
+    return new PackageInfo(jarSourceUrl == null ? "" : jarSourceUrl.toString(), version);
   }
 
   @Nonnull

@@ -31,13 +31,14 @@
  */
 package org.spf4j.jmx;
 
-import com.google.common.base.Converter;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import java.io.InvalidObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenDataException;
 
 
 /**
@@ -51,7 +52,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
     private final Method setMethod;
     private final Object object;
     private final Class<?> valueClass;
-    private final Converter<Object, Object> converter;
+    private final MXBeanMapping converter;
 
     ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
             @Nullable final Method getMethod, @Nullable final Method setMethod,
@@ -62,14 +63,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
         this.setMethod = setMethod;
         this.object = object;
         this.valueClass = valueClass;
-        if (valueClass == Boolean.class
-                || valueClass == String.class
-                || valueClass.isPrimitive()
-                || Number.class.isAssignableFrom(valueClass)) {
-            this.converter = null;
-        } else {
-            this.converter = OpenTypeConverter.getConverter(valueClass);
-        }
+        this.converter = OpenTypeConverter.getMXBeanMapping(valueClass);
     }
 
     public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
@@ -99,34 +93,36 @@ class ExportedValueImpl implements ExportedValue<Object> {
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-    public Object get() {
+    public Object get() throws OpenDataException {
 
         try {
             if (converter != null) {
-                return converter.reverse().convert(getMethod.invoke(object));
+                return converter.toOpenValue(getMethod.invoke(object));
             } else {
                 return getMethod.invoke(object);
             }
         } catch (IllegalAccessException | InvocationTargetException ex) {
-            throw new UncheckedExecutionException(ex);
+          OpenDataException thr = new OpenDataException("Cannot get " + getMethod);
+          thr.addSuppressed(ex);
+          throw thr;
         }
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
-    public void set(final Object value) throws InvalidAttributeValueException {
+    public void set(final Object value) throws InvalidAttributeValueException, InvalidObjectException {
         if (setMethod == null) {
             throw new InvalidAttributeValueException(name + " is a read only attribute ");
         }
         try {
             if (converter != null) {
-                setMethod.invoke(object, converter.convert(value));
+                setMethod.invoke(object, converter.fromOpenValue(value));
             } else {
                 setMethod.invoke(object, value);
             }
         } catch (IllegalAccessException | InvocationTargetException ex) {
-            throw new UncheckedExecutionException(ex);
+          InvalidObjectException iox = new InvalidObjectException("Cannot set " + value);
+          iox.addSuppressed(ex);
+          throw iox;
         }
     }
 
