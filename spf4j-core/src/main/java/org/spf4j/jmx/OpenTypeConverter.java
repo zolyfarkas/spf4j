@@ -38,7 +38,10 @@ import com.sun.jmx.mbeanserver.MXBeanMapping;
 import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
 import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.openmbean.CompositeData;
@@ -50,11 +53,13 @@ import javax.management.openmbean.SimpleType;
 import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.spf4j.base.Pair;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 /**
- * OpenType conversion utility.
- * right now can deal with JDK + avro stuff, will eventually become extensible with custom type handling.
+ * OpenType conversion utility. right now can deal with JDK + avro stuff, will eventually become extensible with custom
+ * type handling.
+ *
  * @author zoly
  */
 // FB does not like guava Convertere equals/hashcode.
@@ -73,18 +78,50 @@ public final class OpenTypeConverter {
     }
   };
 
+  private static final LoadingCache<Class<?>, MXBeanMapping> CACHE
+          = new UnboundedLoadingCache(16, new CacheLoader<Class<?>, MXBeanMapping>() {
+            @Override
+            public MXBeanMapping load(final Class<?> key) {
+              MXBeanMapping mxBeanMappingInternal = getMXBeanMappingInternal(key);
+              return mxBeanMappingInternal == null ? NULL_MAPPING : mxBeanMappingInternal;
+            }
+          });
 
-  private static final LoadingCache<Class<?>, MXBeanMapping> CACHE =
-          new UnboundedLoadingCache(16, new CacheLoader<Class<?>, MXBeanMapping>() {
-    @Override
-    public MXBeanMapping load(final Class<?> key) {
-      MXBeanMapping mxBeanMappingInternal = getMXBeanMappingInternal(key);
-      return mxBeanMappingInternal == null ? NULL_MAPPING : mxBeanMappingInternal;
-    }
-  });
+  private static final LinkedList<Pair<Class<?>, Function<Class<?>, MXBeanMapping>>> JMX_MAPPERS
+          = new LinkedList<>();
 
+  static {
+    JMX_MAPPERS.add(Pair.of(SpecificRecordBase.class, (clasz)
+            -> {
+      try {
+        return new SpecificRecordOpenTypeMapping(clasz,
+                typeFromSpecificRecord((SpecificRecordBase) clasz.newInstance()));
+      } catch (InstantiationException | IllegalAccessException ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    }));
+  }
 
   private OpenTypeConverter() {
+  }
+
+  public <T> boolean register(final Class<T> type, final Function<Class<?>, MXBeanMapping> mapperSuplier) {
+
+    ListIterator<Pair<Class<?>, Function<Class<?>, MXBeanMapping>>> listIterator = JMX_MAPPERS.listIterator();
+    while (listIterator.hasNext()) {
+      Pair<Class<?>, Function<Class<?>, MXBeanMapping>> next = listIterator.next();
+      final Class<?> nType = next.getFirst();
+      if (nType.isAssignableFrom(type)) {
+        if (nType == type) {
+          return false;
+        }
+        listIterator.previous();
+        listIterator.add((Pair) Pair.of(type, mapperSuplier));
+        return true;
+      }
+    }
+    listIterator.add((Pair) Pair.of(type, mapperSuplier));
+    return true;
   }
 
   /**
@@ -102,27 +139,20 @@ public final class OpenTypeConverter {
   @Nullable
   private static MXBeanMapping getMXBeanMappingInternal(final Class<?> type) {
     try {
-      if (SpecificRecordBase.class.isAssignableFrom(type)) {
-        try {
-          return new SpecificRecordOpenTypeMapping(type,
-                  typeFromSpecificRecord((SpecificRecordBase) type.newInstance()));
-        } catch (InstantiationException | IllegalAccessException ex) {
-          throw new UncheckedExecutionException(ex);
+      for (Pair<Class<?>, Function<Class<?>, MXBeanMapping>> reg : JMX_MAPPERS) {
+        if (reg.getFirst().isAssignableFrom(type)) {
+          return reg.getSecond().apply(type);
         }
       }
       return MXBeanMappingFactory.DEFAULT.mappingForType(type, new MXBeanMappingFactory() {
         @Override
         public MXBeanMapping mappingForType(final Type t, final MXBeanMappingFactory f) throws OpenDataException {
-          if (t instanceof Class && SpecificRecordBase.class.isAssignableFrom((Class) t)) {
-            try {
-              return new SpecificRecordOpenTypeMapping(t,
-                      typeFromSpecificRecord((SpecificRecordBase) ((Class) t).newInstance()));
-            } catch (InstantiationException | IllegalAccessException ex) {
-              throw new UncheckedExecutionException(ex);
+          for (Pair<Class<?>, Function<Class<?>, MXBeanMapping>> reg : JMX_MAPPERS) {
+            if (t instanceof Class && reg.getFirst().isAssignableFrom((Class) t)) {
+              return reg.getSecond().apply((Class) t);
             }
-          } else {
-            return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);
           }
+          return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);
         }
       });
     } catch (OpenDataException ex) {
