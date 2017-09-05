@@ -103,7 +103,8 @@ public final class OpenTypeConverter {
   private OpenTypeConverter() {
   }
 
-  public <T> boolean register(final Class<T> type, final Function<Class<?>, MXBeanMapping> mapperSuplier) {
+  public synchronized <T> boolean register(final Class<T> type,
+          final Function<Class<?>, MXBeanMapping> mapperSuplier) {
 
     ListIterator<Pair<Class<?>, Function<Class<?>, MXBeanMapping>>> listIterator = JMX_MAPPERS.listIterator();
     while (listIterator.hasNext()) {
@@ -135,7 +136,7 @@ public final class OpenTypeConverter {
    * returns MXBeanMapping or null if type is not mappable to a OpenType.
    */
   @Nullable
-  private static MXBeanMapping getMXBeanMappingInternal(final Class<?> type) {
+  private static synchronized MXBeanMapping getMXBeanMappingInternal(final Class<?> type) {
     try {
       for (Pair<Class<?>, Function<Class<?>, MXBeanMapping>> reg : JMX_MAPPERS) {
         if (reg.getFirst().isAssignableFrom(type)) {
