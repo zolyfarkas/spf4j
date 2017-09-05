@@ -36,6 +36,7 @@ import java.io.File;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.tsdb2.avro.ColumnDef;
+import org.spf4j.tsdb2.avro.TableDef;
 import org.spf4j.tsdb2.avro.Type;
 
 /**
@@ -57,6 +58,12 @@ public class OpenTypeConverterTest {
   @Test
   public void testConverter2() {
     MXBeanMapping mxBeanMapping2 = OpenTypeConverter.getMXBeanMapping(ColumnDef[].class);
+    Assert.assertNotNull(mxBeanMapping2);
+  }
+
+    @Test
+  public void testConverter3() {
+    MXBeanMapping mxBeanMapping2 = OpenTypeConverter.getMXBeanMapping(TableDef[].class);
     Assert.assertNotNull(mxBeanMapping2);
   }
 

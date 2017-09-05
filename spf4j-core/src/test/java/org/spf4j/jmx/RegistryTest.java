@@ -34,6 +34,7 @@ package org.spf4j.jmx;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -47,6 +48,7 @@ import org.junit.Test;
 import org.spf4j.base.Runtime.Jmx;
 import org.spf4j.base.Throwables;
 import org.spf4j.tsdb2.avro.ColumnDef;
+import org.spf4j.tsdb2.avro.TableDef;
 import org.spf4j.tsdb2.avro.Type;
 
 /**
@@ -149,6 +151,15 @@ public final class RegistryTest {
       public ColumnDef getColumnDef() {
         return ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                 .setDescription("bla").setUnitOfMeasurement("um").build();
+      }
+
+      @JmxExport
+      public TableDef getTableDef() {
+        return TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
+                .setSampleTime(10)
+                .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build())).build();
+
       }
 
       @JmxExport
