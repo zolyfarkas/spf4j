@@ -62,8 +62,6 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
  *
  * @author zoly
  */
-// FB does not like guava Convertere equals/hashcode.
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("HE_INHERITS_EQUALS_USE_HASHCODE")
 public final class OpenTypeConverter {
 
   private static final MXBeanMapping NULL_MAPPING = new MXBeanMapping(Void.class, SimpleType.VOID) {
