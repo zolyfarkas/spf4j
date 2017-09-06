@@ -31,46 +31,39 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author zoly
- * @param <T> - type of object to append.
+ *
+ * @author Zoltan Farkas
  */
-@ParametersAreNonnullByDefault
-public interface ObjectAppender<T> {
+public class ObjectAppenderTest {
 
-    void append(T object, Appendable appendTo) throws IOException;
+  @Test
+  @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
+  public void testToString() throws IOException {
+    StringBuilder builder = new StringBuilder();
+    ObjectAppender.TOSTRING_APPENDER.append(new Object() {
+      @Override
+      public String toString() {
+        throw new ConcurrentModificationException();
+      }
 
+    }, builder);
+    Assert.assertThat(builder.toString(), Matchers.startsWith("ConcurrentlyModifiedDuringToString"));
+  }
 
-    ObjectAppender<Object> TOSTRING_APPENDER = new ObjectAppender<Object>() {
-        @Override
-        public void append(final Object object, final Appendable appendTo) throws IOException {
-          if (object instanceof CharSequence) {
-            appendTo.append((CharSequence) object);
-          } else {
-            String toString = null;
-            int i = 10;
-            do {
-              try {
-                toString = object.toString();
-              } catch (ConcurrentModificationException ex) {
-                i--;
-              }
-            } while (toString == null && i > 0);
-            if (i != 10) {
-                appendTo.append("ConcurrentlyModifiedDuringToString:");
-            }
-            if (toString == null) {
-              appendTo.append(object.getClass().getName()).append('@')
-                      .append(Integer.toHexString(System.identityHashCode(object)));
-            } else {
-              appendTo.append(toString);
-            }
-          }
-        }
-    };
+  @Test
+  public void testToString2() throws IOException {
+    StringBuilder builder = new StringBuilder();
+    ObjectAppender.TOSTRING_APPENDER.append("bla", builder);
+    Assert.assertEquals("bla", builder.toString());
+  }
+
 
 }
