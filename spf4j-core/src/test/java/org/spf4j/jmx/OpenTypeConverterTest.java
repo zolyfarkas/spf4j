@@ -181,7 +181,7 @@ public class OpenTypeConverterTest {
 
   @Test(expected = NotSerializableException.class)
   public void testConverterMapStrObject2() throws OpenDataException, InvalidObjectException, NotSerializableException {
-    JMXBeanMapping mxBeanMapping2 = conv.get((new TypeToken<Map<String, Object>>() {}).getType());
+    conv.get((new TypeToken<Map<String, Object>>() {}).getType());
   }
 
   @Test

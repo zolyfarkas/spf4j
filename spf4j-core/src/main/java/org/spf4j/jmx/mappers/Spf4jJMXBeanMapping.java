@@ -551,7 +551,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         throw new OpenDataException("Key of " + pt + " cannot be converted to open type");
       }
       this.valueType = mappings.get(argTypes[1]);
-      if (this.valueType == null ) {
+      if (this.valueType == null) {
         throw new OpenDataException("Value of " + pt + " cannot be converted to open type");
       }
 
