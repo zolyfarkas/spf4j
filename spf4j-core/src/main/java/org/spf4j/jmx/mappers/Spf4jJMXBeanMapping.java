@@ -36,6 +36,7 @@ import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
@@ -47,7 +48,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.function.Function;
+import java.util.Properties;
 import javax.annotation.Nullable;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.CompositeData;
@@ -60,7 +61,9 @@ import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
 import javax.management.openmbean.TabularType;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.spf4j.base.Throwables;
 import org.spf4j.jmx.JMXBeanMapping;
+import org.spf4j.jmx.JMXBeanMappingSupplier;
 
 /**
  * Mapping class to improve open type mappings for collections and avro objects.
@@ -87,6 +90,8 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
   private static final String VALUE = "value";
   private static final String[] MAP_INDEX_NAMES = {KEY};
   private static final String[] MAP_ITEM_NAMES = {KEY, VALUE};
+  private static final Type[] STR_STR_TYPES = {String.class, String.class};
+
 
   private boolean isBasicType;
   protected OpenType<?> openType;
@@ -104,8 +109,8 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
   @Nullable
   @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-  static JMXBeanMapping newMappedType(final Type javaType, final Function<Type, JMXBeanMapping> mappings)
-          throws OpenDataException {
+  static JMXBeanMapping newMappedType(final Type javaType, final JMXBeanMappingSupplier mappings)
+          throws OpenDataException, NotSerializableException {
 
     JMXBeanMapping mt = null;
     if (javaType instanceof Class) {
@@ -115,13 +120,23 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       } else if (c.isArray()) {
         mt = new ArrayMXBeanType(c, mappings);
       } else if (SpecificRecordBase.class.isAssignableFrom(c)) {
-        return new SpecificRecordOpenTypeMapping((Class) c, mappings);
-      }  else  {
+        mt = new SpecificRecordOpenTypeMapping((Class) c, mappings);
+      } else if (Properties.class.isAssignableFrom(c)) {
+        mt = new MapMXBeanType(c, mappings);
+      } else  {
         //falling back to MXBeanMappingFactory.DEFAULT
+        try {
         MXBeanMapping mapping = MXBeanMappingFactory.DEFAULT.mappingForType(javaType, new MXBeanMappingFactory() {
           @Override
           public MXBeanMapping mappingForType(final Type t, final MXBeanMappingFactory f) throws OpenDataException {
-            JMXBeanMapping m = mappings.apply(t);
+            JMXBeanMapping m;
+            try {
+              m = mappings.get(t);
+            } catch (NotSerializableException ex) {
+              OpenDataException tex = new OpenDataException(t + " is not seriablizable ");
+              tex.initCause(ex);
+              throw tex;
+            }
             if (m != null) {
               return MXBeanMappings.convert(m);
             }
@@ -129,6 +144,14 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
           }
         });
         mt = MXBeanMappings.convert(mapping);
+        } catch (OpenDataException ex) {
+          NotSerializableException nsex = Throwables.first(ex, NotSerializableException.class);
+          if (nsex != null) {
+            throw nsex;
+          } else {
+            throw ex;
+          }
+        }
       }
     } else if (javaType instanceof ParameterizedType) {
       final ParameterizedType pt = (ParameterizedType) javaType;
@@ -256,10 +279,10 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     protected JMXBeanMapping componentType;
     protected JMXBeanMapping baseElementType;
 
-    ArrayMXBeanType(final Class<?> c, final Function<Type, JMXBeanMapping> mappings)
-            throws OpenDataException {
+    ArrayMXBeanType(final Class<?> c, final JMXBeanMappingSupplier mappings)
+            throws OpenDataException, NotSerializableException {
       this.arrayClass = c;
-      this.componentType = mappings.apply(c.getComponentType());
+      this.componentType = mappings.get(c.getComponentType());
 
       StringBuilder className = new StringBuilder();
       Class<?> et = c;
@@ -268,7 +291,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         className.append('[');
         et = et.getComponentType();
       }
-      baseElementType = mappings.apply(et);
+      baseElementType = mappings.get(et);
       if (et.isPrimitive()) {
         className = new StringBuilder(c.getName());
       } else {
@@ -344,10 +367,10 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
     private final GenericArrayType gtype;
 
-    GenericArrayMXBeanType(final GenericArrayType gat, final Function<Type, JMXBeanMapping> mappings)
-            throws OpenDataException {
+    GenericArrayMXBeanType(final GenericArrayType gat, final JMXBeanMappingSupplier mappings)
+            throws OpenDataException, NotSerializableException {
       this.gtype = gat;
-      this.componentType = mappings.apply(gat.getGenericComponentType());
+      this.componentType = mappings.get(gat.getGenericComponentType());
 
       StringBuilder className = new StringBuilder();
       Type elementType = gat;
@@ -357,7 +380,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         GenericArrayType et = (GenericArrayType) elementType;
         elementType = et.getGenericComponentType();
       }
-      baseElementType = mappings.apply(elementType);
+      baseElementType = mappings.get(elementType);
       if (elementType instanceof Class && ((Class) elementType).isPrimitive()) {
         className = new StringBuilder(gat.toString());
       } else {
@@ -395,8 +418,8 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     private final JMXBeanMapping paramType;
     private final Class<?> rawType;
 
-    ListMXBeanType(final ParameterizedType pt, final Function<Type, JMXBeanMapping> mappings)
-            throws OpenDataException {
+    ListMXBeanType(final ParameterizedType pt, final JMXBeanMappingSupplier mappings)
+            throws OpenDataException, NotSerializableException {
       this.javaType = pt;
       this.rawType = (Class) pt.getRawType();
       final Type[] argTypes = pt.getActualTypeArguments();
@@ -411,7 +434,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         throw new OpenDataException("Element Type for " + pt
                 + " not supported");
       }
-      paramType = mappings.apply(et);
+      paramType = mappings.get(et);
       String cname = "[L" + paramType.getMappedType().getName() + ";";
       try {
         mappedTypeClass = Class.forName(cname);
@@ -485,19 +508,29 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
    */
   private static class MapMXBeanType extends Spf4jJMXBeanMapping {
 
-    private final ParameterizedType javaType;
+    private final Type javaType;
+    private final Class<?> rawType;
     private final JMXBeanMapping keyType;
     private final JMXBeanMapping valueType;
 
-    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
-    MapMXBeanType(final ParameterizedType pt, final Function<Type, JMXBeanMapping> mappings)
-      throws OpenDataException {
+    @SuppressFBWarnings({ "CLI_CONSTANT_LIST_INDEX", "ITC_INHERITANCE_TYPE_CHECKING" })
+    MapMXBeanType(final Type pt, final JMXBeanMappingSupplier mappings)
+      throws OpenDataException, NotSerializableException {
       this.javaType = pt;
 
-      final Type[] argTypes = pt.getActualTypeArguments();
+      final Type[] argTypes;
+      if (pt instanceof ParameterizedType) {
+         argTypes = ((ParameterizedType) pt).getActualTypeArguments();
+         rawType = (Class) ((ParameterizedType) pt).getRawType();
+      } else if (pt instanceof Class && Properties.class.isAssignableFrom((Class) pt)) {
+        argTypes = STR_STR_TYPES;
+        rawType = (Class) pt;
+      } else {
+        throw new OpenDataException("Unsupported type " + pt);
+      }
       assert (argTypes.length == 2);
-      this.keyType = mappings.apply(argTypes[0]);
-      this.valueType = mappings.apply(argTypes[1]);
+      this.keyType = mappings.get(argTypes[0]);
+      this.valueType = mappings.get(argTypes[1]);
 
       // FIXME: generate typeName for generic
       String typeName = pt.getTypeName();
@@ -545,7 +578,6 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
             throws InvalidObjectException {
 
       final TabularData td = (TabularData) data;
-      Class rawType = (Class) javaType.getRawType();
       Map<Object, Object> result;
       if (rawType.isInterface()) {
         result = new HashMap<>();

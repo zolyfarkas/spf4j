@@ -32,6 +32,7 @@
 package org.spf4j.jmx;
 
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -39,6 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 
 
 /**
@@ -63,7 +65,11 @@ class ExportedValueImpl implements ExportedValue<Object> {
         this.setMethod = setMethod;
         this.object = object;
         this.valueClass = valueClass;
+      try {
         this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);
+      } catch (NotSerializableException ex) {
+        throw new UnsupportedOperationException("Unable to export " + getMethod + ", " + setMethod, ex);
+      }
     }
 
     public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
@@ -145,5 +151,10 @@ class ExportedValueImpl implements ExportedValue<Object> {
         return "ExportedValueImpl{" + "name=" + name + ", description=" + description + ", getMethod="
                 + getMethod + ", setMethod=" + setMethod + ", object=" + object + ", valueClass=" + valueClass + '}';
     }
+
+  @Override
+  public OpenType<?> getValueOpenType() {
+      return (converter != null) ? converter.getOpenType() : null;
+  }
 
 }

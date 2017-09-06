@@ -32,6 +32,7 @@
 package org.spf4j.jmx.mappers;
 
 import com.google.common.reflect.TypeToken;
+import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -39,7 +40,6 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
@@ -61,12 +61,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
 import org.spf4j.jmx.JMXBeanMapping;
+import org.spf4j.jmx.JMXBeanMappingSupplier;
 
 
 /**
  * @author Zoltan Farkas
  */
-public final class Spf4jOpenTypeMapper implements Function<Type, JMXBeanMapping> {
+public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
   private static final Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.class);
 
@@ -105,11 +106,11 @@ public final class Spf4jOpenTypeMapper implements Function<Type, JMXBeanMapping>
 
 
   @Override
-  public JMXBeanMapping apply(final Type t) {
+  public JMXBeanMapping get(final Type t) throws NotSerializableException {
     JMXBeanMapping mt = convertedTypes.get(t);
     if (mt == null) {
       try {
-        mt =  Spf4jJMXBeanMapping.newMappedType(t, this::apply);
+        mt =  Spf4jJMXBeanMapping.newMappedType(t, this);
         if (mt == null) {
           mt = JMXBeanMapping.NOMAPPING;
         }
@@ -128,7 +129,7 @@ public final class Spf4jOpenTypeMapper implements Function<Type, JMXBeanMapping>
         LOG.debug("No openType mapping for {}", t);
         return null;
       } else {
-        throw new IllegalArgumentException(t + " must be serializable to be exported via JMX");
+        throw new NotSerializableException(t + " must be serializable to be exported via JMX");
       }
      }
     return mt;

@@ -32,6 +32,7 @@
 package org.spf4j.jmx;
 
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -71,7 +72,11 @@ final class ExportedOperationImpl implements ExportedOperation {
     this.object = object;
     Type[] parameterTypes = method.getGenericParameterTypes();
     Type returnType = method.getGenericReturnType();
-    resultConverter =  GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);
+    try {
+      resultConverter =  GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);
+    } catch (NotSerializableException ex) {
+      throw new UnsupportedOperationException("Cannot export " + method + " returned type not serializable", ex);
+    }
     Annotation[][] parameterAnnotations = method.getParameterAnnotations();
     argConverters = new JMXBeanMapping[parameterTypes.length];
     paramInfos = new MBeanParameterInfo[parameterTypes.length];
@@ -94,10 +99,16 @@ final class ExportedOperationImpl implements ExportedOperation {
         pdesc = name;
       }
       Type parameterType = parameterTypes[i];
-      OpenType<?> openType = GlobalMXBeanMapperSupplier.getOpenType(parameterType);
-      if (openType != null) {
-        paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, openType);
-        argConverters[i] = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);
+
+      JMXBeanMapping paramOTM;
+      try {
+        paramOTM = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);
+      } catch (NotSerializableException ex) {
+        throw new UnsupportedOperationException("Cannot export " + method + " arg " + i + " not serializable", ex);
+      }
+      if (paramOTM != null) {
+        paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, paramOTM.getOpenType());
+        argConverters[i] = paramOTM;
       } else {
         paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);
         argConverters[i] = null;
@@ -152,6 +163,11 @@ final class ExportedOperationImpl implements ExportedOperation {
   public String toString() {
     return "ExportedOperationImpl{" + "name=" + name + ", description=" + description
             + ", method=" + method + ", object=" + object + ", paramInfos=" + Arrays.toString(paramInfos) + '}';
+  }
+
+  @Override
+  public OpenType<?> getReturnOpenType() {
+    return (resultConverter != null) ? resultConverter.getOpenType() : null;
   }
 
 }

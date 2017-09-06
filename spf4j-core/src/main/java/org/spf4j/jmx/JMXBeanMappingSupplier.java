@@ -31,28 +31,24 @@
  */
 package org.spf4j.jmx;
 
-import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
+import java.lang.reflect.Type;
 import javax.annotation.Nullable;
-import javax.management.MBeanParameterInfo;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenType;
 
 /**
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public interface ExportedOperation {
+public interface JMXBeanMappingSupplier {
 
-    String getName();
 
-    String getDescription();
+  /**
+   * Get the open type mapping is available.
+   * @param type
+   * @return null if not open type mapping available.
+   * @throws NotSerializableException when type is detected to not being serializable. (needs to be for JMX)
+   */
+  @Nullable
+  JMXBeanMapping get(Type type) throws NotSerializableException;
 
-    Object invoke(Object[] parameters) throws OpenDataException, InvalidObjectException;
-
-    MBeanParameterInfo[] getParameterInfos();
-
-    Class<?> getReturnType();
-
-    @Nullable
-    OpenType<?> getReturnOpenType();
 }

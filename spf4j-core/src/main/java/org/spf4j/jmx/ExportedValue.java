@@ -33,8 +33,10 @@ package org.spf4j.jmx;
 
 import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
+import javax.annotation.Nullable;
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 
 public interface ExportedValue<T> {
 
@@ -49,4 +51,7 @@ public interface ExportedValue<T> {
     boolean isWriteable();
 
     Type getValueClass();
+
+    @Nullable
+    OpenType<?> getValueOpenType();
 }

@@ -31,8 +31,8 @@
  */
 package org.spf4j.jmx;
 
+import java.io.NotSerializableException;
 import java.lang.reflect.Type;
-import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.openmbean.OpenType;
@@ -46,27 +46,27 @@ public final class GlobalMXBeanMapperSupplier {
 
   private GlobalMXBeanMapperSupplier() { }
 
-  private static Function<Type, JMXBeanMapping> globalInstance = new Spf4jOpenTypeMapper();
+  private static JMXBeanMappingSupplier globalInstance = new Spf4jOpenTypeMapper();
 
-  public static Function<Type, JMXBeanMapping> get() {
+  public static JMXBeanMappingSupplier get() {
     return globalInstance;
   }
 
-  public static Function<Type, JMXBeanMapping> register(final Function<Type, JMXBeanMapping> newMapper) {
-    Function<Type, JMXBeanMapping> existing = globalInstance;
+  public static JMXBeanMappingSupplier register(final JMXBeanMappingSupplier newMapper) {
+    JMXBeanMappingSupplier existing = globalInstance;
     globalInstance = newMapper;
     return existing;
   }
 
 
   @Nullable
-  public static JMXBeanMapping getOpenTypeMapping(@Nonnull final Type type) {
-    return globalInstance.apply(type);
+  public static JMXBeanMapping getOpenTypeMapping(@Nonnull final Type type) throws NotSerializableException {
+    return globalInstance.get(type);
   }
 
   @Nullable
-  public static OpenType<?> getOpenType(@Nonnull final Type type) {
-    JMXBeanMapping mxBeanMapping = get().apply(type);
+  public static OpenType<?> getOpenType(@Nonnull final Type type) throws NotSerializableException {
+    JMXBeanMapping mxBeanMapping = get().get(type);
     return mxBeanMapping == null ? null : mxBeanMapping.getOpenType();
   }
 

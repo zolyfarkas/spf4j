@@ -38,10 +38,11 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.sun.jmx.mbeanserver.MXBeanMapping;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
@@ -50,6 +51,7 @@ import javax.management.openmbean.OpenType;
 import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.spf4j.jmx.JMXBeanMappingSupplier;
 
 /**
  * @author Zoltan Farkas
@@ -57,10 +59,10 @@ import org.apache.avro.specific.SpecificRecordBase;
 @SuppressFBWarnings("SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR")
 public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implements JMXBeanMapping {
 
-  private final Function<Type, JMXBeanMapping> typeMapper;
+  private final JMXBeanMappingSupplier typeMapper;
 
   public SpecificRecordOpenTypeMapping(final Class<? extends SpecificRecordBase> javaType,
-          final Function<Type, JMXBeanMapping> typeMapper) {
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
     super(javaType, typeFromSpecificRecord(javaType, typeMapper));
     this.typeMapper = typeMapper;
   }
@@ -82,9 +84,16 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
       throw oex;
     }
     for (Schema.Field field : rec.getSchema().getFields()) {
-      rec.put(field.pos(),
-             typeMapper.apply(getGenericType(field.schema()))
-                      .fromOpenValue(cd.get(field.name())));
+      Object obj = cd.get(field.name());
+      try {
+        rec.put(field.pos(),
+                typeMapper.get(getGenericType(field.schema()))
+                        .fromOpenValue(obj));
+      } catch (NotSerializableException ex) {
+        InvalidObjectException tex = new InvalidObjectException("Ivalid Object " + obj + " id " + cd);
+        tex.addSuppressed(ex);
+        throw tex;
+      }
     }
     return rec;
   }
@@ -121,8 +130,14 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
   }
 
 
-  private CompositeData fromSpecificRecord(final SpecificRecordBase r) throws OpenDataException {
-    CompositeType ctype = typeFromSpecificRecord(r, typeMapper);
+  private CompositeData fromSpecificRecord(final SpecificRecordBase r)
+          throws OpenDataException {
+    CompositeType ctype;
+    try {
+      ctype = typeFromSpecificRecord(r, typeMapper);
+    } catch (NotSerializableException ex) {
+        throw new UncheckedIOException(ex); //this should never happen
+    }
     Schema schema = r.getSchema();
     List<Schema.Field> fields = schema.getFields();
     int size = fields.size();
@@ -132,14 +147,19 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
       int pos = field.pos();
       names[pos] = field.name();
       Object val = r.get(pos);
-      JMXBeanMapping mapping = typeMapper.apply(getGenericType(field.schema()));
+      JMXBeanMapping mapping;
+      try {
+        mapping = typeMapper.get(getGenericType(field.schema()));
+      } catch (NotSerializableException ex) {
+        throw new UncheckedIOException(ex); //this should never happen
+      }
       values[pos] = mapping.toOpenValue(val);
     }
     return new CompositeDataSupport(ctype, names, values);
   }
 
   private static  CompositeType typeFromSpecificRecord(final Class<? extends SpecificRecordBase> rc,
-          final Function<Type, JMXBeanMapping> typeMapper) {
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
     try {
       return typeFromSpecificRecord(rc.newInstance(), typeMapper);
     } catch (InstantiationException | IllegalAccessException ex) {
@@ -149,7 +169,7 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
 
 
   private static  CompositeType typeFromSpecificRecord(final SpecificRecordBase r,
-          final Function<Type, JMXBeanMapping> typeMapper) {
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
     Schema schema = r.getSchema();
     List<Schema.Field> fields = schema.getFields();
     int size = fields.size();
@@ -160,7 +180,7 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
       int pos = field.pos();
       names[pos] = field.name();
       descriptions[pos] = field.doc();
-      types[pos] = typeMapper.apply(getGenericType(field.schema())).getOpenType();
+      types[pos] = typeMapper.get(getGenericType(field.schema())).getOpenType();
     }
     try {
       return new CompositeType(schema.getFullName(), schema.getDoc(),

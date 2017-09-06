@@ -31,7 +31,12 @@
  */
 package org.spf4j.jmx;
 
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.util.Map;
+import javax.annotation.Nullable;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 
 /**
  *
@@ -39,60 +44,78 @@ import java.util.Map;
  */
 public final class MapExportedValue implements ExportedValue {
 
-    private final Map<String, Object> map;
-    private final Map<String, String> descriptions;
-    private final String name;
+  private final Map<String, Object> map;
+  private final Map<String, String> descriptions;
+  private final String name;
+  private final JMXBeanMapping converter;
 
-    public MapExportedValue(final Map<String, Object> map, final Map<String, String> descriptions,
-            final String name) {
-        this.map = map;
-        this.descriptions = descriptions;
-        this.name = name;
+  public MapExportedValue(final Map<String, Object> map, final Map<String, String> descriptions,
+          final String name, @Nullable final Object value) throws NotSerializableException {
+    this.map = map;
+    this.descriptions = descriptions;
+    this.name = name;
+    if (value == null) {
+      this.converter = null;
+    } else {
+      this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(value.getClass());
     }
+  }
 
+  @Override
+  public String getName() {
+    return name;
+  }
 
-    @Override
-    public String getName() {
-        return name;
+  @Override
+  public String getDescription() {
+    if (descriptions != null) {
+      return descriptions.get(name);
+    } else {
+      return "";
     }
+  }
 
-    @Override
-    public String getDescription() {
-        if (descriptions != null) {
-            return descriptions.get(name);
-        } else {
-            return "";
-        }
+  @Override
+  public Object get() throws OpenDataException {
+    if (converter == null) {
+      return map.get(name);
+    } else {
+      return converter.toOpenValue(map.get(name));
     }
+  }
 
-    @Override
-    public Object get() {
-        return map.get(name);
+  @Override
+  public void set(final Object value) throws InvalidObjectException {
+    if (converter == null) {
+      map.put(name, value);
+    } else {
+      map.put(name, converter.fromOpenValue(value));
     }
+  }
 
-    @Override
-    public void set(final Object value) {
-        map.put(name, value);
-    }
+  @Override
+  public boolean isWriteable() {
+    return true;
+  }
 
-    @Override
-    public boolean isWriteable() {
-        return true;
+  @Override
+  public Class getValueClass() {
+    Object obj = map.get(name);
+    if (obj == null) {
+      return String.class;
+    } else {
+      return obj.getClass();
     }
+  }
 
-    @Override
-    public Class getValueClass() {
-        Object obj = map.get(name);
-        if (obj == null) {
-            return String.class;
-        } else {
-            return obj.getClass();
-        }
-    }
+  @Override
+  public String toString() {
+    return "MapExportedValue{" + "map=" + map + ", descriptions=" + descriptions + ", name=" + name + '}';
+  }
 
-    @Override
-    public String toString() {
-        return "MapExportedValue{" + "map=" + map + ", descriptions=" + descriptions + ", name=" + name + '}';
-    }
+  @Override
+  public OpenType getValueOpenType() {
+    return (converter != null) ? converter.getOpenType() : null;
+  }
 
 }

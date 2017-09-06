@@ -222,7 +222,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
       if (description == null || description.isEmpty()) {
         description = op.getName();
       }
-      OpenType<?> openType = GlobalMXBeanMapperSupplier.getOpenType(op.getReturnType());
+      OpenType<?> openType = op.getReturnOpenType();
       operations[i++] = new MBeanOperationInfo(op.getName(), description, paramInfos,
               op.getReturnType().getName(), 0, openType == null ? null
                       : new ImmutableDescriptor(new String[]{"openType", "originalType"},
@@ -235,7 +235,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
   private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
     final Type oClass = val.getValueClass();
     Class<?> valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;
-    OpenType openType = GlobalMXBeanMapperSupplier.getOpenType(oClass);
+    OpenType openType = val.getValueOpenType();
     String description = val.getDescription();
     if (description == null || description.isEmpty()) {
       description = val.getName();

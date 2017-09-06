@@ -32,6 +32,7 @@
 package org.spf4j.jmx;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.NotSerializableException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -179,8 +180,13 @@ public final class Registry {
     ExportedValuesMBean existing = (ExportedValuesMBean) unregister(objectName);
     Map<String, ExportedValue> exportedAttributes = new HashMap<>();
     if (attributes != null) {
-      for (String attrName : attributes.keySet()) {
-        exportedAttributes.put(attrName, new MapExportedValue(attributes, null, attrName));
+      for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+        String key = entry.getKey();
+        try {
+          exportedAttributes.put(key, new MapExportedValue(attributes, null, key, entry.getValue()));
+        } catch (NotSerializableException ex) {
+          throw new UnsupportedOperationException("Unable to export map entry via JMX: " + entry, ex);
+        }
       }
     }
     Map<String, ExportedOperationImpl> exportedOps = new HashMap<>();
