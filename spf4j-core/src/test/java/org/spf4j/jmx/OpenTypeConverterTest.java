@@ -120,10 +120,9 @@ public class OpenTypeConverterTest {
     mxBeanMapping2.fromOpenValue(ov);
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testConverterFuture() throws OpenDataException, InvalidObjectException {
-    JMXBeanMapping mxBeanMapping2 = conv.apply((new TypeToken<Future<Integer>>() {}).getType());
-    Assert.assertNotNull(mxBeanMapping2);
+    conv.apply((new TypeToken<Future<Integer>>() {}).getType());
   }
 
 

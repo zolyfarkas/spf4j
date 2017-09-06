@@ -31,6 +31,8 @@
  */
 package org.spf4j.jmx.mappers;
 
+import com.google.common.reflect.TypeToken;
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -113,14 +115,22 @@ public final class Spf4jOpenTypeMapper implements Function<Type, JMXBeanMapping>
         }
         convertedTypes.put(t, mt);
       } catch (OpenDataException ex) {
-        LOG.debug("No openType for {}", t, ex);
-        return null;
+        mt = JMXBeanMapping.NOMAPPING;
       }
     }
     if (mt != JMXBeanMapping.NOMAPPING && mt.getOpenType() == Spf4jJMXBeanMapping.IN_PROGRESS) {
       LOG.debug("No openType for {}, recursive data structure", t);
       return null;
     }
+    if (mt == JMXBeanMapping.NOMAPPING) {
+      TypeToken<?> tt = TypeToken.of(t);
+      if (tt.isSubtypeOf(Serializable.class)) {
+        LOG.debug("No openType mapping for {}", t);
+        return null;
+      } else {
+        throw new IllegalArgumentException(t + " must be serializable to be exported via JMX");
+      }
+     }
     return mt;
   }
 

@@ -81,6 +81,10 @@ public interface JMXBeanMapping {
   OpenType<?> getOpenType();
 
 
+  /**
+   * A type where the open type class and the java class are the same.
+   * @return
+   */
   default boolean isSimpleType() {
     return getOpenType() instanceof SimpleType;
   }

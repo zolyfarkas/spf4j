@@ -57,6 +57,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Iterables;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -261,7 +262,16 @@ public final class JdbcHeartBeat implements AutoCloseable {
     }, timeoutSeconds, TimeUnit.SECONDS);
   }
 
-  @JmxExport(description = "Remove all dead hearbeat rows async")
+  @JmxExport(value = "removeDeadHeartBeatRowsAsync", description = "Remove all dead hearbeat rows async")
+  public void removeDeadHeartBeatRowsAsyncNoReturn(@JmxExport("timeoutSeconds") final int timeoutSeconds) {
+    DefaultExecutor.INSTANCE.execute(new AbstractRunnable(true) {
+      @Override
+      public void doRun() throws SQLException, InterruptedException {
+        removeDeadHeartBeatRows(timeoutSeconds);
+      }
+    });
+  }
+
   public Future<Integer> removeDeadHeartBeatRowsAsync(final int timeoutSeconds) {
     return DefaultExecutor.INSTANCE.submit(() -> removeDeadHeartBeatRows(timeoutSeconds));
   }
