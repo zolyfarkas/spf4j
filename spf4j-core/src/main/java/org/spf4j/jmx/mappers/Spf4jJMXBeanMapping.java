@@ -127,34 +127,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       } else if (Map.class.isAssignableFrom(c)) {
         return null;
       } else  {
-        //falling back to MXBeanMappingFactory.DEFAULT
-        try {
-        MXBeanMapping mapping = MXBeanMappingFactory.DEFAULT.mappingForType(javaType, new MXBeanMappingFactory() {
-          @Override
-          public MXBeanMapping mappingForType(final Type t, final MXBeanMappingFactory f) throws OpenDataException {
-            JMXBeanMapping m;
-            try {
-              m = mappings.get(t);
-            } catch (NotSerializableException ex) {
-              OpenDataException tex = new OpenDataException(t + " is not seriablizable ");
-              tex.initCause(ex);
-              throw tex;
-            }
-            if (m != null) {
-              return MXBeanMappings.convert(m);
-            }
-            return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);
-          }
-        });
-        mt = MXBeanMappings.convert(mapping);
-        } catch (OpenDataException ex) {
-          NotSerializableException nsex = Throwables.first(ex, NotSerializableException.class);
-          if (nsex != null) {
-            throw nsex;
-          } else {
-            throw ex;
-          }
-        }
+        mt = defaultHandler(javaType, mappings);
       }
     } else if (javaType instanceof ParameterizedType) {
       final ParameterizedType pt = (ParameterizedType) javaType;
@@ -165,17 +138,53 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
           mt = new ListMXBeanType(pt, mappings);
         } else if (Map.class.isAssignableFrom(rc)) {
           mt = new MapMXBeanType(pt, mappings);
+        } else if (Map.Entry.class.isAssignableFrom(rc)) {
+          mt = new MapEntryOpenTypeMapping(pt, mappings);
         } else {
-          mt = null;
+          mt = defaultHandler(javaType, mappings);
         }
       } else {
-        mt = null;
+        mt = defaultHandler(javaType, mappings);
       }
     } else if (javaType instanceof GenericArrayType) {
       final GenericArrayType t = (GenericArrayType) javaType;
       mt = new GenericArrayMXBeanType(t, mappings);
+    } else {
+      mt = defaultHandler(javaType, mappings);
     }
     return mt;
+  }
+
+  public static JMXBeanMapping defaultHandler(final Type javaType, final JMXBeanMappingSupplier mappings)
+          throws OpenDataException, NotSerializableException {
+    //falling back to MXBeanMappingFactory.DEFAULT
+    try {
+      MXBeanMapping mapping = MXBeanMappingFactory.DEFAULT.mappingForType(javaType, new MXBeanMappingFactory() {
+        @Override
+        public MXBeanMapping mappingForType(final Type t, final MXBeanMappingFactory f) throws OpenDataException {
+          JMXBeanMapping m;
+          try {
+            m = mappings.get(t);
+          } catch (NotSerializableException ex) {
+            OpenDataException tex = new OpenDataException(t + " is not seriablizable ");
+            tex.initCause(ex);
+            throw tex;
+          }
+          if (m != null) {
+            return MXBeanMappings.convert(m);
+          }
+          return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);
+        }
+      });
+     return MXBeanMappings.convert(mapping);
+    } catch (OpenDataException ex) {
+      NotSerializableException nsex = Throwables.first(ex, NotSerializableException.class);
+      if (nsex != null) {
+        throw nsex;
+      } else {
+        throw ex;
+      }
+    }
   }
 
   // basic types do not require data mapping

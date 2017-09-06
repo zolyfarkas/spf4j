@@ -31,10 +31,11 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.beans.ConstructorProperties;
 import java.io.Serializable;
 
 /**
- *
  * @author zoly
  */
 public final class ComparablePair<A extends Comparable & Serializable, B extends Comparable & Serializable>
@@ -43,18 +44,19 @@ public final class ComparablePair<A extends Comparable & Serializable, B extends
 
     private static final long serialVersionUID = 1L;
 
+    @ConstructorProperties({"first", "second"})
     public ComparablePair(final A first, final B second) {
         super(first, second);
     }
-    
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER")
+
+    @SuppressFBWarnings("UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER")
     public static <A extends Comparable & Serializable, B extends Comparable & Serializable>
                     ComparablePair<A, B> of(final A first, final B second) {
         return new ComparablePair<>(first, second);
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings
+    @SuppressFBWarnings
     public int compareTo(final ComparablePair<A, B> o) {
         if (this.first.equals(o.first)) {
             return this.second.compareTo(o.second);
@@ -62,5 +64,5 @@ public final class ComparablePair<A extends Comparable & Serializable, B extends
             return this.first.compareTo(o.first);
         }
     }
-    
+
 }

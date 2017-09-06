@@ -49,7 +49,7 @@ public class SerializablePair<A extends Serializable, B extends Serializable>
         super(first, second);
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER")
+    @SuppressFBWarnings("UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER")
     public static <A extends Serializable, B extends Serializable>
             SerializablePair<A, B> of(final A first, final B second) {
         return new SerializablePair<>(first, second);
