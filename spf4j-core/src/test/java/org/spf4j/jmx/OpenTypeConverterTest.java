@@ -38,7 +38,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
+import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -84,7 +86,7 @@ public class OpenTypeConverterTest {
   }
 
   @Test
-  public void testConverter3() throws OpenDataException, NotSerializableException {
+  public void testConverterAvroArray() throws OpenDataException, NotSerializableException {
     JMXBeanMapping mxBeanMapping2 = conv.get(TableDef[].class);
     Assert.assertNotNull(mxBeanMapping2);
     Object toOpenValue = mxBeanMapping2.toOpenValue(new TableDef[] {
@@ -111,6 +113,23 @@ public class OpenTypeConverterTest {
     System.out.println(fromOpenValue);
     Assert.assertTrue("must be set, not " + fromOpenValue.getClass(), fromOpenValue instanceof Set);
   }
+
+  @Test
+  public void testConverterIterable() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping mxBeanMapping2 = conv.get((new TypeToken<Iterable<TableDef>>() {}).getType());
+    Assert.assertNotNull(mxBeanMapping2);
+    Object toOpenValue = mxBeanMapping2.toOpenValue(ImmutableSet.of(
+      TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
+              .setSampleTime(10)
+              .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                      .setDescription("bla").setUnitOfMeasurement("um").build())).build()
+    ));
+    System.out.println(toOpenValue);
+    Object fromOpenValue = mxBeanMapping2.fromOpenValue(toOpenValue);
+    System.out.println(fromOpenValue);
+    Assert.assertTrue("must be Iterable, not " + fromOpenValue.getClass(), fromOpenValue instanceof Iterable);
+  }
+
 
   @Test
   public void testConverterList() throws OpenDataException, InvalidObjectException, NotSerializableException {
@@ -154,5 +173,21 @@ public class OpenTypeConverterTest {
     Assert.assertEquals(props, properties);
   }
 
+  @Test
+  public void testConverterMapStrObject() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping mxBeanMapping2 = conv.get((new TypeToken<Map<String, ? extends Serializable>>() {}).getType());
+    Assert.assertNull(mxBeanMapping2);
+  }
+
+  @Test(expected = NotSerializableException.class)
+  public void testConverterMapStrObject2() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping mxBeanMapping2 = conv.get((new TypeToken<Map<String, Object>>() {}).getType());
+  }
+
+  @Test
+  public void testConverterMapStrObject3() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping mxBeanMapping2 = conv.get(Map.class);
+    Assert.assertNull(mxBeanMapping2);
+  }
 
 }

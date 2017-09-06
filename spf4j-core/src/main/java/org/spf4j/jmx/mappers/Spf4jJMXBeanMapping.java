@@ -42,12 +42,13 @@ import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import javax.management.openmbean.ArrayType;
@@ -123,6 +124,8 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         mt = new SpecificRecordOpenTypeMapping((Class) c, mappings);
       } else if (Properties.class.isAssignableFrom(c)) {
         mt = new MapMXBeanType(c, mappings);
+      } else if (Map.class.isAssignableFrom(c)) {
+        return null;
       } else  {
         //falling back to MXBeanMappingFactory.DEFAULT
         try {
@@ -158,11 +161,15 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       final Type rawType = pt.getRawType();
       if (rawType instanceof Class) {
         final Class<?> rc = (Class<?>) rawType;
-        if (Collection.class.isAssignableFrom(rc)) {
+        if (Iterable.class.isAssignableFrom(rc)) {
           mt = new ListMXBeanType(pt, mappings);
         } else if (Map.class.isAssignableFrom(rc)) {
           mt = new MapMXBeanType(pt, mappings);
+        } else {
+          mt = null;
         }
+      } else {
+        mt = null;
       }
     } else if (javaType instanceof GenericArrayType) {
       final GenericArrayType t = (GenericArrayType) javaType;
@@ -454,15 +461,25 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
     @Override
     public Object toOpenValue(final Object data) throws OpenDataException {
-      final Collection<Object> list = (Collection<Object>) data;
+      if (data instanceof Collection) {
+        final Collection<Object> list = (Collection<Object>) data;
+        final Object[] openArray = (Object[]) Array.newInstance(paramType.getMappedType(),
+                list.size());
+        int i = 0;
+        for (Object o : list) {
+          openArray[i++] = paramType.toOpenValue(o);
+        }
+        return openArray;
+      } else {
+        final Iterable<Object> list = (Iterable<Object>) data;
+        List result = new ArrayList();
+        for (Object o : list) {
+          result.add(paramType.toOpenValue(o));
+        }
+        return result.toArray((Object[]) Array.newInstance(paramType.getMappedType(),
+                result.size()));
 
-      final Object[] openArray = (Object[]) Array.newInstance(paramType.getMappedType(),
-              list.size());
-      int i = 0;
-      for (Object o : list) {
-        openArray[i++] = paramType.toOpenValue(o);
       }
-      return openArray;
     }
 
     @Override
@@ -530,7 +547,13 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       }
       assert (argTypes.length == 2);
       this.keyType = mappings.get(argTypes[0]);
+      if (this.keyType == null) {
+        throw new OpenDataException("Key of " + pt + " cannot be converted to open type");
+      }
       this.valueType = mappings.get(argTypes[1]);
+      if (this.valueType == null ) {
+        throw new OpenDataException("Value of " + pt + " cannot be converted to open type");
+      }
 
       // FIXME: generate typeName for generic
       String typeName = pt.getTypeName();
