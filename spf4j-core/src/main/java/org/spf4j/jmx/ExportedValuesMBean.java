@@ -33,6 +33,7 @@ package org.spf4j.jmx;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.InvalidObjectException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -221,7 +222,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
       if (description == null || description.isEmpty()) {
         description = op.getName();
       }
-      OpenType<?> openType = OpenTypeConverter.getOpenType(op.getReturnType());
+      OpenType<?> openType = GlobalMXBeanMapperSupplier.getOpenType(op.getReturnType());
       operations[i++] = new MBeanOperationInfo(op.getName(), description, paramInfos,
               op.getReturnType().getName(), 0, openType == null ? null
                       : new ImmutableDescriptor(new String[]{"openType", "originalType"},
@@ -232,9 +233,9 @@ public final class ExportedValuesMBean implements DynamicMBean {
   }
 
   private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
-    final Class<?> oClass = val.getValueClass();
-    Class<?> valClass = Reflections.primitiveToWrapper(oClass);
-    OpenType openType = OpenTypeConverter.getOpenType(oClass);
+    final Type oClass = val.getValueClass();
+    Class<?> valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;
+    OpenType openType = GlobalMXBeanMapperSupplier.getOpenType(oClass);
     String description = val.getDescription();
     if (description == null || description.isEmpty()) {
       description = val.getName();
@@ -245,7 +246,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
     } else {
        return new MBeanAttributeInfo(
             val.getName(),
-            oClass.getName(),
+            oClass.getTypeName(),
             val.getDescription(),
             true, // isReadable
             val.isWriteable(), // isWritable

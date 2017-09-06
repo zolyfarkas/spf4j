@@ -31,10 +31,13 @@
  */
 package org.spf4j.jmx;
 
+import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -170,6 +173,36 @@ public final class RegistryTest {
 
       @JmxExport
       public ColumnDef echo(final ColumnDef id) {
+        return id;
+      }
+
+      @JmxExport
+      public List<ColumnDef> echoX(final List<ColumnDef> id) {
+        return id;
+      }
+
+      @JmxExport
+      @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+      public List<ColumnDef> getListAttr() {
+        return Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build(),
+                ColumnDef.newBuilder().setName("bla2").setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build());
+      }
+
+
+      @JmxExport
+      @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+      public Map<String, ColumnDef> getMapAttr() {
+        return ImmutableMap.of("k1", ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build(),
+               "K2",
+                ColumnDef.newBuilder().setName("bla2").setType(Type.LONG)
+                .setDescription("bla").setUnitOfMeasurement("um").build());
+      }
+
+      @JmxExport
+      public Map<String, ColumnDef> echoXY(final Map<String, ColumnDef> id) {
         return id;
       }
 

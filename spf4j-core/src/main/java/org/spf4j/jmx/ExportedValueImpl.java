@@ -31,10 +31,10 @@
  */
 package org.spf4j.jmx;
 
-import com.sun.jmx.mbeanserver.MXBeanMapping;
 import java.io.InvalidObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.management.InvalidAttributeValueException;
@@ -51,19 +51,19 @@ class ExportedValueImpl implements ExportedValue<Object> {
     private final Method getMethod;
     private final Method setMethod;
     private final Object object;
-    private final Class<?> valueClass;
-    private final MXBeanMapping converter;
+    private final Type valueClass;
+    private final JMXBeanMapping converter;
 
     ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
             @Nullable final Method getMethod, @Nullable final Method setMethod,
-            @Nullable final Object object, @Nonnull final Class<?> valueClass) {
+            @Nullable final Object object, @Nonnull final Type valueClass) {
         this.name = name;
         this.description = description;
         this.getMethod = getMethod;
         this.setMethod = setMethod;
         this.object = object;
         this.valueClass = valueClass;
-        this.converter = OpenTypeConverter.getMXBeanMapping(valueClass);
+        this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);
     }
 
     public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
@@ -132,7 +132,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
     }
 
     @Override
-    public Class<? extends Object> getValueClass() {
+    public Type getValueClass() {
         return valueClass;
     }
 

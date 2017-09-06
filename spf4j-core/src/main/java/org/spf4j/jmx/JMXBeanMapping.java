@@ -33,20 +33,85 @@ package org.spf4j.jmx;
 
 import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
-import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 
-public interface ExportedValue<T> {
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public interface JMXBeanMapping {
 
-    String getName();
+  /**
+   * convert from open value.
+   * @param openValue
+   * @return
+   */
+  Object fromOpenValue(Object openValue) throws InvalidObjectException;
 
-    String getDescription();
+  /**
+   * convert to open value.
+   * @param javaValue
+   * @return
+   */
+  Object toOpenValue(Object javaValue) throws OpenDataException;
 
-    T get() throws OpenDataException;
+  /**
+   * <p>
+   * The Java type the open type mapping is mapped to</p>
+   *
+   * @return the Java type that the open type mapping is mapped to.
+   */
+  Type getJavaType();
 
-    void set(T value) throws InvalidAttributeValueException, InvalidObjectException;
+  /**
+   * Jet the mapped java type.
+   * @return
+   */
+  Class<?> getMappedType();
 
-    boolean isWriteable();
 
-    Type getValueClass();
+  /**
+   * <p>
+   * The Open Type.</p>
+   *
+   * @return the Open Type.
+   */
+  OpenType<?> getOpenType();
+
+
+  default boolean isSimpleType() {
+    return getOpenType() instanceof SimpleType;
+  }
+
+
+  JMXBeanMapping NOMAPPING = new JMXBeanMapping() {
+    @Override
+    public Object fromOpenValue(final Object openValue) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object toOpenValue(final Object javaValue) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Type getJavaType() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OpenType<?> getOpenType() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Class<?> getMappedType() {
+      throw new UnsupportedOperationException();
+    }
+
+  };
+
 }

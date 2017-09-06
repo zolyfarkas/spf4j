@@ -31,10 +31,21 @@
  */
 package org.spf4j.jmx;
 
-import com.sun.jmx.mbeanserver.MXBeanMapping;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
+import java.io.InvalidObjectException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import javax.management.openmbean.OpenDataException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
 import org.spf4j.tsdb2.avro.Type;
@@ -44,27 +55,90 @@ import org.spf4j.tsdb2.avro.Type;
  * @author Zoltan Farkas
  */
 
-
+@SuppressFBWarnings({ "SE_BAD_FIELD_INNER_CLASS", "SIC_INNER_SHOULD_BE_STATIC_ANON" })
 public class OpenTypeConverterTest {
 
-
+  private final Spf4jOpenTypeMapper conv = new Spf4jOpenTypeMapper();
 
   @Test
   public void testConverter() {
-    MXBeanMapping mxBeanMapping = OpenTypeConverter.getMXBeanMapping(File.class);
+    JMXBeanMapping mxBeanMapping = conv.apply(File.class);
     Assert.assertNull(mxBeanMapping);
   }
 
   @Test
   public void testConverter2() {
-    MXBeanMapping mxBeanMapping2 = OpenTypeConverter.getMXBeanMapping(ColumnDef[].class);
+    JMXBeanMapping mxBeanMapping2 = conv.apply(ColumnDef[].class);
     Assert.assertNotNull(mxBeanMapping2);
   }
 
-    @Test
-  public void testConverter3() {
-    MXBeanMapping mxBeanMapping2 = OpenTypeConverter.getMXBeanMapping(TableDef[].class);
+  @Test
+  public void testConverterPrimArray() throws OpenDataException, InvalidObjectException {
+    JMXBeanMapping mxBeanMapping2 = conv.apply(int[].class);
     Assert.assertNotNull(mxBeanMapping2);
+    Object obj = mxBeanMapping2.toOpenValue(new int [] {1, 2, 3});
+    Object fromOpenValue = mxBeanMapping2.fromOpenValue(obj);
+    Assert.assertArrayEquals(new int [] {1, 2, 3}, (int[]) fromOpenValue);
+  }
+
+  @Test
+  public void testConverter3() throws OpenDataException {
+    JMXBeanMapping mxBeanMapping2 = conv.apply(TableDef[].class);
+    Assert.assertNotNull(mxBeanMapping2);
+    Object toOpenValue = mxBeanMapping2.toOpenValue(new TableDef[] {
+      TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
+              .setSampleTime(10)
+              .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                      .setDescription("bla").setUnitOfMeasurement("um").build())).build()
+    });
+    System.out.println(toOpenValue);
+  }
+
+  @Test
+  public void testConverterSet() throws OpenDataException, InvalidObjectException {
+    JMXBeanMapping mxBeanMapping2 = conv.apply((new TypeToken<Set<TableDef>>() {}).getType());
+    Assert.assertNotNull(mxBeanMapping2);
+    Object toOpenValue = mxBeanMapping2.toOpenValue(ImmutableSet.of(
+      TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
+              .setSampleTime(10)
+              .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                      .setDescription("bla").setUnitOfMeasurement("um").build())).build()
+    ));
+    System.out.println(toOpenValue);
+    Object fromOpenValue = mxBeanMapping2.fromOpenValue(toOpenValue);
+    System.out.println(fromOpenValue);
+    Assert.assertTrue("must be set, not " + fromOpenValue.getClass(), fromOpenValue instanceof Set);
+  }
+
+  @Test
+  public void testConverterList() throws OpenDataException, InvalidObjectException {
+    JMXBeanMapping mxBeanMapping2 = conv.apply((new TypeToken<List<ColumnDef>>() {}).getType());
+    Assert.assertNotNull(mxBeanMapping2);
+    Object ov = mxBeanMapping2.toOpenValue(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+            .setDescription("bla").setUnitOfMeasurement("um").build()));
+    System.out.println(ov);
+    mxBeanMapping2.fromOpenValue(ov);
+  }
+
+  @Test
+  public void testConverterFuture() throws OpenDataException, InvalidObjectException {
+    JMXBeanMapping mxBeanMapping2 = conv.apply((new TypeToken<Future<Integer>>() {}).getType());
+    Assert.assertNotNull(mxBeanMapping2);
+  }
+
+
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testConverterMap() throws OpenDataException, InvalidObjectException {
+    JMXBeanMapping mxBeanMapping2 = conv.apply((new TypeToken<Map<String, ColumnDef>>() {}).getType());
+    Assert.assertNotNull(mxBeanMapping2);
+    Object ov = mxBeanMapping2.toOpenValue(ImmutableMap.of("k1", ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+            .setDescription("bla").setUnitOfMeasurement("um").build(),
+            "K2",
+            ColumnDef.newBuilder().setName("bla2").setType(Type.LONG)
+                    .setDescription("bla").setUnitOfMeasurement("um").build()));
+    System.out.println(ov);
+    mxBeanMapping2.fromOpenValue(ov);
   }
 
 }

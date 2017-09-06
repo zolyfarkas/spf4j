@@ -31,18 +31,17 @@
  */
 package org.spf4j.jmx;
 
-import com.sun.jmx.mbeanserver.MXBeanMapping;
 import java.io.InvalidObjectException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import javax.management.MBeanParameterInfo;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.OpenType;
-import org.spf4j.base.Reflections;
 
 /**
  *
@@ -60,9 +59,9 @@ final class ExportedOperationImpl implements ExportedOperation {
 
   private final MBeanParameterInfo[] paramInfos;
 
-  private final MXBeanMapping[] argConverters;
+  private final JMXBeanMapping[] argConverters;
 
-  private final MXBeanMapping resultConverter;
+  private final JMXBeanMapping resultConverter;
 
   ExportedOperationImpl(final String name, final String description,
           final Method method, final Object object) {
@@ -70,11 +69,11 @@ final class ExportedOperationImpl implements ExportedOperation {
     this.description = description;
     this.method = method;
     this.object = object;
-    Class<?>[] parameterTypes = Reflections.getParameterTypes(method);
-    Class<?> returnType = method.getReturnType();
-    resultConverter = OpenTypeConverter.getMXBeanMapping(returnType);
+    Type[] parameterTypes = method.getGenericParameterTypes();
+    Type returnType = method.getGenericReturnType();
+    resultConverter =  GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);
     Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-    argConverters = new MXBeanMapping[parameterTypes.length];
+    argConverters = new JMXBeanMapping[parameterTypes.length];
     paramInfos = new MBeanParameterInfo[parameterTypes.length];
     for (int i = 0; i < paramInfos.length; i++) {
       Annotation[] annotations = parameterAnnotations[i];
@@ -94,13 +93,13 @@ final class ExportedOperationImpl implements ExportedOperation {
       if (pdesc.isEmpty()) {
         pdesc = name;
       }
-      Class<?> parameterType = parameterTypes[i];
-      OpenType<?> openType = OpenTypeConverter.getOpenType(parameterType);
+      Type parameterType = parameterTypes[i];
+      OpenType<?> openType = GlobalMXBeanMapperSupplier.getOpenType(parameterType);
       if (openType != null) {
         paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, openType);
-        argConverters[i] = OpenTypeConverter.getMXBeanMapping(parameterType);
+        argConverters[i] = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);
       } else {
-        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getName(), pdesc);
+        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);
         argConverters[i] = null;
       }
     }
@@ -120,7 +119,7 @@ final class ExportedOperationImpl implements ExportedOperation {
   public Object invoke(final Object[] parameters) throws OpenDataException, InvalidObjectException {
     try {
       for (int i = 0; i < parameters.length; i++) {
-        MXBeanMapping argConverter = argConverters[i];
+        JMXBeanMapping argConverter = argConverters[i];
         if (argConverter != null) {
           parameters[i] = argConverter.fromOpenValue(parameters[i]);
         }

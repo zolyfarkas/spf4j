@@ -31,22 +31,43 @@
  */
 package org.spf4j.jmx;
 
-import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
-import javax.management.InvalidAttributeValueException;
-import javax.management.openmbean.OpenDataException;
+import java.util.function.Function;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.management.openmbean.OpenType;
+import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
 
-public interface ExportedValue<T> {
 
-    String getName();
+/**
+ * @author Zoltan Farkas
+ */
+public final class GlobalMXBeanMapperSupplier {
 
-    String getDescription();
+  private GlobalMXBeanMapperSupplier() { }
 
-    T get() throws OpenDataException;
+  private static Function<Type, JMXBeanMapping> globalInstance = new Spf4jOpenTypeMapper();
 
-    void set(T value) throws InvalidAttributeValueException, InvalidObjectException;
+  public static Function<Type, JMXBeanMapping> get() {
+    return globalInstance;
+  }
 
-    boolean isWriteable();
+  public static Function<Type, JMXBeanMapping> register(final Function<Type, JMXBeanMapping> newMapper) {
+    Function<Type, JMXBeanMapping> existing = globalInstance;
+    globalInstance = newMapper;
+    return existing;
+  }
 
-    Type getValueClass();
+
+  @Nullable
+  public static JMXBeanMapping getOpenTypeMapping(@Nonnull final Type type) {
+    return globalInstance.apply(type);
+  }
+
+  @Nullable
+  public static OpenType<?> getOpenType(@Nonnull final Type type) {
+    JMXBeanMapping mxBeanMapping = get().apply(type);
+    return mxBeanMapping == null ? null : mxBeanMapping.getOpenType();
+  }
+
 }

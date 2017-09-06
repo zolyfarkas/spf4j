@@ -301,7 +301,7 @@ public final class Registry {
     if (existing == null) {
       existing = new ExportedValueImpl(
               valueName, annot.description(),
-              method, null, object, method.getReturnType());
+              method, null, object, method.getGenericReturnType());
     } else {
       if (existing.getValueClass() != method.getReturnType()) {
         throw new IllegalArgumentException(
