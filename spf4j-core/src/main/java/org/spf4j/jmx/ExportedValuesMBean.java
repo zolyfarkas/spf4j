@@ -241,8 +241,12 @@ public final class ExportedValuesMBean implements DynamicMBean {
       description = val.getName();
     }
     if (openType != null) {
-      return new OpenMBeanAttributeInfoSupport(val.getName(), description,
+      try {
+        return new OpenMBeanAttributeInfoSupport(val.getName(), description,
             openType, true, val.isWriteable(), valClass == Boolean.class);
+      } catch (IllegalArgumentException ex) {
+        throw new IllegalArgumentException("Cannot export " + val, ex);
+      }
     } else {
        return new MBeanAttributeInfo(
             val.getName(),

@@ -51,6 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.CodeSource;
@@ -192,6 +193,14 @@ public final class Reflections {
       return PRIMITIVE_MAP.get(clasz);
     } else {
       return clasz;
+    }
+  }
+
+  public static Type primitiveToWrapper(final Type type) {
+    if (type instanceof Class && ((Class) type).isPrimitive()) {
+      return PRIMITIVE_MAP.get((Class) type);
+    } else {
+      return type;
     }
   }
 

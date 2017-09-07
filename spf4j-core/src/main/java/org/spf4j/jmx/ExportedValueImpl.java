@@ -42,119 +42,123 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
-
 /**
  *
  * @author zoly
  */
 class ExportedValueImpl implements ExportedValue<Object> {
-    private final String name;
-    private final String description;
-    private final Method getMethod;
-    private final Method setMethod;
-    private final Object object;
-    private final Type valueClass;
-    private final JMXBeanMapping converter;
 
-    ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
-            @Nullable final Method getMethod, @Nullable final Method setMethod,
-            @Nullable final Object object, @Nonnull final Type valueClass) {
-        this.name = name;
-        this.description = description;
-        this.getMethod = getMethod;
-        this.setMethod = setMethod;
-        this.object = object;
-        this.valueClass = valueClass;
-      try {
-        this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);
-      } catch (NotSerializableException ex) {
-        throw new UnsupportedOperationException("Unable to export " + getMethod + ", " + setMethod, ex);
+  private final String name;
+  private final String description;
+  private final Method getMethod;
+  private final Method setMethod;
+  private final Object object;
+  private final Type valueClass;
+  private final JMXBeanMapping converter;
+
+  ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
+          @Nullable final Method getMethod, @Nullable final Method setMethod,
+          @Nullable final Object object, @Nonnull final Type valueClass) {
+    this.name = name;
+    this.description = description;
+    this.getMethod = getMethod;
+    this.setMethod = setMethod;
+    this.object = object;
+    this.valueClass = valueClass;
+    try {
+      this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);
+    } catch (NotSerializableException ex) {
+      throw new UnsupportedOperationException("Unable to export " + getMethod + ", " + setMethod, ex);
+    }
+  }
+
+  public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
+    if (setMethod != null) {
+      throw new IllegalArgumentException("duplicate value registration attemted " + setMethod
+              + ", " + psetMethod);
+    }
+    return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);
+  }
+
+  public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
+    if (getMethod != null) {
+      throw new IllegalArgumentException("duplicate value registration attemted " + getMethod
+              + ", " + pgetMethod);
+    }
+    return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public Object get() throws OpenDataException {
+
+    try {
+      if (converter != null) {
+        return converter.toOpenValue(getMethod.invoke(object));
+      } else {
+        return getMethod.invoke(object);
       }
+    } catch (IllegalAccessException | InvocationTargetException ex) {
+      OpenDataException thr = new OpenDataException("Cannot get " + getMethod);
+      thr.addSuppressed(ex);
+      throw thr;
     }
+  }
 
-    public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
-        if (setMethod != null) {
-            throw new IllegalArgumentException("duplicate value registration attemted " + setMethod
-                    + ", " + psetMethod);
-        }
-        return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);
+  @Override
+  public void set(final Object value) throws InvalidAttributeValueException, InvalidObjectException {
+    if (setMethod == null) {
+      throw new InvalidAttributeValueException(name + " is a read only attribute ");
     }
-
-    public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
-        if (getMethod != null) {
-            throw new IllegalArgumentException("duplicate value registration attemted " + getMethod
-                    + ", " + pgetMethod);
-        }
-        return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);
+    try {
+      if (converter != null) {
+        setMethod.invoke(object, converter.fromOpenValue(value));
+      } else {
+        setMethod.invoke(object, value);
+      }
+    } catch (IllegalAccessException | InvocationTargetException ex) {
+      InvalidObjectException iox = new InvalidObjectException("Cannot set " + value);
+      iox.addSuppressed(ex);
+      throw iox;
     }
+  }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+  @Override
+  public boolean isWriteable() {
+    return setMethod != null;
+  }
 
-    @Override
-    public String getDescription() {
-        return description;
-    }
+  @Override
+  public Type getValueClass() {
+    return valueClass;
+  }
 
-    @Override
-    public Object get() throws OpenDataException {
+  public boolean isValid() {
+    return getMethod != null;
+  }
 
-        try {
-            if (converter != null) {
-                return converter.toOpenValue(getMethod.invoke(object));
-            } else {
-                return getMethod.invoke(object);
-            }
-        } catch (IllegalAccessException | InvocationTargetException ex) {
-          OpenDataException thr = new OpenDataException("Cannot get " + getMethod);
-          thr.addSuppressed(ex);
-          throw thr;
-        }
-    }
+  @Override
+  public String toString() {
+    return "ExportedValueImpl{" + "name=" + name + ", description="
+            + description + ", getMethod=" + getMethod + ", setMethod="
+            + setMethod + ", object=" + object + ", valueClass=" + valueClass
+            + ", converter=" + converter + '}';
+  }
 
-    @Override
-    public void set(final Object value) throws InvalidAttributeValueException, InvalidObjectException {
-        if (setMethod == null) {
-            throw new InvalidAttributeValueException(name + " is a read only attribute ");
-        }
-        try {
-            if (converter != null) {
-                setMethod.invoke(object, converter.fromOpenValue(value));
-            } else {
-                setMethod.invoke(object, value);
-            }
-        } catch (IllegalAccessException | InvocationTargetException ex) {
-          InvalidObjectException iox = new InvalidObjectException("Cannot set " + value);
-          iox.addSuppressed(ex);
-          throw iox;
-        }
-    }
 
-    @Override
-    public boolean isWriteable() {
-        return setMethod != null;
-    }
-
-    @Override
-    public Type getValueClass() {
-        return valueClass;
-    }
-
-    public boolean isValid() {
-        return getMethod != null;
-    }
-
-    @Override
-    public String toString() {
-        return "ExportedValueImpl{" + "name=" + name + ", description=" + description + ", getMethod="
-                + getMethod + ", setMethod=" + setMethod + ", object=" + object + ", valueClass=" + valueClass + '}';
-    }
 
   @Override
   public OpenType<?> getValueOpenType() {
-      return (converter != null) ? converter.getOpenType() : null;
+    return (converter != null) ? converter.getOpenType() : null;
   }
 
 }

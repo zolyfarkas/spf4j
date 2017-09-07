@@ -115,7 +115,8 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
           mt = JMXBeanMapping.NOMAPPING;
         }
         convertedTypes.put(t, mt);
-      } catch (OpenDataException ex) {
+      } catch (OpenDataException | RuntimeException ex) {
+        LOG.debug("No openType for {} ", t, ex);
         mt = JMXBeanMapping.NOMAPPING;
       }
     }

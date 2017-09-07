@@ -104,6 +104,12 @@ public final class RegistryTest {
             return booleanFlag;
         }
 
+
+        @JmxExport
+        public Boolean isBooleanFlag2() {
+            return booleanFlag;
+        }
+
         @JmxExport
         public void setStringVal(final String stringVal) {
             this.stringVal = stringVal;
@@ -266,13 +272,13 @@ public final class RegistryTest {
         Registry.registerMBean("test2", "TestClassic", new org.spf4j.jmx.Test());
 
         Map<String, Object> map = new HashMap<>();
-        map.put("isCrap", true);
-        map.put("crap", true);
+        map.put("isCrap", Boolean.TRUE);
+        map.put("a.crap", Boolean.FALSE);
         map.put("isNonsense", "bla");
-        Registry.export("testMap", "map", map);
+        Registry.export("testMap", "map", map, testObj);
 
 
-        Thread.sleep(300000);
+//        Thread.sleep(300000);
 
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag", Boolean.TRUE);

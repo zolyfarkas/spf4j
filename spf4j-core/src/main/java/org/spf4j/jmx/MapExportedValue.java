@@ -31,6 +31,7 @@
  */
 package org.spf4j.jmx;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.Map;
@@ -77,10 +78,11 @@ public final class MapExportedValue implements ExportedValue {
 
   @Override
   public Object get() throws OpenDataException {
+    Object val = map.get(name);
     if (converter == null) {
-      return map.get(name);
+      return val;
     } else {
-      return converter.toOpenValue(map.get(name));
+      return converter.toOpenValue(val);
     }
   }
 
@@ -110,8 +112,16 @@ public final class MapExportedValue implements ExportedValue {
 
   @Override
   public String toString() {
-    return "MapExportedValue{" + "map=" + map + ", descriptions=" + descriptions + ", name=" + name + '}';
+    try {
+      return "MapExportedValue{" + "val=" + get() + "valClass=" + getValueClass()
+              + "valopenType=" + getValueOpenType() + ", description="
+              + getDescription() + ", name=" + name + ", converter=" + converter + '}';
+    } catch (OpenDataException ex) {
+      throw new UncheckedExecutionException(ex);
+    }
   }
+
+
 
   @Override
   public OpenType getValueOpenType() {

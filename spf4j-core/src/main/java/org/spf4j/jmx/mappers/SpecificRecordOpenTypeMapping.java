@@ -51,6 +51,7 @@ import javax.management.openmbean.OpenType;
 import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.spf4j.base.Reflections;
 import org.spf4j.jmx.JMXBeanMappingSupplier;
 
 /**
@@ -58,6 +59,8 @@ import org.spf4j.jmx.JMXBeanMappingSupplier;
  */
 @SuppressFBWarnings("SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR")
 public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implements JMXBeanMapping {
+
+  private static final Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);
 
   private final JMXBeanMappingSupplier typeMapper;
 
@@ -111,15 +114,24 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
   }
 
   public static Type getGenericType(final Schema schema) {
-    Class aClass = SpecificData.get().getClass(schema);
-    if (List.class.isAssignableFrom(aClass)) {
-      Type elementType = getGenericType(schema.getElementType());
-      return listToken(TypeToken.of(elementType)).getType();
-    } else if (Map.class.isAssignableFrom(aClass)) {
-      Type valueType = getGenericType(schema.getValueType());
-      return mapToken(TypeToken.of(String.class), TypeToken.of(valueType)).getType();
+    Schema.Type type = schema.getType();
+    switch (type) {
+      case ARRAY:
+        Type elementType = getGenericType(schema.getElementType());
+        return listToken(TypeToken.of(elementType)).getType();
+      case MAP:
+        Type valueType = getGenericType(schema.getValueType());
+        return mapToken(TypeToken.of(String.class), TypeToken.of(valueType)).getType();
+      case UNION:
+        List<Schema> types = schema.getTypes();     // elide unions with null
+        if ((types.size() == 2) && types.contains(NULL_SCHEMA)) {
+          return Reflections.primitiveToWrapper(getGenericType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)));
+        } else {
+          throw new IllegalArgumentException("Schema " + schema + "Cannot be mapped to an OpenType");
+        }
+      default:
+        return SpecificData.get().getClass(schema);
     }
-    return aClass;
   }
 
 
