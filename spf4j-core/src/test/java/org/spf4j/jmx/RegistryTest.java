@@ -36,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -264,7 +265,14 @@ public final class RegistryTest {
         Registry.export("test", "Test", props, testObj);
         Registry.registerMBean("test2", "TestClassic", new org.spf4j.jmx.Test());
 
-//        Thread.sleep(300000);
+        Map<String, Object> map = new HashMap<>();
+        map.put("isCrap", true);
+        map.put("crap", true);
+        map.put("isNonsense", "bla");
+        Registry.export("testMap", "map", map);
+
+
+        Thread.sleep(300000);
 
         Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "booleanFlag", Boolean.TRUE);
