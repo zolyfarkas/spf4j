@@ -275,6 +275,7 @@ public final class RegistryTest {
         map.put("isCrap", Boolean.TRUE);
         map.put("a.crap", Boolean.FALSE);
         map.put("isNonsense", "bla");
+        map.put("", "bla");
         Registry.export("testMap", "map", map, testObj);
 
 
