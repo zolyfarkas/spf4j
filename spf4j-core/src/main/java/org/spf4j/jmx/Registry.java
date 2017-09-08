@@ -182,6 +182,9 @@ public final class Registry {
     if (attributes != null) {
       for (Map.Entry<String, Object> entry : attributes.entrySet()) {
         String key = entry.getKey();
+        if (key == null || key.isEmpty()) {
+          continue; // do not export crap namep attributes.
+        }
         try {
           exportedAttributes.put(key, new MapExportedValue(attributes, null, key, entry.getValue()));
         } catch (NotSerializableException ex) {
