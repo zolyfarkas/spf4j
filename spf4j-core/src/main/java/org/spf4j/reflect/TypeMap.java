@@ -31,9 +31,11 @@
  */
 package org.spf4j.reflect;
 
-import com.google.common.base.Function;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Type;
+import java.util.Set;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -41,13 +43,45 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public interface TypeMap<H> {
+public interface TypeMap<H> extends ByTypeSupplier<H, RuntimeException> {
 
-  H get(Type t);
+  /**
+   * Get all Objects associated to all unrelated compatible types.
+   *
+   * for example we habe Object O of type T a subtype of T1 and T2.
+   * if this typemap contains Objects mapped to T1 and T2, those 2 objects
+   * will be returned if T1 and T2 are not related (subtypes of each other)
+   * if T1 extends T2 the obeject mapped to the most specific type is returned.
+   *
+   * @param t
+   * @return
+   */
+  @Nonnull
+  Set<H> getAll(Type t);
+
+
+  /**
+   * get the object associated to a compatible type, only if there is only one.
+   * @param t
+   * @return
+   */
+  @Nullable
+  @SuppressFBWarnings("SPP_USE_ISEMPTY")
+  @Override
+  default H get(final Type t) {
+    Set<H> get = getAll(t);
+    int size = get.size();
+    if (size == 1) {
+      return get.iterator().next();
+    } else if (size == 0) {
+      return null;
+    } else {
+      throw new IllegalArgumentException("Ambiguous handlers " + get + " for " + t + " in  " + this);
+    }
+  }
 
   @CheckReturnValue
-  @Nullable
-  H put(Type type, H appender);
+  boolean putIfNotPresent(Type type, H appender);
 
   default void safePut(final Type type, final H appender) {
     if (!putIfNotPresent(type, appender)) {
@@ -56,14 +90,6 @@ public interface TypeMap<H> {
   }
 
   @CheckReturnValue
-  boolean putIfNotPresent(Type type, H appender);
-
-  @CheckReturnValue
   boolean remove(Type type);
-
-  @CheckReturnValue
-  boolean replace(Type type, Function<H, H> replace);
-
-  void replaceOrAdd(Type type, Function<H, H> replace, H add);
 
 }

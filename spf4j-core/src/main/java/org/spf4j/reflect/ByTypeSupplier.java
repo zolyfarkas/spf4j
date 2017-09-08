@@ -29,19 +29,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.jmx;
+package org.spf4j.reflect;
 
-import java.io.NotSerializableException;
 import java.lang.reflect.Type;
 import javax.annotation.Nullable;
 
 /**
- *
  * @author Zoltan Farkas
  */
-public interface JMXBeanMappingSupplier {
-
+public interface ByTypeSupplier<T, E extends Exception> {
   @Nullable
-  JMXBeanMapping get(Type type) throws NotSerializableException;
-
+  T get(Type type) throws E;
 }

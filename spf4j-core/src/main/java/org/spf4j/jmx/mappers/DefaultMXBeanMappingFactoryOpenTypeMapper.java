@@ -31,6 +31,7 @@
  */
 package org.spf4j.jmx.mappers;
 
+import org.spf4j.jmx.JMXBeanMappingSupplier;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.sun.jmx.mbeanserver.MXBeanMapping;
@@ -45,7 +46,6 @@ import org.apache.avro.specific.SpecificRecordBase;
 import org.spf4j.base.Pair;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 import org.spf4j.jmx.JMXBeanMapping;
-import org.spf4j.jmx.JMXBeanMappingSupplier;
 
 /**
  * OpenType conversion utility. right now can deal with JDK + avro stuff, will eventually become extensible with custom
