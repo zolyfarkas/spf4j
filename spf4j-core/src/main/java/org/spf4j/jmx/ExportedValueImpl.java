@@ -58,17 +58,21 @@ class ExportedValueImpl implements ExportedValue<Object> {
 
   ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
           @Nullable final Method getMethod, @Nullable final Method setMethod,
-          @Nullable final Object object, @Nonnull final Type valueClass) {
+          @Nullable final Object object, @Nonnull final Type valueClass, final boolean mapOpenType) {
     this.name = name;
     this.description = description;
     this.getMethod = getMethod;
     this.setMethod = setMethod;
     this.object = object;
     this.valueClass = valueClass;
-    try {
-      this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);
-    } catch (NotSerializableException ex) {
-      throw new UnsupportedOperationException("Unable to export " + getMethod + ", " + setMethod, ex);
+    if (mapOpenType) {
+      try {
+        this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);
+      } catch (NotSerializableException ex) {
+        throw new UnsupportedOperationException("Unable to export " + getMethod + ", " + setMethod, ex);
+      }
+    } else {
+      this.converter = null;
     }
   }
 
@@ -77,7 +81,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
       throw new IllegalArgumentException("duplicate value registration attemted " + setMethod
               + ", " + psetMethod);
     }
-    return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass);
+    return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass, converter != null);
   }
 
   public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
@@ -85,7 +89,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
       throw new IllegalArgumentException("duplicate value registration attemted " + getMethod
               + ", " + pgetMethod);
     }
-    return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass);
+    return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass, converter != null);
   }
 
   @Override

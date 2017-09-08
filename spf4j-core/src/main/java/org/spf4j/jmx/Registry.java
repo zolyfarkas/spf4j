@@ -265,7 +265,7 @@ public final class Registry {
         opName = nameOverwrite;
       }
       ExportedOperationImpl existing = exportedOps.put(opName, new ExportedOperationImpl(opName,
-              annot.description(), method, object));
+              annot.description(), method, object, annot.mapOpenType()));
       if (existing != null) {
         throw new IllegalArgumentException("exporting operations with same name not supported: " + opName);
       }
@@ -287,7 +287,7 @@ public final class Registry {
     Class<?> parameterType = Reflections.getParameterTypes(method)[0];
     if (existing == null) {
       existing = new ExportedValueImpl(valueName, null,
-              null, method, object, parameterType);
+              null, method, object, parameterType, annot.mapOpenType());
     } else {
       if (existing.getValueClass() != parameterType) {
         throw new IllegalArgumentException(
@@ -307,7 +307,7 @@ public final class Registry {
     if (existing == null) {
       existing = new ExportedValueImpl(
               valueName, annot.description(),
-              method, null, object, method.getGenericReturnType());
+              method, null, object, method.getGenericReturnType(), annot.mapOpenType());
     } else {
       if (existing.getValueClass() != method.getReturnType()) {
         throw new IllegalArgumentException(

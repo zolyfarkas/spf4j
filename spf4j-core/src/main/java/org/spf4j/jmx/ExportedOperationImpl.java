@@ -65,17 +65,21 @@ final class ExportedOperationImpl implements ExportedOperation {
   private final JMXBeanMapping resultConverter;
 
   ExportedOperationImpl(final String name, final String description,
-          final Method method, final Object object) {
+          final Method method, final Object object, final boolean mapOpenType) {
     this.name = name;
     this.description = description;
     this.method = method;
     this.object = object;
     Type[] parameterTypes = method.getGenericParameterTypes();
     Type returnType = method.getGenericReturnType();
-    try {
-      resultConverter =  GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);
-    } catch (NotSerializableException ex) {
-      throw new UnsupportedOperationException("Cannot export " + method + " returned type not serializable", ex);
+    if (mapOpenType) {
+      try {
+        resultConverter =  GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);
+      } catch (NotSerializableException ex) {
+        throw new UnsupportedOperationException("Cannot export " + method + " returned type not serializable", ex);
+      }
+    } else {
+      resultConverter = null;
     }
     Annotation[][] parameterAnnotations = method.getParameterAnnotations();
     argConverters = new JMXBeanMapping[parameterTypes.length];
@@ -84,11 +88,13 @@ final class ExportedOperationImpl implements ExportedOperation {
       Annotation[] annotations = parameterAnnotations[i];
       String pname = "";
       String pdesc = "";
+      boolean mapParamOpenType = mapOpenType;
       for (Annotation annot : annotations) {
         if (annot.annotationType() == JmxExport.class) {
           JmxExport eAnn = (JmxExport) annot;
           pname = eAnn.value();
           pdesc = eAnn.description();
+          mapParamOpenType = eAnn.mapOpenType();
           break;
         }
       }
@@ -101,10 +107,14 @@ final class ExportedOperationImpl implements ExportedOperation {
       Type parameterType = parameterTypes[i];
 
       JMXBeanMapping paramOTM;
-      try {
-        paramOTM = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);
-      } catch (NotSerializableException ex) {
-        throw new UnsupportedOperationException("Cannot export " + method + " arg " + i + " not serializable", ex);
+      if (mapParamOpenType) {
+        try {
+          paramOTM = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);
+        } catch (NotSerializableException ex) {
+          throw new UnsupportedOperationException("Cannot export " + method + " arg " + i + " not serializable", ex);
+        }
+      } else {
+        paramOTM = null;
       }
       if (paramOTM != null) {
         paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, paramOTM.getOpenType());

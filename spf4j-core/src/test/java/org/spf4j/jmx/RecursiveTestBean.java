@@ -31,39 +31,36 @@
  */
 package org.spf4j.jmx;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.beans.ConstructorProperties;
 
-/**
- * Annotation to mark setters and getters of attributes to export via JMX,
- * Any other methods that do not respect get/set/is naming conventions will be exported as JMX operation.
- * Any method parameters annotated with JMXExport allows you to provide names and descriptions to your
- * operation parameters.
- * Names are inferred from the method names, but can be customized further with JmxExport.value.
- *
- *
- * attribute description can be added to the annotation.
- *
- * @author zoly
- */
+public final class RecursiveTestBean {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.PARAMETER })
-public @interface JmxExport {
-    /**
-     * @return - the name of the operation or attribute or parameter.
-     */
-     String value() default "";
-    /**
-     * @return - the description of the operation attribute or parameter.
-     */
-     String description() default "";
+  private final int intVal;
+  private final String strVal;
+  private final RecursiveTestBean bean;
 
-     /**
-      * Map to openType the types associated to the exported entity.
-      * @return
-      */
-     boolean mapOpenType() default true;
+  @ConstructorProperties({"intVal", "strVal"})
+  public RecursiveTestBean(final int intVal, final String strVal, final RecursiveTestBean bean) {
+    this.intVal = intVal;
+    this.strVal = strVal;
+    this.bean = bean;
+  }
+
+  public int getIntVal() {
+    return intVal;
+  }
+
+  public String getStrVal() {
+    return strVal;
+  }
+
+  public RecursiveTestBean getBean() {
+    return bean;
+  }
+
+  @Override
+  public String toString() {
+    return "TestBean{" + "intVal=" + intVal + ", strVal=" + strVal + '}';
+  }
+
 }

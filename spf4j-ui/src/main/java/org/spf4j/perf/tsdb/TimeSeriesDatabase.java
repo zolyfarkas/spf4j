@@ -563,20 +563,22 @@ public final class TimeSeriesDatabase implements Closeable {
 
   public static List<JFreeChart> createJFreeCharts(final TimeSeries data, final TSTable info) {
     long[][] vals = data.getValues();
-    List<JFreeChart> result = new ArrayList<>();
-    Map<String, Pair<List<String>, List<double[]>>> measurementsByUom = new HashMap<>();
+    Map<String, Pair<List<String>, List<double[]>>> measurementsByUom = new HashMap<>(4);
     String[] columnMetaData = info.getColumnMetaDataAsStrings();
-    for (int i = 0; i < info.getColumnNumber(); i++) {
+    int columnNumber = info.getColumnNumber();
+    for (int i = 0; i < columnNumber; i++) {
       String uom = columnMetaData[i];
       Pair<List<String>, List<double[]>> meas = measurementsByUom.get(uom);
       if (meas == null) {
-        meas = Pair.of((List<String>) new ArrayList<String>(), (List<double[]>) new ArrayList<double[]>());
+        meas = Pair.of((List<String>) new ArrayList<String>(columnNumber),
+                (List<double[]>) new ArrayList<double[]>(columnNumber));
         measurementsByUom.put(uom, meas);
       }
       meas.getFirst().add(info.getColumnName(i));
       meas.getSecond().add(Arrays.getColumnAsDoubles(vals, i));
     }
     long[] timestamps = data.getTimeStamps();
+    List<JFreeChart> result = new ArrayList<>(measurementsByUom.size());
     for (Map.Entry<String, Pair<List<String>, List<double[]>>> entry : measurementsByUom.entrySet()) {
       Pair<List<String>, List<double[]>> p = entry.getValue();
       final List<String> measurementNames = p.getFirst();
@@ -732,8 +734,8 @@ public final class TimeSeriesDatabase implements Closeable {
           final int width, final int height) throws IOException {
     try {
       this.flush();
-      List<String> result = new ArrayList<>();
       Collection<TSTable> columnsInfo = this.getTSTables();
+      List<String> result = new ArrayList<>(16);
       for (TSTable info : columnsInfo) {
         TimeSeries data = this.read(info.getTableName(), startTimeMillis, endTimeMillis);
         if (data.getTimeStamps().length > 0) {
@@ -746,7 +748,8 @@ public final class TimeSeriesDatabase implements Closeable {
         }
       }
       Multimap<String, TSTable> counters = getCounters(columnsInfo);
-      for (Map.Entry<String, Collection<TSTable>> entry : counters.asMap().entrySet()) {
+      Map<String, Collection<TSTable>> asMap = counters.asMap();
+      for (Map.Entry<String, Collection<TSTable>> entry : asMap.entrySet()) {
         Collection<TSTable> ltables = entry.getValue();
         int l = ltables.size();
         long[][] timestamps = new long[l][];

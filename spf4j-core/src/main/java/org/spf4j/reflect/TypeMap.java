@@ -29,41 +29,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.jmx;
+package org.spf4j.reflect;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.google.common.base.Function;
+import java.lang.reflect.Type;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Annotation to mark setters and getters of attributes to export via JMX,
- * Any other methods that do not respect get/set/is naming conventions will be exported as JMX operation.
- * Any method parameters annotated with JMXExport allows you to provide names and descriptions to your
- * operation parameters.
- * Names are inferred from the method names, but can be customized further with JmxExport.value.
- *
- *
- * attribute description can be added to the annotation.
- *
- * @author zoly
+ * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
+public interface TypeMap<H> {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.PARAMETER })
-public @interface JmxExport {
-    /**
-     * @return - the name of the operation or attribute or parameter.
-     */
-     String value() default "";
-    /**
-     * @return - the description of the operation attribute or parameter.
-     */
-     String description() default "";
+  H get(Type t);
 
-     /**
-      * Map to openType the types associated to the exported entity.
-      * @return
-      */
-     boolean mapOpenType() default true;
+  @CheckReturnValue
+  @Nullable
+  H put(Type type, H appender);
+
+  default void safePut(final Type type, final H appender) {
+    if (!putIfNotPresent(type, appender)) {
+      throw new IllegalArgumentException("Cannot put " + type + ", " + appender + " exiting mapping present");
+    }
+  }
+
+  @CheckReturnValue
+  boolean putIfNotPresent(Type type, H appender);
+
+  @CheckReturnValue
+  boolean remove(Type type);
+
+  @CheckReturnValue
+  boolean replace(Type type, Function<H, H> replace);
+
+  void replaceOrAdd(Type type, Function<H, H> replace, H add);
+
 }

@@ -32,13 +32,16 @@
 package org.spf4j.jmx.mappers;
 
 import com.google.common.reflect.TypeToken;
+import java.io.Externalizable;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
@@ -70,6 +73,14 @@ import org.spf4j.jmx.JMXBeanMappingSupplier;
 public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
   private static final Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.class);
+
+  private static final ThreadLocal<Set<Type>> IN_PROGRESS = new ThreadLocal<Set<Type>>() {
+    @Override
+    protected Set<Type> initialValue() {
+      return new HashSet<>(2);
+    }
+
+  };
 
   private static final Pair<OpenType<?>, Class<?>[]>[] SIMPLE_TYPES = new Pair[]{
     Pair.of(BIGDECIMAL, new Class[]{BigDecimal.class}),
@@ -110,7 +121,17 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
     JMXBeanMapping mt = convertedTypes.get(t);
     if (mt == null) {
       try {
+        Set<Type> ip = IN_PROGRESS.get();
+        if (ip.contains(t)) {
+           LOG.debug("No openType mapping for {} recorsive data structure", t);
+           return null;
+        }
+        ip.add(t);
+        try {
         mt =  Spf4jJMXBeanMapping.newMappedType(t, this);
+        } finally {
+          ip.remove(t);
+        }
         if (mt == null) {
           mt = JMXBeanMapping.NOMAPPING;
         }
@@ -120,13 +141,11 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
         mt = JMXBeanMapping.NOMAPPING;
       }
     }
-    if (mt != JMXBeanMapping.NOMAPPING && mt.getOpenType() == Spf4jJMXBeanMapping.IN_PROGRESS) {
-      LOG.debug("No openType for {}, recursive data structure", t);
-      return null;
-    }
+
     if (mt == JMXBeanMapping.NOMAPPING) {
       TypeToken<?> tt = TypeToken.of(t);
-      if (tt.isSubtypeOf(Serializable.class) || tt.isSubtypeOf(Map.class)) {
+      if (tt.getRawType().isInterface()
+              || tt.isSubtypeOf(Serializable.class) || tt.isSubtypeOf(Externalizable.class)) {
         LOG.debug("No openType mapping for {}", t);
         return null;
       } else {

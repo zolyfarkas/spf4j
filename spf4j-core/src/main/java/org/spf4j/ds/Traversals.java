@@ -57,7 +57,7 @@ public final class Traversals {
 
     public static <V, E> void traverse(final Graph<V, E> graph, final V startNode,
             final TraversalCallback<V, E> handler, final boolean isBreadth) {
-        Set<V> traversedNodes = new HashSet<V>();
+        Set<V> traversedNodes = new HashSet<V>(graph.getVertices().size());
         Deque<V> traversalQueue = new ArrayDeque<V>();
         traversalQueue.add(startNode);
         boolean done = false;
@@ -184,7 +184,7 @@ public final class Traversals {
 
     public static <V, E> void customTraverse(final Graph<V, E> graph, final V startNode,
             final TraversalCallback<V, E> handler) {
-        Set<V> traversedNodes = new HashSet<V>();
+        Set<V> traversedNodes = new HashSet<V>(graph.getVertices().size());
         Queue<VertexHolder<V>> traversalQueue = new PriorityQueue<VertexHolder<V>>(16);
         int counter = 0;
         traversalQueue.add(new VertexHolder<V>(startNode, counter++, 0));

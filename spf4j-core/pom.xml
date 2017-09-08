@@ -155,20 +155,49 @@
         <version>${avro.version}</version>
         <executions>
           <execution>
-            <id>protocol</id>
+            <id>gen-avro-classes</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>idl-protocol</goal>
-              <goal>schema</goal>
             </goals>
             <configuration>
               <stringType>String</stringType>
               <sourceDirectory>src/main/avdl</sourceDirectory>
             </configuration>
           </execution>
+          <execution>
+            <id>gen-avro-test-classes</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>schema</goal>
+            </goals>
+            <configuration>
+              <stringType>String</stringType>
+              <sourceDirectory>src/test/avdl</sourceDirectory>
+              <outputDirectory>target/generated-test-sources/avro</outputDirectory>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>target/generated-test-sources/avro</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- discover system property uses -->
       <plugin>
         <groupId>${project.groupId}</groupId>

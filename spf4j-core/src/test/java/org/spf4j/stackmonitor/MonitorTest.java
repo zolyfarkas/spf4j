@@ -102,7 +102,7 @@ public final class MonitorTest {
     @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void main(final String[] args) throws InterruptedException {
         stopped = false;
-        List<Thread> threads = new ArrayList<Thread>();
+        List<Thread> threads = new ArrayList<Thread>(20);
         for (int i = 0; i < 20; i++) {
             Thread t = new Thread(new AbstractRunnable() {
                 @Override

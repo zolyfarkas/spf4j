@@ -156,7 +156,6 @@ public final class Charts {
 
     public static List<JFreeChart> createJFreeCharts(final TimeSeries data, final TableDef info) {
         long[][] vals = data.getValues();
-        List<JFreeChart> result = new ArrayList<>();
         Map<String, Pair<List<String>, List<double[]>>> measurementsByUom = new HashMap<>();
         //String[] columnMetaData = TSDBQuery.getColumnUnitsOfMeasurement(info);
         int i = 0;
@@ -172,6 +171,7 @@ public final class Charts {
             i++;
         }
         long[] timestamps = data.getTimeStamps();
+        List<JFreeChart> result = new ArrayList<>(measurementsByUom.size());
         for (Map.Entry<String, Pair<List<String>, List<double[]>>> entry : measurementsByUom.entrySet()) {
             Pair<List<String>, List<double[]>> p = entry.getValue();
             final List<String> measurementNames = p.getFirst();

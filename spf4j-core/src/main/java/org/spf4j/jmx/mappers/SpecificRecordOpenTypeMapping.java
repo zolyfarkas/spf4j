@@ -125,9 +125,11 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
       case UNION:
         List<Schema> types = schema.getTypes();     // elide unions with null
         if ((types.size() == 2) && types.contains(NULL_SCHEMA)) {
-          return Reflections.primitiveToWrapper(getGenericType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)));
+          return Reflections.primitiveToWrapper(
+                  getGenericType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)));
         } else {
-          throw new IllegalArgumentException("Schema " + schema + "Cannot be mapped to an OpenType");
+          throw new IllegalArgumentException("Schema " + schema
+                  + "Cannot be mapped to an OpenType duw to multibranch union");
         }
       default:
         return SpecificData.get().getClass(schema);

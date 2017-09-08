@@ -91,7 +91,7 @@ public final class DemoTest {
 
     public static List<Thread> startTestThreads(final int nrThreads) {
         stopped = false;
-        List<Thread> threads = new ArrayList<>();
+        List<Thread> threads = new ArrayList<>(nrThreads);
         for (int i = 0; i < nrThreads; i++) {
             Thread t = new Thread(new Runnable() {
                 @Override

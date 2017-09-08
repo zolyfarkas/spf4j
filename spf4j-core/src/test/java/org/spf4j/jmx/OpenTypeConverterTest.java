@@ -142,9 +142,10 @@ public class OpenTypeConverterTest {
     mxBeanMapping2.fromOpenValue(ov);
   }
 
-  @Test(expected = NotSerializableException.class)
+  @Test
   public void testConverterFuture() throws OpenDataException, InvalidObjectException, NotSerializableException {
-    conv.get((new TypeToken<Future<Integer>>() {}).getType());
+    JMXBeanMapping map = conv.get((new TypeToken<Future<Integer>>() {}).getType());
+    Assert.assertNull(map);
   }
 
   @Test
@@ -202,6 +203,24 @@ public class OpenTypeConverterTest {
     ComparablePair<Integer, TableDef> pair =
             (ComparablePair<Integer, TableDef>) mxBeanMapping2.fromOpenValue(ov);
     Assert.assertEquals(3L, pair.getFirst().longValue());
+  }
+
+
+  @Test(expected = NotSerializableException.class)
+  public void testConverterRecursiveData() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    conv.get(RecursiveTestBean.class);
+  }
+
+  @Test
+  public void testConverterRecursiveAvro() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(org.spf4j.test.avro.SampleNode.class);
+    Assert.assertNull(get);
+  }
+
+  @Test
+  public void testConverterRecursiveAvro2() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(org.spf4j.test2.avro.SampleNode.class);
+    Assert.assertNull(get);
   }
 
 

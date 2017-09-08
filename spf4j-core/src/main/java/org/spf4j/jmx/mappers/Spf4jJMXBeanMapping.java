@@ -73,20 +73,6 @@ import org.spf4j.jmx.JMXBeanMappingSupplier;
 @SuppressWarnings({"unchecked", "checkstyle:visibilitymodifier"})
 abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
-
-  static final OpenType<?> IN_PROGRESS;
-
-  static {
-    OpenType<?> t;
-    try {
-      t = new InProgress();
-    } catch (OpenDataException e) {
-      // Should not reach here
-      throw new AssertionError(e);
-    }
-    IN_PROGRESS = t;
-  }
-
   private static final String KEY = "key";
   private static final String VALUE = "value";
   private static final String[] MAP_INDEX_NAMES = {KEY};
@@ -99,7 +85,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
   protected Class<?> mappedTypeClass;
 
   Spf4jJMXBeanMapping() {
-    this(false, IN_PROGRESS, null);
+    this(false, null, null);
   }
 
   Spf4jJMXBeanMapping(final boolean isBasicType, final OpenType<?> openType, final Class<?> mappedTypeClass) {
@@ -481,7 +467,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         return openArray;
       } else {
         final Iterable<Object> list = (Iterable<Object>) data;
-        List result = new ArrayList();
+        List result = new ArrayList(16);
         for (Object o : list) {
           result.add(paramType.toOpenValue(o));
         }
@@ -612,7 +598,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       final TabularData td = (TabularData) data;
       Map<Object, Object> result;
       if (rawType.isInterface()) {
-        result = new HashMap<>();
+        result = new HashMap<>(td.values().size());
       } else {
         try {
           result = (Map) rawType.newInstance();
@@ -630,38 +616,5 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       return result;
     }
   }
-
-  private static final class InProgress extends OpenType {
-
-    private static final long serialVersionUID = 1L;
-
-    private static final String DESCRIPTION
-            = "Marker to detect recursive type use -- internal use only!";
-
-    InProgress() throws OpenDataException {
-      super("java.lang.String", "java.lang.String", DESCRIPTION);
-    }
-
-    public String toString() {
-      return DESCRIPTION;
-    }
-
-    public int hashCode() {
-      return 0;
-    }
-
-    public boolean isValue(final Object o) {
-      return false;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (obj == null) {
-        return false;
-      }
-      return this.getClass() == obj.getClass();
-    }
-  }
-
 
 }
