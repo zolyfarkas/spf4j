@@ -32,20 +32,16 @@
 package org.spf4j.jmx.mappers;
 
 import org.spf4j.jmx.JMXBeanMappingSupplier;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.sun.jmx.mbeanserver.MXBeanMapping;
 import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
 import java.io.NotSerializableException;
 import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.ListIterator;
 import javax.annotation.Nullable;
 import javax.management.openmbean.OpenDataException;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.spf4j.base.Pair;
-import org.spf4j.concurrent.UnboundedLoadingCache;
 import org.spf4j.jmx.JMXBeanMapping;
+import org.spf4j.reflect.CachingTypeMapWrapper;
+import org.spf4j.reflect.GraphTypeMap;
 
 /**
  * OpenType conversion utility. right now can deal with JDK + avro stuff, will eventually become extensible with custom
@@ -55,50 +51,26 @@ import org.spf4j.jmx.JMXBeanMapping;
  */
 public final class DefaultMXBeanMappingFactoryOpenTypeMapper implements JMXBeanMappingSupplier {
 
-  private final LoadingCache<Type, JMXBeanMapping> cache;
-
-  private final LinkedList<Pair<Class<?>, JMXBeanMappingSupplier>> mappers;
+  private final CachingTypeMapWrapper<JMXBeanMappingSupplier> appenderMap;
 
   public DefaultMXBeanMappingFactoryOpenTypeMapper() {
-    cache = new UnboundedLoadingCache(16, new CacheLoader<Type, JMXBeanMapping>() {
-              @Override
-              public JMXBeanMapping load(final Type key) throws NotSerializableException {
-                JMXBeanMapping mxBeanMappingInternal = getMXBeanMappingInternal(key);
-                return mxBeanMappingInternal == null ? JMXBeanMapping.NOMAPPING : mxBeanMappingInternal;
-              }
-            });
-    mappers = new LinkedList<>();
-    mappers.add(Pair.of(SpecificRecordBase.class, (clasz)
-            -> new SpecificRecordOpenTypeMapping((Class) clasz, this)));
+    appenderMap = new CachingTypeMapWrapper<>(new GraphTypeMap());
+    appenderMap.safePut(Object.class, this::getMXBeanMappingInternal);
+    appenderMap.safePut(SpecificRecordBase.class, (clasz)
+            -> new SpecificRecordOpenTypeMapping((Class) clasz, this));
   }
 
   public synchronized <T> boolean register(final Class<T> type,
           final JMXBeanMappingSupplier mapperSuplier) {
-
-    ListIterator<Pair<Class<?>, JMXBeanMappingSupplier>> listIterator = mappers.listIterator();
-    while (listIterator.hasNext()) {
-      Pair<Class<?>, JMXBeanMappingSupplier> next = listIterator.next();
-      final Class<?> nType = next.getFirst();
-      if (nType.isAssignableFrom(type)) {
-        if (nType == type) {
-          return false;
-        }
-        listIterator.previous();
-        listIterator.add((Pair) Pair.of(type, mapperSuplier));
-        return true;
-      }
-    }
-    listIterator.add((Pair) Pair.of(type, mapperSuplier));
-    return true;
+    return appenderMap.putIfNotPresent(type, mapperSuplier);
   }
 
   /**
    * returns MXBeanMapping or null if type is not mappable to a OpenType.
    */
   @Nullable
-  public JMXBeanMapping get(final Type type) {
-    JMXBeanMapping mapping = cache.getUnchecked(type);
-    return mapping == JMXBeanMapping.NOMAPPING ? null : mapping;
+  public JMXBeanMapping get(final Type type) throws NotSerializableException {
+    return appenderMap.get(type).get(type);
   }
 
   /**
@@ -107,26 +79,16 @@ public final class DefaultMXBeanMappingFactoryOpenTypeMapper implements JMXBeanM
   @Nullable
   private synchronized JMXBeanMapping getMXBeanMappingInternal(final Type type) throws NotSerializableException {
     try {
-      for (Pair<Class<?>, JMXBeanMappingSupplier> reg : mappers) {
-        if (type instanceof Class && reg.getFirst().isAssignableFrom((Class) type)) {
-          return reg.getSecond().get(type);
-        }
-      }
       MXBeanMapping mapping = MXBeanMappingFactory.DEFAULT.mappingForType(type, new MXBeanMappingFactory() {
         @Override
         public MXBeanMapping mappingForType(final Type t, final MXBeanMappingFactory f) throws OpenDataException {
-          for (Pair<Class<?>, JMXBeanMappingSupplier> reg : mappers) {
-            if (t instanceof Class && reg.getFirst().isAssignableFrom((Class) t)) {
-              try {
-                return MXBeanMappings.convert(reg.getSecond().get(t));
-              } catch (NotSerializableException ex) {
+          try {
+            return MXBeanMappings.convert(appenderMap.get(t).get(t));
+          } catch (NotSerializableException ex) {
                 OpenDataException tex = new OpenDataException(t + " is not serializable");
                 tex.initCause(ex);
                 throw tex;
-              }
-            }
           }
-          return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);
         }
       });
       return MXBeanMappings.convert(mapping);
@@ -137,7 +99,7 @@ public final class DefaultMXBeanMappingFactoryOpenTypeMapper implements JMXBeanM
 
   @Override
   public String toString() {
-    return "DefaultMXBeanMappingFactoryOpenTypeMapper{" + "cache=" + cache + ", mappers=" + mappers + '}';
+    return "DefaultMXBeanMappingFactoryOpenTypeMapper{" + "map=" + this.appenderMap  + '}';
   }
 
 
