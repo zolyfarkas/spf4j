@@ -36,6 +36,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Type;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.concurrent.UnboundedLoadingCache;
@@ -90,6 +91,30 @@ public final class CachingTypeMapWrapper<H> implements TypeMap<H> {
     } else {
       return false;
     }
+  }
+
+  @Override
+  public H getExact(final Type t) {
+    synchronized (wrapped) {
+      return wrapped.getExact(t);
+    }
+  }
+
+  public void replace(final Type t, final Function<H, H> f) {
+    synchronized (wrapped) {
+      H exact = wrapped.getExact(t);
+      if (exact != null) {
+        if (!wrapped.remove(t)) {
+          throw new IllegalStateException("Illegal Stat, type = " + t + " wrapped =  " + wrapped);
+        }
+      }
+      wrapped.safePut(t, f.apply(exact));
+     }
+    cache.invalidate(t);
+  }
+
+  public void clearCache() {
+    cache.invalidateAll();
   }
 
   private final class TypeMapedObjLoader extends CacheLoader<Type, Set<H>> {

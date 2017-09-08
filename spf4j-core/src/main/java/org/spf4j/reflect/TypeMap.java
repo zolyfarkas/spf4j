@@ -80,6 +80,14 @@ public interface TypeMap<H> extends ByTypeSupplier<H, RuntimeException> {
     }
   }
 
+  /**
+   * Get the the Object with and exact match to the type.
+   * @param t
+   * @return
+   */
+  @Nullable
+  H getExact(Type t);
+
   @CheckReturnValue
   boolean putIfNotPresent(Type type, H appender);
 

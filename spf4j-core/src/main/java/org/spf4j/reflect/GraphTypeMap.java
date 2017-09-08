@@ -135,4 +135,9 @@ public final class GraphTypeMap<H> implements TypeMap<H> {
     return "GraphTypeMap{" + "typeGraph=" + typeGraph + ", handlers=" + handlers + '}';
   }
 
+  @Override
+  public H getExact(final Type t) {
+    return handlers.get(TypeToken.of(t));
+  }
+
 }

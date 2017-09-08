@@ -58,7 +58,7 @@ public class ConfigurableAppenderSupplierTest {
               appendTo.append(object);
     };
 
-    supplier.register(Object.class, objectAppender);
+    supplier.replace(Object.class, (x) -> objectAppender);
     supplier.register(ConfigurableAppenderSupplierTest.class, testObjAppender);
     supplier.register(CharSequence.class, testObjAppender2);
 
