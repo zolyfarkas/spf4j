@@ -40,6 +40,10 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
+ * Type to Object map.
+ * association is not 1 - 1. if we have  type1 -> object that if type2 is subtype of type1, also type2 -> object
+ * this is useful for resolving: ITC_INHERITANCE_TYPE_CHECKING
+ *
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
@@ -81,22 +85,39 @@ public interface TypeMap<H> extends ByTypeSupplier<H, RuntimeException> {
   }
 
   /**
-   * Get the the Object with and exact match to the type.
+   * Get the the Object associated to type.
    * @param t
    * @return
    */
   @Nullable
   H getExact(Type t);
 
-  @CheckReturnValue
-  boolean putIfNotPresent(Type type, H appender);
 
-  default void safePut(final Type type, final H appender) {
-    if (!putIfNotPresent(type, appender)) {
-      throw new IllegalArgumentException("Cannot put " + type + ", " + appender + " exiting mapping present");
+  /**
+   * Associate object to type if no existing association present.
+   * @param type
+   * @param object
+   * @return
+   */
+  @CheckReturnValue
+  boolean putIfNotPresent(Type type, H object);
+
+  /**
+   * Associate object with type. if there is an existing association a exception will be thrown.
+   * @param type
+   * @param object
+   */
+  default void safePut(final Type type, final H object) {
+    if (!putIfNotPresent(type, object)) {
+      throw new IllegalArgumentException("Cannot put " + type + ", " + object + " exiting mapping present");
     }
   }
 
+  /**
+   * remove type association.
+   * @param type
+   * @return
+   */
   @CheckReturnValue
   boolean remove(Type type);
 

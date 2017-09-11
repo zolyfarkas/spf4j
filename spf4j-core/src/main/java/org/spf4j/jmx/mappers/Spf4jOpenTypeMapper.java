@@ -32,19 +32,19 @@
 package org.spf4j.jmx.mappers;
 
 import com.google.common.reflect.TypeToken;
-import java.io.Externalizable;
 import java.io.NotSerializableException;
 import java.io.Serializable;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.management.ObjectName;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import static javax.management.openmbean.SimpleType.BIGDECIMAL;
 import static javax.management.openmbean.SimpleType.BIGINTEGER;
@@ -60,11 +60,15 @@ import static javax.management.openmbean.SimpleType.STRING;
 import static javax.management.openmbean.SimpleType.LONG;
 import static javax.management.openmbean.SimpleType.DOUBLE;
 import static javax.management.openmbean.SimpleType.VOID;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
 import org.spf4j.jmx.JMXBeanMapping;
 import org.spf4j.jmx.JMXBeanMappingSupplier;
+import org.spf4j.jmx.mappers.Spf4jJMXBeanMapping.ArrayMXBeanType;
+import org.spf4j.reflect.CachingTypeMapSupplierWrapper;
+import org.spf4j.reflect.GraphTypeMap;
 
 
 /**
@@ -100,64 +104,84 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
   };
 
 
-  private final Map<Type, JMXBeanMapping> convertedTypes
-          = new ConcurrentHashMap<>();
+  private final CachingTypeMapSupplierWrapper<JMXBeanMapping, NotSerializableException> cache;
 
   public Spf4jOpenTypeMapper() {
-    try {
+    cache = new CachingTypeMapSupplierWrapper<>(new GraphTypeMap(), NotSerializableException.class);
       for (final Pair<OpenType<?>, Class<?>[]> t : SIMPLE_TYPES) {
         for (Class<?> c : t.getSecond()) {
-          convertedTypes.put(c, Spf4jJMXBeanMapping.newBasicType(c, t.getFirst()));
+          cache.safePut(c, (type) -> new Spf4jJMXBeanMapping.BasicMXBeanType(c, t.getFirst()));
         }
       }
-    } catch (OpenDataException e) {
-      throw new AssertionError(e);
-    }
+      cache.safePut(Enum.class, (type) -> new Spf4jJMXBeanMapping.EnumMXBeanType((Class) type));
+      cache.safePut(SpecificRecordBase.class, (type) -> new SpecificRecordOpenTypeMapping((Class) type, this));
+      cache.safePut(Properties.class, (type) -> new Spf4jJMXBeanMapping.MapMXBeanType((Class) type, this));
+      cache.safePut(Iterable.class, (type) -> {
+        if (type instanceof ParameterizedType) {
+          return new Spf4jJMXBeanMapping.ListMXBeanType((ParameterizedType) type, this);
+        } else {
+          return Spf4jJMXBeanMapping.defaultHandler(type, this);
+        }
+      });
+      cache.safePut(Map.class, (type) -> {
+        if (type instanceof ParameterizedType) {
+          return new Spf4jJMXBeanMapping.MapMXBeanType((ParameterizedType) type, this);
+        } else {
+          throw new IllegalArgumentException("Only parameterized maps can be converted to opentype, not " + type);
+        }
+      });
+      cache.safePut(Map.Entry.class, (type) -> {
+        if (type instanceof ParameterizedType) {
+          return new MapEntryOpenTypeMapping((ParameterizedType) type, this);
+        } else {
+          return Spf4jJMXBeanMapping.defaultHandler(type, this);
+        }
+      });
+      cache.safePut(Object.class, (type) -> {
+        if (type instanceof GenericArrayType) {
+          return new Spf4jJMXBeanMapping.GenericArrayMXBeanType((GenericArrayType) type, this);
+        } else if (type instanceof Class && ((Class) type).isArray()) {
+          return new ArrayMXBeanType(((Class) type), this);
+        } else {
+          return Spf4jJMXBeanMapping.defaultHandler(type, this);
+        }
+      });
   }
 
 
   @Override
   public JMXBeanMapping get(final Type t) throws NotSerializableException {
-    JMXBeanMapping mt = convertedTypes.get(t);
-    if (mt == null) {
-      try {
+
         Set<Type> ip = IN_PROGRESS.get();
         if (ip.contains(t)) {
            LOG.debug("No openType mapping for {} recorsive data structure", t);
            return null;
         }
-        ip.add(t);
         try {
-        mt =  Spf4jJMXBeanMapping.newMappedType(t, this);
+        ip.add(t);
+          return cache.get(t);
+        } catch (RuntimeException ex) {
+          LOG.debug("No mapping for type {}", t, ex);
+          TypeToken<?> tt = TypeToken.of(t);
+          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {
+            return null;
+          } else {
+            NotSerializableException nsex = new NotSerializableException("Type " + t + "  must be serializable");
+            nsex.addSuppressed(ex);
+            throw nsex;
+          }
         } finally {
           ip.remove(t);
         }
-        if (mt == null) {
-          mt = JMXBeanMapping.NOMAPPING;
-        }
-        convertedTypes.put(t, mt);
-      } catch (OpenDataException | RuntimeException ex) {
-        LOG.debug("No openType for {} ", t, ex);
-        mt = JMXBeanMapping.NOMAPPING;
-      }
-    }
+  }
 
-    if (mt == JMXBeanMapping.NOMAPPING) {
-      TypeToken<?> tt = TypeToken.of(t);
-      if (tt.getRawType().isInterface()
-              || tt.isSubtypeOf(Serializable.class) || tt.isSubtypeOf(Externalizable.class)) {
-        LOG.debug("No openType mapping for {}", t);
-        return null;
-      } else {
-        throw new NotSerializableException(t + " must be serializable to be exported via JMX");
-      }
-     }
-    return mt;
+  public CachingTypeMapSupplierWrapper<JMXBeanMapping, NotSerializableException> getCache() {
+    return cache;
   }
 
   @Override
   public String toString() {
-    return "Spf4jOpenTypeMapper{" + "convertedTypes=" + convertedTypes + '}';
+    return "Spf4jOpenTypeMapper{" + "convertedTypes=" + cache + '}';
   }
 
 }

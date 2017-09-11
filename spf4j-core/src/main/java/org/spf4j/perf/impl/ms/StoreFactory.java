@@ -32,6 +32,7 @@
 package org.spf4j.perf.impl.ms;
 
 import java.io.IOException;
+import java.io.Serializable;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
 
@@ -39,8 +40,8 @@ import org.spf4j.recyclable.ObjectCreationException;
  *
  * @author zoly
  */
-public interface StoreFactory {
-    
+public interface StoreFactory extends Serializable {
+
     MeasurementStore create(String config) throws IOException, ObjectCreationException;
-    
+
 }

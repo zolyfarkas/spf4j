@@ -40,6 +40,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -189,6 +190,10 @@ public class OpenTypeConverterTest {
   @Test
   public void testConverterMapStrObject3() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping mxBeanMapping2 = conv.get(Map.class);
+//    Map map = new HashMap();
+//    map.put("bla", "bla");
+//    Object toOpenValue = mxBeanMapping2.toOpenValue(map);
+//    System.out.println(toOpenValue);
     Assert.assertNull(mxBeanMapping2);
   }
 
@@ -208,7 +213,8 @@ public class OpenTypeConverterTest {
 
   @Test(expected = NotSerializableException.class)
   public void testConverterRecursiveData() throws OpenDataException, InvalidObjectException, NotSerializableException {
-    conv.get(RecursiveTestBean.class);
+    JMXBeanMapping get = conv.get(RecursiveTestBean.class);
+    System.out.println(get);
   }
 
   @Test

@@ -65,7 +65,7 @@ public final class MapEntryOpenTypeMapping extends MXBeanMapping implements JMXB
   private final Type[] actualTypeArguments;
 
   public MapEntryOpenTypeMapping(final ParameterizedType javaType,
-          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException, OpenDataException {
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
     super(javaType, typeFromMapEntry(javaType, typeMapper));
     this.typeMapper = typeMapper;
     rawType = (Class) javaType.getRawType();
@@ -116,7 +116,7 @@ public final class MapEntryOpenTypeMapping extends MXBeanMapping implements JMXB
   }
 
   private static CompositeType typeFromMapEntry(final ParameterizedType type,
-          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException, OpenDataException {
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
     Type[] typeArgs = type.getActualTypeArguments();
     String[] descriptions = new String[2];
     OpenType<?>[] types = new OpenType<?>[2];
@@ -124,19 +124,22 @@ public final class MapEntryOpenTypeMapping extends MXBeanMapping implements JMXB
     Type typeArg0 = typeArgs[0];
     JMXBeanMapping km = typeMapper.get(typeArg0);
     if (km == null) {
-      throw new OpenDataException("Cannot map to open type " + typeArg0);
+      throw new IllegalArgumentException("Cannot map to open type " + typeArg0);
     }
     types[0] = km.getOpenType();
     descriptions[1] = "value of " + type;
     Type typeArg1 = typeArgs[1];
     JMXBeanMapping km2 = typeMapper.get(typeArg1);
     if (km2 == null) {
-      throw new OpenDataException("Cannot map to open type " + typeArg1);
+      throw new IllegalArgumentException("Cannot map to open type " + typeArg1);
     }
     types[1] = km2.getOpenType();
-    return new CompositeType(type.getTypeName(), type.toString(),
-            NAMES, descriptions, types);
-
+    try {
+      return new CompositeType(type.getTypeName(), type.toString(),
+              NAMES, descriptions, types);
+    } catch (OpenDataException ex) {
+     throw new IllegalArgumentException(ex);
+    }
   }
 
   @Override

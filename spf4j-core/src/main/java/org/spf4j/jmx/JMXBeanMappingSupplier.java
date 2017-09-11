@@ -34,13 +34,20 @@ package org.spf4j.jmx;
 import java.io.NotSerializableException;
 import java.lang.reflect.Type;
 import javax.annotation.Nullable;
+import org.spf4j.reflect.ByTypeSupplier;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public interface JMXBeanMappingSupplier {
+public interface JMXBeanMappingSupplier extends ByTypeSupplier<JMXBeanMapping, NotSerializableException> {
 
+  /**
+   * Get a opentype mapping if available.
+   * @param type the java typ eto lookup open type mapping
+   * @return the open type mapping (to/from converter) if available.
+   * @throws NotSerializableException will be thrown if type is a non serializable class (not interface).
+   */
   @Nullable
   JMXBeanMapping get(Type type) throws NotSerializableException;
 
