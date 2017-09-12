@@ -43,7 +43,8 @@ import java.lang.annotation.Target;
  * operation parameters.
  * Names are inferred from the method names, but can be customized further with JmxExport.value.
  *
- *
+ * Open type mapping is configurable by registering a new mapper with: GlobalMXBeanMapperSupplier.register
+ * or modifying the current ones (if supported). The default implementation, Spf4jOpenTypeMapper supports this.
  * attribute description can be added to the annotation.
  *
  * @author zoly
