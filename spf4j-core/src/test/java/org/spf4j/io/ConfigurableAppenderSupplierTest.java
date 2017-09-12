@@ -32,6 +32,7 @@
 package org.spf4j.io;
 
 import com.google.common.net.HostAndPort;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -66,8 +67,26 @@ public class ConfigurableAppenderSupplierTest {
     Assert.assertEquals(objectAppender, supplier.get(Object.class));
     Assert.assertEquals(testObjAppender2, supplier.get(String.class));
     Assert.assertEquals(objectAppender, supplier.get(HostAndPort.class));
+  }
+
+  private static final class TestAppender implements ObjectAppender<Object> {
+
+    @Override
+    public void append(final Object object, final Appendable appendTo) throws IOException {
+      appendTo.append(object.toString());
+      appendTo.append("XX");
+    }
+
+  }
 
 
+  @Test
+  public void testRegistration() throws IOException {
+    ConfigurableAppenderSupplier appSupplier = new ConfigurableAppenderSupplier(false,
+            ConfigurableAppenderSupplier.NO_FILTER, new TestAppender());
+    StringBuilder builder = new StringBuilder();
+    appSupplier.get(String.class).append("bla", builder);
+    Assert.assertEquals("blaXX", builder.toString());
   }
 
 }
