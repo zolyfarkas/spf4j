@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Future;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
@@ -229,5 +230,10 @@ public class OpenTypeConverterTest {
     Assert.assertNull(get);
   }
 
+  @Test
+  public void testCompositeData() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(CompositeData.class);
+    Assert.assertNotNull(get);
+  }
 
 }

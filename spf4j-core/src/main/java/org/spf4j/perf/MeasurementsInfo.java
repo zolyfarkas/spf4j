@@ -33,6 +33,9 @@ package org.spf4j.perf;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 
 /**
  *
@@ -41,20 +44,33 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public interface MeasurementsInfo {
 
-    @Nonnull
-    Object getMeasuredEntity();
+  @Nonnull
+  Object getMeasuredEntity();
 
-    @Nonnull
-    String getDescription();
+  @Nonnull
+  String getDescription();
 
-    String[] getMeasurementNames();
+  String[] getMeasurementNames();
 
-    String[] getMeasurementUnits();
+  String[] getMeasurementUnits();
 
-    String getMeasurementName(int measurementNr);
+  String getMeasurementName(int measurementNr);
 
-    String getMeasurementUnit(int measurementNr);
+  String getMeasurementUnit(int measurementNr);
 
-    int getNumberOfMeasurements();
+  int getNumberOfMeasurements();
+
+  default CompositeType toCompositeType() {
+    OpenType<?>[] types = new OpenType[getNumberOfMeasurements()];
+    for (int i = 0; i < types.length; i++) {
+      types[i] = javax.management.openmbean.SimpleType.LONG;
+    }
+    try {
+      return new CompositeType(getMeasuredEntity().toString(),
+              getDescription(), getMeasurementNames(), getMeasurementUnits(), types);
+    } catch (OpenDataException ex) {
+      throw new IllegalArgumentException("Cannot convert to composite data " + this, ex);
+    }
+  }
 
 }

@@ -31,45 +31,58 @@
  */
 package org.spf4j.perf;
 
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.OpenDataException;
+import org.spf4j.base.Arrays;
+import org.spf4j.jmx.JmxExport;
 
 /**
  *
  * @author zoly
  */
-
 public interface MeasurementAccumulator extends MeasurementRecorder {
 
-    @Nullable
-    long[] get();
+  @Nullable
+  long[] get();
 
-    /**
-     * @return null when no measurements have been made.
-     */
+  /**
+   * @return null when no measurements have been made.
+   */
+  @Nullable
+  long[] getThenReset();
 
-    @Nullable
-    long[] getThenReset();
+  @Nonnull
+  MeasurementAccumulator aggregate(@Nonnull MeasurementAccumulator mSource);
 
-    @Nonnull
-    MeasurementAccumulator  aggregate(@Nonnull MeasurementAccumulator mSource);
+  @Nonnull
+  MeasurementAccumulator createClone();
 
-    @Nonnull
-    MeasurementAccumulator createClone();
+  /**
+   * reset this entity.
+   *
+   * @return a clone of the object prior to reset or null if no measurements have been made.
+   */
+  @Nullable
+  MeasurementAccumulator reset();
 
-    /**
-     * reset this entity.
-     * @return a clone of the object prior to reset or null if no measurements have been made.
-     */
-    @Nullable
-    MeasurementAccumulator reset();
+  @Nonnull
+  MeasurementAccumulator createLike(@Nonnull Object entity);
 
-    @Nonnull
-    MeasurementAccumulator createLike(@Nonnull Object entity);
+  @Nonnull
+  MeasurementsInfo getInfo();
 
-    @Nonnull
-    MeasurementsInfo getInfo();
+  @JmxExport
+  default CompositeData getCompositeData() {
+    MeasurementsInfo info = getInfo();
+    try {
+      return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),
+              Arrays.toObjectArray(get()));
+    } catch (OpenDataException ex) {
+      throw new IllegalArgumentException("Cannot convert to composite data " + info, ex);
+    }
+  }
 
 }

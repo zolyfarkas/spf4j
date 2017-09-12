@@ -34,6 +34,7 @@ package org.spf4j.io;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Iterator;
@@ -68,11 +69,10 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     this(true, NO_FILTER);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public ConfigurableAppenderSupplier(final boolean registerFromServiceLoader, final Predicate<Class<?>> except,
           final ObjectAppender<?>... appenders) {
     appenderMap = new CachingTypeMapWrapper<>(new GraphTypeMap());
-    appenderMap.safePut(Object.class, ObjectAppender.TOSTRING_APPENDER);
     if (registerFromServiceLoader) {
       @SuppressWarnings("unchecked")
       ServiceLoader<ObjectAppender<?>> load = (ServiceLoader) ServiceLoader.load(ObjectAppender.class);
@@ -92,6 +92,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
         throw new IllegalArgumentException("Cannot register appender " + appender);
       }
     }
+    appenderMap.putIfNotPresent(Object.class, ObjectAppender.TOSTRING_APPENDER);
   }
 
   public static Class<?> getAppenderType(final ObjectAppender<?> appender) {

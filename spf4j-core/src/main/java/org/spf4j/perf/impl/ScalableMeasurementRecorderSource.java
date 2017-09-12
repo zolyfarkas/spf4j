@@ -44,6 +44,11 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
@@ -247,6 +252,35 @@ public final class ScalableMeasurementRecorderSource implements
     }
     return sw.toString();
   }
+
+  @JmxExport(description = "measurements as csv")
+  public CompositeData getMeasurements() {
+      Map<Object, MeasurementAccumulator> entitiesMeasurements = getEntitiesMeasurements();
+      MeasurementsInfo info = this.processorTemplate.getInfo();
+      int nrStuff = entitiesMeasurements.size();
+      String[] names = new String[nrStuff];
+      String[] descriptions = new String[nrStuff];
+      OpenType<?>[] types = new OpenType[nrStuff];
+      Object[] values = new Object[nrStuff];
+      int i = 0;
+      for (Map.Entry<Object, MeasurementAccumulator> entry : entitiesMeasurements.entrySet()) {
+        MeasurementAccumulator acc = entry.getValue();
+        MeasurementsInfo eInfo = acc.getInfo();
+        names[i] = eInfo.getMeasuredEntity().toString();
+        descriptions[i] = eInfo.getDescription();
+        types[i] = eInfo.toCompositeType();
+        values[i] = acc.getCompositeData();
+        i++;
+      }
+     try {
+      CompositeType setType = new CompositeType(info.getMeasuredEntity().toString(),
+              info.getDescription(), names, descriptions, types);
+      return new CompositeDataSupport(setType, names, values);
+    } catch (OpenDataException ex) {
+      throw new IllegalArgumentException("Not composite data compatible " + this, ex);
+    }
+  }
+
 
   @JmxExport
   public void clear() {

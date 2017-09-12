@@ -82,6 +82,14 @@ public final class Arrays {
     return result;
   }
 
+  public static Object[] toObjectArray(final long... larr) {
+    Object[] result = new Object[larr.length];
+    for (int i = 0; i < larr.length; i++) {
+      result[i] = larr[i];
+    }
+    return result;
+  }
+
   public static double[] divide(final double[] arr1, final double[] arr2) {
     double[] result = new double[arr1.length];
     for (int i = 0; i < result.length; i++) {
