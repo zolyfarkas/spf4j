@@ -50,7 +50,7 @@ public interface ExportedValue<T> {
 
     boolean isWriteable();
 
-    Type getValueClass();
+    Type getValueType();
 
     @Nullable
     OpenType<?> getValueOpenType();

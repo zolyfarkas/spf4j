@@ -46,7 +46,7 @@ import javax.management.openmbean.OpenType;
  *
  * @author zoly
  */
-class ExportedValueImpl implements ExportedValue<Object> {
+class BeanExportedValue implements ExportedValue<Object> {
 
   private final String name;
   private final String description;
@@ -56,7 +56,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
   private final Type valueClass;
   private final JMXBeanMapping converter;
 
-  ExportedValueImpl(@Nonnull final String name, @Nullable final String description,
+  BeanExportedValue(@Nonnull final String name, @Nullable final String description,
           @Nullable final Method getMethod, @Nullable final Method setMethod,
           @Nullable final Object object, @Nonnull final Type valueClass, final boolean mapOpenType) {
     this.name = name;
@@ -76,20 +76,20 @@ class ExportedValueImpl implements ExportedValue<Object> {
     }
   }
 
-  public ExportedValueImpl withSetter(@Nonnull final Method psetMethod) {
+  public BeanExportedValue withSetter(@Nonnull final Method psetMethod) {
     if (setMethod != null) {
       throw new IllegalArgumentException("duplicate value registration attemted " + setMethod
               + ", " + psetMethod);
     }
-    return new ExportedValueImpl(name, description, getMethod, psetMethod, object, valueClass, converter != null);
+    return new BeanExportedValue(name, description, getMethod, psetMethod, object, valueClass, converter != null);
   }
 
-  public ExportedValueImpl withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
+  public BeanExportedValue withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
     if (getMethod != null) {
       throw new IllegalArgumentException("duplicate value registration attemted " + getMethod
               + ", " + pgetMethod);
     }
-    return new ExportedValueImpl(name, pdescription, pgetMethod, setMethod, object, valueClass, converter != null);
+    return new BeanExportedValue(name, pdescription, pgetMethod, setMethod, object, valueClass, converter != null);
   }
 
   @Override
@@ -142,7 +142,7 @@ class ExportedValueImpl implements ExportedValue<Object> {
   }
 
   @Override
-  public Type getValueClass() {
+  public Type getValueType() {
     return valueClass;
   }
 

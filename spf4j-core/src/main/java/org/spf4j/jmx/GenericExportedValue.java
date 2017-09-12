@@ -34,8 +34,12 @@ package org.spf4j.jmx;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
@@ -43,24 +47,44 @@ import javax.management.openmbean.OpenType;
  *
  * @author zoly
  */
-public final class MapExportedValue implements ExportedValue {
+public final class GenericExportedValue<T> implements ExportedValue {
 
-  private final Map<String, Object> map;
-  private final Map<String, String> descriptions;
   private final String name;
+  private final String description;
+  private final Supplier<T> getter;
+  private final Consumer<T> setter;
+  private final Class<T> clasz;
   private final JMXBeanMapping converter;
+  private final OpenType<?> openType;
 
-  public MapExportedValue(final Map<String, Object> map, final Map<String, String> descriptions,
-          final String name, @Nullable final Object value) throws NotSerializableException {
-    this.map = map;
-    this.descriptions = descriptions;
+  public GenericExportedValue(
+          @Nonnull final String name, @Nonnull final String description,
+          @Nonnull final Supplier<T> getter, @Nullable final Consumer<T> setter,
+          final Class<T> clasz) throws NotSerializableException {
+    this.description = description;
     this.name = name;
-    if (value == null) {
-      this.converter = null;
-    } else {
-      this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(value.getClass());
-    }
+    this.getter = getter;
+    this.setter = setter;
+    this.clasz = clasz;
+    this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(clasz);
+    this.openType = this.converter == null ? null : this.converter.getOpenType();
   }
+
+  @SuppressWarnings("unchecked")
+  public GenericExportedValue(
+          @Nonnull final String name, @Nonnull final String description,
+          @Nonnull final Supplier<CompositeData> getter,
+          @Nullable final Consumer<CompositeData> setter,
+          final CompositeType openType) {
+    this.description = description;
+    this.name = name;
+    this.getter = (Supplier) getter;
+    this.setter = (Consumer) setter;
+    this.clasz = (Class) CompositeData.class;
+    this.converter = null;
+    this.openType = openType;
+  }
+
 
   @Override
   public String getName() {
@@ -69,16 +93,12 @@ public final class MapExportedValue implements ExportedValue {
 
   @Override
   public String getDescription() {
-    if (descriptions != null) {
-      return descriptions.get(name);
-    } else {
-      return "";
-    }
+      return description;
   }
 
   @Override
   public Object get() throws OpenDataException {
-    Object val = map.get(name);
+    Object val = getter.get();
     if (converter == null) {
       return val;
     } else {
@@ -89,31 +109,26 @@ public final class MapExportedValue implements ExportedValue {
   @Override
   public void set(final Object value) throws InvalidObjectException {
     if (converter == null) {
-      map.put(name, value);
+      setter.accept((T) value);
     } else {
-      map.put(name, converter.fromOpenValue(value));
+      setter.accept((T) converter.fromOpenValue(value));
     }
   }
 
   @Override
   public boolean isWriteable() {
-    return true;
+    return setter != null;
   }
 
   @Override
   public Class getValueType() {
-    Object obj = map.get(name);
-    if (obj == null) {
-      return String.class;
-    } else {
-      return obj.getClass();
-    }
+    return clasz;
   }
 
   @Override
   public String toString() {
     try {
-      return "MapExportedValue{" + "val=" + get() + "valClass=" + getValueType()
+      return "GenericExportedValue{" + "val=" + get() + "valClass=" + getValueType()
               + "valopenType=" + getValueOpenType() + ", description="
               + getDescription() + ", name=" + name + ", converter=" + converter + '}';
     } catch (OpenDataException ex) {
@@ -125,7 +140,7 @@ public final class MapExportedValue implements ExportedValue {
 
   @Override
   public OpenType getValueOpenType() {
-    return (converter != null) ? converter.getOpenType() : null;
+    return openType;
   }
 
 }

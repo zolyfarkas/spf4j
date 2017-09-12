@@ -121,7 +121,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       if (nsex != null) {
         throw nsex;
       } else {
-        throw new IllegalArgumentException("No type mapping for " + javaType);
+        throw new IllegalArgumentException("No type mapping for " + javaType, ex);
       }
     }
   }

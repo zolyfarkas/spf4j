@@ -66,8 +66,12 @@ public interface MeasurementsInfo {
       types[i] = javax.management.openmbean.SimpleType.LONG;
     }
     try {
-      return new CompositeType(getMeasuredEntity().toString(),
-              getDescription(), getMeasurementNames(), getMeasurementUnits(), types);
+      String entityName = getMeasuredEntity().toString();
+      String description = getDescription();
+      if (description.isEmpty()) {
+        description = entityName;
+      }
+      return new CompositeType(entityName, description, getMeasurementNames(), getMeasurementUnits(), types);
     } catch (OpenDataException ex) {
       throw new IllegalArgumentException("Cannot convert to composite data " + this, ex);
     }

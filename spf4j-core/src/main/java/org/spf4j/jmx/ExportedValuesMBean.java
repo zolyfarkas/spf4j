@@ -233,7 +233,7 @@ public final class ExportedValuesMBean implements DynamicMBean {
   }
 
   private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
-    final Type oClass = val.getValueClass();
+    final Type oClass = val.getValueType();
     Class<?> valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;
     OpenType openType = val.getValueOpenType();
     String description = val.getDescription();

@@ -38,8 +38,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.annotation.Nonnull;
@@ -54,6 +56,7 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
 import org.spf4j.io.Csv;
+import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementAccumulator;
@@ -206,9 +209,13 @@ public final class ScalableMeasurementRecorderSource implements
     return result;
   }
 
+  @SuppressWarnings("unchecked")
   public void registerJmx() {
-    Registry.export("org.spf4j.perf.recorders",
-            this.processorTemplate.getInfo().getMeasuredEntity().toString(), this);
+    MeasurementsInfo info = this.processorTemplate.getInfo();
+    Registry.exportAgg("org.spf4j.perf.recorders",
+            info.getMeasuredEntity().toString(),
+            (List) Arrays.asList(new GenericExportedValue<>("measurements", info.getDescription(),
+                    this::getMeasurements, null, info.toCompositeType())), (Map) null, this);
   }
 
   @Override
@@ -264,15 +271,24 @@ public final class ScalableMeasurementRecorderSource implements
       for (Map.Entry<Object, MeasurementAccumulator> entry : entitiesMeasurements.entrySet()) {
         MeasurementAccumulator acc = entry.getValue();
         MeasurementsInfo eInfo = acc.getInfo();
-        names[i] = eInfo.getMeasuredEntity().toString();
-        descriptions[i] = eInfo.getDescription();
+        String cattrName = eInfo.getMeasuredEntity().toString();
+        names[i] = cattrName;
+        String cattrDesc = eInfo.getDescription();
+        if (cattrDesc.isEmpty()) {
+          cattrDesc = cattrName;
+        }
+        descriptions[i] = cattrDesc;
         types[i] = eInfo.toCompositeType();
         values[i] = acc.getCompositeData();
         i++;
       }
      try {
-      CompositeType setType = new CompositeType(info.getMeasuredEntity().toString(),
-              info.getDescription(), names, descriptions, types);
+      String name = info.getMeasuredEntity().toString();
+      String description = info.getDescription();
+      if (description.isEmpty()) {
+        description = name;
+      }
+      CompositeType setType = new CompositeType(name, description, names, descriptions, types);
       return new CompositeDataSupport(setType, names, values);
     } catch (OpenDataException ex) {
       throw new IllegalArgumentException("Not composite data compatible " + this, ex);
