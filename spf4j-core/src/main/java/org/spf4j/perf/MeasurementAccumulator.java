@@ -33,11 +33,9 @@ package org.spf4j.perf;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.OpenDataException;
 import org.spf4j.base.Arrays;
-import org.spf4j.jmx.JmxExport;
 
 /**
  *
@@ -74,8 +72,7 @@ public interface MeasurementAccumulator extends MeasurementRecorder {
   @Nonnull
   MeasurementsInfo getInfo();
 
-  @JmxExport
-  default CompositeData getCompositeData() {
+  default CompositeDataSupport getCompositeData() {
     MeasurementsInfo info = getInfo();
     try {
       return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),

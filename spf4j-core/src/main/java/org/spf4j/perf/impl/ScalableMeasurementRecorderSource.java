@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
@@ -253,8 +252,7 @@ public final class ScalableMeasurementRecorderSource implements
     return sw.toString();
   }
 
-  @JmxExport(description = "measurements as csv")
-  public CompositeData getMeasurements() {
+  public CompositeDataSupport getMeasurements() {
       Map<Object, MeasurementAccumulator> entitiesMeasurements = getEntitiesMeasurements();
       MeasurementsInfo info = this.processorTemplate.getInfo();
       int nrStuff = entitiesMeasurements.size();

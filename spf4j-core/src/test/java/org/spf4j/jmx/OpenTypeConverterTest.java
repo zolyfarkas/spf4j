@@ -40,13 +40,13 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Future;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.OpenDataException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
@@ -233,6 +233,12 @@ public class OpenTypeConverterTest {
   @Test
   public void testCompositeData() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping get = conv.get(CompositeData.class);
+    Assert.assertNotNull(get);
+  }
+
+  @Test
+  public void testCompositeDataSupport() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(CompositeDataSupport.class);
     Assert.assertNotNull(get);
   }
 
