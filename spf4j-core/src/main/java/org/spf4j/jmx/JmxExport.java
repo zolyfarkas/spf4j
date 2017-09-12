@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to mark setters and getters of attributes to export via JMX,
- * Any other methods that do not respect get/set/is naming conventions will be exported as JMX operation.
+ * Any other methods that do not respect get/set/is bean naming conventions will be exported as JMX operation.
  * Any method parameters annotated with JMXExport allows you to provide names and descriptions to your
  * operation parameters.
  * Names are inferred from the method names, but can be customized further with JmxExport.value.
@@ -62,7 +62,7 @@ public @interface JmxExport {
      String description() default "";
 
      /**
-      * Map to openType the types associated to the exported entity.
+      * Map to openType the types associated to the exported entity. (or not)
       * @return
       */
      boolean mapOpenType() default true;

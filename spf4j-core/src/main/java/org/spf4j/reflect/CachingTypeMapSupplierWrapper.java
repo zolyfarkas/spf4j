@@ -93,7 +93,7 @@ public final class CachingTypeMapSupplierWrapper<H, E extends Exception> impleme
       remove = wrapped.remove(type);
     }
     if (remove) {
-      cache.invalidate(type);
+      cache.invalidateAll(); // a bit lazy
       return true;
     } else {
       return false;

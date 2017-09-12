@@ -86,7 +86,7 @@ public final class CachingTypeMapWrapper<H> implements TypeMap<H> {
       remove = wrapped.remove(type);
     }
     if (remove) {
-      cache.invalidate(type);
+      cache.invalidateAll(); // a bit lazy
       return true;
     } else {
       return false;
@@ -110,7 +110,7 @@ public final class CachingTypeMapWrapper<H> implements TypeMap<H> {
       }
       wrapped.safePut(t, f.apply(exact));
      }
-    cache.invalidate(t);
+    cache.invalidateAll(); // a bit lazy :-)
   }
 
   public void clearCache() {
