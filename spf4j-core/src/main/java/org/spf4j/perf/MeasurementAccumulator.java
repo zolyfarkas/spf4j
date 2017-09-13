@@ -75,8 +75,14 @@ public interface MeasurementAccumulator extends MeasurementRecorder {
   default CompositeDataSupport getCompositeData() {
     MeasurementsInfo info = getInfo();
     try {
-      return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),
-              Arrays.toObjectArray(get()));
+      long[] measurements = get();
+      if (measurements != null) {
+        return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),
+                Arrays.toObjectArray(measurements));
+      } else {
+        return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),
+            Arrays.toObjectArray(new long[info.getNumberOfMeasurements()]));
+      }
     } catch (OpenDataException ex) {
       throw new IllegalArgumentException("Cannot convert to composite data " + info, ex);
     }
