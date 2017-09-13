@@ -182,6 +182,7 @@ public final class Registry {
   /**
    * Export the aggregate of attributes and operations from exportedValues, mapAttributes and objects as a
    * managed bean with packageName and mbeanName.
+   * if there is an existing MBean registered, it will be extended with the provided attributes and operations.
    *
    * @param packageName the package name for the managed bean.
    * @param mbeanName the managed bean name.
@@ -190,12 +191,10 @@ public final class Registry {
    * @param objects objects with JmxExport annotations to export managed values and operations
    * @return
    */
-  public static synchronized ExportedValuesMBean exportAgg(final String packageName, final String mbeanName,
+  public static ExportedValuesMBean exportAgg(final String packageName, final String mbeanName,
           @Nullable final List<? extends ExportedValue<?>> exportedValues,
           @Nullable final Map<String, Object> mapAttributes, final Object... objects) {
 
-    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
-    ExportedValuesMBean existing = (ExportedValuesMBean) unregister(objectName);
     Map<String, ExportedValue> exportedAttributes = new HashMap<>();
     if (exportedValues != null) {
       for (ExportedValue<?> exported: exportedValues) {
@@ -256,16 +255,20 @@ public final class Registry {
         values[i++] = expVal;
       }
     }
-    ExportedValuesMBean mbean;
-    if (existing == null) {
-      mbean = new ExportedValuesMBean(objectName, values,
-              exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
-    } else {
-      mbean = new ExportedValuesMBean(existing, values,
-              exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
+    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+    synchronized (Registry.class) {
+      ExportedValuesMBean existing = (ExportedValuesMBean) unregister(objectName);
+      ExportedValuesMBean mbean;
+      if (existing == null) {
+        mbean = new ExportedValuesMBean(objectName, values,
+                exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
+      } else {
+        mbean = new ExportedValuesMBean(existing, values,
+                exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
+      }
+      Registry.registerMBean(mbean.getObjectName(), mbean);
+      return mbean;
     }
-    Registry.registerMBean(mbean.getObjectName(), mbean);
-    return mbean;
   }
 
   private static void exportMethod(final Method method,
