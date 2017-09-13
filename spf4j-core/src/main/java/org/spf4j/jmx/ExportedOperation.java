@@ -41,7 +41,7 @@ import javax.management.openmbean.OpenType;
  *
  * @author zoly
  */
-public interface ExportedOperation {
+public interface ExportedOperation extends Comparable<ExportedOperation> {
 
     String getName();
 
@@ -55,4 +55,8 @@ public interface ExportedOperation {
 
     @Nullable
     OpenType<?> getReturnOpenType();
+
+    default int compareTo(final ExportedOperation op) {
+      return getName().compareTo(op.getName());
+    }
 }

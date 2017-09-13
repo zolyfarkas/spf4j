@@ -67,14 +67,27 @@ public final class ExportedValuesMBean implements DynamicMBean {
   private final MBeanInfo beanInfo;
 
   ExportedValuesMBean(final ObjectName objectName,
+          final Map<String, ExportedValue<?>> exportedValues,
+          final Map<String, ExportedOperation> exportedOperations) {
+    this.exportedOperations = exportedOperations;
+    this.exportedValues = exportedValues;
+    this.objectName = objectName;
+    this.beanInfo = createBeanInfo();
+  }
+
+  ExportedValuesMBean(final ObjectName objectName,
           final ExportedValue<?>[] exported, final ExportedOperation[] operations) {
     this.exportedValues = new HashMap<>(exported.length);
     for (ExportedValue<?> val : exported) {
-      this.exportedValues.put(val.getName(), val);
+      if (this.exportedValues.put(val.getName(), val) != null) {
+        throw new IllegalArgumentException("Duplicate attribute " + val);
+      }
     }
     this.exportedOperations = new HashMap<>(operations.length);
     for (ExportedOperation op : operations) {
-      this.exportedOperations.put(op.getName(), op);
+      if (this.exportedOperations.put(op.getName(), op) != null) {
+        throw new IllegalArgumentException("Duplicate operation " + op);
+      }
     }
     this.objectName = objectName;
     this.beanInfo = createBeanInfo();
@@ -85,16 +98,32 @@ public final class ExportedValuesMBean implements DynamicMBean {
     this.exportedValues = new HashMap<>(exported.length + extend.exportedValues.size());
     this.exportedValues.putAll(extend.exportedValues);
     for (ExportedValue<?> val : exported) {
-      this.exportedValues.put(val.getName(), val);
+      if (this.exportedValues.put(val.getName(), val) != null) {
+        throw new IllegalArgumentException("Duplicate attribute " + val);
+      }
     }
     this.exportedOperations = new HashMap<>(operations.length + extend.exportedOperations.size());
     this.exportedOperations.putAll(extend.exportedOperations);
     for (ExportedOperation op : operations) {
-      this.exportedOperations.put(op.getName(), op);
+      if (this.exportedOperations.put(op.getName(), op) != null) {
+        throw new IllegalArgumentException("Duplicate operation " + op);
+      }
     }
     this.objectName = extend.getObjectName();
     this.beanInfo = extend.beanInfo;
   }
+
+  ExportedValuesMBean(final ExportedValuesMBean extend,
+          final Map<String, ExportedValue<?>> exportedValues,
+          final Map<String, ExportedOperation> exportedOperations) {
+    this.exportedValues = exportedValues;
+    this.exportedValues.putAll(extend.exportedValues);
+    this.exportedOperations = exportedOperations;
+    this.exportedOperations.putAll(extend.exportedOperations);
+    this.objectName = extend.getObjectName();
+    this.beanInfo = createBeanInfo();
+  }
+
 
   /**
    * @return - the object name of this mbean.

@@ -43,14 +43,14 @@ import javax.management.openmbean.OpenType;
  *
  * @author zoly
  */
-public final class MapExportedValue implements ExportedValue {
+final class MapExportedValue implements ExportedValue {
 
   private final Map<String, Object> map;
   private final Map<String, String> descriptions;
   private final String name;
   private final JMXBeanMapping converter;
 
-  public MapExportedValue(final Map<String, Object> map, final Map<String, String> descriptions,
+  MapExportedValue(final Map<String, Object> map, final Map<String, String> descriptions,
           final String name, @Nullable final Object value) throws NotSerializableException {
     this.map = map;
     this.descriptions = descriptions;

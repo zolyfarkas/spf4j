@@ -32,12 +32,8 @@
 package org.spf4j.jmx;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.NotSerializableException;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.Nullable;
@@ -47,8 +43,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
-import org.spf4j.base.Reflections;
-import org.spf4j.base.Strings;
 
 /**
  * Utility class that allows to easily exportAgg via JMX java beans.
@@ -93,6 +87,12 @@ public final class Registry {
   private Registry() {
   }
 
+  /**
+   * Register MBean, will replace any existing bean.
+   * @param objectName
+   * @param mbean
+   * @return
+   */
   public static synchronized Object registerMBean(final ObjectName objectName, final Object mbean) {
     Object replaced = null;
     if (MBEAN_SERVER.isRegistered(objectName)) {
@@ -110,6 +110,15 @@ public final class Registry {
     }
     REGISTERED.put(objectName, mbean);
     return replaced;
+  }
+
+  public static synchronized void registerIfNotExistsMBean(final ObjectName objectName, final Object mbean) {
+    try {
+      MBEAN_SERVER.registerMBean(mbean, objectName);
+    } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
+      throw new RuntimeException(ex);
+    }
+    REGISTERED.put(objectName, mbean);
   }
 
   public static synchronized Object getRegistered(final ObjectName objectName) {
@@ -166,184 +175,33 @@ public final class Registry {
 
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           final Object... objects) {
-    return export(packageName, mbeanName, (Map) null, objects);
-  }
-
-  @SuppressFBWarnings("OCP_OVERLY_CONCRETE_PARAMETER")
-  public static ExportedValuesMBean export(final String packageName, final String mbeanName,
-          final Properties attributes, final Object... objects) {
-    return export(packageName, mbeanName, (Map) attributes, objects);
-  }
-  public static ExportedValuesMBean export(final String packageName, final String mbeanName,
-          @Nullable final Map<String, Object> attributes, final Object... objects) {
-    return exportAgg(packageName, mbeanName, null, (Map) attributes, objects);
+    return new MBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);
   }
 
   /**
-   * Export the aggregate of attributes and operations from exportedValues, mapAttributes and objects as a
-   * managed bean with packageName and mbeanName.
-   * if there is an existing MBean registered, it will be extended with the provided attributes and operations.
-   *
-   * @param packageName the package name for the managed bean.
-   * @param mbeanName the managed bean name.
-   * @param exportedValues Custom exported values.
-   * @param mapAttributes Attributes from a map that should be exported.
-   * @param objects objects with JmxExport annotations to export managed values and operations
-   * @return
+   * @deprecated use MBeanBuilder instead.
    */
-  public static ExportedValuesMBean exportAgg(final String packageName, final String mbeanName,
-          @Nullable final List<? extends ExportedValue<?>> exportedValues,
-          @Nullable final Map<String, Object> mapAttributes, final Object... objects) {
-
-    Map<String, ExportedValue> exportedAttributes = new HashMap<>();
-    if (exportedValues != null) {
-      for (ExportedValue<?> exported: exportedValues) {
-        exportedAttributes.put(exported.getName(), exported);
-      }
+  @SuppressFBWarnings("OCP_OVERLY_CONCRETE_PARAMETER")
+  @Deprecated
+  public static ExportedValuesMBean export(final String packageName, final String mbeanName,
+          final Properties attributes, final Object... objects) {
+    MBeanBuilder builder = new MBeanBuilder().withJmxExportObjects(objects);
+    if (attributes != null) {
+       builder.withAttributes((Map) attributes);
     }
-    if (mapAttributes != null) {
-      for (Map.Entry<String, Object> entry : mapAttributes.entrySet()) {
-        String key = entry.getKey();
-        if (key == null || key.isEmpty()) {
-          continue; // do not exportAgg crap namep mapAttributes.
-        }
-        try {
-          exportedAttributes.put(key, new MapExportedValue(mapAttributes, null, key, entry.getValue()));
-        } catch (NotSerializableException ex) {
-          throw new UnsupportedOperationException("Unable to export map entry via JMX: " + entry, ex);
-        }
-      }
-    }
-    Map<String, ExportedOperationImpl> exportedOps = new HashMap<>();
-    for (Object object : objects) {
-
-      if (object instanceof Class) {
-        for (Method method : ((Class<?>) object).getMethods()) {
-          if (method.isSynthetic()) {
-            continue;
-          }
-          if (Modifier.isStatic(method.getModifiers())) {
-            JmxExport annot = method.getAnnotation(JmxExport.class);
-            if (annot != null) {
-              exportMethod(method, null, exportedAttributes, exportedOps, annot);
-            }
-          }
-        }
-      } else {
-        final Class<? extends Object> oClass = object.getClass();
-        for (Method method : oClass.getMethods()) {
-          if (method.isSynthetic()) {
-            continue;
-          }
-          JmxExport annot = method.getAnnotation(JmxExport.class);
-          if (annot != null) {
-            exportMethod(method, object, exportedAttributes, exportedOps, annot);
-          }
-        }
-      }
-
-    }
-    if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
-      return null;
-    }
-    ExportedValue<?>[] values = new ExportedValue[exportedAttributes.size()];
-    int i = 0;
-    for (ExportedValue expVal : exportedAttributes.values()) {
-      if (expVal instanceof BeanExportedValue && !((BeanExportedValue) expVal).isValid()) {
-        throw new IllegalArgumentException("If setter is exported, getter must be exported as well " + expVal);
-      } else {
-        values[i++] = expVal;
-      }
-    }
-    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
-    synchronized (Registry.class) {
-      ExportedValuesMBean existing = (ExportedValuesMBean) unregister(objectName);
-      ExportedValuesMBean mbean;
-      if (existing == null) {
-        mbean = new ExportedValuesMBean(objectName, values,
-                exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
-      } else {
-        mbean = new ExportedValuesMBean(existing, values,
-                exportedOps.values().toArray(new ExportedOperation[exportedOps.size()]));
-      }
-      Registry.registerMBean(mbean.getObjectName(), mbean);
-      return mbean;
-    }
+    return builder.replace(packageName, mbeanName);
   }
 
-  private static void exportMethod(final Method method,
-          @Nullable final Object object, final Map<String, ExportedValue> exportedAttributes,
-          final Map<String, ExportedOperationImpl> exportedOps, final JmxExport annot) {
-    method.setAccessible(true); // this is to speed up invocation
-    String methodName = method.getName();
-    int nrParams = method.getParameterCount();
-    if (nrParams == 0 && methodName.startsWith("get")) {
-      String valueName = methodName.substring("get".length());
-      valueName = Strings.withFirstCharLower(valueName);
-      addGetter(valueName, exportedAttributes, annot, method, object);
-    } else if (nrParams == 0 && methodName.startsWith("is")) {
-      String valueName = methodName.substring("is".length());
-      valueName = Strings.withFirstCharLower(valueName);
-      addGetter(valueName, exportedAttributes, annot, method, object);
-    } else if (nrParams == 1 && methodName.startsWith("set")) {
-      addSetter(methodName, exportedAttributes, method, object, annot);
-    } else {
-      String opName = methodName;
-      String nameOverwrite = annot.value();
-      if (!"".equals(nameOverwrite)) {
-        opName = nameOverwrite;
-      }
-      ExportedOperationImpl existing = exportedOps.put(opName, new ExportedOperationImpl(opName,
-              annot.description(), method, object, annot.mapOpenType()));
-      if (existing != null) {
-        throw new IllegalArgumentException("exporting operations with same name not supported: " + opName);
-      }
+  /**
+   * @deprecated use MBeanBuilder instead.
+   */
+  @Deprecated
+  public static ExportedValuesMBean export(final String packageName, final String mbeanName,
+          @Nullable final Map<String, Object> attributes, final Object... objects) {
+    MBeanBuilder builder = new MBeanBuilder().withJmxExportObjects(objects);
+    if (attributes != null) {
+       builder.withAttributes(attributes);
     }
-  }
-
-  private static void addSetter(final String methodName, final Map<String, ExportedValue> exportedAttributes,
-          final Method method, final Object object, final JmxExport annot) {
-    String customName = annot.value();
-    String valueName;
-    if ("".equals(customName)) {
-      valueName = methodName.substring("set".length());
-      valueName = Strings.withFirstCharLower(valueName);
-    } else {
-      valueName = customName;
-    }
-
-    BeanExportedValue existing = (BeanExportedValue) exportedAttributes.get(valueName);
-    Class<?> parameterType = Reflections.getParameterTypes(method)[0];
-    if (existing == null) {
-      existing = new BeanExportedValue(valueName, null,
-              null, method, object, parameterType, annot.mapOpenType());
-    } else {
-      if (existing.getValueType() != parameterType) {
-        throw new IllegalArgumentException(
-                "Getter and setter icorrectly defined " + existing + ' ' + method);
-      }
-      existing = existing.withSetter(method);
-    }
-    exportedAttributes.put(valueName, existing);
-  }
-
-  private static void addGetter(final String pvalueName,
-          final Map<String, ExportedValue> exported,
-          final JmxExport annot, final Method method, final Object object) {
-    String customName = annot.value();
-    String valueName = "".equals(customName) ? pvalueName : customName;
-    BeanExportedValue existing = (BeanExportedValue) exported.get(valueName);
-    if (existing == null) {
-      existing = new BeanExportedValue(
-              valueName, annot.description(),
-              method, null, object, method.getGenericReturnType(), annot.mapOpenType());
-    } else {
-      if (existing.getValueType() != method.getReturnType()) {
-        throw new IllegalArgumentException(
-                "Getter and setter icorrectly defined " + existing + ' ' + method);
-      }
-      existing = existing.withGetter(method, annot.description());
-    }
-    exported.put(valueName, existing);
+    return builder.replace(packageName, mbeanName);
   }
 }

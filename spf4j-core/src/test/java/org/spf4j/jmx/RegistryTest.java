@@ -349,11 +349,11 @@ public final class RegistryTest {
                 "test", "Test", "booleanFlag");
         Assert.assertEquals(Boolean.TRUE, ret);
 
-        Registry.export("test", "Test", new Object() {
+         new MBeanBuilder().withJmxExportObject(new Object() {
             @JmxExport("customName")
             @SuppressFBWarnings("UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS")
             public int getMyValue() { return 13; }
-        });
+        }).extend("test", "Test");
 
         Object retCustom = Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "test", "Test", "customName");

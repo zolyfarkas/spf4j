@@ -40,10 +40,8 @@ import org.spf4j.perf.MeasurementStore;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.annotation.Nonnull;
@@ -53,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.MBeanBuilder;
 import org.spf4j.jmx.Registry;
 
 /**
@@ -171,9 +170,10 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
   @SuppressWarnings("unchecked")
   public void registerJmx() {
     MeasurementsInfo info = processorTemplate.getInfo();
-    Registry.exportAgg("org.spf4j.perf.recorders", info.getMeasuredEntity().toString(),
-            (List) Arrays.asList(new GenericExportedValue<>("measurements", info.getDescription(),
-                    this::getCompositeData, null, getInfo().toCompositeType())), (Map) null,  this);
+    new MBeanBuilder().withJmxExportObject(this)
+            .withAttribute(new GenericExportedValue<>("measurements", info.getDescription(),
+                    this::getCompositeData, null, getInfo().toCompositeType()))
+            .register("org.spf4j.perf.recorders", info.getMeasuredEntity().toString());
   }
 
   @Override
