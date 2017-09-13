@@ -175,17 +175,17 @@ public final class Registry {
 
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           final Object... objects) {
-    return new MBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);
+    return new DynamicMBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);
   }
 
   /**
-   * @deprecated use MBeanBuilder instead.
+   * @deprecated use DynamicMBeanBuilder instead.
    */
   @SuppressFBWarnings("OCP_OVERLY_CONCRETE_PARAMETER")
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           final Properties attributes, final Object... objects) {
-    MBeanBuilder builder = new MBeanBuilder().withJmxExportObjects(objects);
+    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);
     if (attributes != null) {
        builder.withAttributes((Map) attributes);
     }
@@ -193,12 +193,12 @@ public final class Registry {
   }
 
   /**
-   * @deprecated use MBeanBuilder instead.
+   * @deprecated use BynamicMBeanBuilder instead.
    */
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           @Nullable final Map<String, Object> attributes, final Object... objects) {
-    MBeanBuilder builder = new MBeanBuilder().withJmxExportObjects(objects);
+    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);
     if (attributes != null) {
        builder.withAttributes(attributes);
     }

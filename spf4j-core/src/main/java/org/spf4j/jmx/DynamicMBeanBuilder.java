@@ -40,6 +40,7 @@ import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.management.ObjectName;
@@ -53,36 +54,36 @@ import org.spf4j.base.Strings;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class MBeanBuilder {
+public final class DynamicMBeanBuilder {
 
   private final Map<String, ExportedValue<?>> exportedAttributes;
 
   private final Map<String, ExportedOperation> exportedOps;
 
-  public MBeanBuilder() {
+  public DynamicMBeanBuilder() {
     exportedAttributes = new HashMap<>(8);
     exportedOps = new HashMap<>(4);
   }
 
-  public static MBeanBuilder newBuilder() {
-    return new MBeanBuilder();
+  public static DynamicMBeanBuilder newBuilder() {
+    return new DynamicMBeanBuilder();
   }
 
-  public MBeanBuilder withAttribute(final ExportedValue<?> val) {
+  public DynamicMBeanBuilder withAttribute(final ExportedValue<?> val) {
     if (exportedAttributes.put(val.getName(), val) != null) {
       throw new IllegalArgumentException("Duplicate attribute: " + val);
     }
     return this;
   }
 
-  public MBeanBuilder withAttributes(final ExportedValue<?>... vals) {
+  public DynamicMBeanBuilder withAttributes(final ExportedValue<?>... vals) {
     for (ExportedValue<?> ev : vals) {
       withAttribute(ev);
     }
     return this;
   }
 
-  public MBeanBuilder withAttributes(final Map<String, Object> mapAttributes) {
+  public DynamicMBeanBuilder withAttributes(final Map<String, Object> mapAttributes) {
     for (Map.Entry<String, Object> entry : mapAttributes.entrySet()) {
       String key = entry.getKey();
       if (key == null || key.isEmpty()) {
@@ -104,7 +105,7 @@ public final class MBeanBuilder {
    * @param object
    * @return
    */
-  public MBeanBuilder withJmxExportObject(final Object object) {
+  public DynamicMBeanBuilder withJmxExportObject(final Object object) {
     final Map<String, ExportedValue<?>> attrs = new HashMap<>(4);
     if (object instanceof Class) {
       for (Method method : ((Class<?>) object).getMethods()) {
@@ -145,13 +146,19 @@ public final class MBeanBuilder {
    * @param objects
    * @return
    */
-  public MBeanBuilder withJmxExportObjects(final Object... objects) {
+  public DynamicMBeanBuilder withJmxExportObjects(final Object... objects) {
     for (Object object : objects) {
       withJmxExportObject(object);
     }
     return this;
   }
 
+  /**
+   * Build the dynamic mbean.
+   * @param packageName
+   * @param mbeanName
+   * @return dynamic mbean or null if no exportable attributes or operations are present.
+   */
   @Nullable
   public ExportedValuesMBean build(final String packageName, final String mbeanName) {
     if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
@@ -161,6 +168,26 @@ public final class MBeanBuilder {
     return new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);
   }
 
+  /**
+   * Create a dynamic bean with extends the toExtend mbean with the attributes and operations from thsi builder.
+   * @param toExtend
+   * @return
+   */
+  @Nonnull
+  public ExportedValuesMBean extend(@Nonnull final ExportedValuesMBean toExtend) {
+    if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
+      return toExtend;
+    }
+    return new ExportedValuesMBean(toExtend, exportedAttributes, exportedOps);
+  }
+
+
+  /**
+   * extend existing Mbean registered with provided packageName and mbeanName
+   * @param packageName
+   * @param mbeanName
+   * @return null is nothing was registered.
+   */
   @Nullable
   public ExportedValuesMBean extend(final String packageName, final String mbeanName) {
     if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
@@ -181,6 +208,12 @@ public final class MBeanBuilder {
 
   }
 
+  /**
+   * Replace mbean registered with packageName and mbeanName with a mbean constructed by this builder.
+   * @param packageName
+   * @param mbeanName
+   * @return null if nothing has been done.
+   */
   @Nullable
   public ExportedValuesMBean replace(final String packageName, final String mbeanName) {
     if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
@@ -192,6 +225,13 @@ public final class MBeanBuilder {
     return mbean;
   }
 
+  /**
+   * register a mbean.
+   * @param packageName
+   * @param mbeanName
+   * @return null if nothing is done, and a dinamic bean instance that was registered otherwise.
+   * @throws InstanceAlreadyExistsException is a instance already exists.
+   */
   @Nullable
   public ExportedValuesMBean register(final String packageName, final String mbeanName) {
     if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {

@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
-import org.spf4j.jmx.MBeanBuilder;
+import org.spf4j.jmx.DynamicMBeanBuilder;
 import org.spf4j.jmx.Registry;
 
 /**
@@ -170,7 +170,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
   @SuppressWarnings("unchecked")
   public void registerJmx() {
     MeasurementsInfo info = processorTemplate.getInfo();
-    new MBeanBuilder().withJmxExportObject(this)
+    new DynamicMBeanBuilder().withJmxExportObject(this)
             .withAttribute(new GenericExportedValue<>("measurements", info.getDescription(),
                     this::getCompositeData, null, getInfo().toCompositeType()))
             .register("org.spf4j.perf.recorders", info.getMeasuredEntity().toString());

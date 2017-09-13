@@ -349,7 +349,7 @@ public final class RegistryTest {
                 "test", "Test", "booleanFlag");
         Assert.assertEquals(Boolean.TRUE, ret);
 
-         new MBeanBuilder().withJmxExportObject(new Object() {
+         new DynamicMBeanBuilder().withJmxExportObject(new Object() {
             @JmxExport("customName")
             @SuppressFBWarnings("UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS")
             public int getMyValue() { return 13; }
