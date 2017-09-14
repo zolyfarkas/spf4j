@@ -84,5 +84,7 @@ public final class AllocationMonitorAspectTest {
         File file = dbWriter.getFile();
         List<TableDef> tableDef = TSDBQuery.getTableDef(file, "heap-used");
         Assert.assertFalse(tableDef.isEmpty());
+        MemoryUsageSampler.stop();
+        OpenFilesSampler.stop();
     }
 }
