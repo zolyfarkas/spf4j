@@ -49,44 +49,33 @@ import org.spf4j.base.Callables.TimeoutCallable;
 @Aspect
 public final class RetryAspect {
 
+  @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(annot)",
+          argNames = "pjp,annot")
+  public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
+          throws Throwable {
+    final TimeoutCallable<Object, Exception> timeoutCallable =
+            new TimeoutCallable<Object, Exception>(annot.timeoutMillis()) {
 
-    private static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
-
-        @Override
-        protected Long initialValue() {
-            return Long.MAX_VALUE;
+      @Override
+      public Object call(final long dealine) throws Exception {
+        try {
+          return pjp.proceed();
+        } catch (Exception | Error e) {
+          throw e;
+        } catch (Throwable ex) {
+          throw new UncheckedExecutionException(ex);
         }
-
+      }
     };
-
-
-    public static long getDeadline() {
-        return DEADLINE.get();
+    final long origDeadline = org.spf4j.base.Runtime.getDeadline();
+    org.spf4j.base.Runtime.setDeadline(timeoutCallable.getDeadline());
+    try {
+      return Callables.executeWithRetry(timeoutCallable, annot.immediateRetries(), annot.retryDelayMillis(),
+              annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY
+              : annot.exRetry().newInstance(), Exception.class);
+    } finally {
+      org.spf4j.base.Runtime.setDeadline(origDeadline);
     }
 
-    @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(annot)",
-            argNames = "pjp,annot")
-    public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
-            throws Throwable {
-
-        return Callables.executeWithRetry(new TimeoutCallable<Object, Exception>(annot.timeoutMillis()) {
-
-            @Override
-            public Object call(final long dealine) throws Exception {
-                DEADLINE.set(dealine);
-                try {
-                    return pjp.proceed();
-                } catch (Exception | Error e) {
-                  throw e;
-                } catch (Throwable ex) {
-                    throw new UncheckedExecutionException(ex);
-                } finally {
-                    DEADLINE.set(Long.MAX_VALUE);
-                }
-            }
-        }, annot.immediateRetries(), annot.retryDelayMillis(),
-                annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY
-                        : annot.exRetry().newInstance(), Exception.class);
-
-    }
+  }
 }
