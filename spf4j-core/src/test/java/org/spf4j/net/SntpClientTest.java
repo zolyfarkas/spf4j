@@ -49,12 +49,12 @@ public final class SntpClientTest {
 
   @Test
   public void test() throws IOException, InterruptedException, TimeoutException {
-    Timing requestTime = SntpClient.requestTimeHA(60000, "us.pool.ntp.org");
+    Timing requestTime = SntpClient.requestTimeHA(60000, "time.apple.com");
     long currentTimeMachine = System.currentTimeMillis();
     long currentTimeNtp = requestTime.getTime();
     System.out.println("Current time machine = " + currentTimeMachine + " " + new DateTime(currentTimeMachine));
     System.out.println("Current time ntp = " + currentTimeNtp + " " + new DateTime(currentTimeNtp));
-    Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 1000);
+    Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 10000);
   }
 
 }
