@@ -67,17 +67,19 @@ public class RecorderFactoryTest {
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
        System.out.println(ret3);
        Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
+       rec.close();
     }
 
 
     @Test
     public void testRecorderFactory2() throws InterruptedException, IOException,
             InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
-       RecorderFactory.createScalableQuantizedRecorder(RecorderFactoryTest.class,
-                "ms", 100000000, 10, 0, 6, 10);
+      MeasurementRecorder rec = RecorderFactory.createScalableQuantizedRecorder(RecorderFactoryTest.class,
+              "ms", 100000000, 10, 0, 6, 10);
        CompositeData ret3 = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurements");
        Assert.assertNull(ret3);
+       rec.close();
     }
 
     private static final class RsTest {
@@ -102,6 +104,7 @@ public class RecorderFactoryTest {
                 "measurementsAsString");
        System.out.println(ret3);
        Assert.assertThat(ret3, Matchers.containsString("test," + sum + "," + 11));
+       rec.close();
     }
 
 
