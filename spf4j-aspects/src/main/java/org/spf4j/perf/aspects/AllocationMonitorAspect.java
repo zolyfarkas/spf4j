@@ -59,10 +59,10 @@ public final class AllocationMonitorAspect {
    static {
        SAMPLE_TIME_MILLIS = Integer.getInteger("spf4j.perf.allocations.sampleTimeMillis", 300000);
        if (RECORD_OBJECT_SIZE) {
-           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
+           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations.all", "bytes",
             SAMPLE_TIME_MILLIS);
        } else {
-           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "instances",
+           RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations.all", "instances",
             SAMPLE_TIME_MILLIS);
        }
    }

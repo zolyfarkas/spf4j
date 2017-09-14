@@ -56,7 +56,7 @@ public final class SamplingAllocationMonitorAspect {
    private static final int SAMPLE_COUNT = Integer.getInteger("spf4j.perf.allocations.sampleCount", 100);
 
    static {
-       RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations", "bytes",
+       RECORDER = RecorderFactory.createScalableCountingRecorderSource("allocations.sampling", "bytes",
                AllocationMonitorAspect.SAMPLE_TIME_MILLIS);
 
    }
