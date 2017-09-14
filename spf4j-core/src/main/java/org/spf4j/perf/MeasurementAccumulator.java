@@ -72,6 +72,10 @@ public interface MeasurementAccumulator extends MeasurementRecorder {
   @Nonnull
   MeasurementsInfo getInfo();
 
+  /**
+   * @return null if no measurements have been made.
+   */
+  @Nullable
   default CompositeDataSupport getCompositeData() {
     MeasurementsInfo info = getInfo();
     try {
@@ -80,8 +84,7 @@ public interface MeasurementAccumulator extends MeasurementRecorder {
         return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),
                 Arrays.toObjectArray(measurements));
       } else {
-        return new CompositeDataSupport(info.toCompositeType(), info.getMeasurementNames(),
-            Arrays.toObjectArray(new long[info.getNumberOfMeasurements()]));
+        return null;
       }
     } catch (OpenDataException ex) {
       throw new IllegalArgumentException("Cannot convert to composite data " + info, ex);

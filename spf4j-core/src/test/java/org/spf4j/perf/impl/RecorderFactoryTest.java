@@ -36,6 +36,7 @@ import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeData;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -66,6 +67,17 @@ public class RecorderFactoryTest {
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
        System.out.println(ret3);
        Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
+    }
+
+
+    @Test
+    public void testRecorderFactory2() throws InterruptedException, IOException,
+            InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
+       RecorderFactory.createScalableQuantizedRecorder(RecorderFactoryTest.class,
+                "ms", 100000000, 10, 0, 6, 10);
+       CompositeData ret3 = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+                "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurements");
+       Assert.assertNull(ret3);
     }
 
     private static final class RsTest {
