@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CountingAccumulator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">CountingAccumulator.java</span></div><h1>CountingAccumulator.java</h1><pre class="source lang-java linenums"> /*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CountingAccumulator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">CountingAccumulator.java</span></div><h1>CountingAccumulator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.impl;
 
@@ -28,105 +42,105 @@ import org.spf4j.perf.MeasurementsInfo;
 public final class CountingAccumulator
         extends AbstractMeasurementAccumulator {
 
-<span class="fc" id="L31">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
+<span class="fc" id="L45">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
 
     private long counter;
     private long total;
     private final MeasurementsInfo info;
 
     private CountingAccumulator(final Object measuredEntity, final String description,
-<span class="fc" id="L38">            final String unitOfMeasurement, final long counter, final long total) {</span>
-<span class="fc" id="L39">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+<span class="fc" id="L52">            final String unitOfMeasurement, final long counter, final long total) {</span>
+<span class="fc" id="L53">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
                 MEASUREMENTS, new String[]{&quot;count&quot;, unitOfMeasurement});
-<span class="fc" id="L41">        this.counter = counter;</span>
-<span class="fc" id="L42">        this.total = total;</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L55">        this.counter = counter;</span>
+<span class="fc" id="L56">        this.total = total;</span>
+<span class="fc" id="L57">    }</span>
 
     public CountingAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
-<span class="fc" id="L46">        this(measuredEntity, description, unitOfMeasurement, 0, 0);</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L60">        this(measuredEntity, description, unitOfMeasurement, 0, 0);</span>
+<span class="fc" id="L61">    }</span>
 
     public String getUnitOfMeasurement() {
-<span class="fc" id="L50">        return info.getMeasurementUnit(1);</span>
+<span class="fc" id="L64">        return info.getMeasurementUnit(1);</span>
     }
 
     @Override
     public synchronized void record(final long measurement) {
-<span class="fc" id="L55">        total += measurement;</span>
-<span class="fc" id="L56">        counter++;</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L69">        total += measurement;</span>
+<span class="fc" id="L70">        counter++;</span>
+<span class="fc" id="L71">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
     public synchronized long[] get() {
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (counter == 0) {</span>
-<span class="nc" id="L63">            return null;</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc" id="L77">            return null;</span>
         } else {
-<span class="fc" id="L65">            return new long[]{counter, total};</span>
+<span class="fc" id="L79">            return new long[]{counter, total};</span>
         }
     }
 
     @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
     @Override
     public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (mSource instanceof CountingAccumulator) {</span>
-<span class="fc" id="L73">            CountingAccumulator other = (CountingAccumulator) mSource;</span>
-<span class="fc" id="L74">            long[] measurements = other.get();</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">            if (measurements != null) {</span>
-<span class="fc" id="L76">              synchronized (this) {</span>
-<span class="fc" id="L77">                  return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
-<span class="fc" id="L78">                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);</span>
-<span class="nc" id="L79">              }</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (mSource instanceof CountingAccumulator) {</span>
+<span class="fc" id="L87">            CountingAccumulator other = (CountingAccumulator) mSource;</span>
+<span class="fc" id="L88">            long[] measurements = other.get();</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">            if (measurements != null) {</span>
+<span class="fc" id="L90">              synchronized (this) {</span>
+<span class="fc" id="L91">                  return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+<span class="fc" id="L92">                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);</span>
+<span class="nc" id="L93">              }</span>
             } else {
-<span class="nc" id="L81">              return this.createClone();</span>
+<span class="nc" id="L95">              return this.createClone();</span>
             }
         } else {
-<span class="nc" id="L84">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+<span class="nc" id="L98">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
         }
     }
 
     @Override
     public synchronized CountingAccumulator createClone() {
-<span class="fc" id="L90">        return new CountingAccumulator(this.info.getMeasuredEntity(),</span>
-<span class="fc" id="L91">                this.info.getDescription(), getUnitOfMeasurement(), counter, total);</span>
+<span class="fc" id="L104">        return new CountingAccumulator(this.info.getMeasuredEntity(),</span>
+<span class="fc" id="L105">                this.info.getDescription(), getUnitOfMeasurement(), counter, total);</span>
     }
 
     @Override
     public CountingAccumulator createLike(final Object entity) {
-<span class="fc" id="L96">        return new CountingAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
+<span class="fc" id="L110">        return new CountingAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
     }
 
     @Override
     public MeasurementsInfo getInfo() {
-<span class="fc" id="L101">        return info;</span>
+<span class="fc" id="L115">        return info;</span>
     }
 
     @Override
     public synchronized MeasurementAccumulator reset() {
-<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (counter == 0) {</span>
-<span class="fc" id="L107">            return null;</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (counter == 0) {</span>
+<span class="fc" id="L121">            return null;</span>
         } else {
-<span class="fc" id="L109">            MeasurementAccumulator result = this.createClone();</span>
-<span class="fc" id="L110">            counter = 0;</span>
-<span class="fc" id="L111">            total = 0;</span>
-<span class="fc" id="L112">            return result;</span>
+<span class="fc" id="L123">            MeasurementAccumulator result = this.createClone();</span>
+<span class="fc" id="L124">            counter = 0;</span>
+<span class="fc" id="L125">            total = 0;</span>
+<span class="fc" id="L126">            return result;</span>
         }
     }
 
     @Override
     @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
     public long[] getThenReset() {
-<span class="fc" id="L119">        final MeasurementAccumulator vals = reset();</span>
-<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (vals == null) {</span>
-<span class="nc" id="L121">            return null;</span>
+<span class="fc" id="L133">        final MeasurementAccumulator vals = reset();</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (vals == null) {</span>
+<span class="nc" id="L135">            return null;</span>
         } else {
-<span class="fc" id="L123">            return vals.get();</span>
+<span class="fc" id="L137">            return vals.get();</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L129">        return &quot;CountingAccumulator{&quot; + &quot;counter=&quot; + counter + &quot;, total=&quot; + total + &quot;, info=&quot; + info + '}';</span>
+<span class="nc" id="L143">        return &quot;CountingAccumulator{&quot; + &quot;counter=&quot; + counter + &quot;, total=&quot; + total + &quot;, info=&quot; + info + '}';</span>
     }
 
 }

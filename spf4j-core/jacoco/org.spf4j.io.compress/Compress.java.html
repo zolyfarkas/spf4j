@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Compress.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.compress</a> &gt; <span class="el_source">Compress.java</span></div><h1>Compress.java</h1><pre class="source lang-java linenums">package org.spf4j.io.compress;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Compress.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.compress</a> &gt; <span class="el_source">Compress.java</span></div><h1>Compress.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.io.compress;
 
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -6,6 +37,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -13,7 +45,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -36,75 +67,111 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @ParametersAreNonnullByDefault
 public final class Compress {
 
-<span class="nc" id="L39">  private Compress() {</span>
-<span class="nc" id="L40">  }</span>
+<span class="nc" id="L70">  private Compress() {</span>
+<span class="nc" id="L71">  }</span>
 
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @return the Path of the compressed file. It will created in the same folder as the input parent.
+   * @throws IOException
+   */
   @Nonnull
-  public static Path zip(final Path fileToCompress) throws IOException {
-<span class="fc" id="L44">    Path parent = fileToCompress.getParent();</span>
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">    if (parent == null) {</span>
-<span class="nc" id="L46">      throw new IllegalArgumentException(&quot;Not a file: &quot; + fileToCompress);</span>
+  public static Path zip(final Path fileOrFolderToCompress) throws IOException {
+<span class="fc" id="L81">    Path parent = fileOrFolderToCompress.getParent();</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L83">      throw new IllegalArgumentException(&quot;Not a file: &quot; + fileOrFolderToCompress);</span>
     }
-<span class="fc" id="L48">    Path destFile = parent.resolve(fileToCompress.getFileName() + &quot;.zip&quot;);</span>
-<span class="fc" id="L49">    return zip(fileToCompress, destFile);</span>
+<span class="fc" id="L85">    Path destFile = parent.resolve(fileOrFolderToCompress.getFileName() + &quot;.zip&quot;);</span>
+<span class="fc" id="L86">    zip(fileOrFolderToCompress, destFile);</span>
+<span class="fc" id="L87">    return destFile;</span>
   }
 
+
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @param destFile the destination zip file.
+   * @throws IOException
+   */
   @Nonnull
-  public static Path zip(final Path fileToCompress, final Path destFile) throws IOException {
-<span class="fc" id="L54">    Path fNamePath = fileToCompress.getFileName();</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (fNamePath == null) {</span>
-<span class="nc" id="L56">      throw new IllegalArgumentException(&quot;Not a file: &quot; + fileToCompress);</span>
+  public static void zip(final Path fileOrFolderToCompress, final Path destFile) throws IOException {
+<span class="fc" id="L99">    Path parent = destFile.getParent();</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L101">      throw new IllegalArgumentException(&quot;Parent is null for: &quot; + fileOrFolderToCompress);</span>
     }
-<span class="fc" id="L58">    String fileName = fNamePath.toString();</span>
-<span class="fc" id="L59">    Path parent = fileToCompress.getParent();</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    if (parent == null) {</span>
-<span class="nc" id="L61">      throw new IllegalArgumentException(&quot;Not a file: &quot; + fileToCompress);</span>
-    }
-<span class="fc" id="L63">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
+<span class="fc" id="L103">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, &quot;tmp&quot;);</span>
     try {
-<span class="pc" id="L65">      try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));</span>
-<span class="fc" id="L66">              ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {</span>
-<span class="fc" id="L67">        ZipEntry ze = new ZipEntry(fileName);</span>
-<span class="fc" id="L68">        zos.putNextEntry(ze);</span>
-<span class="pc" id="L69">        try (InputStream in = new BufferedInputStream(Files.newInputStream(fileToCompress),</span>
-                8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
-<span class="fc" id="L71">          Streams.copy(in, zos);</span>
-<span class="pc bpc" id="L72" title="6 of 8 branches missed.">        }</span>
-<span class="pc bpc" id="L73" title="12 of 16 branches missed.">      }</span>
-<span class="fc" id="L74">      Files.move(tmpFile, destFile,</span>
+      Path relativePath;
+<span class="fc bfc" id="L106" title="All 2 branches covered.">      if (Files.isDirectory(fileOrFolderToCompress)) {</span>
+<span class="fc" id="L107">        relativePath = fileOrFolderToCompress;</span>
+      } else {
+<span class="fc" id="L109">        relativePath = fileOrFolderToCompress.getParent();</span>
+      }
+<span class="pc" id="L111">      try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));</span>
+<span class="fc" id="L112">              ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L113">          Files.walk(fileOrFolderToCompress).forEach((path) -&gt; {</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            if (Files.isDirectory(path)) {</span>
+<span class="fc" id="L115">              return;</span>
+            }
+<span class="fc" id="L117">            String fileName = relativePath.relativize(path).toString();</span>
+<span class="pc" id="L118">            try (InputStream in = new BufferedInputStream(Files.newInputStream(path),</span>
+                    8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
+<span class="fc" id="L120">              ZipEntry ze = new ZipEntry(fileName);</span>
+<span class="fc" id="L121">              zos.putNextEntry(ze);</span>
+<span class="fc" id="L122">              Streams.copy(in, zos);</span>
+<span class="pc bpc" id="L123" title="6 of 8 branches missed.">            } catch (IOException ex) {</span>
+<span class="nc" id="L124">              throw new UncheckedIOException(&quot;Error compressing &quot; + path, ex);</span>
+<span class="fc" id="L125">            }</span>
+<span class="fc" id="L126">          });</span>
+<span class="pc bpc" id="L127" title="12 of 16 branches missed.">      }</span>
+<span class="fc" id="L128">      Files.move(tmpFile, destFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-<span class="pc" id="L77">      Files.deleteIfExists(tmpFile);</span>
-<span class="fc" id="L78">    }</span>
-<span class="fc" id="L79">    return destFile;</span>
-  }
+<span class="pc" id="L131">      Files.deleteIfExists(tmpFile);</span>
+<span class="fc" id="L132">    }</span>
+<span class="fc" id="L133">  }</span>
 
+  /**
+   * Copy file atomic.
+   * file will be written to a tmp file in the destination folder, and atomically renamed (if file system supports)
+   * @param source
+   * @param destinationFile
+   * @throws IOException
+   */
   public static void copyFileAtomic(final Path source, final Path destinationFile) throws IOException {
-<span class="fc" id="L83">    Path parent = destinationFile.getParent();</span>
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    if (parent == null) {</span>
-<span class="nc" id="L85">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationFile + &quot; is not a file&quot;);</span>
+<span class="fc" id="L143">    Path parent = destinationFile.getParent();</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L145">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationFile + &quot; is not a file&quot;);</span>
     }
-<span class="fc" id="L87">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
+<span class="fc" id="L147">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
     try {
-<span class="pc" id="L89">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source),</span>
+<span class="pc" id="L149">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source),</span>
               8192, ArraySuppliers.Bytes.TL_SUPPLIER);
-<span class="fc" id="L91">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
-<span class="fc" id="L92">        Streams.copy(in, os);</span>
-<span class="pc bpc" id="L93" title="12 of 16 branches missed.">      }</span>
-<span class="fc" id="L94">      Files.move(tmpFile, destinationFile,</span>
+<span class="fc" id="L151">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
+<span class="fc" id="L152">        Streams.copy(in, os);</span>
+<span class="pc bpc" id="L153" title="12 of 16 branches missed.">      }</span>
+<span class="fc" id="L154">      Files.move(tmpFile, destinationFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-<span class="pc" id="L97">      Files.deleteIfExists(tmpFile);</span>
-<span class="fc" id="L98">    }</span>
-<span class="fc" id="L99">  }</span>
+<span class="pc" id="L157">      Files.deleteIfExists(tmpFile);</span>
+<span class="fc" id="L158">    }</span>
+<span class="fc" id="L159">  }</span>
 
+
+  /**
+   * Unzip a zip archive to same folder.
+   * @param zipFile
+   * @return list of unzipped files.
+   * @throws IOException
+   */
   @Nonnull
   public static List&lt;Path&gt; unzip(final Path zipFile) throws IOException {
-<span class="nc" id="L103">    Path parent = zipFile.getParent();</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">    if (parent == null) {</span>
-<span class="nc" id="L105">      throw new IllegalArgumentException(&quot;File &quot; + zipFile + &quot; is not a zip file&quot;);</span>
+<span class="nc" id="L170">    Path parent = zipFile.getParent();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L172">      throw new IllegalArgumentException(&quot;File &quot; + zipFile + &quot; cannot be unzipped to null parent folder&quot;);</span>
     }
-<span class="nc" id="L107">    return unzip(zipFile, parent);</span>
+<span class="nc" id="L174">    return unzip(zipFile, parent);</span>
   }
 
   /**
@@ -116,47 +183,48 @@ public final class Compress {
    */
   @Nonnull
   public static List&lt;Path&gt; unzip(final Path zipFile, final Path destinationDirectory) throws IOException {
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">    if (!Files.exists(destinationDirectory)) {</span>
-<span class="nc" id="L120">      Files.createDirectories(destinationDirectory);</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">    if (!Files.exists(destinationDirectory)) {</span>
+<span class="nc" id="L187">      Files.createDirectories(destinationDirectory);</span>
     }
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">    if (!Files.isDirectory(destinationDirectory)) {</span>
-<span class="nc" id="L123">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationDirectory + &quot; must be a directory&quot;);</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">    if (!Files.isDirectory(destinationDirectory)) {</span>
+<span class="nc" id="L190">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationDirectory + &quot; must be a directory&quot;);</span>
     }
-<span class="fc" id="L125">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L126">    FileSystem zipFs = FileSystems.newFileSystem(URI.create(&quot;jar:&quot; + zipFile.toUri().toURL()), Collections.emptyMap());</span>
+<span class="fc" id="L192">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L193">    FileSystem zipFs = FileSystems.newFileSystem(URI.create(&quot;jar:&quot; + zipFile.toUri().toURL()), Collections.emptyMap());</span>
     try {
-<span class="fc bfc" id="L128" title="All 2 branches covered.">      for (Path root : zipFs.getRootDirectories()) {</span>
-<span class="fc" id="L129">        Path dest =  Paths.get(destinationDirectory.toString(), root.toString());</span>
-<span class="fc" id="L130">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">      for (Path root : zipFs.getRootDirectories()) {</span>
+<span class="fc" id="L196">        Path dest =  destinationDirectory.resolve(root.toString().substring(1));</span>
+<span class="fc" id="L197">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
           @Override
           public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                   throws IOException {
-<span class="fc" id="L134">            Path destination = dest.resolve(root.relativize(file).toString());</span>
-<span class="fc" id="L135">            copyFileAtomic(file, destination);</span>
-<span class="fc" id="L136">            response.add(destination);</span>
-<span class="fc" id="L137">            return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L201">            Path destination = dest.resolve(root.relativize(file).toString());</span>
+<span class="fc" id="L202">            copyFileAtomic(file, destination);</span>
+<span class="fc" id="L203">            response.add(destination);</span>
+<span class="fc" id="L204">            return FileVisitResult.CONTINUE;</span>
           }
 
           @Override
           public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
                   throws IOException {
-<span class="fc" id="L143">            Path np = dest.resolve(dir.toString());</span>
-<span class="fc" id="L144">            Files.createDirectories(np);</span>
-<span class="fc" id="L145">            return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L210">            String dirStr = dir.toString();</span>
+<span class="fc" id="L211">            Path np = dest.resolve(dirStr.substring(1));</span>
+<span class="fc" id="L212">            Files.createDirectories(np);</span>
+<span class="fc" id="L213">            return FileVisitResult.CONTINUE;</span>
           }
         });
-<span class="fc" id="L148">      }</span>
-<span class="nc" id="L149">    } catch (IOException | RuntimeException ex) {</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">      for (Path path : response) {</span>
+<span class="fc" id="L216">      }</span>
+<span class="nc" id="L217">    } catch (IOException | RuntimeException ex) {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">      for (Path path : response) {</span>
         try {
-<span class="nc" id="L152">          Files.delete(path);</span>
-<span class="nc" id="L153">        } catch (IOException | RuntimeException ex2) {</span>
-<span class="nc" id="L154">          ex.addSuppressed(ex2);</span>
-<span class="nc" id="L155">        }</span>
-<span class="nc" id="L156">      }</span>
-<span class="nc" id="L157">      throw ex;</span>
-<span class="fc" id="L158">    }</span>
-<span class="fc" id="L159">    return response;</span>
+<span class="nc" id="L220">          Files.delete(path);</span>
+<span class="nc" id="L221">        } catch (IOException | RuntimeException ex2) {</span>
+<span class="nc" id="L222">          ex.addSuppressed(ex2);</span>
+<span class="nc" id="L223">        }</span>
+<span class="nc" id="L224">      }</span>
+<span class="nc" id="L225">      throw ex;</span>
+<span class="fc" id="L226">    }</span>
+<span class="fc" id="L227">    return response;</span>
   }
 
 }

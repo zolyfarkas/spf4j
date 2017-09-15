@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ByteArrayBuilder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">ByteArrayBuilder.java</span></div><h1>ByteArrayBuilder.java</h1><pre class="source lang-java linenums"> /*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ByteArrayBuilder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">ByteArrayBuilder.java</span></div><h1>ByteArrayBuilder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,8 +14,21 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.spf4j.io;
 
 import com.google.common.base.Charsets;
@@ -61,17 +74,17 @@ public final class ByteArrayBuilder extends OutputStream {
 
 
     public ByteArrayBuilder() {
-<span class="fc" id="L64">        this(256, ArraySuppliers.Bytes.TL_SUPPLIER);</span>
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L77">        this(256, ArraySuppliers.Bytes.TL_SUPPLIER);</span>
+<span class="fc" id="L78">    }</span>
 
 
     public ByteArrayBuilder(final int size) {
-<span class="fc" id="L69">        this(size, ArraySuppliers.Bytes.TL_SUPPLIER);</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L82">        this(size, ArraySuppliers.Bytes.TL_SUPPLIER);</span>
+<span class="fc" id="L83">    }</span>
 
 
     public synchronized byte[] getBuffer() {
-<span class="fc" id="L74">        return buf;</span>
+<span class="fc" id="L87">        return buf;</span>
     }
 
     /**
@@ -81,22 +94,22 @@ public final class ByteArrayBuilder extends OutputStream {
      * @param   size   the initial size.
      * @exception  IllegalArgumentException if size is negative.
      */
-<span class="fc" id="L84">    public ByteArrayBuilder(final int size, final SizedRecyclingSupplier&lt;byte[]&gt; arraySupplier) {</span>
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (size &lt; 0) {</span>
-<span class="nc" id="L86">            throw new IllegalArgumentException(&quot;Negative initial size: &quot;</span>
+<span class="fc" id="L97">    public ByteArrayBuilder(final int size, final SizedRecyclingSupplier&lt;byte[]&gt; arraySupplier) {</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (size &lt; 0) {</span>
+<span class="nc" id="L99">            throw new IllegalArgumentException(&quot;Negative initial size: &quot;</span>
                                                + size);
         }
-<span class="fc" id="L89">        this.arraySupplier = arraySupplier;</span>
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (arraySupplier == null) {</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (size == 0) {</span>
-<span class="nc" id="L92">                buf = org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;</span>
+<span class="fc" id="L102">        this.arraySupplier = arraySupplier;</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (arraySupplier == null) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (size == 0) {</span>
+<span class="nc" id="L105">                buf = org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;</span>
             } else {
-<span class="nc" id="L94">                buf = new byte[size];</span>
+<span class="nc" id="L107">                buf = new byte[size];</span>
             }
         } else {
-<span class="fc" id="L97">            buf = arraySupplier.get(size);</span>
+<span class="fc" id="L110">            buf = arraySupplier.get(size);</span>
         }
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L112">    }</span>
 
     /**
      * Increases the capacity if necessary to ensure that it can hold
@@ -110,10 +123,10 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     private void ensureCapacity(final int minCapacity) {
         // overflow-conscious code
-<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (minCapacity - buf.length &gt; 0) {</span>
-<span class="fc" id="L114">            grow(minCapacity);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (minCapacity - buf.length &gt; 0) {</span>
+<span class="fc" id="L127">            grow(minCapacity);</span>
         }
-<span class="fc" id="L116">    }</span>
+<span class="fc" id="L129">    }</span>
 
     /**
      * Increases the capacity to ensure that it can hold at least the
@@ -123,35 +136,35 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     private void grow(final int minCapacity) {
         // overflow-conscious code
-<span class="fc" id="L126">        int oldCapacity = buf.length;</span>
-<span class="fc" id="L127">        int newCapacity = oldCapacity &lt;&lt; 1;</span>
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">        if (newCapacity - minCapacity &lt; 0) {</span>
-<span class="nc" id="L129">            newCapacity = minCapacity;</span>
+<span class="fc" id="L139">        int oldCapacity = buf.length;</span>
+<span class="fc" id="L140">        int newCapacity = oldCapacity &lt;&lt; 1;</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (newCapacity - minCapacity &lt; 0) {</span>
+<span class="nc" id="L142">            newCapacity = minCapacity;</span>
         }
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (newCapacity - MAX_ARRAY_SIZE &gt; 0) {</span>
-<span class="nc" id="L132">            newCapacity = hugeCapacity(minCapacity);</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (newCapacity - MAX_ARRAY_SIZE &gt; 0) {</span>
+<span class="nc" id="L145">            newCapacity = hugeCapacity(minCapacity);</span>
         }
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (arraySupplier == null) {</span>
-<span class="nc" id="L135">            buf = Arrays.copyOf(buf, newCapacity);</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if (arraySupplier == null) {</span>
+<span class="nc" id="L148">            buf = Arrays.copyOf(buf, newCapacity);</span>
         } else {
-<span class="fc" id="L137">            byte[] old = buf;</span>
-<span class="fc" id="L138">            buf = arraySupplier.get(newCapacity);</span>
-<span class="fc" id="L139">            System.arraycopy(old, 0, buf, 0, old.length);</span>
-<span class="fc" id="L140">            arraySupplier.recycle(old);</span>
+<span class="fc" id="L150">            byte[] old = buf;</span>
+<span class="fc" id="L151">            buf = arraySupplier.get(newCapacity);</span>
+<span class="fc" id="L152">            System.arraycopy(old, 0, buf, 0, old.length);</span>
+<span class="fc" id="L153">            arraySupplier.recycle(old);</span>
         }
-<span class="fc" id="L142">    }</span>
+<span class="fc" id="L155">    }</span>
 
     private static int hugeCapacity(final int minCapacity) {
-<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (minCapacity &lt; 0) { // overflow</span>
-<span class="nc" id="L146">            throw new OutOfMemoryError();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (minCapacity &lt; 0) { // overflow</span>
+<span class="nc" id="L159">            throw new OutOfMemoryError();</span>
         }
-<span class="nc bnc" id="L148" title="All 2 branches missed.">        return (minCapacity &gt; MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        return (minCapacity &gt; MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;</span>
     }
 
     @Override
     public void write(final byte[] b) {
-<span class="fc" id="L153">        write(b, 0, b.length);</span>
-<span class="fc" id="L154">    }</span>
+<span class="fc" id="L166">        write(b, 0, b.length);</span>
+<span class="fc" id="L167">    }</span>
 
     /**
      * Writes the specified byte to this byte array output stream.
@@ -160,11 +173,11 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized void write(final int b) {
-<span class="fc" id="L163">        int cp1 = count + 1;</span>
-<span class="fc" id="L164">        ensureCapacity(cp1);</span>
-<span class="fc" id="L165">        buf[count] = (byte) b;</span>
-<span class="fc" id="L166">        count = cp1;</span>
-<span class="fc" id="L167">    }</span>
+<span class="fc" id="L176">        int cp1 = count + 1;</span>
+<span class="fc" id="L177">        ensureCapacity(cp1);</span>
+<span class="fc" id="L178">        buf[count] = (byte) b;</span>
+<span class="fc" id="L179">        count = cp1;</span>
+<span class="fc" id="L180">    }</span>
 
     /**
      * Writes &lt;code&gt;len&lt;/code&gt; bytes from the specified byte array
@@ -176,14 +189,14 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized void write(final byte[] b, final int off, final int len) {
-<span class="pc bpc" id="L179" title="4 of 8 branches missed.">        if ((off &lt; 0) || (off &gt; b.length) || (len &lt; 0) || ((off + len) - b.length &gt; 0)) {</span>
-<span class="nc" id="L180">            throw new IndexOutOfBoundsException();</span>
+<span class="pc bpc" id="L192" title="4 of 8 branches missed.">        if ((off &lt; 0) || (off &gt; b.length) || (len &lt; 0) || ((off + len) - b.length &gt; 0)) {</span>
+<span class="nc" id="L193">            throw new IndexOutOfBoundsException();</span>
         }
-<span class="fc" id="L182">        int cpl = count + len;</span>
-<span class="fc" id="L183">        ensureCapacity(cpl);</span>
-<span class="fc" id="L184">        System.arraycopy(b, off, buf, count, len);</span>
-<span class="fc" id="L185">        count = cpl;</span>
-<span class="fc" id="L186">    }</span>
+<span class="fc" id="L195">        int cpl = count + len;</span>
+<span class="fc" id="L196">        ensureCapacity(cpl);</span>
+<span class="fc" id="L197">        System.arraycopy(b, off, buf, count, len);</span>
+<span class="fc" id="L198">        count = cpl;</span>
+<span class="fc" id="L199">    }</span>
 
     /**
      * Writes the complete contents of this byte array output stream to
@@ -194,8 +207,8 @@ public final class ByteArrayBuilder extends OutputStream {
      * @exception  IOException  if an I/O error occurs.
      */
     public synchronized void writeTo(final OutputStream out) throws IOException {
-<span class="nc" id="L197">        out.write(buf, 0, count);</span>
-<span class="nc" id="L198">    }</span>
+<span class="nc" id="L210">        out.write(buf, 0, count);</span>
+<span class="nc" id="L211">    }</span>
 
     /**
      * Resets the &lt;code&gt;count&lt;/code&gt; field of this byte array output
@@ -206,8 +219,8 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayInputStream#count
      */
     public synchronized void reset() {
-<span class="fc" id="L209">        count = 0;</span>
-<span class="fc" id="L210">    }</span>
+<span class="fc" id="L222">        count = 0;</span>
+<span class="fc" id="L223">    }</span>
 
     /**
      * Creates a newly allocated byte array. Its size is the current
@@ -218,7 +231,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#size()
      */
     public synchronized byte toByteArray()[] {
-<span class="nc" id="L221">        return Arrays.copyOf(buf, count);</span>
+<span class="nc" id="L234">        return Arrays.copyOf(buf, count);</span>
     }
 
     /**
@@ -229,7 +242,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#count
      */
     public synchronized int size() {
-<span class="fc" id="L232">        return count;</span>
+<span class="fc" id="L245">        return count;</span>
     }
 
     /**
@@ -248,12 +261,12 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized String toString() {
-<span class="nc" id="L251">        return toString(Charsets.UTF_8);</span>
+<span class="nc" id="L264">        return toString(Charsets.UTF_8);</span>
     }
 
 
     public synchronized String toString(final Charset charset) {
-<span class="nc" id="L256">        return new String(buf, 0, count, charset);</span>
+<span class="nc" id="L269">        return new String(buf, 0, count, charset);</span>
     }
 
 
@@ -265,10 +278,10 @@ public final class ByteArrayBuilder extends OutputStream {
     @DischargesObligation
     @Override
     public synchronized void close() {
-<span class="pc bpc" id="L268" title="1 of 2 branches missed.">        if (arraySupplier != null) {</span>
-<span class="fc" id="L269">            arraySupplier.recycle(buf);</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (arraySupplier != null) {</span>
+<span class="fc" id="L282">            arraySupplier.recycle(buf);</span>
         }
-<span class="fc" id="L271">    }</span>
+<span class="fc" id="L284">    }</span>
 
 
 }

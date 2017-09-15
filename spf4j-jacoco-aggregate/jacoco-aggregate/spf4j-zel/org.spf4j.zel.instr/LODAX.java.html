@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LODAX.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.instr</a> &gt; <span class="el_source">LODAX.java</span></div><h1>LODAX.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.zel.instr;
 
@@ -31,52 +45,52 @@ public final class LODAX extends Instruction implements LValRef {
 
     private final String symbol;
     
-<span class="fc" id="L34">    public LODAX(final String symbol) {</span>
-<span class="fc" id="L35">        this.symbol = symbol;</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L48">    public LODAX(final String symbol) {</span>
+<span class="fc" id="L49">        this.symbol = symbol;</span>
+<span class="fc" id="L50">    }</span>
     
     
     public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
             throws ZExecutionException {
-<span class="fc" id="L41">        Program code = context.getProgram();</span>
-<span class="fc" id="L42">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (addr == null) {</span>
-<span class="fc" id="L44">            addr = code.getGlobalSymbolTable().get(symbol);</span>
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">            if (addr == null) {</span>
-<span class="nc" id="L46">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
+<span class="fc" id="L55">        Program code = context.getProgram();</span>
+<span class="fc" id="L56">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (addr == null) {</span>
+<span class="fc" id="L58">            addr = code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            if (addr == null) {</span>
+<span class="nc" id="L60">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
             }
-<span class="fc" id="L48">            context.globalPoke(addr, what);</span>
+<span class="fc" id="L62">            context.globalPoke(addr, what);</span>
         } else {
-<span class="fc" id="L50">            context.localPoke(addr, what);</span>
+<span class="fc" id="L64">            context.localPoke(addr, what);</span>
         }
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L66">    }</span>
 
     @Override
     public int execute(final ExecutionContext context) {
            
-<span class="fc" id="L57">        context.push(new AssignableValue() {</span>
+<span class="fc" id="L71">        context.push(new AssignableValue() {</span>
 
             @Override
             public void assign(final Object object) throws ZExecutionException {
-<span class="fc" id="L61">                writeTo(symbol, context, object);</span>
-<span class="fc" id="L62">            }</span>
+<span class="fc" id="L75">                writeTo(symbol, context, object);</span>
+<span class="fc" id="L76">            }</span>
 
             @Override
             public Object get() throws ZExecutionException {
-<span class="fc" id="L66">                return LODX.readFrom(symbol, context);</span>
+<span class="fc" id="L80">                return LODX.readFrom(symbol, context);</span>
             }
         });
-<span class="fc" id="L69">        return 1;</span>
+<span class="fc" id="L83">        return 1;</span>
     }
 
     @Override
     public String getSymbol() {
-<span class="fc" id="L74">        return symbol;</span>
+<span class="fc" id="L88">        return symbol;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L79">        return new Object[] {symbol};</span>
+<span class="fc" id="L93">        return new Object[] {symbol};</span>
     }
 
 }

@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SamplingAllocationMonitorAspect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-aspects</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.aspects</a> &gt; <span class="el_source">SamplingAllocationMonitorAspect.java</span></div><h1>SamplingAllocationMonitorAspect.java</h1><pre class="source lang-java linenums">
-/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SamplingAllocationMonitorAspect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-aspects</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.aspects</a> &gt; <span class="el_source">SamplingAllocationMonitorAspect.java</span></div><h1>SamplingAllocationMonitorAspect.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.aspects;
 
@@ -36,30 +49,30 @@ import org.spf4j.stackmonitor.StackTrace;
  * @author zoly
  */
 @Aspect
-<span class="fc" id="L39">public final class SamplingAllocationMonitorAspect {</span>
+<span class="fc" id="L52">public final class SamplingAllocationMonitorAspect {</span>
 
    private static final MeasurementRecorderSource RECORDER;
 
-<span class="fc" id="L43">   private static final int SAMPLE_COUNT = Integer.getInteger(&quot;spf4j.perf.allocations.sampleCount&quot;, 100);</span>
+<span class="fc" id="L56">   private static final int SAMPLE_COUNT = Integer.getInteger(&quot;spf4j.perf.allocations.sampleCount&quot;, 100);</span>
 
    static {
-<span class="fc" id="L46">       RECORDER = RecorderFactory.createScalableCountingRecorderSource(&quot;allocations&quot;, &quot;bytes&quot;,</span>
+<span class="fc" id="L59">       RECORDER = RecorderFactory.createScalableCountingRecorderSource(&quot;allocations.sampling&quot;, &quot;bytes&quot;,</span>
                AllocationMonitorAspect.SAMPLE_TIME_MILLIS);
 
-<span class="fc" id="L49">   }</span>
+<span class="fc" id="L62">   }</span>
 
     @AfterReturning(pointcut = &quot;call(*.new(..))&quot;, returning = &quot;obj&quot;, argNames = &quot;jp,obj&quot;)
     public void afterAllocation(final JoinPoint jp, final Object obj) {
-<span class="fc" id="L53">        MutableInteger counter = Counter.SAMPLING_COUNTER.get();</span>
-<span class="fc" id="L54">        int value = counter.getValue();</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (value &lt; SAMPLE_COUNT) {</span>
-<span class="fc" id="L56">            counter.setValue(value + 1);</span>
+<span class="fc" id="L66">        MutableInteger counter = Counter.SAMPLING_COUNTER.get();</span>
+<span class="fc" id="L67">        int value = counter.getValue();</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (value &lt; SAMPLE_COUNT) {</span>
+<span class="fc" id="L69">            counter.setValue(value + 1);</span>
         } else {
             // the stack trace get and the object size method are expensive to be done at every allocation...
-<span class="fc" id="L59">            counter.setValue(0);</span>
-<span class="fc" id="L60">            StackTrace st = StackTrace.from(Thread.currentThread().getStackTrace(), 2);</span>
-<span class="fc" id="L61">            RECORDER.getRecorder(st).record(InstrumentationHelper.getObjectSize(obj));</span>
+<span class="fc" id="L72">            counter.setValue(0);</span>
+<span class="fc" id="L73">            StackTrace st = StackTrace.from(Thread.currentThread().getStackTrace(), 2);</span>
+<span class="fc" id="L74">            RECORDER.getRecorder(st).record(InstrumentationHelper.getObjectSize(obj));</span>
         }
-<span class="fc" id="L63">    }</span>
+<span class="fc" id="L76">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

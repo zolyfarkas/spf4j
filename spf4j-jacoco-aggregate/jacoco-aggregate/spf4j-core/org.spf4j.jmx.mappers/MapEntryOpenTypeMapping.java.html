@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MapEntryOpenTypeMapping.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx.mappers</a> &gt; <span class="el_source">MapEntryOpenTypeMapping.java</span></div><h1>MapEntryOpenTypeMapping.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.jmx.mappers;
+
+import org.spf4j.jmx.JMXBeanMapping;
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
+import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Map;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import org.apache.commons.lang3.tuple.Pair;
+import org.spf4j.base.ComparablePair;
+import org.spf4j.base.SerializablePair;
+import org.spf4j.jmx.JMXBeanMappingSupplier;
+
+/**
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings({&quot;SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR&quot;, &quot;CLI_CONSTANT_LIST_INDEX&quot;})
+public final class MapEntryOpenTypeMapping extends MXBeanMapping implements JMXBeanMapping {
+
+<span class="fc" id="L59">  private static final String[] NAMES = {&quot;key&quot;, &quot;value&quot;};</span>
+
+  private final JMXBeanMappingSupplier typeMapper;
+
+  private final Class&lt;?&gt; rawType;
+
+  private final Type[] actualTypeArguments;
+
+  public MapEntryOpenTypeMapping(final ParameterizedType javaType,
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
+<span class="fc" id="L69">    super(javaType, typeFromMapEntry(javaType, typeMapper));</span>
+<span class="fc" id="L70">    this.typeMapper = typeMapper;</span>
+<span class="fc" id="L71">    rawType = (Class) javaType.getRawType();</span>
+<span class="fc" id="L72">    actualTypeArguments = javaType.getActualTypeArguments();</span>
+<span class="fc" id="L73">  }</span>
+
+  @Override
+  @SuppressFBWarnings(&quot;URV_INHERITED_METHOD_WITH_RELATED_TYPES&quot;)
+  public Object fromOpenValue(final Object openValue) throws InvalidObjectException {
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (!(openValue instanceof CompositeData)) {</span>
+<span class="nc" id="L79">      throw new InvalidObjectException(&quot;Not a CompositeData &quot; + openValue);</span>
+    }
+<span class="fc" id="L81">    CompositeData cd = (CompositeData) openValue;</span>
+    try {
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">      if (rawType == Pair.class) {</span>
+<span class="nc" id="L84">        return Pair.of(typeMapper.get(actualTypeArguments[0]).fromOpenValue(cd.get(&quot;key&quot;)),</span>
+<span class="nc" id="L85">                typeMapper.get(actualTypeArguments[1]).fromOpenValue(cd.get(&quot;value&quot;)));</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">      } else if (rawType == SerializablePair.class) {</span>
+<span class="nc" id="L87">        return SerializablePair.of((Serializable) typeMapper.get(actualTypeArguments[0]).fromOpenValue(cd.get(&quot;key&quot;)),</span>
+<span class="nc" id="L88">                (Serializable) typeMapper.get(actualTypeArguments[1]).fromOpenValue(cd.get(&quot;value&quot;)));</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">      } else if (rawType == ComparablePair.class) {</span>
+<span class="fc" id="L90">        return new ComparablePair(</span>
+<span class="fc" id="L91">                (Serializable &amp; Comparable) typeMapper.get(actualTypeArguments[0]).fromOpenValue(cd.get(&quot;key&quot;)),</span>
+<span class="fc" id="L92">                (Serializable &amp; Comparable) typeMapper.get(actualTypeArguments[1]).fromOpenValue(cd.get(&quot;value&quot;)));</span>
+      } else {
+<span class="nc" id="L94">        return Pair.of(typeMapper.get(actualTypeArguments[0]).fromOpenValue(cd.get(&quot;key&quot;)),</span>
+<span class="nc" id="L95">                typeMapper.get(actualTypeArguments[1]).fromOpenValue(cd.get(&quot;value&quot;)));</span>
+      }
+<span class="nc" id="L97">    } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L98">      InvalidObjectException iex = new InvalidObjectException(&quot;Not serializable &quot; + openValue);</span>
+<span class="nc" id="L99">      iex.initCause(ex);</span>
+<span class="nc" id="L100">      throw iex;</span>
+    }
+  }
+
+  @Override
+  public Object toOpenValue(final Object javaValue) throws OpenDataException {
+<span class="fc" id="L106">    Map.Entry entry = (Map.Entry) javaValue;</span>
+    try {
+<span class="fc" id="L108">      return new CompositeDataSupport((CompositeType) getOpenType(), NAMES,</span>
+<span class="fc" id="L109">              new Object[]{typeMapper.get(actualTypeArguments[0]).toOpenValue(entry.getKey()),</span>
+<span class="fc" id="L110">                typeMapper.get(actualTypeArguments[1]).toOpenValue(entry.getValue())});</span>
+<span class="nc" id="L111">    } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L112">      OpenDataException iex = new OpenDataException(&quot;Not serializable &quot; + javaValue);</span>
+<span class="nc" id="L113">      iex.initCause(ex);</span>
+<span class="nc" id="L114">      throw iex;</span>
+    }
+  }
+
+  private static CompositeType typeFromMapEntry(final ParameterizedType type,
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
+<span class="fc" id="L120">    Type[] typeArgs = type.getActualTypeArguments();</span>
+<span class="fc" id="L121">    String[] descriptions = new String[2];</span>
+<span class="fc" id="L122">    OpenType&lt;?&gt;[] types = new OpenType&lt;?&gt;[2];</span>
+<span class="fc" id="L123">    descriptions[0] = &quot;key of &quot; + type;</span>
+<span class="fc" id="L124">    Type typeArg0 = typeArgs[0];</span>
+<span class="fc" id="L125">    JMXBeanMapping km = typeMapper.get(typeArg0);</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (km == null) {</span>
+<span class="nc" id="L127">      throw new IllegalArgumentException(&quot;Cannot map to open type &quot; + typeArg0);</span>
+    }
+<span class="fc" id="L129">    types[0] = km.getOpenType();</span>
+<span class="fc" id="L130">    descriptions[1] = &quot;value of &quot; + type;</span>
+<span class="fc" id="L131">    Type typeArg1 = typeArgs[1];</span>
+<span class="fc" id="L132">    JMXBeanMapping km2 = typeMapper.get(typeArg1);</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    if (km2 == null) {</span>
+<span class="nc" id="L134">      throw new IllegalArgumentException(&quot;Cannot map to open type &quot; + typeArg1);</span>
+    }
+<span class="fc" id="L136">    types[1] = km2.getOpenType();</span>
+    try {
+<span class="fc" id="L138">      return new CompositeType(type.getTypeName(), type.toString(),</span>
+              NAMES, descriptions, types);
+<span class="nc" id="L140">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L141">     throw new IllegalArgumentException(ex);</span>
+    }
+  }
+
+  @Override
+  public Class&lt;?&gt; getMappedType() {
+<span class="nc" id="L147">    return getOpenClass();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L152">    return &quot;MapEntryOpenTypeMapping{&quot; + &quot;javaType=&quot; + getJavaType()</span>
+<span class="nc" id="L153">            + &quot;, openType=&quot; + getOpenType() + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

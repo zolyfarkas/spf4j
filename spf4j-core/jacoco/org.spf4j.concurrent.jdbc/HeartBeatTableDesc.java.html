@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HeartBeatTableDesc.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">HeartBeatTableDesc.java</span></div><h1>HeartBeatTableDesc.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,8 +14,21 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.spf4j.concurrent.jdbc;
 
 import java.io.Serializable;
@@ -44,12 +57,12 @@ public final class HeartBeatTableDesc implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L47">  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(</span>
-<span class="fc" id="L48">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.tableName&quot;, &quot;HEARTBEATS&quot;),</span>
-<span class="fc" id="L49">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.ownerColumn&quot;, &quot;OWNER&quot;),</span>
-<span class="fc" id="L50">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.intervalMillisColumn&quot;, &quot;INTERVAL_MILLIS&quot;),</span>
-<span class="fc" id="L51">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;),</span>
-<span class="fc" id="L52">          DbType.valueOf(System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.dbType&quot;, &quot;H2&quot;)));</span>
+<span class="fc" id="L60">  public static final HeartBeatTableDesc DEFAULT = new HeartBeatTableDesc(</span>
+<span class="fc" id="L61">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.tableName&quot;, &quot;HEARTBEATS&quot;),</span>
+<span class="fc" id="L62">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.ownerColumn&quot;, &quot;OWNER&quot;),</span>
+<span class="fc" id="L63">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.intervalMillisColumn&quot;, &quot;INTERVAL_MILLIS&quot;),</span>
+<span class="fc" id="L64">          System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn&quot;, &quot;LAST_HEARTBEAT_INSTANT_MILLIS&quot;),</span>
+<span class="fc" id="L65">          DbType.valueOf(System.getProperty(&quot;spf4j.jdbc.heartBeats.sql.dbType&quot;, &quot;H2&quot;)));</span>
 
 
   private final String tableName;
@@ -66,72 +79,72 @@ public final class HeartBeatTableDesc implements Serializable {
   private final DbType dbType;
 
   public HeartBeatTableDesc(final String tableName, final String ownerColun,
-<span class="fc" id="L69">        final String intervalColumn, final String lastHeartbeatColumn, final DbType dbType) {</span>
-<span class="fc" id="L70">    JdbcTemplate.checkJdbcObjectName(tableName);</span>
-<span class="fc" id="L71">    JdbcTemplate.checkJdbcObjectName(ownerColun);</span>
-<span class="fc" id="L72">    JdbcTemplate.checkJdbcObjectName(intervalColumn);</span>
-<span class="fc" id="L73">    JdbcTemplate.checkJdbcObjectName(lastHeartbeatColumn);</span>
-<span class="fc" id="L74">    this.tableName = tableName;</span>
-<span class="fc" id="L75">    this.ownerColumn = ownerColun;</span>
-<span class="fc" id="L76">    this.intervalColumn = intervalColumn;</span>
-<span class="fc" id="L77">    this.lastHeartbeatColumn = lastHeartbeatColumn;</span>
-<span class="fc" id="L78">    this.dbType = dbType;</span>
-<span class="fc" id="L79">  }</span>
+<span class="fc" id="L82">        final String intervalColumn, final String lastHeartbeatColumn, final DbType dbType) {</span>
+<span class="fc" id="L83">    JdbcTemplate.checkJdbcObjectName(tableName);</span>
+<span class="fc" id="L84">    JdbcTemplate.checkJdbcObjectName(ownerColun);</span>
+<span class="fc" id="L85">    JdbcTemplate.checkJdbcObjectName(intervalColumn);</span>
+<span class="fc" id="L86">    JdbcTemplate.checkJdbcObjectName(lastHeartbeatColumn);</span>
+<span class="fc" id="L87">    this.tableName = tableName;</span>
+<span class="fc" id="L88">    this.ownerColumn = ownerColun;</span>
+<span class="fc" id="L89">    this.intervalColumn = intervalColumn;</span>
+<span class="fc" id="L90">    this.lastHeartbeatColumn = lastHeartbeatColumn;</span>
+<span class="fc" id="L91">    this.dbType = dbType;</span>
+<span class="fc" id="L92">  }</span>
 
   public String getTableName() {
-<span class="fc" id="L82">    return tableName;</span>
+<span class="fc" id="L95">    return tableName;</span>
   }
 
   public String getOwnerColumn() {
-<span class="fc" id="L86">    return ownerColumn;</span>
+<span class="fc" id="L99">    return ownerColumn;</span>
   }
 
   public String getIntervalColumn() {
-<span class="fc" id="L90">    return intervalColumn;</span>
+<span class="fc" id="L103">    return intervalColumn;</span>
   }
 
   public String getLastHeartbeatColumn() {
-<span class="fc" id="L94">    return lastHeartbeatColumn;</span>
+<span class="fc" id="L107">    return lastHeartbeatColumn;</span>
   }
 
   public DbType getDbType() {
-<span class="fc" id="L98">    return dbType;</span>
+<span class="fc" id="L111">    return dbType;</span>
   }
 
   public HeartBeatTableDesc withDbType(final DbType pdbType) {
-<span class="nc" id="L102">    return new HeartBeatTableDesc(tableName, ownerColumn, intervalColumn, lastHeartbeatColumn, pdbType);</span>
+<span class="nc" id="L115">    return new HeartBeatTableDesc(tableName, ownerColumn, intervalColumn, lastHeartbeatColumn, pdbType);</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc" id="L107">    return tableName.hashCode();</span>
+<span class="nc" id="L120">    return tableName.hashCode();</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (this == obj) {</span>
-<span class="nc" id="L113">      return true;</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L126">      return true;</span>
     }
-<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L116">      return false;</span>
-    }
-<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L119">      return false;</span>
-    }
-<span class="nc" id="L121">    final HeartBeatTableDesc other = (HeartBeatTableDesc) obj;</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">    if (!Objects.equals(this.tableName, other.tableName)) {</span>
-<span class="nc" id="L123">      return false;</span>
-    }
-<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (!Objects.equals(this.ownerColumn, other.ownerColumn)) {</span>
-<span class="nc" id="L126">      return false;</span>
-    }
-<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (!Objects.equals(this.intervalColumn, other.intervalColumn)) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (obj == null) {</span>
 <span class="nc" id="L129">      return false;</span>
     }
-<span class="nc bnc" id="L131" title="All 2 branches missed.">    if (!Objects.equals(this.lastHeartbeatColumn, other.lastHeartbeatColumn)) {</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
 <span class="nc" id="L132">      return false;</span>
     }
-<span class="nc bnc" id="L134" title="All 2 branches missed.">    return this.dbType == other.dbType;</span>
+<span class="nc" id="L134">    final HeartBeatTableDesc other = (HeartBeatTableDesc) obj;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    if (!Objects.equals(this.tableName, other.tableName)) {</span>
+<span class="nc" id="L136">      return false;</span>
+    }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">    if (!Objects.equals(this.ownerColumn, other.ownerColumn)) {</span>
+<span class="nc" id="L139">      return false;</span>
+    }
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    if (!Objects.equals(this.intervalColumn, other.intervalColumn)) {</span>
+<span class="nc" id="L142">      return false;</span>
+    }
+<span class="nc bnc" id="L144" title="All 2 branches missed.">    if (!Objects.equals(this.lastHeartbeatColumn, other.lastHeartbeatColumn)) {</span>
+<span class="nc" id="L145">      return false;</span>
+    }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">    return this.dbType == other.dbType;</span>
   }
 
 
@@ -139,7 +152,7 @@ public final class HeartBeatTableDesc implements Serializable {
 
   @Override
   public String toString() {
-<span class="nc" id="L142">    return &quot;HeartbeatTableDesc{&quot; + &quot;tableName=&quot; + tableName + &quot;, ownerColun=&quot; + ownerColumn + &quot;, intervalColumn=&quot;</span>
+<span class="nc" id="L155">    return &quot;HeartbeatTableDesc{&quot; + &quot;tableName=&quot; + tableName + &quot;, ownerColun=&quot; + ownerColumn + &quot;, intervalColumn=&quot;</span>
             + intervalColumn + &quot;, lastHeartbeatColumn=&quot; + lastHeartbeatColumn + '}';
   }
 

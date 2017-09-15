@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Version.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Version.java</span></div><h1>Version.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Version.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Version.java</span></div><h1>Version.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
 
 import com.google.common.primitives.Ints;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -18,111 +49,111 @@ public final class Version implements Comparable&lt;Version&gt; {
 
     private final String image;
 
-<span class="fc" id="L21">    public Version(final CharSequence version) {</span>
-<span class="fc" id="L22">        this.image = version.toString();</span>
-<span class="fc" id="L23">        List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
-<span class="fc" id="L24">        StringBuilder sb = new StringBuilder();</span>
-<span class="fc bfc" id="L25" title="All 2 branches covered.">        for (int i = 0; i &lt; version.length(); i++) {</span>
-<span class="fc" id="L26">            char c = version.charAt(i);</span>
-<span class="fc" id="L27">            final int length = sb.length();</span>
-<span class="fc bfc" id="L28" title="All 2 branches covered.">            if (c == '.') {</span>
-<span class="fc" id="L29">                addPart(sb, comps);</span>
-<span class="fc" id="L30">                sb.setLength(0);</span>
-<span class="fc bfc" id="L31" title="All 2 branches covered.">            } else if (Character.isDigit(c)) {</span>
-<span class="fc bfc" id="L32" title="All 2 branches covered.">                if (length &gt; 0) {</span>
-<span class="fc" id="L33">                    char prev = sb.charAt(length - 1);</span>
-<span class="fc bfc" id="L34" title="All 2 branches covered.">                    if (!Character.isDigit(prev)) {</span>
-<span class="fc" id="L35">                        comps.add(sb.toString());</span>
-<span class="fc" id="L36">                        sb.setLength(0);</span>
+<span class="fc" id="L52">    public Version(final CharSequence version) {</span>
+<span class="fc" id="L53">        this.image = version.toString();</span>
+<span class="fc" id="L54">        List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
+<span class="fc" id="L55">        StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        for (int i = 0; i &lt; version.length(); i++) {</span>
+<span class="fc" id="L57">            char c = version.charAt(i);</span>
+<span class="fc" id="L58">            final int length = sb.length();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            if (c == '.') {</span>
+<span class="fc" id="L60">                addPart(sb, comps);</span>
+<span class="fc" id="L61">                sb.setLength(0);</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            } else if (Character.isDigit(c)) {</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">                if (length &gt; 0) {</span>
+<span class="fc" id="L64">                    char prev = sb.charAt(length - 1);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                    if (!Character.isDigit(prev)) {</span>
+<span class="fc" id="L66">                        comps.add(sb.toString());</span>
+<span class="fc" id="L67">                        sb.setLength(0);</span>
                     }
                 }
-<span class="fc" id="L39">                sb.append(c);</span>
+<span class="fc" id="L70">                sb.append(c);</span>
             } else {
-<span class="fc bfc" id="L41" title="All 2 branches covered.">                if (length &gt; 0) {</span>
-<span class="fc" id="L42">                    char prev = sb.charAt(length - 1);</span>
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">                    if (Character.isDigit(prev)) {</span>
-<span class="fc" id="L44">                        comps.add(Integer.valueOf(sb.toString()));</span>
-<span class="fc" id="L45">                        sb.setLength(0);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                if (length &gt; 0) {</span>
+<span class="fc" id="L73">                    char prev = sb.charAt(length - 1);</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                    if (Character.isDigit(prev)) {</span>
+<span class="fc" id="L75">                        comps.add(Integer.valueOf(sb.toString()));</span>
+<span class="fc" id="L76">                        sb.setLength(0);</span>
                     }
                 }
-<span class="fc" id="L48">                sb.append(c);</span>
+<span class="fc" id="L79">                sb.append(c);</span>
             }
         }
-<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        if (sb.length() &gt; 0) {</span>
-<span class="fc" id="L52">           addPart(sb, comps);</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L83">           addPart(sb, comps);</span>
         }
-<span class="fc" id="L54">        components = comps.toArray(new Comparable[comps.size()]);</span>
-<span class="fc" id="L55">    }</span>
+<span class="fc" id="L85">        components = comps.toArray(new Comparable[comps.size()]);</span>
+<span class="fc" id="L86">    }</span>
 
     private static void addPart(final StringBuilder sb, final List&lt;Comparable&lt;?&gt;&gt; comps) {
-<span class="fc" id="L58">        final String strPart = sb.toString();</span>
-<span class="fc" id="L59">        Integer nr = Ints.tryParse(strPart);</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (nr == null) {</span>
-<span class="fc" id="L61">            comps.add(strPart);</span>
+<span class="fc" id="L89">        final String strPart = sb.toString();</span>
+<span class="fc" id="L90">        Integer nr = Ints.tryParse(strPart);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (nr == null) {</span>
+<span class="fc" id="L92">            comps.add(strPart);</span>
         } else {
-<span class="fc" id="L63">            comps.add(nr);</span>
+<span class="fc" id="L94">            comps.add(nr);</span>
         }
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L96">    }</span>
 
     @Override
     @SuppressWarnings(&quot;unchecked&quot;)
     public int compareTo(final Version o) {
-<span class="fc" id="L70">        return Comparables.compareArrays(components, o.components);</span>
+<span class="fc" id="L101">        return Comparables.compareArrays(components, o.components);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L75">        return image.hashCode();</span>
+<span class="nc" id="L106">        return image.hashCode();</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (this == obj) {</span>
-<span class="nc" id="L81">            return true;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L112">            return true;</span>
         }
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L84">            return false;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L115">            return false;</span>
         }
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L87">            return false;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L118">            return false;</span>
         }
-<span class="nc bnc" id="L89" title="All 2 branches missed.">        return this.compareTo((Version) obj) == 0;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        return this.compareTo((Version) obj) == 0;</span>
     }
 
     public String getImage() {
-<span class="fc" id="L93">        return image;</span>
+<span class="fc" id="L124">        return image;</span>
     }
 
     public Comparable[] getComponents() {
-<span class="fc" id="L97">        return components.clone();</span>
+<span class="fc" id="L128">        return components.clone();</span>
     }
 
     public Comparable getComponent(final int pos) {
-<span class="nc" id="L101">      return components[pos];</span>
+<span class="nc" id="L132">      return components[pos];</span>
     }
 
     @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
     public int getMajor() {
-<span class="fc" id="L106">      return (int) components[0];</span>
+<span class="fc" id="L137">      return (int) components[0];</span>
     }
 
     @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
     public int getMinor() {
-<span class="fc" id="L111">      return (int) components[1];</span>
+<span class="fc" id="L142">      return (int) components[1];</span>
     }
 
     @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
     public int getPatch() {
-<span class="nc" id="L116">      return (int) components[2];</span>
+<span class="nc" id="L147">      return (int) components[2];</span>
     }
 
     public int getNrComponents() {
-<span class="nc" id="L120">      return components.length;</span>
+<span class="nc" id="L151">      return components.length;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L125">        return &quot;Version{&quot; + &quot;components=&quot; + Arrays.toString(components) + '}';</span>
+<span class="fc" id="L156">        return &quot;Version{&quot; + &quot;components=&quot; + Arrays.toString(components) + '}';</span>
     }
 
 }

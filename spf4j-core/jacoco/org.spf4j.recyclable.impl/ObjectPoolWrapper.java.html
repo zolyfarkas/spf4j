@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ObjectPoolWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.recyclable.impl</a> &gt; <span class="el_source">ObjectPoolWrapper.java</span></div><h1>ObjectPoolWrapper.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.recyclable.impl;
 
@@ -37,7 +51,7 @@ import org.spf4j.base.Handler;
 @ParametersAreNonnullByDefault
 final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Scanable&lt;ObjectHolder&lt;T&gt;&gt; {
 
-<span class="nc" id="L40">    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);</span>
+<span class="nc" id="L54">    private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolWrapper.class);</span>
 
     private final RecyclingSupplier&lt;T&gt; pool;
 
@@ -47,14 +61,14 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
 
     ObjectPoolWrapper(final RecyclingSupplier&lt;T&gt; pool,
             @Nullable final Handler&lt;T, ? extends Exception&gt; borrowHook,
-<span class="nc" id="L50">            @Nullable final Handler&lt;T, ? extends Exception&gt; returnHook) {</span>
-<span class="nc" id="L51">        this.pool = pool;</span>
-<span class="nc" id="L52">        this.borrowHook = borrowHook;</span>
-<span class="nc" id="L53">        this.returnHook = returnHook;</span>
-<span class="nc bnc" id="L54" title="All 4 branches missed.">        if (borrowHook == null &amp;&amp; returnHook == null) {</span>
-<span class="nc" id="L55">            throw new IllegalArgumentException(&quot;Both hooks can't be null for &quot; + pool);</span>
+<span class="nc" id="L64">            @Nullable final Handler&lt;T, ? extends Exception&gt; returnHook) {</span>
+<span class="nc" id="L65">        this.pool = pool;</span>
+<span class="nc" id="L66">        this.borrowHook = borrowHook;</span>
+<span class="nc" id="L67">        this.returnHook = returnHook;</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">        if (borrowHook == null &amp;&amp; returnHook == null) {</span>
+<span class="nc" id="L69">            throw new IllegalArgumentException(&quot;Both hooks can't be null for &quot; + pool);</span>
         }
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L71">    }</span>
 
 
 
@@ -62,57 +76,57 @@ final class ObjectPoolWrapper&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Sc
     @Override
     public T get()
             throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
-<span class="nc" id="L65">        T result = pool.get();</span>
+<span class="nc" id="L79">        T result = pool.get();</span>
         try {
-<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (borrowHook != null) {</span>
-<span class="nc" id="L68">                borrowHook.handle(result, Long.MAX_VALUE);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (borrowHook != null) {</span>
+<span class="nc" id="L82">                borrowHook.handle(result, Long.MAX_VALUE);</span>
             }
-<span class="nc" id="L70">            return result;</span>
-<span class="nc" id="L71">        } catch (Exception e) {</span>
+<span class="nc" id="L84">            return result;</span>
+<span class="nc" id="L85">        } catch (Exception e) {</span>
             try {
-<span class="nc" id="L73">                pool.recycle(result, e);</span>
-<span class="nc" id="L74">            } catch (RuntimeException ex) {</span>
-<span class="nc" id="L75">                throw Throwables.suppress(ex, e);</span>
-<span class="nc" id="L76">            }</span>
-<span class="nc" id="L77">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook &quot; + borrowHook, e);</span>
+<span class="nc" id="L87">                pool.recycle(result, e);</span>
+<span class="nc" id="L88">            } catch (RuntimeException ex) {</span>
+<span class="nc" id="L89">                throw Throwables.suppress(ex, e);</span>
+<span class="nc" id="L90">            }</span>
+<span class="nc" id="L91">            throw new ObjectBorrowException(&quot;Exception while executing borrow hook &quot; + borrowHook, e);</span>
         }
     }
 
     @Override
     public void recycle(final T object, final Exception e) {
         try {
-<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (returnHook != null) {</span>
-<span class="nc" id="L85">                returnHook.handle(object, Long.MAX_VALUE);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (returnHook != null) {</span>
+<span class="nc" id="L99">                returnHook.handle(object, Long.MAX_VALUE);</span>
             }
-<span class="nc" id="L87">        } catch (Exception ex) {</span>
-<span class="nc" id="L88">            LOG.error(&quot;Error while handling object {} &quot;, object, ex);</span>
+<span class="nc" id="L101">        } catch (Exception ex) {</span>
+<span class="nc" id="L102">            LOG.error(&quot;Error while handling object {} &quot;, object, ex);</span>
         } finally {
-<span class="nc" id="L90">            pool.recycle(object, e);</span>
-<span class="nc" id="L91">        }</span>
-<span class="nc" id="L92">    }</span>
+<span class="nc" id="L104">            pool.recycle(object, e);</span>
+<span class="nc" id="L105">        }</span>
+<span class="nc" id="L106">    }</span>
 
     @Override
     public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
-<span class="nc" id="L96">        return pool.tryDispose(timeoutMillis);</span>
+<span class="nc" id="L110">        return pool.tryDispose(timeoutMillis);</span>
     }
 
     @Override
     public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
-<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (pool instanceof Scanable) {</span>
-<span class="nc" id="L102">            return ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (pool instanceof Scanable) {</span>
+<span class="nc" id="L116">            return ((Scanable&lt;ObjectHolder&lt;T&gt;&gt;) pool).scan(handler);</span>
         } else {
-<span class="nc" id="L104">            throw new UnsupportedOperationException(&quot;Wrapped pool &quot; + pool + &quot; is not scanable&quot;);</span>
+<span class="nc" id="L118">            throw new UnsupportedOperationException(&quot;Wrapped pool &quot; + pool + &quot; is not scanable&quot;);</span>
         }
     }
 
     @Override
     public void recycle(final T object) {
-<span class="nc" id="L110">        pool.recycle(object);</span>
-<span class="nc" id="L111">    }</span>
+<span class="nc" id="L124">        pool.recycle(object);</span>
+<span class="nc" id="L125">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L115">        return &quot;ObjectPoolWrapper{&quot; + &quot;pool=&quot; + pool + &quot;, borrowHook=&quot;</span>
+<span class="nc" id="L129">        return &quot;ObjectPoolWrapper{&quot; + &quot;pool=&quot; + pool + &quot;, borrowHook=&quot;</span>
                 + borrowHook + &quot;, returnHook=&quot; + returnHook + '}';
     }
 

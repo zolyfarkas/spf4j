@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GlobalMXBeanMapperSupplier.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">GlobalMXBeanMapperSupplier.java</span></div><h1>GlobalMXBeanMapperSupplier.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.jmx;
+
+import java.io.NotSerializableException;
+import java.lang.reflect.Type;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.management.openmbean.OpenType;
+import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
+
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class GlobalMXBeanMapperSupplier {
+
+<span class="nc" id="L47">  private GlobalMXBeanMapperSupplier() { }</span>
+
+<span class="fc" id="L49">  private static JMXBeanMappingSupplier globalInstance = new Spf4jOpenTypeMapper();</span>
+
+  public static JMXBeanMappingSupplier get() {
+<span class="nc" id="L52">    return globalInstance;</span>
+  }
+
+  public static JMXBeanMappingSupplier register(final JMXBeanMappingSupplier newMapper) {
+<span class="nc" id="L56">    JMXBeanMappingSupplier existing = globalInstance;</span>
+<span class="nc" id="L57">    globalInstance = newMapper;</span>
+<span class="nc" id="L58">    return existing;</span>
+  }
+
+
+  @Nullable
+  public static JMXBeanMapping getOpenTypeMapping(@Nonnull final Type type) throws NotSerializableException {
+<span class="fc" id="L64">    return globalInstance.get(type);</span>
+  }
+
+  @Nullable
+  public static OpenType&lt;?&gt; getOpenType(@Nonnull final Type type) throws NotSerializableException {
+<span class="nc" id="L69">    JMXBeanMapping mxBeanMapping = get().get(type);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">    return mxBeanMapping == null ? null : mxBeanMapping.getOpenType();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CharSequences.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CharSequences.java</span></div><h1>CharSequences.java</h1><pre class="source lang-java linenums">package org.spf4j.base;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CharSequences.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CharSequences.java</span></div><h1>CharSequences.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
 
 import com.google.common.annotations.GwtCompatible;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -16,8 +47,8 @@ import javax.annotation.Nullable;
 @GwtCompatible
 public final class CharSequences {
 
-<span class="nc" id="L19">  private CharSequences() {</span>
-<span class="nc" id="L20">  }</span>
+<span class="nc" id="L50">  private CharSequences() {</span>
+<span class="nc" id="L51">  }</span>
 
   /**
    * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
@@ -28,34 +59,34 @@ public final class CharSequences {
    * @return the number of operations required to transfor s1 into s2
    */
   public static int distance(@Nonnull final CharSequence s1, @Nonnull final CharSequence s2) {
-<span class="fc" id="L31">    int l1 = s1.length();</span>
-<span class="fc" id="L32">    int l2 = s2.length();</span>
+<span class="fc" id="L62">    int l1 = s1.length();</span>
+<span class="fc" id="L63">    int l2 = s2.length();</span>
 
-<span class="fc" id="L34">    int[] prev = new int[l2];</span>
-<span class="fc" id="L35">    char c1 = s1.charAt(0);</span>
-<span class="fc" id="L36">    prev[0] = distance(c1, s2.charAt(0));</span>
-<span class="fc bfc" id="L37" title="All 2 branches covered.">    for (int j = 1; j &lt; l2; j++) {</span>
-<span class="fc" id="L38">      prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
+<span class="fc" id="L65">    int[] prev = new int[l2];</span>
+<span class="fc" id="L66">    char c1 = s1.charAt(0);</span>
+<span class="fc" id="L67">    prev[0] = distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">    for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L69">      prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));</span>
     }
 
-<span class="fc bfc" id="L41" title="All 2 branches covered.">    for (int i = 1; i &lt; l1; i++) {</span>
-<span class="fc" id="L42">      int[] dist = new int[l2];</span>
-<span class="fc" id="L43">      c1 = s1.charAt(i);</span>
-<span class="fc" id="L44">      dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">      for (int j = 1; j &lt; l2; j++) {</span>
-<span class="fc" id="L46">        dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
-<span class="fc" id="L47">                min(prev[j] + 1, dist[j - 1] + 1));</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    for (int i = 1; i &lt; l1; i++) {</span>
+<span class="fc" id="L73">      int[] dist = new int[l2];</span>
+<span class="fc" id="L74">      c1 = s1.charAt(i);</span>
+<span class="fc" id="L75">      dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">      for (int j = 1; j &lt; l2; j++) {</span>
+<span class="fc" id="L77">        dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),</span>
+<span class="fc" id="L78">                min(prev[j] + 1, dist[j - 1] + 1));</span>
       }
-<span class="fc" id="L49">      prev = dist;</span>
+<span class="fc" id="L80">      prev = dist;</span>
     }
-<span class="fc" id="L51">    return prev[l2 - 1];</span>
+<span class="fc" id="L82">    return prev[l2 - 1];</span>
   }
 
   public static int distance(final char c1, final char c2) {
-<span class="fc bfc" id="L55" title="All 2 branches covered.">    if (c1 == c2) {</span>
-<span class="fc" id="L56">      return 0;</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">    if (c1 == c2) {</span>
+<span class="fc" id="L87">      return 0;</span>
     } else {
-<span class="fc" id="L58">      return 1;</span>
+<span class="fc" id="L89">      return 1;</span>
     }
   }
 
@@ -69,16 +100,16 @@ public final class CharSequences {
    */
   @Deprecated
   public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="nc" id="L72">    return compare(s, t);</span>
+<span class="nc" id="L103">    return compare(s, t);</span>
   }
 
   public static int compare(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="nc" id="L76">    return compare(s, 0, s.length(), t, 0, t.length());</span>
+<span class="nc" id="L107">    return compare(s, 0, s.length(), t, 0, t.length());</span>
   }
 
   public static int compare(@Nonnull final CharSequence s, final int sLength,
           @Nonnull final CharSequence t, final int tLength) {
-<span class="fc" id="L81">    return compare(s, 0, sLength, t, 0, tLength);</span>
+<span class="fc" id="L112">    return compare(s, 0, sLength, t, 0, tLength);</span>
   }
 
   /**
@@ -95,69 +126,69 @@ public final class CharSequences {
   public static int compare(@Nonnull final CharSequence s, final int sFrom, final int sLength,
           @Nonnull final CharSequence t, final int tFrom, final int tLength) {
 
-<span class="fc" id="L98">    int lim = min(sLength, tLength);</span>
-<span class="fc" id="L99">    int i = sFrom;</span>
-<span class="fc" id="L100">    int j = tFrom;</span>
-<span class="fc" id="L101">    int sTo = sFrom + lim;</span>
-<span class="fc bfc" id="L102" title="All 2 branches covered.">    while (i &lt; sTo) {</span>
-<span class="fc" id="L103">      char c1 = s.charAt(i);</span>
-<span class="fc" id="L104">      char c2 = t.charAt(j);</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">      if (c1 != c2) {</span>
-<span class="fc" id="L106">        return c1 - c2;</span>
+<span class="fc" id="L129">    int lim = min(sLength, tLength);</span>
+<span class="fc" id="L130">    int i = sFrom;</span>
+<span class="fc" id="L131">    int j = tFrom;</span>
+<span class="fc" id="L132">    int sTo = sFrom + lim;</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">    while (i &lt; sTo) {</span>
+<span class="fc" id="L134">      char c1 = s.charAt(i);</span>
+<span class="fc" id="L135">      char c2 = t.charAt(j);</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">      if (c1 != c2) {</span>
+<span class="fc" id="L137">        return c1 - c2;</span>
       }
-<span class="fc" id="L108">      i++;</span>
-<span class="fc" id="L109">      j++;</span>
-<span class="fc" id="L110">    }</span>
-<span class="fc" id="L111">    return sLength - tLength;</span>
+<span class="fc" id="L139">      i++;</span>
+<span class="fc" id="L140">      j++;</span>
+<span class="fc" id="L141">    }</span>
+<span class="fc" id="L142">    return sLength - tLength;</span>
   }
 
   public static boolean equalsNullables(@Nullable final CharSequence s, @Nullable final CharSequence t) {
-<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (s == null) {</span>
-<span class="nc bnc" id="L116" title="All 2 branches missed.">      return null == t;</span>
-<span class="nc bnc" id="L117" title="All 2 branches missed.">    } else if (t == null) {</span>
-<span class="nc" id="L118">      return true;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (s == null) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">      return null == t;</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    } else if (t == null) {</span>
+<span class="nc" id="L149">      return true;</span>
     } else {
-<span class="nc" id="L120">      return equals(s, t);</span>
+<span class="nc" id="L151">      return equals(s, t);</span>
     }
   }
 
   public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
-<span class="fc" id="L125">    final int sl = s.length();</span>
-<span class="fc" id="L126">    final int tl = t.length();</span>
-<span class="fc bfc" id="L127" title="All 2 branches covered.">    if (sl != tl) {</span>
-<span class="fc" id="L128">      return false;</span>
+<span class="fc" id="L156">    final int sl = s.length();</span>
+<span class="fc" id="L157">    final int tl = t.length();</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    if (sl != tl) {</span>
+<span class="fc" id="L159">      return false;</span>
     } else {
-<span class="fc bfc" id="L130" title="All 2 branches covered.">      for (int i = 0; i &lt; sl; i++) {</span>
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (s.charAt(i) != t.charAt(i)) {</span>
-<span class="fc" id="L132">          return false;</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">      for (int i = 0; i &lt; sl; i++) {</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">        if (s.charAt(i) != t.charAt(i)) {</span>
+<span class="fc" id="L163">          return false;</span>
         }
       }
-<span class="fc" id="L135">      return true;</span>
+<span class="fc" id="L166">      return true;</span>
     }
   }
 
   public static int hashcode(@Nonnull final CharSequence cs) {
-<span class="nc bnc" id="L140" title="All 2 branches missed.">    if (cs instanceof String) {</span>
-<span class="nc" id="L141">      return ((String) cs).hashCode();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (cs instanceof String) {</span>
+<span class="nc" id="L172">      return ((String) cs).hashCode();</span>
     }
-<span class="nc" id="L143">    int h = 0;</span>
-<span class="nc" id="L144">    int len = cs.length();</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L146">      int off = 0;</span>
-<span class="nc bnc" id="L147" title="All 2 branches missed.">      for (int i = 0; i &lt; len; i++) {</span>
-<span class="nc" id="L148">        h = 31 * h + cs.charAt(off++);</span>
+<span class="nc" id="L174">    int h = 0;</span>
+<span class="nc" id="L175">    int len = cs.length();</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L177">      int off = 0;</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">      for (int i = 0; i &lt; len; i++) {</span>
+<span class="nc" id="L179">        h = 31 * h + cs.charAt(off++);</span>
       }
     }
-<span class="nc" id="L151">    return h;</span>
+<span class="nc" id="L182">    return h;</span>
   }
 
   public static CharSequence subSequence(@Nonnull final CharSequence seq, final int startIdx, final int endIdx) {
-<span class="pc bpc" id="L155" title="1 of 4 branches missed.">    if (startIdx == 0 &amp;&amp; endIdx == seq.length()) {</span>
-<span class="fc" id="L156">      return seq;</span>
-<span class="fc bfc" id="L157" title="All 2 branches covered.">    } else if (startIdx &gt;= endIdx) {</span>
-<span class="fc" id="L158">      return &quot;&quot;;</span>
+<span class="pc bpc" id="L186" title="1 of 4 branches missed.">    if (startIdx == 0 &amp;&amp; endIdx == seq.length()) {</span>
+<span class="fc" id="L187">      return seq;</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">    } else if (startIdx &gt;= endIdx) {</span>
+<span class="fc" id="L189">      return &quot;&quot;;</span>
     } else {
-<span class="fc" id="L160">      return new SubSequence(seq, endIdx - startIdx, startIdx);</span>
+<span class="fc" id="L191">      return new SubSequence(seq, endIdx - startIdx, startIdx);</span>
     }
   }
 
@@ -167,118 +198,118 @@ public final class CharSequences {
     private final int length;
     private final int startIdx;
 
-<span class="fc" id="L170">    SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {</span>
-<span class="fc" id="L171">      this.underlyingSequence = underlyingSequence;</span>
-<span class="fc" id="L172">      this.length = length;</span>
-<span class="fc" id="L173">      this.startIdx = startIdx;</span>
-<span class="fc" id="L174">    }</span>
+<span class="fc" id="L201">    SubSequence(final CharSequence underlyingSequence, final int length, final int startIdx) {</span>
+<span class="fc" id="L202">      this.underlyingSequence = underlyingSequence;</span>
+<span class="fc" id="L203">      this.length = length;</span>
+<span class="fc" id="L204">      this.startIdx = startIdx;</span>
+<span class="fc" id="L205">    }</span>
 
     @Override
     public int length() {
-<span class="nc" id="L178">      return length;</span>
+<span class="nc" id="L209">      return length;</span>
     }
 
     @Override
     public char charAt(final int index) {
-<span class="nc" id="L183">      return underlyingSequence.charAt(startIdx + index);</span>
+<span class="nc" id="L214">      return underlyingSequence.charAt(startIdx + index);</span>
     }
 
     @Override
     public CharSequence subSequence(final int start, final int end) {
-<span class="nc" id="L188">      return CharSequences.subSequence(underlyingSequence, startIdx + start, startIdx + end);</span>
+<span class="nc" id="L219">      return CharSequences.subSequence(underlyingSequence, startIdx + start, startIdx + end);</span>
     }
 
     @Override
     @SuppressFBWarnings(&quot;STT_STRING_PARSING_A_FIELD&quot;)
     public String toString() {
-<span class="pc bpc" id="L194" title="1 of 2 branches missed.">      if (underlyingSequence instanceof String) {</span>
-<span class="fc" id="L195">        return ((String) underlyingSequence).substring(startIdx, startIdx + length);</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">      } else if (underlyingSequence instanceof StringBuilder) {</span>
-<span class="nc" id="L197">        return ((StringBuilder) underlyingSequence).substring(startIdx, startIdx + length);</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">      if (underlyingSequence instanceof String) {</span>
+<span class="fc" id="L226">        return ((String) underlyingSequence).substring(startIdx, startIdx + length);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">      } else if (underlyingSequence instanceof StringBuilder) {</span>
+<span class="nc" id="L228">        return ((StringBuilder) underlyingSequence).substring(startIdx, startIdx + length);</span>
       } else {
-<span class="nc" id="L199">        char[] chars = new char[length];</span>
-<span class="nc" id="L200">        int idx = startIdx;</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++, idx++) {</span>
-<span class="nc" id="L202">          chars[i] = underlyingSequence.charAt(idx);</span>
+<span class="nc" id="L230">        char[] chars = new char[length];</span>
+<span class="nc" id="L231">        int idx = startIdx;</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++, idx++) {</span>
+<span class="nc" id="L233">          chars[i] = underlyingSequence.charAt(idx);</span>
         }
-<span class="nc" id="L204">        return new String(chars);</span>
+<span class="nc" id="L235">        return new String(chars);</span>
       }
     }
 
   }
 
   public static boolean endsWith(final CharSequence qc, final CharSequence with) {
-<span class="fc" id="L211">    int l = qc.length();</span>
-<span class="fc" id="L212">    int start = l - with.length();</span>
-<span class="fc bfc" id="L213" title="All 2 branches covered.">    if (start &gt;= 0) {</span>
-<span class="fc bfc" id="L214" title="All 2 branches covered.">      for (int i = start, j = 0; i &lt; l; i++, j++) {</span>
-<span class="fc bfc" id="L215" title="All 2 branches covered.">        if (qc.charAt(i) != with.charAt(j)) {</span>
-<span class="fc" id="L216">          return false;</span>
+<span class="fc" id="L242">    int l = qc.length();</span>
+<span class="fc" id="L243">    int start = l - with.length();</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">    if (start &gt;= 0) {</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">      for (int i = start, j = 0; i &lt; l; i++, j++) {</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">        if (qc.charAt(i) != with.charAt(j)) {</span>
+<span class="fc" id="L247">          return false;</span>
         }
       }
-<span class="fc" id="L219">      return true;</span>
+<span class="fc" id="L250">      return true;</span>
     } else {
-<span class="fc" id="L221">      return false;</span>
+<span class="fc" id="L252">      return false;</span>
     }
   }
 
   public static Appendable lineNumbered(final int startLineNr, final Appendable appendable)
           throws IOException {
-<span class="nc" id="L227">    return lineNumbered(startLineNr, appendable, IntAppender.CommentNumberAppender.INSTANCE);</span>
+<span class="nc" id="L258">    return lineNumbered(startLineNr, appendable, IntAppender.CommentNumberAppender.INSTANCE);</span>
   }
 
   public static Appendable lineNumbered(final int startLineNr, final Appendable appendable, final IntAppender ia)
           throws IOException {
-<span class="fc" id="L232">    ia.append(startLineNr, appendable);</span>
-<span class="fc" id="L233">    return new Appendable() {</span>
-<span class="fc" id="L234">      private int lineNr = startLineNr + 1;</span>
+<span class="fc" id="L263">    ia.append(startLineNr, appendable);</span>
+<span class="fc" id="L264">    return new Appendable() {</span>
+<span class="fc" id="L265">      private int lineNr = startLineNr + 1;</span>
 
       @Override
       public Appendable append(final CharSequence csq) throws IOException {
-<span class="fc" id="L238">        return append(csq, 0, csq.length());</span>
+<span class="fc" id="L269">        return append(csq, 0, csq.length());</span>
       }
 
       @Override
       public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
-<span class="fc" id="L243">        int lastIdx = start;</span>
-<span class="fc bfc" id="L244" title="All 2 branches covered.">        for (int i = start; i &lt; end; i++) {</span>
-<span class="fc bfc" id="L245" title="All 2 branches covered.">          if (csq.charAt(i) == '\n') {</span>
-<span class="fc" id="L246">            int next = i + 1;</span>
-<span class="fc" id="L247">            appendable.append(csq, lastIdx, next);</span>
-<span class="fc" id="L248">            ia.append(lineNr++, appendable);</span>
-<span class="fc" id="L249">            lastIdx = next;</span>
+<span class="fc" id="L274">        int lastIdx = start;</span>
+<span class="fc bfc" id="L275" title="All 2 branches covered.">        for (int i = start; i &lt; end; i++) {</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">          if (csq.charAt(i) == '\n') {</span>
+<span class="fc" id="L277">            int next = i + 1;</span>
+<span class="fc" id="L278">            appendable.append(csq, lastIdx, next);</span>
+<span class="fc" id="L279">            ia.append(lineNr++, appendable);</span>
+<span class="fc" id="L280">            lastIdx = next;</span>
           }
         }
-<span class="fc bfc" id="L252" title="All 2 branches covered.">        if (lastIdx &lt; end) {</span>
-<span class="fc" id="L253">          appendable.append(csq, lastIdx, end);</span>
+<span class="fc bfc" id="L283" title="All 2 branches covered.">        if (lastIdx &lt; end) {</span>
+<span class="fc" id="L284">          appendable.append(csq, lastIdx, end);</span>
         }
-<span class="fc" id="L255">        return this;</span>
+<span class="fc" id="L286">        return this;</span>
       }
 
       @Override
       public Appendable append(final char c) throws IOException {
-<span class="nc" id="L260">        appendable.append(c);</span>
-<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (c == '\n') {</span>
-<span class="nc" id="L262">          ia.append(lineNr++, appendable);</span>
+<span class="nc" id="L291">        appendable.append(c);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        if (c == '\n') {</span>
+<span class="nc" id="L293">          ia.append(lineNr++, appendable);</span>
         }
-<span class="nc" id="L264">        return this;</span>
+<span class="nc" id="L295">        return this;</span>
       }
     };
   }
 
   public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source) {
-<span class="fc" id="L270">    return toLineNumbered(startLineNr, source, IntAppender.CommentNumberAppender.INSTANCE);</span>
+<span class="fc" id="L301">    return toLineNumbered(startLineNr, source, IntAppender.CommentNumberAppender.INSTANCE);</span>
   }
 
   public static CharSequence toLineNumbered(final int startLineNr, final CharSequence source, final IntAppender ia) {
-<span class="fc" id="L274">    int length = source.length();</span>
-<span class="fc" id="L275">    StringBuilder destination = new StringBuilder(length + 6 * length / 80);</span>
+<span class="fc" id="L305">    int length = source.length();</span>
+<span class="fc" id="L306">    StringBuilder destination = new StringBuilder(length + 6 * length / 80);</span>
     try {
-<span class="fc" id="L277">      lineNumbered(startLineNr, destination, ia).append(source);</span>
-<span class="nc" id="L278">    } catch (IOException ex) {</span>
-<span class="nc" id="L279">      throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L280">    }</span>
-<span class="fc" id="L281">    return destination;</span>
+<span class="fc" id="L308">      lineNumbered(startLineNr, destination, ia).append(source);</span>
+<span class="nc" id="L309">    } catch (IOException ex) {</span>
+<span class="nc" id="L310">      throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L311">    }</span>
+<span class="fc" id="L312">    return destination;</span>
   }
 
   /**
@@ -287,7 +318,7 @@ public final class CharSequences {
    * @see java.lang.Integer.parseInt
    */
   public static int parseInt(@Nonnull final CharSequence s) {
-<span class="nc" id="L290">    return parseInt(s, 10);</span>
+<span class="nc" id="L321">    return parseInt(s, 10);</span>
   }
 
   /**
@@ -297,59 +328,59 @@ public final class CharSequences {
    */
   public static int parseInt(@Nonnull final CharSequence cs, final int radix) {
 
-<span class="nc bnc" id="L300" title="All 2 branches missed.">    if (radix &lt; Character.MIN_RADIX) {</span>
-<span class="nc" id="L301">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">    if (radix &lt; Character.MIN_RADIX) {</span>
+<span class="nc" id="L332">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
               + &quot; less than Character.MIN_RADIX&quot;);
     }
 
-<span class="nc bnc" id="L305" title="All 2 branches missed.">    if (radix &gt; Character.MAX_RADIX) {</span>
-<span class="nc" id="L306">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">    if (radix &gt; Character.MAX_RADIX) {</span>
+<span class="nc" id="L337">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
               + &quot; greater than Character.MAX_RADIX&quot;);
     }
 
-<span class="nc" id="L310">    int result = 0;</span>
-<span class="nc" id="L311">    boolean negative = false;</span>
-<span class="nc" id="L312">    int len = cs.length();</span>
+<span class="nc" id="L341">    int result = 0;</span>
+<span class="nc" id="L342">    boolean negative = false;</span>
+<span class="nc" id="L343">    int len = cs.length();</span>
 
-<span class="nc bnc" id="L314" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L315">      int i = 0;</span>
-<span class="nc" id="L316">      int limit = -Integer.MAX_VALUE;</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L346">      int i = 0;</span>
+<span class="nc" id="L347">      int limit = -Integer.MAX_VALUE;</span>
       int multmin;
       int digit;
-<span class="nc" id="L319">      char firstChar = cs.charAt(0);</span>
-<span class="nc bnc" id="L320" title="All 2 branches missed.">      if (firstChar &lt; '0') { // Possible leading &quot;+&quot; or &quot;-&quot;</span>
-<span class="nc bnc" id="L321" title="All 2 branches missed.">        if (firstChar == '-') {</span>
-<span class="nc" id="L322">          negative = true;</span>
-<span class="nc" id="L323">          limit = Integer.MIN_VALUE;</span>
-<span class="nc bnc" id="L324" title="All 2 branches missed.">        } else if (firstChar != '+') {</span>
-<span class="nc" id="L325">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L350">      char firstChar = cs.charAt(0);</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">      if (firstChar &lt; '0') { // Possible leading &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        if (firstChar == '-') {</span>
+<span class="nc" id="L353">          negative = true;</span>
+<span class="nc" id="L354">          limit = Integer.MIN_VALUE;</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">        } else if (firstChar != '+') {</span>
+<span class="nc" id="L356">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
 
-<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (len == 1) { // Cannot have lone &quot;+&quot; or &quot;-&quot;</span>
-<span class="nc" id="L329">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        if (len == 1) { // Cannot have lone &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc" id="L360">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc" id="L331">        i++;</span>
+<span class="nc" id="L362">        i++;</span>
       }
-<span class="nc" id="L333">      multmin = limit / radix;</span>
-<span class="nc bnc" id="L334" title="All 2 branches missed.">      while (i &lt; len) {</span>
+<span class="nc" id="L364">      multmin = limit / radix;</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">      while (i &lt; len) {</span>
         // Accumulating negatively avoids surprises near MAX_VALUE
-<span class="nc" id="L336">        digit = Character.digit(cs.charAt(i++), radix);</span>
-<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (digit &lt; 0) {</span>
-<span class="nc" id="L338">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L367">        digit = Character.digit(cs.charAt(i++), radix);</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">        if (digit &lt; 0) {</span>
+<span class="nc" id="L369">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (result &lt; multmin) {</span>
-<span class="nc" id="L341">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">        if (result &lt; multmin) {</span>
+<span class="nc" id="L372">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc" id="L343">        result *= radix;</span>
-<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (result &lt; limit + digit) {</span>
-<span class="nc" id="L345">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L374">        result *= radix;</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if (result &lt; limit + digit) {</span>
+<span class="nc" id="L376">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc" id="L347">        result -= digit;</span>
+<span class="nc" id="L378">        result -= digit;</span>
       }
-<span class="nc" id="L349">    } else {</span>
-<span class="nc" id="L350">      throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L380">    } else {</span>
+<span class="nc" id="L381">      throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
     }
-<span class="nc bnc" id="L352" title="All 2 branches missed.">    return negative ? result : -result;</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">    return negative ? result : -result;</span>
   }
 
   /**
@@ -358,7 +389,7 @@ public final class CharSequences {
    * @see java.lang.Long.parseLong
    */
   public static long parseLong(@Nonnull final CharSequence cs) {
-<span class="nc" id="L361">    return parseLong(cs, 10);</span>
+<span class="nc" id="L392">    return parseLong(cs, 10);</span>
   }
 
   /**
@@ -368,79 +399,79 @@ public final class CharSequences {
    */
   public static long parseLong(@Nonnull final CharSequence cs, final int radix) {
 
-<span class="nc bnc" id="L371" title="All 2 branches missed.">    if (radix &lt; Character.MIN_RADIX) {</span>
-<span class="nc" id="L372">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">    if (radix &lt; Character.MIN_RADIX) {</span>
+<span class="nc" id="L403">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
               + &quot; less than Character.MIN_RADIX&quot;);
     }
-<span class="nc bnc" id="L375" title="All 2 branches missed.">    if (radix &gt; Character.MAX_RADIX) {</span>
-<span class="nc" id="L376">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">    if (radix &gt; Character.MAX_RADIX) {</span>
+<span class="nc" id="L407">      throw new NumberFormatException(&quot;radix &quot; + radix</span>
               + &quot; greater than Character.MAX_RADIX&quot;);
     }
 
-<span class="nc" id="L380">    long result = 0;</span>
-<span class="nc" id="L381">    boolean negative = false;</span>
-<span class="nc" id="L382">    int len = cs.length();</span>
+<span class="nc" id="L411">    long result = 0;</span>
+<span class="nc" id="L412">    boolean negative = false;</span>
+<span class="nc" id="L413">    int len = cs.length();</span>
 
-<span class="nc bnc" id="L384" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L385">      int i = 0;</span>
-<span class="nc" id="L386">      long limit = -Long.MAX_VALUE;</span>
+<span class="nc bnc" id="L415" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L416">      int i = 0;</span>
+<span class="nc" id="L417">      long limit = -Long.MAX_VALUE;</span>
       long multmin;
       int digit;
-<span class="nc" id="L389">      char firstChar = cs.charAt(0);</span>
-<span class="nc bnc" id="L390" title="All 2 branches missed.">      if (firstChar &lt; '0') { // Possible leading &quot;+&quot; or &quot;-&quot;</span>
-<span class="nc bnc" id="L391" title="All 2 branches missed.">        if (firstChar == '-') {</span>
-<span class="nc" id="L392">          negative = true;</span>
-<span class="nc" id="L393">          limit = Long.MIN_VALUE;</span>
-<span class="nc bnc" id="L394" title="All 2 branches missed.">        } else if (firstChar != '+') {</span>
-<span class="nc" id="L395">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L420">      char firstChar = cs.charAt(0);</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">      if (firstChar &lt; '0') { // Possible leading &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (firstChar == '-') {</span>
+<span class="nc" id="L423">          negative = true;</span>
+<span class="nc" id="L424">          limit = Long.MIN_VALUE;</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        } else if (firstChar != '+') {</span>
+<span class="nc" id="L426">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
 
-<span class="nc bnc" id="L398" title="All 2 branches missed.">        if (len == 1) { // Cannot have lone &quot;+&quot; or &quot;-&quot;</span>
-<span class="nc" id="L399">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (len == 1) { // Cannot have lone &quot;+&quot; or &quot;-&quot;</span>
+<span class="nc" id="L430">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc" id="L401">        i++;</span>
+<span class="nc" id="L432">        i++;</span>
       }
-<span class="nc" id="L403">      multmin = limit / radix;</span>
-<span class="nc bnc" id="L404" title="All 2 branches missed.">      while (i &lt; len) {</span>
+<span class="nc" id="L434">      multmin = limit / radix;</span>
+<span class="nc bnc" id="L435" title="All 2 branches missed.">      while (i &lt; len) {</span>
         // Accumulating negatively avoids surprises near MAX_VALUE
-<span class="nc" id="L406">        digit = Character.digit(cs.charAt(i++), radix);</span>
-<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (digit &lt; 0) {</span>
-<span class="nc" id="L408">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L437">        digit = Character.digit(cs.charAt(i++), radix);</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">        if (digit &lt; 0) {</span>
+<span class="nc" id="L439">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (result &lt; multmin) {</span>
-<span class="nc" id="L411">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">        if (result &lt; multmin) {</span>
+<span class="nc" id="L442">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc" id="L413">        result *= radix;</span>
-<span class="nc bnc" id="L414" title="All 2 branches missed.">        if (result &lt; limit + digit) {</span>
-<span class="nc" id="L415">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L444">        result *= radix;</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">        if (result &lt; limit + digit) {</span>
+<span class="nc" id="L446">          throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
         }
-<span class="nc" id="L417">        result -= digit;</span>
+<span class="nc" id="L448">        result -= digit;</span>
       }
-<span class="nc" id="L419">    } else {</span>
-<span class="nc" id="L420">      throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
+<span class="nc" id="L450">    } else {</span>
+<span class="nc" id="L451">      throw new NumberFormatException(&quot;For input char sequence: \&quot;&quot; + cs + '\&quot;');</span>
     }
-<span class="nc bnc" id="L422" title="All 2 branches missed.">    return negative ? result : -result;</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">    return negative ? result : -result;</span>
   }
 
   public static boolean containsAnyChar(final CharSequence string, final char... chars) {
-<span class="fc bfc" id="L426" title="All 2 branches covered.">    for (int i = 0; i &lt; string.length(); i++) {</span>
-<span class="fc" id="L427">      char c = string.charAt(i);</span>
-<span class="fc bfc" id="L428" title="All 2 branches covered.">      if (Arrays.search(chars, c) &gt;= 0) {</span>
-<span class="fc" id="L429">        return true;</span>
+<span class="fc bfc" id="L457" title="All 2 branches covered.">    for (int i = 0; i &lt; string.length(); i++) {</span>
+<span class="fc" id="L458">      char c = string.charAt(i);</span>
+<span class="fc bfc" id="L459" title="All 2 branches covered.">      if (Arrays.search(chars, c) &gt;= 0) {</span>
+<span class="fc" id="L460">        return true;</span>
       }
     }
-<span class="fc" id="L432">    return false;</span>
+<span class="fc" id="L463">    return false;</span>
   }
 
   public static boolean isValidFileName(@Nonnull final CharSequence fileName) {
-<span class="pc bpc" id="L436" title="1 of 2 branches missed.">    return !containsAnyChar(fileName, '/', '\\');</span>
+<span class="pc bpc" id="L467" title="1 of 2 branches missed.">    return !containsAnyChar(fileName, '/', '\\');</span>
   }
 
   public static &lt;T extends CharSequence&gt; T validatedFileName(@Nonnull final T fileName) {
-<span class="pc bpc" id="L440" title="1 of 2 branches missed.">    if (!isValidFileName(fileName)) {</span>
-<span class="nc" id="L441">      throw new IllegalArgumentException(&quot;Invalid file name: &quot; + fileName);</span>
+<span class="pc bpc" id="L471" title="1 of 2 branches missed.">    if (!isValidFileName(fileName)) {</span>
+<span class="nc" id="L472">      throw new IllegalArgumentException(&quot;Invalid file name: &quot; + fileName);</span>
     }
-<span class="fc" id="L443">    return fileName;</span>
+<span class="fc" id="L474">    return fileName;</span>
   }
 
   /**
@@ -448,20 +479,20 @@ public final class CharSequences {
    */
   public static boolean regionMatches(final CharSequence t, final int toffset,
           final CharSequence other, final int ooffset, final int plen) {
-<span class="nc" id="L451">    int to = toffset;</span>
-<span class="nc" id="L452">    int po = ooffset;</span>
+<span class="nc" id="L482">    int to = toffset;</span>
+<span class="nc" id="L483">    int po = ooffset;</span>
     // Note: toffset, ooffset, or len might be near -1&gt;&gt;&gt;1.
-<span class="nc bnc" id="L454" title="All 6 branches missed.">    if ((ooffset &lt; 0) || (toffset &lt; 0) || (toffset &gt; (long) t.length() - plen)</span>
-<span class="nc bnc" id="L455" title="All 2 branches missed.">            || (ooffset &gt; (long) other.length() - plen)) {</span>
-<span class="nc" id="L456">      return false;</span>
+<span class="nc bnc" id="L485" title="All 6 branches missed.">    if ((ooffset &lt; 0) || (toffset &lt; 0) || (toffset &gt; (long) t.length() - plen)</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">            || (ooffset &gt; (long) other.length() - plen)) {</span>
+<span class="nc" id="L487">      return false;</span>
     }
-<span class="nc" id="L458">    int len = plen;</span>
-<span class="nc bnc" id="L459" title="All 2 branches missed.">    while (len-- &gt; 0) {</span>
-<span class="nc bnc" id="L460" title="All 2 branches missed.">      if (t.charAt(to++) != other.charAt(po++)) {</span>
-<span class="nc" id="L461">        return false;</span>
+<span class="nc" id="L489">    int len = plen;</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">    while (len-- &gt; 0) {</span>
+<span class="nc bnc" id="L491" title="All 2 branches missed.">      if (t.charAt(to++) != other.charAt(po++)) {</span>
+<span class="nc" id="L492">        return false;</span>
       }
     }
-<span class="nc" id="L464">    return true;</span>
+<span class="nc" id="L495">    return true;</span>
   }
 
   /**
@@ -469,39 +500,39 @@ public final class CharSequences {
    */
   public static boolean regionMatchesIgnoreCase(final CharSequence ta, final int toffset,
           final CharSequence pa, final int ooffset, final int plen) {
-<span class="nc" id="L472">    int to = toffset;</span>
-<span class="nc" id="L473">    int po = ooffset;</span>
+<span class="nc" id="L503">    int to = toffset;</span>
+<span class="nc" id="L504">    int po = ooffset;</span>
     // Note: toffset, ooffset, or len might be near -1&gt;&gt;&gt;1.
-<span class="nc bnc" id="L475" title="All 4 branches missed.">    if ((ooffset &lt; 0) || (toffset &lt; 0)</span>
-<span class="nc bnc" id="L476" title="All 2 branches missed.">            || (toffset &gt; (long) ta.length() - plen)</span>
-<span class="nc bnc" id="L477" title="All 2 branches missed.">            || (ooffset &gt; (long) pa.length() - plen)) {</span>
-<span class="nc" id="L478">      return false;</span>
+<span class="nc bnc" id="L506" title="All 4 branches missed.">    if ((ooffset &lt; 0) || (toffset &lt; 0)</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">            || (toffset &gt; (long) ta.length() - plen)</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">            || (ooffset &gt; (long) pa.length() - plen)) {</span>
+<span class="nc" id="L509">      return false;</span>
     }
-<span class="nc" id="L480">    int len = plen;</span>
-<span class="nc bnc" id="L481" title="All 2 branches missed.">    while (len-- &gt; 0) {</span>
-<span class="nc" id="L482">      char c1 = ta.charAt(to++);</span>
-<span class="nc" id="L483">      char c2 = pa.charAt(po++);</span>
-<span class="nc bnc" id="L484" title="All 2 branches missed.">      if (c1 == c2) {</span>
-<span class="nc" id="L485">        continue;</span>
+<span class="nc" id="L511">    int len = plen;</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">    while (len-- &gt; 0) {</span>
+<span class="nc" id="L513">      char c1 = ta.charAt(to++);</span>
+<span class="nc" id="L514">      char c2 = pa.charAt(po++);</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">      if (c1 == c2) {</span>
+<span class="nc" id="L516">        continue;</span>
       }
       // If characters don't match but case may be ignored,
       // try converting both characters to uppercase.
       // If the results match, then the comparison scan should
       // continue.
-<span class="nc" id="L491">      char u1 = Character.toUpperCase(c1);</span>
-<span class="nc" id="L492">      char u2 = Character.toUpperCase(c2);</span>
-<span class="nc bnc" id="L493" title="All 2 branches missed.">      if (u1 == u2) {</span>
-<span class="nc" id="L494">        continue;</span>
+<span class="nc" id="L522">      char u1 = Character.toUpperCase(c1);</span>
+<span class="nc" id="L523">      char u2 = Character.toUpperCase(c2);</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">      if (u1 == u2) {</span>
+<span class="nc" id="L525">        continue;</span>
       }
       // Unfortunately, conversion to uppercase does not work properly
       // for the Georgian alphabet, which has strange rules about case
       // conversion.  So we need to make one last check before
       // exiting.
-<span class="nc bnc" id="L500" title="All 2 branches missed.">      if (Character.toLowerCase(u1) != Character.toLowerCase(u2)) {</span>
-<span class="nc" id="L501">        return false;</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">      if (Character.toLowerCase(u1) != Character.toLowerCase(u2)) {</span>
+<span class="nc" id="L532">        return false;</span>
       }
-<span class="nc" id="L503">    }</span>
-<span class="nc" id="L504">    return true;</span>
+<span class="nc" id="L534">    }</span>
+<span class="nc" id="L535">    return true;</span>
   }
 
   /**
@@ -513,28 +544,28 @@ public final class CharSequences {
    * @return
    */
   public static boolean match(final CharSequence wildcard, final CharSequence cs2Match) {
-<span class="nc" id="L516">    int i = 0;</span>
-<span class="nc" id="L517">    int j = 0;</span>
-<span class="nc" id="L518">    final int length = wildcard.length();</span>
-<span class="nc bnc" id="L519" title="All 2 branches missed.">    for (; i &lt; length; i++, j++) {</span>
-<span class="nc" id="L520">      final char some2 = wildcard.charAt(i);</span>
-<span class="nc bnc" id="L521" title="All 2 branches missed.">      if (some2 != cs2Match.charAt(j)) {</span>
-<span class="nc bnc" id="L522" title="All 2 branches missed.">        if (some2 == '*') {</span>
-<span class="nc" id="L523">          i++;</span>
-<span class="nc bnc" id="L524" title="All 2 branches missed.">          if (i == length) {</span>
-<span class="nc" id="L525">            return true;</span>
+<span class="nc" id="L547">    int i = 0;</span>
+<span class="nc" id="L548">    int j = 0;</span>
+<span class="nc" id="L549">    final int length = wildcard.length();</span>
+<span class="nc bnc" id="L550" title="All 2 branches missed.">    for (; i &lt; length; i++, j++) {</span>
+<span class="nc" id="L551">      final char some2 = wildcard.charAt(i);</span>
+<span class="nc bnc" id="L552" title="All 2 branches missed.">      if (some2 != cs2Match.charAt(j)) {</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">        if (some2 == '*') {</span>
+<span class="nc" id="L554">          i++;</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">          if (i == length) {</span>
+<span class="nc" id="L556">            return true;</span>
           }
-<span class="nc" id="L527">          final char some = wildcard.charAt(i);</span>
-<span class="nc bnc" id="L528" title="All 2 branches missed.">          while (some != cs2Match.charAt(j)) {</span>
-<span class="nc" id="L529">            ++j;</span>
+<span class="nc" id="L558">          final char some = wildcard.charAt(i);</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">          while (some != cs2Match.charAt(j)) {</span>
+<span class="nc" id="L560">            ++j;</span>
           }
-<span class="nc" id="L531">          j--;</span>
-<span class="nc bnc" id="L532" title="All 2 branches missed.">        } else if (some2 != '?') {</span>
-<span class="nc" id="L533">          return false;</span>
+<span class="nc" id="L562">          j--;</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">        } else if (some2 != '?') {</span>
+<span class="nc" id="L564">          return false;</span>
         }
       }
     }
-<span class="nc bnc" id="L537" title="All 2 branches missed.">    return j == cs2Match.length();</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">    return j == cs2Match.length();</span>
   }
 
 
@@ -546,17 +577,17 @@ public final class CharSequences {
    * @return
    */
   public CharSequence getJavaRegexpStr(final CharSequence wildcard) {
-<span class="nc" id="L549">    final StringBuilder buff = new StringBuilder();</span>
-<span class="nc" id="L550">    final int length = wildcard.length();</span>
-<span class="nc bnc" id="L551" title="All 2 branches missed.">    for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L552">      final char c = wildcard.charAt(i);</span>
-<span class="nc bnc" id="L553" title="All 4 branches missed.">      switch (c) {</span>
+<span class="nc" id="L580">    final StringBuilder buff = new StringBuilder();</span>
+<span class="nc" id="L581">    final int length = wildcard.length();</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">    for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L583">      final char c = wildcard.charAt(i);</span>
+<span class="nc bnc" id="L584" title="All 4 branches missed.">      switch (c) {</span>
         case '*':
-<span class="nc" id="L555">          buff.append(&quot;.*&quot;);</span>
-<span class="nc" id="L556">          break;</span>
+<span class="nc" id="L586">          buff.append(&quot;.*&quot;);</span>
+<span class="nc" id="L587">          break;</span>
         case '?':
-<span class="nc" id="L558">          buff.append('.');</span>
-<span class="nc" id="L559">          break;</span>
+<span class="nc" id="L589">          buff.append('.');</span>
+<span class="nc" id="L590">          break;</span>
         case '[':
         case ']':
         case '(':
@@ -564,13 +595,13 @@ public final class CharSequences {
         case '{':
         case '}':
         case '.':
-<span class="nc" id="L567">          buff.append('\\').append(c);</span>
-<span class="nc" id="L568">          break;</span>
+<span class="nc" id="L598">          buff.append('\\').append(c);</span>
+<span class="nc" id="L599">          break;</span>
         default:
-<span class="nc" id="L570">          buff.append(c);</span>
+<span class="nc" id="L601">          buff.append(c);</span>
       }
     }
-<span class="nc" id="L573">    return buff;</span>
+<span class="nc" id="L604">    return buff;</span>
   }
 
 

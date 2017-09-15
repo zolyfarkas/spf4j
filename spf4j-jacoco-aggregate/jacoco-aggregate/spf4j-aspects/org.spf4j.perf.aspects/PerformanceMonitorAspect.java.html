@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PerformanceMonitorAspect.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-aspects</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.aspects</a> &gt; <span class="el_source">PerformanceMonitorAspect.java</span></div><h1>PerformanceMonitorAspect.java</h1><pre class="source lang-java linenums">
-/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PerformanceMonitorAspect.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-aspects</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.aspects</a> &gt; <span class="el_source">PerformanceMonitorAspect.java</span></div><h1>PerformanceMonitorAspect.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.aspects;
 
@@ -37,15 +50,15 @@ import org.spf4j.annotations.RecorderSourceInstance;
  * @author zoly
  */
 @Aspect
-<span class="fc" id="L40">public final class PerformanceMonitorAspect {</span>
+<span class="fc" id="L53">public final class PerformanceMonitorAspect {</span>
 
-<span class="fc" id="L42">    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);</span>
-<span class="fc" id="L43">    private static final LoadingCache&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt; REC_SOURCES =</span>
+<span class="fc" id="L55">    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);</span>
+<span class="fc" id="L56">    private static final LoadingCache&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt; REC_SOURCES =</span>
             new UnboundedLoadingCache&lt;&gt;(32,
-<span class="fc" id="L45">                    new CacheLoader&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt;() {</span>
+<span class="fc" id="L58">                    new CacheLoader&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt;() {</span>
         @Override
         public MeasurementRecorderSource load(final Class&lt;? extends RecorderSourceInstance&gt; key) throws Exception {
-<span class="fc" id="L48">            return (MeasurementRecorderSource) key.getField(&quot;INSTANCE&quot;).get(null);</span>
+<span class="fc" id="L61">            return (MeasurementRecorderSource) key.getField(&quot;INSTANCE&quot;).get(null);</span>
         }
     });
 
@@ -53,31 +66,31 @@ import org.spf4j.annotations.RecorderSourceInstance;
             argNames = &quot;pjp,annot&quot;)
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {
-<span class="fc" id="L56">        final long start = System.currentTimeMillis();</span>
-<span class="fc" id="L57">        Object result = pjp.proceed();</span>
-<span class="fc" id="L58">        final long elapsed = System.currentTimeMillis() - start;</span>
-<span class="fc" id="L59">        MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());</span>
-<span class="fc" id="L60">        mrs.getRecorder(pjp.toLongString()).record(elapsed);</span>
-<span class="fc" id="L61">        final long warnThresholdMillis = annot.warnThresholdMillis();</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (elapsed &gt; warnThresholdMillis) {</span>
-<span class="fc" id="L63">            final long errorThresholdMillis = annot.errorThresholdMillis();</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">            if (elapsed &gt; errorThresholdMillis) {</span>
-<span class="nc" id="L65">                LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}&quot;,</span>
-<span class="nc" id="L66">                            elapsed, pjp.toShortString(), errorThresholdMillis, pjp.getArgs());</span>
+<span class="fc" id="L69">        final long start = System.currentTimeMillis();</span>
+<span class="fc" id="L70">        Object result = pjp.proceed();</span>
+<span class="fc" id="L71">        final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="fc" id="L72">        MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());</span>
+<span class="fc" id="L73">        mrs.getRecorder(pjp.toLongString()).record(elapsed);</span>
+<span class="fc" id="L74">        final long warnThresholdMillis = annot.warnThresholdMillis();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (elapsed &gt; warnThresholdMillis) {</span>
+<span class="fc" id="L76">            final long errorThresholdMillis = annot.errorThresholdMillis();</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (elapsed &gt; errorThresholdMillis) {</span>
+<span class="nc" id="L78">                LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}&quot;,</span>
+<span class="nc" id="L79">                            elapsed, pjp.toShortString(), errorThresholdMillis, pjp.getArgs());</span>
             } else {
-<span class="fc" id="L68">                LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}&quot;,</span>
-<span class="fc" id="L69">                            elapsed, pjp.toShortString(), warnThresholdMillis, pjp.getArgs());</span>
+<span class="fc" id="L81">                LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}&quot;,</span>
+<span class="fc" id="L82">                            elapsed, pjp.toShortString(), warnThresholdMillis, pjp.getArgs());</span>
             }
-<span class="fc" id="L71">        } else {</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (annot.defaultInfoLog()) {</span>
-<span class="nc" id="L73">                LOG.info(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
-<span class="nc" id="L74">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
+<span class="fc" id="L84">        } else {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (annot.defaultInfoLog()) {</span>
+<span class="nc" id="L86">                LOG.info(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
+<span class="nc" id="L87">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
             } else {
-<span class="nc" id="L76">                LOG.debug(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
-<span class="nc" id="L77">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
+<span class="nc" id="L89">                LOG.debug(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
+<span class="nc" id="L90">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
             }
         }
-<span class="fc" id="L80">        return result;</span>
+<span class="fc" id="L93">        return result;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

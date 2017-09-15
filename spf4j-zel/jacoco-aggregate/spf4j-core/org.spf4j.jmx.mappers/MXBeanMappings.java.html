@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MXBeanMappings.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx.mappers</a> &gt; <span class="el_source">MXBeanMappings.java</span></div><h1>MXBeanMappings.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.jmx.mappers;
+
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import java.io.InvalidObjectException;
+import java.lang.reflect.Type;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import org.spf4j.jmx.JMXBeanMapping;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class MXBeanMappings {
+
+<span class="nc" id="L46">  private MXBeanMappings() { }</span>
+
+  public static JMXBeanMapping convert(final MXBeanMapping mapping) {
+<span class="fc" id="L49">    return new JMXBeanMapping() {</span>
+      @Override
+      public Object fromOpenValue(final Object openValue) throws InvalidObjectException {
+<span class="nc" id="L52">        return mapping.fromOpenValue(openValue);</span>
+      }
+
+      @Override
+      public Object toOpenValue(final Object javaValue) throws OpenDataException {
+<span class="fc" id="L57">        return mapping.toOpenValue(javaValue);</span>
+      }
+
+      @Override
+      public Type getJavaType() {
+<span class="fc" id="L62">        return mapping.getJavaType();</span>
+      }
+
+      @Override
+      public OpenType&lt;?&gt; getOpenType() {
+<span class="fc" id="L67">        return mapping.getOpenType();</span>
+      }
+
+      @Override
+      public Class&lt;?&gt; getMappedType() {
+<span class="fc" id="L72">        return mapping.getOpenClass();</span>
+      }
+    };
+  }
+
+  public static MXBeanMapping convert(final JMXBeanMapping mapping) {
+<span class="fc" id="L78">    return new MXBeanMapping(mapping.getJavaType(), mapping.getOpenType()) {</span>
+      @Override
+      public Object fromOpenValue(final Object openValue) throws InvalidObjectException {
+<span class="nc" id="L81">        return mapping.fromOpenValue(openValue);</span>
+      }
+
+      @Override
+      public Object toOpenValue(final Object javaValue) throws OpenDataException {
+<span class="fc" id="L86">        return mapping.toOpenValue(javaValue);</span>
+      }
+    };
+  }
+
+  public static Class&lt;?&gt; makeOpenClass(final Type javaType, final OpenType&lt;?&gt; openType) {
+<span class="nc bnc" id="L92" title="All 4 branches missed.">    if (javaType instanceof Class&lt;?&gt; &amp;&amp; ((Class&lt;?&gt;) javaType).isPrimitive()) {</span>
+<span class="nc" id="L93">      return (Class&lt;?&gt;) javaType;</span>
+    }
+    try {
+<span class="nc" id="L96">      String className = openType.getClassName();</span>
+<span class="nc" id="L97">      return Class.forName(className, false, MXBeanMapping.class.getClassLoader());</span>
+<span class="nc" id="L98">    } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L99">      throw new RuntimeException(e);  // should not happen</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

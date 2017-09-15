@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JmhFlightRecorderProfiler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-jmh</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">JmhFlightRecorderProfiler.java</span></div><h1>JmhFlightRecorderProfiler.java</h1><pre class="source lang-java linenums">package org.spf4j.stackmonitor;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JmhFlightRecorderProfiler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-jmh</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">JmhFlightRecorderProfiler.java</span></div><h1>JmhFlightRecorderProfiler.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
@@ -20,11 +51,11 @@ import org.spf4j.base.Version;
  *
  * @author zoly
  */
-<span class="nc" id="L23">public final class JmhFlightRecorderProfiler implements ExternalProfiler {</span>
+<span class="nc" id="L54">public final class JmhFlightRecorderProfiler implements ExternalProfiler {</span>
 
-<span class="nc" id="L25">    private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.profiles&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
+<span class="nc" id="L56">    private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.profiles&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
 
-<span class="nc" id="L27">    private static final String DEFAULT_OPTIONS = System.getProperty(&quot;jmh.fr.options&quot;,</span>
+<span class="nc" id="L58">    private static final String DEFAULT_OPTIONS = System.getProperty(&quot;jmh.fr.options&quot;,</span>
             &quot;defaultrecording=true,settings=profile&quot;);
 
     private static volatile String benchmarkName;
@@ -33,11 +64,11 @@ import org.spf4j.base.Version;
 
     @Override
     public Collection&lt;String&gt; addJVMInvokeOptions(final BenchmarkParams params) {
-<span class="nc" id="L36">        return Collections.emptyList();</span>
+<span class="nc" id="L67">        return Collections.emptyList();</span>
     }
 
     public static String benchmarkName() {
-<span class="nc" id="L40">        return benchmarkName;</span>
+<span class="nc" id="L71">        return benchmarkName;</span>
     }
 
 
@@ -52,48 +83,48 @@ import org.spf4j.base.Version;
     @Override
     @SuppressFBWarnings(&quot;ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD&quot;)
     public Collection&lt;String&gt; addJVMOptions(final BenchmarkParams params) {
-<span class="nc" id="L55">        final String id = params.id();</span>
-<span class="nc" id="L56">        benchmarkName = id;</span>
-<span class="nc" id="L57">        dumpFile = DUMP_FOLDER + '/' + id + &quot;.jfr&quot;;</span>
-<span class="nc" id="L58">        String flightRecorderOptions = DEFAULT_OPTIONS + &quot;,dumponexit=true,dumponexitpath=&quot; + dumpFile;</span>
-<span class="nc" id="L59">        return Arrays.asList(</span>
+<span class="nc" id="L86">        final String id = params.id();</span>
+<span class="nc" id="L87">        benchmarkName = id;</span>
+<span class="nc" id="L88">        dumpFile = DUMP_FOLDER + '/' + id + &quot;.jfr&quot;;</span>
+<span class="nc" id="L89">        String flightRecorderOptions = DEFAULT_OPTIONS + &quot;,dumponexit=true,dumponexitpath=&quot; + dumpFile;</span>
+<span class="nc" id="L90">        return Arrays.asList(</span>
                 &quot;-XX:+FlightRecorder&quot;,
                 &quot;-XX:FlightRecorderOptions=&quot; + flightRecorderOptions);
     }
 
     @Override
     public void beforeTrial(final BenchmarkParams benchmarkParams) {
-<span class="nc" id="L66">        final List&lt;String&gt; inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (new Version(org.spf4j.base.Runtime.JAVA_VERSION).compareTo(new Version(&quot;1.8.0_40&quot;)) &lt;= 0</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">                &amp;&amp; !inputArguments.contains(&quot;-XX:+UnlockCommercialFeatures&quot;)) {</span>
-<span class="nc" id="L69">            throw new Spf4jProfilerException(&quot;-XX:+UnlockCommercialFeatures must pre present in the JVM options,&quot;</span>
+<span class="nc" id="L97">        final List&lt;String&gt; inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (new Version(org.spf4j.base.Runtime.JAVA_VERSION).compareTo(new Version(&quot;1.8.0_40&quot;)) &lt;= 0</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                &amp;&amp; !inputArguments.contains(&quot;-XX:+UnlockCommercialFeatures&quot;)) {</span>
+<span class="nc" id="L100">            throw new Spf4jProfilerException(&quot;-XX:+UnlockCommercialFeatures must pre present in the JVM options,&quot;</span>
                     + &quot; current options are: &quot; + inputArguments);
         }
-<span class="nc" id="L72">    }</span>
+<span class="nc" id="L103">    }</span>
 
 
     @Override
     public boolean allowPrintOut() {
-<span class="nc" id="L77">        return true;</span>
+<span class="nc" id="L108">        return true;</span>
     }
 
     @Override
     public boolean allowPrintErr() {
-<span class="nc" id="L82">        return false;</span>
+<span class="nc" id="L113">        return false;</span>
     }
 
 
     @Override
     public String getDescription() {
-<span class="nc" id="L88">        return &quot;Java Flight Recording profiler runs for every benchmark.&quot;;</span>
+<span class="nc" id="L119">        return &quot;Java Flight Recording profiler runs for every benchmark.&quot;;</span>
     }
 
     @Override
     public Collection&lt;? extends Result&gt; afterTrial(final BenchmarkResult bp, final long l,
             final File file, final File file1) {
-<span class="nc" id="L94">        NoResult r = new NoResult(&quot;Profile saved to &quot; + dumpFile + &quot;, results: &quot; + bp</span>
+<span class="nc" id="L125">        NoResult r = new NoResult(&quot;Profile saved to &quot; + dumpFile + &quot;, results: &quot; + bp</span>
             + &quot;, stdOutFile = &quot; + file + &quot;, stdErrFile = &quot; + file1);
-<span class="nc" id="L96">        return Collections.singleton(r);</span>
+<span class="nc" id="L127">        return Collections.singleton(r);</span>
     }
 
     private static final class NoResult extends Result&lt;NoResult&gt; {
@@ -102,36 +133,36 @@ import org.spf4j.base.Version;
         private final String output;
 
         NoResult(final String output) {
-<span class="nc" id="L105">            super(ResultRole.SECONDARY, &quot;JFR&quot;, of(Double.NaN), &quot;N/A&quot;, AggregationPolicy.SUM);</span>
-<span class="nc" id="L106">            this.output = output;</span>
-<span class="nc" id="L107">        }</span>
+<span class="nc" id="L136">            super(ResultRole.SECONDARY, &quot;JFR&quot;, of(Double.NaN), &quot;N/A&quot;, AggregationPolicy.SUM);</span>
+<span class="nc" id="L137">            this.output = output;</span>
+<span class="nc" id="L138">        }</span>
 
         @Override
         protected Aggregator&lt;NoResult&gt; getThreadAggregator() {
-<span class="nc" id="L111">            return new NoResultAggregator();</span>
+<span class="nc" id="L142">            return new NoResultAggregator();</span>
         }
 
         @Override
         protected Aggregator&lt;NoResult&gt; getIterationAggregator() {
-<span class="nc" id="L116">            return new NoResultAggregator();</span>
+<span class="nc" id="L147">            return new NoResultAggregator();</span>
         }
 
-<span class="nc" id="L119">        private static class NoResultAggregator implements Aggregator&lt;NoResult&gt; {</span>
+<span class="nc" id="L150">        private static class NoResultAggregator implements Aggregator&lt;NoResult&gt; {</span>
 
             @Override
             public NoResult aggregate(final Collection&lt;NoResult&gt; results) {
-<span class="nc" id="L123">                StringBuilder agg = new StringBuilder();</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">                for (NoResult r : results) {</span>
-<span class="nc" id="L125">                    agg.append(r.output);</span>
-<span class="nc" id="L126">                }</span>
-<span class="nc" id="L127">                return new NoResult(agg.toString());</span>
+<span class="nc" id="L154">                StringBuilder agg = new StringBuilder();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                for (NoResult r : results) {</span>
+<span class="nc" id="L156">                    agg.append(r.output);</span>
+<span class="nc" id="L157">                }</span>
+<span class="nc" id="L158">                return new NoResult(agg.toString());</span>
             }
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L134">        return &quot;JmhFlightRecorderProfiler{&quot; + &quot;dumpFile=&quot; + dumpFile + '}';</span>
+<span class="nc" id="L165">        return &quot;JmhFlightRecorderProfiler{&quot; + &quot;dumpFile=&quot; + dumpFile + '}';</span>
     }
 
 }

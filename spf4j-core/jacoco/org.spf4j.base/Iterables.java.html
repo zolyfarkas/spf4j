@@ -1,4 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Iterables.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Iterables.java</span></div><h1>Iterables.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Iterables.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Iterables.java</span></div><h1>Iterables.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.base;
 
 import java.util.function.Consumer;
@@ -13,36 +43,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class Iterables {
 
-<span class="nc" id="L16">  private Iterables() { }</span>
+<span class="nc" id="L46">  private Iterables() { }</span>
 
   @Nullable
   @CheckReturnValue
   public static &lt;T&gt; RuntimeException forAll(final Iterable&lt;T&gt; itterable, final Consumer&lt;? super T&gt; consumer)  {
-<span class="nc" id="L21">    MutableHolder&lt;RuntimeException&gt; hex = MutableHolder.of(null);</span>
-<span class="nc" id="L22">    itterable.forEach(new Consumer&lt;T&gt;() {</span>
+<span class="nc" id="L51">    MutableHolder&lt;RuntimeException&gt; hex = MutableHolder.of(null);</span>
+<span class="nc" id="L52">    itterable.forEach(new Consumer&lt;T&gt;() {</span>
       @Override
       public void accept(final T t) {
         try {
-<span class="nc" id="L26">          consumer.accept(t);</span>
-<span class="nc" id="L27">        } catch (RuntimeException ex1) {</span>
-<span class="nc" id="L28">          RuntimeException ex = hex.getValue();</span>
-<span class="nc bnc" id="L29" title="All 2 branches missed.">          if (ex == null) {</span>
-<span class="nc" id="L30">            hex.setValue(ex1);</span>
+<span class="nc" id="L56">          consumer.accept(t);</span>
+<span class="nc" id="L57">        } catch (RuntimeException ex1) {</span>
+<span class="nc" id="L58">          RuntimeException ex = hex.getValue();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">          if (ex == null) {</span>
+<span class="nc" id="L60">            hex.setValue(ex1);</span>
           } else {
-<span class="nc" id="L32">            hex.setValue(Throwables.suppress(ex1, ex));</span>
+<span class="nc" id="L62">            hex.setValue(Throwables.suppress(ex1, ex));</span>
           }
-<span class="nc" id="L34">        }</span>
-<span class="nc" id="L35">      }</span>
+<span class="nc" id="L64">        }</span>
+<span class="nc" id="L65">      }</span>
     });
-<span class="nc" id="L37">    return hex.getValue();</span>
+<span class="nc" id="L67">    return hex.getValue();</span>
   }
 
   public static &lt;T&gt; void forAll2(final Iterable&lt;T&gt; itterable, final Consumer&lt;? super T&gt; consumer)  {
-<span class="nc" id="L41">    RuntimeException ex = forAll(itterable, consumer);</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">    if (ex != null) {</span>
-<span class="nc" id="L43">      throw ex;</span>
+<span class="nc" id="L71">    RuntimeException ex = forAll(itterable, consumer);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (ex != null) {</span>
+<span class="nc" id="L73">      throw ex;</span>
     }
-<span class="nc" id="L45">  }</span>
+<span class="nc" id="L75">  }</span>
 
 
 

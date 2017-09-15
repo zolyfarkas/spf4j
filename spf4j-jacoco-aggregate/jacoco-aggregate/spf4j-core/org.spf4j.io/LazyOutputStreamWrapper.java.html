@@ -1,4 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LazyOutputStreamWrapper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">LazyOutputStreamWrapper.java</span></div><h1>LazyOutputStreamWrapper.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LazyOutputStreamWrapper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">LazyOutputStreamWrapper.java</span></div><h1>LazyOutputStreamWrapper.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.io;
 
 import java.io.IOException;
@@ -18,52 +48,52 @@ public final class LazyOutputStreamWrapper extends OutputStream {
 
   private final Supplier&lt;OutputStream&gt; osSuplier;
 
-<span class="nc" id="L21">  public LazyOutputStreamWrapper(final Supplier&lt;OutputStream&gt; osSuplier) {</span>
-<span class="nc" id="L22">    this.osSuplier = osSuplier;</span>
-<span class="nc" id="L23">  }</span>
+<span class="nc" id="L51">  public LazyOutputStreamWrapper(final Supplier&lt;OutputStream&gt; osSuplier) {</span>
+<span class="nc" id="L52">    this.osSuplier = osSuplier;</span>
+<span class="nc" id="L53">  }</span>
 
   private OutputStream getWrapped() {
-<span class="nc" id="L26">    OutputStream os = wrapped;</span>
-<span class="nc bnc" id="L27" title="All 2 branches missed.">    if (os == null) {</span>
-<span class="nc" id="L28">      synchronized (osSuplier) {</span>
-<span class="nc" id="L29">        os = wrapped;</span>
-<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (os == null) {</span>
-<span class="nc" id="L31">          os = osSuplier.get();</span>
-<span class="nc" id="L32">          wrapped = os;</span>
+<span class="nc" id="L56">    OutputStream os = wrapped;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (os == null) {</span>
+<span class="nc" id="L58">      synchronized (osSuplier) {</span>
+<span class="nc" id="L59">        os = wrapped;</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (os == null) {</span>
+<span class="nc" id="L61">          os = osSuplier.get();</span>
+<span class="nc" id="L62">          wrapped = os;</span>
         }
-<span class="nc" id="L34">      }</span>
+<span class="nc" id="L64">      }</span>
     }
-<span class="nc" id="L36">    return os;</span>
+<span class="nc" id="L66">    return os;</span>
   }
 
   @Override
   public void write(final int b) throws IOException {
-<span class="nc" id="L41">    getWrapped().write(b);</span>
-<span class="nc" id="L42">  }</span>
+<span class="nc" id="L71">    getWrapped().write(b);</span>
+<span class="nc" id="L72">  }</span>
 
   @Override
   public void close() throws IOException {
-<span class="nc" id="L46">    getWrapped().close();</span>
-<span class="nc" id="L47">  }</span>
+<span class="nc" id="L76">    getWrapped().close();</span>
+<span class="nc" id="L77">  }</span>
 
   @Override
   public void flush() throws IOException {
-<span class="nc" id="L51">    getWrapped().flush();</span>
-<span class="nc" id="L52">  }</span>
+<span class="nc" id="L81">    getWrapped().flush();</span>
+<span class="nc" id="L82">  }</span>
 
   @Override
   public void write(final byte[] b, final int off, final int len) throws IOException {
-<span class="nc" id="L56">    getWrapped().write(b, off, len);</span>
-<span class="nc" id="L57">  }</span>
+<span class="nc" id="L86">    getWrapped().write(b, off, len);</span>
+<span class="nc" id="L87">  }</span>
 
   @Override
   public void write(final byte[] b) throws IOException {
-<span class="nc" id="L61">    getWrapped().write(b);</span>
-<span class="nc" id="L62">  }</span>
+<span class="nc" id="L91">    getWrapped().write(b);</span>
+<span class="nc" id="L92">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L66">    return &quot;LazyOutputStreamWrapper{&quot; + &quot;wrapped=&quot; + wrapped + &quot;, osSuplier=&quot; + osSuplier + '}';</span>
+<span class="nc" id="L96">    return &quot;LazyOutputStreamWrapper{&quot; + &quot;wrapped=&quot; + wrapped + &quot;, osSuplier=&quot; + osSuplier + '}';</span>
   }
 
 }

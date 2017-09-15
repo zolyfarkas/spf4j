@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Spf4jJmhProfiler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-jmh</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">Spf4jJmhProfiler.java</span></div><h1>Spf4jJmhProfiler.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.stackmonitor;
 
@@ -45,67 +59,67 @@ import org.spf4j.ssdump2.Converter;
  * @author zoly
  */
 @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
-<span class="nc" id="L48">public final class Spf4jJmhProfiler implements InternalProfiler {</span>
+<span class="nc" id="L62">public final class Spf4jJmhProfiler implements InternalProfiler {</span>
 
   /**
    * Sampling period
    */
-<span class="nc" id="L53">  private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger(&quot;jmh.stack.period&quot;, 10);</span>
+<span class="nc" id="L67">  private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger(&quot;jmh.stack.period&quot;, 10);</span>
 
-<span class="nc" id="L55">  private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.profiles&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
+<span class="nc" id="L69">  private static final String DUMP_FOLDER = System.getProperty(&quot;jmh.stack.profiles&quot;, org.spf4j.base.Runtime.USER_DIR);</span>
 
-<span class="nc" id="L57">  private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,</span>
+<span class="nc" id="L71">  private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,</span>
           new FastStackCollector(true));
 
-<span class="nc" id="L60">  private static final AtomicInteger MEASUREMENT_ITERATION_COUNTER = new AtomicInteger(1);</span>
+<span class="nc" id="L74">  private static final AtomicInteger MEASUREMENT_ITERATION_COUNTER = new AtomicInteger(1);</span>
 
-<span class="nc" id="L62">  private static final AtomicInteger WARMUP_ITERATION_COUNTER = new AtomicInteger(1);</span>
+<span class="nc" id="L76">  private static final AtomicInteger WARMUP_ITERATION_COUNTER = new AtomicInteger(1);</span>
 
   private static volatile String benchmarkName;
 
   public static Sampler getStackSampler() {
-<span class="nc" id="L67">    return SAMPLER;</span>
+<span class="nc" id="L81">    return SAMPLER;</span>
   }
 
   public static String benchmarkName() {
-<span class="nc" id="L71">    return benchmarkName;</span>
+<span class="nc" id="L85">    return benchmarkName;</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD&quot;)
   public void beforeIteration(final BenchmarkParams benchmarkParams, final IterationParams iterationParams) {
-<span class="nc" id="L77">    benchmarkName = benchmarkParams.id();</span>
-<span class="nc" id="L78">    SAMPLER.start();</span>
-<span class="nc" id="L79">  }</span>
+<span class="nc" id="L91">    benchmarkName = benchmarkParams.id();</span>
+<span class="nc" id="L92">    SAMPLER.start();</span>
+<span class="nc" id="L93">  }</span>
 
   @Override
   public Collection&lt;? extends Result&gt; afterIteration(final BenchmarkParams benchmarkParams,
           final IterationParams iterationParams, final IterationResult ir) {
     try {
-<span class="nc" id="L85">      SAMPLER.stop();</span>
-<span class="nc" id="L86">    } catch (InterruptedException ex) {</span>
-<span class="nc" id="L87">      Thread.currentThread().interrupt();</span>
-<span class="nc" id="L88">      return null;</span>
-<span class="nc" id="L89">    }</span>
-<span class="nc" id="L90">    SampleNode collected = SAMPLER.getStackCollector().clear();</span>
+<span class="nc" id="L99">      SAMPLER.stop();</span>
+<span class="nc" id="L100">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L101">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L102">      return null;</span>
+<span class="nc" id="L103">    }</span>
+<span class="nc" id="L104">    SampleNode collected = SAMPLER.getStackCollector().clear();</span>
     String iterationId;
-<span class="nc" id="L92">    IterationType itType = iterationParams.getType();</span>
-<span class="nc bnc" id="L93" title="All 3 branches missed.">    switch (itType) {</span>
+<span class="nc" id="L106">    IterationType itType = iterationParams.getType();</span>
+<span class="nc bnc" id="L107" title="All 3 branches missed.">    switch (itType) {</span>
       case MEASUREMENT:
-<span class="nc" id="L95">        iterationId = &quot;m&quot; + MEASUREMENT_ITERATION_COUNTER.getAndIncrement();</span>
-<span class="nc" id="L96">        break;</span>
+<span class="nc" id="L109">        iterationId = &quot;m&quot; + MEASUREMENT_ITERATION_COUNTER.getAndIncrement();</span>
+<span class="nc" id="L110">        break;</span>
       case WARMUP:
-<span class="nc" id="L98">        iterationId = &quot;w&quot; + WARMUP_ITERATION_COUNTER.getAndIncrement();</span>
-<span class="nc" id="L99">        break;</span>
+<span class="nc" id="L112">        iterationId = &quot;w&quot; + WARMUP_ITERATION_COUNTER.getAndIncrement();</span>
+<span class="nc" id="L113">        break;</span>
       default:
-<span class="nc" id="L101">        throw new IllegalStateException(&quot;Unknown type of iteration &quot; + itType);</span>
+<span class="nc" id="L115">        throw new IllegalStateException(&quot;Unknown type of iteration &quot; + itType);</span>
     }
-<span class="nc" id="L103">    return Arrays.asList(new StackResult(collected, benchmarkParams.id(), iterationId));</span>
+<span class="nc" id="L117">    return Arrays.asList(new StackResult(collected, benchmarkParams.id(), iterationId));</span>
   }
 
   @Override
   public String getDescription() {
-<span class="nc" id="L108">    return &quot;spf4j stack sampler&quot;;</span>
+<span class="nc" id="L122">    return &quot;spf4j stack sampler&quot;;</span>
   }
 
   public static final class StackResult extends Result&lt;StackResult&gt; {
@@ -119,106 +133,106 @@ import org.spf4j.ssdump2.Converter;
     private final String id;
 
     public StackResult(@Nullable final SampleNode samples, final String benchmark, final String iterationId) {
-<span class="nc" id="L122">      super(ResultRole.SECONDARY, &quot;@stack&quot;, of(Double.NaN), &quot;---&quot;, AggregationPolicy.AVG);</span>
-<span class="nc" id="L123">      this.id = iterationId;</span>
-<span class="nc" id="L124">      this.benchmark = benchmark;</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">      if (samples != null) {</span>
-<span class="nc" id="L126">        File file = new File(DUMP_FOLDER + '/' + benchmark + '_' + iterationId + &quot;.ssdump2&quot;);</span>
+<span class="nc" id="L136">      super(ResultRole.SECONDARY, &quot;@stack&quot;, of(Double.NaN), &quot;---&quot;, AggregationPolicy.AVG);</span>
+<span class="nc" id="L137">      this.id = iterationId;</span>
+<span class="nc" id="L138">      this.benchmark = benchmark;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">      if (samples != null) {</span>
+<span class="nc" id="L140">        File file = new File(DUMP_FOLDER + '/' + benchmark + '_' + iterationId + &quot;.ssdump2&quot;);</span>
         try {
-<span class="nc" id="L128">          Converter.save(file, samples);</span>
-<span class="nc" id="L129">          this.perfDataFile = file;</span>
-<span class="nc" id="L130">        } catch (IOException ex) {</span>
-<span class="nc" id="L131">          throw new Spf4jProfilerException(&quot;Failed to persist profile data to &quot; + file, ex);</span>
-<span class="nc" id="L132">        }</span>
-<span class="nc" id="L133">      } else {</span>
-<span class="nc" id="L134">        this.perfDataFile = null;</span>
+<span class="nc" id="L142">          Converter.save(file, samples);</span>
+<span class="nc" id="L143">          this.perfDataFile = file;</span>
+<span class="nc" id="L144">        } catch (IOException ex) {</span>
+<span class="nc" id="L145">          throw new Spf4jProfilerException(&quot;Failed to persist profile data to &quot; + file, ex);</span>
+<span class="nc" id="L146">        }</span>
+<span class="nc" id="L147">      } else {</span>
+<span class="nc" id="L148">        this.perfDataFile = null;</span>
       }
-<span class="nc" id="L136">    }</span>
+<span class="nc" id="L150">    }</span>
 
     public String getId() {
-<span class="nc" id="L139">      return id;</span>
+<span class="nc" id="L153">      return id;</span>
     }
 
     public SampleNode getSamples() throws IOException {
-<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (this.perfDataFile == null) {</span>
-<span class="nc" id="L144">        return null;</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">      if (this.perfDataFile == null) {</span>
+<span class="nc" id="L158">        return null;</span>
       } else {
-<span class="nc" id="L146">        return Converter.load(perfDataFile);</span>
+<span class="nc" id="L160">        return Converter.load(perfDataFile);</span>
       }
     }
 
     public String getBenchmark() {
-<span class="nc" id="L151">      return benchmark;</span>
+<span class="nc" id="L165">      return benchmark;</span>
     }
 
     @Override
     protected Aggregator&lt;StackResult&gt; getThreadAggregator() {
-<span class="nc" id="L156">      return new StackAggregator();</span>
+<span class="nc" id="L170">      return new StackAggregator();</span>
     }
 
     @Override
     protected Aggregator&lt;StackResult&gt; getIterationAggregator() {
-<span class="nc" id="L161">      return new StackAggregator();</span>
+<span class="nc" id="L175">      return new StackAggregator();</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L166">      return &quot;&lt;delayed till summary&gt;&quot;;</span>
+<span class="nc" id="L180">      return &quot;&lt;delayed till summary&gt;&quot;;</span>
     }
 
   }
 
-<span class="nc" id="L171">  public static final class StackAggregator implements Aggregator&lt;StackResult&gt; {</span>
+<span class="nc" id="L185">  public static final class StackAggregator implements Aggregator&lt;StackResult&gt; {</span>
 
-<span class="nc" id="L173">    private static final  AtomicSequence SEQ = new AtomicSequence(0);</span>
+<span class="nc" id="L187">    private static final  AtomicSequence SEQ = new AtomicSequence(0);</span>
 
     @Override
     public StackResult aggregate(final Collection&lt;StackResult&gt; results) {
-<span class="nc bnc" id="L177" title="All 2 branches missed.">      if (results.isEmpty()) {</span>
-<span class="nc" id="L178">        throw new IllegalArgumentException(&quot;Nothig to aggregate: &quot; + results);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">      if (results.isEmpty()) {</span>
+<span class="nc" id="L192">        throw new IllegalArgumentException(&quot;Nothig to aggregate: &quot; + results);</span>
       }
-<span class="nc" id="L180">      Iterator&lt;StackResult&gt; it = results.iterator();</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">      if (results.size() == 1) {</span>
-<span class="nc" id="L182">        return it.next();</span>
+<span class="nc" id="L194">      Iterator&lt;StackResult&gt; it = results.iterator();</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">      if (results.size() == 1) {</span>
+<span class="nc" id="L196">        return it.next();</span>
       }
-<span class="nc" id="L184">      StackResult result = it.next();</span>
-<span class="nc" id="L185">      StringBuilder aggId = new StringBuilder();</span>
-<span class="nc" id="L186">      aggId.append(&quot;aggregation_&quot;);</span>
+<span class="nc" id="L198">      StackResult result = it.next();</span>
+<span class="nc" id="L199">      StringBuilder aggId = new StringBuilder();</span>
+<span class="nc" id="L200">      aggId.append(&quot;aggregation_&quot;);</span>
       SampleNode agg;
       try {
-<span class="nc" id="L189">        agg = result.getSamples();</span>
-<span class="nc" id="L190">        aggId.append(result.getId());</span>
-<span class="nc" id="L191">        final String benchmark = result.getBenchmark();</span>
-<span class="nc bnc" id="L192" title="All 2 branches missed.">        while (it.hasNext()) {</span>
-<span class="nc" id="L193">          result = it.next();</span>
-<span class="nc" id="L194">          String obenchmark = result.getBenchmark();</span>
-<span class="nc bnc" id="L195" title="All 2 branches missed.">          if (!benchmark.equals(obenchmark)) {</span>
-<span class="nc" id="L196">            throw new UnsupportedOperationException(&quot;Should not aggregate &quot; + benchmark + &quot; with &quot; + obenchmark);</span>
+<span class="nc" id="L203">        agg = result.getSamples();</span>
+<span class="nc" id="L204">        aggId.append(result.getId());</span>
+<span class="nc" id="L205">        final String benchmark = result.getBenchmark();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        while (it.hasNext()) {</span>
+<span class="nc" id="L207">          result = it.next();</span>
+<span class="nc" id="L208">          String obenchmark = result.getBenchmark();</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">          if (!benchmark.equals(obenchmark)) {</span>
+<span class="nc" id="L210">            throw new UnsupportedOperationException(&quot;Should not aggregate &quot; + benchmark + &quot; with &quot; + obenchmark);</span>
           }
-<span class="nc" id="L198">          SampleNode sss = result.getSamples();</span>
-<span class="nc bnc" id="L199" title="All 2 branches missed.">          if (agg == null) {</span>
-<span class="nc" id="L200">            agg = sss;</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">          } else if (sss != null) {</span>
-<span class="nc" id="L202">            agg = SampleNode.aggregate(agg, sss);</span>
+<span class="nc" id="L212">          SampleNode sss = result.getSamples();</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">          if (agg == null) {</span>
+<span class="nc" id="L214">            agg = sss;</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">          } else if (sss != null) {</span>
+<span class="nc" id="L216">            agg = SampleNode.aggregate(agg, sss);</span>
           }
-<span class="nc" id="L204">          aggId.append('_').append(result.getId());</span>
-<span class="nc" id="L205">        }</span>
-<span class="nc" id="L206">        truncateId(aggId, 100);</span>
-<span class="nc" id="L207">        return new StackResult(agg, benchmark, aggId.toString());</span>
-<span class="nc" id="L208">      } catch (IOException ex) {</span>
-<span class="nc" id="L209">        throw new Spf4jProfilerException(&quot;Failed to aggregate &quot; + results, ex);</span>
+<span class="nc" id="L218">          aggId.append('_').append(result.getId());</span>
+<span class="nc" id="L219">        }</span>
+<span class="nc" id="L220">        truncateId(aggId, 100);</span>
+<span class="nc" id="L221">        return new StackResult(agg, benchmark, aggId.toString());</span>
+<span class="nc" id="L222">      } catch (IOException ex) {</span>
+<span class="nc" id="L223">        throw new Spf4jProfilerException(&quot;Failed to aggregate &quot; + results, ex);</span>
       }
     }
 
     private static void truncateId(final StringBuilder aggId, final int size) {
-<span class="nc" id="L214">      int length = aggId.length();</span>
-<span class="nc bnc" id="L215" title="All 2 branches missed.">      if (length &gt; size) {</span>
-<span class="nc" id="L216">        CharSequence id = new UIDGenerator(SEQ).next();</span>
-<span class="nc" id="L217">        aggId.setLength(length - id.length() - 1);</span>
-<span class="nc" id="L218">        aggId.append('_');</span>
-<span class="nc" id="L219">        aggId.append(id);</span>
+<span class="nc" id="L228">      int length = aggId.length();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">      if (length &gt; size) {</span>
+<span class="nc" id="L230">        CharSequence id = new UIDGenerator(SEQ).next();</span>
+<span class="nc" id="L231">        aggId.setLength(length - id.length() - 1);</span>
+<span class="nc" id="L232">        aggId.append('_');</span>
+<span class="nc" id="L233">        aggId.append(id);</span>
       }
-<span class="nc" id="L221">    }</span>
+<span class="nc" id="L235">    }</span>
 
   }
 

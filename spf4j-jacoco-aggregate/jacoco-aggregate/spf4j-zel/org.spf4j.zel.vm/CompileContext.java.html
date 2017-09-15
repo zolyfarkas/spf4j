@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CompileContext.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">CompileContext.java</span></div><h1>CompileContext.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.zel.vm;
 
@@ -31,58 +45,58 @@ public final class CompileContext implements ParsingContext {
 
     private Instruction last;
 
-<span class="fc" id="L34">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
-<span class="fc" id="L35">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
-<span class="fc" id="L36">        this.staticMemBuilder = staticMemBuilder;</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L48">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L49">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
+<span class="fc" id="L50">        this.staticMemBuilder = staticMemBuilder;</span>
+<span class="fc" id="L51">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     public void generateCode(final Location[] locs, final Instruction... args) {
-<span class="fc" id="L42">        prog.addAll(args, Arrays.asList(locs));</span>
-<span class="fc" id="L43">        last = args[args.length - 1];</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L56">        prog.addAll(args, Arrays.asList(locs));</span>
+<span class="fc" id="L57">        last = args[args.length - 1];</span>
+<span class="fc" id="L58">    }</span>
 
     @Override
     public void generateCodeAll(final ParsingContext parsingContext) {
-<span class="fc" id="L48">        prog.addAll(parsingContext.getProgramBuilder());</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L62">        prog.addAll(parsingContext.getProgramBuilder());</span>
+<span class="fc" id="L63">    }</span>
 
     @Override
     public int getAddress() {
-<span class="fc" id="L53">        return prog.size();</span>
+<span class="fc" id="L67">        return prog.size();</span>
     }
 
 
     @Override
     public ProgramBuilder getProgramBuilder() {
-<span class="fc" id="L59">        return prog;</span>
+<span class="fc" id="L73">        return prog;</span>
     }
 
     @Override
     public CompileContext createSubContext() {
-<span class="fc" id="L64">        return new CompileContext(staticMemBuilder);</span>
+<span class="fc" id="L78">        return new CompileContext(staticMemBuilder);</span>
     }
 
     @Override
     public void staticSymbol(final String name, final Object object) {
-<span class="fc" id="L69">        staticMemBuilder.addSymbol(name, object);</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L83">        staticMemBuilder.addSymbol(name, object);</span>
+<span class="fc" id="L84">    }</span>
 
     @Override
     public Instruction getLast() {
-<span class="fc" id="L74">       return last;</span>
+<span class="fc" id="L88">       return last;</span>
     }
 
     @Override
     public void generateCode(final Location loc, final Instruction instr) {
-<span class="fc" id="L79">        prog.add(instr, loc);</span>
-<span class="fc" id="L80">        last = instr;</span>
-<span class="fc" id="L81">    }</span>
+<span class="fc" id="L93">        prog.add(instr, loc);</span>
+<span class="fc" id="L94">        last = instr;</span>
+<span class="fc" id="L95">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L85">        return &quot;CompileContext{&quot; + &quot;prog=&quot; + prog + &quot;, staticMemBuilder=&quot; + staticMemBuilder + &quot;, last=&quot; + last + '}';</span>
+<span class="nc" id="L99">        return &quot;CompileContext{&quot; + &quot;prog=&quot; + prog + &quot;, staticMemBuilder=&quot; + staticMemBuilder + &quot;, last=&quot; + last + '}';</span>
     }
 
 }

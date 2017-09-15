@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LinkedHashSetEx.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">LinkedHashSetEx.java</span></div><h1>LinkedHashSetEx.java</h1><pre class="source lang-java linenums">package org.spf4j.ds;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LinkedHashSetEx.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">LinkedHashSetEx.java</span></div><h1>LinkedHashSetEx.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.ds;
 
 import java.util.AbstractSet;
 import java.util.Iterator;
@@ -11,61 +42,61 @@ import java.util.Map;
 public final class LinkedHashSetEx&lt;V&gt; extends AbstractSet&lt;V&gt;
         implements LinkedSet&lt;V&gt; {
 
-<span class="fc" id="L14">  private static final Object PRESENT = new Object();</span>
+<span class="fc" id="L45">  private static final Object PRESENT = new Object();</span>
 
   private final LinkedMap&lt;V, Object&gt; map;
 
-<span class="nc" id="L18">  public LinkedHashSetEx() {</span>
-<span class="nc" id="L19">    map = new LinkedHashMapEx&lt;&gt;();</span>
-<span class="nc" id="L20">  }</span>
+<span class="nc" id="L49">  public LinkedHashSetEx() {</span>
+<span class="nc" id="L50">    map = new LinkedHashMapEx&lt;&gt;();</span>
+<span class="nc" id="L51">  }</span>
 
-<span class="fc" id="L22">  public LinkedHashSetEx(final int capacity) {</span>
-<span class="fc" id="L23">    map = new LinkedHashMapEx&lt;&gt;(capacity);</span>
-<span class="fc" id="L24">  }</span>
+<span class="fc" id="L53">  public LinkedHashSetEx(final int capacity) {</span>
+<span class="fc" id="L54">    map = new LinkedHashMapEx&lt;&gt;(capacity);</span>
+<span class="fc" id="L55">  }</span>
 
   @Override
   public Iterator&lt;V&gt; iterator() {
-<span class="fc" id="L28">    return map.keySet().iterator();</span>
+<span class="fc" id="L59">    return map.keySet().iterator();</span>
   }
 
   @Override
   public int size() {
-<span class="nc" id="L33">    return map.size();</span>
+<span class="nc" id="L64">    return map.size();</span>
   }
 
   @Override
   public V getLastValue() {
-<span class="fc" id="L38">    Map.Entry&lt;V, Object&gt; lastEntry = map.getLastEntry();</span>
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">    if (lastEntry == null) {</span>
-<span class="nc" id="L40">      return null;</span>
+<span class="fc" id="L69">    Map.Entry&lt;V, Object&gt; lastEntry = map.getLastEntry();</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (lastEntry == null) {</span>
+<span class="nc" id="L71">      return null;</span>
     } else {
-<span class="fc" id="L42">      return lastEntry.getKey();</span>
+<span class="fc" id="L73">      return lastEntry.getKey();</span>
     }
   }
 
   @Override
   public V pollLastValue() {
-<span class="fc" id="L48">    Map.Entry&lt;V, Object&gt; lastEntry = map.pollLastEntry();</span>
-<span class="fc bfc" id="L49" title="All 2 branches covered.">    if (lastEntry == null) {</span>
-<span class="fc" id="L50">      return null;</span>
+<span class="fc" id="L79">    Map.Entry&lt;V, Object&gt; lastEntry = map.pollLastEntry();</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">    if (lastEntry == null) {</span>
+<span class="fc" id="L81">      return null;</span>
     } else {
-<span class="fc" id="L52">      return lastEntry.getKey();</span>
+<span class="fc" id="L83">      return lastEntry.getKey();</span>
     }
   }
 
   @Override
   public boolean add(final V e) {
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">    return map.put(e, PRESENT) == null;</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    return map.put(e, PRESENT) == null;</span>
   }
 
   @Override
   public boolean contains(final Object o) {
-<span class="nc" id="L63">    return map.containsKey(o);</span>
+<span class="nc" id="L94">    return map.containsKey(o);</span>
   }
 
   @Override
   public boolean isEmpty() {
-<span class="nc" id="L68">    return map.isEmpty();</span>
+<span class="nc" id="L99">    return map.isEmpty();</span>
   }
 
 }

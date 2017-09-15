@@ -1,69 +1,132 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MapExportedValue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">MapExportedValue.java</span></div><h1>MapExportedValue.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MapExportedValue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">MapExportedValue.java</span></div><h1>MapExportedValue.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.jmx;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.util.Map;
+import javax.annotation.Nullable;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 
 /**
  *
  * @author zoly
  */
-public final class MapExportedValue implements ExportedValue {
+final class MapExportedValue implements ExportedValue {
 
-    private final Map&lt;String, Object&gt; map;
-    private final Map&lt;String, String&gt; descriptions;
-    private final String name;
+  private final Map&lt;String, Object&gt; map;
+  private final Map&lt;String, String&gt; descriptions;
+  private final String name;
+  private final JMXBeanMapping converter;
 
-    public MapExportedValue(final Map&lt;String, Object&gt; map, final Map&lt;String, String&gt; descriptions,
-<span class="fc" id="L17">            final String name) {</span>
-<span class="fc" id="L18">        this.map = map;</span>
-<span class="fc" id="L19">        this.descriptions = descriptions;</span>
-<span class="fc" id="L20">        this.name = name;</span>
-<span class="fc" id="L21">    }</span>
-
-
-    @Override
-    public String getName() {
-<span class="fc" id="L26">        return name;</span>
+  MapExportedValue(final Map&lt;String, Object&gt; map, final Map&lt;String, String&gt; descriptions,
+<span class="fc" id="L54">          final String name, @Nullable final Object value) throws NotSerializableException {</span>
+<span class="fc" id="L55">    this.map = map;</span>
+<span class="fc" id="L56">    this.descriptions = descriptions;</span>
+<span class="fc" id="L57">    this.name = name;</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">    if (value == null) {</span>
+<span class="nc" id="L59">      this.converter = null;</span>
+    } else {
+<span class="fc" id="L61">      this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(value.getClass());</span>
     }
+<span class="fc" id="L63">  }</span>
 
-    @Override
-    public String getDescription() {
-<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        if (descriptions != null) {</span>
-<span class="nc" id="L32">            return descriptions.get(name);</span>
-        } else {
-<span class="fc" id="L34">            return &quot;&quot;;</span>
-        }
+  @Override
+  public String getName() {
+<span class="fc" id="L67">    return name;</span>
+  }
+
+  @Override
+  public String getDescription() {
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    if (descriptions != null) {</span>
+<span class="nc" id="L73">      return descriptions.get(name);</span>
+    } else {
+<span class="fc" id="L75">      return &quot;&quot;;</span>
     }
+  }
 
-    @Override
-    public Object get() {
-<span class="fc" id="L40">        return map.get(name);</span>
+  @Override
+  public Object get() throws OpenDataException {
+<span class="fc" id="L81">    Object val = map.get(name);</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">    if (converter == null) {</span>
+<span class="nc" id="L83">      return val;</span>
+    } else {
+<span class="fc" id="L85">      return converter.toOpenValue(val);</span>
     }
+  }
 
-    @Override
-    public void set(final Object value) {
-<span class="fc" id="L45">        map.put(name, value);</span>
-<span class="fc" id="L46">    }</span>
-
-    @Override
-    public boolean isWriteable() {
-<span class="fc" id="L50">        return true;</span>
+  @Override
+  public void set(final Object value) throws InvalidObjectException {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (converter == null) {</span>
+<span class="nc" id="L92">      map.put(name, value);</span>
+    } else {
+<span class="fc" id="L94">      map.put(name, converter.fromOpenValue(value));</span>
     }
+<span class="fc" id="L96">  }</span>
 
-    @Override
-    public Class getValueClass() {
-<span class="fc" id="L55">        Object obj = map.get(name);</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L57">            return String.class;</span>
-        } else {
-<span class="fc" id="L59">            return obj.getClass();</span>
-        }
-    }
+  @Override
+  public boolean isWriteable() {
+<span class="fc" id="L100">    return true;</span>
+  }
 
-    @Override
-    public String toString() {
-<span class="nc" id="L65">        return &quot;MapExportedValue{&quot; + &quot;map=&quot; + map + &quot;, descriptions=&quot; + descriptions + &quot;, name=&quot; + name + '}';</span>
+  @Override
+  public Class getValueType() {
+<span class="fc" id="L105">    Object obj = map.get(name);</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L107">      return String.class;</span>
+    } else {
+<span class="fc" id="L109">      return obj.getClass();</span>
     }
+  }
+
+  @Override
+  public String toString() {
+    try {
+<span class="nc" id="L116">      return &quot;MapExportedValue{&quot; + &quot;val=&quot; + get() + &quot;valClass=&quot; + getValueType()</span>
+<span class="nc" id="L117">              + &quot;valopenType=&quot; + getValueOpenType() + &quot;, description=&quot;</span>
+<span class="nc" id="L118">              + getDescription() + &quot;, name=&quot; + name + &quot;, converter=&quot; + converter + '}';</span>
+<span class="nc" id="L119">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L120">      throw new UncheckedExecutionException(ex);</span>
+    }
+  }
+
+
+
+  @Override
+  public OpenType getValueOpenType() {
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">    return (converter != null) ? converter.getOpenType() : null;</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BeanExportedValue.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">BeanExportedValue.java</span></div><h1>BeanExportedValue.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.jmx;
+
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+
+/**
+ *
+ * @author zoly
+ */
+class BeanExportedValue implements ExportedValue&lt;Object&gt; {
+
+  private final String name;
+  private final String description;
+  private final Method getMethod;
+  private final Method setMethod;
+  private final Object object;
+  private final Type valueClass;
+  private final JMXBeanMapping converter;
+
+  BeanExportedValue(@Nonnull final String name, @Nullable final String description,
+          @Nullable final Method getMethod, @Nullable final Method setMethod,
+<span class="fc" id="L61">          @Nullable final Object object, @Nonnull final Type valueClass, final boolean mapOpenType) {</span>
+<span class="fc" id="L62">    this.name = name;</span>
+<span class="fc" id="L63">    this.description = description;</span>
+<span class="fc" id="L64">    this.getMethod = getMethod;</span>
+<span class="fc" id="L65">    this.setMethod = setMethod;</span>
+<span class="fc" id="L66">    this.object = object;</span>
+<span class="fc" id="L67">    this.valueClass = valueClass;</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (mapOpenType) {</span>
+      try {
+<span class="fc" id="L70">        this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(valueClass);</span>
+<span class="nc" id="L71">      } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L72">        throw new UnsupportedOperationException(&quot;Unable to export &quot; + getMethod + &quot;, &quot; + setMethod, ex);</span>
+<span class="fc" id="L73">      }</span>
+    } else {
+<span class="nc" id="L75">      this.converter = null;</span>
+    }
+<span class="fc" id="L77">  }</span>
+
+  public BeanExportedValue withSetter(@Nonnull final Method psetMethod) {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (setMethod != null) {</span>
+<span class="nc" id="L81">      throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + setMethod</span>
+              + &quot;, &quot; + psetMethod);
+    }
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    return new BeanExportedValue(name, description, getMethod, psetMethod, object, valueClass, converter != null);</span>
+  }
+
+  public BeanExportedValue withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (getMethod != null) {</span>
+<span class="nc" id="L89">      throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + getMethod</span>
+              + &quot;, &quot; + pgetMethod);
+    }
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    return new BeanExportedValue(name, pdescription, pgetMethod, setMethod, object, valueClass, converter != null);</span>
+  }
+
+  @Override
+  public String getName() {
+<span class="fc" id="L97">    return name;</span>
+  }
+
+  @Override
+  public String getDescription() {
+<span class="fc" id="L102">    return description;</span>
+  }
+
+  @Override
+  public Object get() throws OpenDataException {
+
+    try {
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">      if (converter != null) {</span>
+<span class="fc" id="L110">        return converter.toOpenValue(getMethod.invoke(object));</span>
+      } else {
+<span class="nc" id="L112">        return getMethod.invoke(object);</span>
+      }
+<span class="nc" id="L114">    } catch (IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L115">      OpenDataException thr = new OpenDataException(&quot;Cannot get &quot; + getMethod);</span>
+<span class="nc" id="L116">      thr.addSuppressed(ex);</span>
+<span class="nc" id="L117">      throw thr;</span>
+    }
+  }
+
+  @Override
+  public void set(final Object value) throws InvalidAttributeValueException, InvalidObjectException {
+<span class="fc bfc" id="L123" title="All 2 branches covered.">    if (setMethod == null) {</span>
+<span class="fc" id="L124">      throw new InvalidAttributeValueException(name + &quot; is a read only attribute &quot;);</span>
+    }
+    try {
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">      if (converter != null) {</span>
+<span class="fc" id="L128">        setMethod.invoke(object, converter.fromOpenValue(value));</span>
+      } else {
+<span class="nc" id="L130">        setMethod.invoke(object, value);</span>
+      }
+<span class="nc" id="L132">    } catch (IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L133">      InvalidObjectException iox = new InvalidObjectException(&quot;Cannot set &quot; + value);</span>
+<span class="nc" id="L134">      iox.addSuppressed(ex);</span>
+<span class="nc" id="L135">      throw iox;</span>
+<span class="fc" id="L136">    }</span>
+<span class="fc" id="L137">  }</span>
+
+  @Override
+  public boolean isWriteable() {
+<span class="fc bfc" id="L141" title="All 2 branches covered.">    return setMethod != null;</span>
+  }
+
+  @Override
+  public Type getValueType() {
+<span class="fc" id="L146">    return valueClass;</span>
+  }
+
+  public boolean isValid() {
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">    return getMethod != null;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L155">    return &quot;ExportedValueImpl{&quot; + &quot;name=&quot; + name + &quot;, description=&quot;</span>
+            + description + &quot;, getMethod=&quot; + getMethod + &quot;, setMethod=&quot;
+            + setMethod + &quot;, object=&quot; + object + &quot;, valueClass=&quot; + valueClass
+            + &quot;, converter=&quot; + converter + '}';
+  }
+
+
+
+  @Override
+  public OpenType&lt;?&gt; getValueOpenType() {
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    return (converter != null) ? converter.getOpenType() : null;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

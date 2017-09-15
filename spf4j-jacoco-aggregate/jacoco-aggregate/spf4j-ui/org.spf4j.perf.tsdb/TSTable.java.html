@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TSTable.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">TSTable.java</span></div><h1>TSTable.java</h1><pre class="source lang-java linenums"> /*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TSTable.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">TSTable.java</span></div><h1>TSTable.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.tsdb;
 
@@ -47,21 +61,21 @@ public final class TSTable {
 
     TSTable(final String tableName, final byte[] tableMetaData,
             final String[] columnNames, final byte[][] columnMetaData,
-<span class="nc" id="L50">            final int sampleTime, final long location) {</span>
-<span class="nc" id="L51">        this.location = location;</span>
-<span class="nc" id="L52">        this.nextTableInfo = 0;</span>
-<span class="nc" id="L53">        this.firstDataFragment = 0;</span>
-<span class="nc" id="L54">        this.lastDataFragment = 0;</span>
-<span class="nc" id="L55">        this.tableName = tableName;</span>
-<span class="nc" id="L56">        this.sampleTime = sampleTime;</span>
-<span class="nc" id="L57">        this.tableMetaData = tableMetaData;</span>
-<span class="nc" id="L58">        this.columnNames = columnNames;</span>
-<span class="nc" id="L59">        this.columnMetaData = columnMetaData;</span>
-<span class="nc" id="L60">        this.nameToIndex = new HashMap&lt;&gt;(columnNames.length + columnNames.length / 3);</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">        for (int i = 0; i &lt; columnNames.length; i++) {</span>
-<span class="nc" id="L62">            this.nameToIndex.put(columnNames[i], i);</span>
+<span class="nc" id="L64">            final int sampleTime, final long location) {</span>
+<span class="nc" id="L65">        this.location = location;</span>
+<span class="nc" id="L66">        this.nextTableInfo = 0;</span>
+<span class="nc" id="L67">        this.firstDataFragment = 0;</span>
+<span class="nc" id="L68">        this.lastDataFragment = 0;</span>
+<span class="nc" id="L69">        this.tableName = tableName;</span>
+<span class="nc" id="L70">        this.sampleTime = sampleTime;</span>
+<span class="nc" id="L71">        this.tableMetaData = tableMetaData;</span>
+<span class="nc" id="L72">        this.columnNames = columnNames;</span>
+<span class="nc" id="L73">        this.columnMetaData = columnMetaData;</span>
+<span class="nc" id="L74">        this.nameToIndex = new HashMap&lt;&gt;(columnNames.length + columnNames.length / 3);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (int i = 0; i &lt; columnNames.length; i++) {</span>
+<span class="nc" id="L76">            this.nameToIndex.put(columnNames[i], i);</span>
         }
-<span class="nc" id="L64">    }</span>
+<span class="nc" id="L78">    }</span>
 
     /**
      * This is a shalow copy.
@@ -69,18 +83,18 @@ public final class TSTable {
      * @param copyOf
      */
 
-<span class="nc" id="L72">    TSTable(final TSTable copyOf) {</span>
-<span class="nc" id="L73">        this.location = copyOf.location;</span>
-<span class="nc" id="L74">        this.nextTableInfo = copyOf.nextTableInfo;</span>
-<span class="nc" id="L75">        this.firstDataFragment = copyOf.firstDataFragment;</span>
-<span class="nc" id="L76">        this.lastDataFragment = copyOf.lastDataFragment;</span>
-<span class="nc" id="L77">        this.tableName = copyOf.tableName;</span>
-<span class="nc" id="L78">        this.sampleTime = copyOf.sampleTime;</span>
-<span class="nc" id="L79">        this.tableMetaData = copyOf.tableMetaData;</span>
-<span class="nc" id="L80">        this.columnNames = copyOf.columnNames;</span>
-<span class="nc" id="L81">        this.columnMetaData = copyOf.columnMetaData;</span>
-<span class="nc" id="L82">        this.nameToIndex = copyOf.nameToIndex;</span>
-<span class="nc" id="L83">    }</span>
+<span class="nc" id="L86">    TSTable(final TSTable copyOf) {</span>
+<span class="nc" id="L87">        this.location = copyOf.location;</span>
+<span class="nc" id="L88">        this.nextTableInfo = copyOf.nextTableInfo;</span>
+<span class="nc" id="L89">        this.firstDataFragment = copyOf.firstDataFragment;</span>
+<span class="nc" id="L90">        this.lastDataFragment = copyOf.lastDataFragment;</span>
+<span class="nc" id="L91">        this.tableName = copyOf.tableName;</span>
+<span class="nc" id="L92">        this.sampleTime = copyOf.sampleTime;</span>
+<span class="nc" id="L93">        this.tableMetaData = copyOf.tableMetaData;</span>
+<span class="nc" id="L94">        this.columnNames = copyOf.columnNames;</span>
+<span class="nc" id="L95">        this.columnMetaData = copyOf.columnMetaData;</span>
+<span class="nc" id="L96">        this.nameToIndex = copyOf.nameToIndex;</span>
+<span class="nc" id="L97">    }</span>
 
 
     /**
@@ -90,155 +104,155 @@ public final class TSTable {
      * @throws IOException
      */
     TSTable(final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L93">        this(raf, raf.getFilePointer());</span>
-<span class="nc" id="L94">    }</span>
+<span class="nc" id="L107">        this(raf, raf.getFilePointer());</span>
+<span class="nc" id="L108">    }</span>
 
-<span class="nc" id="L96">    TSTable(final RandomAccessFile raf, final long location) throws IOException {</span>
-<span class="nc" id="L97">        this.location = location;</span>
-<span class="nc" id="L98">        raf.seek(location);</span>
-<span class="nc" id="L99">        this.nextTableInfo = raf.readLong();</span>
-<span class="nc" id="L100">        this.firstDataFragment = raf.readLong();</span>
-<span class="nc" id="L101">        this.lastDataFragment = raf.readLong();</span>
-<span class="nc" id="L102">        this.tableName = raf.readUTF();</span>
-<span class="nc" id="L103">        this.sampleTime = raf.readInt();</span>
-<span class="nc" id="L104">        int grMetaSize = raf.readInt();</span>
-<span class="nc" id="L105">        this.tableMetaData = new byte[grMetaSize];</span>
-<span class="nc" id="L106">        raf.readFully(tableMetaData);</span>
-<span class="nc" id="L107">        int nrColumns = raf.readShort();</span>
-<span class="nc" id="L108">        columnNames = new String[nrColumns];</span>
-<span class="nc" id="L109">        this.nameToIndex = new HashMap&lt;&gt;(nrColumns + nrColumns / 3);</span>
-<span class="nc bnc" id="L110" title="All 2 branches missed.">        for (int i = 0; i &lt; columnNames.length; i++) {</span>
-<span class="nc" id="L111">            String colName = raf.readUTF();</span>
-<span class="nc" id="L112">            columnNames[i] = colName;</span>
-<span class="nc" id="L113">            this.nameToIndex.put(colName, i);</span>
+<span class="nc" id="L110">    TSTable(final RandomAccessFile raf, final long location) throws IOException {</span>
+<span class="nc" id="L111">        this.location = location;</span>
+<span class="nc" id="L112">        raf.seek(location);</span>
+<span class="nc" id="L113">        this.nextTableInfo = raf.readLong();</span>
+<span class="nc" id="L114">        this.firstDataFragment = raf.readLong();</span>
+<span class="nc" id="L115">        this.lastDataFragment = raf.readLong();</span>
+<span class="nc" id="L116">        this.tableName = raf.readUTF();</span>
+<span class="nc" id="L117">        this.sampleTime = raf.readInt();</span>
+<span class="nc" id="L118">        int grMetaSize = raf.readInt();</span>
+<span class="nc" id="L119">        this.tableMetaData = new byte[grMetaSize];</span>
+<span class="nc" id="L120">        raf.readFully(tableMetaData);</span>
+<span class="nc" id="L121">        int nrColumns = raf.readShort();</span>
+<span class="nc" id="L122">        columnNames = new String[nrColumns];</span>
+<span class="nc" id="L123">        this.nameToIndex = new HashMap&lt;&gt;(nrColumns + nrColumns / 3);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        for (int i = 0; i &lt; columnNames.length; i++) {</span>
+<span class="nc" id="L125">            String colName = raf.readUTF();</span>
+<span class="nc" id="L126">            columnNames[i] = colName;</span>
+<span class="nc" id="L127">            this.nameToIndex.put(colName, i);</span>
         }
-<span class="nc" id="L115">        columnMetaData = new byte[raf.readInt()][];</span>
-<span class="nc bnc" id="L116" title="All 2 branches missed.">        for (int i = 0; i &lt; columnMetaData.length; i++) {</span>
-<span class="nc" id="L117">            int metaLength = raf.readInt();</span>
-<span class="nc" id="L118">            byte[] colMetaData = new byte[metaLength];</span>
-<span class="nc" id="L119">            raf.readFully(colMetaData);</span>
-<span class="nc" id="L120">            columnMetaData[i] = colMetaData;</span>
+<span class="nc" id="L129">        columnMetaData = new byte[raf.readInt()][];</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        for (int i = 0; i &lt; columnMetaData.length; i++) {</span>
+<span class="nc" id="L131">            int metaLength = raf.readInt();</span>
+<span class="nc" id="L132">            byte[] colMetaData = new byte[metaLength];</span>
+<span class="nc" id="L133">            raf.readFully(colMetaData);</span>
+<span class="nc" id="L134">            columnMetaData[i] = colMetaData;</span>
         }
-<span class="nc" id="L122">    }</span>
+<span class="nc" id="L136">    }</span>
 
 
 
     void writeTo(final DataOutput dos) throws IOException {
-<span class="nc" id="L127">        dos.writeLong(nextTableInfo);</span>
-<span class="nc" id="L128">        dos.writeLong(firstDataFragment);</span>
-<span class="nc" id="L129">        dos.writeLong(lastDataFragment);</span>
-<span class="nc" id="L130">        dos.writeUTF(tableName);</span>
-<span class="nc" id="L131">        dos.writeInt(sampleTime);</span>
-<span class="nc" id="L132">        dos.writeInt(tableMetaData.length);</span>
-<span class="nc" id="L133">        dos.write(tableMetaData);</span>
-<span class="nc" id="L134">        dos.writeShort(columnNames.length);</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">        for (String columnName : columnNames) {</span>
-<span class="nc" id="L136">            dos.writeUTF(columnName);</span>
+<span class="nc" id="L141">        dos.writeLong(nextTableInfo);</span>
+<span class="nc" id="L142">        dos.writeLong(firstDataFragment);</span>
+<span class="nc" id="L143">        dos.writeLong(lastDataFragment);</span>
+<span class="nc" id="L144">        dos.writeUTF(tableName);</span>
+<span class="nc" id="L145">        dos.writeInt(sampleTime);</span>
+<span class="nc" id="L146">        dos.writeInt(tableMetaData.length);</span>
+<span class="nc" id="L147">        dos.write(tableMetaData);</span>
+<span class="nc" id="L148">        dos.writeShort(columnNames.length);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        for (String columnName : columnNames) {</span>
+<span class="nc" id="L150">            dos.writeUTF(columnName);</span>
         }
-<span class="nc" id="L138">        dos.writeInt(columnMetaData.length);</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">        for (byte[] colMeta : columnMetaData) {</span>
-<span class="nc" id="L140">            dos.writeInt(colMeta.length);</span>
-<span class="nc" id="L141">            dos.write(colMeta);</span>
+<span class="nc" id="L152">        dos.writeInt(columnMetaData.length);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        for (byte[] colMeta : columnMetaData) {</span>
+<span class="nc" id="L154">            dos.writeInt(colMeta.length);</span>
+<span class="nc" id="L155">            dos.write(colMeta);</span>
         }
 
-<span class="nc" id="L144">    }</span>
+<span class="nc" id="L158">    }</span>
 
     void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L147">        try (ByteArrayBuilder bos = new ByteArrayBuilder()) {</span>
-<span class="nc" id="L148">            DataOutput dos = new DataOutputStream(bos);</span>
-<span class="nc" id="L149">            writeTo(dos);</span>
+<span class="nc" id="L161">        try (ByteArrayBuilder bos = new ByteArrayBuilder()) {</span>
+<span class="nc" id="L162">            DataOutput dos = new DataOutputStream(bos);</span>
+<span class="nc" id="L163">            writeTo(dos);</span>
 
-<span class="nc" id="L151">            raf.seek(location);</span>
-<span class="nc" id="L152">            raf.write(bos.getBuffer(), 0, bos.size());</span>
-<span class="nc bnc" id="L153" title="All 8 branches missed.">        }</span>
-<span class="nc" id="L154">    }</span>
+<span class="nc" id="L165">            raf.seek(location);</span>
+<span class="nc" id="L166">            raf.write(bos.getBuffer(), 0, bos.size());</span>
+<span class="nc bnc" id="L167" title="All 8 branches missed.">        }</span>
+<span class="nc" id="L168">    }</span>
 
     public String[] getColumnNames() {
-<span class="nc" id="L157">        return columnNames.clone();</span>
+<span class="nc" id="L171">        return columnNames.clone();</span>
     }
 
     void setNextColumnInfo(final long pnextColumnInfo, final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L161">        this.nextTableInfo = pnextColumnInfo;</span>
+<span class="nc" id="L175">        this.nextTableInfo = pnextColumnInfo;</span>
 
-<span class="nc" id="L163">        raf.seek(location);</span>
-<span class="nc" id="L164">        raf.writeLong(nextTableInfo);</span>
-<span class="nc" id="L165">    }</span>
+<span class="nc" id="L177">        raf.seek(location);</span>
+<span class="nc" id="L178">        raf.writeLong(nextTableInfo);</span>
+<span class="nc" id="L179">    }</span>
 
     void setFirstDataFragment(final long pfirstDataFragment, final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L168">        this.firstDataFragment = pfirstDataFragment;</span>
-<span class="nc" id="L169">        raf.seek(location + 8);</span>
-<span class="nc" id="L170">        raf.writeLong(firstDataFragment);</span>
-<span class="nc" id="L171">    }</span>
+<span class="nc" id="L182">        this.firstDataFragment = pfirstDataFragment;</span>
+<span class="nc" id="L183">        raf.seek(location + 8);</span>
+<span class="nc" id="L184">        raf.writeLong(firstDataFragment);</span>
+<span class="nc" id="L185">    }</span>
 
     void setLastDataFragment(final long plastDataFragment, final RandomAccessFile raf) throws IOException {
-<span class="nc" id="L174">        this.lastDataFragment = plastDataFragment;</span>
-<span class="nc" id="L175">        raf.seek(location + 16);</span>
-<span class="nc" id="L176">        raf.writeLong(lastDataFragment);</span>
-<span class="nc" id="L177">    }</span>
+<span class="nc" id="L188">        this.lastDataFragment = plastDataFragment;</span>
+<span class="nc" id="L189">        raf.seek(location + 16);</span>
+<span class="nc" id="L190">        raf.writeLong(lastDataFragment);</span>
+<span class="nc" id="L191">    }</span>
 
     public long getNextTSTable() {
-<span class="nc" id="L180">        return nextTableInfo;</span>
+<span class="nc" id="L194">        return nextTableInfo;</span>
     }
 
     public long getLocation() {
-<span class="nc" id="L184">        return location;</span>
+<span class="nc" id="L198">        return location;</span>
     }
 
     public String getTableName() {
-<span class="nc" id="L188">        return tableName;</span>
+<span class="nc" id="L202">        return tableName;</span>
     }
 
     public long getFirstDataFragment() {
-<span class="nc" id="L192">        return firstDataFragment;</span>
+<span class="nc" id="L206">        return firstDataFragment;</span>
     }
 
     public long getLastDataFragment() {
-<span class="nc" id="L196">        return lastDataFragment;</span>
+<span class="nc" id="L210">        return lastDataFragment;</span>
     }
 
     public byte[][] getColumnMetaData() {
-<span class="nc" id="L200">        return columnMetaData.clone();</span>
+<span class="nc" id="L214">        return columnMetaData.clone();</span>
     }
 
     public String[] getColumnMetaDataAsStrings() {
-<span class="nc" id="L204">        String[] result = new String[columnMetaData.length];</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">        for (int i = 0; i &lt; columnMetaData.length; i++) {</span>
-<span class="nc" id="L206">            result[i] = new String(columnMetaData[i], Charsets.UTF_8);</span>
+<span class="nc" id="L218">        String[] result = new String[columnMetaData.length];</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        for (int i = 0; i &lt; columnMetaData.length; i++) {</span>
+<span class="nc" id="L220">            result[i] = new String(columnMetaData[i], Charsets.UTF_8);</span>
         }
-<span class="nc" id="L208">        return result;</span>
+<span class="nc" id="L222">        return result;</span>
     }
 
     public int getColumnIndex(final String columnName) {
-<span class="nc" id="L212">        Integer result = this.nameToIndex.get(columnName);</span>
-<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (result == null) {</span>
-<span class="nc" id="L214">            return -1;</span>
+<span class="nc" id="L226">        Integer result = this.nameToIndex.get(columnName);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L228">            return -1;</span>
         } else {
-<span class="nc" id="L216">            return result;</span>
+<span class="nc" id="L230">            return result;</span>
         }
     }
 
     public int getSampleTime() {
-<span class="nc" id="L221">        return sampleTime;</span>
+<span class="nc" id="L235">        return sampleTime;</span>
     }
 
     public byte[] getTableMetaData() {
-<span class="nc" id="L225">        return tableMetaData.clone();</span>
+<span class="nc" id="L239">        return tableMetaData.clone();</span>
     }
 
     public int getColumnNumber() {
-<span class="nc" id="L229">        return columnNames.length;</span>
+<span class="nc" id="L243">        return columnNames.length;</span>
     }
 
     public String getColumnName(final int index) {
-<span class="nc" id="L233">        return columnNames[index];</span>
+<span class="nc" id="L247">        return columnNames[index];</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L238">        return &quot;TSTable{&quot; + &quot;location=&quot; + location + &quot;, nextColumnInfo=&quot; + nextTableInfo</span>
+<span class="nc" id="L252">        return &quot;TSTable{&quot; + &quot;location=&quot; + location + &quot;, nextColumnInfo=&quot; + nextTableInfo</span>
                 + &quot;, firstDataFragment=&quot; + firstDataFragment + &quot;, lastDataFragment=&quot;
                 + lastDataFragment + &quot;, groupName=&quot; + tableName + &quot;, sampleTime=&quot; + sampleTime
-<span class="nc" id="L241">                + &quot;, columnNames=&quot; + Arrays.toString(columnNames) + &quot;, nameToIndex=&quot; + nameToIndex + '}';</span>
+<span class="nc" id="L255">                + &quot;, columnNames=&quot; + Arrays.toString(columnNames) + &quot;, nameToIndex=&quot; + nameToIndex + '}';</span>
     }
 
 }

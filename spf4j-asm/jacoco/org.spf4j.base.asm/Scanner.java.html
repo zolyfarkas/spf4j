@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Scanner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-asm</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.asm</a> &gt; <span class="el_source">Scanner.java</span></div><h1>Scanner.java</h1><pre class="source lang-java linenums">package org.spf4j.base.asm;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Scanner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-asm</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.asm</a> &gt; <span class="el_source">Scanner.java</span></div><h1>Scanner.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base.asm;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
@@ -19,48 +50,48 @@ import org.objectweb.asm.ClassReader;
  */
 public final class Scanner {
 
-<span class="nc" id="L22">  private Scanner() {</span>
-<span class="nc" id="L23">  }</span>
+<span class="nc" id="L53">  private Scanner() {</span>
+<span class="nc" id="L54">  }</span>
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // Findbugs does not like try with resources.
   public static List&lt;Invocation&gt; findUsages(final Supplier&lt;InputStream&gt; classSupplier,
           final Set&lt;Method&gt; invokedMethods)
           throws IOException {
-<span class="pc" id="L29">    try (InputStream is = classSupplier.get()) {</span>
-<span class="fc" id="L30">      ClassReader reader = new ClassReader(is);</span>
-<span class="fc" id="L31">      List&lt;Invocation&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L32">      reader.accept(new MethodInvocationClassVisitor(result, invokedMethods), 0);</span>
-<span class="fc" id="L33">      return result;</span>
-<span class="pc bpc" id="L34" title="6 of 8 branches missed.">    }</span>
+<span class="pc" id="L60">    try (InputStream is = classSupplier.get()) {</span>
+<span class="fc" id="L61">      ClassReader reader = new ClassReader(is);</span>
+<span class="fc" id="L62">      List&lt;Invocation&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L63">      reader.accept(new MethodInvocationClassVisitor(result, invokedMethods), 0);</span>
+<span class="fc" id="L64">      return result;</span>
+<span class="pc bpc" id="L65" title="6 of 8 branches missed.">    }</span>
   }
 
   public static List&lt;Invocation&gt; findUsages(final Class&lt;?&gt; clasz, final Set&lt;Method&gt; invokedMethods) {
     try {
-<span class="fc" id="L39">      return findUsages(clasz.getClassLoader(), clasz.getName().replaceAll(&quot;\\.&quot;, &quot;/&quot;) + &quot;.class&quot;, invokedMethods);</span>
-<span class="nc" id="L40">    } catch (IOException ex) {</span>
-<span class="nc" id="L41">      NoClassDefFoundError toThrow = new NoClassDefFoundError(&quot;Cannot reload &quot; + clasz);</span>
-<span class="nc" id="L42">      toThrow.addSuppressed(ex);</span>
-<span class="nc" id="L43">      throw toThrow;</span>
+<span class="fc" id="L70">      return findUsages(clasz.getClassLoader(), clasz.getName().replaceAll(&quot;\\.&quot;, &quot;/&quot;) + &quot;.class&quot;, invokedMethods);</span>
+<span class="nc" id="L71">    } catch (IOException ex) {</span>
+<span class="nc" id="L72">      NoClassDefFoundError toThrow = new NoClassDefFoundError(&quot;Cannot reload &quot; + clasz);</span>
+<span class="nc" id="L73">      toThrow.addSuppressed(ex);</span>
+<span class="nc" id="L74">      throw toThrow;</span>
     }
   }
 
   public static List&lt;Invocation&gt; findUsages(final ClassLoader cl,
           final String claszResourcePath, final Set&lt;Method&gt; invokedMethods) throws IOException {
-<span class="fc" id="L49">      return findUsages(() -&gt; new BufferedInputStream(cl.getResourceAsStream(claszResourcePath)), invokedMethods);</span>
+<span class="fc" id="L80">      return findUsages(() -&gt; new BufferedInputStream(cl.getResourceAsStream(claszResourcePath)), invokedMethods);</span>
   }
 
   public static List&lt;Invocation&gt; findUsages(final String packageName, final Set&lt;Method&gt; invokedMethods)
           throws IOException {
-<span class="fc" id="L54">    final ClassLoader cl = ClassLoader.getSystemClassLoader();</span>
-<span class="fc" id="L55">    ClassPath cp = ClassPath.from(cl);</span>
-<span class="fc" id="L56">    ImmutableSet&lt;ClassPath.ClassInfo&gt; classes = cp.getAllClasses();</span>
-<span class="fc" id="L57">    List&lt;Invocation&gt; result = new ArrayList();</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">    for (ClassPath.ClassInfo info : classes) {</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">      if (info.getName().startsWith(packageName)) {</span>
-<span class="fc" id="L60">        result.addAll(findUsages(cl, info.getResourceName(), invokedMethods));</span>
+<span class="fc" id="L85">    final ClassLoader cl = ClassLoader.getSystemClassLoader();</span>
+<span class="fc" id="L86">    ClassPath cp = ClassPath.from(cl);</span>
+<span class="fc" id="L87">    ImmutableSet&lt;ClassPath.ClassInfo&gt; classes = cp.getAllClasses();</span>
+<span class="fc" id="L88">    List&lt;Invocation&gt; result = new ArrayList();</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    for (ClassPath.ClassInfo info : classes) {</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">      if (info.getName().startsWith(packageName)) {</span>
+<span class="fc" id="L91">        result.addAll(findUsages(cl, info.getResourceName(), invokedMethods));</span>
       }
-<span class="fc" id="L62">    }</span>
-<span class="fc" id="L63">    return result;</span>
+<span class="fc" id="L93">    }</span>
+<span class="fc" id="L94">    return result;</span>
   }
 
 }

@@ -1,4 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TLScratch.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">TLScratch.java</span></div><h1>TLScratch.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TLScratch.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">TLScratch.java</span></div><h1>TLScratch.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.base;
 
 import java.lang.ref.SoftReference;
@@ -9,11 +39,11 @@ import java.lang.ref.SoftReference;
  */
 public final class TLScratch {
 
-<span class="fc" id="L12">  private static final ThreadLocal&lt;SoftReference&lt;byte[]&gt;&gt; BYTES_TMP = new ThreadLocal&lt;&gt;();</span>
+<span class="fc" id="L42">  private static final ThreadLocal&lt;SoftReference&lt;byte[]&gt;&gt; BYTES_TMP = new ThreadLocal&lt;&gt;();</span>
 
-<span class="fc" id="L14">  private static final ThreadLocal&lt;SoftReference&lt;char[]&gt;&gt; CHARS_TMP = new ThreadLocal&lt;&gt;();</span>
+<span class="fc" id="L44">  private static final ThreadLocal&lt;SoftReference&lt;char[]&gt;&gt; CHARS_TMP = new ThreadLocal&lt;&gt;();</span>
   
-<span class="nc" id="L16">  private TLScratch() { }</span>
+<span class="nc" id="L46">  private TLScratch() { }</span>
 
   /**
    * returns a thread local byte array of at least the size requested. use only for temporary purpose. This method needs
@@ -23,19 +53,19 @@ public final class TLScratch {
    * @return - the temporary buffer.
    */
   public static byte[] getBytesTmp(final int size) {
-<span class="fc" id="L26">    SoftReference&lt;byte[]&gt; sr = BYTES_TMP.get();</span>
+<span class="fc" id="L56">    SoftReference&lt;byte[]&gt; sr = BYTES_TMP.get();</span>
     byte[] result;
-<span class="fc bfc" id="L28" title="All 2 branches covered.">    if (sr == null) {</span>
-<span class="fc" id="L29">      result = new byte[size];</span>
-<span class="fc" id="L30">      BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">    if (sr == null) {</span>
+<span class="fc" id="L59">      result = new byte[size];</span>
+<span class="fc" id="L60">      BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
     } else {
-<span class="fc" id="L32">      result = sr.get();</span>
-<span class="pc bpc" id="L33" title="1 of 4 branches missed.">      if (result == null || result.length &lt; size) {</span>
-<span class="fc" id="L34">        result = new byte[size];</span>
-<span class="fc" id="L35">        BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
+<span class="fc" id="L62">      result = sr.get();</span>
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">      if (result == null || result.length &lt; size) {</span>
+<span class="fc" id="L64">        result = new byte[size];</span>
+<span class="fc" id="L65">        BYTES_TMP.set(new SoftReference&lt;&gt;(result));</span>
       }
     }
-<span class="fc" id="L38">    return result;</span>
+<span class="fc" id="L68">    return result;</span>
   }
 
   /**
@@ -45,19 +75,19 @@ public final class TLScratch {
    * @return - the temporary buffer.
    */
   public static char[] getCharsTmp(final int size) {
-<span class="fc" id="L48">    SoftReference&lt;char[]&gt; sr = CHARS_TMP.get();</span>
+<span class="fc" id="L78">    SoftReference&lt;char[]&gt; sr = CHARS_TMP.get();</span>
     char[] result;
-<span class="fc bfc" id="L50" title="All 2 branches covered.">    if (sr == null) {</span>
-<span class="fc" id="L51">      result = new char[size];</span>
-<span class="fc" id="L52">      CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">    if (sr == null) {</span>
+<span class="fc" id="L81">      result = new char[size];</span>
+<span class="fc" id="L82">      CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
     } else {
-<span class="fc" id="L54">      result = sr.get();</span>
-<span class="pc bpc" id="L55" title="1 of 4 branches missed.">      if (result == null || result.length &lt; size) {</span>
-<span class="fc" id="L56">        result = new char[size];</span>
-<span class="fc" id="L57">        CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
+<span class="fc" id="L84">      result = sr.get();</span>
+<span class="pc bpc" id="L85" title="1 of 4 branches missed.">      if (result == null || result.length &lt; size) {</span>
+<span class="fc" id="L86">        result = new char[size];</span>
+<span class="fc" id="L87">        CHARS_TMP.set(new SoftReference&lt;&gt;(result));</span>
       }
     }
-<span class="fc" id="L60">    return result;</span>
+<span class="fc" id="L90">    return result;</span>
   }
 
 }

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Quanta.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">Quanta.java</span></div><h1>Quanta.java</h1><pre class="source lang-java linenums"> /*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Quanta.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">Quanta.java</span></div><h1>Quanta.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.impl;
 
@@ -32,94 +46,94 @@ public final class Quanta implements Comparable&lt;Quanta&gt;, Serializable {
     private final long intervalStart;
     private final long intervalEnd;
 
-<span class="nc" id="L35">    public Quanta(final long intervalStart, final long intervalEnd) {</span>
-<span class="nc" id="L36">        this.intervalStart = intervalStart;</span>
-<span class="nc" id="L37">        this.intervalEnd = intervalEnd;</span>
-<span class="nc" id="L38">    }</span>
+<span class="nc" id="L49">    public Quanta(final long intervalStart, final long intervalEnd) {</span>
+<span class="nc" id="L50">        this.intervalStart = intervalStart;</span>
+<span class="nc" id="L51">        this.intervalEnd = intervalEnd;</span>
+<span class="nc" id="L52">    }</span>
 
-<span class="nc" id="L40">    public Quanta(@Nonnull final String stringVariant) {</span>
-<span class="nc" id="L41">        int undLocation = stringVariant.indexOf('_');</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (undLocation &lt; 0) {</span>
-<span class="nc" id="L43">            throw new IllegalArgumentException(&quot;Invalid Quanta DataSource &quot; + stringVariant);</span>
+<span class="nc" id="L54">    public Quanta(@Nonnull final String stringVariant) {</span>
+<span class="nc" id="L55">        int undLocation = stringVariant.indexOf('_');</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (undLocation &lt; 0) {</span>
+<span class="nc" id="L57">            throw new IllegalArgumentException(&quot;Invalid Quanta DataSource &quot; + stringVariant);</span>
         }
-<span class="nc" id="L45">        String startStr = stringVariant.substring(1, undLocation);</span>
-<span class="nc" id="L46">        String endStr = stringVariant.substring(undLocation + 1);</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (&quot;NI&quot;.equals(startStr)) {</span>
-<span class="nc" id="L48">            this.intervalStart = Long.MIN_VALUE;</span>
+<span class="nc" id="L59">        String startStr = stringVariant.substring(1, undLocation);</span>
+<span class="nc" id="L60">        String endStr = stringVariant.substring(undLocation + 1);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (&quot;NI&quot;.equals(startStr)) {</span>
+<span class="nc" id="L62">            this.intervalStart = Long.MIN_VALUE;</span>
         } else {
-<span class="nc" id="L50">            this.intervalStart = Long.parseLong(startStr);</span>
+<span class="nc" id="L64">            this.intervalStart = Long.parseLong(startStr);</span>
         }
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (&quot;PI&quot;.equals(endStr)) {</span>
-<span class="nc" id="L53">            this.intervalEnd = Long.MAX_VALUE;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (&quot;PI&quot;.equals(endStr)) {</span>
+<span class="nc" id="L67">            this.intervalEnd = Long.MAX_VALUE;</span>
         } else {
-<span class="nc" id="L55">            this.intervalEnd = Long.parseLong(endStr);</span>
+<span class="nc" id="L69">            this.intervalEnd = Long.parseLong(endStr);</span>
         }
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L71">    }</span>
 
     public long getIntervalEnd() {
-<span class="nc" id="L60">        return intervalEnd;</span>
+<span class="nc" id="L74">        return intervalEnd;</span>
     }
 
     public long getIntervalStart() {
-<span class="nc" id="L64">        return intervalStart;</span>
+<span class="nc" id="L78">        return intervalStart;</span>
     }
 
     public long getClosestToZero() {
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        return (intervalStart &lt; 0) ? intervalEnd : intervalStart;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        return (intervalStart &lt; 0) ? intervalEnd : intervalStart;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L73">        StringBuilder result = new StringBuilder(16);</span>
-<span class="nc" id="L74">        result.append('Q');</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (intervalStart == Long.MIN_VALUE) {</span>
-<span class="nc" id="L76">            result.append(&quot;NI&quot;);</span>
+<span class="nc" id="L87">        StringBuilder result = new StringBuilder(16);</span>
+<span class="nc" id="L88">        result.append('Q');</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (intervalStart == Long.MIN_VALUE) {</span>
+<span class="nc" id="L90">            result.append(&quot;NI&quot;);</span>
         } else {
-<span class="nc" id="L78">            result.append(intervalStart);</span>
+<span class="nc" id="L92">            result.append(intervalStart);</span>
         }
-<span class="nc" id="L80">        result.append('_');</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (intervalEnd == Long.MAX_VALUE) {</span>
-<span class="nc" id="L82">            result.append(&quot;PI&quot;);</span>
+<span class="nc" id="L94">        result.append('_');</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (intervalEnd == Long.MAX_VALUE) {</span>
+<span class="nc" id="L96">            result.append(&quot;PI&quot;);</span>
         } else {
-<span class="nc" id="L84">            result.append(intervalEnd);</span>
+<span class="nc" id="L98">            result.append(intervalEnd);</span>
         }
-<span class="nc" id="L86">        return result.toString();</span>
+<span class="nc" id="L100">        return result.toString();</span>
     }
 
     @Override
     public int compareTo(final Quanta o) {
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (this.intervalStart &lt; o.intervalStart) {</span>
-<span class="nc" id="L92">            return -1;</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">        } else if (this.intervalStart &gt; o.intervalStart) {</span>
-<span class="nc" id="L94">            return 1;</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (this.intervalStart &lt; o.intervalStart) {</span>
+<span class="nc" id="L106">            return -1;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        } else if (this.intervalStart &gt; o.intervalStart) {</span>
+<span class="nc" id="L108">            return 1;</span>
         } else {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (this.intervalEnd &lt; o.intervalEnd) {</span>
-<span class="nc" id="L97">                return -1;</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">            } else if (this.intervalEnd &gt; o.intervalEnd) {</span>
-<span class="nc" id="L99">                return 1;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (this.intervalEnd &lt; o.intervalEnd) {</span>
+<span class="nc" id="L111">                return -1;</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            } else if (this.intervalEnd &gt; o.intervalEnd) {</span>
+<span class="nc" id="L113">                return 1;</span>
             } else {
-<span class="nc" id="L101">                return 0;</span>
+<span class="nc" id="L115">                return 0;</span>
             }
         }
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L108">        int hash = 7;</span>
-<span class="nc" id="L109">        hash = 89 * hash + (int) (this.intervalStart ^ (this.intervalStart &gt;&gt;&gt; 32));</span>
-<span class="nc" id="L110">        return 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L122">        int hash = 7;</span>
+<span class="nc" id="L123">        hash = 89 * hash + (int) (this.intervalStart ^ (this.intervalStart &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L124">        return 89 * hash + (int) (this.intervalEnd ^ (this.intervalEnd &gt;&gt;&gt; 32));</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L116">            return false;</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L130">            return false;</span>
         }
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L119">            return false;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L133">            return false;</span>
         }
-<span class="nc" id="L121">        final Quanta other = (Quanta) obj;</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        return this.compareTo(other) == 0;</span>
+<span class="nc" id="L135">        final Quanta other = (Quanta) obj;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        return this.compareTo(other) == 0;</span>
     }
 
 }

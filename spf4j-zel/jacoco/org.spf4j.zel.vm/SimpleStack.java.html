@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleStack.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">SimpleStack.java</span></div><h1>SimpleStack.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.zel.vm;
 
@@ -42,17 +56,17 @@ public final class SimpleStack&lt;T&gt;
     /**
      * construct a stack with specified size
      */
-<span class="fc" id="L45">    public SimpleStack(final int size) {</span>
-<span class="fc" id="L46">        elems = (T[]) new Object[size];</span>
-<span class="fc" id="L47">        top = 0;</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L59">    public SimpleStack(final int size) {</span>
+<span class="fc" id="L60">        elems = (T[]) new Object[size];</span>
+<span class="fc" id="L61">        top = 0;</span>
+<span class="fc" id="L62">    }</span>
 
     /**
      * Construct a stack, default size is 20
      */
     public SimpleStack() {
-<span class="nc" id="L54">        this(DEFAULT_SIZE);</span>
-<span class="nc" id="L55">    }</span>
+<span class="nc" id="L68">        this(DEFAULT_SIZE);</span>
+<span class="nc" id="L69">    }</span>
 
     /**
      * check if stack is empty
@@ -61,7 +75,7 @@ public final class SimpleStack&lt;T&gt;
      */
     @Override
     public boolean isEmpty() {
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        return top == 0;</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        return top == 0;</span>
     }
 
     /**
@@ -70,23 +84,23 @@ public final class SimpleStack&lt;T&gt;
      * @param o Object
      */
     public void push(final T o) {
-<span class="fc" id="L73">        int t = top + 1;</span>
-<span class="fc" id="L74">        ensureCapacity(t);</span>
-<span class="fc" id="L75">        elems[top] = o;</span>
-<span class="fc" id="L76">        top = t;</span>
-<span class="fc" id="L77">    }</span>
+<span class="fc" id="L87">        int t = top + 1;</span>
+<span class="fc" id="L88">        ensureCapacity(t);</span>
+<span class="fc" id="L89">        elems[top] = o;</span>
+<span class="fc" id="L90">        top = t;</span>
+<span class="fc" id="L91">    }</span>
 
     private void ensureCapacity(final int minCapacity) {
-<span class="fc" id="L80">        int oldCapacity = elems.length;</span>
-<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (minCapacity &gt; oldCapacity) {</span>
-<span class="fc" id="L82">            int newCapacity = (oldCapacity * 3) / 2 + 1;</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (newCapacity &lt; minCapacity) {</span>
-<span class="nc" id="L84">                newCapacity = minCapacity;</span>
+<span class="fc" id="L94">        int oldCapacity = elems.length;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (minCapacity &gt; oldCapacity) {</span>
+<span class="fc" id="L96">            int newCapacity = (oldCapacity * 3) / 2 + 1;</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            if (newCapacity &lt; minCapacity) {</span>
+<span class="nc" id="L98">                newCapacity = minCapacity;</span>
             }
             // minCapacity is usually close to size, so this is a win:
-<span class="fc" id="L87">            elems = java.util.Arrays.copyOf(elems, newCapacity);</span>
+<span class="fc" id="L101">            elems = java.util.Arrays.copyOf(elems, newCapacity);</span>
         }
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L103">    }</span>
 
 
 
@@ -96,14 +110,14 @@ public final class SimpleStack&lt;T&gt;
      * @param args
      */
     public void pushAll(final T[] args) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (args.length == 0) {</span>
-<span class="nc" id="L100">            return;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (args.length == 0) {</span>
+<span class="nc" id="L114">            return;</span>
         }
-<span class="nc" id="L102">        int newTop = top + args.length;</span>
-<span class="nc" id="L103">        ensureCapacity(newTop);</span>
-<span class="nc" id="L104">        System.arraycopy(args, 0, elems, top, args.length);</span>
-<span class="nc" id="L105">        top = newTop;</span>
-<span class="nc" id="L106">    }</span>
+<span class="nc" id="L116">        int newTop = top + args.length;</span>
+<span class="nc" id="L117">        ensureCapacity(newTop);</span>
+<span class="nc" id="L118">        System.arraycopy(args, 0, elems, top, args.length);</span>
+<span class="nc" id="L119">        top = newTop;</span>
+<span class="nc" id="L120">    }</span>
 
     /**
      * pops object out of stack
@@ -111,57 +125,57 @@ public final class SimpleStack&lt;T&gt;
      * @return Object
      */
     public T pop() {
-<span class="fc" id="L114">        final T o = elems[--top];</span>
+<span class="fc" id="L128">        final T o = elems[--top];</span>
         // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
-<span class="fc" id="L116">        elems[top] = null;</span>
-<span class="fc" id="L117">        return o;</span>
+<span class="fc" id="L130">        elems[top] = null;</span>
+<span class="fc" id="L131">        return o;</span>
     }
 
     public void remove() {
-<span class="fc" id="L121">        --top;</span>
+<span class="fc" id="L135">        --top;</span>
         // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
-<span class="fc" id="L123">        elems[top] = null;</span>
-<span class="fc" id="L124">    }</span>
+<span class="fc" id="L137">        elems[top] = null;</span>
+<span class="fc" id="L138">    }</span>
 
 
     public T[] pop(final int n) {
-<span class="fc" id="L128">        int ot = top;</span>
-<span class="fc" id="L129">        top -= n;</span>
-<span class="fc" id="L130">        T[] result =  (T[]) new Object[n];</span>
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
-<span class="fc" id="L132">            result[j] = elems[i];</span>
-<span class="fc" id="L133">            elems[i] = null;</span>
+<span class="fc" id="L142">        int ot = top;</span>
+<span class="fc" id="L143">        top -= n;</span>
+<span class="fc" id="L144">        T[] result =  (T[]) new Object[n];</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
+<span class="fc" id="L146">            result[j] = elems[i];</span>
+<span class="fc" id="L147">            elems[i] = null;</span>
         }
-<span class="fc" id="L135">        return result;</span>
+<span class="fc" id="L149">        return result;</span>
     }
 
     public void popTo(final T[] to, final int n) {
-<span class="fc" id="L139">        int ot = top;</span>
-<span class="fc" id="L140">        top -= n;</span>
-<span class="fc bfc" id="L141" title="All 2 branches covered.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
-<span class="fc" id="L142">            to[j] = elems[i];</span>
-<span class="fc" id="L143">            elems[i] = null;</span>
+<span class="fc" id="L153">        int ot = top;</span>
+<span class="fc" id="L154">        top -= n;</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
+<span class="fc" id="L156">            to[j] = elems[i];</span>
+<span class="fc" id="L157">            elems[i] = null;</span>
         }
-<span class="fc" id="L145">    }</span>
+<span class="fc" id="L159">    }</span>
 
     public void removeFromTop(final int n) {
-<span class="fc" id="L148">        int ot = top;</span>
-<span class="fc" id="L149">        top -= n;</span>
-<span class="fc bfc" id="L150" title="All 2 branches covered.">        for (int i = top; i &lt; ot; i++) {</span>
-<span class="fc" id="L151">            elems[i] = null;</span>
+<span class="fc" id="L162">        int ot = top;</span>
+<span class="fc" id="L163">        top -= n;</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        for (int i = top; i &lt; ot; i++) {</span>
+<span class="fc" id="L165">            elems[i] = null;</span>
         }
-<span class="fc" id="L153">    }</span>
+<span class="fc" id="L167">    }</span>
 
 
     public T[] popUntil(final T until) {
-<span class="nc" id="L157">        int i = top - 1;</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">        while (elems[i] != until) {</span>
-<span class="nc" id="L159">            i--;</span>
+<span class="nc" id="L171">        int i = top - 1;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        while (elems[i] != until) {</span>
+<span class="nc" id="L173">            i--;</span>
         }
-<span class="nc" id="L161">        T[] result = java.util.Arrays.copyOfRange(elems, i + 1, top);</span>
-<span class="nc" id="L162">        java.util.Arrays.fill(elems, i, top, null);</span>
-<span class="nc" id="L163">        top = i;</span>
-<span class="nc" id="L164">        return result;</span>
+<span class="nc" id="L175">        T[] result = java.util.Arrays.copyOfRange(elems, i + 1, top);</span>
+<span class="nc" id="L176">        java.util.Arrays.fill(elems, i, top, null);</span>
+<span class="nc" id="L177">        top = i;</span>
+<span class="nc" id="L178">        return result;</span>
     }
 
 
@@ -171,37 +185,37 @@ public final class SimpleStack&lt;T&gt;
      * @return Object
      */
     public T peek() {
-<span class="fc" id="L174">        return elems[top - 1];</span>
+<span class="fc" id="L188">        return elems[top - 1];</span>
     }
 
     public T peekFromTop(final int n) {
-<span class="fc" id="L178">        return elems[top - 1 - n];</span>
+<span class="fc" id="L192">        return elems[top - 1 - n];</span>
     }
 
     public void replaceFromTop(final int n, final T value) {
-<span class="fc" id="L182">        elems[top - 1 - n] = value;</span>
-<span class="fc" id="L183">    }</span>
+<span class="fc" id="L196">        elems[top - 1 - n] = value;</span>
+<span class="fc" id="L197">    }</span>
 
 
 
     public T[] peek(final int n) {
-<span class="nc" id="L188">        return java.util.Arrays.copyOfRange(elems, top - n, top);</span>
+<span class="nc" id="L202">        return java.util.Arrays.copyOfRange(elems, top - n, top);</span>
     }
 
     public T[] peekUntil(final T until) {
-<span class="nc" id="L192">        int i = top - 1;</span>
-<span class="nc bnc" id="L193" title="All 2 branches missed.">        while (elems[i] != until) {</span>
-<span class="nc" id="L194">            i--;</span>
+<span class="nc" id="L206">        int i = top - 1;</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        while (elems[i] != until) {</span>
+<span class="nc" id="L208">            i--;</span>
         }
-<span class="nc" id="L196">        return java.util.Arrays.copyOfRange(elems, i + 1, top);</span>
+<span class="nc" id="L210">        return java.util.Arrays.copyOfRange(elems, i + 1, top);</span>
     }
 
     public T peekElemAfter(final T until) {
-<span class="nc" id="L200">        int i = top - 1;</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">        while (elems[i] != until) {</span>
-<span class="nc" id="L202">            i--;</span>
+<span class="nc" id="L214">        int i = top - 1;</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        while (elems[i] != until) {</span>
+<span class="nc" id="L216">            i--;</span>
         }
-<span class="nc" id="L204">        return elems[i - 1];</span>
+<span class="nc" id="L218">        return elems[i - 1];</span>
     }
 
     /**
@@ -209,11 +223,11 @@ public final class SimpleStack&lt;T&gt;
      */
     @Override
     public void clear() {
-<span class="nc bnc" id="L212" title="All 2 branches missed.">        for (int i = 0; i &lt; top; i++) {</span>
-<span class="nc" id="L213">            elems[i] = null;</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        for (int i = 0; i &lt; top; i++) {</span>
+<span class="nc" id="L227">            elems[i] = null;</span>
         }
-<span class="nc" id="L215">        top = 0;</span>
-<span class="nc" id="L216">    }</span>
+<span class="nc" id="L229">        top = 0;</span>
+<span class="nc" id="L230">    }</span>
 
     /**
      * get the curent stack pos relative to base
@@ -221,7 +235,7 @@ public final class SimpleStack&lt;T&gt;
      * @return
      */
     public int getPtr() {
-<span class="nc" id="L224">        return top;</span>
+<span class="nc" id="L238">        return top;</span>
     }
 
     /**
@@ -231,11 +245,11 @@ public final class SimpleStack&lt;T&gt;
      * @return
      */
     public T getFromPtr(final int ptr) {
-<span class="nc bnc" id="L234" title="All 4 branches missed.">        if (ptr &lt; 0 || ptr &gt;= top) {</span>
-<span class="nc" id="L235">            throw new IndexOutOfBoundsException(</span>
+<span class="nc bnc" id="L248" title="All 4 branches missed.">        if (ptr &lt; 0 || ptr &gt;= top) {</span>
+<span class="nc" id="L249">            throw new IndexOutOfBoundsException(</span>
                     &quot;Trying to get from invalid index: &quot; + ptr + &quot; from: &quot; + this);
         }
-<span class="nc" id="L238">        return elems[ptr];</span>
+<span class="nc" id="L252">        return elems[ptr];</span>
     }
 
     /**
@@ -245,155 +259,155 @@ public final class SimpleStack&lt;T&gt;
      * @return String
      */
     public String toString(final char separator) {
-<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (top == 0) {</span>
-<span class="nc" id="L249">            return &quot;&quot;;</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (top == 0) {</span>
+<span class="nc" id="L263">            return &quot;&quot;;</span>
         }
-<span class="nc" id="L251">        final StringBuilder result = new StringBuilder(32);</span>
-<span class="nc" id="L252">        result.append(elems[0]);</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">        for (int i = 1; i &lt; top; i++) {</span>
-<span class="nc" id="L254">            result.append(separator);</span>
-<span class="nc" id="L255">            result.append(elems[i]);</span>
+<span class="nc" id="L265">        final StringBuilder result = new StringBuilder(32);</span>
+<span class="nc" id="L266">        result.append(elems[0]);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        for (int i = 1; i &lt; top; i++) {</span>
+<span class="nc" id="L268">            result.append(separator);</span>
+<span class="nc" id="L269">            result.append(elems[i]);</span>
         }
-<span class="nc" id="L257">        return result.toString();</span>
+<span class="nc" id="L271">        return result.toString();</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L262">        return toString('.');</span>
+<span class="nc" id="L276">        return toString('.');</span>
     }
 
     @Override
     public int size() {
-<span class="fc" id="L267">        return top;</span>
+<span class="fc" id="L281">        return top;</span>
     }
 
     @Override
     public boolean contains(final Object o) {
-<span class="nc" id="L272">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L286">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public Iterator&lt;T&gt; iterator() {
-<span class="nc" id="L277">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L291">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public Object[] toArray() {
-<span class="nc" id="L282">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L296">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public &lt;T&gt; T[] toArray(final T[] a) {
-<span class="nc" id="L287">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L301">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public boolean add(final T e) {
-<span class="nc" id="L292">        push(e);</span>
-<span class="nc" id="L293">        return true;</span>
+<span class="nc" id="L306">        push(e);</span>
+<span class="nc" id="L307">        return true;</span>
     }
 
     @Override
     public boolean remove(final Object o) {
-<span class="nc" id="L298">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L312">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public boolean containsAll(final Collection&lt;?&gt; c) {
-<span class="nc" id="L303">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L317">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public boolean addAll(final Collection&lt;? extends T&gt; c) {
-<span class="nc" id="L308">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L322">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public boolean removeAll(final Collection&lt;?&gt; c) {
-<span class="nc" id="L313">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L327">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public boolean retainAll(final Collection&lt;?&gt; c) {
-<span class="nc" id="L318">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L332">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L323" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L324">            return false;</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L338">            return false;</span>
         }
-<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L327">            return false;</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L341">            return false;</span>
         }
-<span class="nc" id="L329">        final SimpleStack&lt;T&gt; other = (SimpleStack&lt;T&gt;) obj;</span>
-<span class="nc bnc" id="L330" title="All 2 branches missed.">        if (this.top != other.top) {</span>
-<span class="nc" id="L331">            return false;</span>
+<span class="nc" id="L343">        final SimpleStack&lt;T&gt; other = (SimpleStack&lt;T&gt;) obj;</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (this.top != other.top) {</span>
+<span class="nc" id="L345">            return false;</span>
         }
-<span class="nc" id="L333">        return Arrays.deepEquals(this.elems, other.elems, 0, top);</span>
+<span class="nc" id="L347">        return Arrays.deepEquals(this.elems, other.elems, 0, top);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L338">        int hashCode = 7;</span>
-<span class="nc bnc" id="L339" title="All 2 branches missed.">        for (int i = 0; i &lt; top; i++) {</span>
-<span class="nc" id="L340">            Object obj = elems[i];</span>
-<span class="nc bnc" id="L341" title="All 2 branches missed.">            hashCode = 31 * hashCode + (obj == null ? 0 : obj.hashCode());</span>
+<span class="nc" id="L352">        int hashCode = 7;</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        for (int i = 0; i &lt; top; i++) {</span>
+<span class="nc" id="L354">            Object obj = elems[i];</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">            hashCode = 31 * hashCode + (obj == null ? 0 : obj.hashCode());</span>
         }
-<span class="nc" id="L343">        return hashCode;</span>
+<span class="nc" id="L357">        return hashCode;</span>
     }
 
     @Override
     public boolean addAll(final int index, final Collection&lt;? extends T&gt; c) {
-<span class="nc" id="L348">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L362">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public T get(final int index) {
-<span class="nc" id="L353">        return elems[index];</span>
+<span class="nc" id="L367">        return elems[index];</span>
     }
 
     @Override
     public T set(final int index, final T element) {
-<span class="nc" id="L358">        ensureCapacity(index);</span>
-<span class="nc" id="L359">        T result = elems[index];</span>
-<span class="nc" id="L360">        elems[index] = element;</span>
-<span class="nc" id="L361">        return result;</span>
+<span class="nc" id="L372">        ensureCapacity(index);</span>
+<span class="nc" id="L373">        T result = elems[index];</span>
+<span class="nc" id="L374">        elems[index] = element;</span>
+<span class="nc" id="L375">        return result;</span>
     }
 
     @Override
     public void add(final int index, final T element) {
-<span class="nc" id="L366">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L380">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public T remove(final int index) {
-<span class="nc" id="L371">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L385">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public int indexOf(final Object o) {
-<span class="nc" id="L376">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L390">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public int lastIndexOf(final Object o) {
-<span class="nc" id="L381">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L395">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public ListIterator&lt;T&gt; listIterator() {
-<span class="nc" id="L386">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L400">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public ListIterator&lt;T&gt; listIterator(final int index) {
-<span class="nc" id="L391">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L405">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 
     @Override
     public List&lt;T&gt; subList(final int fromIndex, final int toIndex) {
-<span class="nc" id="L396">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="nc" id="L410">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

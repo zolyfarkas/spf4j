@@ -1,4 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CharSequenceTranslator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CharSequenceTranslator.java</span></div><h1>CharSequenceTranslator.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CharSequenceTranslator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CharSequenceTranslator.java</span></div><h1>CharSequenceTranslator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.base;
 
 /*
@@ -25,49 +55,49 @@ import java.io.Writer;
 import java.util.Locale;
 
 
-<span class="fc" id="L28">public abstract class CharSequenceTranslator {</span>
+<span class="fc" id="L58">public abstract class CharSequenceTranslator {</span>
 
 
     public abstract int translate(CharSequence input, int index, Writer out) throws IOException;
 
 
     public final String translate(final CharSequence input) {
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (input == null) {</span>
-<span class="nc" id="L36">            return null;</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L66">            return null;</span>
         }
         try {
-<span class="fc" id="L39">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
-<span class="fc" id="L40">            translate(input, writer);</span>
-<span class="fc" id="L41">            return writer.toString();</span>
-<span class="nc" id="L42">        } catch (final IOException ioe) {</span>
+<span class="fc" id="L69">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
+<span class="fc" id="L70">            translate(input, writer);</span>
+<span class="fc" id="L71">            return writer.toString();</span>
+<span class="nc" id="L72">        } catch (final IOException ioe) {</span>
             // this should never ever happen while writing to a StringWriter
-<span class="nc" id="L44">            throw new UncheckedIOException(ioe);</span>
+<span class="nc" id="L74">            throw new UncheckedIOException(ioe);</span>
         }
     }
 
 
     public final void translate(final CharSequence input, final Writer out) throws IOException {
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (out == null) {</span>
-<span class="nc" id="L51">            throw new IllegalArgumentException(&quot;The Writer must not be null when translating &quot; + input);</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (out == null) {</span>
+<span class="nc" id="L81">            throw new IllegalArgumentException(&quot;The Writer must not be null when translating &quot; + input);</span>
         }
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (input == null) {</span>
-<span class="nc" id="L54">            return;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L84">            return;</span>
         }
-<span class="fc" id="L56">        int pos = 0;</span>
-<span class="fc" id="L57">        final int len = input.length();</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        while (pos &lt; len) {</span>
-<span class="fc" id="L59">            final int consumed = translate(input, pos, out);</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">            if (consumed == 0) {</span>
-<span class="fc" id="L61">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
-<span class="fc" id="L62">                out.write(c);</span>
-<span class="fc" id="L63">                pos += c.length;</span>
-<span class="fc" id="L64">                continue;</span>
+<span class="fc" id="L86">        int pos = 0;</span>
+<span class="fc" id="L87">        final int len = input.length();</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        while (pos &lt; len) {</span>
+<span class="fc" id="L89">            final int consumed = translate(input, pos, out);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">            if (consumed == 0) {</span>
+<span class="fc" id="L91">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
+<span class="fc" id="L92">                out.write(c);</span>
+<span class="fc" id="L93">                pos += c.length;</span>
+<span class="fc" id="L94">                continue;</span>
             }
-<span class="fc bfc" id="L66" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
-<span class="fc" id="L67">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
+<span class="fc" id="L97">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
             }
-<span class="fc" id="L69">        }</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L99">        }</span>
+<span class="fc" id="L100">    }</span>
 
     /**
      * &lt;p&gt;Returns an upper case hexadecimal &lt;code&gt;String&lt;/code&gt; for the given
@@ -77,7 +107,7 @@ import java.util.Locale;
      * @return An upper case hexadecimal &lt;code&gt;String&lt;/code&gt;
      */
     public static String hex(final int codepoint) {
-<span class="nc" id="L80">        return Integer.toHexString(codepoint).toUpperCase(Locale.ENGLISH);</span>
+<span class="nc" id="L110">        return Integer.toHexString(codepoint).toUpperCase(Locale.ENGLISH);</span>
     }
 
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SLEEP.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.instr</a> &gt; <span class="el_source">SLEEP.java</span></div><h1>SLEEP.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.zel.instr;
 
@@ -35,34 +49,34 @@ public final class SLEEP extends Instruction {
 
     private static final long serialVersionUID = -104479947741779060L;
 
-<span class="fc" id="L38">    public static final Instruction INSTANCE = new SLEEP();</span>
+<span class="fc" id="L52">    public static final Instruction INSTANCE = new SLEEP();</span>
 
-<span class="fc" id="L40">    private SLEEP() {</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L54">    private SLEEP() {</span>
+<span class="fc" id="L55">    }</span>
 
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException, InterruptedException, ExecutionException {
-<span class="fc" id="L46">        Number param = (Number) context.popSyncStackVal();</span>
-<span class="fc" id="L47">        final long sleepMillis = param.longValue();</span>
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (context.getExecService() == null) {</span>
-<span class="nc" id="L50">                Thread.sleep(sleepMillis);</span>
+<span class="fc" id="L60">        Number param = (Number) context.popSyncStackVal();</span>
+<span class="fc" id="L61">        final long sleepMillis = param.longValue();</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (context.getExecService() == null) {</span>
+<span class="nc" id="L64">                Thread.sleep(sleepMillis);</span>
             } else {
-<span class="fc" id="L52">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
-<span class="fc" id="L53">                DefaultScheduler.INSTANCE.schedule(</span>
+<span class="fc" id="L66">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
+<span class="fc" id="L67">                DefaultScheduler.INSTANCE.schedule(</span>
                         new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-<span class="fc" id="L55">                context.incrementInstructionPointer();</span>
-<span class="nc" id="L56">                context.suspend(future);</span>
+<span class="fc" id="L69">                context.incrementInstructionPointer();</span>
+<span class="nc" id="L70">                context.suspend(future);</span>
             }
         }
-<span class="nc" id="L59">        return 1;</span>
+<span class="nc" id="L73">        return 1;</span>
 
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L65">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L79">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
     private static final  class RunnableImpl implements Runnable {
@@ -70,18 +84,18 @@ public final class SLEEP extends Instruction {
         private final ExecutionContext context;
         private final VMASyncFuture&lt;Object&gt; future;
 
-<span class="fc" id="L73">        RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
-<span class="fc" id="L74">            this.context = context;</span>
-<span class="fc" id="L75">            this.future = future;</span>
-<span class="fc" id="L76">        }</span>
+<span class="fc" id="L87">        RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
+<span class="fc" id="L88">            this.context = context;</span>
+<span class="fc" id="L89">            this.future = future;</span>
+<span class="fc" id="L90">        }</span>
 
         @Override
         public void run() {
             Object stuff;
             do {
-<span class="fc" id="L82">                stuff = context.getExecService().resumeSuspendables(future);</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            } while (stuff == null);</span>
-<span class="fc" id="L84">        }</span>
+<span class="fc" id="L96">                stuff = context.getExecService().resumeSuspendables(future);</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            } while (stuff == null);</span>
+<span class="fc" id="L98">        }</span>
     }
 
 }

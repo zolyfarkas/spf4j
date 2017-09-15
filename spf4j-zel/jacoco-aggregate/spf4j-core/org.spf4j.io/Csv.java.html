@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Csv.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">Csv.java</span></div><h1>Csv.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.io;
 
@@ -44,12 +58,12 @@ import org.spf4j.io.csv.CsvReader;
 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // FB gets it wrong here
 public final class Csv {
 
-<span class="fc" id="L47">  public static final CharSeparatedValues CSV = new CharSeparatedValues(',');</span>
+<span class="fc" id="L61">  public static final CharSeparatedValues CSV = new CharSeparatedValues(',');</span>
 
-<span class="fc" id="L49">  private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '&quot;'};</span>
+<span class="fc" id="L63">  private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '&quot;'};</span>
   
-<span class="nc" id="L51">  private Csv() {</span>
-<span class="nc" id="L52">  }</span>
+<span class="nc" id="L65">  private Csv() {</span>
+<span class="nc" id="L66">  }</span>
 
   public interface CsvHandler&lt;T&gt; extends org.spf4j.io.csv.CsvHandler&lt;T&gt; {
   }
@@ -61,61 +75,61 @@ public final class Csv {
   }
 
   public static void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
-<span class="fc" id="L64">    CSV.writeCsvRow(writer, elems);</span>
-<span class="fc" id="L65">  }</span>
+<span class="fc" id="L78">    CSV.writeCsvRow(writer, elems);</span>
+<span class="fc" id="L79">  }</span>
 
   public static void writeCsvRow2(final Appendable writer, final Object obj, final Object... elems)
           throws IOException {
-<span class="fc" id="L69">    CSV.writeCsvRow2(writer, obj, elems);</span>
-<span class="fc" id="L70">  }</span>
+<span class="fc" id="L83">    CSV.writeCsvRow2(writer, obj, elems);</span>
+<span class="fc" id="L84">  }</span>
 
   public static void writeCsvRow(final Appendable writer, final long... elems) throws IOException {
-<span class="fc" id="L73">    CSV.writeCsvRow(writer, elems);</span>
-<span class="fc" id="L74">  }</span>
+<span class="fc" id="L87">    CSV.writeCsvRow(writer, elems);</span>
+<span class="fc" id="L88">  }</span>
 
   public static void writeCsvRowNoEOL(final long[] elems, final Appendable writer) throws IOException {
-<span class="nc" id="L77">    CSV.writeCsvRowNoEOL(elems, writer);</span>
-<span class="nc" id="L78">  }</span>
+<span class="nc" id="L91">    CSV.writeCsvRowNoEOL(elems, writer);</span>
+<span class="nc" id="L92">  }</span>
 
   public static void writeCsvRow(final Appendable writer, final Iterable&lt;?&gt; elems) throws IOException {
-<span class="nc" id="L81">    CSV.writeCsvRow(writer, elems);</span>
-<span class="nc" id="L82">  }</span>
+<span class="nc" id="L95">    CSV.writeCsvRow(writer, elems);</span>
+<span class="nc" id="L96">  }</span>
 
   public static void writeCsvRowNoEOL(final Iterable&lt;?&gt; elems, final Appendable writer) throws IOException {
-<span class="nc" id="L85">    CSV.writeCsvRowNoEOL(elems, writer);</span>
-<span class="nc" id="L86">  }</span>
+<span class="nc" id="L99">    CSV.writeCsvRowNoEOL(elems, writer);</span>
+<span class="nc" id="L100">  }</span>
 
   public static &lt;T&gt; T read(final File file, final Charset charset,
           final CsvMapHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="fc" id="L90">    return CSV.read(file, charset, handler);</span>
+<span class="fc" id="L104">    return CSV.read(file, charset, handler);</span>
   }
 
   public static &lt;T&gt; T read(final File file, final Charset charset,
           final CsvHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="fc" id="L95">    return CSV.read(file, charset, handler);</span>
+<span class="fc" id="L109">    return CSV.read(file, charset, handler);</span>
   }
 
   public static List&lt;Map&lt;String, String&gt;&gt; read(final Reader preader) throws IOException, CsvParseException {
-<span class="nc" id="L99">    return CSV.read(preader);</span>
+<span class="nc" id="L113">    return CSV.read(preader);</span>
   }
 
   public static &lt;T&gt; T read(final Reader preader,
           final CsvMapHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="fc" id="L104">    return CSV.read(preader, handler);</span>
+<span class="fc" id="L118">    return CSV.read(preader, handler);</span>
   }
 
   public static List&lt;String&gt; readRow(final Reader reader) throws IOException, CsvParseException {
-<span class="fc" id="L108">    return CSV.readRow(reader);</span>
+<span class="fc" id="L122">    return CSV.readRow(reader);</span>
   }
 
   public static &lt;T&gt; T readRow(final Reader reader, final CsvRowHandler&lt;T&gt; handler)
           throws IOException, CsvParseException {
-<span class="nc" id="L113">    return CSV.readRow(reader, handler);</span>
+<span class="nc" id="L127">    return CSV.readRow(reader, handler);</span>
   }
 
   public static &lt;T&gt; T read(final Reader preader,
           final CsvHandler&lt;T&gt; handler) throws IOException, CsvParseException {
-<span class="nc" id="L118">    return CSV.read(preader, handler);</span>
+<span class="nc" id="L132">    return CSV.read(preader, handler);</span>
   }
 
   /**
@@ -129,7 +143,7 @@ public final class Csv {
    */
   public static &lt;T&gt; T readNoBom(final PushbackReader reader, final CsvHandler&lt;T&gt; handler)
           throws IOException, CsvParseException {
-<span class="nc" id="L132">    return CSV.readNoBom(reader, handler);</span>
+<span class="nc" id="L146">    return CSV.readNoBom(reader, handler);</span>
   }
 
   /**
@@ -140,50 +154,50 @@ public final class Csv {
    * @return
    */
   public static Iterable&lt;Iterable&lt;String&gt;&gt; asIterable(final Reader preader) {
-<span class="fc" id="L143">    return CSV.asIterable(preader);</span>
+<span class="fc" id="L157">    return CSV.asIterable(preader);</span>
   }
 
   public static CsvReader reader(final Reader preader) throws IOException {
-<span class="fc" id="L147">    return CSV.reader(preader);</span>
+<span class="fc" id="L161">    return CSV.reader(preader);</span>
   }
 
   public static CsvReader readerNoBOM(final PushbackReader reader) {
-<span class="fc" id="L151">    return CSV.readerNoBOM(reader);</span>
+<span class="fc" id="L165">    return CSV.readerNoBOM(reader);</span>
   }
 
   public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-<span class="fc bfc" id="L155" title="All 2 branches covered.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
-<span class="fc" id="L156">      writeQuotedCsvElement(elem, writer);</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
+<span class="fc" id="L170">      writeQuotedCsvElement(elem, writer);</span>
     } else {
-<span class="fc" id="L158">      writer.append(elem);</span>
+<span class="fc" id="L172">      writer.append(elem);</span>
     }
-<span class="fc" id="L160">  }</span>
-
-  public static void writeQuotedCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-<span class="fc" id="L163">    int length = elem.length();</span>
-<span class="fc" id="L164">    writer.append('&quot;');</span>
-<span class="fc bfc" id="L165" title="All 2 branches covered.">    for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L166">      char c = elem.charAt(i);</span>
-<span class="fc bfc" id="L167" title="All 2 branches covered.">      if (c == '&quot;') {</span>
-<span class="fc" id="L168">        writer.append(&quot;\&quot;\&quot;&quot;);</span>
-      } else {
-<span class="fc" id="L170">        writer.append(c);</span>
-      }
-    }
-<span class="fc" id="L173">    writer.append('&quot;');</span>
 <span class="fc" id="L174">  }</span>
 
+  public static void writeQuotedCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
+<span class="fc" id="L177">    int length = elem.length();</span>
+<span class="fc" id="L178">    writer.append('&quot;');</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">    for (int i = 0; i &lt; length; i++) {</span>
+<span class="fc" id="L180">      char c = elem.charAt(i);</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">      if (c == '&quot;') {</span>
+<span class="fc" id="L182">        writer.append(&quot;\&quot;\&quot;&quot;);</span>
+      } else {
+<span class="fc" id="L184">        writer.append(c);</span>
+      }
+    }
+<span class="fc" id="L187">    writer.append('&quot;');</span>
+<span class="fc" id="L188">  }</span>
+
   public static CharSequence toCsvElement(final CharSequence elem) {
-<span class="nc bnc" id="L177" title="All 2 branches missed.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
-<span class="nc" id="L178">      StringWriter sw = new StringWriter(elem.length() - 1);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
+<span class="nc" id="L192">      StringWriter sw = new StringWriter(elem.length() - 1);</span>
       try {
-<span class="nc" id="L180">        writeQuotedCsvElement(elem, sw);</span>
-<span class="nc" id="L181">      } catch (IOException ex) {</span>
-<span class="nc" id="L182">        throw new RuntimeException(ex);</span>
-<span class="nc" id="L183">      }</span>
-<span class="nc" id="L184">      return sw.toString();</span>
+<span class="nc" id="L194">        writeQuotedCsvElement(elem, sw);</span>
+<span class="nc" id="L195">      } catch (IOException ex) {</span>
+<span class="nc" id="L196">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L197">      }</span>
+<span class="nc" id="L198">      return sw.toString();</span>
     } else {
-<span class="nc" id="L186">      return elem;</span>
+<span class="nc" id="L200">      return elem;</span>
     }
   }
 
@@ -197,36 +211,36 @@ public final class Csv {
    */
   @CheckReturnValue
   public static int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
-<span class="fc" id="L200">    int c = reader.read();</span>
-<span class="pc bpc" id="L201" title="1 of 2 branches missed.">    if (c &lt; 0) {</span>
-<span class="nc" id="L202">      return c;</span>
+<span class="fc" id="L214">    int c = reader.read();</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">    if (c &lt; 0) {</span>
+<span class="nc" id="L216">      return c;</span>
     }
-<span class="fc bfc" id="L204" title="All 2 branches covered.">    if (c == '&quot;') {</span>
-<span class="fc" id="L205">      c = reader.read();</span>
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">      while (c &gt;= 0) {</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (c == '&quot;') {</span>
-<span class="fc" id="L208">          int c2 = reader.read();</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">          if (c2 &gt;= 0) {</span>
-<span class="pc bpc" id="L210" title="1 of 2 branches missed.">            if (c2 == '&quot;') {</span>
-<span class="fc" id="L211">              addElemTo.append((char) c);</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">    if (c == '&quot;') {</span>
+<span class="fc" id="L219">      c = reader.read();</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">      while (c &gt;= 0) {</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (c == '&quot;') {</span>
+<span class="fc" id="L222">          int c2 = reader.read();</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">          if (c2 &gt;= 0) {</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">            if (c2 == '&quot;') {</span>
+<span class="fc" id="L225">              addElemTo.append((char) c);</span>
             } else {
-<span class="nc" id="L213">              return c2;</span>
+<span class="nc" id="L227">              return c2;</span>
             }
           } else {
-<span class="fc" id="L216">            return c2;</span>
+<span class="fc" id="L230">            return c2;</span>
           }
-<span class="fc" id="L218">        } else {</span>
-<span class="fc" id="L219">          addElemTo.append((char) c);</span>
+<span class="fc" id="L232">        } else {</span>
+<span class="fc" id="L233">          addElemTo.append((char) c);</span>
         }
-<span class="fc" id="L221">        c = reader.read();</span>
+<span class="fc" id="L235">        c = reader.read();</span>
       }
     } else {
-<span class="pc bpc" id="L224" title="3 of 8 branches missed.">      while (c != ',' &amp;&amp; c != '\n' &amp;&amp; c != '\r' &amp;&amp; c &gt;= 0) {</span>
-<span class="fc" id="L225">        addElemTo.append((char) c);</span>
-<span class="fc" id="L226">        c = reader.read();</span>
+<span class="pc bpc" id="L238" title="3 of 8 branches missed.">      while (c != ',' &amp;&amp; c != '\n' &amp;&amp; c != '\r' &amp;&amp; c &gt;= 0) {</span>
+<span class="fc" id="L239">        addElemTo.append((char) c);</span>
+<span class="fc" id="L240">        c = reader.read();</span>
       }
     }
-<span class="fc" id="L229">    return c;</span>
+<span class="fc" id="L243">    return c;</span>
   }
 
 }

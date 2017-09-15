@@ -1,4 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemasWithClasses.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.schema</a> &gt; <span class="el_source">SchemasWithClasses.java</span></div><h1>SchemasWithClasses.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemasWithClasses.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.schema</a> &gt; <span class="el_source">SchemasWithClasses.java</span></div><h1>SchemasWithClasses.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.avro.schema;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -13,43 +43,43 @@ import org.apache.avro.Schema;
  * @author zoly
  */
 //CHECKSTYLE IGNORE MissingSwitchDefault FOR NEXT 200 LINES
-<span class="fc" id="L16">public final class SchemasWithClasses implements SchemaVisitor&lt;Map&lt;String, Schema&gt;&gt; {</span>
+<span class="fc" id="L46">public final class SchemasWithClasses implements SchemaVisitor&lt;Map&lt;String, Schema&gt;&gt; {</span>
 
-<span class="fc" id="L18">  private final Map&lt;String, Schema&gt; schemas = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L48">  private final Map&lt;String, Schema&gt; schemas = new HashMap&lt;&gt;();</span>
 
   @Override
   @SuppressFBWarnings(&quot;SF_SWITCH_NO_DEFAULT&quot;)
   public SchemaVisitorAction visitTerminal(final Schema schema) {
-<span class="pc bfc" id="L23" title="All 2 branches covered.">    switch (schema.getType()) {</span>
+<span class="pc bfc" id="L53" title="All 2 branches covered.">    switch (schema.getType()) {</span>
       case FIXED:
       case ENUM:
-<span class="fc" id="L26">        schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
+<span class="fc" id="L56">        schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
         break;
     }
-<span class="fc" id="L29">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L59">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public SchemaVisitorAction visitNonTerminal(final Schema schema) {
-<span class="fc bfc" id="L34" title="All 2 branches covered.">    if (schema.getType() == Schema.Type.RECORD) {</span>
-<span class="fc" id="L35">      schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (schema.getType() == Schema.Type.RECORD) {</span>
+<span class="fc" id="L65">      schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
     }
-<span class="fc" id="L37">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L67">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public SchemaVisitorAction afterVisitNonTerminal(final Schema terminal) {
-<span class="fc" id="L42">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L72">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public Map&lt;String, Schema&gt; get() {
-<span class="fc" id="L47">    return schemas;</span>
+<span class="fc" id="L77">    return schemas;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L52">    return &quot;SchemasWithClasses{&quot; + &quot;schemas=&quot; + schemas + '}';</span>
+<span class="nc" id="L82">    return &quot;SchemasWithClasses{&quot; + &quot;schemas=&quot; + schemas + '}';</span>
   }
 
 

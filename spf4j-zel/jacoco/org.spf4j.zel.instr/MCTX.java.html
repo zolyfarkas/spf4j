@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MCTX.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.instr</a> &gt; <span class="el_source">MCTX.java</span></div><h1>MCTX.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.zel.instr;
 
@@ -28,34 +42,34 @@ public final class MCTX extends Instruction {
 
     private final int precission;
     
-<span class="fc" id="L31">    public MCTX(final int precission) {</span>
-<span class="fc" id="L32">        this.precission = precission;</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L45">    public MCTX(final int precission) {</span>
+<span class="fc" id="L46">        this.precission = precission;</span>
+<span class="fc" id="L47">    }</span>
 
     @Override
     public int execute(final ExecutionContext context) {
         MathContext mc;
-<span class="pc bpc" id="L38" title="2 of 4 branches missed.">        switch (precission) {</span>
+<span class="pc bpc" id="L52" title="2 of 4 branches missed.">        switch (precission) {</span>
             case 32:
-<span class="nc" id="L40">                mc = MathContext.DECIMAL32;</span>
-<span class="nc" id="L41">                break;</span>
+<span class="nc" id="L54">                mc = MathContext.DECIMAL32;</span>
+<span class="nc" id="L55">                break;</span>
             case 64:
-<span class="fc" id="L43">                mc = MathContext.DECIMAL64;</span>
-<span class="fc" id="L44">                break;</span>
+<span class="fc" id="L57">                mc = MathContext.DECIMAL64;</span>
+<span class="fc" id="L58">                break;</span>
             case 128:
-<span class="fc" id="L46">                mc = MathContext.DECIMAL128;</span>
-<span class="fc" id="L47">                break;</span>
+<span class="fc" id="L60">                mc = MathContext.DECIMAL128;</span>
+<span class="fc" id="L61">                break;</span>
             default:
-<span class="nc" id="L49">                mc = new MathContext(precission);</span>
+<span class="nc" id="L63">                mc = new MathContext(precission);</span>
         }
-<span class="fc" id="L51">        context.setMathContext(mc);</span>
-<span class="fc" id="L52">        Operator.MATH_CONTEXT.set(mc);</span>
-<span class="fc" id="L53">        return 1;</span>
+<span class="fc" id="L65">        context.setMathContext(mc);</span>
+<span class="fc" id="L66">        Operator.MATH_CONTEXT.set(mc);</span>
+<span class="fc" id="L67">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L58">        return new Object[] {precission};</span>
+<span class="fc" id="L72">        return new Object[] {precission};</span>
     }
 
 }

@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JdbcLock.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">JdbcLock.java</span></div><h1>JdbcLock.java</h1><pre class="source lang-java linenums">package org.spf4j.concurrent.jdbc;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JdbcLock.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent.jdbc</a> &gt; <span class="el_source">JdbcLock.java</span></div><h1>JdbcLock.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.concurrent.jdbc;
 
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
@@ -19,62 +50,62 @@ public final class JdbcLock implements Lock, AutoCloseable {
   private final int jdbcTimeoutSeconds;
 
   public JdbcLock(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
-<span class="fc" id="L22">          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {</span>
-<span class="fc" id="L23">    this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);</span>
-<span class="fc" id="L24">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
-<span class="fc" id="L25">    this.semaphore.registerJmx();</span>
-<span class="fc" id="L26">  }</span>
+<span class="fc" id="L53">          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {</span>
+<span class="fc" id="L54">    this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);</span>
+<span class="fc" id="L55">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
+<span class="fc" id="L56">    this.semaphore.registerJmx();</span>
+<span class="fc" id="L57">  }</span>
 
   @Override
   public void lock() {
     try {
-<span class="fc" id="L31">      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L32">    } catch (InterruptedException | TimeoutException ex) {</span>
-<span class="nc" id="L33">      throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L34">    }</span>
-<span class="fc" id="L35">  }</span>
+<span class="fc" id="L62">      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L63">    } catch (InterruptedException | TimeoutException ex) {</span>
+<span class="nc" id="L64">      throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L65">    }</span>
+<span class="fc" id="L66">  }</span>
 
   @Override
   public void lockInterruptibly() throws InterruptedException {
     try {
-<span class="nc" id="L40">      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L41">    } catch (TimeoutException ex) {</span>
-<span class="nc" id="L42">      throw new LockRuntimeException(ex);</span>
-<span class="nc" id="L43">    }</span>
-<span class="nc" id="L44">  }</span>
+<span class="nc" id="L71">      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L72">    } catch (TimeoutException ex) {</span>
+<span class="nc" id="L73">      throw new LockRuntimeException(ex);</span>
+<span class="nc" id="L74">    }</span>
+<span class="nc" id="L75">  }</span>
 
   @Override
   public boolean tryLock() {
     try {
-<span class="fc" id="L49">      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);</span>
-<span class="nc" id="L50">    } catch (InterruptedException ex) {</span>
-<span class="nc" id="L51">      throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L80">      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);</span>
+<span class="nc" id="L81">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L82">      throw new LockRuntimeException(ex);</span>
     }
   }
 
   @Override
   public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
-<span class="nc" id="L57">      return semaphore.tryAcquire(time, unit);</span>
+<span class="nc" id="L88">      return semaphore.tryAcquire(time, unit);</span>
   }
 
   @Override
   public void unlock() {
-<span class="fc" id="L62">    semaphore.release();</span>
-<span class="fc" id="L63">  }</span>
+<span class="fc" id="L93">    semaphore.release();</span>
+<span class="fc" id="L94">  }</span>
 
   @Override
   public Condition newCondition() {
-<span class="nc" id="L67">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L98">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public void close() {
-<span class="nc" id="L72">    semaphore.close();</span>
-<span class="nc" id="L73">  }</span>
+<span class="nc" id="L103">    semaphore.close();</span>
+<span class="nc" id="L104">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L77">    return &quot;JdbcLock{&quot; + &quot;semaphore=&quot; + semaphore + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + '}';</span>
+<span class="nc" id="L108">    return &quot;JdbcLock{&quot; + &quot;semaphore=&quot; + semaphore + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + '}';</span>
   }
 
 

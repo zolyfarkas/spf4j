@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TSDBTxtMeasurementStore.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.ms.tsdb</a> &gt; <span class="el_source">TSDBTxtMeasurementStore.java</span></div><h1>TSDBTxtMeasurementStore.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
@@ -43,63 +57,63 @@ import org.spf4j.perf.impl.ms.Id2Info;
 public final class TSDBTxtMeasurementStore
         implements MeasurementStore {
 
-<span class="fc" id="L46">  private static final Interner&lt;String&gt; INTERNER = Interners.newStrongInterner();</span>
+<span class="fc" id="L60">  private static final Interner&lt;String&gt; INTERNER = Interners.newStrongInterner();</span>
 
   private final BufferedWriter writer;
 
   private final String fileName;
 
-<span class="fc" id="L52">  public TSDBTxtMeasurementStore(final File file) throws IOException {</span>
-<span class="fc" id="L53">    this.writer = new BufferedWriter(new OutputStreamWriter(</span>
-<span class="fc" id="L54">            Files.newOutputStream(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND),</span>
+<span class="fc" id="L66">  public TSDBTxtMeasurementStore(final File file) throws IOException {</span>
+<span class="fc" id="L67">    this.writer = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="fc" id="L68">            Files.newOutputStream(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND),</span>
             Charsets.UTF_8));
-<span class="fc" id="L56">    this.fileName = INTERNER.intern(file.getPath());</span>
-<span class="fc" id="L57">  }</span>
+<span class="fc" id="L70">    this.fileName = INTERNER.intern(file.getPath());</span>
+<span class="fc" id="L71">  }</span>
 
   @Override
   public long alocateMeasurements(final MeasurementsInfo measurement,
           final int sampleTimeMillis) {
-<span class="fc" id="L62">    return Id2Info.getId(measurement);</span>
+<span class="fc" id="L76">    return Id2Info.getId(measurement);</span>
   }
 
   @Override
   public void saveMeasurements(final long tableId,
           final long timeStampMillis, final long... measurements)
           throws IOException {
-<span class="fc" id="L69">    MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);</span>
-<span class="fc" id="L70">    String groupName = measurementInfo.getMeasuredEntity().toString();</span>
-<span class="fc" id="L71">    synchronized (fileName) {</span>
-<span class="fc" id="L72">      Csv.writeCsvElement(groupName, writer);</span>
-<span class="fc" id="L73">      writer.write(',');</span>
-<span class="fc" id="L74">      writer.write(Long.toString(timeStampMillis));</span>
+<span class="fc" id="L83">    MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);</span>
+<span class="fc" id="L84">    String groupName = measurementInfo.getMeasuredEntity().toString();</span>
+<span class="fc" id="L85">    synchronized (fileName) {</span>
+<span class="fc" id="L86">      Csv.writeCsvElement(groupName, writer);</span>
+<span class="fc" id="L87">      writer.write(',');</span>
+<span class="fc" id="L88">      writer.write(Long.toString(timeStampMillis));</span>
 //            writer.write(',');
 //            writer.write(Integer.toString(sampleTimeMillis));
-<span class="fc bfc" id="L77" title="All 2 branches covered.">      for (int i = 0; i &lt; measurements.length; i++) {</span>
-<span class="fc" id="L78">        String measurementName = measurementInfo.getMeasurementName(i);</span>
-<span class="fc" id="L79">        writer.write(',');</span>
-<span class="fc" id="L80">        Csv.writeCsvElement(measurementName, writer);</span>
-<span class="fc" id="L81">        writer.write(',');</span>
-<span class="fc" id="L82">        writer.write(Long.toString(measurements[i]));</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">      for (int i = 0; i &lt; measurements.length; i++) {</span>
+<span class="fc" id="L92">        String measurementName = measurementInfo.getMeasurementName(i);</span>
+<span class="fc" id="L93">        writer.write(',');</span>
+<span class="fc" id="L94">        Csv.writeCsvElement(measurementName, writer);</span>
+<span class="fc" id="L95">        writer.write(',');</span>
+<span class="fc" id="L96">        writer.write(Long.toString(measurements[i]));</span>
       }
-<span class="fc" id="L84">      writer.write('\n');</span>
-<span class="pc" id="L85">    }</span>
-<span class="fc" id="L86">  }</span>
+<span class="fc" id="L98">      writer.write('\n');</span>
+<span class="pc" id="L99">    }</span>
+<span class="fc" id="L100">  }</span>
 
   @PreDestroy
   @Override
   public void close() throws IOException {
-<span class="fc" id="L91">    writer.close();</span>
-<span class="fc" id="L92">  }</span>
+<span class="fc" id="L105">    writer.close();</span>
+<span class="fc" id="L106">  }</span>
 
   @JmxExport(description = &quot;flush out buffers&quot;)
   @Override
   public void flush() throws IOException {
-<span class="fc" id="L97">    writer.flush();</span>
-<span class="fc" id="L98">  }</span>
+<span class="fc" id="L111">    writer.flush();</span>
+<span class="fc" id="L112">  }</span>
 
   @Override
   public String toString() {
-<span class="fc" id="L102">    return &quot;TSDBTxtMeasurementStore{&quot; + &quot;fileName=&quot; + fileName + '}';</span>
+<span class="fc" id="L116">    return &quot;TSDBTxtMeasurementStore{&quot; + &quot;fileName=&quot; + fileName + '}';</span>
   }
 
 }

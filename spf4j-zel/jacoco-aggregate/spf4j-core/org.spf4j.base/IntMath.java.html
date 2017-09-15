@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>IntMath.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">IntMath.java</span></div><h1>IntMath.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.base;
 
@@ -25,14 +39,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 public final class IntMath {
 
-<span class="nc" id="L28">    private IntMath() { }</span>
+<span class="nc" id="L42">    private IntMath() { }</span>
 
     public static int closestPowerOf2(final int number) {
-<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
     }
 
     public static int closestPowerOf2Number(final int number) {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">       return number == 0 ? 0 : 1 &lt;&lt; (32 - Integer.numberOfLeadingZeros(number - 1));</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">       return number == 0 ? 0 : 1 &lt;&lt; (32 - Integer.numberOfLeadingZeros(number - 1));</span>
     }
 
     /**
@@ -46,18 +60,18 @@ public final class IntMath {
         // XorShift128 PRNG with a 2^32-1 period.
         private int x;
 
-<span class="fc" id="L49">        public XorShift32() {</span>
-<span class="fc" id="L50">          x = (int) System.currentTimeMillis();</span>
-<span class="pc bpc" id="L51" title="1 of 2 branches missed.">          while (x == 0) {</span>
-<span class="nc" id="L52">            x = (int) System.currentTimeMillis();</span>
+<span class="fc" id="L63">        public XorShift32() {</span>
+<span class="fc" id="L64">          x = (int) System.currentTimeMillis();</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">          while (x == 0) {</span>
+<span class="nc" id="L66">            x = (int) System.currentTimeMillis();</span>
           }
-<span class="fc" id="L54">        }</span>
+<span class="fc" id="L68">        }</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L58">            x ^= (x &lt;&lt; 6);</span>
-<span class="fc" id="L59">            x ^= (x &gt;&gt;&gt; 21);</span>
-<span class="fc" id="L60">            return x ^ (x &lt;&lt; 7);</span>
+<span class="fc" id="L72">            x ^= (x &lt;&lt; 6);</span>
+<span class="fc" id="L73">            x ^= (x &gt;&gt;&gt; 21);</span>
+<span class="fc" id="L74">            return x ^ (x &lt;&lt; 7);</span>
         }
     }
 
@@ -68,46 +82,46 @@ public final class IntMath {
      */
     @ThreadSafe
     @Deprecated
-<span class="nc" id="L71">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
+<span class="nc" id="L85">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
 
 
-<span class="nc" id="L74">      public static final class Singleton {</span>
+<span class="nc" id="L88">      public static final class Singleton {</span>
 
-<span class="nc" id="L76">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
+<span class="nc" id="L90">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
 
       }
 
-<span class="nc" id="L80">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
+<span class="nc" id="L94">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
 
       @Override
       public int nextInt() {
-<span class="nc" id="L84">        return rnd.get().nextInt();</span>
+<span class="nc" id="L98">        return rnd.get().nextInt();</span>
       }
 
-<span class="nc" id="L87">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
+<span class="nc" id="L101">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
 
         @Override
         protected XorShift32 initialValue() {
-<span class="nc" id="L91">          return new XorShift32();</span>
+<span class="nc" id="L105">          return new XorShift32();</span>
         }
       }
     }
 
 
     @NotThreadSafe
-<span class="fc" id="L98">    public static final class XorShift128 implements IntSequence {</span>
+<span class="fc" id="L112">    public static final class XorShift128 implements IntSequence {</span>
         // XorShift128 PRNG with a 2^128-1 period.
-<span class="fc" id="L100">        private int x = System.identityHashCode(this);</span>
-<span class="fc" id="L101">        private int y = -938745813;</span>
-<span class="fc" id="L102">        private int z = 452465366;</span>
-<span class="fc" id="L103">        private int w = 1343246171;</span>
+<span class="fc" id="L114">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L115">        private int y = -938745813;</span>
+<span class="fc" id="L116">        private int z = 452465366;</span>
+<span class="fc" id="L117">        private int w = 1343246171;</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L107">            int t = x ^ (x &lt;&lt; 15);</span>
-<span class="fc" id="L108">            x = y; y = z; z = w;</span>
-<span class="fc" id="L109">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
-<span class="fc" id="L110">            return w;</span>
+<span class="fc" id="L121">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="fc" id="L122">            x = y; y = z; z = w;</span>
+<span class="fc" id="L123">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="fc" id="L124">            return w;</span>
         }
     }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Throwables.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Throwables.java</span></div><h1>Throwables.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.base;
 
@@ -22,7 +36,6 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayDeque;
@@ -60,126 +73,113 @@ public final class Throwables {
    */
   public static final String CAUSE_CAPTION = &quot;Caused by: &quot;;
 
-<span class="fc" id="L63">  public static final int MAX_THROWABLE_CHAIN</span>
-<span class="fc" id="L64">          = Integer.getInteger(&quot;spf4j.throwables.defaultMaxSuppressChain&quot;, 100);</span>
+<span class="fc" id="L76">  public static final int MAX_THROWABLE_CHAIN</span>
+<span class="fc" id="L77">          = Integer.getInteger(&quot;spf4j.throwables.defaultMaxSuppressChain&quot;, 100);</span>
 
   private static final Field CAUSE_FIELD;
 
   private static final Field SUPPRESSED_FIELD;
 
   static {
-<span class="fc" id="L71">    CAUSE_FIELD = AccessController.doPrivileged((PrivilegedAction&lt;Field&gt;) () -&gt; {</span>
+<span class="fc" id="L84">    CAUSE_FIELD = AccessController.doPrivileged((PrivilegedAction&lt;Field&gt;) () -&gt; {</span>
       Field causeField;
       try {
-<span class="fc" id="L74">        causeField = Throwable.class.getDeclaredField(&quot;cause&quot;);</span>
-<span class="nc" id="L75">      } catch (NoSuchFieldException | SecurityException ex) {</span>
-<span class="nc" id="L76">        throw new ExceptionInInitializerError(ex);</span>
-<span class="fc" id="L77">      }</span>
-<span class="fc" id="L78">      causeField.setAccessible(true);</span>
-<span class="fc" id="L79">      return causeField;</span>
+<span class="fc" id="L87">        causeField = Throwable.class.getDeclaredField(&quot;cause&quot;);</span>
+<span class="nc" id="L88">      } catch (NoSuchFieldException | SecurityException ex) {</span>
+<span class="nc" id="L89">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L90">      }</span>
+<span class="fc" id="L91">      causeField.setAccessible(true);</span>
+<span class="fc" id="L92">      return causeField;</span>
     });
 
-<span class="fc" id="L82">    SUPPRESSED_FIELD = AccessController.doPrivileged((PrivilegedAction&lt;Field&gt;) () -&gt; {</span>
+<span class="fc" id="L95">    SUPPRESSED_FIELD = AccessController.doPrivileged((PrivilegedAction&lt;Field&gt;) () -&gt; {</span>
       Field suppressedField;
       try {
-<span class="fc" id="L85">        suppressedField = Throwable.class.getDeclaredField(&quot;suppressedExceptions&quot;);</span>
-<span class="nc" id="L86">      } catch (NoSuchFieldException | SecurityException ex) {</span>
-<span class="nc" id="L87">        Lazy.LOG.info(&quot;No access to suppressed Exceptions&quot;, ex);</span>
-<span class="nc" id="L88">        return null;</span>
-<span class="fc" id="L89">      }</span>
-<span class="fc" id="L90">      suppressedField.setAccessible(true);</span>
-<span class="fc" id="L91">      return suppressedField;</span>
+<span class="fc" id="L98">        suppressedField = Throwable.class.getDeclaredField(&quot;suppressedExceptions&quot;);</span>
+<span class="nc" id="L99">      } catch (NoSuchFieldException | SecurityException ex) {</span>
+<span class="nc" id="L100">        Lazy.LOG.info(&quot;No access to suppressed Exceptions&quot;, ex);</span>
+<span class="nc" id="L101">        return null;</span>
+<span class="fc" id="L102">      }</span>
+<span class="fc" id="L103">      suppressedField.setAccessible(true);</span>
+<span class="fc" id="L104">      return suppressedField;</span>
     });
   }
 
-<span class="fc" id="L95">  private static final PackageDetail DEFAULT_PACKAGE_DETAIL</span>
-<span class="fc" id="L96">          = PackageDetail.valueOf(System.getProperty(&quot;spf4j.throwables.defaultStackTracePackageDetail&quot;, &quot;SHORT&quot;));</span>
+<span class="fc" id="L108">  private static final PackageDetail DEFAULT_PACKAGE_DETAIL</span>
+<span class="fc" id="L109">          = PackageDetail.valueOf(System.getProperty(&quot;spf4j.throwables.defaultStackTracePackageDetail&quot;, &quot;SHORT&quot;));</span>
 
 
-<span class="fc" id="L99">  private static final boolean DEFAULT_TRACE_ELEMENT_ABBREVIATION</span>
-<span class="fc" id="L100">          = Boolean.parseBoolean(System.getProperty(&quot;spf4j.throwables.defaultStackTraceAbbreviation&quot;, &quot;true&quot;));</span>
+<span class="fc" id="L112">  private static final boolean DEFAULT_TRACE_ELEMENT_ABBREVIATION</span>
+<span class="fc" id="L113">          = Boolean.parseBoolean(System.getProperty(&quot;spf4j.throwables.defaultStackTraceAbbreviation&quot;, &quot;true&quot;));</span>
 
 
-<span class="fc" id="L103">  private static volatile Predicate&lt;Throwable&gt; nonRecoverableClassificationPredicate = new Predicate&lt;Throwable&gt;() {</span>
+<span class="fc" id="L116">  private static volatile Predicate&lt;Throwable&gt; nonRecoverableClassificationPredicate = new Predicate&lt;Throwable&gt;() {</span>
     @Override
     @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public boolean test(final Throwable t) {
-<span class="fc bfc" id="L107" title="All 4 branches covered.">      if (t instanceof Error &amp;&amp; !(t instanceof StackOverflowError)) {</span>
-<span class="fc" id="L108">        return true;</span>
+<span class="fc bfc" id="L120" title="All 4 branches covered.">      if (t instanceof Error &amp;&amp; !(t instanceof StackOverflowError)) {</span>
+<span class="fc" id="L121">        return true;</span>
       }
-<span class="fc bfc" id="L110" title="All 2 branches covered.">      if (t instanceof IOException) {</span>
-<span class="fc" id="L111">        String message = t.getMessage();</span>
-<span class="fc bfc" id="L112" title="All 4 branches covered.">        if (message != null &amp;&amp; message.contains(&quot;Too many open files&quot;)) {</span>
-<span class="fc" id="L113">          return true;</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">      if (t instanceof IOException) {</span>
+<span class="fc" id="L124">        String message = t.getMessage();</span>
+<span class="fc bfc" id="L125" title="All 4 branches covered.">        if (message != null &amp;&amp; message.contains(&quot;Too many open files&quot;)) {</span>
+<span class="fc" id="L126">          return true;</span>
         }
       }
-<span class="fc" id="L116">      return false;</span>
+<span class="fc" id="L129">      return false;</span>
     }
   };
 
 
-<span class="nc" id="L121">  private Throwables() {</span>
-<span class="nc" id="L122">  }</span>
+<span class="nc" id="L134">  private Throwables() {</span>
+<span class="nc" id="L135">  }</span>
 
-<span class="nc" id="L124">  static final class Lazy {</span>
+<span class="nc" id="L137">  static final class Lazy {</span>
 
-<span class="nc" id="L126">    private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);</span>
+<span class="nc" id="L139">    private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);</span>
   }
 
 
   public static int getNrSuppressedExceptions(final Throwable t) {
     try {
-<span class="fc" id="L132">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">      if (suppressedExceptions != null) {</span>
-<span class="fc" id="L134">        return suppressedExceptions.size();</span>
+<span class="fc" id="L145">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">      if (suppressedExceptions != null) {</span>
+<span class="fc" id="L147">        return suppressedExceptions.size();</span>
       } else {
-<span class="nc" id="L136">        return 0;</span>
+<span class="nc" id="L149">        return 0;</span>
       }
-<span class="nc" id="L138">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L139">      throw new RuntimeException(ex);</span>
+<span class="nc" id="L151">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L152">      throw new RuntimeException(ex);</span>
     }
   }
 
   public static int getNrRecursiveSuppressedExceptions(final Throwable t) {
     try {
-<span class="fc" id="L145">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
-<span class="pc bpc" id="L146" title="1 of 2 branches missed.">      if (suppressedExceptions != null) {</span>
-<span class="fc" id="L147">        int count = 0;</span>
-<span class="fc bfc" id="L148" title="All 2 branches covered.">        for (Throwable se : suppressedExceptions) {</span>
-<span class="fc" id="L149">          count += 1 + getNrRecursiveSuppressedExceptions(se);</span>
-<span class="fc" id="L150">        }</span>
-<span class="fc" id="L151">        return count;</span>
+<span class="fc" id="L158">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">      if (suppressedExceptions != null) {</span>
+<span class="fc" id="L160">        int count = 0;</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        for (Throwable se : suppressedExceptions) {</span>
+<span class="fc" id="L162">          count += 1 + getNrRecursiveSuppressedExceptions(se);</span>
+<span class="fc" id="L163">        }</span>
+<span class="fc" id="L164">        return count;</span>
       } else {
-<span class="nc" id="L153">        return 0;</span>
+<span class="nc" id="L166">        return 0;</span>
       }
-<span class="nc" id="L155">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L156">      throw new RuntimeException(ex);</span>
+<span class="nc" id="L168">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L169">      throw new RuntimeException(ex);</span>
     }
   }
 
   public static Throwable removeOldestSuppressedRecursive(final Throwable t) {
     try {
-<span class="fc" id="L162">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
-<span class="pc bpc" id="L163" title="2 of 4 branches missed.">      if (suppressedExceptions != null &amp;&amp; !suppressedExceptions.isEmpty()) {</span>
-<span class="fc" id="L164">        Throwable ex = suppressedExceptions.get(0);</span>
-<span class="fc bfc" id="L165" title="All 2 branches covered.">        if (getNrSuppressedExceptions(ex) &gt; 0) {</span>
-<span class="fc" id="L166">          return removeOldestSuppressedRecursive(ex);</span>
+<span class="fc" id="L175">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
+<span class="pc bpc" id="L176" title="2 of 4 branches missed.">      if (suppressedExceptions != null &amp;&amp; !suppressedExceptions.isEmpty()) {</span>
+<span class="fc" id="L177">        Throwable ex = suppressedExceptions.get(0);</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">        if (getNrSuppressedExceptions(ex) &gt; 0) {</span>
+<span class="fc" id="L179">          return removeOldestSuppressedRecursive(ex);</span>
         } else {
-<span class="fc" id="L168">          return suppressedExceptions.remove(0);</span>
+<span class="fc" id="L181">          return suppressedExceptions.remove(0);</span>
         }
-      } else {
-<span class="nc" id="L171">        return null;</span>
-      }
-<span class="nc" id="L173">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L174">      throw new RuntimeException(ex);</span>
-    }
-  }
-
-  public static Throwable removeOldestSuppressed(final Throwable t) {
-    try {
-<span class="nc" id="L180">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
-<span class="nc bnc" id="L181" title="All 4 branches missed.">      if (suppressedExceptions != null &amp;&amp; !suppressedExceptions.isEmpty()) {</span>
-<span class="nc" id="L182">        return suppressedExceptions.remove(0);</span>
       } else {
 <span class="nc" id="L184">        return null;</span>
       }
@@ -188,29 +188,42 @@ public final class Throwables {
     }
   }
 
+  public static Throwable removeOldestSuppressed(final Throwable t) {
+    try {
+<span class="nc" id="L193">      final List&lt;Throwable&gt; suppressedExceptions = (List&lt;Throwable&gt;) SUPPRESSED_FIELD.get(t);</span>
+<span class="nc bnc" id="L194" title="All 4 branches missed.">      if (suppressedExceptions != null &amp;&amp; !suppressedExceptions.isEmpty()) {</span>
+<span class="nc" id="L195">        return suppressedExceptions.remove(0);</span>
+      } else {
+<span class="nc" id="L197">        return null;</span>
+      }
+<span class="nc" id="L199">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L200">      throw new RuntimeException(ex);</span>
+    }
+  }
+
   private static void chain0(final Throwable t, final Throwable cause) {
-<span class="fc" id="L192">    final Throwable rc = com.google.common.base.Throwables.getRootCause(t);</span>
-<span class="fc" id="L193">    setCause(rc, cause);</span>
-<span class="fc" id="L194">  }</span>
+<span class="fc" id="L205">    final Throwable rc = com.google.common.base.Throwables.getRootCause(t);</span>
+<span class="fc" id="L206">    setCause(rc, cause);</span>
+<span class="fc" id="L207">  }</span>
 
   private static void setCause(final Throwable rc, @Nullable final Throwable cause) {
     try {
-<span class="fc" id="L198">      AccessController.doPrivileged(new PrivilegedAction() {</span>
+<span class="fc" id="L211">      AccessController.doPrivileged(new PrivilegedAction() {</span>
         @Override
         public Object run() {
           try {
-<span class="fc" id="L202">            CAUSE_FIELD.set(rc, cause);</span>
-<span class="nc" id="L203">          } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
-<span class="nc" id="L204">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L205">          }</span>
-<span class="fc" id="L206">          return null; // nothing to return</span>
+<span class="fc" id="L215">            CAUSE_FIELD.set(rc, cause);</span>
+<span class="nc" id="L216">          } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L217">            throw new RuntimeException(ex);</span>
+<span class="fc" id="L218">          }</span>
+<span class="fc" id="L219">          return null; // nothing to return</span>
         }
       });
 
-<span class="nc" id="L210">    } catch (IllegalArgumentException ex) {</span>
-<span class="nc" id="L211">      throw new RuntimeException(ex);</span>
-<span class="fc" id="L212">    }</span>
-<span class="fc" id="L213">  }</span>
+<span class="nc" id="L223">    } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L224">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L225">    }</span>
+<span class="fc" id="L226">  }</span>
 
   /**
    * This method will clone the exception t and will set a new root cause.
@@ -221,41 +234,41 @@ public final class Throwables {
    * @return
    */
   public static &lt;T extends Throwable&gt; T chain(final T t, final Throwable newRootCause) {
-<span class="fc" id="L224">    return chain(t, newRootCause, MAX_THROWABLE_CHAIN);</span>
+<span class="fc" id="L237">    return chain(t, newRootCause, MAX_THROWABLE_CHAIN);</span>
   }
 
   public static &lt;T extends Throwable&gt; T chain(final T t, final Throwable newRootCause, final int maxChained) {
-<span class="fc" id="L228">    int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();</span>
-<span class="pc bpc" id="L229" title="1 of 2 branches missed.">    if (chainedExNr &gt;= maxChained) {</span>
-<span class="nc" id="L230">      Lazy.LOG.warn(&quot;Trimming exception&quot;, newRootCause);</span>
-<span class="nc" id="L231">      return t;</span>
+<span class="fc" id="L241">    int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">    if (chainedExNr &gt;= maxChained) {</span>
+<span class="nc" id="L243">      Lazy.LOG.warn(&quot;Trimming exception&quot;, newRootCause);</span>
+<span class="nc" id="L244">      return t;</span>
     }
-<span class="fc" id="L233">    List&lt;Throwable&gt; newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);</span>
-<span class="fc" id="L234">    int newChainIdx = 0;</span>
-<span class="fc" id="L235">    final int size = newRootCauseChain.size();</span>
-<span class="pc bpc" id="L236" title="1 of 2 branches missed.">    if (chainedExNr + size &gt; maxChained) {</span>
-<span class="nc" id="L237">      newChainIdx = size - (maxChained - chainedExNr);</span>
-<span class="nc" id="L238">      Lazy.LOG.warn(&quot;Trimming exception at {} &quot;, newChainIdx, newRootCause);</span>
+<span class="fc" id="L246">    List&lt;Throwable&gt; newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);</span>
+<span class="fc" id="L247">    int newChainIdx = 0;</span>
+<span class="fc" id="L248">    final int size = newRootCauseChain.size();</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">    if (chainedExNr + size &gt; maxChained) {</span>
+<span class="nc" id="L250">      newChainIdx = size - (maxChained - chainedExNr);</span>
+<span class="nc" id="L251">      Lazy.LOG.warn(&quot;Trimming exception at {} &quot;, newChainIdx, newRootCause);</span>
     }
     T result;
     try {
-<span class="fc" id="L242">      result = Objects.clone(t);</span>
-<span class="nc" id="L243">    } catch (RuntimeException ex) {</span>
-<span class="nc" id="L244">      result = t;</span>
-<span class="nc" id="L245">      Lazy.LOG.info(&quot;Unable to clone exception {}&quot;, t, ex);</span>
-<span class="fc" id="L246">    }</span>
-<span class="fc" id="L247">    chain0(result, newRootCauseChain.get(newChainIdx));</span>
-<span class="fc" id="L248">    return result;</span>
+<span class="fc" id="L255">      result = Objects.clone(t);</span>
+<span class="nc" id="L256">    } catch (RuntimeException ex) {</span>
+<span class="nc" id="L257">      result = t;</span>
+<span class="nc" id="L258">      Lazy.LOG.info(&quot;Unable to clone exception {}&quot;, t, ex);</span>
+<span class="fc" id="L259">    }</span>
+<span class="fc" id="L260">    chain0(result, newRootCauseChain.get(newChainIdx));</span>
+<span class="fc" id="L261">    return result;</span>
 
   }
 
   public static void trimCausalChain(final Throwable t, final int maxSize) {
-<span class="nc" id="L253">    List&lt;Throwable&gt; causalChain = com.google.common.base.Throwables.getCausalChain(t);</span>
-<span class="nc bnc" id="L254" title="All 2 branches missed.">    if (causalChain.size() &lt;= maxSize) {</span>
-<span class="nc" id="L255">      return;</span>
+<span class="nc" id="L266">    List&lt;Throwable&gt; causalChain = com.google.common.base.Throwables.getCausalChain(t);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">    if (causalChain.size() &lt;= maxSize) {</span>
+<span class="nc" id="L268">      return;</span>
     }
-<span class="nc" id="L257">    setCause(causalChain.get(maxSize - 1), null);</span>
-<span class="nc" id="L258">  }</span>
+<span class="nc" id="L270">    setCause(causalChain.get(maxSize - 1), null);</span>
+<span class="nc" id="L271">  }</span>
 
   /**
    * Functionality similar for java 1.7 Throwable.addSuppressed. 2 extra things happen:
@@ -269,7 +282,7 @@ public final class Throwables {
    */
   @CheckReturnValue
   public static &lt;T extends Throwable&gt; T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
-<span class="fc" id="L272">    return suppress(t, suppressed, MAX_THROWABLE_CHAIN);</span>
+<span class="fc" id="L285">    return suppress(t, suppressed, MAX_THROWABLE_CHAIN);</span>
   }
 
   @CheckReturnValue
@@ -277,19 +290,19 @@ public final class Throwables {
           final int maxSuppressed) {
     T clone;
     try {
-<span class="fc" id="L280">      clone = Objects.clone(t);</span>
-<span class="nc" id="L281">    } catch (RuntimeException ex) {</span>
-<span class="nc" id="L282">      t.addSuppressed(ex);</span>
-<span class="nc" id="L283">      clone = t;</span>
-<span class="nc" id="L284">      Lazy.LOG.debug(&quot;Unable to clone exception, will mutate instead&quot;, t);</span>
-<span class="fc" id="L285">    }</span>
-<span class="fc" id="L286">    clone.addSuppressed(suppressed);</span>
-<span class="fc bfc" id="L287" title="All 2 branches covered.">    while (getNrRecursiveSuppressedExceptions(clone) &gt; maxSuppressed) {</span>
-<span class="pc bpc" id="L288" title="1 of 2 branches missed.">      if (removeOldestSuppressedRecursive(clone) == null) {</span>
-<span class="nc" id="L289">        throw new IllegalArgumentException(&quot;Impossible state for &quot; + clone);</span>
+<span class="fc" id="L293">      clone = Objects.clone(t);</span>
+<span class="nc" id="L294">    } catch (RuntimeException ex) {</span>
+<span class="nc" id="L295">      t.addSuppressed(ex);</span>
+<span class="nc" id="L296">      clone = t;</span>
+<span class="nc" id="L297">      Lazy.LOG.debug(&quot;Unable to clone exception, will mutate instead&quot;, t);</span>
+<span class="fc" id="L298">    }</span>
+<span class="fc" id="L299">    clone.addSuppressed(suppressed);</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">    while (getNrRecursiveSuppressedExceptions(clone) &gt; maxSuppressed) {</span>
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">      if (removeOldestSuppressedRecursive(clone) == null) {</span>
+<span class="nc" id="L302">        throw new IllegalArgumentException(&quot;Impossible state for &quot; + clone);</span>
       }
     }
-<span class="fc" id="L292">    return clone;</span>
+<span class="fc" id="L305">    return clone;</span>
   }
 
   /**
@@ -304,27 +317,27 @@ public final class Throwables {
    * @return
    */
   public static Throwable[] getSuppressed(final Throwable t) {
-<span class="fc bfc" id="L307" title="All 2 branches covered.">    if (t instanceof Iterable) {</span>
+<span class="fc bfc" id="L320" title="All 2 branches covered.">    if (t instanceof Iterable) {</span>
       // see SQLException
-<span class="fc" id="L309">      List&lt;Throwable&gt; suppressed = new ArrayList&lt;&gt;(java.util.Arrays.asList(t.getSuppressed()));</span>
-<span class="fc" id="L310">      Set&lt;Throwable&gt; ignore = new HashSet&lt;&gt;();</span>
-<span class="fc" id="L311">      ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));</span>
-<span class="fc" id="L312">      Iterator it = ((Iterable) t).iterator();</span>
-<span class="fc bfc" id="L313" title="All 2 branches covered.">      while (it.hasNext()) {</span>
-<span class="fc" id="L314">        Object next = it.next();</span>
-<span class="pc bpc" id="L315" title="1 of 2 branches missed.">        if (next instanceof Throwable) {</span>
-<span class="fc bfc" id="L316" title="All 2 branches covered.">          if (ignore.contains((Throwable) next)) {</span>
-<span class="fc" id="L317">            continue;</span>
+<span class="fc" id="L322">      List&lt;Throwable&gt; suppressed = new ArrayList&lt;&gt;(java.util.Arrays.asList(t.getSuppressed()));</span>
+<span class="fc" id="L323">      Set&lt;Throwable&gt; ignore = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L324">      ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));</span>
+<span class="fc" id="L325">      Iterator it = ((Iterable) t).iterator();</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">      while (it.hasNext()) {</span>
+<span class="fc" id="L327">        Object next = it.next();</span>
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">        if (next instanceof Throwable) {</span>
+<span class="fc bfc" id="L329" title="All 2 branches covered.">          if (ignore.contains((Throwable) next)) {</span>
+<span class="fc" id="L330">            continue;</span>
           }
-<span class="fc" id="L319">          suppressed.add((Throwable) next);</span>
-<span class="fc" id="L320">          ignore.addAll(com.google.common.base.Throwables.getCausalChain((Throwable) next));</span>
+<span class="fc" id="L332">          suppressed.add((Throwable) next);</span>
+<span class="fc" id="L333">          ignore.addAll(com.google.common.base.Throwables.getCausalChain((Throwable) next));</span>
         } else {
           break;
         }
-<span class="fc" id="L324">      }</span>
-<span class="fc" id="L325">      return suppressed.toArray(new Throwable[suppressed.size()]);</span>
+<span class="fc" id="L337">      }</span>
+<span class="fc" id="L338">      return suppressed.toArray(new Throwable[suppressed.size()]);</span>
     } else {
-<span class="fc" id="L327">      return t.getSuppressed();</span>
+<span class="fc" id="L340">      return t.getSuppressed();</span>
     }
 
   }
@@ -333,209 +346,209 @@ public final class Throwables {
           final Appendable to, final PackageDetail detail,
           final boolean abbreviatedTraceElement)
           throws IOException {
-<span class="fc" id="L336">    String currClassName = element.getClassName();</span>
-<span class="fc bfc" id="L337" title="All 2 branches covered.">    String prevClassName = previous == null ? null : previous.getClassName();</span>
-<span class="pc bpc" id="L338" title="1 of 2 branches missed.">    if (abbreviatedTraceElement) {</span>
-<span class="fc bfc" id="L339" title="All 2 branches covered.">      if (currClassName.equals(prevClassName)) {</span>
-<span class="fc" id="L340">        to.append('^');</span>
+<span class="fc" id="L349">    String currClassName = element.getClassName();</span>
+<span class="fc bfc" id="L350" title="All 2 branches covered.">    String prevClassName = previous == null ? null : previous.getClassName();</span>
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">    if (abbreviatedTraceElement) {</span>
+<span class="fc bfc" id="L352" title="All 2 branches covered.">      if (currClassName.equals(prevClassName)) {</span>
+<span class="fc" id="L353">        to.append('^');</span>
       } else {
-<span class="fc" id="L342">        writeAbreviatedClassName(currClassName, to);</span>
+<span class="fc" id="L355">        writeAbreviatedClassName(currClassName, to);</span>
       }
     } else {
-<span class="nc" id="L345">      to.append(currClassName);</span>
+<span class="nc" id="L358">      to.append(currClassName);</span>
     }
-<span class="fc" id="L347">    to.append('.');</span>
-<span class="fc" id="L348">    to.append(element.getMethodName());</span>
-<span class="fc" id="L349">    String currFileName = element.getFileName();</span>
-<span class="fc" id="L350">    String fileName = currFileName;</span>
-<span class="pc bpc" id="L351" title="1 of 6 branches missed.">    if (abbreviatedTraceElement &amp;&amp; java.util.Objects.equals(currFileName,</span>
-<span class="fc" id="L352">            previous == null ? null : previous.getFileName())) {</span>
-<span class="fc" id="L353">      fileName = &quot;^&quot;;</span>
+<span class="fc" id="L360">    to.append('.');</span>
+<span class="fc" id="L361">    to.append(element.getMethodName());</span>
+<span class="fc" id="L362">    String currFileName = element.getFileName();</span>
+<span class="fc" id="L363">    String fileName = currFileName;</span>
+<span class="pc bpc" id="L364" title="1 of 6 branches missed.">    if (abbreviatedTraceElement &amp;&amp; java.util.Objects.equals(currFileName,</span>
+<span class="fc" id="L365">            previous == null ? null : previous.getFileName())) {</span>
+<span class="fc" id="L366">      fileName = &quot;^&quot;;</span>
     }
-<span class="fc" id="L355">    final int lineNumber = element.getLineNumber();</span>
-<span class="fc bfc" id="L356" title="All 2 branches covered.">    if (element.isNativeMethod()) {</span>
-<span class="fc" id="L357">      to.append(&quot;(Native Method)&quot;);</span>
-<span class="fc bfc" id="L358" title="All 4 branches covered.">    } else if (fileName != null &amp;&amp; lineNumber &gt;= 0) {</span>
-<span class="fc" id="L359">      to.append('(').append(fileName).append(':')</span>
-<span class="fc" id="L360">              .append(Integer.toString(lineNumber)).append(')');</span>
-<span class="fc bfc" id="L361" title="All 2 branches covered.">    } else if (fileName != null) {</span>
-<span class="fc" id="L362">      to.append('(').append(fileName).append(')');</span>
+<span class="fc" id="L368">    final int lineNumber = element.getLineNumber();</span>
+<span class="fc bfc" id="L369" title="All 2 branches covered.">    if (element.isNativeMethod()) {</span>
+<span class="fc" id="L370">      to.append(&quot;(Native Method)&quot;);</span>
+<span class="fc bfc" id="L371" title="All 4 branches covered.">    } else if (fileName != null &amp;&amp; lineNumber &gt;= 0) {</span>
+<span class="fc" id="L372">      to.append('(').append(fileName).append(':')</span>
+<span class="fc" id="L373">              .append(Integer.toString(lineNumber)).append(')');</span>
+<span class="fc bfc" id="L374" title="All 2 branches covered.">    } else if (fileName != null) {</span>
+<span class="fc" id="L375">      to.append('(').append(fileName).append(')');</span>
     } else {
-<span class="fc" id="L364">      to.append(&quot;(Unknown Source)&quot;);</span>
+<span class="fc" id="L377">      to.append(&quot;(Unknown Source)&quot;);</span>
     }
-<span class="fc bfc" id="L366" title="All 2 branches covered.">    if (detail == PackageDetail.NONE) {</span>
-<span class="fc" id="L367">      return;</span>
+<span class="fc bfc" id="L379" title="All 2 branches covered.">    if (detail == PackageDetail.NONE) {</span>
+<span class="fc" id="L380">      return;</span>
     }
-<span class="pc bpc" id="L369" title="1 of 4 branches missed.">    if (abbreviatedTraceElement &amp;&amp; currClassName.equals(prevClassName)) {</span>
-<span class="fc" id="L370">      to.append(&quot;[^]&quot;);</span>
-<span class="fc" id="L371">      return;</span>
+<span class="pc bpc" id="L382" title="1 of 4 branches missed.">    if (abbreviatedTraceElement &amp;&amp; currClassName.equals(prevClassName)) {</span>
+<span class="fc" id="L383">      to.append(&quot;[^]&quot;);</span>
+<span class="fc" id="L384">      return;</span>
     }
-<span class="fc" id="L373">    PackageInfo pInfo = Reflections.getPackageInfo(currClassName);</span>
-<span class="pc bpc" id="L374" title="1 of 6 branches missed.">    if (abbreviatedTraceElement &amp;&amp; prevClassName != null &amp;&amp; pInfo.equals(Reflections.getPackageInfo(prevClassName))) {</span>
-<span class="fc" id="L375">      to.append(&quot;[^]&quot;);</span>
-<span class="fc" id="L376">      return;</span>
+<span class="fc" id="L386">    PackageInfo pInfo = Reflections.getPackageInfo(currClassName);</span>
+<span class="pc bpc" id="L387" title="1 of 6 branches missed.">    if (abbreviatedTraceElement &amp;&amp; prevClassName != null &amp;&amp; pInfo.equals(Reflections.getPackageInfo(prevClassName))) {</span>
+<span class="fc" id="L388">      to.append(&quot;[^]&quot;);</span>
+<span class="fc" id="L389">      return;</span>
     }
-<span class="fc bfc" id="L378" title="All 2 branches covered.">    if (pInfo.hasInfo()) {</span>
-<span class="fc" id="L379">      URL jarSourceUrl = pInfo.getUrl();</span>
-<span class="fc" id="L380">      String version = pInfo.getVersion();</span>
-<span class="fc" id="L381">      to.append('[');</span>
-<span class="fc bfc" id="L382" title="All 2 branches covered.">      if (jarSourceUrl != null) {</span>
-<span class="pc bpc" id="L383" title="1 of 2 branches missed.">        if (detail == PackageDetail.SHORT) {</span>
-<span class="fc" id="L384">          String url = jarSourceUrl.toString();</span>
-<span class="fc" id="L385">          int lastIndexOf = url.lastIndexOf('/');</span>
-<span class="pc bpc" id="L386" title="1 of 2 branches missed.">          if (lastIndexOf &gt;= 0) {</span>
-<span class="fc" id="L387">            int lpos = url.length() - 1;</span>
-<span class="fc bfc" id="L388" title="All 2 branches covered.">            if (lastIndexOf == lpos) {</span>
-<span class="fc" id="L389">              int prevSlPos = url.lastIndexOf('/', lpos - 1);</span>
-<span class="pc bpc" id="L390" title="1 of 2 branches missed.">              if (prevSlPos &lt; 0) {</span>
-<span class="nc" id="L391">                to.append(url);</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">    if (pInfo.hasInfo()) {</span>
+<span class="fc" id="L392">      String jarSourceUrl = pInfo.getUrl();</span>
+<span class="fc" id="L393">      String version = pInfo.getVersion();</span>
+<span class="fc" id="L394">      to.append('[');</span>
+<span class="pc bpc" id="L395" title="1 of 2 branches missed.">      if (jarSourceUrl != null) {</span>
+<span class="pc bpc" id="L396" title="1 of 2 branches missed.">        if (detail == PackageDetail.SHORT) {</span>
+<span class="fc" id="L397">          String url = jarSourceUrl;</span>
+<span class="fc" id="L398">          int lastIndexOf = url.lastIndexOf('/');</span>
+<span class="fc bfc" id="L399" title="All 2 branches covered.">          if (lastIndexOf &gt;= 0) {</span>
+<span class="fc" id="L400">            int lpos = url.length() - 1;</span>
+<span class="fc bfc" id="L401" title="All 2 branches covered.">            if (lastIndexOf == lpos) {</span>
+<span class="fc" id="L402">              int prevSlPos = url.lastIndexOf('/', lpos - 1);</span>
+<span class="pc bpc" id="L403" title="1 of 2 branches missed.">              if (prevSlPos &lt; 0) {</span>
+<span class="nc" id="L404">                to.append(url);</span>
               } else {
-<span class="fc" id="L393">                to.append(url, prevSlPos + 1, url.length());</span>
+<span class="fc" id="L406">                to.append(url, prevSlPos + 1, url.length());</span>
               }
-<span class="fc" id="L395">            } else {</span>
-<span class="fc" id="L396">              to.append(url, lastIndexOf + 1, url.length());</span>
+<span class="fc" id="L408">            } else {</span>
+<span class="fc" id="L409">              to.append(url, lastIndexOf + 1, url.length());</span>
             }
-<span class="fc" id="L398">          } else {</span>
-<span class="nc" id="L399">            to.append(url);</span>
+<span class="fc" id="L411">          } else {</span>
+<span class="fc" id="L412">            to.append(url);</span>
           }
-<span class="fc" id="L401">        } else {</span>
-<span class="nc" id="L402">          to.append(jarSourceUrl.toString());</span>
+<span class="fc" id="L414">        } else {</span>
+<span class="nc" id="L415">          to.append(jarSourceUrl);</span>
         }
       } else {
-<span class="fc" id="L405">        to.append(&quot;na&quot;);</span>
+<span class="nc" id="L418">        to.append(&quot;na&quot;);</span>
       }
-<span class="fc bfc" id="L407" title="All 2 branches covered.">      if (version != null) {</span>
-<span class="fc" id="L408">        to.append(':');</span>
-<span class="fc" id="L409">        to.append(version);</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">      if (version != null) {</span>
+<span class="fc" id="L421">        to.append(':');</span>
+<span class="fc" id="L422">        to.append(version);</span>
       }
-<span class="fc" id="L411">      to.append(']');</span>
+<span class="fc" id="L424">      to.append(']');</span>
     }
-<span class="fc" id="L413">  }</span>
+<span class="fc" id="L426">  }</span>
 
   /**
    * enum describing the PackageDetail level to be logged in the stack trace.
    */
-<span class="fc" id="L418">  public enum PackageDetail {</span>
+<span class="fc" id="L431">  public enum PackageDetail {</span>
     /**
      * No jar info or version info.
      */
-<span class="fc" id="L422">    NONE,</span>
+<span class="fc" id="L435">    NONE,</span>
     /**
      * jar file name + manifest version.
      */
-<span class="fc" id="L426">    SHORT,</span>
+<span class="fc" id="L439">    SHORT,</span>
     /**
      * complete jar path + manifest version.
      */
-<span class="fc" id="L430">    LONG</span>
+<span class="fc" id="L443">    LONG</span>
 
   }
 
   public static String toString(final Throwable t) {
-<span class="fc" id="L435">    return toString(t, DEFAULT_PACKAGE_DETAIL);</span>
+<span class="fc" id="L448">    return toString(t, DEFAULT_PACKAGE_DETAIL);</span>
   }
 
   public static String toString(final Throwable t, final PackageDetail detail) {
-<span class="fc" id="L439">    return toString(t, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
+<span class="fc" id="L452">    return toString(t, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
   }
 
   public static String toString(final Throwable t, final PackageDetail detail, final boolean abbreviatedTraceElement) {
-<span class="fc" id="L443">    StringBuilder sb = toStringBuilder(t, detail, abbreviatedTraceElement);</span>
-<span class="fc" id="L444">    return sb.toString();</span>
+<span class="fc" id="L456">    StringBuilder sb = toStringBuilder(t, detail, abbreviatedTraceElement);</span>
+<span class="fc" id="L457">    return sb.toString();</span>
   }
 
   public static StringBuilder toStringBuilder(final Throwable t, final PackageDetail detail) {
-<span class="nc" id="L448">    return toStringBuilder(t, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
+<span class="nc" id="L461">    return toStringBuilder(t, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
   }
 
   public static StringBuilder toStringBuilder(final Throwable t, final PackageDetail detail,
           final boolean abbreviatedTraceElement) {
-<span class="fc" id="L453">    StringBuilder sb = new StringBuilder(1024);</span>
+<span class="fc" id="L466">    StringBuilder sb = new StringBuilder(1024);</span>
     try {
-<span class="fc" id="L455">      writeTo(t, sb, detail, abbreviatedTraceElement);</span>
-<span class="nc" id="L456">    } catch (IOException ex) {</span>
-<span class="nc" id="L457">      throw new RuntimeException(ex);</span>
-<span class="fc" id="L458">    }</span>
-<span class="fc" id="L459">    return sb;</span>
+<span class="fc" id="L468">      writeTo(t, sb, detail, abbreviatedTraceElement);</span>
+<span class="nc" id="L469">    } catch (IOException ex) {</span>
+<span class="nc" id="L470">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L471">    }</span>
+<span class="fc" id="L472">    return sb;</span>
   }
 
   public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
           @Nonnull final PackageDetail detail) {
-<span class="fc" id="L464">    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
-<span class="fc" id="L465">  }</span>
+<span class="fc" id="L477">    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
+<span class="fc" id="L478">  }</span>
 
   @SuppressFBWarnings({&quot;OCP_OVERLY_CONCRETE_PARAMETER&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;})
   // I don't want this to throw a checked ex though... + I really want the coarse sync!
   public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
           @Nonnull final PackageDetail detail, final boolean abbreviatedTraceElement) {
     try {
-<span class="fc" id="L472">      synchronized (to) {</span>
-<span class="fc" id="L473">        writeTo(t, (Appendable) to, detail, abbreviatedTraceElement);</span>
-<span class="pc" id="L474">      }</span>
-<span class="nc" id="L475">    } catch (IOException ex) {</span>
-<span class="nc" id="L476">      throw new RuntimeException(ex);</span>
-<span class="fc" id="L477">    }</span>
-<span class="fc" id="L478">  }</span>
+<span class="fc" id="L485">      synchronized (to) {</span>
+<span class="fc" id="L486">        writeTo(t, (Appendable) to, detail, abbreviatedTraceElement);</span>
+<span class="pc" id="L487">      }</span>
+<span class="nc" id="L488">    } catch (IOException ex) {</span>
+<span class="nc" id="L489">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L490">    }</span>
+<span class="fc" id="L491">  }</span>
 
   public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail) throws IOException {
-<span class="nc" id="L481">    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
-<span class="nc" id="L482">  }</span>
+<span class="nc" id="L494">    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);</span>
+<span class="nc" id="L495">  }</span>
 
   public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
           final boolean abbreviatedTraceElement) throws IOException {
 
-<span class="fc" id="L487">    Set&lt;Throwable&gt; dejaVu = Collections.newSetFromMap(new IdentityHashMap&lt;Throwable, Boolean&gt;());</span>
-<span class="fc" id="L488">    dejaVu.add(t);</span>
+<span class="fc" id="L500">    Set&lt;Throwable&gt; dejaVu = Collections.newSetFromMap(new IdentityHashMap&lt;Throwable, Boolean&gt;());</span>
+<span class="fc" id="L501">    dejaVu.add(t);</span>
 
-<span class="fc" id="L490">    writeMessageString(to, t);</span>
-<span class="fc" id="L491">    to.append('\n');</span>
-<span class="fc" id="L492">    StackTraceElement[] trace = t.getStackTrace();</span>
+<span class="fc" id="L503">    writeMessageString(to, t);</span>
+<span class="fc" id="L504">    to.append('\n');</span>
+<span class="fc" id="L505">    StackTraceElement[] trace = t.getStackTrace();</span>
 
-<span class="fc" id="L494">    writeTo(trace, to, detail, abbreviatedTraceElement);</span>
+<span class="fc" id="L507">    writeTo(trace, to, detail, abbreviatedTraceElement);</span>
 
     // Print suppressed exceptions, if any
-<span class="fc bfc" id="L497" title="All 2 branches covered.">    for (Throwable se : getSuppressed(t)) {</span>
-<span class="fc" id="L498">      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, &quot;\t&quot;, dejaVu, detail, abbreviatedTraceElement);</span>
+<span class="fc bfc" id="L510" title="All 2 branches covered.">    for (Throwable se : getSuppressed(t)) {</span>
+<span class="fc" id="L511">      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, &quot;\t&quot;, dejaVu, detail, abbreviatedTraceElement);</span>
     }
 
-<span class="fc" id="L501">    Throwable ourCause = t.getCause();</span>
+<span class="fc" id="L514">    Throwable ourCause = t.getCause();</span>
 
     // Print cause, if any
-<span class="fc bfc" id="L504" title="All 2 branches covered.">    if (ourCause != null) {</span>
-<span class="fc" id="L505">      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, &quot;&quot;, dejaVu, detail, abbreviatedTraceElement);</span>
+<span class="fc bfc" id="L517" title="All 2 branches covered.">    if (ourCause != null) {</span>
+<span class="fc" id="L518">      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, &quot;&quot;, dejaVu, detail, abbreviatedTraceElement);</span>
     }
 
-<span class="fc" id="L508">  }</span>
+<span class="fc" id="L521">  }</span>
 
   public static void writeMessageString(final Appendable to, final Throwable t) throws IOException {
-<span class="fc" id="L511">    to.append(t.getClass().getName());</span>
-<span class="fc" id="L512">    String message = t.getMessage();</span>
-<span class="fc bfc" id="L513" title="All 2 branches covered.">    if (message != null) {</span>
-<span class="fc" id="L514">      to.append(':').append(message);</span>
+<span class="fc" id="L524">    to.append(t.getClass().getName());</span>
+<span class="fc" id="L525">    String message = t.getMessage();</span>
+<span class="fc bfc" id="L526" title="All 2 branches covered.">    if (message != null) {</span>
+<span class="fc" id="L527">      to.append(':').append(message);</span>
     }
-<span class="fc" id="L516">  }</span>
+<span class="fc" id="L529">  }</span>
 
   public static void writeTo(final StackTraceElement[] trace, final Appendable to, final PackageDetail detail,
           final boolean abbreviatedTraceElement)
           throws IOException {
 
-<span class="fc" id="L522">    StackTraceElement prevElem = null;</span>
-<span class="fc bfc" id="L523" title="All 2 branches covered.">    for (StackTraceElement traceElement : trace) {</span>
-<span class="fc" id="L524">      to.append(&quot;\tat &quot;);</span>
-<span class="fc" id="L525">      writeTo(traceElement, prevElem, to, detail, abbreviatedTraceElement);</span>
-<span class="fc" id="L526">      to.append('\n');</span>
-<span class="fc" id="L527">      prevElem = traceElement;</span>
+<span class="fc" id="L535">    StackTraceElement prevElem = null;</span>
+<span class="fc bfc" id="L536" title="All 2 branches covered.">    for (StackTraceElement traceElement : trace) {</span>
+<span class="fc" id="L537">      to.append(&quot;\tat &quot;);</span>
+<span class="fc" id="L538">      writeTo(traceElement, prevElem, to, detail, abbreviatedTraceElement);</span>
+<span class="fc" id="L539">      to.append('\n');</span>
+<span class="fc" id="L540">      prevElem = traceElement;</span>
     }
-<span class="fc" id="L529">  }</span>
+<span class="fc" id="L542">  }</span>
 
   public static int commonFrames(final StackTraceElement[] trace, final StackTraceElement[] enclosingTrace) {
-<span class="fc" id="L532">    int m = trace.length - 1;</span>
-<span class="fc" id="L533">    int n = enclosingTrace.length - 1;</span>
-<span class="pc bpc" id="L534" title="1 of 6 branches missed.">    while (m &gt;= 0 &amp;&amp; n &gt;= 0 &amp;&amp; trace[m].equals(enclosingTrace[n])) {</span>
-<span class="fc" id="L535">      m--;</span>
-<span class="fc" id="L536">      n--;</span>
+<span class="fc" id="L545">    int m = trace.length - 1;</span>
+<span class="fc" id="L546">    int n = enclosingTrace.length - 1;</span>
+<span class="pc bpc" id="L547" title="1 of 6 branches missed.">    while (m &gt;= 0 &amp;&amp; n &gt;= 0 &amp;&amp; trace[m].equals(enclosingTrace[n])) {</span>
+<span class="fc" id="L548">      m--;</span>
+<span class="fc" id="L549">      n--;</span>
     }
-<span class="fc" id="L538">    return trace.length - 1 - m;</span>
+<span class="fc" id="L551">    return trace.length - 1 - m;</span>
   }
 
   private static void printEnclosedStackTrace(final Throwable t, final Appendable s,
@@ -545,54 +558,54 @@ public final class Throwables {
           final Set&lt;Throwable&gt; dejaVu,
           final PackageDetail detail,
           final boolean abbreviatedTraceElement) throws IOException {
-<span class="fc bfc" id="L548" title="All 2 branches covered.">    if (dejaVu.contains(t)) {</span>
-<span class="fc" id="L549">      s.append(&quot;\t[CIRCULAR REFERENCE:&quot;);</span>
-<span class="fc" id="L550">      writeMessageString(s, t);</span>
-<span class="fc" id="L551">      s.append(']');</span>
+<span class="fc bfc" id="L561" title="All 2 branches covered.">    if (dejaVu.contains(t)) {</span>
+<span class="fc" id="L562">      s.append(&quot;\t[CIRCULAR REFERENCE:&quot;);</span>
+<span class="fc" id="L563">      writeMessageString(s, t);</span>
+<span class="fc" id="L564">      s.append(']');</span>
     } else {
-<span class="fc" id="L553">      dejaVu.add(t);</span>
+<span class="fc" id="L566">      dejaVu.add(t);</span>
       // Compute number of frames in common between this and enclosing trace
-<span class="fc" id="L555">      StackTraceElement[] trace = t.getStackTrace();</span>
-<span class="fc" id="L556">      int framesInCommon = commonFrames(trace, enclosingTrace);</span>
-<span class="fc" id="L557">      int m = trace.length - framesInCommon;</span>
+<span class="fc" id="L568">      StackTraceElement[] trace = t.getStackTrace();</span>
+<span class="fc" id="L569">      int framesInCommon = commonFrames(trace, enclosingTrace);</span>
+<span class="fc" id="L570">      int m = trace.length - framesInCommon;</span>
       // Print our stack trace
-<span class="fc" id="L559">      s.append(prefix).append(caption);</span>
-<span class="fc" id="L560">      writeMessageString(s, t);</span>
-<span class="fc" id="L561">      s.append('\n');</span>
-<span class="fc" id="L562">      StackTraceElement prev = null;</span>
-<span class="fc bfc" id="L563" title="All 2 branches covered.">      for (int i = 0; i &lt; m; i++) {</span>
-<span class="fc" id="L564">        s.append(prefix).append(&quot;\tat &quot;);</span>
-<span class="fc" id="L565">        StackTraceElement ste = trace[i];</span>
-<span class="fc" id="L566">        writeTo(ste, prev, s, detail, abbreviatedTraceElement);</span>
-<span class="fc" id="L567">        s.append('\n');</span>
-<span class="fc" id="L568">        prev = ste;</span>
+<span class="fc" id="L572">      s.append(prefix).append(caption);</span>
+<span class="fc" id="L573">      writeMessageString(s, t);</span>
+<span class="fc" id="L574">      s.append('\n');</span>
+<span class="fc" id="L575">      StackTraceElement prev = null;</span>
+<span class="fc bfc" id="L576" title="All 2 branches covered.">      for (int i = 0; i &lt; m; i++) {</span>
+<span class="fc" id="L577">        s.append(prefix).append(&quot;\tat &quot;);</span>
+<span class="fc" id="L578">        StackTraceElement ste = trace[i];</span>
+<span class="fc" id="L579">        writeTo(ste, prev, s, detail, abbreviatedTraceElement);</span>
+<span class="fc" id="L580">        s.append('\n');</span>
+<span class="fc" id="L581">        prev = ste;</span>
       }
-<span class="fc bfc" id="L570" title="All 2 branches covered.">      if (framesInCommon != 0) {</span>
-<span class="fc" id="L571">        s.append(prefix).append(&quot;\t... &quot;).append(Integer.toString(framesInCommon)).append(&quot; more&quot;);</span>
-<span class="fc" id="L572">        s.append('\n');</span>
+<span class="fc bfc" id="L583" title="All 2 branches covered.">      if (framesInCommon != 0) {</span>
+<span class="fc" id="L584">        s.append(prefix).append(&quot;\t... &quot;).append(Integer.toString(framesInCommon)).append(&quot; more&quot;);</span>
+<span class="fc" id="L585">        s.append('\n');</span>
       }
 
       // Print suppressed exceptions, if any
-<span class="fc bfc" id="L576" title="All 2 branches covered.">      for (Throwable se : getSuppressed(t)) {</span>
-<span class="fc" id="L577">        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t',</span>
+<span class="fc bfc" id="L589" title="All 2 branches covered.">      for (Throwable se : getSuppressed(t)) {</span>
+<span class="fc" id="L590">        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t',</span>
                 dejaVu, detail, abbreviatedTraceElement);
       }
 
       // Print cause, if any
-<span class="fc" id="L582">      Throwable ourCause = t.getCause();</span>
-<span class="fc bfc" id="L583" title="All 2 branches covered.">      if (ourCause != null) {</span>
-<span class="fc" id="L584">        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix,</span>
+<span class="fc" id="L595">      Throwable ourCause = t.getCause();</span>
+<span class="fc bfc" id="L596" title="All 2 branches covered.">      if (ourCause != null) {</span>
+<span class="fc" id="L597">        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix,</span>
                 dejaVu, detail, abbreviatedTraceElement);
       }
     }
-<span class="fc" id="L588">  }</span>
+<span class="fc" id="L601">  }</span>
 
   public static boolean isNonRecoverable(@Nonnull final Throwable t) {
-<span class="nc" id="L591">    return nonRecoverableClassificationPredicate.test(t);</span>
+<span class="nc" id="L604">    return nonRecoverableClassificationPredicate.test(t);</span>
   }
 
   public static boolean containsNonRecoverable(@Nonnull final Throwable t) {
-<span class="fc" id="L595">    return contains(t, nonRecoverableClassificationPredicate);</span>
+<span class="fc" id="L608">    return contains(t, nonRecoverableClassificationPredicate);</span>
   }
 
   /**
@@ -603,7 +616,7 @@ public final class Throwables {
    * @return true if a Throwable matching the predicate is found.
    */
   public static boolean contains(@Nonnull final Throwable t, final Predicate&lt;Throwable&gt; predicate) {
-<span class="fc bfc" id="L606" title="All 2 branches covered.">    return first(t, predicate) != null;</span>
+<span class="fc bfc" id="L619" title="All 2 branches covered.">    return first(t, predicate) != null;</span>
   }
 
 
@@ -617,7 +630,7 @@ public final class Throwables {
   @Nullable
   @CheckReturnValue
   public static &lt;T extends Throwable&gt; T first(@Nonnull final Throwable t, final Class&lt;T&gt; clasz) {
-<span class="nc" id="L620">    return (T) first(t, (Throwable th) -&gt; clasz.isAssignableFrom(th.getClass()));</span>
+<span class="fc" id="L633">    return (T) first(t, (Throwable th) -&gt; clasz.isAssignableFrom(th.getClass()));</span>
   }
 
   /**
@@ -629,28 +642,28 @@ public final class Throwables {
   @Nullable
   @CheckReturnValue
   public static Throwable first(@Nonnull final Throwable t, final Predicate&lt;Throwable&gt; predicate) {
-<span class="fc" id="L632">    ArrayDeque&lt;Throwable&gt; toScan =  new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L633">    toScan.addFirst(t);</span>
+<span class="fc" id="L645">    ArrayDeque&lt;Throwable&gt; toScan =  new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L646">    toScan.addFirst(t);</span>
     Throwable th;
-<span class="fc" id="L635">    THashSet&lt;Throwable&gt; seen = new IdentityHashSet&lt;&gt;();</span>
-<span class="fc bfc" id="L636" title="All 2 branches covered.">    while ((th = toScan.pollFirst()) != null) {</span>
-<span class="pc bpc" id="L637" title="1 of 2 branches missed.">      if (seen.contains(th)) {</span>
-<span class="nc" id="L638">        continue;</span>
+<span class="fc" id="L648">    THashSet&lt;Throwable&gt; seen = new IdentityHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L649" title="All 2 branches covered.">    while ((th = toScan.pollFirst()) != null) {</span>
+<span class="pc bpc" id="L650" title="1 of 2 branches missed.">      if (seen.contains(th)) {</span>
+<span class="nc" id="L651">        continue;</span>
       }
-<span class="fc bfc" id="L640" title="All 2 branches covered.">      if (predicate.test(th)) {</span>
-<span class="fc" id="L641">        return th;</span>
+<span class="fc bfc" id="L653" title="All 2 branches covered.">      if (predicate.test(th)) {</span>
+<span class="fc" id="L654">        return th;</span>
       } else {
-<span class="fc" id="L643">        Throwable cause = th.getCause();</span>
-<span class="fc bfc" id="L644" title="All 2 branches covered.">        if (cause != null) {</span>
-<span class="fc" id="L645">          toScan.addFirst(cause);</span>
+<span class="fc" id="L656">        Throwable cause = th.getCause();</span>
+<span class="fc bfc" id="L657" title="All 2 branches covered.">        if (cause != null) {</span>
+<span class="fc" id="L658">          toScan.addFirst(cause);</span>
         }
-<span class="fc bfc" id="L647" title="All 2 branches covered.">        for (Throwable supp : th.getSuppressed()) {</span>
-<span class="fc" id="L648">          toScan.addLast(supp);</span>
+<span class="fc bfc" id="L660" title="All 2 branches covered.">        for (Throwable supp : th.getSuppressed()) {</span>
+<span class="fc" id="L661">          toScan.addLast(supp);</span>
         }
       }
-<span class="fc" id="L651">      seen.add(th);</span>
+<span class="fc" id="L664">      seen.add(th);</span>
     }
-<span class="fc" id="L653">    return null;</span>
+<span class="fc" id="L666">    return null;</span>
   }
 
 
@@ -664,42 +677,42 @@ public final class Throwables {
   @Nullable
   @CheckReturnValue
   public static Throwable firstCause(@Nonnull final Throwable throwable, final Predicate&lt;Throwable&gt; predicate) {
-<span class="fc" id="L667">    Throwable t = throwable;</span>
+<span class="fc" id="L680">    Throwable t = throwable;</span>
     do {
-<span class="fc bfc" id="L669" title="All 2 branches covered.">      if (predicate.test(t)) {</span>
-<span class="fc" id="L670">        return t;</span>
+<span class="fc bfc" id="L682" title="All 2 branches covered.">      if (predicate.test(t)) {</span>
+<span class="fc" id="L683">        return t;</span>
       }
-<span class="fc" id="L672">      t = t.getCause();</span>
-<span class="fc bfc" id="L673" title="All 2 branches covered.">    } while (t != null);</span>
-<span class="fc" id="L674">    return null;</span>
+<span class="fc" id="L685">      t = t.getCause();</span>
+<span class="fc bfc" id="L686" title="All 2 branches covered.">    } while (t != null);</span>
+<span class="fc" id="L687">    return null;</span>
   }
 
 
   public static Predicate&lt;Throwable&gt; getNonRecoverablePredicate() {
-<span class="nc" id="L679">    return nonRecoverableClassificationPredicate;</span>
+<span class="nc" id="L692">    return nonRecoverableClassificationPredicate;</span>
   }
 
   public static void setNonRecoverablePredicate(final Predicate&lt;Throwable&gt; predicate) {
-<span class="nc" id="L683">    Throwables.nonRecoverableClassificationPredicate = predicate;</span>
-<span class="nc" id="L684">  }</span>
+<span class="nc" id="L696">    Throwables.nonRecoverableClassificationPredicate = predicate;</span>
+<span class="nc" id="L697">  }</span>
 
   public static void writeAbreviatedClassName(final String className, final Appendable writeTo) throws IOException {
-<span class="fc" id="L687">    int ldIdx = className.lastIndexOf('.');</span>
-<span class="fc bfc" id="L688" title="All 2 branches covered.">    if (ldIdx &lt; 0) {</span>
-<span class="fc" id="L689">      writeTo.append(className);</span>
-<span class="fc" id="L690">      return;</span>
+<span class="fc" id="L700">    int ldIdx = className.lastIndexOf('.');</span>
+<span class="fc bfc" id="L701" title="All 2 branches covered.">    if (ldIdx &lt; 0) {</span>
+<span class="fc" id="L702">      writeTo.append(className);</span>
+<span class="fc" id="L703">      return;</span>
     }
-<span class="fc" id="L692">    boolean isPreviousDot = true;</span>
-<span class="fc bfc" id="L693" title="All 2 branches covered.">    for (int i = 0; i &lt; ldIdx; i++) {</span>
-<span class="fc" id="L694">      char c = className.charAt(i);</span>
-<span class="fc bfc" id="L695" title="All 2 branches covered.">      boolean isCurrentCharDot = c == '.';</span>
-<span class="fc bfc" id="L696" title="All 4 branches covered.">      if (isPreviousDot || isCurrentCharDot) {</span>
-<span class="fc" id="L697">        writeTo.append(c);</span>
+<span class="fc" id="L705">    boolean isPreviousDot = true;</span>
+<span class="fc bfc" id="L706" title="All 2 branches covered.">    for (int i = 0; i &lt; ldIdx; i++) {</span>
+<span class="fc" id="L707">      char c = className.charAt(i);</span>
+<span class="fc bfc" id="L708" title="All 2 branches covered.">      boolean isCurrentCharDot = c == '.';</span>
+<span class="fc bfc" id="L709" title="All 4 branches covered.">      if (isPreviousDot || isCurrentCharDot) {</span>
+<span class="fc" id="L710">        writeTo.append(c);</span>
       }
-<span class="fc" id="L699">      isPreviousDot = isCurrentCharDot;</span>
+<span class="fc" id="L712">      isPreviousDot = isCurrentCharDot;</span>
     }
-<span class="fc" id="L701">    writeTo.append(className, ldIdx, className.length());</span>
-<span class="fc" id="L702">  }</span>
+<span class="fc" id="L714">    writeTo.append(className, ldIdx, className.length());</span>
+<span class="fc" id="L715">  }</span>
 
 
 }

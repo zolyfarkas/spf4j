@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Client.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">Client.java</span></div><h1>Client.java</h1><pre class="source lang-java linenums">
-/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Client.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">Client.java</span></div><h1>Client.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.jmx;
 
@@ -40,8 +53,8 @@ import javax.management.remote.JMXServiceURL;
 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // FB gets it wrong here
 public final class Client {
 
-<span class="nc" id="L43">  private Client() {</span>
-<span class="nc" id="L44">  }</span>
+<span class="nc" id="L56">  private Client() {</span>
+<span class="nc" id="L57">  }</span>
 
   /**
    * get a an attribute from a JMX mbean.
@@ -61,11 +74,11 @@ public final class Client {
           @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String attribName)
           throws IOException, InstanceNotFoundException,
           MBeanException, AttributeNotFoundException, ReflectionException {
-<span class="fc" id="L64">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
-<span class="pc" id="L65">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
-<span class="fc" id="L66">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
-<span class="fc" id="L67">      return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);</span>
-<span class="pc bpc" id="L68" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L77">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="pc" id="L78">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L79">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L80">      return mbsc.getAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName), attribName);</span>
+<span class="pc bpc" id="L81" title="6 of 8 branches missed.">    }</span>
   }
 
   public static void setAttribute(@Nonnull final String serviceUrl,
@@ -73,25 +86,25 @@ public final class Client {
           @Nonnull final String attribName, @Nonnull final Object attribValue)
           throws IOException, InstanceNotFoundException,
           MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
-<span class="fc" id="L76">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
-<span class="fc" id="L77">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
-<span class="fc" id="L78">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
-<span class="fc" id="L79">      mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
+<span class="fc" id="L89">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="fc" id="L90">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L91">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L92">      mbsc.setAttribute(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
               new Attribute(attribName, attribValue));
-<span class="pc bpc" id="L81" title="4 of 8 branches missed.">    }</span>
-<span class="fc" id="L82">  }</span>
+<span class="pc bpc" id="L94" title="4 of 8 branches missed.">    }</span>
+<span class="fc" id="L95">  }</span>
 
   public static Object callOperation(@Nonnull final String serviceUrl,
           @Nonnull final String domain, @Nonnull final String mbeanName, @Nonnull final String operationName,
           final Object... parameters)
           throws IOException, InstanceNotFoundException,
           MBeanException, ReflectionException {
-<span class="fc" id="L89">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
-<span class="pc" id="L90">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
-<span class="fc" id="L91">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
-<span class="fc" id="L92">      return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
+<span class="fc" id="L102">    JMXServiceURL url = new JMXServiceURL(serviceUrl);</span>
+<span class="pc" id="L103">    try (JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {</span>
+<span class="fc" id="L104">      MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();</span>
+<span class="fc" id="L105">      return mbsc.invoke(ExportedValuesMBean.createObjectName(domain, mbeanName),</span>
               operationName, parameters, null);
-<span class="pc bpc" id="L94" title="6 of 8 branches missed.">    }</span>
+<span class="pc bpc" id="L107" title="6 of 8 branches missed.">    }</span>
   }
 
 }

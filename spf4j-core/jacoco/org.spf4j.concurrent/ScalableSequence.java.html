@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScalableSequence.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">ScalableSequence.java</span></div><h1>ScalableSequence.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.concurrent;
 
@@ -36,56 +50,56 @@ public final class ScalableSequence implements Sequence {
         private long current;
         private long max;
 
-<span class="fc" id="L39">        Bucket(final long start, final long end) {</span>
-<span class="fc" id="L40">            this.current = start;</span>
-<span class="fc" id="L41">            this.max = end;</span>
-<span class="fc" id="L42">        }</span>
+<span class="fc" id="L53">        Bucket(final long start, final long end) {</span>
+<span class="fc" id="L54">            this.current = start;</span>
+<span class="fc" id="L55">            this.max = end;</span>
+<span class="fc" id="L56">        }</span>
 
         public void reset(final long start, final long end) {
-<span class="fc" id="L45">            this.current = start;</span>
-<span class="fc" id="L46">            this.max = end;</span>
-<span class="fc" id="L47">        }</span>
+<span class="fc" id="L59">            this.current = start;</span>
+<span class="fc" id="L60">            this.max = end;</span>
+<span class="fc" id="L61">        }</span>
 
         public boolean hasValue() {
-<span class="fc bfc" id="L50" title="All 2 branches covered.">            return current &lt; max;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            return current &lt; max;</span>
         }
 
         public long getValue() {
-<span class="fc" id="L54">            return current++;</span>
+<span class="fc" id="L68">            return current++;</span>
         }
 
     }
 
-<span class="fc" id="L59">    public ScalableSequence(final long start, final int bucketSize) {</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (bucketSize &lt; 10) {</span>
-<span class="nc" id="L61">            throw new IllegalArgumentException(&quot;Bucket size must be greater than 10 and not &quot; + bucketSize);</span>
+<span class="fc" id="L73">    public ScalableSequence(final long start, final int bucketSize) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (bucketSize &lt; 10) {</span>
+<span class="nc" id="L75">            throw new IllegalArgumentException(&quot;Bucket size must be greater than 10 and not &quot; + bucketSize);</span>
         }
-<span class="fc" id="L63">        this.counter = new AtomicLong(start);</span>
-<span class="fc" id="L64">        this.bucketSize = bucketSize;</span>
-<span class="fc" id="L65">        this.buckets = new ThreadLocal() {</span>
+<span class="fc" id="L77">        this.counter = new AtomicLong(start);</span>
+<span class="fc" id="L78">        this.bucketSize = bucketSize;</span>
+<span class="fc" id="L79">        this.buckets = new ThreadLocal() {</span>
             @Override
             protected Bucket initialValue() {
-<span class="fc" id="L68">                long start = counter.getAndAdd(bucketSize);</span>
-<span class="fc" id="L69">                return new Bucket(start, start + bucketSize);</span>
+<span class="fc" id="L82">                long start = counter.getAndAdd(bucketSize);</span>
+<span class="fc" id="L83">                return new Bucket(start, start + bucketSize);</span>
             }
         };
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L86">    }</span>
 
     @Override
     public long next() {
-<span class="fc" id="L76">        Bucket bucket = buckets.get();</span>
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (bucket.hasValue()) {</span>
-<span class="fc" id="L78">            return bucket.getValue();</span>
+<span class="fc" id="L90">        Bucket bucket = buckets.get();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (bucket.hasValue()) {</span>
+<span class="fc" id="L92">            return bucket.getValue();</span>
         } else {
-<span class="fc" id="L80">            long start = counter.getAndAdd(bucketSize);</span>
-<span class="fc" id="L81">            bucket.reset(start + 1, start + bucketSize);</span>
-<span class="fc" id="L82">            return start;</span>
+<span class="fc" id="L94">            long start = counter.getAndAdd(bucketSize);</span>
+<span class="fc" id="L95">            bucket.reset(start + 1, start + bucketSize);</span>
+<span class="fc" id="L96">            return start;</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L88">        return &quot;ScalableSequence{&quot; + &quot;counter=&quot; + counter + &quot;, bucketSize=&quot; + bucketSize + '}';</span>
+<span class="nc" id="L102">        return &quot;ScalableSequence{&quot; + &quot;counter=&quot; + counter + &quot;, bucketSize=&quot; + bucketSize + '}';</span>
     }
 
 }

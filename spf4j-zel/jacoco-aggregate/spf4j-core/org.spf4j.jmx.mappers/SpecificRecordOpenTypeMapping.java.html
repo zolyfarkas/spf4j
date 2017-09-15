@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SpecificRecordOpenTypeMapping.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx.mappers</a> &gt; <span class="el_source">SpecificRecordOpenTypeMapping.java</span></div><h1>SpecificRecordOpenTypeMapping.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.jmx.mappers;
+
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
+import org.spf4j.jmx.JMXBeanMapping;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
+import java.io.UncheckedIOException;
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import org.apache.avro.Schema;
+import org.apache.avro.specific.SpecificData;
+import org.apache.avro.specific.SpecificRecordBase;
+import org.spf4j.base.Reflections;
+import org.spf4j.jmx.JMXBeanMappingSupplier;
+
+/**
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings(&quot;SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR&quot;)
+public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implements JMXBeanMapping {
+
+<span class="fc" id="L63">  private static final Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);</span>
+
+  private final JMXBeanMappingSupplier typeMapper;
+
+  public SpecificRecordOpenTypeMapping(final Class&lt;? extends SpecificRecordBase&gt; javaType,
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
+<span class="fc" id="L69">    super(javaType, typeFromSpecificRecord(javaType, typeMapper));</span>
+<span class="fc" id="L70">    this.typeMapper = typeMapper;</span>
+<span class="fc" id="L71">  }</span>
+
+  @Override
+  public Object fromOpenValue(final Object openValue) throws InvalidObjectException {
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">    if (!(openValue instanceof CompositeData)) {</span>
+<span class="nc" id="L76">      throw new InvalidObjectException(&quot;Not a CompositeData &quot; + openValue);</span>
+    }
+<span class="fc" id="L78">    CompositeData cd = (CompositeData) openValue;</span>
+<span class="fc" id="L79">    CompositeType compositeType = cd.getCompositeType();</span>
+<span class="fc" id="L80">    String typeName = compositeType.getTypeName();</span>
+    SpecificRecordBase rec;
+    try {
+<span class="fc" id="L83">      rec = (SpecificRecordBase) Class.forName(typeName).newInstance();</span>
+<span class="nc" id="L84">    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L85">      InvalidObjectException oex = new InvalidObjectException(&quot;Invalid object &quot; + openValue);</span>
+<span class="nc" id="L86">      oex.addSuppressed(ex);</span>
+<span class="nc" id="L87">      throw oex;</span>
+<span class="fc" id="L88">    }</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    for (Schema.Field field : rec.getSchema().getFields()) {</span>
+<span class="fc" id="L90">      Object obj = cd.get(field.name());</span>
+      try {
+<span class="fc" id="L92">        rec.put(field.pos(),</span>
+<span class="fc" id="L93">                typeMapper.get(getGenericType(field.schema()))</span>
+<span class="fc" id="L94">                        .fromOpenValue(obj));</span>
+<span class="nc" id="L95">      } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L96">        InvalidObjectException tex = new InvalidObjectException(&quot;Ivalid Object &quot; + obj + &quot; id &quot; + cd);</span>
+<span class="nc" id="L97">        tex.addSuppressed(ex);</span>
+<span class="nc" id="L98">        throw tex;</span>
+<span class="fc" id="L99">      }</span>
+<span class="fc" id="L100">    }</span>
+<span class="fc" id="L101">    return rec;</span>
+  }
+
+  private static &lt;K, V&gt; TypeToken&lt;Map&lt;K, V&gt;&gt; mapToken(final TypeToken&lt;K&gt; keyToken,
+          final TypeToken&lt;V&gt; valueToken) {
+<span class="nc" id="L106">    return new TypeToken&lt;Map&lt;K, V&gt;&gt;() { }</span>
+<span class="nc" id="L107">      .where(new TypeParameter&lt;K&gt;() { }, keyToken)</span>
+<span class="nc" id="L108">      .where(new TypeParameter&lt;V&gt;() { }, valueToken);</span>
+  }
+
+  private static &lt;T&gt; TypeToken&lt;List&lt;T&gt;&gt; listToken(final TypeToken&lt;T&gt; valToken) {
+<span class="fc" id="L112">    return new TypeToken&lt;List&lt;T&gt;&gt;() { }</span>
+<span class="fc" id="L113">      .where(new TypeParameter&lt;T&gt;() { }, valToken);</span>
+  }
+
+  public static Type getGenericType(final Schema schema) {
+<span class="fc" id="L117">    Schema.Type type = schema.getType();</span>
+<span class="pc bpc" id="L118" title="1 of 4 branches missed.">    switch (type) {</span>
+      case ARRAY:
+<span class="fc" id="L120">        Type elementType = getGenericType(schema.getElementType());</span>
+<span class="fc" id="L121">        return listToken(TypeToken.of(elementType)).getType();</span>
+      case MAP:
+<span class="nc" id="L123">        Type valueType = getGenericType(schema.getValueType());</span>
+<span class="nc" id="L124">        return mapToken(TypeToken.of(String.class), TypeToken.of(valueType)).getType();</span>
+      case UNION:
+<span class="fc" id="L126">        List&lt;Schema&gt; types = schema.getTypes();     // elide unions with null</span>
+<span class="pc bpc" id="L127" title="2 of 4 branches missed.">        if ((types.size() == 2) &amp;&amp; types.contains(NULL_SCHEMA)) {</span>
+<span class="fc" id="L128">          return Reflections.primitiveToWrapper(</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">                  getGenericType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)));</span>
+        } else {
+<span class="nc" id="L131">          throw new IllegalArgumentException(&quot;Schema &quot; + schema</span>
+                  + &quot;Cannot be mapped to an OpenType duw to multibranch union&quot;);
+        }
+      default:
+<span class="fc" id="L135">        return SpecificData.get().getClass(schema);</span>
+    }
+  }
+
+
+  @Override
+  public Object toOpenValue(final Object javaValue) throws OpenDataException {
+<span class="fc" id="L142">    SpecificRecordBase sr = (SpecificRecordBase) javaValue;</span>
+<span class="fc" id="L143">    return fromSpecificRecord((SpecificRecordBase) sr);</span>
+  }
+
+
+  private CompositeData fromSpecificRecord(final SpecificRecordBase r)
+          throws OpenDataException {
+    CompositeType ctype;
+    try {
+<span class="fc" id="L151">      ctype = typeFromSpecificRecord(r, typeMapper);</span>
+<span class="nc" id="L152">    } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L153">        throw new UncheckedIOException(ex); //this should never happen</span>
+<span class="fc" id="L154">    }</span>
+<span class="fc" id="L155">    Schema schema = r.getSchema();</span>
+<span class="fc" id="L156">    List&lt;Schema.Field&gt; fields = schema.getFields();</span>
+<span class="fc" id="L157">    int size = fields.size();</span>
+<span class="fc" id="L158">    String[] names = new String[size];</span>
+<span class="fc" id="L159">    Object[] values = new Object[size];</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">    for (Schema.Field field : fields) {</span>
+<span class="fc" id="L161">      int pos = field.pos();</span>
+<span class="fc" id="L162">      names[pos] = field.name();</span>
+<span class="fc" id="L163">      Object val = r.get(pos);</span>
+      JMXBeanMapping mapping;
+      try {
+<span class="fc" id="L166">        mapping = typeMapper.get(getGenericType(field.schema()));</span>
+<span class="nc" id="L167">      } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L168">        throw new UncheckedIOException(ex); //this should never happen</span>
+<span class="fc" id="L169">      }</span>
+<span class="fc" id="L170">      values[pos] = mapping.toOpenValue(val);</span>
+<span class="fc" id="L171">    }</span>
+<span class="fc" id="L172">    return new CompositeDataSupport(ctype, names, values);</span>
+  }
+
+  private static  CompositeType typeFromSpecificRecord(final Class&lt;? extends SpecificRecordBase&gt; rc,
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
+    try {
+<span class="fc" id="L178">      return typeFromSpecificRecord(rc.newInstance(), typeMapper);</span>
+<span class="nc" id="L179">    } catch (InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L180">      throw new UncheckedExecutionException(ex);</span>
+    }
+  }
+
+
+  private static  CompositeType typeFromSpecificRecord(final SpecificRecordBase r,
+          final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
+<span class="fc" id="L187">    Schema schema = r.getSchema();</span>
+<span class="fc" id="L188">    List&lt;Schema.Field&gt; fields = schema.getFields();</span>
+<span class="fc" id="L189">    int size = fields.size();</span>
+<span class="fc" id="L190">    String[] names = new String[size];</span>
+<span class="fc" id="L191">    String[] descriptions = new String[size];</span>
+<span class="fc" id="L192">    OpenType&lt;?&gt;[] types = new OpenType&lt;?&gt;[size];</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">    for (Schema.Field field : fields) {</span>
+<span class="fc" id="L194">      int pos = field.pos();</span>
+<span class="fc" id="L195">      names[pos] = field.name();</span>
+<span class="fc" id="L196">      descriptions[pos] = field.doc();</span>
+<span class="fc" id="L197">      types[pos] = typeMapper.get(getGenericType(field.schema())).getOpenType();</span>
+<span class="fc" id="L198">    }</span>
+    try {
+<span class="fc" id="L200">      return new CompositeType(schema.getFullName(), schema.getDoc(),</span>
+              names, descriptions, types);
+<span class="nc" id="L202">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L203">      throw new UncheckedExecutionException(ex);</span>
+    }
+  }
+
+  @Override
+  public Class&lt;?&gt; getMappedType() {
+<span class="fc" id="L209">    return getOpenClass();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L214">    return &quot;SpecificRecordOpenTypeMapping{&quot; + &quot;javaType=&quot; + getJavaType()</span>
+<span class="nc" id="L215">            + &quot;, openType=&quot; + getOpenType() + '}';</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

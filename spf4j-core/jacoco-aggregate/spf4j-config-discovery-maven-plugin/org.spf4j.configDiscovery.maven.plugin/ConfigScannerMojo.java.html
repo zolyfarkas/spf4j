@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ConfigScannerMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-core</a> &gt; <a href="../index.html" class="el_bundle">spf4j-config-discovery-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.configDiscovery.maven.plugin</a> &gt; <span class="el_source">ConfigScannerMojo.java</span></div><h1>ConfigScannerMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.configDiscovery.maven.plugin;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ConfigScannerMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-core</a> &gt; <a href="../index.html" class="el_bundle">spf4j-config-discovery-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.configDiscovery.maven.plugin</a> &gt; <span class="el_source">ConfigScannerMojo.java</span></div><h1>ConfigScannerMojo.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.configDiscovery.maven.plugin;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
@@ -29,25 +60,25 @@ import org.spf4j.base.asm.Invocation;
 import org.spf4j.base.asm.Scanner;
 
 @Mojo(name = &quot;generate&quot;, defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresProject = true)
-<span class="nc" id="L32">public class ConfigScannerMojo</span>
+<span class="nc" id="L63">public class ConfigScannerMojo</span>
         extends AbstractMojo {
 
-<span class="nc" id="L35">  public static final Map&lt;Class, String&gt; JAVA2AVROTYPE = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L66">  public static final Map&lt;Class, String&gt; JAVA2AVROTYPE = new HashMap&lt;&gt;();</span>
 
   static {
-<span class="nc" id="L38">    JAVA2AVROTYPE.put(String.class, &quot;string&quot;);</span>
-<span class="nc" id="L39">    JAVA2AVROTYPE.put(Integer.class, &quot;int&quot;);</span>
-<span class="nc" id="L40">    JAVA2AVROTYPE.put(int.class, &quot;int&quot;);</span>
-<span class="nc" id="L41">    JAVA2AVROTYPE.put(Long.class, &quot;long&quot;);</span>
-<span class="nc" id="L42">    JAVA2AVROTYPE.put(long.class, &quot;long&quot;);</span>
-<span class="nc" id="L43">    JAVA2AVROTYPE.put(Boolean.class, &quot;boolean&quot;);</span>
-<span class="nc" id="L44">    JAVA2AVROTYPE.put(boolean.class, &quot;boolean&quot;);</span>
-<span class="nc" id="L45">    JAVA2AVROTYPE.put(Float.class, &quot;float&quot;);</span>
-<span class="nc" id="L46">    JAVA2AVROTYPE.put(float.class, &quot;float&quot;);</span>
-<span class="nc" id="L47">    JAVA2AVROTYPE.put(Double.class, &quot;double&quot;);</span>
-<span class="nc" id="L48">    JAVA2AVROTYPE.put(double.class, &quot;double&quot;);</span>
-<span class="nc" id="L49">    JAVA2AVROTYPE.put(Map.class, &quot;map&lt;string&gt;&quot;);</span>
-<span class="nc" id="L50">  }</span>
+<span class="nc" id="L69">    JAVA2AVROTYPE.put(String.class, &quot;string&quot;);</span>
+<span class="nc" id="L70">    JAVA2AVROTYPE.put(Integer.class, &quot;int&quot;);</span>
+<span class="nc" id="L71">    JAVA2AVROTYPE.put(int.class, &quot;int&quot;);</span>
+<span class="nc" id="L72">    JAVA2AVROTYPE.put(Long.class, &quot;long&quot;);</span>
+<span class="nc" id="L73">    JAVA2AVROTYPE.put(long.class, &quot;long&quot;);</span>
+<span class="nc" id="L74">    JAVA2AVROTYPE.put(Boolean.class, &quot;boolean&quot;);</span>
+<span class="nc" id="L75">    JAVA2AVROTYPE.put(boolean.class, &quot;boolean&quot;);</span>
+<span class="nc" id="L76">    JAVA2AVROTYPE.put(Float.class, &quot;float&quot;);</span>
+<span class="nc" id="L77">    JAVA2AVROTYPE.put(float.class, &quot;float&quot;);</span>
+<span class="nc" id="L78">    JAVA2AVROTYPE.put(Double.class, &quot;double&quot;);</span>
+<span class="nc" id="L79">    JAVA2AVROTYPE.put(double.class, &quot;double&quot;);</span>
+<span class="nc" id="L80">    JAVA2AVROTYPE.put(Map.class, &quot;map&lt;string&gt;&quot;);</span>
+<span class="nc" id="L81">  }</span>
 
   /**
    * Location of the file.
@@ -75,227 +106,227 @@ import org.spf4j.base.asm.Scanner;
   /**
    * target namespace of the configurations.
    */
-<span class="nc" id="L78">  @Parameter(defaultValue = &quot;&quot;)</span>
+<span class="nc" id="L109">  @Parameter(defaultValue = &quot;&quot;)</span>
   private String namespace = &quot;&quot;;
 
-<span class="nc" id="L81">  private final Set&lt;Method&gt; methods = getSystemPropertyMethods();</span>
+<span class="nc" id="L112">  private final Set&lt;Method&gt; methods = getSystemPropertyMethods();</span>
 
   private static Set&lt;Method&gt; getSystemPropertyMethods() {
     try {
-<span class="nc" id="L85">      return ImmutableSet.of(System.class.getDeclaredMethod(&quot;getProperty&quot;, String.class),</span>
-<span class="nc" id="L86">              System.class.getDeclaredMethod(&quot;getProperty&quot;, String.class, String.class),</span>
-<span class="nc" id="L87">              Integer.class.getDeclaredMethod(&quot;getInteger&quot;, String.class),</span>
-<span class="nc" id="L88">              Integer.class.getDeclaredMethod(&quot;getInteger&quot;, String.class, int.class),</span>
-<span class="nc" id="L89">              Integer.class.getDeclaredMethod(&quot;getInteger&quot;, String.class, Integer.class),</span>
-<span class="nc" id="L90">              Long.class.getDeclaredMethod(&quot;getLong&quot;, String.class),</span>
-<span class="nc" id="L91">              Long.class.getDeclaredMethod(&quot;getLong&quot;, String.class, Long.class),</span>
-<span class="nc" id="L92">              Long.class.getDeclaredMethod(&quot;getLong&quot;, String.class, long.class),</span>
-<span class="nc" id="L93">              Boolean.class.getDeclaredMethod(&quot;getBoolean&quot;, String.class));</span>
-<span class="nc" id="L94">    } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L95">      throw new ExceptionInInitializerError(ex);</span>
+<span class="nc" id="L116">      return ImmutableSet.of(System.class.getDeclaredMethod(&quot;getProperty&quot;, String.class),</span>
+<span class="nc" id="L117">              System.class.getDeclaredMethod(&quot;getProperty&quot;, String.class, String.class),</span>
+<span class="nc" id="L118">              Integer.class.getDeclaredMethod(&quot;getInteger&quot;, String.class),</span>
+<span class="nc" id="L119">              Integer.class.getDeclaredMethod(&quot;getInteger&quot;, String.class, int.class),</span>
+<span class="nc" id="L120">              Integer.class.getDeclaredMethod(&quot;getInteger&quot;, String.class, Integer.class),</span>
+<span class="nc" id="L121">              Long.class.getDeclaredMethod(&quot;getLong&quot;, String.class),</span>
+<span class="nc" id="L122">              Long.class.getDeclaredMethod(&quot;getLong&quot;, String.class, Long.class),</span>
+<span class="nc" id="L123">              Long.class.getDeclaredMethod(&quot;getLong&quot;, String.class, long.class),</span>
+<span class="nc" id="L124">              Boolean.class.getDeclaredMethod(&quot;getBoolean&quot;, String.class));</span>
+<span class="nc" id="L125">    } catch (NoSuchMethodException ex) {</span>
+<span class="nc" id="L126">      throw new ExceptionInInitializerError(ex);</span>
     }
   }
 
   public static String greatestCommonPrefix(final String a, final String b) {
-<span class="nc" id="L100">    int minLength = Math.min(a.length(), b.length());</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">    for (int i = 0; i &lt; minLength; i++) {</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">      if (a.charAt(i) != b.charAt(i)) {</span>
-<span class="nc" id="L103">        return a.substring(0, i);</span>
+<span class="nc" id="L131">    int minLength = Math.min(a.length(), b.length());</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    for (int i = 0; i &lt; minLength; i++) {</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">      if (a.charAt(i) != b.charAt(i)) {</span>
+<span class="nc" id="L134">        return a.substring(0, i);</span>
       }
     }
-<span class="nc" id="L106">    return a.substring(0, minLength);</span>
+<span class="nc" id="L137">    return a.substring(0, minLength);</span>
   }
 
   @Nonnull
   public static String getPackageName(final String className) {
-<span class="nc" id="L111">    int lastIndexOf = className.lastIndexOf('/');</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (lastIndexOf &gt;= 0) {</span>
-<span class="nc" id="L113">      return className.substring(0, lastIndexOf).replace('/', '.');</span>
+<span class="nc" id="L142">    int lastIndexOf = className.lastIndexOf('/');</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (lastIndexOf &gt;= 0) {</span>
+<span class="nc" id="L144">      return className.substring(0, lastIndexOf).replace('/', '.');</span>
     } else {
-<span class="nc" id="L115">      return &quot;&quot;;</span>
+<span class="nc" id="L146">      return &quot;&quot;;</span>
     }
   }
 
 
   public void processClasses(final File location, final Map&lt;String, Object&gt; avdlWriter) throws IOException {
-<span class="nc bnc" id="L121" title="All 2 branches missed.">    if (!location.exists()) {</span>
-<span class="nc" id="L122">      return;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    if (!location.exists()) {</span>
+<span class="nc" id="L153">      return;</span>
     }
-<span class="nc bnc" id="L124" title="All 2 branches missed.">    if (location.isDirectory()) {</span>
-<span class="nc" id="L125">      File[] listFiles = location.listFiles();</span>
-<span class="nc bnc" id="L126" title="All 2 branches missed.">      if (listFiles != null) {</span>
-<span class="nc bnc" id="L127" title="All 2 branches missed.">        for (File file : listFiles) {</span>
-<span class="nc" id="L128">          processClasses(file, avdlWriter);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">    if (location.isDirectory()) {</span>
+<span class="nc" id="L156">      File[] listFiles = location.listFiles();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">      if (listFiles != null) {</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        for (File file : listFiles) {</span>
+<span class="nc" id="L159">          processClasses(file, avdlWriter);</span>
         }
       }
-<span class="nc bnc" id="L131" title="All 2 branches missed.">    } else if (location.getName().endsWith(&quot;.class&quot;)) {</span>
-<span class="nc" id="L132">      getLog().debug(&quot;Processing class &quot; + location);</span>
-<span class="nc" id="L133">      List&lt;Invocation&gt; invocations = Scanner.findUsages(new Supplier&lt;InputStream&gt;() {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    } else if (location.getName().endsWith(&quot;.class&quot;)) {</span>
+<span class="nc" id="L163">      getLog().debug(&quot;Processing class &quot; + location);</span>
+<span class="nc" id="L164">      List&lt;Invocation&gt; invocations = Scanner.findUsages(new Supplier&lt;InputStream&gt;() {</span>
 
         @Override
         public InputStream get() {
           try {
-<span class="nc" id="L138">            return new BufferedInputStream(new FileInputStream(location));</span>
-<span class="nc" id="L139">          } catch (FileNotFoundException ex) {</span>
-<span class="nc" id="L140">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L169">            return new BufferedInputStream(new FileInputStream(location));</span>
+<span class="nc" id="L170">          } catch (FileNotFoundException ex) {</span>
+<span class="nc" id="L171">            throw new RuntimeException(ex);</span>
           }
         }
       }, methods);
-<span class="nc bnc" id="L144" title="All 2 branches missed.">      for (Invocation invocation : invocations) {</span>
-<span class="nc" id="L145">        getLog().debug(&quot;Found invocation &quot; + invocation);</span>
-<span class="nc" id="L146">        Class&lt;?&gt; returnType = invocation.getInvokedMethod().getReturnType();</span>
-<span class="nc" id="L147">        Object[] parameters = invocation.getParameters();</span>
-<span class="nc" id="L148">        String caleeClassName = invocation.getCaleeClassName();</span>
-<span class="nc" id="L149">        String doc = caleeClassName</span>
-<span class="nc" id="L150">                + '.' + invocation.getCaleeMethodName() + ':' + invocation.getCaleeLine();</span>
-<span class="nc" id="L151">        Object parameter = parameters[0];</span>
-<span class="nc" id="L152">        Map&lt;String, Object&gt; objs = avdlWriter;</span>
-<span class="nc bnc" id="L153" title="All 2 branches missed.">        if (parameter instanceof String) {</span>
-<span class="nc" id="L154">          String[] attrPath = ((String) parameter).split(&quot;\\.&quot;);</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">          for (int i = 0; i &lt; attrPath.length - 1; i++) {</span>
-<span class="nc" id="L156">            final String pv = attrPath[i];</span>
-<span class="nc" id="L157">            Map&lt;String, Object&gt; get = (Map&lt;String, Object&gt;) objs.get(pv);</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (get == null) {</span>
-<span class="nc" id="L159">              get = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L160">              objs.put(pv, get);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">      for (Invocation invocation : invocations) {</span>
+<span class="nc" id="L176">        getLog().debug(&quot;Found invocation &quot; + invocation);</span>
+<span class="nc" id="L177">        Class&lt;?&gt; returnType = invocation.getInvokedMethod().getReturnType();</span>
+<span class="nc" id="L178">        Object[] parameters = invocation.getParameters();</span>
+<span class="nc" id="L179">        String caleeClassName = invocation.getCaleeClassName();</span>
+<span class="nc" id="L180">        String doc = caleeClassName</span>
+<span class="nc" id="L181">                + '.' + invocation.getCaleeMethodName() + ':' + invocation.getCaleeLine();</span>
+<span class="nc" id="L182">        Object parameter = parameters[0];</span>
+<span class="nc" id="L183">        Map&lt;String, Object&gt; objs = avdlWriter;</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (parameter instanceof String) {</span>
+<span class="nc" id="L185">          String[] attrPath = ((String) parameter).split(&quot;\\.&quot;);</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">          for (int i = 0; i &lt; attrPath.length - 1; i++) {</span>
+<span class="nc" id="L187">            final String pv = attrPath[i];</span>
+<span class="nc" id="L188">            Map&lt;String, Object&gt; get = (Map&lt;String, Object&gt;) objs.get(pv);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (get == null) {</span>
+<span class="nc" id="L190">              get = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L191">              objs.put(pv, get);</span>
             }
-<span class="nc" id="L162">            objs = get;</span>
+<span class="nc" id="L193">            objs = get;</span>
           }
-<span class="nc" id="L164">          String fname = attrPath[attrPath.length - 1];</span>
-<span class="nc" id="L165">          FieldInfo fi = (FieldInfo) objs.get(fname);</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">          if (fi == null) {</span>
-<span class="nc bnc" id="L167" title="All 2 branches missed.">            if (parameters.length &gt; 1) {</span>
-<span class="nc" id="L168">              fi = new FieldInfo(getPackageName(caleeClassName), doc, returnType, parameters[1]);</span>
+<span class="nc" id="L195">          String fname = attrPath[attrPath.length - 1];</span>
+<span class="nc" id="L196">          FieldInfo fi = (FieldInfo) objs.get(fname);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">          if (fi == null) {</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">            if (parameters.length &gt; 1) {</span>
+<span class="nc" id="L199">              fi = new FieldInfo(getPackageName(caleeClassName), doc, returnType, parameters[1]);</span>
             } else {
-<span class="nc" id="L170">              fi = new FieldInfo(getPackageName(caleeClassName), doc, returnType, null);</span>
+<span class="nc" id="L201">              fi = new FieldInfo(getPackageName(caleeClassName), doc, returnType, null);</span>
             }
-<span class="nc" id="L172">            objs.put(fname, fi);</span>
+<span class="nc" id="L203">            objs.put(fname, fi);</span>
           }
-<span class="nc" id="L174">        } else {</span>
-<span class="nc" id="L175">          FieldInfo df = (FieldInfo) objs.get(&quot;dynamic&quot;);</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">          if (df == null) {</span>
-<span class="nc" id="L177">            df = new FieldInfo(getPackageName(caleeClassName), doc, Map.class, Collections.EMPTY_MAP);</span>
+<span class="nc" id="L205">        } else {</span>
+<span class="nc" id="L206">          FieldInfo df = (FieldInfo) objs.get(&quot;dynamic&quot;);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">          if (df == null) {</span>
+<span class="nc" id="L208">            df = new FieldInfo(getPackageName(caleeClassName), doc, Map.class, Collections.EMPTY_MAP);</span>
           } else {
-<span class="nc" id="L179">            df = new FieldInfo(getPackageName(caleeClassName), df.getDoc() + '\n' + doc,</span>
+<span class="nc" id="L210">            df = new FieldInfo(getPackageName(caleeClassName), df.getDoc() + '\n' + doc,</span>
                     Map.class, Collections.EMPTY_MAP);
           }
-<span class="nc" id="L182">          objs.put(&quot;dynamic&quot;, df);</span>
+<span class="nc" id="L213">          objs.put(&quot;dynamic&quot;, df);</span>
         }
 
-<span class="nc" id="L185">      }</span>
+<span class="nc" id="L216">      }</span>
     }
-<span class="nc" id="L187">  }</span>
+<span class="nc" id="L218">  }</span>
 
 
   public static String childNameSpace(final String parent, final String child) {
-<span class="nc bnc" id="L191" title="All 2 branches missed.">    return (parent.isEmpty()) ? child : parent + '.' + child;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">    return (parent.isEmpty()) ? child : parent + '.' + child;</span>
   }
 
   public void writeRecord(final Writer w, final String nameSpace,
           final String recordName, final Map&lt;String, Object&gt; record)
           throws IOException {
     // do subRecords first.
-<span class="nc bnc" id="L198" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : record.entrySet()) {</span>
-<span class="nc" id="L199">      Object value = entry.getValue();</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">      if (value instanceof Map) {</span>
-<span class="nc" id="L201">        String key = entry.getKey();</span>
-<span class="nc" id="L202">        writeRecord(w, childNameSpace(nameSpace, key),</span>
-<span class="nc" id="L203">                CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key) + recordSuffix,</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : record.entrySet()) {</span>
+<span class="nc" id="L230">      Object value = entry.getValue();</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">      if (value instanceof Map) {</span>
+<span class="nc" id="L232">        String key = entry.getKey();</span>
+<span class="nc" id="L233">        writeRecord(w, childNameSpace(nameSpace, key),</span>
+<span class="nc" id="L234">                CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key) + recordSuffix,</span>
                 (Map&lt;String, Object&gt;) value);
-<span class="nc bnc" id="L205" title="All 2 branches missed.">      } else if (!(value instanceof FieldInfo)) {</span>
-<span class="nc" id="L206">        throw new IllegalStateException(&quot;Not supported type &quot; + value);</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">      } else if (!(value instanceof FieldInfo)) {</span>
+<span class="nc" id="L237">        throw new IllegalStateException(&quot;Not supported type &quot; + value);</span>
       }
-<span class="nc" id="L208">    }</span>
+<span class="nc" id="L239">    }</span>
     // write record
-<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (!nameSpace.isEmpty()) {</span>
-<span class="nc" id="L211">      w.write(&quot; @namespace(\&quot;&quot;);</span>
-<span class="nc" id="L212">      w.write(nameSpace);</span>
-<span class="nc" id="L213">      w.write(&quot;\&quot;)\n&quot;);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">    if (!nameSpace.isEmpty()) {</span>
+<span class="nc" id="L242">      w.write(&quot; @namespace(\&quot;&quot;);</span>
+<span class="nc" id="L243">      w.write(nameSpace);</span>
+<span class="nc" id="L244">      w.write(&quot;\&quot;)\n&quot;);</span>
     }
-<span class="nc" id="L215">    w.write(&quot; record &quot;);</span>
-<span class="nc" id="L216">    w.write(recordName);</span>
-<span class="nc" id="L217">    w.write(&quot; {\n&quot;);</span>
-<span class="nc bnc" id="L218" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : record.entrySet()) {</span>
-<span class="nc" id="L219">      Object value = entry.getValue();</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">      if (value instanceof FieldInfo) {</span>
-<span class="nc" id="L221">        FieldInfo field = (FieldInfo) value;</span>
-<span class="nc" id="L222">        w.write(&quot;\n  /**&quot;);</span>
-<span class="nc" id="L223">        w.write(field.getDoc());</span>
-<span class="nc" id="L224">        w.write(&quot;*/\n&quot;);</span>
-<span class="nc" id="L225">        Class type = field.getType();</span>
-<span class="nc" id="L226">        Object defaultValue = field.getDefaultValue();</span>
-<span class="nc" id="L227">        String avroType = JAVA2AVROTYPE.get(type);</span>
-<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (avroType == null) {</span>
-<span class="nc" id="L229">          throw new IllegalStateException(&quot; No avro equivalent for &quot; + type);</span>
+<span class="nc" id="L246">    w.write(&quot; record &quot;);</span>
+<span class="nc" id="L247">    w.write(recordName);</span>
+<span class="nc" id="L248">    w.write(&quot; {\n&quot;);</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : record.entrySet()) {</span>
+<span class="nc" id="L250">      Object value = entry.getValue();</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">      if (value instanceof FieldInfo) {</span>
+<span class="nc" id="L252">        FieldInfo field = (FieldInfo) value;</span>
+<span class="nc" id="L253">        w.write(&quot;\n  /**&quot;);</span>
+<span class="nc" id="L254">        w.write(field.getDoc());</span>
+<span class="nc" id="L255">        w.write(&quot;*/\n&quot;);</span>
+<span class="nc" id="L256">        Class type = field.getType();</span>
+<span class="nc" id="L257">        Object defaultValue = field.getDefaultValue();</span>
+<span class="nc" id="L258">        String avroType = JAVA2AVROTYPE.get(type);</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (avroType == null) {</span>
+<span class="nc" id="L260">          throw new IllegalStateException(&quot; No avro equivalent for &quot; + type);</span>
         }
-<span class="nc bnc" id="L231" title="All 4 branches missed.">        if (type == boolean.class || type == Boolean.class) {</span>
-<span class="nc" id="L232">          defaultValue = false;</span>
+<span class="nc bnc" id="L262" title="All 4 branches missed.">        if (type == boolean.class || type == Boolean.class) {</span>
+<span class="nc" id="L263">          defaultValue = false;</span>
         }
-<span class="nc bnc" id="L234" title="All 2 branches missed.">        if (defaultValue == null) {</span>
-<span class="nc" id="L235">          w.write(&quot;  union {null, &quot;);</span>
-<span class="nc" id="L236">          w.write(avroType);</span>
-<span class="nc" id="L237">          w.write(&quot;} &quot;);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (defaultValue == null) {</span>
+<span class="nc" id="L266">          w.write(&quot;  union {null, &quot;);</span>
+<span class="nc" id="L267">          w.write(avroType);</span>
+<span class="nc" id="L268">          w.write(&quot;} &quot;);</span>
         } else {
-<span class="nc" id="L239">          w.write(&quot;  &quot;);</span>
-<span class="nc" id="L240">          w.write(avroType);</span>
-<span class="nc" id="L241">          w.write(&quot; &quot;);</span>
+<span class="nc" id="L270">          w.write(&quot;  &quot;);</span>
+<span class="nc" id="L271">          w.write(avroType);</span>
+<span class="nc" id="L272">          w.write(&quot; &quot;);</span>
         }
-<span class="nc" id="L243">        w.write(entry.getKey());</span>
-<span class="nc" id="L244">        w.write(&quot; = &quot;);</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">        w.append(defaultValue == null ? null :</span>
-<span class="nc bnc" id="L246" title="All 2 branches missed.">                defaultValue.getClass() == String.class ? JsonUtils.toJsonString((String) defaultValue)</span>
-<span class="nc" id="L247">                        : defaultValue.toString());</span>
-<span class="nc" id="L248">        w.write(&quot;;\n&quot;);</span>
+<span class="nc" id="L274">        w.write(entry.getKey());</span>
+<span class="nc" id="L275">        w.write(&quot; = &quot;);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        w.append(defaultValue == null ? null :</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                defaultValue.getClass() == String.class ? JsonUtils.toJsonString((String) defaultValue)</span>
+<span class="nc" id="L278">                        : defaultValue.toString());</span>
+<span class="nc" id="L279">        w.write(&quot;;\n&quot;);</span>
 
-<span class="nc bnc" id="L250" title="All 2 branches missed.">      } else if (value instanceof Map) {</span>
-<span class="nc" id="L251">        String key = entry.getKey();</span>
-<span class="nc" id="L252">        String ns = childNameSpace(nameSpace, key);</span>
-<span class="nc" id="L253">        w.write(&quot;\n /** Category: &quot;);</span>
-<span class="nc" id="L254">        w.write(key);</span>
-<span class="nc" id="L255">        w.write(&quot; */\n  &quot;);</span>
-<span class="nc" id="L256">        w.write(ns);</span>
-<span class="nc" id="L257">        w.write('.');</span>
-<span class="nc" id="L258">        w.write(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key));</span>
-<span class="nc" id="L259">        w.write(recordSuffix);</span>
-<span class="nc" id="L260">        w.write(&quot; &quot;);</span>
-<span class="nc" id="L261">        w.write(key);</span>
-<span class="nc" id="L262">        w.write(&quot;;\n&quot;);</span>
-<span class="nc" id="L263">      } else {</span>
-<span class="nc" id="L264">        throw new IllegalStateException(&quot;Not supported type &quot; + value);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">      } else if (value instanceof Map) {</span>
+<span class="nc" id="L282">        String key = entry.getKey();</span>
+<span class="nc" id="L283">        String ns = childNameSpace(nameSpace, key);</span>
+<span class="nc" id="L284">        w.write(&quot;\n /** Category: &quot;);</span>
+<span class="nc" id="L285">        w.write(key);</span>
+<span class="nc" id="L286">        w.write(&quot; */\n  &quot;);</span>
+<span class="nc" id="L287">        w.write(ns);</span>
+<span class="nc" id="L288">        w.write('.');</span>
+<span class="nc" id="L289">        w.write(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, key));</span>
+<span class="nc" id="L290">        w.write(recordSuffix);</span>
+<span class="nc" id="L291">        w.write(&quot; &quot;);</span>
+<span class="nc" id="L292">        w.write(key);</span>
+<span class="nc" id="L293">        w.write(&quot;;\n&quot;);</span>
+<span class="nc" id="L294">      } else {</span>
+<span class="nc" id="L295">        throw new IllegalStateException(&quot;Not supported type &quot; + value);</span>
       }
-<span class="nc" id="L266">    }</span>
-<span class="nc" id="L267">    w.write(&quot; }\n\n&quot;);</span>
-<span class="nc" id="L268">  }</span>
+<span class="nc" id="L297">    }</span>
+<span class="nc" id="L298">    w.write(&quot; }\n\n&quot;);</span>
+<span class="nc" id="L299">  }</span>
 
   @Override
   public void execute() throws MojoExecutionException {
-<span class="nc" id="L272">    File f = outputDirectory;</span>
+<span class="nc" id="L303">    File f = outputDirectory;</span>
 
-<span class="nc bnc" id="L274" title="All 2 branches missed.">    if (!f.exists()) {</span>
-<span class="nc bnc" id="L275" title="All 2 branches missed.">      if (!f.mkdirs()) {</span>
-<span class="nc" id="L276">        throw new MojoExecutionException(&quot;Unable to create directory &quot; + outputDirectory);</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    if (!f.exists()) {</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">      if (!f.mkdirs()) {</span>
+<span class="nc" id="L307">        throw new MojoExecutionException(&quot;Unable to create directory &quot; + outputDirectory);</span>
       }
     }
 
-<span class="nc" id="L280">    File outFile = new File(f, fileName);</span>
-<span class="nc" id="L281">    getLog().info(&quot;Creating avdl file at &quot; + outFile);</span>
-<span class="nc" id="L282">    try (Writer w = new OutputStreamWriter(new FileOutputStream(outFile), encoding)) {</span>
-<span class="nc bnc" id="L283" title="All 4 branches missed.">      if (namespace != null &amp;&amp; !namespace.isEmpty()) {</span>
-<span class="nc" id="L284">        w.write(&quot;@namespace(\&quot;&quot;);</span>
-<span class="nc" id="L285">        w.write(namespace);</span>
-<span class="nc" id="L286">        w.write(&quot;\&quot;)\n&quot;);</span>
+<span class="nc" id="L311">    File outFile = new File(f, fileName);</span>
+<span class="nc" id="L312">    getLog().info(&quot;Creating avdl file at &quot; + outFile);</span>
+<span class="nc" id="L313">    try (Writer w = new OutputStreamWriter(new FileOutputStream(outFile), encoding)) {</span>
+<span class="nc bnc" id="L314" title="All 4 branches missed.">      if (namespace != null &amp;&amp; !namespace.isEmpty()) {</span>
+<span class="nc" id="L315">        w.write(&quot;@namespace(\&quot;&quot;);</span>
+<span class="nc" id="L316">        w.write(namespace);</span>
+<span class="nc" id="L317">        w.write(&quot;\&quot;)\n&quot;);</span>
       }
-<span class="nc" id="L288">      w.write(&quot;protocol  &quot;);</span>
-<span class="nc" id="L289">      w.write(rootRecordName);</span>
-<span class="nc" id="L290">      w.write(&quot;Protocol&quot;);</span>
-<span class="nc" id="L291">      w.write(&quot; {\n&quot;);</span>
-<span class="nc" id="L292">      Map&lt;String, Object&gt; record = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L293">      processClasses(classes, record);</span>
-<span class="nc" id="L294">      writeRecord(w, namespace, rootRecordName, record);</span>
-<span class="nc" id="L295">      w.write(&quot;}\n&quot;);</span>
-<span class="nc bnc" id="L296" title="All 8 branches missed.">    } catch (IOException ex) {</span>
-<span class="nc" id="L297">      throw new MojoExecutionException(&quot;Cannot generate config description&quot;, ex);</span>
-<span class="nc" id="L298">    }</span>
-<span class="nc" id="L299">  }</span>
+<span class="nc" id="L319">      w.write(&quot;protocol  &quot;);</span>
+<span class="nc" id="L320">      w.write(rootRecordName);</span>
+<span class="nc" id="L321">      w.write(&quot;Protocol&quot;);</span>
+<span class="nc" id="L322">      w.write(&quot; {\n&quot;);</span>
+<span class="nc" id="L323">      Map&lt;String, Object&gt; record = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L324">      processClasses(classes, record);</span>
+<span class="nc" id="L325">      writeRecord(w, namespace, rootRecordName, record);</span>
+<span class="nc" id="L326">      w.write(&quot;}\n&quot;);</span>
+<span class="nc bnc" id="L327" title="All 8 branches missed.">    } catch (IOException ex) {</span>
+<span class="nc" id="L328">      throw new MojoExecutionException(&quot;Cannot generate config description&quot;, ex);</span>
+<span class="nc" id="L329">    }</span>
+<span class="nc" id="L330">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

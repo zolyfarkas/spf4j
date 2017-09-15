@@ -1,4 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Spf4jRunListener.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-junit</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.junit</a> &gt; <span class="el_source">Spf4jRunListener.java</span></div><h1>Spf4jRunListener.java</h1><pre class="source lang-java linenums">package org.spf4j.junit;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Spf4jRunListener.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-junit</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.junit</a> &gt; <span class="el_source">Spf4jRunListener.java</span></div><h1>Spf4jRunListener.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.junit;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
@@ -56,64 +87,64 @@ public final class Spf4jRunListener extends RunListener {
 
   private volatile File lastWrittenFile;
 
-<span class="fc" id="L59">  public Spf4jRunListener() {</span>
-<span class="fc" id="L60">    sampler = new Sampler(Integer.getInteger(&quot;spf4j.junit.sampleTimeMillis&quot;, 5),</span>
-<span class="fc" id="L61">          Integer.getInteger(&quot;spf4j.junit.dumpAfterMillis&quot;, Integer.MAX_VALUE),</span>
+<span class="fc" id="L90">  public Spf4jRunListener() {</span>
+<span class="fc" id="L91">    sampler = new Sampler(Integer.getInteger(&quot;spf4j.junit.sampleTimeMillis&quot;, 5),</span>
+<span class="fc" id="L92">          Integer.getInteger(&quot;spf4j.junit.dumpAfterMillis&quot;, Integer.MAX_VALUE),</span>
           new FastStackCollector(true));
 
-<span class="fc" id="L64">    destinationFolder = new File(System.getProperty(&quot;spf4j.junit.destinationFolder&quot;,</span>
+<span class="fc" id="L95">    destinationFolder = new File(System.getProperty(&quot;spf4j.junit.destinationFolder&quot;,</span>
           &quot;target/junit-ssdump&quot;));
 
-<span class="pc bpc" id="L67" title="3 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
-<span class="nc" id="L68">      throw new ExceptionInInitializerError(&quot;Unable to write to &quot; + destinationFolder);</span>
+<span class="pc bpc" id="L98" title="3 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
+<span class="nc" id="L99">      throw new ExceptionInInitializerError(&quot;Unable to write to &quot; + destinationFolder);</span>
     }
-<span class="fc" id="L70">  }</span>
+<span class="fc" id="L101">  }</span>
 
   @Override
   public void testFailure(final Failure failure)
           throws IOException {
-<span class="nc" id="L75">    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + &quot;.ssdump2&quot;));</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">    if (dumpToFile != null) {</span>
-<span class="nc" id="L77">      System.out.print(&quot;Profile saved to &quot; + dumpToFile);</span>
+<span class="nc" id="L106">    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + &quot;.ssdump2&quot;));</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (dumpToFile != null) {</span>
+<span class="nc" id="L108">      System.out.print(&quot;Profile saved to &quot; + dumpToFile);</span>
     }
-<span class="nc" id="L79">  }</span>
+<span class="nc" id="L110">  }</span>
 
   @Override
   public void testFinished(final Description description)
           throws IOException {
-<span class="fc" id="L84">    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + &quot;.ssdump2&quot;));</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">    if (dump != null) {</span>
-<span class="fc" id="L86">      System.out.print(&quot;Profile saved to &quot; + dump);</span>
-<span class="fc" id="L87">      lastWrittenFile = dump;</span>
+<span class="fc" id="L115">    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + &quot;.ssdump2&quot;));</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">    if (dump != null) {</span>
+<span class="fc" id="L117">      System.out.print(&quot;Profile saved to &quot; + dump);</span>
+<span class="fc" id="L118">      lastWrittenFile = dump;</span>
     }
-<span class="fc" id="L89">  }</span>
+<span class="fc" id="L120">  }</span>
 
   @Override
   public void testRunFinished(final Result result) throws InterruptedException {
-<span class="fc" id="L93">    sampler.stop();</span>
-<span class="fc" id="L94">  }</span>
+<span class="fc" id="L124">    sampler.stop();</span>
+<span class="fc" id="L125">  }</span>
 
   @Override
   public void testRunStarted(final Description description)  {
-<span class="fc" id="L98">   sampler.start();</span>
-<span class="fc" id="L99">  }</span>
+<span class="fc" id="L129">   sampler.start();</span>
+<span class="fc" id="L130">  }</span>
 
   public Sampler getSampler() {
-<span class="nc" id="L102">    return sampler;</span>
+<span class="nc" id="L133">    return sampler;</span>
   }
 
   public File getDestinationFolder() {
-<span class="nc" id="L106">    return destinationFolder;</span>
+<span class="nc" id="L137">    return destinationFolder;</span>
   }
 
   public File getLastWrittenFile() {
-<span class="nc" id="L110">    return lastWrittenFile;</span>
+<span class="nc" id="L141">    return lastWrittenFile;</span>
   }
 
 
   @Override
   public String toString() {
-<span class="nc" id="L116">    return &quot;Spf4jRunListener{&quot; + &quot;sampler=&quot; + sampler + '}';</span>
+<span class="nc" id="L147">    return &quot;Spf4jRunListener{&quot; + &quot;sampler=&quot; + sampler + '}';</span>
   }
 
 }

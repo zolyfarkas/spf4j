@@ -1,4 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractMeasurementAccumulator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">AbstractMeasurementAccumulator.java</span></div><h1>AbstractMeasurementAccumulator.java</h1><pre class="source lang-java linenums">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractMeasurementAccumulator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">AbstractMeasurementAccumulator.java</span></div><h1>AbstractMeasurementAccumulator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -13,35 +43,35 @@ public abstract class AbstractMeasurementAccumulator implements MeasurementAccum
     private long minTime;
     private long maxTime;
 
-<span class="fc" id="L16">    public AbstractMeasurementAccumulator() {</span>
-<span class="fc" id="L17">        minTime = Long.MAX_VALUE;</span>
-<span class="fc" id="L18">        maxTime = 0;</span>
-<span class="fc" id="L19">    }</span>
+<span class="fc" id="L46">    public AbstractMeasurementAccumulator() {</span>
+<span class="fc" id="L47">        minTime = Long.MAX_VALUE;</span>
+<span class="fc" id="L48">        maxTime = 0;</span>
+<span class="fc" id="L49">    }</span>
 
     @Override
     public final void recordAt(final long timestampMillis, final long measurement) {
-<span class="nc" id="L23">        this.record(measurement);</span>
-<span class="nc bnc" id="L24" title="All 2 branches missed.">        if (minTime &gt;  timestampMillis) {</span>
-<span class="nc" id="L25">            minTime = timestampMillis;</span>
+<span class="nc" id="L53">        this.record(measurement);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (minTime &gt;  timestampMillis) {</span>
+<span class="nc" id="L55">            minTime = timestampMillis;</span>
         }
-<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (timestampMillis &gt; maxTime) {</span>
-<span class="nc" id="L28">            maxTime = timestampMillis;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (timestampMillis &gt; maxTime) {</span>
+<span class="nc" id="L58">            maxTime = timestampMillis;</span>
         }
-<span class="nc" id="L30">    }</span>
+<span class="nc" id="L60">    }</span>
 
     public final long getMinTime() {
-<span class="nc" id="L33">        return minTime;</span>
+<span class="nc" id="L63">        return minTime;</span>
     }
 
     public final long getMaxTime() {
-<span class="nc" id="L37">        return maxTime;</span>
+<span class="nc" id="L67">        return maxTime;</span>
     }
 
     @Override
     @SuppressFBWarnings
     public void close() {
         // Default do nothing;
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L74">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

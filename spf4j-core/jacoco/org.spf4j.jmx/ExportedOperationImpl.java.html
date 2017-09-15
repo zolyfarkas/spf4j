@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExportedOperationImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">ExportedOperationImpl.java</span></div><h1>ExportedOperationImpl.java</h1><pre class="source lang-java linenums">
-/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExportedOperationImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jmx</a> &gt; <span class="el_source">ExportedOperationImpl.java</span></div><h1>ExportedOperationImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,17 +14,35 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.jmx;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
-
 import javax.management.MBeanParameterInfo;
-import org.spf4j.base.Reflections;
+
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanParameterInfoSupport;
+import javax.management.openmbean.OpenType;
 
 /**
  *
@@ -33,79 +50,135 @@ import org.spf4j.base.Reflections;
  */
 final class ExportedOperationImpl implements ExportedOperation {
 
-    private final String name;
+  private final String name;
 
-    private final String description;
+  private final String description;
 
-    private final Method method;
+  private final Method method;
 
-    private final Object object;
+  private final Object object;
 
-    private final  MBeanParameterInfo[] paramInfos;
+  private final MBeanParameterInfo[] paramInfos;
 
-    ExportedOperationImpl(final String name, final String description,
-<span class="fc" id="L47">            final Method method, final Object object) {</span>
-<span class="fc" id="L48">        this.name = name;</span>
-<span class="fc" id="L49">        this.description = description;</span>
-<span class="fc" id="L50">        this.method = method;</span>
-<span class="fc" id="L51">        this.object = object;</span>
-<span class="fc" id="L52">        Class&lt;?&gt;[] parameterTypes = Reflections.getParameterTypes(method);</span>
-<span class="fc" id="L53">        Annotation[][] parameterAnnotations = method.getParameterAnnotations();</span>
-<span class="fc" id="L54">        paramInfos = new MBeanParameterInfo[parameterTypes.length];</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        for (int i = 0; i &lt; paramInfos.length; i++) {</span>
-<span class="fc" id="L56">            Annotation[] annotations = parameterAnnotations[i];</span>
-<span class="fc" id="L57">            String pname = &quot;&quot;;</span>
-<span class="fc" id="L58">            String pdesc = &quot;&quot;;</span>
-<span class="pc bfc" id="L59" title="All 2 branches covered.">            for (Annotation annot : annotations) {</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">                if (annot.annotationType() == JmxExport.class) {</span>
-<span class="fc" id="L61">                    JmxExport eAnn = (JmxExport) annot;</span>
-<span class="fc" id="L62">                    pname = eAnn.value();</span>
-<span class="fc" id="L63">                    pdesc = eAnn.description();</span>
-<span class="fc" id="L64">                    break;</span>
-                }
-            }
-<span class="fc bfc" id="L67" title="All 2 branches covered.">            if (&quot;&quot;.equals(pname)) {</span>
-<span class="fc" id="L68">                pname = &quot;param_&quot; + i;</span>
-            }
-<span class="fc" id="L70">            paramInfos[i] = new MBeanParameterInfo(pname, parameterTypes[i].getName(), pdesc);</span>
+  private final JMXBeanMapping[] argConverters;
+
+  private final JMXBeanMapping resultConverter;
+
+  ExportedOperationImpl(final String name, final String description,
+<span class="fc" id="L68">          final Method method, final Object object, final boolean mapOpenType) {</span>
+<span class="fc" id="L69">    this.name = name;</span>
+<span class="fc" id="L70">    this.description = description;</span>
+<span class="fc" id="L71">    this.method = method;</span>
+<span class="fc" id="L72">    this.object = object;</span>
+<span class="fc" id="L73">    Type[] parameterTypes = method.getGenericParameterTypes();</span>
+<span class="fc" id="L74">    Type returnType = method.getGenericReturnType();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">    if (mapOpenType) {</span>
+      try {
+<span class="fc" id="L77">        resultConverter =  GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);</span>
+<span class="nc" id="L78">      } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L79">        throw new UnsupportedOperationException(&quot;Cannot export &quot; + method + &quot; returned type not serializable&quot;, ex);</span>
+<span class="fc" id="L80">      }</span>
+    } else {
+<span class="nc" id="L82">      resultConverter = null;</span>
+    }
+<span class="fc" id="L84">    Annotation[][] parameterAnnotations = method.getParameterAnnotations();</span>
+<span class="fc" id="L85">    argConverters = new JMXBeanMapping[parameterTypes.length];</span>
+<span class="fc" id="L86">    paramInfos = new MBeanParameterInfo[parameterTypes.length];</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">    for (int i = 0; i &lt; paramInfos.length; i++) {</span>
+<span class="fc" id="L88">      Annotation[] annotations = parameterAnnotations[i];</span>
+<span class="fc" id="L89">      String pname = &quot;&quot;;</span>
+<span class="fc" id="L90">      String pdesc = &quot;&quot;;</span>
+<span class="fc" id="L91">      boolean mapParamOpenType = mapOpenType;</span>
+<span class="pc bfc" id="L92" title="All 2 branches covered.">      for (Annotation annot : annotations) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (annot.annotationType() == JmxExport.class) {</span>
+<span class="fc" id="L94">          JmxExport eAnn = (JmxExport) annot;</span>
+<span class="fc" id="L95">          pname = eAnn.value();</span>
+<span class="fc" id="L96">          pdesc = eAnn.description();</span>
+<span class="fc" id="L97">          mapParamOpenType = eAnn.mapOpenType();</span>
+<span class="fc" id="L98">          break;</span>
         }
-<span class="fc" id="L72">    }</span>
+      }
+<span class="fc bfc" id="L101" title="All 2 branches covered.">      if (&quot;&quot;.equals(pname)) {</span>
+<span class="fc" id="L102">        pname = &quot;param_&quot; + i;</span>
+      }
+<span class="fc bfc" id="L104" title="All 2 branches covered.">      if (pdesc.isEmpty()) {</span>
+<span class="fc" id="L105">        pdesc = name;</span>
+      }
+<span class="fc" id="L107">      Type parameterType = parameterTypes[i];</span>
 
-    @Override
-    public String getName() {
-<span class="fc" id="L76">        return name;</span>
-    }
-
-    @Override
-    public String getDescription() {
-<span class="fc" id="L81">        return description;</span>
-    }
-
-    @Override
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
-    public Object invoke(final Object[] parameters) {
+      JMXBeanMapping paramOTM;
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">      if (mapParamOpenType) {</span>
         try {
-<span class="fc" id="L88">            return method.invoke(object, parameters);</span>
-<span class="nc" id="L89">        } catch (IllegalAccessException | InvocationTargetException ex) {</span>
-<span class="nc" id="L90">            throw new UncheckedExecutionException(ex);</span>
+<span class="fc" id="L112">          paramOTM = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);</span>
+<span class="nc" id="L113">        } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L114">          throw new UnsupportedOperationException(&quot;Cannot export &quot; + method + &quot; arg &quot; + i + &quot; not serializable&quot;, ex);</span>
+<span class="fc" id="L115">        }</span>
+      } else {
+<span class="nc" id="L117">        paramOTM = null;</span>
+      }
+<span class="fc bfc" id="L119" title="All 2 branches covered.">      if (paramOTM != null) {</span>
+<span class="fc" id="L120">        paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, paramOTM.getOpenType());</span>
+<span class="fc" id="L121">        argConverters[i] = paramOTM;</span>
+      } else {
+<span class="fc" id="L123">        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);</span>
+<span class="fc" id="L124">        argConverters[i] = null;</span>
+      }
+    }
+<span class="fc" id="L127">  }</span>
+
+  @Override
+  public String getName() {
+<span class="fc" id="L131">    return name;</span>
+  }
+
+  @Override
+  public String getDescription() {
+<span class="fc" id="L136">    return description;</span>
+  }
+
+  @Override
+  public Object invoke(final Object[] parameters) throws OpenDataException, InvalidObjectException {
+    try {
+<span class="fc bfc" id="L142" title="All 2 branches covered.">      for (int i = 0; i &lt; parameters.length; i++) {</span>
+<span class="fc" id="L143">        JMXBeanMapping argConverter = argConverters[i];</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (argConverter != null) {</span>
+<span class="fc" id="L145">          parameters[i] = argConverter.fromOpenValue(parameters[i]);</span>
         }
+      }
+<span class="fc" id="L148">      Object rVal = method.invoke(object, parameters);</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">      if (resultConverter != null) {</span>
+<span class="fc" id="L150">        return resultConverter.toOpenValue(rVal);</span>
+      } else {
+<span class="fc" id="L152">        return rVal;</span>
+      }
+<span class="nc" id="L154">    } catch (IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L155">      OpenDataException x</span>
+<span class="nc" id="L156">              = new OpenDataException(&quot;Cannot invoke &quot; + method + &quot; with &quot; + Arrays.toString(parameters));</span>
+<span class="nc" id="L157">      x.addSuppressed(ex);</span>
+<span class="nc" id="L158">      throw x;</span>
     }
+  }
 
-    @Override
-    public MBeanParameterInfo[] getParameterInfos() {
-<span class="fc" id="L96">        return paramInfos;</span>
-    }
+  @Override
+  public MBeanParameterInfo[] getParameterInfos() {
+<span class="fc" id="L164">    return paramInfos;</span>
+  }
 
-    @Override
-    public Class&lt;?&gt; getReturnType() {
-<span class="fc" id="L101">        return method.getReturnType();</span>
-    }
+  @Override
+  public Class&lt;?&gt; getReturnType() {
+<span class="fc" id="L169">    return method.getReturnType();</span>
+  }
 
-    @Override
-    public String toString() {
-<span class="nc" id="L106">        return &quot;ExportedOperationImpl{&quot; + &quot;name=&quot; + name + &quot;, description=&quot; + description</span>
-<span class="nc" id="L107">                + &quot;, method=&quot; + method + &quot;, object=&quot; + object + &quot;, paramInfos=&quot; + Arrays.toString(paramInfos) + '}';</span>
-    }
+  @Override
+  public String toString() {
+<span class="nc" id="L174">    return &quot;ExportedOperationImpl{&quot; + &quot;name=&quot; + name + &quot;, description=&quot; + description</span>
+<span class="nc" id="L175">            + &quot;, method=&quot; + method + &quot;, object=&quot; + object + &quot;, paramInfos=&quot; + Arrays.toString(paramInfos) + '}';</span>
+  }
+
+  @Override
+  public OpenType&lt;?&gt; getReturnOpenType() {
+<span class="fc bfc" id="L180" title="All 2 branches covered.">    return (resultConverter != null) ? resultConverter.getOpenType() : null;</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

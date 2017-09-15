@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StackPanelBase.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ui</a> &gt; <span class="el_source">StackPanelBase.java</span></div><h1>StackPanelBase.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.ui;
 
@@ -37,196 +51,240 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ToolTipManager;
+import org.spf4j.base.Method;
+import org.spf4j.base.Pair;
 import org.spf4j.ds.RTree;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
  * @author zoly
  */
-public abstract class StackPanelBase extends JPanel
+public abstract class StackPanelBase&lt;T&gt; extends JPanel
         implements ActionListener, MouseListener {
-    private static final long serialVersionUID = 1L;
-    //CHECKSTYLE:OFF
-    protected SampleNode samples;
-<span class="nc" id="L56">    private RTree&lt;Sampled&lt;?&gt;&gt; tooltipDetail = new RTree&lt;&gt;();</span>
-    protected int xx;
-    protected int yy;
+
+  private static final long serialVersionUID = 1L;
+  //CHECKSTYLE:OFF
+  private SampleNode samples;
+  private Method method;
+<span class="nc" id="L75">  private RTree&lt;Sampled&lt;T&gt;&gt; samplesRTree = new RTree&lt;&gt;();</span>
+  protected int xx;
+  protected int yy;
+  //CHECKSTYLE:ON
+  private final JPopupMenu menu;
+  private final LinkedList&lt;Pair&lt;Method, SampleNode&gt;&gt; history;
+
+<span class="nc" id="L82">  public static final Color LINK_COLOR = new Color(128, 128, 128, 128);</span>
+
+<span class="nc" id="L84">  public StackPanelBase(final SampleNode samples) {</span>
+<span class="nc" id="L85">    this.samples = samples;</span>
+<span class="nc" id="L86">    this.method = Method.ROOT;</span>
+<span class="nc" id="L87">    history = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L88">    setPreferredSize(new Dimension(400, 20 * samples.height() + 10));</span>
+<span class="nc" id="L89">    final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();</span>
+<span class="nc" id="L90">    sharedInstance.registerComponent(this);</span>
+<span class="nc" id="L91">    sharedInstance.setDismissDelay(30000);</span>
+<span class="nc" id="L92">    menu = buildPopupMenu(this);</span>
+<span class="nc" id="L93">    addMouseListener(this);</span>
+<span class="nc" id="L94">  }</span>
+
+  public final List&lt;Sampled&lt;T&gt;&gt; search(final int x, final int y, final int w, final int h) {
+<span class="nc" id="L97">    return samplesRTree.search(new float[]{x, y}, new float[]{w, h});</span>
+  }
+
+  public final List&lt;Sampled&lt;T&gt;&gt; search(final double x, final double y, final double w, final double h) {
+<span class="nc" id="L101">    return samplesRTree.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});</span>
+  }
+
+  public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
+<span class="nc" id="L105">    samplesRTree.insert(new float[]{x, y}, new float[]{w, h}, sampled);</span>
+<span class="nc" id="L106">  }</span>
+
+  public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
+<span class="nc" id="L109">    samplesRTree.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);</span>
+<span class="nc" id="L110">  }</span>
+
+  // disable finbugs since I don't care about internationalization for now.
+  @SuppressFBWarnings(&quot;S508C_NON_TRANSLATABLE_STRING&quot;)
+  private static JPopupMenu buildPopupMenu(final ActionListener listener) {
+<span class="nc" id="L115">    JPopupMenu result = new JPopupMenu(&quot;Actions&quot;);</span>
+<span class="nc" id="L116">    JMenuItem filter = new JMenuItem(&quot;Filter&quot;);</span>
+<span class="nc" id="L117">    filter.setActionCommand(&quot;FILTER&quot;);</span>
+<span class="nc" id="L118">    filter.addActionListener(listener);</span>
+<span class="nc" id="L119">    result.add(filter);</span>
+<span class="nc" id="L120">    JMenuItem drill = new JMenuItem(&quot;Drill&quot;);</span>
+<span class="nc" id="L121">    drill.setActionCommand(&quot;DRILL&quot;);</span>
+<span class="nc" id="L122">    drill.addActionListener(listener);</span>
+<span class="nc" id="L123">    result.add(drill);</span>
+<span class="nc" id="L124">    JMenuItem back = new JMenuItem(&quot;Back&quot;);</span>
+<span class="nc" id="L125">    back.setActionCommand(&quot;BACK&quot;);</span>
+<span class="nc" id="L126">    back.addActionListener(listener);</span>
+<span class="nc" id="L127">    result.add(back);</span>
+<span class="nc" id="L128">    JMenuItem copy = new JMenuItem(&quot;Copy&quot;);</span>
+<span class="nc" id="L129">    copy.setActionCommand(&quot;COPY&quot;);</span>
+<span class="nc" id="L130">    copy.addActionListener(listener);</span>
+<span class="nc" id="L131">    result.add(copy);</span>
+<span class="nc" id="L132">    return result;</span>
+  }
+
+  @Override
+  public final String getToolTipText(final MouseEvent event) {
+<span class="nc" id="L137">    Point location = event.getPoint();</span>
+<span class="nc" id="L138">    return getDetail(location);</span>
+  }
+
+  @Override
+  public final void paintComponent(final Graphics g) {
+<span class="nc" id="L143">    super.paintComponent(g);</span>
+<span class="nc" id="L144">    Dimension size = getSize();</span>
+<span class="nc" id="L145">    Insets insets = getInsets();</span>
+<span class="nc" id="L146">    Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,</span>
+<span class="nc" id="L147">            size.getWidth() - insets.left - insets.right,</span>
+<span class="nc" id="L148">            size.getHeight() - insets.top - insets.bottom);</span>
+<span class="nc" id="L149">    Graphics2D g2 = (Graphics2D) g.create();</span>
+    try {
+<span class="nc" id="L151">      double rowHeight = g2.getFont().getStringBounds(&quot;ROOT&quot;, g2.getFontRenderContext()).getHeight();</span>
+
+<span class="nc" id="L153">      GraphicsConfiguration gc = g2.getDeviceConfiguration();</span>
+<span class="nc" id="L154">      BufferedImage img = gc.createCompatibleImage(</span>
+<span class="nc" id="L155">              (int) available.getWidth(), (int) available.getHeight(),</span>
+              Transparency.TRANSLUCENT);
+
+<span class="nc" id="L158">      double width = available.getWidth();</span>
+<span class="nc" id="L159">      samplesRTree.clear();</span>
+<span class="nc" id="L160">      Graphics2D gr = img.createGraphics();</span>
+<span class="nc" id="L161">      gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);</span>
+<span class="nc" id="L162">      int height = paint(gr, width, rowHeight);</span>
+<span class="nc" id="L163">      g2.drawImage(img, insets.left, insets.top, this);</span>
+<span class="nc" id="L164">      final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);</span>
+<span class="nc" id="L165">      setPreferredSize(dimension);</span>
+<span class="nc" id="L166">      setSize(dimension);</span>
+    } finally {
+<span class="nc" id="L168">      g2.dispose();</span>
+<span class="nc" id="L169">    }</span>
+<span class="nc" id="L170">  }</span>
+
+  public abstract int paint(Graphics2D gr, double width, double rowHeight);
+
+  @Override
+  public final void actionPerformed(final ActionEvent e) {
+<span class="nc" id="L176">    final String actionCommand = e.getActionCommand();</span>
+<span class="nc bnc" id="L177" title="All 18 branches missed.">    switch (actionCommand) {</span>
+      case &quot;FILTER&quot;:
+<span class="nc" id="L179">        history.addLast(Pair.of(method, samples));</span>
+<span class="nc" id="L180">        filter();</span>
+<span class="nc" id="L181">        break;</span>
+      case &quot;DRILL&quot;:
+<span class="nc" id="L183">        history.addLast(Pair.of(method, samples));</span>
+<span class="nc" id="L184">        drill();</span>
+<span class="nc" id="L185">        break;</span>
+      case &quot;BACK&quot;:
+<span class="nc" id="L187">        Pair&lt;Method, SampleNode&gt; prev = history.pollLast();</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (prev != null) {</span>
+<span class="nc" id="L189">          updateSamples(prev.getFirst(), prev.getSecond());</span>
+<span class="nc" id="L190">          repaint();</span>
+        }
+        break;
+      case &quot;COPY&quot;:
+<span class="nc" id="L194">        final String detail = getDetail(new Point(xx, yy));</span>
+<span class="nc" id="L195">        java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(</span>
+<span class="nc" id="L196">                new Transferable() {</span>
+          @Override
+          public DataFlavor[] getTransferDataFlavors() {
+<span class="nc" id="L199">            return new DataFlavor[]{DataFlavor.stringFlavor};</span>
+          }
+
+          @Override
+          public boolean isDataFlavorSupported(final DataFlavor flavor) {
+<span class="nc" id="L204">            return flavor.equals(DataFlavor.stringFlavor);</span>
+          }
+
+          @Override
+          public Object getTransferData(final DataFlavor flavor) {
+<span class="nc" id="L209">            return detail;</span>
+          }
+<span class="nc" id="L211">        }, new ClipboardOwner() {</span>
+          @Override
+          public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
+<span class="nc" id="L214">          }</span>
+        });
+<span class="nc" id="L216">        break;</span>
+      default:
+        break;
+    }
+<span class="nc" id="L220">  }</span>
+
+  @Override
+  public final void mousePressed(final MouseEvent e) {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">    if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L225">      xx = e.getX();</span>
+<span class="nc" id="L226">      yy = e.getY();</span>
+<span class="nc" id="L227">      menu.show(this, e.getX(), e.getY());</span>
+    }
+<span class="nc" id="L229">  }</span>
+
+  @Override
+  public final void mouseReleased(final MouseEvent e) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L234">      xx = e.getX();</span>
+<span class="nc" id="L235">      yy = e.getY();</span>
+<span class="nc" id="L236">      menu.show(this, e.getX(), e.getY());</span>
+    }
+<span class="nc" id="L238">  }</span>
+
+  @Override
+  @SuppressFBWarnings
+  public void mouseClicked(final MouseEvent e) {
+    // default do nothing
+<span class="nc" id="L244">  }</span>
+
+  @Override
+  @SuppressFBWarnings
+  public void mouseEntered(final MouseEvent e) {
+    // default do nothing
+<span class="nc" id="L250">  }</span>
+
+  @Override
+  @SuppressFBWarnings
+  public void mouseExited(final MouseEvent e) {
+    // default do nothing
+<span class="nc" id="L256">  }</span>
+
+  public static void setElementColor(final int depth, final Graphics2D g2) {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">    if (depth % 2 == 0) {</span>
+<span class="nc" id="L260">      g2.setPaint(Color.YELLOW);</span>
+<span class="nc" id="L261">      g2.setBackground(Color.YELLOW);</span>
+    } else {
+<span class="nc" id="L263">      g2.setPaint(Color.ORANGE);</span>
+<span class="nc" id="L264">      g2.setBackground(Color.ORANGE);</span>
+    }
+<span class="nc" id="L266">  }</span>
+
+  //CHECKSTYLE:OFF
+  public void updateSamples(final Method m, final SampleNode n) {
     //CHECKSTYLE:ON
-    private final JPopupMenu menu;
+<span class="nc" id="L271">    this.samples = n;</span>
+<span class="nc" id="L272">    this.method = m;</span>
+<span class="nc" id="L273">  }</span>
 
-<span class="nc" id="L62">    public static final Color LINK_COLOR = new Color(128, 128, 128, 128);</span>
+  public final SampleNode getSamples() {
+<span class="nc" id="L276">    return samples;</span>
+  }
 
-<span class="nc" id="L64">    public StackPanelBase(final SampleNode samples) {</span>
-<span class="nc" id="L65">        this.samples = samples;</span>
-<span class="nc" id="L66">        setPreferredSize(new Dimension(400, 20 * samples.height() + 10));</span>
-<span class="nc" id="L67">        final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();</span>
-<span class="nc" id="L68">        sharedInstance.registerComponent(this);</span>
-<span class="nc" id="L69">        sharedInstance.setDismissDelay(30000);</span>
-<span class="nc" id="L70">        menu = buildPopupMenu(this);</span>
-<span class="nc" id="L71">        addMouseListener(this);</span>
-<span class="nc" id="L72">    }</span>
+  public final Method getMethod() {
+<span class="nc" id="L280">    return method;</span>
+  }
 
-    public final List search(final int x, final int y, final int w, final int h) {
-<span class="nc" id="L75">      return tooltipDetail.search(new float[]{x, y}, new float[]{w, h});</span>
-    }
+  public abstract String getDetail(Point location);
 
-    public final List search(final double x, final double y, final double w, final double h) {
-<span class="nc" id="L79">      return tooltipDetail.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});</span>
-    }
+  public abstract void filter();
 
+  public abstract void drill();
 
-    public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
-<span class="nc" id="L84">      tooltipDetail.insert(new float[]{x, y}, new float[]{w, h}, sampled);</span>
-<span class="nc" id="L85">    }</span>
-
-    public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
-<span class="nc" id="L88">      tooltipDetail.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);</span>
-<span class="nc" id="L89">    }</span>
-
-
-    // disable finbugs since I don't care about internationalization for now.
-    @SuppressFBWarnings(&quot;S508C_NON_TRANSLATABLE_STRING&quot;)
-    private static JPopupMenu buildPopupMenu(final ActionListener listener) {
-<span class="nc" id="L95">        JPopupMenu result = new JPopupMenu(&quot;Actions&quot;);</span>
-<span class="nc" id="L96">        JMenuItem filter = new JMenuItem(&quot;Filter&quot;);</span>
-<span class="nc" id="L97">        filter.setActionCommand(&quot;FILTER&quot;);</span>
-<span class="nc" id="L98">        filter.addActionListener(listener);</span>
-<span class="nc" id="L99">        result.add(filter);</span>
-<span class="nc" id="L100">        JMenuItem copy = new JMenuItem(&quot;Copy&quot;);</span>
-<span class="nc" id="L101">        copy.setActionCommand(&quot;COPY&quot;);</span>
-<span class="nc" id="L102">        copy.addActionListener(listener);</span>
-<span class="nc" id="L103">        result.add(copy);</span>
-<span class="nc" id="L104">        return result;</span>
-    }
-
-
-    @Override
-    public final String getToolTipText(final MouseEvent event) {
-<span class="nc" id="L110">        Point location = event.getPoint();</span>
-<span class="nc" id="L111">        return getDetail(location);</span>
-    }
-
-    @Override
-    public final void paintComponent(final Graphics g) {
-<span class="nc" id="L116">        super.paintComponent(g);</span>
-<span class="nc" id="L117">        Dimension size = getSize();</span>
-<span class="nc" id="L118">        Insets insets = getInsets();</span>
-<span class="nc" id="L119">        Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,</span>
-<span class="nc" id="L120">                size.getWidth() - insets.left - insets.right,</span>
-<span class="nc" id="L121">                size.getHeight() - insets.top - insets.bottom);</span>
-<span class="nc" id="L122">        Graphics2D g2 = (Graphics2D) g.create();</span>
-        try {
-<span class="nc" id="L124">            double rowHeight =  g2.getFont().getStringBounds(&quot;ROOT&quot;, g2.getFontRenderContext()).getHeight();</span>
-
-<span class="nc" id="L126">            GraphicsConfiguration gc = g2.getDeviceConfiguration();</span>
-<span class="nc" id="L127">            BufferedImage img = gc.createCompatibleImage(</span>
-<span class="nc" id="L128">                    (int) available.getWidth(), (int) available.getHeight(),</span>
-                    Transparency.TRANSLUCENT);
-
-<span class="nc" id="L131">            double width = available.getWidth();</span>
-<span class="nc" id="L132">            tooltipDetail.clear();</span>
-<span class="nc" id="L133">            Graphics2D gr = img.createGraphics();</span>
-<span class="nc" id="L134">            gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);</span>
-<span class="nc" id="L135">            int height = paint(gr, width, rowHeight);</span>
-<span class="nc" id="L136">            g2.drawImage(img, insets.left, insets.top, this);</span>
-<span class="nc" id="L137">            final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);</span>
-<span class="nc" id="L138">            setPreferredSize(dimension);</span>
-<span class="nc" id="L139">            setSize(dimension);</span>
-
-        } finally {
-<span class="nc" id="L142">            g2.dispose();</span>
-<span class="nc" id="L143">        }</span>
-<span class="nc" id="L144">    }</span>
-
-
-    public abstract int paint(Graphics2D gr, double width, double rowHeight);
-
-    @Override
-    public final void actionPerformed(final ActionEvent e) {
-<span class="nc" id="L151">        final String actionCommand = e.getActionCommand();</span>
-<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (&quot;FILTER&quot;.equals(actionCommand)) {</span>
-<span class="nc" id="L153">            filter();</span>
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (&quot;COPY&quot;.equals(actionCommand)) {</span>
-<span class="nc" id="L155">            final String detail = getDetail(new Point(xx, yy));</span>
-<span class="nc" id="L156">            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(</span>
-<span class="nc" id="L157">                    new Transferable() {</span>
-                @Override
-                public DataFlavor[] getTransferDataFlavors() {
-<span class="nc" id="L160">                    return new DataFlavor[]{DataFlavor.stringFlavor};</span>
-                }
-
-                @Override
-                public boolean isDataFlavorSupported(final DataFlavor flavor) {
-<span class="nc" id="L165">                    return flavor.equals(DataFlavor.stringFlavor);</span>
-                }
-
-                @Override
-                public Object getTransferData(final DataFlavor flavor) {
-<span class="nc" id="L170">                    return detail;</span>
-                }
-<span class="nc" id="L172">            }, new ClipboardOwner() {</span>
-                @Override
-                public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
-<span class="nc" id="L175">                }</span>
-            });
-        }
-<span class="nc" id="L178">    }</span>
-
-
-
-    @Override
-    public final void mousePressed(final MouseEvent e) {
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (e.isPopupTrigger()) {</span>
-<span class="nc" id="L185">            xx = e.getX();</span>
-<span class="nc" id="L186">            yy = e.getY();</span>
-<span class="nc" id="L187">            menu.show(this, e.getX(), e.getY());</span>
-        }
-<span class="nc" id="L189">    }</span>
-
-    @Override
-    public final void mouseReleased(final MouseEvent e) {
-<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (e.isPopupTrigger()) {</span>
-<span class="nc" id="L194">            xx = e.getX();</span>
-<span class="nc" id="L195">            yy = e.getY();</span>
-<span class="nc" id="L196">            menu.show(this, e.getX(), e.getY());</span>
-        }
-<span class="nc" id="L198">    }</span>
-
-    @Override
-    @SuppressFBWarnings
-    public  void mouseClicked(final MouseEvent e) {
-      // default do nothing
-<span class="nc" id="L204">    }</span>
-
-    @Override
-    @SuppressFBWarnings
-    public void mouseEntered(final MouseEvent e) {
-      // default do nothing
-<span class="nc" id="L210">    }</span>
-
-    @Override
-    @SuppressFBWarnings
-    public void mouseExited(final MouseEvent e) {
-      // default do nothing
-<span class="nc" id="L216">    }</span>
-
-    public static void setElementColor(final int depth, final Graphics2D g2) {
-<span class="nc bnc" id="L219" title="All 2 branches missed.">        if (depth % 2 == 0) {</span>
-<span class="nc" id="L220">            g2.setPaint(Color.YELLOW);</span>
-<span class="nc" id="L221">            g2.setBackground(Color.YELLOW);</span>
-        } else {
-<span class="nc" id="L223">            g2.setPaint(Color.ORANGE);</span>
-<span class="nc" id="L224">            g2.setBackground(Color.ORANGE);</span>
-        }
-<span class="nc" id="L226">    }</span>
-
-    public abstract String getDetail(Point location);
-
-    public abstract void filter();
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StoreType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.ms</a> &gt; <span class="el_source">StoreType.java</span></div><h1>StoreType.java</h1><pre class="source lang-java linenums">
- /*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StoreType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.ms</a> &gt; <span class="el_source">StoreType.java</span></div><h1>StoreType.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.perf.impl.ms;
 
@@ -35,65 +48,65 @@ import org.spf4j.recyclable.ObjectCreationException;
  *
  * @author zoly
  */
-<span class="fc" id="L38">public enum StoreType {</span>
-<span class="fc" id="L39">    TSDB(new StoreFactory() {</span>
+<span class="fc" id="L51">public enum StoreType {</span>
+<span class="fc" id="L52">    TSDB(new StoreFactory() {</span>
         @Override
         @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // not supplied by user
         public MeasurementStore create(final String pconfig) throws IOException {
             String config;
-<span class="pc bpc" id="L44" title="1 of 2 branches missed.">            if (!pconfig.endsWith(&quot;tsdb2&quot;))  {</span>
-<span class="fc" id="L45">                config = pconfig + &quot;.tsdb2&quot;;</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            if (!pconfig.endsWith(&quot;tsdb2&quot;))  {</span>
+<span class="fc" id="L58">                config = pconfig + &quot;.tsdb2&quot;;</span>
             } else {
-<span class="nc" id="L47">                config = pconfig;</span>
+<span class="nc" id="L60">                config = pconfig;</span>
             }
-<span class="fc" id="L49">            return new TSDBMeasurementStore(new File(config));</span>
+<span class="fc" id="L62">            return new TSDBMeasurementStore(new File(config));</span>
         }
     }),
-<span class="fc" id="L52">    TSDB_TXT(new StoreFactory() {</span>
+<span class="fc" id="L65">    TSDB_TXT(new StoreFactory() {</span>
         @Override
         @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // not supplied by user
         public MeasurementStore create(final String config) throws IOException {
-<span class="fc" id="L56">            return new TSDBTxtMeasurementStore(new File(config));</span>
+<span class="fc" id="L69">            return new TSDBTxtMeasurementStore(new File(config));</span>
         }
     }),
-<span class="fc" id="L59">    GRAPHITE_UDP(new StoreFactory() {</span>
+<span class="fc" id="L72">    GRAPHITE_UDP(new StoreFactory() {</span>
         @Override
         public MeasurementStore create(final String config) throws ObjectCreationException {
             try {
-<span class="fc" id="L63">                return new GraphiteUdpStore(config);</span>
-<span class="nc" id="L64">            } catch (URISyntaxException ex) {</span>
-<span class="nc" id="L65">                throw new IllegalArgumentException(&quot;Invalid configuration &quot; + config, ex);</span>
+<span class="fc" id="L76">                return new GraphiteUdpStore(config);</span>
+<span class="nc" id="L77">            } catch (URISyntaxException ex) {</span>
+<span class="nc" id="L78">                throw new IllegalArgumentException(&quot;Invalid configuration &quot; + config, ex);</span>
             }
         }
     }),
-<span class="fc" id="L69">    GRAPHITE_TCP(new StoreFactory() {</span>
+<span class="fc" id="L82">    GRAPHITE_TCP(new StoreFactory() {</span>
         @Override
         public MeasurementStore create(final String config) throws ObjectCreationException {
             try {
-<span class="nc" id="L73">                return new GraphiteTcpStore(config);</span>
-<span class="nc" id="L74">            } catch (URISyntaxException ex) {</span>
-<span class="nc" id="L75">                throw new IllegalArgumentException(&quot;Invalid configuration &quot; + config, ex);</span>
+<span class="nc" id="L86">                return new GraphiteTcpStore(config);</span>
+<span class="nc" id="L87">            } catch (URISyntaxException ex) {</span>
+<span class="nc" id="L88">                throw new IllegalArgumentException(&quot;Invalid configuration &quot; + config, ex);</span>
             }
         }
     }),
-<span class="fc" id="L79">    NOP_STORE(new StoreFactory() {</span>
+<span class="fc" id="L92">    NOP_STORE(new StoreFactory() {</span>
 
         @Override
         public MeasurementStore create(final String config) {
-<span class="nc" id="L83">            return new NopMeasurementStore();</span>
+<span class="nc" id="L96">            return new NopMeasurementStore();</span>
         }
     });
     private final StoreFactory factory;
 
-<span class="fc" id="L88">    StoreType(final StoreFactory factory) {</span>
-<span class="fc" id="L89">        this.factory = factory;</span>
-<span class="fc" id="L90">    }</span>
+<span class="fc" id="L101">    StoreType(final StoreFactory factory) {</span>
+<span class="fc" id="L102">        this.factory = factory;</span>
+<span class="fc" id="L103">    }</span>
 
     public MeasurementStore create(final String configuration) throws IOException, ObjectCreationException {
-<span class="fc" id="L93">        MeasurementStore store =  factory.create(configuration);</span>
-<span class="fc" id="L94">        Registry.export(store.getClass().getName(),</span>
-<span class="fc" id="L95">                    store.toString(), store);</span>
-<span class="fc" id="L96">        return store;</span>
+<span class="fc" id="L106">        MeasurementStore store =  factory.create(configuration);</span>
+<span class="fc" id="L107">        Registry.export(store.getClass().getName(),</span>
+<span class="fc" id="L108">                    store.toString(), store);</span>
+<span class="fc" id="L109">        return store;</span>
     }
 
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CallablesNanoNonInterrupt.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CallablesNanoNonInterrupt.java</span></div><h1>CallablesNanoNonInterrupt.java</h1><pre class="source lang-java linenums">/*
- * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,6 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.spf4j.base;
 
@@ -41,15 +55,15 @@ import org.spf4j.base.CallablesNano.TimeoutNanoRetryPredicate;
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class CallablesNanoNonInterrupt {
 
-<span class="nc" id="L44">    private CallablesNanoNonInterrupt() {</span>
-<span class="nc" id="L45">    }</span>
+<span class="nc" id="L58">    private CallablesNanoNonInterrupt() {</span>
+<span class="nc" id="L59">    }</span>
 
 
     public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
             final int nrImmediateRetries,
             final long maxRetryWaitNanos, final Class&lt;EX&gt; exceptionClass)
             throws EX {
-<span class="fc" id="L52">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+<span class="fc" id="L66">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
                 (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
                 DEFAULT_EXCEPTION_RETRY, exceptionClass);
     }
@@ -60,7 +74,7 @@ public final class CallablesNanoNonInterrupt {
             final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
             final Class&lt;EX&gt; exceptionClass)
             throws EX {
-<span class="nc" id="L63">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+<span class="nc" id="L77">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
                 (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
     }
@@ -84,16 +98,16 @@ public final class CallablesNanoNonInterrupt {
             final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
             final Class&lt;EX&gt; exceptionClass)
             throws EX {
-<span class="fc" id="L87">      final long deadline = what.getDeadline();</span>
+<span class="fc" id="L101">      final long deadline = what.getDeadline();</span>
       try {
-<span class="fc" id="L89">        return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+<span class="fc" id="L103">        return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
                 new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
-<span class="fc" id="L92">                        () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
-<span class="nc" id="L93">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L94">        throw new UncheckedExecutionException(ex);</span>
-<span class="nc" id="L95">      } catch (TimeoutException ex) {</span>
-<span class="nc" id="L96">        throw new UncheckedTimeoutException(ex);</span>
+<span class="fc" id="L106">                        () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
+<span class="nc" id="L107">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L108">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L109">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L110">        throw new UncheckedTimeoutException(ex);</span>
       }
     }
 
@@ -103,11 +117,11 @@ public final class CallablesNanoNonInterrupt {
             final Class&lt;EX&gt; exceptionClass)
             throws EX {
       try {
-<span class="nc" id="L106">        return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);</span>
-<span class="nc" id="L107">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L108">        throw new UncheckedExecutionException(ex);</span>
-<span class="nc" id="L109">      } catch (TimeoutException ex) {</span>
-<span class="nc" id="L110">        throw new UncheckedTimeoutException(ex);</span>
+<span class="nc" id="L120">        return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);</span>
+<span class="nc" id="L121">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L122">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L123">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L124">        throw new UncheckedTimeoutException(ex);</span>
       }
     }
 
@@ -115,13 +129,13 @@ public final class CallablesNanoNonInterrupt {
             final TimeoutNanoRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
             throws EX {
       try {
-<span class="nc" id="L118">        return Callables.executeWithRetry(what,</span>
+<span class="nc" id="L132">        return Callables.executeWithRetry(what,</span>
                 (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
                 retryOnException, exceptionClass);
-<span class="nc" id="L121">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L122">        throw new UncheckedExecutionException(ex);</span>
-<span class="nc" id="L123">      } catch (TimeoutException ex) {</span>
-<span class="nc" id="L124">        throw new UncheckedTimeoutException(ex);</span>
+<span class="nc" id="L135">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L136">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L137">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L138">        throw new UncheckedTimeoutException(ex);</span>
       }
     }
 
