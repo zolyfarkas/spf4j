@@ -42,6 +42,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.spf4j.base.Runtime.PID;
 import static org.spf4j.base.Runtime.run;
+import org.spf4j.base.SysExits;
+import org.spf4j.os.OperatingSystem;
+import org.spf4j.os.ProcessResponse;
+import org.spf4j.os.StdOutLineCountProcessHandler;
 
 /**
  * @author Zoltan Farkas
@@ -83,9 +87,13 @@ public final class Lsof {
     if (Lsof.LSOF == null) {
       return -1;
     }
-    org.spf4j.base.Runtime.LineCountCharHandler handler = new org.spf4j.base.Runtime.LineCountCharHandler();
-    run(Lsof.LSOF_CMD, handler, 60000);
-    return handler.getLineCount() - 1;
+    ProcessResponse<Long, String> resp =
+            OperatingSystem.forkExec(LSOF_CMD, new StdOutLineCountProcessHandler(), 60000, 60000);
+    if (resp.getResponseExitCode() != SysExits.OK) {
+      throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(LSOF_CMD)
+              + ", returned" + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
+    }
+    return (int) (resp.getOutput() - 1);
   }
 
   @Nullable

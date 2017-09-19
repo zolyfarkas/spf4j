@@ -31,20 +31,18 @@
  */
 package org.spf4j.base;
 
+import org.spf4j.os.OperatingSystem;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.concurrent.DefaultExecutor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,21 +52,21 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.concurrent.Futures;
-import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.os.ProcessHandler;
+import org.spf4j.os.ProcessResponse;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.unix.Lsof;
+import org.spf4j.unix.UnixRuntime;
 
 /**
  *
@@ -76,7 +74,7 @@ import org.spf4j.unix.Lsof;
  */
 public final class Runtime {
 
-
+  public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
   public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
   public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
   public static final int PID;
@@ -303,7 +301,6 @@ public final class Runtime {
     return (int) OperatingSystem.getOpenFileDescriptorCount();
   }
 
-
   /**
    * @deprecated use Lsof.getLsofOutput instead.
    */
@@ -314,6 +311,10 @@ public final class Runtime {
     return Lsof.getLsofOutput();
   }
 
+  /**
+   * @deprecated use Processhandler
+   */
+  @Deprecated
   public interface ProcOutputHandler {
 
     void handleStdOut(byte[] bytes, int length);
@@ -325,18 +326,14 @@ public final class Runtime {
     void stdErrDone();
   }
 
+  /**
+   * @deprecated use OperatingSystem.forkExec.
+   */
+  @Deprecated
   public static CharSequence run(final String[] command,
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    StringBuilderCharHandler handler = new StringBuilderCharHandler();
-    int result = run(command, handler, timeoutMillis);
-    if (result != 0) {
-      throw new ExecutionException("Error While Executing: " + java.util.Arrays.toString(command)
-              + ";\n returned " + result + ";\n stdErr = " + handler.getStdErr(), null);
-    } else {
-      return handler.getStdOut();
-    }
+    return OperatingSystem.forkExec(command, timeoutMillis);
   }
-
 
   /**
    * @deprecated use OperatingSystem.killProcess.
@@ -348,182 +345,56 @@ public final class Runtime {
     return OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);
   }
 
+  /**
+   * @deprecated use OperatingSystem.forkExec instead.
+   */
   public static int run(final String[] command, final ProcOutputHandler handler,
           final long timeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
     return run(command, handler, timeoutMillis, 60000);
   }
 
+  /**
+   * @deprecated use OperatingSystem.forkExec instead.
+   */
   @SuppressFBWarnings("COMMAND_INJECTION")
+  @Deprecated
   public static int run(final String[] command, final ProcOutputHandler handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    final Process proc = java.lang.Runtime.getRuntime().exec(command);
-    try (InputStream pos = proc.getInputStream();
-            InputStream pes = proc.getErrorStream();
-            OutputStream pis = proc.getOutputStream()) {
-      Future<?> esh;
-      Future<?> osh;
-      try {
-        esh = DefaultExecutor.INSTANCE.submit(new StdErrHandlerRunnable(handler, pes));
-      } catch (RuntimeException ex) {
-        int result = OperatingSystem.killProcess(proc, terminationTimeoutMillis, 5000);
-        throw new ExecutionException("Error, process terminated and returned " + result, ex);
-      }
-      try {
-        osh = DefaultExecutor.INSTANCE.submit(new StdOutHandlerRunnable(handler, pos));
-      } catch (RuntimeException ex) {
-        RuntimeException cex = Futures.cancelAll(true, esh);
-        if (cex != null) {
-          ex.addSuppressed(cex);
+    ProcessResponse<Void, Void> resp = OperatingSystem.forkExec(command,
+            new ProcessHandler<Void, Void>() {
+      @Override
+      public Void handleStdOut(final InputStream is) throws IOException {
+        int cos;
+        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+        try {
+          while ((cos = is.read(buffer)) >= 0) {
+            handler.handleStdOut(buffer, cos);
+          }
+        } finally {
+          ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+          handler.stdOutDone();
         }
-        int result = OperatingSystem.killProcess(proc, terminationTimeoutMillis, 5000);
-        throw new ExecutionException("Error, process terminated and returned " + result, ex);
+        return null;
       }
 
-      long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
-      boolean isProcessFinished;
-      try {
-        isProcessFinished = proc.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException ex) {
-        RuntimeException cex = Futures.cancelAll(true, osh, esh);
-        if (cex != null) {
-          ex.addSuppressed(cex);
+      @Override
+      public Void handleStdErr(final InputStream stderr) throws IOException {
+        int cos;
+        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+        try {
+          while ((cos = stderr.read(buffer)) >= 0) {
+            handler.handleStdErr(buffer, cos);
+          }
+        } finally {
+          ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+          handler.stdErrDone();
         }
-        OperatingSystem.killProcess(proc, terminationTimeoutMillis, 5000);
-        throw ex;
+        return null;
       }
-      if (isProcessFinished) {
-        Exception hex = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh).getSecond();
-        if (hex == null) {
-          return proc.exitValue();
-        } else {
-          Throwables.throwException(hex);
-          throw new IllegalStateException();
-        }
-      } else {
-        int result = killProcess(proc, terminationTimeoutMillis, 5000);
-        RuntimeException cex = Futures.cancelAll(true, osh, esh);
-        TimeoutException tex = new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
-                + ";\nprocess returned " + result + ";\nhandler:\n" + handler);
-        if (cex != null) {
-          tex.addSuppressed(cex);
-        }
-        throw tex;
-      }
-    }
-  }
-
-
-  /**
-   * todo: character enconding is not really don eproperly...
-   */
-  public static final class LineCountCharHandler implements ProcOutputHandler {
-
-    private int lineCount;
-
-    public LineCountCharHandler() {
-      lineCount = 0;
-    }
-
-    @Override
-    public void handleStdOut(final byte[] buffer, final int length) {
-      for (int i = 0; i < length; i++) {
-        byte c = buffer[i];
-        if (c == (byte) '\n') {
-          lineCount++;
-        }
-      }
-    }
-
-    public int getLineCount() {
-      return lineCount;
-    }
-
-    @Override
-    public void handleStdErr(final byte[] buffer, final int length) {
-      handleStdOut(buffer, length);
-    }
-
-    @Override
-    public void stdOutDone() {
-      //nothing to do
-    }
-
-    @Override
-    public void stdErrDone() {
-      //nothing to do
-    }
-  }
-
-  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  public static final class StringBuilderCharHandler implements ProcOutputHandler {
-
-    private final AppendableOutputStream stdout;
-    private final StringBuilder stdoutCharseq;
-
-    private final AppendableOutputStream stderr;
-    private final StringBuilder stderrCharseq;
-
-    public StringBuilderCharHandler(final Charset charset) {
-      stdoutCharseq = new StringBuilder();
-      stdout = new AppendableOutputStream(stdoutCharseq, charset);
-      stderrCharseq = new StringBuilder();
-      stderr = new AppendableOutputStream(stderrCharseq, charset);
-    }
-
-    public StringBuilderCharHandler() {
-      this(Charset.defaultCharset());
-    }
-
-    @Override
-    public void handleStdOut(final byte[] buffer, final int length) {
-      try {
-        stdout.write(buffer, 0, length);
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-    }
-
-    @Override
-    public String toString() {
-      return "OUT: " + stdoutCharseq + "\nERR: " + stderrCharseq;
-    }
-
-    public CharSequence getStdOut() {
-      return stdoutCharseq;
-    }
-
-    public CharSequence getStdErr() {
-      return stderrCharseq;
-    }
-
-    @Override
-    public void handleStdErr(final byte[] buffer, final int length) {
-      try {
-        stderr.write(buffer, 0, length);
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-    }
-
-    @Override
-    public void stdOutDone() {
-      try {
-        stdout.close();
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-    }
-
-    @Override
-    public void stdErrDone() {
-      try {
-        stderr.close();
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-    }
+    }, timeoutMillis, terminationTimeoutMillis);
+    return resp.getResponseCode();
   }
 
   public static void queueHookAtBeginning(final Runnable runnable) {
@@ -605,9 +476,20 @@ public final class Runtime {
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(new String[inputArguments.size()]),
+            arguments);
+  }
+
+  public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
+          final String[] jvmArgs,
+          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
     final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
-    String[] command = Arrays.concat(new String[]{jvmPath, "-cp", classPath, classWithMain.getName()}, arguments);
-    return run(command, timeoutMillis);
+    String[] command = Arrays.concat(new String[]{jvmPath},
+            jvmArgs,
+            new String[]{"-cp", classPath, classWithMain.getName()},
+            arguments);
+    return OperatingSystem.forkExec(command, timeoutMillis);
   }
 
   public static final class Jmx {
@@ -617,58 +499,11 @@ public final class Runtime {
       return Reflections.getPackageInfo(className);
     }
 
-  }
-
-  private static class StdErrHandlerRunnable extends AbstractRunnable {
-
-    private final ProcOutputHandler handler;
-
-    private final InputStream is;
-
-    StdErrHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {
-      this.handler = handler;
-      this.is = is;
+    @JmxExport
+    public static void restart() throws IOException {
+      UnixRuntime.restart();
     }
 
-    @Override
-    public void doRun() throws Exception {
-      int eos;
-      byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-      try {
-        while ((eos = is.read(buffer)) >= 0) {
-          handler.handleStdErr(buffer, eos);
-        }
-      } finally {
-        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-        handler.stdErrDone();
-      }
-    }
-  }
-
-  private static class StdOutHandlerRunnable extends AbstractRunnable {
-
-    private final ProcOutputHandler handler;
-
-    private final InputStream is;
-
-    StdOutHandlerRunnable(final ProcOutputHandler handler, final InputStream is) {
-      this.handler = handler;
-      this.is = is;
-    }
-
-    @Override
-    public void doRun() throws Exception {
-      int cos;
-      byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-      try {
-        while ((cos = is.read(buffer)) >= 0) {
-          handler.handleStdOut(buffer, cos);
-        }
-      } finally {
-        ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-        handler.stdOutDone();
-      }
-    }
   }
 
 }

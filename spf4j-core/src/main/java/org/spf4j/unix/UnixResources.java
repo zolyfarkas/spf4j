@@ -162,10 +162,11 @@ public enum UnixResources {
       throw new UnixException("Unsupported " + id + " limit on " + Runtime.OS_NAME, 0);
     }
     final Resource.Rlimit limit = new Resource.Rlimit();
-    int err = com.sun.jna.platform.unix.LibC.INSTANCE.getrlimit(id, limit);
+    int err = CLibrary.INSTANCE.getrlimit(id, limit);
     if (err != 0) {
       int lastError = Native.getLastError();
-      throw new UnixException("Error code " + lastError  + " for getrlimit(" + id + ", " + limit + '\'', lastError);
+      throw new UnixException("Error code " + CLibrary.INSTANCE.strerror(lastError)
+              + " for getrlimit(" + id + ", " + limit + '\'', lastError);
     }
     return limit;
   }
@@ -179,10 +180,11 @@ public enum UnixResources {
     final Resource.Rlimit limit = new Resource.Rlimit();
     limit.rlim_cur = softValue;
     limit.rlim_max = hardValue;
-    int err = com.sun.jna.platform.unix.LibC.INSTANCE.setrlimit(id, limit);
+    int err = CLibrary.INSTANCE.setrlimit(id, limit);
     if (err != 0) {
       int lastError = Native.getLastError();
-      throw new UnixException("Error code " + lastError + " for setrlimit(" + id + ", " + limit + '\'', lastError);
+      throw new UnixException("Error " + CLibrary.INSTANCE.strerror(lastError)
+              + " for setrlimit(" + id + ", " + limit + '\'', lastError);
     }
   }
 

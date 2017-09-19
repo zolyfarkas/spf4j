@@ -29,24 +29,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.unix;
 
-import org.spf4j.os.OperatingSystem;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
-import org.spf4j.unix.UnixException;
-import org.spf4j.unix.UnixResources;
+import com.sun.jna.Native;
+import java.io.IOException;
+import static org.spf4j.base.Runtime.haveJnaPlatformClib;
 
 /**
  * @author Zoltan Farkas
  */
-public class OperatingSystemTest {
+public final class UnixRuntime {
 
-  @Test
-  public void testopenFileVals() throws UnixException {
-    Assume.assumeFalse(Runtime.isWindows());
-    Assert.assertEquals(OperatingSystem.getMaxFileDescriptorCount(), UnixResources.RLIMIT_NOFILE.getSoftLimit());
+  private UnixRuntime() {
+  }
+
+  public static void restart() throws IOException {
+    if (haveJnaPlatformClib()) {
+      JVMArguments current = JVMArguments.current();
+      String existing = current.removeSystemProperty("spf4j.restart");
+      int count;
+      if (existing == null) {
+        count = 1;
+      } else {
+        count = Integer.parseInt(existing) + 1;
+      }
+      current.setSystemProperty("spf4j.restart", Integer.toString(count));
+      // close all files upon exec, except stdin, stdout, and stderr
+      int sz = CLibrary.INSTANCE.getdtablesize();
+      for (int i = 3; i < sz; i++) {
+        int flags = CLibrary.INSTANCE.fcntl(i, CLibrary.F_GETFD);
+        if (flags < 0) {
+          continue;
+        }
+        CLibrary.INSTANCE.fcntl(i, CLibrary.F_SETFD, flags | CLibrary.FD_CLOEXEC);
+      }
+
+      // exec to self
+      String exe = current.getExecutable();
+      CLibrary.INSTANCE.execvp(exe, current.toStringArray());
+      throw new IOException("Failed to exec '" + exe + "' " + CLibrary.INSTANCE.strerror(Native.getLastError()));
+
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 
 }

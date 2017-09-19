@@ -29,24 +29,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.os;
 
-import org.spf4j.os.OperatingSystem;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
-import org.spf4j.unix.UnixException;
-import org.spf4j.unix.UnixResources;
+import com.google.common.io.CharStreams;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public class OperatingSystemTest {
+public interface ProcessHandler<T, E> {
 
-  @Test
-  public void testopenFileVals() throws UnixException {
-    Assume.assumeFalse(Runtime.isWindows());
-    Assert.assertEquals(OperatingSystem.getMaxFileDescriptorCount(), UnixResources.RLIMIT_NOFILE.getSoftLimit());
+  T handleStdOut(InputStream is) throws IOException;
+
+  default E handleStdErr(final InputStream stderr) throws IOException {
+    return (E) CharStreams.toString(new InputStreamReader(stderr, Charset.defaultCharset()));
+  }
+
+  default void writeStdIn(final OutputStream stdout) throws IOException {
+    // do nothing by default;
   }
 
 }

@@ -35,7 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.OperatingSystem;
+import org.spf4j.os.OperatingSystem;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;

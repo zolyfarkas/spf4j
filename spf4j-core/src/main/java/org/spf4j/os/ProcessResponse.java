@@ -29,24 +29,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.os;
 
-import org.spf4j.os.OperatingSystem;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
-import org.spf4j.unix.UnixException;
-import org.spf4j.unix.UnixResources;
+import org.spf4j.base.SysExits;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public class OperatingSystemTest {
+public final class ProcessResponse<T, E> {
+    private final int responseCode;
+    private final T output;
+    private final E errOutput;
 
-  @Test
-  public void testopenFileVals() throws UnixException {
-    Assume.assumeFalse(Runtime.isWindows());
-    Assert.assertEquals(OperatingSystem.getMaxFileDescriptorCount(), UnixResources.RLIMIT_NOFILE.getSoftLimit());
+  ProcessResponse(final int responseCode, final T output, final E errOutput) {
+    this.responseCode = responseCode;
+    this.output = output;
+    this.errOutput = errOutput;
+  }
+
+  public int getResponseCode() {
+    return responseCode;
+  }
+
+  public SysExits getResponseExitCode() {
+    return SysExits.fromCode(responseCode);
+  }
+
+  public T getOutput() {
+    return output;
+  }
+
+  public E getErrOutput() {
+    return errOutput;
+  }
+
+  @Override
+  public String toString() {
+    return "ProcessResponse{" + "responseCode=" + responseCode
+            + ", output=" + output + ", errOutput=" + errOutput + '}';
   }
 
 }

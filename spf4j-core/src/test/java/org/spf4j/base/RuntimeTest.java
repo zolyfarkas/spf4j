@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import org.spf4j.os.OperatingSystem;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.concurrent.CancellationException;

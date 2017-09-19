@@ -29,24 +29,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.os;
 
-import org.spf4j.os.OperatingSystem;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
-import org.spf4j.unix.UnixException;
-import org.spf4j.unix.UnixResources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public class OperatingSystemTest {
+public final class StdOutLineCountProcessHandler implements ProcessHandler<Long, String> {
 
-  @Test
-  public void testopenFileVals() throws UnixException {
-    Assume.assumeFalse(Runtime.isWindows());
-    Assert.assertEquals(OperatingSystem.getMaxFileDescriptorCount(), UnixResources.RLIMIT_NOFILE.getSoftLimit());
+  @Override
+  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+  public Long handleStdOut(final InputStream is) throws IOException {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.defaultCharset()))) {
+      long nrLines = 0;
+      int c;
+      while ((c = br.read()) >= 0) {
+        if (c == '\n') {
+          nrLines++;
+        }
+      }
+      return nrLines;
+    }
   }
 
 }

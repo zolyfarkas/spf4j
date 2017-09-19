@@ -29,24 +29,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.unix;
 
-import org.spf4j.os.OperatingSystem;
+import java.io.IOException;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
-import org.spf4j.unix.UnixException;
-import org.spf4j.unix.UnixResources;
+
 
 /**
  * @author Zoltan Farkas
  */
-public class OperatingSystemTest {
+public class JVMArgumentsTest {
 
   @Test
-  public void testopenFileVals() throws UnixException {
-    Assume.assumeFalse(Runtime.isWindows());
-    Assert.assertEquals(OperatingSystem.getMaxFileDescriptorCount(), UnixResources.RLIMIT_NOFILE.getSoftLimit());
+  public void testCurrentArgs() throws IOException {
+    Assume.assumeFalse(org.spf4j.base.Runtime.isWindows());
+    JVMArguments current = JVMArguments.current();
+    System.out.println(current);
+    Assert.assertThat(current.getExecutable(), Matchers.endsWith("java"));
   }
 
 }
