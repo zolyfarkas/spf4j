@@ -31,7 +31,6 @@
  */
 package org.spf4j.base;
 
-import org.spf4j.unix.UnixResources;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.concurrent.DefaultExecutor;
 import java.io.File;
@@ -46,13 +45,8 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +68,7 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.stackmonitor.FastStackCollector;
-import org.spf4j.unix.UnixException;
+import org.spf4j.unix.Lsof;
 
 /**
  *
@@ -223,8 +217,6 @@ public final class Runtime {
     Registry.export(Jmx.class);
   }
 
-  private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
-
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
     try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
@@ -300,183 +292,26 @@ public final class Runtime {
     }
   }
 
-  @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public static final class Lsof {
-
-    public static final File LSOF;
-
-    static {
-      File lsofFile = new File("/usr/sbin/lsof");
-      if (!lsofFile.exists() || !lsofFile.canExecute()) {
-        lsofFile = new File("/usr/bin/lsof");
-        if (!lsofFile.exists() || !lsofFile.canExecute()) {
-          lsofFile = new File("/usr/local/bin/lsof");
-          if (!lsofFile.exists() || !lsofFile.canExecute()) {
-            lsofFile = null;
-          }
-        }
-      }
-      if (lsofFile == null) {
-        Lazy.LOGGER.warn("lsof unavailable on this system");
-      }
-      LSOF = lsofFile;
-    }
-
-    public static final String[] LSOF_CMD = (LSOF == null) ? null
-            : new String[]{LSOF.getAbsolutePath(), "-p", Integer.toString(PID)};
-
-  }
-
-  /**
-   * see UnixResources for better/faster alternative.
-   *
-   */
-  @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-  public static final class Ulimit {
-
-    private static final String[] ULIMIT_CMD;
-
-    public static final int MAX_NR_OPENFILES;
-
-    static {
-      if (Runtime.IS_WINDOWS) {
-        ULIMIT_CMD = null;
-        MAX_NR_OPENFILES = Integer.MAX_VALUE;
-      } else {
-        int mfiles;
-        ULIMIT_CMD = findUlimitCmd();
-        if (haveJnaPlatformClib()) {
-          try {
-            mfiles = (int) UnixResources.RLIMIT_NOFILE.getSoftLimit();
-          } catch (UnixException ex) {
-            Lazy.LOGGER.warn("No ulimit available on {}, assuming no limit for nr open files",
-                    Runtime.OS_NAME, ex);
-            mfiles = Integer.MAX_VALUE;
-          }
-        } else {
-          if (ULIMIT_CMD == null) {
-            Lazy.LOGGER.warn("No ulimit available on {}, assuming no limit for nr open files",
-                    Runtime.OS_NAME);
-            mfiles = Integer.MAX_VALUE;
-          } else {
-            mfiles = runUlimit("-Sn");
-          }
-        }
-        MAX_NR_OPENFILES = mfiles;
-      }
-    }
-
-    @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
-    private static String[] findUlimitCmd() {
-      final File bash = new File("/bin/bash");
-      final File sh = new File("/bin/sh");
-      final File uLimit = new File("/usr/bin/ulimit");
-      if (uLimit.exists() && uLimit.canExecute()) {
-        return new String[]{uLimit.getPath()};
-      } else if (bash.exists() && bash.canExecute()) {
-        return new String[]{bash.getPath(), "-c", "ulimit"};
-      } else if (sh.exists() && sh.canExecute()) {
-        return new String[]{sh.getPath(), "-c", "ulimit"};
-      } else {
-        return null;
-      }
-    }
-
-    /**
-     * @param options
-     * @return number of max open files for the current process. If unable to find out System Max Limit this value will
-     * be Integer.MAX_VALUE
-     */
-    public static int runUlimit(final String... options) {
-      if (ULIMIT_CMD == null) {
-        Lazy.LOGGER.warn("Ulimit not available, assuming no limits");
-        return Integer.MAX_VALUE;
-      }
-      int mfiles;
-      try {
-        String[] cmd = Arrays.concat(ULIMIT_CMD, options);
-        String result = Runtime.run(cmd, 10000).toString();
-        if (result.contains("unlimited")) {
-          mfiles = Integer.MAX_VALUE;
-        } else {
-          try {
-            mfiles = Integer.parseInt(result.trim());
-          } catch (NumberFormatException ex) {
-            Lazy.LOGGER.warn("Error while parsing ulimit output, assuming no limit", ex);
-            mfiles = Integer.MAX_VALUE;
-          }
-        }
-      } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {
-        Lazy.LOGGER.warn("Error while running ulimit, assuming no limit", ex);
-        mfiles = Integer.MAX_VALUE;
-      }
-      return mfiles;
-    }
-
-  }
-
   /**
    * get the number of open files by current java process.
    *
    * @return -1 if cannot get nr of open files
    */
   @CheckReturnValue
+  @Deprecated
   public static int getNrOpenFiles() {
-    try {
-      if (isMacOsx()) {
-        if (Lsof.LSOF == null) {
-          return -1;
-        }
-        LineCountCharHandler handler = new LineCountCharHandler();
-        run(Lsof.LSOF_CMD, handler, 60000);
-        return handler.getLineCount() - 1;
-      } else {
-        if (Files.isDirectory(FD_FOLDER)) {
-          int result = 0;
-          try (DirectoryStream<Path> stream = Files.newDirectoryStream(FD_FOLDER)) {
-            Iterator<Path> iterator = stream.iterator();
-            while (iterator.hasNext()) {
-              iterator.next();
-              result++;
-            }
-          }
-          return result;
-        } else {
-          return -1;
-        }
-      }
-    } catch (IOException ex) {
-      String msg = ex.getMessage();
-      if (msg != null && msg.contains("Too many open files")) {
-        return Ulimit.MAX_NR_OPENFILES;
-      } else {
-        Lazy.LOGGER.warn("Unable to get nr of open files", ex);
-        return -1;
-      }
-    } catch (ExecutionException | TimeoutException ex) {
-      Lazy.LOGGER.warn("Unable to get nr of open files", ex);
-      return -1;
-    } catch (InterruptedException ex) {
-      Thread.currentThread().interrupt();
-      return -1;
-    }
+    return (int) OperatingSystem.getOpenFileDescriptorCount();
   }
 
+
+  /**
+   * @deprecated use Lsof.getLsofOutput instead.
+   */
   @Nullable
   @CheckReturnValue
+  @Deprecated
   public static CharSequence getLsofOutput() {
-    if (Lsof.LSOF == null) {
-      return null;
-    }
-    try {
-      return run(Lsof.LSOF_CMD, 60000);
-    } catch (IOException | ExecutionException | TimeoutException ex) {
-      Lazy.LOGGER.warn("Unable to run lsof", ex);
-      return null;
-    } catch (InterruptedException ex) {
-      Thread.currentThread().interrupt();
-      return null;
-    }
+    return Lsof.getLsofOutput();
   }
 
   public interface ProcOutputHandler {
@@ -502,21 +337,15 @@ public final class Runtime {
     }
   }
 
+
+  /**
+   * @deprecated use OperatingSystem.killProcess.
+   */
+  @Deprecated
   public static int killProcess(final Process proc, final long terminateTimeoutMillis,
           final long forceTerminateTimeoutMillis)
           throws InterruptedException {
-
-    proc.destroy();
-    if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
-      return proc.exitValue();
-    } else {
-      proc.destroyForcibly();
-      if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
-        throw new RuntimeException("Cannot terminate " + proc);
-      } else {
-        return proc.exitValue();
-      }
-    }
+    return OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);
   }
 
   public static int run(final String[] command, final ProcOutputHandler handler,
@@ -538,7 +367,7 @@ public final class Runtime {
       try {
         esh = DefaultExecutor.INSTANCE.submit(new StdErrHandlerRunnable(handler, pes));
       } catch (RuntimeException ex) {
-        int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        int result = OperatingSystem.killProcess(proc, terminationTimeoutMillis, 5000);
         throw new ExecutionException("Error, process terminated and returned " + result, ex);
       }
       try {
@@ -548,7 +377,7 @@ public final class Runtime {
         if (cex != null) {
           ex.addSuppressed(cex);
         }
-        int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        int result = OperatingSystem.killProcess(proc, terminationTimeoutMillis, 5000);
         throw new ExecutionException("Error, process terminated and returned " + result, ex);
       }
 
@@ -561,7 +390,7 @@ public final class Runtime {
         if (cex != null) {
           ex.addSuppressed(cex);
         }
-        killProcess(proc, terminationTimeoutMillis, 5000);
+        OperatingSystem.killProcess(proc, terminationTimeoutMillis, 5000);
         throw ex;
       }
       if (isProcessFinished) {
@@ -569,7 +398,7 @@ public final class Runtime {
         if (hex == null) {
           return proc.exitValue();
         } else {
-          throwException(hex);
+          Throwables.throwException(hex);
           throw new IllegalStateException();
         }
       } else {
@@ -585,22 +414,6 @@ public final class Runtime {
     }
   }
 
-  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-  public static void throwException(final Exception ex) throws IOException, InterruptedException,
-          ExecutionException, TimeoutException {
-    if (ex instanceof IOException) {
-      throw (IOException) ex;
-    } else if (ex instanceof InterruptedException) {
-      throw (InterruptedException) ex;
-    } else if (ex instanceof ExecutionException) {
-      throw (ExecutionException) ex;
-    } else if (ex instanceof TimeoutException) {
-      throw (TimeoutException) ex;
-    } else {
-      throw new ExecutionException(ex);
-    }
-
-  }
 
   /**
    * todo: character enconding is not really don eproperly...

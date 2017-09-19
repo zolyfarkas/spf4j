@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
@@ -41,10 +42,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.OperatingSystem;
 import org.spf4j.base.Runtime;
 import org.spf4j.base.SysExits;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.unix.Lsof;
 
 /**
  * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
@@ -77,15 +80,17 @@ public final class OpenFilesSampler {
   }
 
   public static void start(final long sampleTimeMillis) {
-    start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
-            Runtime.Ulimit.MAX_NR_OPENFILES, true);
+    long maxFileDescriptorCount = OperatingSystem.getMaxFileDescriptorCount();
+    start(sampleTimeMillis, maxFileDescriptorCount - maxFileDescriptorCount / 10,
+            maxFileDescriptorCount, true);
   }
 
   @JmxExport
   public static void start(@JmxExport("sampleTimeMillis") final long sampleTimeMillis,
           @JmxExport("shutdownOnError") final boolean shutdownOnError) {
-    start(sampleTimeMillis, Runtime.Ulimit.MAX_NR_OPENFILES - Runtime.Ulimit.MAX_NR_OPENFILES / 10,
-            Runtime.Ulimit.MAX_NR_OPENFILES, shutdownOnError);
+    long maxFileDescriptorCount = OperatingSystem.getMaxFileDescriptorCount();
+    start(sampleTimeMillis, maxFileDescriptorCount - maxFileDescriptorCount / 10,
+            maxFileDescriptorCount, shutdownOnError);
   }
 
   @JmxExport
@@ -94,12 +99,12 @@ public final class OpenFilesSampler {
   }
 
   public static void start(final long sampleTimeMillis,
-          final int warnThreshold, final int errorThreshold, final boolean shutdownOnError) {
+          final long warnThreshold, final long errorThreshold, final boolean shutdownOnError) {
     start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);
   }
 
   public static synchronized void start(final long sampleTimeMillis,
-          final int warnThreshold, final int errorThreshold, final boolean shutdownOnError,
+          final long warnThreshold, final long errorThreshold, final boolean shutdownOnError,
           final int aggTimeMillis) {
     if (samplingFuture == null) {
       accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,
@@ -135,18 +140,18 @@ public final class OpenFilesSampler {
     return lsofOutput == null ? "unable to obtain lsof" : lsofOutput.toString();
   }
 
-  @JmxExport
-  public static int getMaxNrOpenFiles() {
-    return Runtime.Ulimit.MAX_NR_OPENFILES;
+  @Deprecated
+  public static long getMaxNrOpenFiles() {
+    return OperatingSystem.getMaxFileDescriptorCount();
+  }
+
+  @Deprecated
+  public static long getNrOpenFiles() {
+    return OperatingSystem.getOpenFileDescriptorCount();
   }
 
   @JmxExport
-  public static int getNrOpenFiles() {
-    return Runtime.getNrOpenFiles();
-  }
-
-  @JmxExport
-  public static int getWarnThreshold() {
+  public static long getWarnThreshold() {
     if (accumulator == null) {
       return -1;
     }
@@ -154,7 +159,7 @@ public final class OpenFilesSampler {
   }
 
   @JmxExport
-  public static int getErrorThreshold() {
+  public static long getErrorThreshold() {
     if (accumulator == null) {
       return -1;
     }
@@ -164,13 +169,13 @@ public final class OpenFilesSampler {
 
   private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
 
-    private final int errorThreshold;
+    private final long errorThreshold;
     private final boolean shutdownOnError;
-    private final int warnThreshold;
+    private final long warnThreshold;
     private final MeasurementRecorder nrOpenFiles;
 
-    AccumulatorRunnable(final int errorThreshold, final boolean shutdownOnError,
-            final int warnThreshold, final int aggMillis) {
+    AccumulatorRunnable(final long errorThreshold, final boolean shutdownOnError,
+            final long warnThreshold, final int aggMillis) {
       this.errorThreshold = errorThreshold;
       this.shutdownOnError = shutdownOnError;
       this.warnThreshold = warnThreshold;
@@ -178,24 +183,26 @@ public final class OpenFilesSampler {
     }
 
     @Override
+    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void doRun() {
       long time = System.currentTimeMillis();
-      int nrOf = Runtime.getNrOpenFiles();
+      long nrOf = OperatingSystem.getOpenFileDescriptorCount();
       if (nrOf > errorThreshold) {
-        lastWarnLsof = Runtime.getLsofOutput();
+        lastWarnLsof = Lsof.getLsofOutput();
         LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
                 nrOf, errorThreshold, lastWarnLsof);
         if (shutdownOnError) {
           Runtime.goDownWithError(null, SysExits.EX_IOERR);
         }
       } else if (nrOf > warnThreshold) {
-        lastWarnLsof = Runtime.getLsofOutput();
+        lastWarnLsof = Lsof.getLsofOutput();
         LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
                 nrOf, warnThreshold, lastWarnLsof);
         if (!Runtime.gc(60000)) {
           LOG.warn("Unable to trigger GC although running low on file resources");
         } else {
-          LOG.warn("gc executed nr open files reduced by {} files", nrOf - Runtime.getNrOpenFiles());
+          LOG.warn("gc executed nr open files reduced by {} files",
+                  nrOf - OperatingSystem.getOpenFileDescriptorCount());
         }
       }
       this.nrOpenFiles.recordAt(time, nrOf);
@@ -206,7 +213,7 @@ public final class OpenFilesSampler {
         this.nrOpenFiles.close();
     }
 
-    public int getErrorThreshold() {
+    public long getErrorThreshold() {
       return errorThreshold;
     }
 
@@ -214,7 +221,7 @@ public final class OpenFilesSampler {
       return shutdownOnError;
     }
 
-    public int getWarnThreshold() {
+    public long getWarnThreshold() {
       return warnThreshold;
     }
 

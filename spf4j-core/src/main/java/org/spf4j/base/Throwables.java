@@ -46,6 +46,8 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -712,6 +714,22 @@ public final class Throwables {
       isPreviousDot = isCurrentCharDot;
     }
     writeTo.append(className, ldIdx, className.length());
+  }
+
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+  public static void throwException(final Exception ex) throws IOException, InterruptedException,
+          ExecutionException, TimeoutException {
+    if (ex instanceof IOException) {
+      throw (IOException) ex;
+    } else if (ex instanceof InterruptedException) {
+      throw (InterruptedException) ex;
+    } else if (ex instanceof ExecutionException) {
+      throw (ExecutionException) ex;
+    } else if (ex instanceof TimeoutException) {
+      throw (TimeoutException) ex;
+    } else {
+      throw new ExecutionException(ex);
+    }
   }
 
 

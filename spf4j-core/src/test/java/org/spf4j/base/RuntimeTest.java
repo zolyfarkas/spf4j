@@ -62,7 +62,7 @@ public final class RuntimeTest {
   @Test
   public void testMaxOpenFiles() {
     Assume.assumeFalse(Runtime.isWindows());
-    Assert.assertNotEquals(Integer.MAX_VALUE, Runtime.Ulimit.MAX_NR_OPENFILES);
+    Assert.assertNotEquals(Integer.MAX_VALUE, OperatingSystem.getMaxFileDescriptorCount());
   }
 
   /**
@@ -79,7 +79,7 @@ public final class RuntimeTest {
     System.out.println("LSOF_OUT=" + lsofOutput);
     Assert.assertNotNull(lsofOutput);
     Assert.assertThat(lsofOutput.toString(), Matchers.containsString("jar"));
-    System.out.println("MAX_OPEN_FILES=" + Runtime.Ulimit.MAX_NR_OPENFILES);
+    System.out.println("MAX_OPEN_FILES=" + OperatingSystem.getMaxFileDescriptorCount());
   }
 
   @Test(expected = ExecutionException.class, timeout = 60000)

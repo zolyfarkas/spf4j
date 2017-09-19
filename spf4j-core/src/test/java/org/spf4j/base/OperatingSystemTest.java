@@ -31,31 +31,21 @@
  */
 package org.spf4j.base;
 
-import org.spf4j.unix.UnixResources;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
-import org.spf4j.unix.Ulimit;
 import org.spf4j.unix.UnixException;
+import org.spf4j.unix.UnixResources;
 
 /**
- *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public class UnixResourcesTest {
+public class OperatingSystemTest {
 
   @Test
-  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testUlimit() throws IOException, UnixException {
-    Assume.assumeTrue(Runtime.isMacOsx());
-    long softLimit = UnixResources.RLIMIT_NOFILE.getSoftLimit();
-    Assert.assertEquals(softLimit,
-            (long) Ulimit.runUlimit("-Sn"));
-    UnixResources.RLIMIT_NOFILE.setSoftLimit(softLimit - 1);
-    Assert.assertEquals(softLimit - 1, UnixResources.RLIMIT_NOFILE.getSoftLimit());
+  public void testopenFileVals() throws UnixException {
+    Assume.assumeFalse(Runtime.isWindows());
+    Assert.assertEquals(OperatingSystem.getMaxFileDescriptorCount(), UnixResources.RLIMIT_NOFILE.getSoftLimit());
   }
-
 
 }

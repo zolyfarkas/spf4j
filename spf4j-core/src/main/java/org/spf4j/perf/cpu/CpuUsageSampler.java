@@ -32,11 +32,10 @@
 package org.spf4j.perf.cpu;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.OperatingSystem;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -50,36 +49,30 @@ import org.spf4j.perf.impl.RecorderFactory;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class CpuUsageSampler {
 
-  private static final com.sun.management.OperatingSystemMXBean OS_MBEAN;
-
-  static {
-    OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-    if (operatingSystemMXBean instanceof com.sun.management.OperatingSystemMXBean) {
-      OS_MBEAN = (com.sun.management.OperatingSystemMXBean) operatingSystemMXBean;
-    } else {
-      OS_MBEAN = null;
-    }
-    Registry.export(CpuUsageSampler.class);
-  }
-
   private static ScheduledFuture<?> samplingFuture;
 
-  private CpuUsageSampler() {
-  }
-
-  @JmxExport
-  public static long getProcessCpuTimeNanos() {
-    return OS_MBEAN.getProcessCpuTime();
-  }
-
   static {
-    if (OS_MBEAN != null) {
+    Registry.export(CpuUsageSampler.class);
+    if (OperatingSystem.getSunJdkOSMBean() != null) {
       org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
         @Override
         public void doRun() {
           stop();
         }
       });
+    }
+  }
+
+  private CpuUsageSampler() {
+  }
+
+
+  public static long getProcessCpuTimeNanos() {
+    com.sun.management.OperatingSystemMXBean sunJdkOSMBean = OperatingSystem.getSunJdkOSMBean();
+    if (sunJdkOSMBean != null) {
+      return sunJdkOSMBean.getProcessCpuTime();
+    } else {
+      return -1;
     }
   }
 
@@ -94,7 +87,7 @@ public final class CpuUsageSampler {
 
         @Override
         public void doRun() {
-          long currTime = OS_MBEAN.getProcessCpuTime();
+          long currTime = getProcessCpuTimeNanos();
           cpuUsage.record(currTime - lastValue);
           lastValue = currTime;
         }

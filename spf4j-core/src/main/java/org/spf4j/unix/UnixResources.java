@@ -33,6 +33,7 @@ package org.spf4j.unix;
 
 import com.sun.jna.Native;
 import com.sun.jna.platform.unix.Resource;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.Runtime;
 
 /**
@@ -41,6 +42,8 @@ import org.spf4j.base.Runtime;
  * this class requires jna-platforn which is a optional dependency.
  * @author zoly
  */
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
+// class circularity should go away when deprecated methods from Runtime are removed.
 public enum UnixResources {
 
 
