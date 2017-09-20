@@ -95,6 +95,7 @@ public final class FileMonitorAspectTest {
             Matchers.hasKey("file-read,org.spf4j.perf.aspects.FileMonitorAspectTest"));
     List<TableDefEx> get = allTables.get("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest");
     Assert.assertTrue(get.get(0).getStartTime() != 0);
+    Assert.assertTrue(org.spf4j.base.Runtime.getNrOpenFiles() > 0);
   }
 
 }
