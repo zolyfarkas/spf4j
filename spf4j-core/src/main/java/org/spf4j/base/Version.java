@@ -63,7 +63,7 @@ public final class Version implements Comparable<Version>, Serializable {
   private void parse(final CharSequence version) {
     List<Comparable<?>> comps = new ArrayList<>(4);
     StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < version.length(); i++) {
+    for (int i = 0, l = version.length(); i < l; i++) {
       char c = version.charAt(i);
       final int length = sb.length();
       if (c == '.') {
