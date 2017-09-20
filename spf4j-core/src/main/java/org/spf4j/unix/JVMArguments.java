@@ -54,7 +54,7 @@ import org.spf4j.base.Runtime;
 import org.spf4j.unix.CLibrary.FILE;
 
 /**
- * List of arguments for Java VM and application. based on class from akuma lib.
+ * List of arguments for Java VM and application. based on class from akuma lib (http://akuma.kohsuke.org).
  */
 @SuppressFBWarnings("DM_DEFAULT_ENCODING")
 // default char encoding is used on purpose.
