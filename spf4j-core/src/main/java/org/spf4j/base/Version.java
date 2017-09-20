@@ -47,7 +47,7 @@ public final class Version implements Comparable<Version>, Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private final Comparable[] components;
+  private transient Comparable[] components;
 
   private final String image;
 
@@ -57,6 +57,10 @@ public final class Version implements Comparable<Version>, Serializable {
 
   public Version(final CharSequence version) {
     this.image = version.toString();
+    parse(version);
+  }
+
+  private void parse(final CharSequence version) {
     List<Comparable<?>> comps = new ArrayList<>(4);
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < version.length(); i++) {
@@ -155,6 +159,12 @@ public final class Version implements Comparable<Version>, Serializable {
 
   public int getNrComponents() {
     return components.length;
+  }
+
+  private void readObject(final java.io.ObjectInputStream s)
+          throws java.io.IOException, ClassNotFoundException {
+    s.defaultReadObject();
+    parse(this.image);
   }
 
   @Override
