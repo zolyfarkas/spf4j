@@ -35,7 +35,6 @@ import com.google.common.primitives.Ints;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -51,6 +50,10 @@ public final class Version implements Comparable<Version>, Serializable {
   private final Comparable[] components;
 
   private final String image;
+
+  public Version(final String version) {
+    this((CharSequence) version);
+  }
 
   public Version(final CharSequence version) {
     this.image = version.toString();
