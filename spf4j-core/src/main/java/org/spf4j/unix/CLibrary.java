@@ -46,6 +46,15 @@ import com.sun.jna.ptr.IntByReference;
  */
 public interface CLibrary extends LibCAPI, Library {
 
+  CLibrary INSTANCE = (CLibrary) Native.loadLibrary("c", CLibrary.class);
+
+   // obtained from Linux. Needs to be checked if these values are portable.
+  int F_GETFD = 1;
+
+  int F_SETFD = 2;
+
+  int FD_CLOEXEC = 1;
+
   int fork();
 
   int kill(int pid, int signum);
@@ -112,11 +121,6 @@ public interface CLibrary extends LibCAPI, Library {
 
   int fcntl(int fd, int command, int flags);
 
-   // obtained from Linux. Needs to be checked if these values are portable.
-  int F_GETFD = 1;
-  int F_SETFD = 2;
-  int FD_CLOEXEC = 1;
-
   /**
    * Read a symlink. The name will be copied into the specified memory, and returns the number of bytes copied. The
    * string is not null-terminated.
@@ -125,6 +129,4 @@ public interface CLibrary extends LibCAPI, Library {
    */
   int readlink(String filename, Memory buffer, NativeLong size);
 
-
-  CLibrary INSTANCE = (CLibrary) Native.loadLibrary("c", CLibrary.class);
 }
