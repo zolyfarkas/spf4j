@@ -524,10 +524,7 @@ public final class JVMArguments {
       return false;
     }
     final JVMArguments other = (JVMArguments) obj;
-    if (!Objects.equals(this.arguments, other.arguments)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.arguments, other.arguments);
   }
 
   public String[] toArray() {
