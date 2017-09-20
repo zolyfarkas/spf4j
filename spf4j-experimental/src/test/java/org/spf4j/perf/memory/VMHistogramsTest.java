@@ -37,8 +37,8 @@ import com.sun.jna.NativeLibrary;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.Test;
-import org.spf4j.c.CLibrary;
-import org.spf4j.c.CLibrary.FILE;
+import org.spf4j.unix.CLibrary;
+import org.spf4j.unix.CLibrary.FILE;
 
 /**
  *
@@ -53,10 +53,10 @@ public final class VMHistogramsTest {
     public void testMemoryUsage() throws FileNotFoundException, IOException {
         //__stdoutp or __stderrp
         final FILE stdout = new FILE(NativeLibrary.getInstance("c").getGlobalVariableAddress("__stdoutp").getPointer(0));
-        FILE fp = CLibrary.LIBC.freopen("/tmp/testErr.txt", "w", stdout);
+        FILE fp = CLibrary.INSTANCE.freopen("/tmp/testErr.txt", "w", stdout);
         byte [] last = generateGarbage();
         System.out.println("last size =" + last.length);
-        CLibrary.LIBC.fclose(fp);
+        CLibrary.INSTANCE.fclose(fp);
     }
 
     public byte[] generateGarbage() {
