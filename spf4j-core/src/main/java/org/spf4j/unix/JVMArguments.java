@@ -158,7 +158,7 @@ public final class JVMArguments {
 
   private static int resolvePID(final int pid) {
     if (pid == -1) {
-      return org.spf4j.base.Runtime.PID;
+      return Runtime.PID;
     } else {
       return pid;
     }
@@ -169,8 +169,7 @@ public final class JVMArguments {
     // 32 JVMs are the norm, so err on the 32bit side.
     boolean areWe64 = "64".equals(System.getProperty("sun.arch.data.model"));
     int pid = resolvePID(ppid);
-    RandomAccessFile psinfo = new RandomAccessFile(new File("/proc/" + pid + "/psinfo"), "r");
-    try {
+    try (RandomAccessFile psinfo = new RandomAccessFile(new File("/proc/" + pid + "/psinfo"), "r")) {
       // see http://cvs.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/uts/common/sys/procfs.h
       //typedef struct psinfo {
       // int pr_flag; /* process flags */
@@ -247,8 +246,7 @@ public final class JVMArguments {
           CLibrary.INSTANCE.fclose(fp);
         }
       } else {
-        RandomAccessFile as = new RandomAccessFile(asFile, "r");
-        try {
+        try (RandomAccessFile as = new RandomAccessFile(asFile, "r")) {
           JVMArguments args = new JVMArguments(16);
           for (int n = 0; n < argc; n++) {
             // read a pointer to one entry
@@ -258,12 +256,8 @@ public final class JVMArguments {
             args.add(readLine(as, p));
           }
           return args;
-        } finally {
-          as.close();
         }
       }
-    } finally {
-      psinfo.close();
     }
   }
 
@@ -378,47 +372,12 @@ public final class JVMArguments {
     }
 
     int argmax = argmaxRef.getValue();
-
-    @SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
-    class StringArrayMemory extends Memory {
-
-      private long offset = 0;
-
-      StringArrayMemory(final long l) {
-        super(l);
-      }
-
-      int readInt() {
-        int r = getInt(offset);
-        offset += sizeOfInt;
-        return r;
-      }
-
-      String readString() {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte ch;
-        while ((ch = getByte(offset++)) != '\0') {
-          baos.write(ch);
-        }
-        return baos.toString();
-      }
-
-      void skip0() {
-        // skip trailing '\0's
-        while (getByte(offset) == '\0') {
-          offset++;
-        }
-      }
-    }
-
-    StringArrayMemory m = new StringArrayMemory(argmax);
+    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);
     size.setValue(argmax);
     if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {
       throw new UnsupportedOperationException("Failed to obtain ken.procargs2: "
               + CLibrary.INSTANCE.strerror(Native.getLastError()));
     }
-
-
     /*
          * Make a sysctl() call to get the raw argument space of the
          * process.  The layout is documented in start.s, which is part
@@ -466,6 +425,40 @@ public final class JVMArguments {
       args.add(m.readString());
     }
     return args;
+  }
+
+  @SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
+  private static final class StringArrayMemory extends Memory {
+
+    private long offset = 0;
+    private final int sizeOfInt;
+
+    StringArrayMemory(final long l, final int sizeOfInt) {
+      super(l);
+      this.sizeOfInt = sizeOfInt;
+    }
+
+    int readInt() {
+      int r = getInt(offset);
+      offset += sizeOfInt;
+      return r;
+    }
+
+    String readString() {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      byte ch;
+      while ((ch = getByte(offset++)) != '\0') {
+        baos.write(ch);
+      }
+      return baos.toString();
+    }
+
+    void skip0() {
+      // skip trailing '\0's
+      while (getByte(offset) == '\0') {
+        offset++;
+      }
+    }
   }
 
   private static JVMArguments ofFreeBSD(final int pid) {
