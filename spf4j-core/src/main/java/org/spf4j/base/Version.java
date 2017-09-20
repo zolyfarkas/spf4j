@@ -156,7 +156,7 @@ public final class Version implements Comparable<Version>, Serializable {
 
   @Override
   public String toString() {
-    return "Version{" + "components=" + Arrays.toString(components) + '}';
+    return image;
   }
 
 }
