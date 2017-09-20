@@ -150,9 +150,9 @@ public final class JVMArguments {
     }
   }
 
-  private static JVMArguments ofLinux(final int ppid) {
+  private static JVMArguments ofLinux(final int ppid) throws IOException {
     int pid = resolvePID(ppid);
-    String cmdline = Files.asCharSource(new File("/proc/" + pid + "/cmdline"), Charset.defaultCharset()).toString();
+    String cmdline = Files.asCharSource(new File("/proc/" + pid + "/cmdline"), Charset.defaultCharset()).read();
     return new JVMArguments(java.util.Arrays.asList(cmdline.split("\0")));
   }
 
