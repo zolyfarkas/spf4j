@@ -65,6 +65,7 @@ import org.spf4j.os.ProcessHandler;
 import org.spf4j.os.ProcessResponse;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.stackmonitor.FastStackCollector;
+import org.spf4j.unix.JVMArguments;
 import org.spf4j.unix.Lsof;
 import org.spf4j.unix.UnixRuntime;
 
@@ -476,9 +477,9 @@ public final class Runtime {
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
-    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(new String[inputArguments.size()]),
-            arguments);
+    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());
+    inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
+    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);
   }
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,

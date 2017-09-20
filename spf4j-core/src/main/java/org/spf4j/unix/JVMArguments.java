@@ -87,6 +87,19 @@ public final class JVMArguments {
     return null;
   }
 
+  public int removeAllSystemPropertiesStartingWith(final String pname) {
+    String name = "-D" + pname;
+    int nrRemoved = 0;
+    for (Iterator<String> itr = arguments.iterator(); itr.hasNext();) {
+      String s = itr.next();
+      if (s.startsWith(name)) {
+        itr.remove();
+        nrRemoved++;
+      }
+    }
+    return nrRemoved;
+  }
+
   public void setSystemProperty(final String name, final String value) {
     removeSystemProperty(name);
     // index 0 is the executable name
@@ -522,6 +535,10 @@ public final class JVMArguments {
       return false;
     }
     return true;
+  }
+
+  public String[] toArray() {
+    return arguments.toArray(new String[arguments.size()]);
   }
 
 }
