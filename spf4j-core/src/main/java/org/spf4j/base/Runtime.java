@@ -78,34 +78,42 @@ public final class Runtime {
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
   public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
   public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
-  public static final int PID;
-  public static final String OS_NAME;
-  public static final String PROCESS_NAME;
-  /**
-   * unique identifier identifying this process.
-   */
-  public static final String PROCESS_ID;
-  public static final int NR_PROCESSORS;
   public static final String JAVA_VERSION = System.getProperty("java.version");
   public static final String USER_NAME = System.getProperty("user.name");
   public static final String USER_DIR = System.getProperty("user.dir");
   public static final String USER_HOME = System.getProperty("user.home");
   public static final String JAVA_HOME = System.getProperty("java.home");
-  private static final boolean IS_MAC_OSX;
-  private static final boolean IS_WINDOWS;
-
+  private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
   public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
 
     @Override
     protected Long initialValue() {
       return Long.MAX_VALUE;
     }
-
   };
 
-  private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
+  /**
+   * unique identifier identifying this process.
+   */
+  public static final int PID;
+  public static final String OS_NAME;
+  public static final String PROCESS_NAME;
+  public static final String PROCESS_ID;
+  public static final int NR_PROCESSORS;
+  private static final boolean IS_MAC_OSX;
+  private static final boolean IS_WINDOWS;
+  public static final Version JAVA_PLATFORM;
+  private static final List<Class<?>> PRELOADED; // preload certain classes to have them available.
 
   static {
+    // priming certain functionality to make sure it works when we need it (classes are already loaded).
+    try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
+      Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.PackageDetail.NONE);
+    } catch (UnsupportedEncodingException ex) {
+      throw new ExceptionInInitializerError(ex);
+    }
+    PRELOADED = new ArrayList<>(2);
+    PRELOADED.add(FastStackCollector.class);
     final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
     final int availableProcessors = runtime.availableProcessors();
@@ -216,20 +224,6 @@ public final class Runtime {
     Registry.export(Jmx.class);
   }
 
-  static {
-    // priming certain functionality to make sure it works when we need it (classes are already loaded).
-    try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
-      Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.PackageDetail.NONE);
-    } catch (UnsupportedEncodingException ex) {
-      throw new ExceptionInInitializerError(ex);
-    }
-  }
-
-  public static final Version JAVA_PLATFORM;
-
-  private Runtime() {
-  }
-
   public enum Version {
 
     V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9_PLUSZ;
@@ -242,6 +236,9 @@ public final class Runtime {
   private static class Lazy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
+  }
+
+  private Runtime() {
   }
 
   public static void goDownWithError(final SysExits exitCode) {
