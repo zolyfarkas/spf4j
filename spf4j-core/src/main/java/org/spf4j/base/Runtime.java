@@ -493,6 +493,45 @@ public final class Runtime {
     return OperatingSystem.forkExec(command, timeoutMillis);
   }
 
+  /**
+   * get the main Thread.
+   * @return null if there is no main thread (can happen when calling this is a shutdown hook)
+   */
+  @Nullable
+  public static Thread getMainThread() {
+    Thread[] threads = FastStackCollector.getThreads();
+    for (Thread t : threads) {
+      if (t.getId() == 1L) {
+        return t;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return null if main class cannot be found.
+   */
+  @Nullable
+  public static Class<?> getMainClass() {
+    Thread mainThread = getMainThread();
+    if (mainThread == null) {
+      return null;
+    }
+    StackTraceElement[] stackTrace = mainThread.getStackTrace();
+    if (stackTrace.length == 0) {
+      return null;
+    }
+    String className = stackTrace[stackTrace.length - 1].getClassName();
+    try {
+      return Class.forName(className);
+    } catch (ClassNotFoundException ex) {
+      NoClassDefFoundError tex = new NoClassDefFoundError("Cannot find " + className);
+      tex.initCause(ex);
+      throw tex;
+    }
+  }
+
+
   public static final class Jmx {
 
     @JmxExport

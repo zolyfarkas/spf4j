@@ -34,6 +34,7 @@ package org.spf4j.base;
 import org.spf4j.os.OperatingSystem;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -59,6 +60,14 @@ public final class RuntimeTest {
     Assert.assertTrue(Runtime.haveJnaPlatform());
   }
 
+
+  @Test
+  public void testMainClass() throws NoSuchMethodException {
+    Class<?> mainClass = Runtime.getMainClass();
+    Assert.assertNotNull(mainClass);
+    Method method = mainClass.getMethod("main", String[].class);
+    Assert.assertNotNull(method);
+  }
 
   @Test
   public void testMaxOpenFiles() {
