@@ -100,4 +100,25 @@ public final class Comparables {
     return result;
   }
 
+  public static <T extends Comparable<T>> int compareArrays(final T[] first, final T[] second,
+          final int from, final int to) {
+    int result = 0;
+    if (first == second) {
+      return result;
+    }
+    int i = from;
+    int n = to;
+    if (n == i) {
+      return 0;
+    }
+    do {
+      result = Comparables.compare(first[i], second[i]);
+      i++;
+    } while (result == 0 && i < n);
+    return result;
+  }
+
+
+
+
 }

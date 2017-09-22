@@ -77,5 +77,20 @@ public class VersionTest {
         Assert.assertEquals(version, clone);
     }
 
+    @Test
+    public void testVersion5() {
+        Version version1 = new Version("1.8.1");
+        Version version2 = new Version("1.8.2-SNAPSHOT");
+        Assert.assertTrue(version1.compareTo(version2) < 0);
+    }
+
+    @Test
+    public void testVersion6() {
+        Version version1 = new Version("1.8.2");
+        Version version2 = new Version("1.8.2-SNAPSHOT");
+        Assert.assertTrue(version1.compareTo(version2) > 0);
+        Assert.assertTrue(version2.compareTo(version1) < 0);
+    }
+
 
 }
