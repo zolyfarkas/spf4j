@@ -513,7 +513,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
                         mapItemTypes);
 
         openType = new TabularType(typeName, typeName, rowType, MAP_INDEX_NAMES);
-        mappedTypeClass = javax.management.openmbean.TabularData.class;
+        mappedTypeClass = TabularData.class;
       } catch (OpenDataException ex) {
         throw new IllegalArgumentException("Unsupported type " + pt, ex);
       }
