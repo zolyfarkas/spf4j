@@ -87,6 +87,9 @@ public final class Comparables {
     int l1 = first.length;
     int l2 = second.length;
     int n = Math.min(l1, l2);
+    if (n == 0) {
+      return (l1 < l2) ? -1 : (l1 > l2) ? 1 : 0;
+    }
     do {
       result = Comparables.compare(first[i], second[i]);
       i++;
