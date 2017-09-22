@@ -92,5 +92,13 @@ public class VersionTest {
         Assert.assertTrue(version2.compareTo(version1) < 0);
     }
 
+    @Test
+    public void testVersion7() {
+        Version version1 = new Version("1.8.3-SNAPSHOT");
+        Version version2 = new Version("1.8.2-SNAPSHOT");
+        Assert.assertTrue(version1.compareTo(version2) > 0);
+        Assert.assertTrue(version2.compareTo(version1) < 0);
+    }
+
 
 }
