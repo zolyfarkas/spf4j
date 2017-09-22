@@ -189,17 +189,39 @@
                                     <version>3.0.0</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <version>1.7.0-67</version>
+                                    <version>1.8.0-80</version>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>            
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>animal-sniffer-maven-plugin</artifactId>
+              <version>1.16</version>
+              <configuration>
+                <ignores>java.lang.invoke.MethodHandle</ignores>
+                <signature>
+                  <groupId>org.codehaus.mojo.signature</groupId>
+                  <artifactId>java18</artifactId>
+                  <version>1.0</version>
+                </signature>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>check-java-version-compatibility</id>
+                  <phase>test</phase>
+                  <goals>
+                    <goal>check</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
+                <version>2.10.4</version>
                 <executions>
                       <execution>
                           <id>attach-docs</id>
