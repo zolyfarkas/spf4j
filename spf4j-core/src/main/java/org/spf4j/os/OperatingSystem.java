@@ -84,7 +84,7 @@ public final class OperatingSystem {
 
   private static final com.sun.management.OperatingSystemMXBean SUN_OS_MBEAN;
 
-  private static final com.sun.management.UnixOperatingSystemMXBean UNIX_OS_MBEAN;
+  private static final UnixOperatingSystemMXBean UNIX_OS_MBEAN;
 
   public static final long MAX_NR_OPENFILES;
 
@@ -95,8 +95,8 @@ public final class OperatingSystem {
     } else {
       SUN_OS_MBEAN = null;
     }
-    if (OS_MBEAN instanceof com.sun.management.UnixOperatingSystemMXBean) {
-      UNIX_OS_MBEAN = (com.sun.management.UnixOperatingSystemMXBean) OS_MBEAN;
+    if (OS_MBEAN instanceof UnixOperatingSystemMXBean) {
+      UNIX_OS_MBEAN = (UnixOperatingSystemMXBean) OS_MBEAN;
       MAX_NR_OPENFILES = UNIX_OS_MBEAN.getMaxFileDescriptorCount();
     } else {
       UNIX_OS_MBEAN = null;
