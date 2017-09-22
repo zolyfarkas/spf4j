@@ -66,6 +66,7 @@ public class VersionTest {
         Version version1 = new Version("1.8.1");
         Version version2 = new Version("1.8.0.25p");
         Assert.assertTrue(version1.compareTo(version2) > 0);
+        Assert.assertTrue(version2.compareTo(version1) < 0);
     }
 
     @Test

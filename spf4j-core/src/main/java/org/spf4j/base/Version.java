@@ -116,18 +116,22 @@ public final class Version implements Comparable<Version>, Serializable {
         Comparable component = o.components[components.length];
         if (component instanceof String && ((String) component).contains("SNAPSHOT")) {
           return 1;
+        } else {
+          return -1;
         }
       }
-      return -1;
+      return res;
     } else {
       int res = Comparables.compareArrays(components, o.components, 0, o.components.length);
       if (res == 0) {
         Comparable component = components[o.components.length];
         if (component instanceof String && ((String) component).contains("SNAPSHOT")) {
           return -1;
+        } else {
+          return 1;
         }
       }
-      return 1;
+      return res;
     }
   }
 
