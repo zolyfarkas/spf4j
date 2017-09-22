@@ -1462,7 +1462,7 @@ public final class MessageFormat extends Format {
   }
 
     private void writeObject(final java.io.ObjectOutputStream s)
-        throws java.io.IOException {
+        throws IOException {
         // Write out element count, and any hidden stuff
         s.defaultWriteObject();
         s.writeUTF(pattern.toString());
