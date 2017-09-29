@@ -151,4 +151,10 @@ public class ApiChangesMojo
     return true;
   }
 
+  @Override
+  public String toString() {
+    return "ApiChangesMojo{" + "versionRange=" + versionRange + ", maxNumberOfDiffs="
+            + maxNumberOfDiffs + ", destDir=" + destDir  + ", parent=" + super.toString() + '}';
+  }
+
 }

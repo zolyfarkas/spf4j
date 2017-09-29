@@ -206,4 +206,12 @@ public abstract class BaseJDiffMojo
     return repoSystem;
   }
 
+  @Override
+  public String toString() {
+    return "BaseJDiffMojo{" + "workingDirectory=" + workingDirectory + ", javadocExecutable="
+            + javadocExecutable + ", includePackageNames=" + includePackageNames + '}';
+  }
+
+
+
 }

@@ -64,4 +64,11 @@ public class ApiDescriptorMojo
     }
   }
 
+  @Override
+  public String toString() {
+    return "ApiDescriptorMojo{" + "apiname=" + apiname + ", parent=" + super.toString() +  '}';
+  }
+
+
+
 }
