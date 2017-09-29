@@ -84,7 +84,7 @@ public class ApiChangesMojo
   }
 
   public String getName(Locale locale) {
-    return "JDiff";
+    return "JDiff Reports";
   }
 
   /**
@@ -113,11 +113,13 @@ public class ApiChangesMojo
   public void execute() throws MojoExecutionException {
     MavenProject mavenProject = getMavenProject();
     try {
+      getLog().info("Executing JDiff javadoc docklet");
       JDiffRunner runner = new JDiffRunner(getMojoExecution(), toolchainManager, getMavenSession(),
               getProjectRepos(), getRepoSystem(), getJavadocExecutable());
       runner.runDiffBetweenReleases(mavenProject.getGroupId(), mavenProject.getArtifactId(), this.versionRange,
               destDir, maxNumberOfDiffs);
       runner.writeChangesIndexHtml(destDir, "changes.html");
+      getLog().info("Generated " + destDir + File.separatorChar + "changes.html");
 
     } catch (IOException | DependencyResolutionException | VersionRangeResolutionException
             | ArtifactResolutionException | JavadocExecutionException ex) {
