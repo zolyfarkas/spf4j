@@ -190,8 +190,8 @@ public final class Compress {
       throw new IllegalArgumentException("Destination " + destinationDirectory + " must be a directory");
     }
     final List<Path> response = new ArrayList<>();
-    FileSystem zipFs = FileSystems.newFileSystem(URI.create("jar:" + zipFile.toUri().toURL()), Collections.emptyMap());
-    try {
+    URI zipUri = URI.create("jar:" + zipFile.toUri().toURL());
+    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {
       for (Path root : zipFs.getRootDirectories()) {
         Path dest =  destinationDirectory.resolve(root.toString().substring(1));
         Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
