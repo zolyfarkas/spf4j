@@ -63,7 +63,7 @@ public final class JDiffRunner {
   private final RepositorySystemSession reposSession;
 
   public JDiffRunner() {
-    this(null, null, null, Arrays.asList(MavenRepositoryUtils.getMavenCentralRepository()),
+    this(null, null, null, Arrays.asList(MavenRepositoryUtils.getDefaultlRepository()),
             MavenRepositoryUtils.getRepositorySystem(), null);
   }
 
