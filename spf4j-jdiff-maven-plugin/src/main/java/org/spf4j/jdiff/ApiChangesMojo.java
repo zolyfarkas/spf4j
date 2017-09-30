@@ -81,7 +81,7 @@ public class ApiChangesMojo
 
   @Override
   public String getOutputName() {
-    return destDir.getName() + "/changes";
+    return "apidocs/changes";
   }
 
   public String getName(Locale locale) {
@@ -146,7 +146,7 @@ public class ApiChangesMojo
 
   @Override
   public void setReportOutputDirectory(File outputDirectory) {
-    this.destDir = outputDirectory;
+    this.destDir = new File(outputDirectory, "apidocs");
   }
 
   @Override
