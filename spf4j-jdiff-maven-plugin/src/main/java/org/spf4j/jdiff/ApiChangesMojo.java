@@ -79,6 +79,7 @@ public class ApiChangesMojo
     return !getCompileSourceRoots().isEmpty();
   }
 
+  @Override
   public String getOutputName() {
     return destDir.getName() + "/changes";
   }
@@ -113,7 +114,7 @@ public class ApiChangesMojo
   public void execute() throws MojoExecutionException {
     MavenProject mavenProject = getMavenProject();
     try {
-      getLog().info("Executing JDiff javadoc docklet");
+      getLog().info("Executing JDiff javadoc doclet");
       JDiffRunner runner = new JDiffRunner(getMojoExecution(), toolchainManager, getMavenSession(),
               getProjectRepos(), getRepoSystem(), getJavadocExecutable());
       runner.runDiffBetweenReleases(mavenProject.getGroupId(), mavenProject.getArtifactId(), this.versionRange,

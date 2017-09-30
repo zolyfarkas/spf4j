@@ -290,7 +290,7 @@ public final class JDiffRunner {
 
   public void writeChangesIndexHtml(final File reportOutputDirectory, final String fileName) throws IOException {
     try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-            new FileOutputStream(new File(reportOutputDirectory, fileName)),
+            new FileOutputStream(new File(reportOutputDirectory, fileName), false),
             StandardCharsets.UTF_8))) {
       writer.append("<HTML>\n"
               + "<HEAD>\n"
