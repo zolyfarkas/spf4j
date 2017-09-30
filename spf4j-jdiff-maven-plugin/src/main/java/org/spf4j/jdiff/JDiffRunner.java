@@ -280,12 +280,11 @@ public final class JDiffRunner {
     Set<String> packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination), deps,
             destinationFolder, apiName, null);
     prevPackages.addAll(packages);
-    File reportsDestination = new File(destinationFolder, '/' + prevApiName + '_' + apiName);
-    Compress.unzip(prevJavaDocArtifact.toPath(), new File(reportsDestination, prevApiName).toPath());
-    Compress.unzip(javadocArtifact.toPath(), new File(reportsDestination, apiName).toPath());
+    Compress.unzip(prevJavaDocArtifact.toPath(), new File(destinationFolder, prevApiName).toPath());
+    Compress.unzip(javadocArtifact.toPath(), new File(destinationFolder, apiName).toPath());
 
     jdiff.generateReport(destinationFolder, prevApiName, apiName,
-            "../" + prevApiName + '/', "../" + apiName + '/', prevPackages, reportsDestination);
+            "../" + prevApiName + '/', "../" + apiName + '/', prevPackages, destinationFolder);
   }
 
   public void writeChangesIndexHtml(final File reportOutputDirectory, final String fileName) throws IOException {
