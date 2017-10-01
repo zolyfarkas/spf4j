@@ -15,6 +15,7 @@
  */
 package org.spf4j.jdiff;
 
+import com.google.common.collect.ImmutableSet;
 import java.io.File;
 import java.io.IOException;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -23,6 +24,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
 /**
  *
@@ -49,6 +51,10 @@ public final class ApiDiffCmd {
     @Option(name = "-o", usage = "destination folder")
     private File destination = new File(".");
 
+
+    @Option(name = "-p", usage = "packages list", handler = StringArrayOptionHandler.class)
+    private String[] packages = {};
+
   }
 
   public static void main(final String[] args) throws DependencyResolutionException, VersionRangeResolutionException,
@@ -64,7 +70,7 @@ public final class ApiDiffCmd {
     }
     JDiffRunner runner = new JDiffRunner();
     runner.runDiffBetweenReleases(options.groupId, options.artifactId, options.fromVersion,
-            options.toVersion, options.destination);
+            options.toVersion, options.destination, ImmutableSet.copyOf(options.packages));
     System.exit(0);
   }
 

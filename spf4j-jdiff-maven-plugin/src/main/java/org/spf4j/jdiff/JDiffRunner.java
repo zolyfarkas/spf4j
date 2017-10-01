@@ -64,7 +64,7 @@ public final class JDiffRunner {
 
   public JDiffRunner() {
     this(null, null, null, Arrays.asList(MavenRepositoryUtils.getDefaultlRepository()),
-            MavenRepositoryUtils.getRepositorySystem(), null);
+            MavenRepositoryUtils.getRepositorySystem(), System.getProperty("spf4j.jdiff.javadocExec"));
   }
 
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
@@ -124,7 +124,7 @@ public final class JDiffRunner {
           final Collection<File> classPath,
           final File destinationFolder,
           final String apiName,
-          final List<String> includePackageNames)
+          final Collection<String> includePackageNames)
           throws JavadocExecutionException, IOException {
     try {
       Files.createDirectories(destinationFolder.toPath());
@@ -251,7 +251,8 @@ public final class JDiffRunner {
   }
 
   public void runDiffBetweenReleases(final String groupId, final String artifactId,
-          final String version1, final String version2, final File destinationFolder)
+          final String version1, final String version2, final File destinationFolder,
+          final Set<String> includePackages)
           throws ArtifactResolutionException, DependencyResolutionException, IOException, JavadocExecutionException {
     JDiffRunner jdiff = new JDiffRunner();
     File prevSourcesArtifact = MavenRepositoryUtils.resolveArtifact(
@@ -266,7 +267,7 @@ public final class JDiffRunner {
               null, "jar", version1, remoteRepos, repositorySystem, reposSession);
       String prevApiName = artifactId + '-' + version1;
       Set<String> prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),
-              deps, destinationFolder, prevApiName, null);
+              deps, destinationFolder, prevApiName, includePackages);
 
       File sourceArtifact = MavenRepositoryUtils.resolveArtifact(
               groupId, artifactId, "sources", "jar", version2, remoteRepos, repositorySystem, reposSession);
@@ -278,7 +279,7 @@ public final class JDiffRunner {
               null, "jar", version2, remoteRepos, repositorySystem, reposSession);
       String apiName = artifactId + '-' + version2;
       Set<String> packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,
-              destinationFolder, apiName, null);
+              destinationFolder, apiName, includePackages);
       prevPackages.addAll(packages);
       Compress.unzip(prevJavaDocArtifact.toPath(), destinationFolder.toPath().resolve(prevApiName));
       Compress.unzip(javadocArtifact.toPath(), destinationFolder.toPath().resolve(apiName));

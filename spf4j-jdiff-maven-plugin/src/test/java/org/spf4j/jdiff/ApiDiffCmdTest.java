@@ -65,7 +65,8 @@ public class ApiDiffCmdTest {
         "-aId", "spf4j-core",
         "-fromVersion", "8.3.4",
         "-toVersion", "8.3.5",
-        "-o", dest.toString()
+        "-o", dest.toString(),
+        "-p", "org.spf4j.concurrent", "org.spf4j.reflect"
       });
     } catch (ExitException ex) {
       Assert.assertEquals(0, ex.getExitCode());
