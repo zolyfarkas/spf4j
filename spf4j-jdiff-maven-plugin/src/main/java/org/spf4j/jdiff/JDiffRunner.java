@@ -16,20 +16,18 @@
 package org.spf4j.jdiff;
 
 import org.spf4j.jdiff.utils.Compress;
-import com.google.common.io.Files;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +37,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -51,6 +50,7 @@ import org.spf4j.maven.MavenRepositoryUtils;
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
 public final class JDiffRunner {
 
   private final String docletPath;
@@ -67,6 +67,7 @@ public final class JDiffRunner {
             MavenRepositoryUtils.getRepositorySystem(), null);
   }
 
+  @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
   public JDiffRunner(final MojoExecution mojoExec, final ToolchainManager toolchainManager,
           final MavenSession session,
           final List<RemoteRepository> remoteRepos,
@@ -97,7 +98,7 @@ public final class JDiffRunner {
                 "runtime", "xerces", "xercesImpl", null, "jar", "2.10.0", remoteRepos, repositorySystem, reposSession);
         artf1.addAll(artf2);
         docletPath = MavenRepositoryUtils.toPath(artf1);
-      } catch (ArtifactResolutionException | DependencyResolutionException ex) {
+      } catch (DependencyResolutionException ex) {
         throw new UncheckedExecutionException(ex);
       }
     }
@@ -123,10 +124,10 @@ public final class JDiffRunner {
           final Collection<File> classPath,
           final File destinationFolder,
           final String apiName,
-          final ArrayList<String> includePackageNames)
-          throws JavadocExecutionException {
+          final List<String> includePackageNames)
+          throws JavadocExecutionException, IOException {
     try {
-      destinationFolder.mkdirs();
+      Files.createDirectories(destinationFolder.toPath());
       JavadocExecutor javadoc = new JavadocExecutor(javadocExec);
 
       javadoc.addArgumentPair("doclet", "jdiff.JDiff");
@@ -154,11 +155,10 @@ public final class JDiffRunner {
     }
   }
 
-  public void generateReport(File srcDir, String oldApi, String newApi,
-          String javadocOld, String javadocNew,
-          Set<String> packages,
-          File destinationDir) throws JavadocExecutionException {
-    destinationDir.mkdirs();
+  public void generateReport(final File srcDir, final String oldApi, final String newApi,
+          final String javadocOld, final String javadocNew, final Set<String> packages,
+          final File destinationDir) throws JavadocExecutionException, IOException {
+    Files.createDirectories(destinationDir.toPath());
     /**
      * javadoc -doclet jdiff.JDiff -docletpath ..\..\lib\jdiff.jar -d newdocs -stats -oldapi "SuperProduct 1.0" -newapi
      * "SuperProduct 2.0" -javadocold "../../olddocs/" -javadocnew "../../newdocs/" ..\..\lib\Null.java
@@ -166,9 +166,9 @@ public final class JDiffRunner {
     JavadocExecutor javadoc = new JavadocExecutor(javadocExec);
     javadoc.addArgument("-private");
     javadoc.addArgumentPair("d", destinationDir.getAbsolutePath());
-    //     javadoc.addArgumentPair("sourcepath", srcDir.getAbsolutePath());
-    javadoc.addArgumentPair("oldapidir", srcDir.getAbsolutePath());
-    javadoc.addArgumentPair("newapidir", srcDir.getAbsolutePath());
+    String absolutePath = srcDir.getAbsolutePath();
+    javadoc.addArgumentPair("oldapidir", absolutePath);
+    javadoc.addArgumentPair("newapidir", absolutePath);
     if (javadocOld != null) {
       javadoc.addArgumentPair("javadocold", javadocOld);
     }
@@ -212,84 +212,87 @@ public final class JDiffRunner {
             groupId, artifactId, "sources", "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
     File prevJavaDocArtifact = MavenRepositoryUtils.resolveArtifact(
             groupId, artifactId, "javadoc", "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
-    File tempDir = Files.createTempDir();
-    File sourceDestination = new File(tempDir, artifactId + File.separatorChar + v.toString()
-            + File.separatorChar + "/sources");
-    Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination.toPath());
-    Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
-            null, "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
-    String prevApiName = artifactId + '-' + v;
-    Set<String> prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination),
-            deps, destinationFolder, prevApiName, null);
-    for (int i = 1, l = versions.size(); i < l; i++) {
-      v = versions.get(i);
-      File sourceArtifact = MavenRepositoryUtils.resolveArtifact(
-              groupId, artifactId, "sources", "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
-      File javadocArtifact = MavenRepositoryUtils.resolveArtifact(
-              groupId, artifactId, "javadoc", "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
-      sourceDestination = new File(tempDir, artifactId + File.separatorChar + v.toString() + File.separatorChar
-              + "sources");
-      Compress.unzip(sourceArtifact.toPath(), sourceDestination.toPath());
-      deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
+    Path tempDir = Files.createTempDirectory("jdiff");
+    try {
+      Path sourceDestination = tempDir.resolve(artifactId).resolve(v.toString()).resolve("sources");
+      Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination);
+      Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
               null, "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
-      String apiName = artifactId + '-' + v;
-      Set<String> packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination), deps,
-              destinationFolder, apiName, null);
-      prevPackages.addAll(packages);
-      File reportsDestination = new File(destinationFolder, '/' + prevApiName + '_' + apiName);
-      Compress.unzip(prevJavaDocArtifact.toPath(), new File(reportsDestination, prevApiName).toPath());
-      Compress.unzip(javadocArtifact.toPath(), new File(reportsDestination, apiName).toPath());
+      String prevApiName = artifactId + '-' + v;
+      Set<String> prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),
+              deps, destinationFolder, prevApiName, null);
+      for (int i = 1, l = versions.size(); i < l; i++) {
+        v = versions.get(i);
+        File sourceArtifact = MavenRepositoryUtils.resolveArtifact(
+                groupId, artifactId, "sources", "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
+        File javadocArtifact = MavenRepositoryUtils.resolveArtifact(
+                groupId, artifactId, "javadoc", "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
+        sourceDestination =  tempDir.resolve(artifactId).resolve(v.toString()).resolve("sources");
+        Compress.unzip(sourceArtifact.toPath(), sourceDestination);
+        deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
+                null, "jar", v.toString(), remoteRepos, repositorySystem, reposSession);
+        String apiName = artifactId + '-' + v;
+        Set<String> packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,
+                destinationFolder, apiName, null);
+        prevPackages.addAll(packages);
+        Path reportsDestination = destinationFolder.toPath().resolve(prevApiName + '_' + apiName);
+        Compress.unzip(prevJavaDocArtifact.toPath(), reportsDestination.resolve(prevApiName));
+        Compress.unzip(javadocArtifact.toPath(), reportsDestination.resolve(apiName));
 
-      jdiff.generateReport(destinationFolder, prevApiName, apiName,
-              "../" + prevApiName + '/', "../" + apiName + '/', prevPackages, reportsDestination);
-      prevApiName = apiName;
-      prevPackages = packages;
-      prevJavaDocArtifact = javadocArtifact;
+        jdiff.generateReport(destinationFolder, prevApiName, apiName,
+                "../" + prevApiName + '/', "../" + apiName + '/', prevPackages, reportsDestination.toFile());
+        prevApiName = apiName;
+        prevPackages = packages;
+        prevJavaDocArtifact = javadocArtifact;
+      }
+    } finally {
+      FileUtils.deleteDirectory(tempDir.toFile());
     }
   }
 
   public void runDiffBetweenReleases(final String groupId, final String artifactId,
           final String version1, final String version2, final File destinationFolder)
-          throws DependencyResolutionException, VersionRangeResolutionException,
-          IOException, ArtifactResolutionException, JavadocExecutionException {
+          throws ArtifactResolutionException, DependencyResolutionException, IOException, JavadocExecutionException {
     JDiffRunner jdiff = new JDiffRunner();
     File prevSourcesArtifact = MavenRepositoryUtils.resolveArtifact(
             groupId, artifactId, "sources", "jar", version1, remoteRepos, repositorySystem, reposSession);
     File prevJavaDocArtifact = MavenRepositoryUtils.resolveArtifact(
             groupId, artifactId, "javadoc", "jar", version1, remoteRepos, repositorySystem, reposSession);
-    File tempDir = Files.createTempDir();
-    File sourceDestination = new File(tempDir, artifactId + File.separatorChar + version1
-            + File.separatorChar + "/sources");
-    Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination.toPath());
-    Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
-            null, "jar", version1, remoteRepos, repositorySystem, reposSession);
-    String prevApiName = artifactId + '-' + version1;
-    Set<String> prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination),
-            deps, destinationFolder, prevApiName, null);
+    Path tempDir = Files.createTempDirectory("jdiff");
+    try {
+      Path sourceDestination = tempDir.resolve(artifactId).resolve(version1).resolve("sources");
+      Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination);
+      Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
+              null, "jar", version1, remoteRepos, repositorySystem, reposSession);
+      String prevApiName = artifactId + '-' + version1;
+      Set<String> prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),
+              deps, destinationFolder, prevApiName, null);
 
-    File sourceArtifact = MavenRepositoryUtils.resolveArtifact(
-            groupId, artifactId, "sources", "jar", version2, remoteRepos, repositorySystem, reposSession);
-    File javadocArtifact = MavenRepositoryUtils.resolveArtifact(
-            groupId, artifactId, "javadoc", "jar", version2, remoteRepos, repositorySystem, reposSession);
-    sourceDestination = new File(tempDir, artifactId + File.separatorChar + version2 + File.separatorChar
-            + "sources");
-    Compress.unzip(sourceArtifact.toPath(), sourceDestination.toPath());
-    deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
-            null, "jar", version2, remoteRepos, repositorySystem, reposSession);
-    String apiName = artifactId + '-' + version2;
-    Set<String> packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination), deps,
-            destinationFolder, apiName, null);
-    prevPackages.addAll(packages);
-    Compress.unzip(prevJavaDocArtifact.toPath(), new File(destinationFolder, prevApiName).toPath());
-    Compress.unzip(javadocArtifact.toPath(), new File(destinationFolder, apiName).toPath());
+      File sourceArtifact = MavenRepositoryUtils.resolveArtifact(
+              groupId, artifactId, "sources", "jar", version2, remoteRepos, repositorySystem, reposSession);
+      File javadocArtifact = MavenRepositoryUtils.resolveArtifact(
+              groupId, artifactId, "javadoc", "jar", version2, remoteRepos, repositorySystem, reposSession);
+      sourceDestination = tempDir.resolve(artifactId).resolve(version2).resolve("sources");
+      Compress.unzip(sourceArtifact.toPath(), sourceDestination);
+      deps = MavenRepositoryUtils.resolveArtifactAndDependencies("compile", groupId, artifactId,
+              null, "jar", version2, remoteRepos, repositorySystem, reposSession);
+      String apiName = artifactId + '-' + version2;
+      Set<String> packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,
+              destinationFolder, apiName, null);
+      prevPackages.addAll(packages);
+      Compress.unzip(prevJavaDocArtifact.toPath(), destinationFolder.toPath().resolve(prevApiName));
+      Compress.unzip(javadocArtifact.toPath(), destinationFolder.toPath().resolve(apiName));
 
-    jdiff.generateReport(destinationFolder, prevApiName, apiName,
-            "../" + prevApiName + '/', "../" + apiName + '/', prevPackages, destinationFolder);
+      jdiff.generateReport(destinationFolder, prevApiName, apiName,
+              "../" + prevApiName + '/', "../" + apiName + '/', prevPackages, destinationFolder);
+    } finally {
+      FileUtils.deleteDirectory(tempDir.toFile());
+    }
   }
 
   public void writeChangesIndexHtml(final File reportOutputDirectory, final String fileName) throws IOException {
     try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-            new FileOutputStream(new File(reportOutputDirectory, fileName), false),
+            Files.newOutputStream(reportOutputDirectory.toPath().resolve(fileName)),
             StandardCharsets.UTF_8))) {
       writer.append("<HTML>\n"
               + "<HEAD>\n"
@@ -321,5 +324,14 @@ public final class JDiffRunner {
               + "</HTML>");
     }
   }
+
+  @Override
+  public String toString() {
+    return "JDiffRunner{" + "docletPath=" + docletPath + ", javadocExec=" + javadocExec
+            + ", remoteRepos=" + remoteRepos + ", repositorySystem=" + repositorySystem
+            + ", reposSession=" + reposSession + '}';
+  }
+
+
 
 }

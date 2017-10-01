@@ -56,7 +56,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * inspired by: http://www.hascode.com/2017/09/downloading-maven-artifacts-from-a-pom-file-programmatically-with-eclipse-aether/
+ * inspired by:
+ * http://www.hascode.com/2017/09/downloading-maven-artifacts-from-a-pom-file-programmatically-with-eclipse-aether/
  *
  * @author Zoltan Farkas
  */
@@ -92,15 +93,15 @@ public final class MavenRepositoryUtils {
 
     serviceLocator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
       @Override
-      public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
-        LOG.error("Error creating service {}, {}", new Object [] {type, impl, exception});
+      public void serviceCreationFailed(final Class<?> type, final Class<?> impl, final Throwable exception) {
+        LOG.error("Error creating service {}, {}", new Object[] {type, impl, exception});
       }
     });
 
     return serviceLocator.getService(RepositorySystem.class);
   }
 
-  public static RepositorySystemSession getRepositorySystemSession(RepositorySystem system,
+  public static RepositorySystemSession getRepositorySystemSession(final RepositorySystem system,
           final File localRepoPath) {
     DefaultRepositorySystemSession repositorySystemSession = MavenRepositorySystemUtils
             .newSession();
@@ -126,7 +127,7 @@ public final class MavenRepositoryUtils {
             .build();
   }
 
-  public static final List<Version> getVersions(final List<RemoteRepository> repos,
+  public static List<Version> getVersions(final List<RemoteRepository> repos,
           final File localRepo, final String groupId, final String artifactId, final String versionExpr)
           throws VersionRangeResolutionException {
     RepositorySystem repositorySystem = getRepositorySystem();
@@ -144,7 +145,7 @@ public final class MavenRepositoryUtils {
     return versionResult.getVersions();
   }
 
-  public static final File resolveArtifact(final List<RemoteRepository> repos,
+  public static File resolveArtifact(final List<RemoteRepository> repos,
           final File localRepo, final String groupId, final String artifactId,
           final String classifier, final String extension, final String versionExpr)
           throws ArtifactResolutionException {
@@ -173,7 +174,7 @@ public final class MavenRepositoryUtils {
           final String scope,
           final String groupId, final String artifactId,
           final String classifier, final String extension, final String versionExpr)
-          throws ArtifactResolutionException, DependencyResolutionException {
+          throws DependencyResolutionException {
     RepositorySystem repositorySystem = getRepositorySystem();
     RepositorySystemSession session = getRepositorySystemSession(repositorySystem, localRepo);
     return resolveArtifactAndDependencies(scope, groupId, artifactId, classifier, extension, versionExpr,
@@ -186,8 +187,7 @@ public final class MavenRepositoryUtils {
           final String classifier, final String extension, final String versionExpr,
           final List<RemoteRepository> repos,
           final RepositorySystem repositorySystem,
-          final RepositorySystemSession session)
-          throws ArtifactResolutionException, DependencyResolutionException {
+          final RepositorySystemSession session) throws DependencyResolutionException {
     Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, versionExpr);
     CollectRequest collectRequest = new CollectRequest();
     collectRequest.setRoot(new Dependency(artifact, scope));

@@ -20,46 +20,21 @@ package org.spf4j.jdiff;
  */
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 
 /**
  * Utility-class for this plugin.
  */
-public class JDiffUtils {
+public final class JDiffUtils {
 
-  private JDiffUtils() {
-    // hide constructor of utility class
-  }
+  private JDiffUtils() { }
 
-  public static List<String> getProjectSourceRoots(MavenProject p, List<String> compileSourceRoots) {
-    if ("pom".equals(p.getPackaging().toLowerCase())) {
-      return Collections.emptyList();
-    }
-    return (compileSourceRoots == null ? Collections.<String>emptyList()
-            : new LinkedList<String>(compileSourceRoots));
-  }
-
-  @SuppressWarnings("unchecked")
-  public static List<String> getClasspathElements(MavenProject project) {
-    List<String> classpathElements = new ArrayList<String>();
-
-    for (Artifact a : (List<Artifact>) project.getCompileArtifacts()) {
-      classpathElements.add(a.getFile().getPath());
-    }
-    return classpathElements;
-  }
-
-  public static Set<String> getPackages(Collection<File> compileSourceRoots) throws IOException {
+  public static Set<String> getPackages(final Collection<File> compileSourceRoots) throws IOException {
     Set<String> packages = new HashSet<String>(64);
     for (File compileRoot : compileSourceRoots) {
       @SuppressWarnings("unchecked")

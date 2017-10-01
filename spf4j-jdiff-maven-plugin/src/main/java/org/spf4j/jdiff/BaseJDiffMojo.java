@@ -43,10 +43,10 @@ public abstract class BaseJDiffMojo
    * List of packages.
    */
   @Parameter(property = "includePackageNames")
-  protected ArrayList<String> includePackageNames;
+  private ArrayList<String> includePackageNames;
 
   @Component
-  protected ToolchainManager toolchainManager;
+  private ToolchainManager toolchainManager;
 
   /**
    * The current build mavenSession instance.
@@ -68,16 +68,16 @@ public abstract class BaseJDiffMojo
   @Component
   private RepositorySystem repoSystem;
 
-  protected final MavenSession getMavenSession() {
+  final MavenSession getMavenSession() {
     return mavenSession;
   }
 
   @SuppressWarnings("unchecked")
-  protected final Map<String, Artifact> getPluginArtifactMap() {
+  final Map<String, Artifact> getPluginArtifactMap() {
     return mojoExecution.getMojoDescriptor().getPluginDescriptor().getArtifactMap();
   }
 
-  protected final PluginDescriptor getPluginDescriptor() {
+  final PluginDescriptor getPluginDescriptor() {
     return mojoExecution.getMojoDescriptor().getPluginDescriptor();
   }
 
@@ -88,7 +88,7 @@ public abstract class BaseJDiffMojo
    * @return the path of the Javadoc tool
    * @throws IOException if not found
    */
-  protected final String getJavadocExecutable()
+  final String getJavadocExecutable()
           throws IOException {
     Toolchain tc = getToolchain();
 
@@ -126,7 +126,7 @@ public abstract class BaseJDiffMojo
 
       return javadocExe.getAbsolutePath();
     }
-
+    File javaHome = SystemUtils.getJavaHome();
     // ----------------------------------------------------------------------
     // Try to find javadocExe from System.getProperty( "java.home" )
     // By default, System.getProperty( "java.home" ) = JRE_HOME and JRE_HOME
@@ -135,12 +135,12 @@ public abstract class BaseJDiffMojo
     // For IBM's JDK 1.2
     if (SystemUtils.IS_OS_AIX) {
       javadocExe
-              = new File(SystemUtils.getJavaHome() + File.separator + ".." + File.separator + "sh", javadocCommand);
+              = new File(javaHome + File.separator + ".." + File.separator + "sh", javadocCommand);
     } else if (SystemUtils.IS_OS_MAC_OSX) {
-      javadocExe = new File(SystemUtils.getJavaHome() + File.separator + "bin", javadocCommand);
+      javadocExe = new File(javaHome + File.separator + "bin", javadocCommand);
     } else {
       javadocExe
-              = new File(SystemUtils.getJavaHome() + File.separator + ".." + File.separator + "bin", javadocCommand);
+              = new File(javaHome + File.separator + ".." + File.separator + "bin", javadocCommand);
     }
 
     // ----------------------------------------------------------------------
@@ -148,16 +148,18 @@ public abstract class BaseJDiffMojo
     // ----------------------------------------------------------------------
     if (!javadocExe.exists() || !javadocExe.isFile()) {
       Properties env = CommandLineUtils.getSystemEnvVars();
-      String javaHome = env.getProperty("JAVA_HOME");
-      if (StringUtils.isEmpty(javaHome)) {
-        throw new IOException("The environment variable JAVA_HOME is not correctly set.");
+      String javaHomeStr = env.getProperty("JAVA_HOME");
+      if (StringUtils.isEmpty(javaHomeStr)) {
+        throw new IOException("The environment variable JAVA_HOME is not correctly set: javahome='"
+                + javaHomeStr + '\'');
       }
-      if ((!new File(javaHome).exists()) || (!new File(javaHome).isDirectory())) {
+      File javaHomeFile = new File(javaHomeStr);
+      if ((!javaHomeFile.exists()) || (!javaHomeFile.isDirectory())) {
         throw new IOException("The environment variable JAVA_HOME=" + javaHome
                 + " doesn't exist or is not a valid directory.");
       }
 
-      javadocExe = new File(env.getProperty("JAVA_HOME") + File.separator + "bin", javadocCommand);
+      javadocExe = new File(javaHomeStr + File.separator + "bin", javadocCommand);
     }
 
     if (!javadocExe.exists() || !javadocExe.isFile()) {
@@ -177,8 +179,8 @@ public abstract class BaseJDiffMojo
     return tc;
   }
 
-  protected List<String> getCompileSourceRoots() {
-    if ("pom".equals(mavenProject.getPackaging().toLowerCase())) {
+  final List<String> getCompileSourceRoots() {
+    if ("pom".equalsIgnoreCase(mavenProject.getPackaging())) {
       return Collections.emptyList();
     } else {
       List<String> compileSourceRoots = mavenProject.getCompileSourceRoots();
@@ -186,32 +188,43 @@ public abstract class BaseJDiffMojo
     }
   }
 
-  protected MavenProject getMavenProject() {
+  final MavenProject getMavenProject() {
     return mavenProject;
   }
 
-  protected File getWorkingDirectory() {
+  final File getWorkingDirectory() {
     return workingDirectory;
   }
 
-  protected MojoExecution getMojoExecution() {
+  final MojoExecution getMojoExecution() {
     return mojoExecution;
   }
 
-  protected List<RemoteRepository> getProjectRepos() {
+  final List<RemoteRepository> getProjectRepos() {
     return mavenProject.getRemoteProjectRepositories();
   }
 
-  protected RepositorySystem getRepoSystem() {
+  final RepositorySystem getRepoSystem() {
     return repoSystem;
   }
 
+  final ArrayList<String> getIncludePackageNames() {
+    return includePackageNames;
+  }
+
+  final ToolchainManager getToolchainManager() {
+    return toolchainManager;
+  }
+
+
+  /**
+   * Overwite this class for proper toString.
+   * @return
+   */
   @Override
   public String toString() {
     return "BaseJDiffMojo{" + "workingDirectory=" + workingDirectory + ", javadocExecutable="
             + javadocExecutable + ", includePackageNames=" + includePackageNames + '}';
   }
-
-
 
 }

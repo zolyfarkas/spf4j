@@ -35,7 +35,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  */
 @Mojo(name = "descriptor", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
-public class ApiDescriptorMojo
+public final class ApiDescriptorMojo
         extends BaseJDiffMojo {
 
   /**
@@ -52,15 +52,15 @@ public class ApiDescriptorMojo
   public void execute()
           throws MojoExecutionException {
     try {
-      JDiffRunner runner = new JDiffRunner(getMojoExecution(), toolchainManager, getMavenSession(),
+      JDiffRunner runner = new JDiffRunner(getMojoExecution(), getToolchainManager(), getMavenSession(),
               getProjectRepos(), getRepoSystem(), getJavadocExecutable());
       runner.generateJDiffXML(getCompileSourceRoots().stream()
               .map((s) -> new File(s)).collect(Collectors.toList()),
               getMavenProject().getCompileClasspathElements().stream()
                       .map((s) -> new File(s)).collect(Collectors.toList()), getWorkingDirectory(),
-              apiname, includePackageNames);
+              apiname, getIncludePackageNames());
     } catch (IOException | DependencyResolutionRequiredException | JavadocExecutionException ex) {
-      throw new MojoExecutionException("Cannot generated jdiff api xml", ex);
+      throw new MojoExecutionException("Cannot generated jdiff api xml, " + this, ex);
     }
   }
 

@@ -19,6 +19,8 @@ package org.spf4j.jdiff;
  * under the License.
  */
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
@@ -27,7 +29,7 @@ import org.codehaus.plexus.util.cli.DefaultConsumer;
 /**
  * Execute javadoc
  */
-public class JavadocExecutor {
+public final class JavadocExecutor {
 
   private Commandline cmd = new Commandline();
 
@@ -41,7 +43,7 @@ public class JavadocExecutor {
    * @param executable the executable
    * @param log the mojo logger
    */
-  public JavadocExecutor(String executable) {
+  public JavadocExecutor(final String executable) {
     cmd.setExecutable(executable);
   }
 
@@ -73,9 +75,9 @@ public class JavadocExecutor {
    * @throws JavadocExecutionException if an exception occurs during the execution of javadoc or if that execution
    * doesn't exit with {@code 0}
    */
-  public void execute(File dir) throws JavadocExecutionException {
+  public void execute(final File dir) throws JavadocExecutionException, IOException {
     if (!dir.exists()) {
-      dir.mkdirs();
+      Files.createDirectories(dir.toPath());
     }
 
     cmd.setWorkingDirectory(dir.getAbsolutePath());
@@ -87,11 +89,18 @@ public class JavadocExecutor {
               new DefaultConsumer(),
               new DefaultConsumer());
     } catch (Exception ex) {
-      throw new JavadocExecutionException("generateJDiff doclet failed.", ex);
+      throw new JavadocExecutionException("generateJDiff doclet failed: " + cmd, ex);
     }
 
     if (exitCode != 0) {
-      throw new JavadocExecutionException("generate JDiff doclet failed.");
+      throw new JavadocExecutionException("generate JDiff doclet "
+              + cmd + " failed with exit code "  + exitCode);
     }
   }
+
+  @Override
+  public String toString() {
+    return "JavadocExecutor{" + "cmd=" + cmd + '}';
+  }
+
 }

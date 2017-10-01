@@ -31,6 +31,7 @@
  */
 package org.spf4j.jdiff.utils;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -40,7 +41,6 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -86,6 +86,7 @@ public final class Compress {
    * @param destFile the destination zip file.
    * @throws IOException
    */
+  @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public static void zip(final Path fileOrFolderToCompress, final Path destFile) throws IOException {
     Path parent = destFile.getParent();
     if (parent == null) {
@@ -129,6 +130,7 @@ public final class Compress {
    * @param destinationFile
    * @throws IOException
    */
+  @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public static void copyFileAtomic(final Path source, final Path destinationFile) throws IOException {
     Path parent = destinationFile.getParent();
     if (parent == null) {

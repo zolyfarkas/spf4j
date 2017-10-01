@@ -42,7 +42,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
  */
 @Mojo(name = "jdiff", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
-public class ApiChangesMojo
+public final class ApiChangesMojo
         extends BaseJDiffMojo
         implements MavenReport {
 
@@ -84,7 +84,7 @@ public class ApiChangesMojo
     return "apidocs/changes";
   }
 
-  public String getName(Locale locale) {
+  public String getName(final Locale locale) {
     return "JDiff Reports";
   }
 
@@ -96,7 +96,7 @@ public class ApiChangesMojo
    * @param aLocale
    * @throws MavenReportException
    */
-  public void generate(Sink aSink, SinkFactory aSinkFactory, Locale aLocale)
+  public void generate(final Sink aSink, final SinkFactory aSinkFactory, final Locale aLocale)
           throws MavenReportException {
     if (!canGenerateReport()) {
       getLog().info("This report cannot be generated as part of the current build. "
@@ -115,7 +115,7 @@ public class ApiChangesMojo
     MavenProject mavenProject = getMavenProject();
     try {
       getLog().info("Executing JDiff javadoc doclet");
-      JDiffRunner runner = new JDiffRunner(getMojoExecution(), toolchainManager, getMavenSession(),
+      JDiffRunner runner = new JDiffRunner(getMojoExecution(), getToolchainManager(), getMavenSession(),
               getProjectRepos(), getRepoSystem(), getJavadocExecutable());
       runner.runDiffBetweenReleases(mavenProject.getGroupId(), mavenProject.getArtifactId(), this.versionRange,
               destDir, maxNumberOfDiffs);
@@ -131,7 +131,7 @@ public class ApiChangesMojo
 
 
   @Override
-  public void generate(org.codehaus.doxia.sink.Sink sink, Locale locale) throws MavenReportException {
+  public void generate(final org.codehaus.doxia.sink.Sink sink, final Locale locale) throws MavenReportException {
     try {
       execute();
     } catch (MojoExecutionException ex) {
@@ -140,12 +140,12 @@ public class ApiChangesMojo
   }
 
   @Override
-  public String getDescription(Locale locale) {
+  public String getDescription(final Locale locale) {
     return "API JDiff reports";
   }
 
   @Override
-  public void setReportOutputDirectory(File outputDirectory) {
+  public void setReportOutputDirectory(final File outputDirectory) {
     this.destDir = new File(outputDirectory, "apidocs");
   }
 
