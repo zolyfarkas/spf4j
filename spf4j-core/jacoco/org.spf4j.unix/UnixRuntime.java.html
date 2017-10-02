@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnixRuntime.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.unix</a> &gt; <span class="el_source">UnixRuntime.java</span></div><h1>UnixRuntime.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.unix;
+
+import com.sun.jna.Native;
+import java.io.IOException;
+import static org.spf4j.base.Runtime.haveJnaPlatformClib;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class UnixRuntime {
+
+<span class="nc" id="L43">  private UnixRuntime() {</span>
+<span class="nc" id="L44">  }</span>
+
+  public static void restart() throws IOException {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    if (haveJnaPlatformClib()) {</span>
+<span class="nc" id="L48">      JVMArguments current = JVMArguments.current();</span>
+<span class="nc" id="L49">      String existing = current.removeSystemProperty(&quot;spf4j.restart&quot;);</span>
+      int count;
+<span class="nc bnc" id="L51" title="All 2 branches missed.">      if (existing == null) {</span>
+<span class="nc" id="L52">        count = 1;</span>
+      } else {
+<span class="nc" id="L54">        count = Integer.parseInt(existing) + 1;</span>
+      }
+<span class="nc" id="L56">      current.setSystemProperty(&quot;spf4j.restart&quot;, Integer.toString(count));</span>
+      // close all files upon exec, except stdin, stdout, and stderr
+<span class="nc" id="L58">      int sz = CLibrary.INSTANCE.getdtablesize();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">      for (int i = 3; i &lt; sz; i++) {</span>
+<span class="nc" id="L60">        int flags = CLibrary.INSTANCE.fcntl(i, CLibrary.F_GETFD);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (flags &lt; 0) {</span>
+<span class="nc" id="L62">          continue;</span>
+        }
+<span class="nc" id="L64">        CLibrary.INSTANCE.fcntl(i, CLibrary.F_SETFD, flags | CLibrary.FD_CLOEXEC);</span>
+      }
+
+      // exec to self
+<span class="nc" id="L68">      String exe = current.getExecutable();</span>
+<span class="nc" id="L69">      CLibrary.INSTANCE.execvp(exe, current.toStringArray());</span>
+<span class="nc" id="L70">      throw new IOException(&quot;Failed to exec '&quot; + exe + &quot;' &quot; + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
+
+    } else {
+<span class="nc" id="L73">      throw new UnsupportedOperationException();</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

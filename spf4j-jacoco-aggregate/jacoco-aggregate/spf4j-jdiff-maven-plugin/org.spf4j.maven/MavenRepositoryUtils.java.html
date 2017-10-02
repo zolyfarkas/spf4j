@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MavenRepositoryUtils.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-jdiff-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven</a> &gt; <span class="el_source">MavenRepositoryUtils.java</span></div><h1>MavenRepositoryUtils.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2017 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.maven;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.aether.AbstractRepositoryListener;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyFilter;
+import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.resolution.VersionRangeRequest;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResult;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transport.file.FileTransporterFactory;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.filter.DependencyFilterUtils;
+import org.eclipse.aether.version.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * inspired by:
+ * http://www.hascode.com/2017/09/downloading-maven-artifacts-from-a-pom-file-programmatically-with-eclipse-aether/
+ *
+ * @author Zoltan Farkas
+ */
+public final class MavenRepositoryUtils {
+
+<span class="fc" id="L66">  private static final Logger LOG = LoggerFactory.getLogger(MavenRepositoryUtils.class);</span>
+
+<span class="nc" id="L68">  private MavenRepositoryUtils() {</span>
+<span class="nc" id="L69">  }</span>
+
+  public static String toPath(final Collection&lt;File&gt; files) {
+<span class="fc" id="L72">    StringBuilder result = new StringBuilder(files.size() * 20);</span>
+<span class="fc" id="L73">    Iterator&lt;File&gt; iterator = files.iterator();</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (iterator.hasNext()) {</span>
+<span class="fc" id="L75">      result.append(iterator.next().getAbsolutePath());</span>
+    } else {
+<span class="nc" id="L77">      return &quot;&quot;;</span>
+    }
+<span class="fc bfc" id="L79" title="All 2 branches covered.">    while (iterator.hasNext()) {</span>
+<span class="fc" id="L80">      result.append(File.pathSeparatorChar);</span>
+<span class="fc" id="L81">      result.append(iterator.next().getAbsolutePath());</span>
+    }
+<span class="fc" id="L83">    return StringUtils.quoteAndEscape(result.toString(), '\'');</span>
+  }
+
+
+  public static RepositorySystem getRepositorySystem() {
+<span class="fc" id="L88">    DefaultServiceLocator serviceLocator = MavenRepositorySystemUtils.newServiceLocator();</span>
+<span class="fc" id="L89">    serviceLocator</span>
+<span class="fc" id="L90">            .addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);</span>
+<span class="fc" id="L91">    serviceLocator.addService(TransporterFactory.class, FileTransporterFactory.class);</span>
+<span class="fc" id="L92">    serviceLocator.addService(TransporterFactory.class, HttpTransporterFactory.class);</span>
+
+<span class="fc" id="L94">    serviceLocator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {</span>
+      @Override
+      public void serviceCreationFailed(final Class&lt;?&gt; type, final Class&lt;?&gt; impl, final Throwable exception) {
+<span class="nc" id="L97">        LOG.error(&quot;Error creating service {}, {}&quot;, new Object[] {type, impl, exception});</span>
+<span class="nc" id="L98">      }</span>
+    });
+
+<span class="fc" id="L101">    return serviceLocator.getService(RepositorySystem.class);</span>
+  }
+
+  public static RepositorySystemSession getRepositorySystemSession(final RepositorySystem system,
+          final File localRepoPath) {
+    DefaultRepositorySystemSession repositorySystemSession = MavenRepositorySystemUtils
+<span class="fc" id="L107">            .newSession();</span>
+
+<span class="fc" id="L109">    LocalRepository localRepository = new LocalRepository(localRepoPath);</span>
+<span class="fc" id="L110">    repositorySystemSession.setLocalRepositoryManager(</span>
+<span class="fc" id="L111">            system.newLocalRepositoryManager(repositorySystemSession, localRepository));</span>
+
+<span class="fc" id="L113">    repositorySystemSession.setRepositoryListener(new AbstractRepositoryListener() {</span>
+      @Override
+      public void artifactDownloaded(final RepositoryEvent event) {
+<span class="nc" id="L116">        LOG.info(&quot;Downloaded artifact {}&quot;, event);</span>
+<span class="nc" id="L117">      }</span>
+
+    });
+
+<span class="fc" id="L121">    return repositorySystemSession;</span>
+  }
+
+  public static RemoteRepository getDefaultlRepository() {
+<span class="fc" id="L125">    return new RemoteRepository.Builder(&quot;central&quot;, &quot;default&quot;,</span>
+<span class="fc" id="L126">            System.getProperty(&quot;spf4j.jdiff.defaultMavenRepo&quot;, &quot;http://central.maven.org/maven2/&quot;))</span>
+<span class="fc" id="L127">            .build();</span>
+  }
+
+  public static List&lt;Version&gt; getVersions(final List&lt;RemoteRepository&gt; repos,
+          final File localRepo, final String groupId, final String artifactId, final String versionExpr)
+          throws VersionRangeResolutionException {
+<span class="fc" id="L133">    RepositorySystem repositorySystem = getRepositorySystem();</span>
+<span class="fc" id="L134">    RepositorySystemSession session = getRepositorySystemSession(repositorySystem, localRepo);</span>
+<span class="fc" id="L135">    return getVersions(groupId, artifactId, versionExpr, repos, repositorySystem, session);</span>
+  }
+
+  public static List&lt;Version&gt; getVersions(final String groupId, final String artifactId, final String versionExpr,
+          final List&lt;RemoteRepository&gt; repos,
+          final RepositorySystem repositorySystem, final RepositorySystemSession session)
+          throws VersionRangeResolutionException {
+<span class="fc" id="L142">    Artifact artifact = new DefaultArtifact(groupId, artifactId, null, null, versionExpr);</span>
+<span class="fc" id="L143">    VersionRangeRequest request = new VersionRangeRequest(artifact, repos, null);</span>
+<span class="fc" id="L144">    VersionRangeResult versionResult = repositorySystem.resolveVersionRange(session, request);</span>
+<span class="fc" id="L145">    return versionResult.getVersions();</span>
+  }
+
+  public static File resolveArtifact(final List&lt;RemoteRepository&gt; repos,
+          final File localRepo, final String groupId, final String artifactId,
+          final String classifier, final String extension, final String versionExpr)
+          throws ArtifactResolutionException {
+<span class="fc" id="L152">    RepositorySystem repositorySystem = getRepositorySystem();</span>
+<span class="fc" id="L153">    RepositorySystemSession session = getRepositorySystemSession(repositorySystem, localRepo);</span>
+<span class="fc" id="L154">    return resolveArtifact(groupId, artifactId, classifier, extension, versionExpr, repos, repositorySystem, session);</span>
+  }
+
+  public static File resolveArtifact(final String groupId, final String artifactId,
+          final String classifier, final String extension, final String versionExpr,
+          final List&lt;RemoteRepository&gt; repos,
+          final RepositorySystem repositorySystem, final RepositorySystemSession session)
+          throws ArtifactResolutionException {
+<span class="fc" id="L162">    Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, versionExpr);</span>
+<span class="fc" id="L163">    ArtifactRequest artifactRequest = new ArtifactRequest();</span>
+<span class="fc" id="L164">    artifactRequest.setArtifact(artifact);</span>
+<span class="fc" id="L165">    artifactRequest.setRepositories(repos);</span>
+<span class="fc" id="L166">    ArtifactResult artifactResult = repositorySystem</span>
+<span class="fc" id="L167">            .resolveArtifact(session, artifactRequest);</span>
+<span class="fc" id="L168">    artifact = artifactResult.getArtifact();</span>
+<span class="fc" id="L169">    return artifact.getFile();</span>
+  }
+
+  public static Set&lt;File&gt; resolveArtifactAndDependencies(final List&lt;RemoteRepository&gt; repos,
+          final File localRepo,
+          final String scope,
+          final String groupId, final String artifactId,
+          final String classifier, final String extension, final String versionExpr)
+          throws DependencyResolutionException {
+<span class="fc" id="L178">    RepositorySystem repositorySystem = getRepositorySystem();</span>
+<span class="fc" id="L179">    RepositorySystemSession session = getRepositorySystemSession(repositorySystem, localRepo);</span>
+<span class="fc" id="L180">    return resolveArtifactAndDependencies(scope, groupId, artifactId, classifier, extension, versionExpr,</span>
+            repos, repositorySystem, session);
+
+  }
+
+  public static Set&lt;File&gt; resolveArtifactAndDependencies(final String scope,
+          final String groupId, final String artifactId,
+          final String classifier, final String extension, final String versionExpr,
+          final List&lt;RemoteRepository&gt; repos,
+          final RepositorySystem repositorySystem,
+          final RepositorySystemSession session) throws DependencyResolutionException {
+<span class="fc" id="L191">    Artifact artifact = new DefaultArtifact(groupId, artifactId, classifier, extension, versionExpr);</span>
+<span class="fc" id="L192">    CollectRequest collectRequest = new CollectRequest();</span>
+<span class="fc" id="L193">    collectRequest.setRoot(new Dependency(artifact, scope));</span>
+<span class="fc" id="L194">    collectRequest.setRepositories(repos);</span>
+<span class="fc" id="L195">    DependencyFilter dependencyFilter = DependencyFilterUtils.classpathFilter(scope);</span>
+<span class="fc" id="L196">    DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, dependencyFilter);</span>
+<span class="fc" id="L197">    DependencyResult depresult = repositorySystem</span>
+<span class="fc" id="L198">            .resolveDependencies(session, dependencyRequest);</span>
+<span class="fc" id="L199">    List&lt;ArtifactResult&gt; artifactResults = depresult.getArtifactResults();</span>
+<span class="fc" id="L200">    Set&lt;File&gt; result = new HashSet&lt;&gt;(artifactResults.size());</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">    for (ArtifactResult ar : artifactResults) {</span>
+<span class="fc" id="L202">      result.add(ar.getArtifact().getFile());</span>
+<span class="fc" id="L203">    }</span>
+<span class="fc" id="L204">    return result;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

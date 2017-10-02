@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApiChangesMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-core</a> &gt; <a href="../index.html" class="el_bundle">spf4j-jdiff-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jdiff</a> &gt; <span class="el_source">ApiChangesMojo.java</span></div><h1>ApiChangesMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.jdiff;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
+import org.apache.maven.doxia.sink.Sink;
+import org.apache.maven.doxia.sink.SinkFactory;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.reporting.MavenReport;
+import org.apache.maven.reporting.MavenReportException;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+
+/**
+ * Generates an API difference report between Java sources of two SCM versions
+ */
+@Mojo(name = &quot;jdiff&quot;, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Execute(phase = LifecyclePhase.GENERATE_SOURCES)
+<span class="nc" id="L45">public final class ApiChangesMojo</span>
+        extends BaseJDiffMojo
+        implements MavenReport {
+
+  /**
+   * The version range to compute diff for.
+   */
+  @Parameter(property = &quot;versionRange&quot;, defaultValue = &quot;[,${project.version}]&quot;)
+  private String versionRange;
+
+  /**
+   * The name of the destination directory.
+   */
+  @Parameter(property = &quot;maxNumberOfDiffs&quot;, defaultValue = &quot;10&quot;)
+  private int maxNumberOfDiffs;
+
+  /**
+   * The name of the destination directory.
+   */
+  @Parameter(property = &quot;destDir&quot;, defaultValue = &quot;${project.reporting.outputDirectory}/apidocs&quot;)
+  private File destDir;
+
+  @Override
+  public String getCategoryName() {
+<span class="nc" id="L69">    return MavenReport.CATEGORY_PROJECT_REPORTS;</span>
+  }
+
+  @Override
+  public File getReportOutputDirectory() {
+<span class="nc" id="L74">    return destDir;</span>
+  }
+
+  @Override
+  public boolean canGenerateReport() {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">    return !getCompileSourceRoots().isEmpty();</span>
+  }
+
+  @Override
+  public String getOutputName() {
+<span class="nc" id="L84">    return &quot;apidocs/changes&quot;;</span>
+  }
+
+  public String getName(final Locale locale) {
+<span class="nc" id="L88">    return &quot;JDiff Reports&quot;;</span>
+  }
+
+  /**
+   * This method is called when the report generation is invoked by maven-site-plugin.
+   *
+   * @param aSink
+   * @param aSinkFactory
+   * @param aLocale
+   * @throws MavenReportException
+   */
+  public void generate(final Sink aSink, final SinkFactory aSinkFactory, final Locale aLocale)
+          throws MavenReportException {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (!canGenerateReport()) {</span>
+<span class="nc" id="L102">      getLog().info(&quot;This report cannot be generated as part of the current build. &quot;</span>
+              + &quot;The report name should be referenced in this line of output.&quot;);
+<span class="nc" id="L104">      return;</span>
+    }
+    try {
+<span class="nc" id="L107">      execute();</span>
+<span class="nc" id="L108">    } catch (MojoExecutionException ex) {</span>
+<span class="nc" id="L109">      throw new MavenReportException(&quot;Failed to exec report: &quot; + this, ex);</span>
+<span class="nc" id="L110">    }</span>
+<span class="nc" id="L111">  }</span>
+
+  @Override
+  public void execute() throws MojoExecutionException {
+<span class="nc" id="L115">    MavenProject mavenProject = getMavenProject();</span>
+    try {
+<span class="nc" id="L117">      getLog().info(&quot;Executing JDiff javadoc doclet&quot;);</span>
+<span class="nc" id="L118">      JDiffRunner runner = new JDiffRunner(getMojoExecution(), getToolchainManager(), getMavenSession(),</span>
+<span class="nc" id="L119">              getProjectRepos(), getRepoSystem(), getJavadocExecutable());</span>
+<span class="nc" id="L120">      runner.runDiffBetweenReleases(mavenProject.getGroupId(), mavenProject.getArtifactId(), this.versionRange,</span>
+              destDir, maxNumberOfDiffs);
+<span class="nc" id="L122">      runner.writeChangesIndexHtml(destDir, &quot;changes.html&quot;);</span>
+<span class="nc" id="L123">      getLog().info(&quot;Generated &quot; + destDir + File.separatorChar + &quot;changes.html&quot;);</span>
+
+<span class="nc" id="L125">    } catch (IOException | DependencyResolutionException | VersionRangeResolutionException</span>
+            | ArtifactResolutionException | JavadocExecutionException ex) {
+<span class="nc" id="L127">      throw new MojoExecutionException(&quot;Failed executing mojo &quot; + this, ex);</span>
+<span class="nc" id="L128">    }</span>
+
+<span class="nc" id="L130">  }</span>
+
+
+  @Override
+  public void generate(final org.codehaus.doxia.sink.Sink sink, final Locale locale) throws MavenReportException {
+    try {
+<span class="nc" id="L136">      execute();</span>
+<span class="nc" id="L137">    } catch (MojoExecutionException ex) {</span>
+<span class="nc" id="L138">      throw new MavenReportException(&quot;Failed to exec report: &quot; + this, ex);</span>
+<span class="nc" id="L139">    }</span>
+<span class="nc" id="L140">  }</span>
+
+  @Override
+  public String getDescription(final Locale locale) {
+<span class="nc" id="L144">    return &quot;API JDiff reports&quot;;</span>
+  }
+
+  @Override
+  public void setReportOutputDirectory(final File outputDirectory) {
+<span class="nc" id="L149">    this.destDir = new File(outputDirectory, &quot;apidocs&quot;);</span>
+<span class="nc" id="L150">  }</span>
+
+  @Override
+  public boolean isExternalReport() {
+<span class="nc" id="L154">    return true;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L159">    return &quot;ApiChangesMojo{&quot; + &quot;versionRange=&quot; + versionRange + &quot;, maxNumberOfDiffs=&quot;</span>
+<span class="nc" id="L160">            + maxNumberOfDiffs + &quot;, destDir=&quot; + destDir  + &quot;, parent=&quot; + super.toString() + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

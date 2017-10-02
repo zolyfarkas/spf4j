@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Lsof.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.unix</a> &gt; <span class="el_source">Lsof.java</span></div><h1>Lsof.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.unix;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static org.spf4j.base.Runtime.PID;
+import static org.spf4j.base.Runtime.run;
+import org.spf4j.base.SysExits;
+import org.spf4j.os.OperatingSystem;
+import org.spf4j.os.ProcessResponse;
+import org.spf4j.os.StdOutLineCountProcessHandler;
+
+/**
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings({ &quot;DMI_HARDCODED_ABSOLUTE_FILENAME&quot;, &quot;FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY&quot; })
+// Circular dependency will be gone when deprecated methods from Runtime will be removed.
+public final class Lsof {
+
+<span class="nc" id="L57">  private static final class Lazy {</span>
+<span class="nc" id="L58">    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);</span>
+  }
+
+  private static final File LSOF;
+
+  static {
+<span class="fc" id="L64">    File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
+<span class="pc bpc" id="L65" title="2 of 4 branches missed.">    if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
+<span class="nc" id="L66">      lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L67" title="All 4 branches missed.">      if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
+<span class="nc" id="L68">        lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
+<span class="nc" id="L70">          lsofFile = null;</span>
+        }
+      }
+    }
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (lsofFile == null) {</span>
+<span class="nc" id="L75">      Lazy.LOG.warn(&quot;lsof unavailable on this system&quot;);</span>
+    }
+<span class="fc" id="L77">    LSOF = lsofFile;</span>
+  }
+
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">  private static final String[] LSOF_CMD = (LSOF == null) ? null</span>
+<span class="fc" id="L81">          : new String[]{LSOF.getAbsolutePath(), &quot;-p&quot;, Integer.toString(PID)};</span>
+
+
+<span class="nc" id="L84">  private Lsof() { }</span>
+
+  public static int getNrOpenFiles() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    if (Lsof.LSOF == null) {</span>
+<span class="nc" id="L88">      return -1;</span>
+    }
+<span class="nc" id="L90">    ProcessResponse&lt;Long, String&gt; resp =</span>
+<span class="nc" id="L91">            OperatingSystem.forkExec(LSOF_CMD, new StdOutLineCountProcessHandler(), 60000, 60000);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
+<span class="nc" id="L93">      throw new ExecutionException(&quot;Failed to execute &quot; + java.util.Arrays.toString(LSOF_CMD)</span>
+<span class="nc" id="L94">              + &quot;, returned&quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
+    }
+<span class="nc" id="L96">    return (int) (resp.getOutput() - 1);</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static CharSequence getLsofOutput() {
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (Lsof.LSOF == null) {</span>
+<span class="nc" id="L103">      return null;</span>
+    }
+    try {
+<span class="fc" id="L106">      return run(Lsof.LSOF_CMD, 60000);</span>
+<span class="nc" id="L107">    } catch (IOException | ExecutionException | TimeoutException ex) {</span>
+<span class="nc" id="L108">      Lazy.LOG.warn(&quot;Unable to run lsof&quot;, ex);</span>
+<span class="nc" id="L109">      return null;</span>
+<span class="nc" id="L110">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L111">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L112">      return null;</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

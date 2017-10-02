@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Ulimit.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.unix</a> &gt; <span class="el_source">Ulimit.java</span></div><h1>Ulimit.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.unix;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.Arrays;
+
+/**
+ * @deprecated see UnixResources for better/faster alternative.
+ *
+ */
+@SuppressFBWarnings(&quot;DMI_HARDCODED_ABSOLUTE_FILENAME&quot;)
+@Deprecated
+public final class Ulimit {
+
+<span class="nc" id="L51">  private static final class Lazy {</span>
+
+<span class="nc" id="L53">    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);</span>
+  }
+
+  private static final String[] ULIMIT_CMD;
+
+  static {
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">    if (org.spf4j.base.Runtime.isWindows()) {</span>
+<span class="nc" id="L60">      ULIMIT_CMD = null;</span>
+    } else {
+<span class="fc" id="L62">      ULIMIT_CMD = findUlimitCmd();</span>
+    }
+<span class="fc" id="L64">  }</span>
+
+<span class="nc" id="L66">  private Ulimit() {</span>
+<span class="nc" id="L67">  }</span>
+
+  @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
+  private static String[] findUlimitCmd() {
+<span class="fc" id="L71">    final File bash = new File(&quot;/bin/bash&quot;);</span>
+<span class="fc" id="L72">    final File sh = new File(&quot;/bin/sh&quot;);</span>
+<span class="fc" id="L73">    final File uLimit = new File(&quot;/usr/bin/ulimit&quot;);</span>
+<span class="pc bpc" id="L74" title="2 of 4 branches missed.">    if (uLimit.exists() &amp;&amp; uLimit.canExecute()) {</span>
+<span class="fc" id="L75">      return new String[]{uLimit.getPath()};</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">    } else if (bash.exists() &amp;&amp; bash.canExecute()) {</span>
+<span class="nc" id="L77">      return new String[]{bash.getPath(), &quot;-c&quot;, &quot;ulimit&quot;};</span>
+<span class="nc bnc" id="L78" title="All 4 branches missed.">    } else if (sh.exists() &amp;&amp; sh.canExecute()) {</span>
+<span class="nc" id="L79">      return new String[]{sh.getPath(), &quot;-c&quot;, &quot;ulimit&quot;};</span>
+    } else {
+<span class="nc" id="L81">      return null;</span>
+    }
+  }
+
+  /**
+   * @param options
+   * @return number of max open files for the current process. If unable to find out System Max Limit this value will be
+   * Integer.MAX_VALUE
+   */
+  public static int runUlimit(final String... options) {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (ULIMIT_CMD == null) {</span>
+<span class="nc" id="L92">      Lazy.LOG.warn(&quot;Ulimit not available, assuming no limits&quot;);</span>
+<span class="nc" id="L93">      return Integer.MAX_VALUE;</span>
+    }
+    int mfiles;
+    try {
+<span class="fc" id="L97">      String[] cmd = Arrays.concat(ULIMIT_CMD, options);</span>
+<span class="fc" id="L98">      String result = org.spf4j.base.Runtime.run(cmd, 10000).toString();</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">      if (result.contains(&quot;unlimited&quot;)) {</span>
+<span class="nc" id="L100">        mfiles = Integer.MAX_VALUE;</span>
+      } else {
+        try {
+<span class="fc" id="L103">          mfiles = Integer.parseInt(result.trim());</span>
+<span class="nc" id="L104">        } catch (NumberFormatException ex) {</span>
+<span class="nc" id="L105">          Lazy.LOG.warn(&quot;Error while parsing ulimit output, assuming no limit&quot;, ex);</span>
+<span class="nc" id="L106">          mfiles = Integer.MAX_VALUE;</span>
+<span class="fc" id="L107">        }</span>
+      }
+<span class="nc" id="L109">    } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {</span>
+<span class="nc" id="L110">      Lazy.LOG.warn(&quot;Error while running ulimit, assuming no limit&quot;, ex);</span>
+<span class="nc" id="L111">      mfiles = Integer.MAX_VALUE;</span>
+<span class="fc" id="L112">    }</span>
+<span class="fc" id="L113">    return mfiles;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

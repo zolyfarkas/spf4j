@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Compress.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-jdiff-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.jdiff.utils</a> &gt; <span class="el_source">Compress.java</span></div><h1>Compress.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.jdiff.utils;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+/**
+ * @author zoly
+ */
+
+public final class Compress {
+
+<span class="nc" id="L63">  private Compress() {</span>
+<span class="nc" id="L64">  }</span>
+
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @return the Path of the compressed file. It will created in the same folder as the input parent.
+   * @throws IOException
+   */
+  public static Path zip(final Path fileOrFolderToCompress) throws IOException {
+<span class="nc" id="L73">    Path parent = fileOrFolderToCompress.getParent();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L75">      throw new IllegalArgumentException(&quot;Not a file: &quot; + fileOrFolderToCompress);</span>
+    }
+<span class="nc" id="L77">    Path destFile = parent.resolve(fileOrFolderToCompress.getFileName() + &quot;.zip&quot;);</span>
+<span class="nc" id="L78">    zip(fileOrFolderToCompress, destFile);</span>
+<span class="nc" id="L79">    return destFile;</span>
+  }
+
+
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @param destFile the destination zip file.
+   * @throws IOException
+   */
+  @SuppressFBWarnings(&quot;AFBR_ABNORMAL_FINALLY_BLOCK_RETURN&quot;)
+  public static void zip(final Path fileOrFolderToCompress, final Path destFile) throws IOException {
+<span class="nc" id="L91">    Path parent = destFile.getParent();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L93">      throw new IllegalArgumentException(&quot;Parent is null for: &quot; + fileOrFolderToCompress);</span>
+    }
+<span class="nc" id="L95">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, &quot;tmp&quot;);</span>
+    try {
+      Path relativePath;
+<span class="nc bnc" id="L98" title="All 2 branches missed.">      if (Files.isDirectory(fileOrFolderToCompress)) {</span>
+<span class="nc" id="L99">        relativePath = fileOrFolderToCompress;</span>
+      } else {
+<span class="nc" id="L101">        relativePath = fileOrFolderToCompress.getParent();</span>
+      }
+<span class="nc" id="L103">      try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));</span>
+<span class="nc" id="L104">              ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L105">          Files.walk(fileOrFolderToCompress).forEach((path) -&gt; {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (Files.isDirectory(path)) {</span>
+<span class="nc" id="L107">              return;</span>
+            }
+<span class="nc" id="L109">            String fileName = relativePath.relativize(path).toString();</span>
+<span class="nc" id="L110">            try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {</span>
+<span class="nc" id="L111">              ZipEntry ze = new ZipEntry(fileName);</span>
+<span class="nc" id="L112">              zos.putNextEntry(ze);</span>
+<span class="nc" id="L113">              copy(in, zos);</span>
+<span class="nc bnc" id="L114" title="All 8 branches missed.">            } catch (IOException ex) {</span>
+<span class="nc" id="L115">              throw new UncheckedIOException(&quot;Error compressing &quot; + path, ex);</span>
+<span class="nc" id="L116">            }</span>
+<span class="nc" id="L117">          });</span>
+<span class="nc bnc" id="L118" title="All 16 branches missed.">      }</span>
+<span class="nc" id="L119">      Files.move(tmpFile, destFile,</span>
+              StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    } finally {
+<span class="nc" id="L122">      Files.deleteIfExists(tmpFile);</span>
+<span class="nc" id="L123">    }</span>
+<span class="nc" id="L124">  }</span>
+
+  /**
+   * Copy file atomic.
+   * file will be written to a tmp file in the destination folder, and atomically renamed (if file system supports)
+   * @param source
+   * @param destinationFile
+   * @throws IOException
+   */
+  @SuppressFBWarnings(&quot;AFBR_ABNORMAL_FINALLY_BLOCK_RETURN&quot;)
+  public static void copyFileAtomic(final Path source, final Path destinationFile) throws IOException {
+<span class="fc" id="L135">    Path parent = destinationFile.getParent();</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L137">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationFile + &quot; is not a file&quot;);</span>
+    }
+<span class="fc" id="L139">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
+    try {
+<span class="pc" id="L141">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source));</span>
+<span class="fc" id="L142">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
+<span class="fc" id="L143">        copy(in, os);</span>
+<span class="pc bpc" id="L144" title="12 of 16 branches missed.">      }</span>
+<span class="fc" id="L145">      Files.move(tmpFile, destinationFile,</span>
+              StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    } finally {
+<span class="pc" id="L148">      Files.deleteIfExists(tmpFile);</span>
+<span class="fc" id="L149">    }</span>
+<span class="fc" id="L150">  }</span>
+
+
+  /**
+   * Unzip a zip archive to same folder.
+   * @param zipFile
+   * @return list of unzipped files.
+   * @throws IOException
+   */
+  public static List&lt;Path&gt; unzip(final Path zipFile) throws IOException {
+<span class="nc" id="L160">    Path parent = zipFile.getParent();</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L162">      throw new IllegalArgumentException(&quot;File &quot; + zipFile + &quot; cannot be unzipped to null parent folder&quot;);</span>
+    }
+<span class="nc" id="L164">    return unzip(zipFile, parent);</span>
+  }
+
+  /**
+   * Unzip a zip file to a destination folder.
+   * @param zipFile
+   * @param destinationDirectory
+   * @return the list of files that were extracted.
+   * @throws IOException in case extraction fails for whatever reason.
+   */
+  public static List&lt;Path&gt; unzip(final Path zipFile, final Path destinationDirectory) throws IOException {
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (!Files.exists(destinationDirectory)) {</span>
+<span class="fc" id="L176">      Files.createDirectories(destinationDirectory);</span>
+    }
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    if (!Files.isDirectory(destinationDirectory)) {</span>
+<span class="nc" id="L179">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationDirectory + &quot; must be a directory&quot;);</span>
+    }
+<span class="fc" id="L181">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L182">    URI zipUri = URI.create(&quot;jar:&quot; + zipFile.toUri().toURL());</span>
+<span class="pc" id="L183">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">      for (Path root : zipFs.getRootDirectories()) {</span>
+<span class="fc" id="L185">        Path dest =  destinationDirectory.resolve(root.toString().substring(1));</span>
+<span class="fc" id="L186">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
+          @Override
+          public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
+                  throws IOException {
+<span class="fc" id="L190">            Path destination = dest.resolve(root.relativize(file).toString());</span>
+<span class="fc" id="L191">            copyFileAtomic(file, destination);</span>
+<span class="fc" id="L192">            response.add(destination);</span>
+<span class="fc" id="L193">            return FileVisitResult.CONTINUE;</span>
+          }
+
+          @Override
+          public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
+                  throws IOException {
+<span class="fc" id="L199">            String dirStr = dir.toString();</span>
+<span class="fc" id="L200">            Path np = dest.resolve(dirStr.substring(1));</span>
+<span class="fc" id="L201">            Files.createDirectories(np);</span>
+<span class="fc" id="L202">            return FileVisitResult.CONTINUE;</span>
+          }
+        });
+<span class="fc" id="L205">      }</span>
+<span class="pc bpc" id="L206" title="6 of 8 branches missed.">    } catch (IOException | RuntimeException ex) {</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">      for (Path path : response) {</span>
+        try {
+<span class="nc" id="L209">          Files.delete(path);</span>
+<span class="nc" id="L210">        } catch (IOException | RuntimeException ex2) {</span>
+<span class="nc" id="L211">          ex.addSuppressed(ex2);</span>
+<span class="nc" id="L212">        }</span>
+<span class="nc" id="L213">      }</span>
+<span class="nc" id="L214">      throw ex;</span>
+<span class="fc" id="L215">    }</span>
+<span class="fc" id="L216">    return response;</span>
+  }
+
+   public static long copy(final InputStream is, final OutputStream os) throws IOException {
+<span class="fc" id="L220">        return copy(is, os, 8192);</span>
+    }
+
+    /**
+     * Equivalent to guava ByteStreams.copy, with one special behavior: if is has no bytes immediately available for
+     * read, the os is flushed prior to the next read that will probably block.
+     *
+     * I believe this behavior will yield better performance in most scenarios. This method also makes use of:
+     * Arrays.getBytesTmp. THis method should not be invoked from any context making use of Arrays.getBytesTmp.
+     *
+     * @param is
+     * @param os
+     * @param buffSize
+     * @throws IOException
+     */
+    public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        if (buffSize &lt; 2) {</span>
+            int val;
+<span class="nc" id="L238">            long count = 0;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">            while ((val = is.read()) &gt;= 0) {</span>
+<span class="nc" id="L240">                os.write(val);</span>
+<span class="nc" id="L241">                count++;</span>
+            }
+<span class="nc" id="L243">            return count;</span>
+        }
+<span class="fc" id="L245">        long total = 0;</span>
+<span class="fc" id="L246">        byte[] buffer = new byte[buffSize];</span>
+<span class="fc" id="L247">            boolean done = false;</span>
+<span class="fc" id="L248">            long bytesCopiedSinceLastFlush = 0;</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">            while (!done) {</span>
+                // non-blocking(if input is implemented correctly) read+write as long as data is available.
+<span class="fc bfc" id="L251" title="All 2 branches covered.">                while (is.available() &gt; 0) {</span>
+<span class="fc" id="L252">                    int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">                    if (nrRead &lt; 0) {</span>
+<span class="nc" id="L254">                        done = true;</span>
+<span class="nc" id="L255">                        break;</span>
+                    } else {
+<span class="fc" id="L257">                        os.write(buffer, 0, nrRead);</span>
+<span class="fc" id="L258">                        total += nrRead;</span>
+<span class="fc" id="L259">                        bytesCopiedSinceLastFlush += nrRead;</span>
+                    }
+<span class="fc" id="L261">                }</span>
+            // there seems to be nothing available to read anymore,
+                // lets flush the os instead of blocking for another read.
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">                if (bytesCopiedSinceLastFlush &gt; 0) {</span>
+<span class="fc" id="L265">                    os.flush();</span>
+<span class="fc" id="L266">                    bytesCopiedSinceLastFlush = 0;</span>
+                }
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">                if (done) {</span>
+<span class="nc" id="L269">                    break;</span>
+                }
+                // most likely a blocking read.
+<span class="fc" id="L272">                int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">                if (nrRead &lt; 0) {</span>
+<span class="fc" id="L274">                    break;</span>
+                } else {
+<span class="nc" id="L276">                    os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L277">                    total += nrRead;</span>
+<span class="nc" id="L278">                    bytesCopiedSinceLastFlush += nrRead;</span>
+                }
+<span class="nc" id="L280">            }</span>
+<span class="fc" id="L281">        return total;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

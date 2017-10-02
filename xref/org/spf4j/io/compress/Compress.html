@@ -198,8 +198,8 @@
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Destination "</span> + destinationDirectory + <span class="jxr_string">" must be a directory"</span>);
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>     }
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>     <strong class="jxr_keyword">final</strong> List&lt;Path&gt; response = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>     FileSystem zipFs = FileSystems.newFileSystem(URI.create(<span class="jxr_string">"jar:"</span> + zipFile.toUri().toURL()), Collections.emptyMap());
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     URI zipUri = URI.create(<span class="jxr_string">"jar:"</span> + zipFile.toUri().toURL());
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <strong class="jxr_keyword">try</strong> (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>       <strong class="jxr_keyword">for</strong> (Path root : zipFs.getRootDirectories()) {
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>         Path dest =  destinationDirectory.resolve(root.toString().substring(1));
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>         Files.walkFileTree(root, <strong class="jxr_keyword">new</strong> SimpleFileVisitor&lt;Path&gt;() {
@@ -238,6 +238,6 @@
 <a class="jxr_linenumber" name="L230" href="#L230">230</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

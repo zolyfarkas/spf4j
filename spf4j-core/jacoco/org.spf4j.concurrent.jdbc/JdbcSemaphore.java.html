@@ -334,7 +334,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="fc" id="L334">              insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
 <span class="fc" id="L335">              insert.executeUpdate();</span>
 <span class="pc bpc" id="L336" title="6 of 8 branches missed.">            }</span>
-<span class="pc bpc" id="L337" title="1 of 2 branches missed.">          } else if (strictReservations) { // there is a record already. for now blow up if different nr reservations.</span>
+<span class="fc bfc" id="L337" title="All 2 branches covered.">          } else if (strictReservations) { // there is a record already. for now blow up if different nr reservations.</span>
 <span class="fc" id="L338">            int existingMaxReservations = rs.getInt(2);</span>
 <span class="pc bpc" id="L339" title="1 of 2 branches missed.">            if (existingMaxReservations != nrPermits) {</span>
 <span class="nc" id="L340">              throw new IllegalArgumentException(&quot;Semaphore &quot; + semName + &quot; max reservations count different &quot;</span>
@@ -343,7 +343,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="pc bpc" id="L343" title="1 of 2 branches missed.">            if (rs.next()) {</span>
 <span class="nc" id="L344">              throw new IllegalStateException(&quot;Cannot have mutiple semaphores with the same name &quot; + semName);</span>
             }
-<span class="pc bnc" id="L346" title="All 2 branches missed.">          } else if (rs.next()) {</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">          } else if (rs.next()) {</span>
 <span class="nc" id="L347">            throw new IllegalStateException(&quot;Cannot have mutiple semaphores with the same name &quot; + semName);</span>
           }
 <span class="pc bpc" id="L349" title="6 of 8 branches missed.">        }</span>

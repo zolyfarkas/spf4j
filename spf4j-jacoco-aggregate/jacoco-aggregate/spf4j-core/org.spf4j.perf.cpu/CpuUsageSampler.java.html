@@ -32,11 +32,10 @@
 package org.spf4j.perf.cpu;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.os.OperatingSystem;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -50,71 +49,65 @@ import org.spf4j.perf.impl.RecorderFactory;
 @SuppressFBWarnings(&quot;IICU_INCORRECT_INTERNAL_CLASS_USE&quot;)
 public final class CpuUsageSampler {
 
-  private static final com.sun.management.OperatingSystemMXBean OS_MBEAN;
-
-  static {
-<span class="nc" id="L56">    OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (operatingSystemMXBean instanceof com.sun.management.OperatingSystemMXBean) {</span>
-<span class="nc" id="L58">      OS_MBEAN = (com.sun.management.OperatingSystemMXBean) operatingSystemMXBean;</span>
-    } else {
-<span class="nc" id="L60">      OS_MBEAN = null;</span>
-    }
-<span class="nc" id="L62">    Registry.export(CpuUsageSampler.class);</span>
-  }
-
   private static ScheduledFuture&lt;?&gt; samplingFuture;
 
-<span class="nc" id="L67">  private CpuUsageSampler() {</span>
-<span class="nc" id="L68">  }</span>
-
-  @JmxExport
-  public static long getProcessCpuTimeNanos() {
-<span class="nc" id="L72">    return OS_MBEAN.getProcessCpuTime();</span>
-  }
-
   static {
-<span class="nc bnc" id="L76" title="All 2 branches missed.">    if (OS_MBEAN != null) {</span>
-<span class="nc" id="L77">      org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+<span class="fc" id="L55">    Registry.export(CpuUsageSampler.class);</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (OperatingSystem.getSunJdkOSMBean() != null) {</span>
+<span class="fc" id="L57">      org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
         @Override
         public void doRun() {
-<span class="nc" id="L80">          stop();</span>
-<span class="nc" id="L81">        }</span>
+<span class="fc" id="L60">          stop();</span>
+<span class="fc" id="L61">        }</span>
       });
     }
-<span class="nc" id="L84">  }</span>
+<span class="fc" id="L64">  }</span>
+
+<span class="nc" id="L66">  private CpuUsageSampler() {</span>
+<span class="nc" id="L67">  }</span>
+
+
+  public static long getProcessCpuTimeNanos() {
+<span class="fc" id="L71">    com.sun.management.OperatingSystemMXBean sunJdkOSMBean = OperatingSystem.getSunJdkOSMBean();</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    if (sunJdkOSMBean != null) {</span>
+<span class="fc" id="L73">      return sunJdkOSMBean.getProcessCpuTime();</span>
+    } else {
+<span class="nc" id="L75">      return -1;</span>
+    }
+  }
 
   @JmxExport
   public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTime) {
-<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (samplingFuture == null) {</span>
-<span class="nc" id="L89">      final MeasurementRecorder cpuUsage</span>
-<span class="nc" id="L90">              = RecorderFactory.createDirectRecorder(&quot;cpu-time&quot;, &quot;ns&quot;, sampleTime);</span>
-<span class="nc" id="L91">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    if (samplingFuture == null) {</span>
+<span class="nc" id="L82">      final MeasurementRecorder cpuUsage</span>
+<span class="nc" id="L83">              = RecorderFactory.createDirectRecorder(&quot;cpu-time&quot;, &quot;ns&quot;, sampleTime);</span>
+<span class="nc" id="L84">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
 
-<span class="nc" id="L93">        private long lastValue = 0;</span>
+<span class="nc" id="L86">        private long lastValue = 0;</span>
 
         @Override
         public void doRun() {
-<span class="nc" id="L97">          long currTime = OS_MBEAN.getProcessCpuTime();</span>
-<span class="nc" id="L98">          cpuUsage.record(currTime - lastValue);</span>
-<span class="nc" id="L99">          lastValue = currTime;</span>
-<span class="nc" id="L100">        }</span>
+<span class="nc" id="L90">          long currTime = getProcessCpuTimeNanos();</span>
+<span class="nc" id="L91">          cpuUsage.record(currTime - lastValue);</span>
+<span class="nc" id="L92">          lastValue = currTime;</span>
+<span class="nc" id="L93">        }</span>
       }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-<span class="nc" id="L102">    } else {</span>
-<span class="nc" id="L103">      throw new IllegalStateException(&quot;Cpu time Sampling already started &quot; + samplingFuture);</span>
+<span class="nc" id="L95">    } else {</span>
+<span class="nc" id="L96">      throw new IllegalStateException(&quot;Cpu time Sampling already started &quot; + samplingFuture);</span>
     }
-<span class="nc" id="L105">  }</span>
+<span class="nc" id="L98">  }</span>
 
   @JmxExport
   public static synchronized void stop() {
-<span class="nc bnc" id="L109" title="All 2 branches missed.">    if (samplingFuture != null) {</span>
-<span class="nc" id="L110">      samplingFuture.cancel(false);</span>
-<span class="nc" id="L111">      samplingFuture = null;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
+<span class="nc" id="L103">      samplingFuture.cancel(false);</span>
+<span class="nc" id="L104">      samplingFuture = null;</span>
     }
-<span class="nc" id="L113">  }</span>
+<span class="fc" id="L106">  }</span>
 
   @JmxExport
   public static synchronized boolean isStarted() {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">    return samplingFuture != null;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    return samplingFuture != null;</span>
   }
 
 }
