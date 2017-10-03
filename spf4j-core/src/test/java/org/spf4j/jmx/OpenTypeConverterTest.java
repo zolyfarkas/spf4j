@@ -231,6 +231,13 @@ public class OpenTypeConverterTest {
   }
 
   @Test
+  public void testConverterFile() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(File.class);
+    Assert.assertNull(get);
+  }
+
+
+  @Test
   public void testCompositeData() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping get = conv.get(CompositeData.class);
     Assert.assertNotNull(get);

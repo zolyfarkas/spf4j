@@ -32,6 +32,7 @@
 package org.spf4j.jmx.mappers;
 
 import com.google.common.reflect.TypeToken;
+import java.io.File;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.lang.reflect.GenericArrayType;
@@ -103,7 +104,6 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
     Pair.of(VOID, new Class[]{Void.class})
   };
 
-
   private final CachingTypeMapSupplierWrapper<JMXBeanMapping, NotSerializableException> cache;
 
   public Spf4jOpenTypeMapper() {
@@ -146,6 +146,7 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
           return Spf4jJMXBeanMapping.defaultHandler(type, this);
         }
       });
+      cache.safePut(File.class, (type) -> JMXBeanMapping.NOMAPPING);
   }
 
 
@@ -158,8 +159,13 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
            return null;
         }
         try {
-        ip.add(t);
-          return cache.get(t);
+          ip.add(t);
+          JMXBeanMapping val = cache.get(t);
+          if (val == JMXBeanMapping.NOMAPPING) {
+            return null;
+          } else {
+            return val;
+          }
         } catch (RuntimeException ex) {
           LOG.debug("No mapping for type {}", t, ex);
           TypeToken<?> tt = TypeToken.of(t);
