@@ -54,7 +54,7 @@ import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
 import org.spf4j.base.Reflections;
 
-public final class ExportedValuesMBean implements DynamicMBean {
+final class ExportedValuesMBean implements DynamicMBean {
 
   private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
 
