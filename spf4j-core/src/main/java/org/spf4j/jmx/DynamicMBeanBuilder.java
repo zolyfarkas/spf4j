@@ -69,6 +69,13 @@ public final class DynamicMBeanBuilder {
     return new DynamicMBeanBuilder();
   }
 
+  public DynamicMBeanBuilder withOperation(final ExportedOperation operation) {
+    if (exportedOps.put(operation.getName(), operation) != null) {
+       throw new IllegalArgumentException("Duplicate operation: " + operation);
+    }
+    return this;
+  }
+
   public DynamicMBeanBuilder withAttribute(final ExportedValue<?> val) {
     if (exportedAttributes.put(val.getName(), val) != null) {
       throw new IllegalArgumentException("Duplicate attribute: " + val);
