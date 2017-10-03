@@ -89,7 +89,7 @@ final class ExportedOperationImpl implements ExportedOperation {
 <span class="fc" id="L89">      String pname = &quot;&quot;;</span>
 <span class="fc" id="L90">      String pdesc = &quot;&quot;;</span>
 <span class="fc" id="L91">      boolean mapParamOpenType = mapOpenType;</span>
-<span class="pc bfc" id="L92" title="All 2 branches covered.">      for (Annotation annot : annotations) {</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">      for (Annotation annot : annotations) {</span>
 <span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (annot.annotationType() == JmxExport.class) {</span>
 <span class="fc" id="L94">          JmxExport eAnn = (JmxExport) annot;</span>
 <span class="fc" id="L95">          pname = eAnn.value();</span>
@@ -98,10 +98,10 @@ final class ExportedOperationImpl implements ExportedOperation {
 <span class="fc" id="L98">          break;</span>
         }
       }
-<span class="fc bfc" id="L101" title="All 2 branches covered.">      if (&quot;&quot;.equals(pname)) {</span>
-<span class="fc" id="L102">        pname = &quot;param_&quot; + i;</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">      if (&quot;&quot;.equals(pname)) {</span>
+<span class="nc" id="L102">        pname = &quot;param_&quot; + i;</span>
       }
-<span class="fc bfc" id="L104" title="All 2 branches covered.">      if (pdesc.isEmpty()) {</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">      if (pdesc.isEmpty()) {</span>
 <span class="fc" id="L105">        pdesc = name;</span>
       }
 <span class="fc" id="L107">      Type parameterType = parameterTypes[i];</span>
@@ -116,12 +116,12 @@ final class ExportedOperationImpl implements ExportedOperation {
       } else {
 <span class="nc" id="L117">        paramOTM = null;</span>
       }
-<span class="fc bfc" id="L119" title="All 2 branches covered.">      if (paramOTM != null) {</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">      if (paramOTM != null) {</span>
 <span class="fc" id="L120">        paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, paramOTM.getOpenType());</span>
 <span class="fc" id="L121">        argConverters[i] = paramOTM;</span>
       } else {
-<span class="fc" id="L123">        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);</span>
-<span class="fc" id="L124">        argConverters[i] = null;</span>
+<span class="nc" id="L123">        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);</span>
+<span class="nc" id="L124">        argConverters[i] = null;</span>
       }
     }
 <span class="fc" id="L127">  }</span>
@@ -139,17 +139,17 @@ final class ExportedOperationImpl implements ExportedOperation {
   @Override
   public Object invoke(final Object[] parameters) throws OpenDataException, InvalidObjectException {
     try {
-<span class="fc bfc" id="L142" title="All 2 branches covered.">      for (int i = 0; i &lt; parameters.length; i++) {</span>
-<span class="fc" id="L143">        JMXBeanMapping argConverter = argConverters[i];</span>
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (argConverter != null) {</span>
-<span class="fc" id="L145">          parameters[i] = argConverter.fromOpenValue(parameters[i]);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">      for (int i = 0; i &lt; parameters.length; i++) {</span>
+<span class="nc" id="L143">        JMXBeanMapping argConverter = argConverters[i];</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (argConverter != null) {</span>
+<span class="nc" id="L145">          parameters[i] = argConverter.fromOpenValue(parameters[i]);</span>
         }
       }
-<span class="fc" id="L148">      Object rVal = method.invoke(object, parameters);</span>
-<span class="fc bfc" id="L149" title="All 2 branches covered.">      if (resultConverter != null) {</span>
-<span class="fc" id="L150">        return resultConverter.toOpenValue(rVal);</span>
+<span class="nc" id="L148">      Object rVal = method.invoke(object, parameters);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">      if (resultConverter != null) {</span>
+<span class="nc" id="L150">        return resultConverter.toOpenValue(rVal);</span>
       } else {
-<span class="fc" id="L152">        return rVal;</span>
+<span class="nc" id="L152">        return rVal;</span>
       }
 <span class="nc" id="L154">    } catch (IllegalAccessException | InvocationTargetException ex) {</span>
 <span class="nc" id="L155">      OpenDataException x</span>

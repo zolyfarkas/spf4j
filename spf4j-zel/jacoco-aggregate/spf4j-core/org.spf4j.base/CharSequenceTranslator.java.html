@@ -62,13 +62,13 @@ import java.util.Locale;
 
 
     public final String translate(final CharSequence input) {
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L66">            return null;</span>
         }
         try {
-<span class="fc" id="L69">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
-<span class="fc" id="L70">            translate(input, writer);</span>
-<span class="fc" id="L71">            return writer.toString();</span>
+<span class="nc" id="L69">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
+<span class="nc" id="L70">            translate(input, writer);</span>
+<span class="nc" id="L71">            return writer.toString();</span>
 <span class="nc" id="L72">        } catch (final IOException ioe) {</span>
             // this should never ever happen while writing to a StringWriter
 <span class="nc" id="L74">            throw new UncheckedIOException(ioe);</span>
@@ -77,27 +77,27 @@ import java.util.Locale;
 
 
     public final void translate(final CharSequence input, final Writer out) throws IOException {
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (out == null) {</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (out == null) {</span>
 <span class="nc" id="L81">            throw new IllegalArgumentException(&quot;The Writer must not be null when translating &quot; + input);</span>
         }
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L84">            return;</span>
         }
-<span class="fc" id="L86">        int pos = 0;</span>
-<span class="fc" id="L87">        final int len = input.length();</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        while (pos &lt; len) {</span>
-<span class="fc" id="L89">            final int consumed = translate(input, pos, out);</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">            if (consumed == 0) {</span>
-<span class="fc" id="L91">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
-<span class="fc" id="L92">                out.write(c);</span>
-<span class="fc" id="L93">                pos += c.length;</span>
-<span class="fc" id="L94">                continue;</span>
+<span class="nc" id="L86">        int pos = 0;</span>
+<span class="nc" id="L87">        final int len = input.length();</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        while (pos &lt; len) {</span>
+<span class="nc" id="L89">            final int consumed = translate(input, pos, out);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (consumed == 0) {</span>
+<span class="nc" id="L91">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
+<span class="nc" id="L92">                out.write(c);</span>
+<span class="nc" id="L93">                pos += c.length;</span>
+<span class="nc" id="L94">                continue;</span>
             }
-<span class="fc bfc" id="L96" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
-<span class="fc" id="L97">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
+<span class="nc" id="L97">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
             }
-<span class="fc" id="L99">        }</span>
-<span class="fc" id="L100">    }</span>
+<span class="nc" id="L99">        }</span>
+<span class="nc" id="L100">    }</span>
 
     /**
      * &lt;p&gt;Returns an upper case hexadecimal &lt;code&gt;String&lt;/code&gt; for the given

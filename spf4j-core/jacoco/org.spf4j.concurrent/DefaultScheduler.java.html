@@ -90,12 +90,12 @@ public final class DefaultScheduler {
           final Runnable command, final long millisInterval) {
 <span class="fc" id="L91">    long currentTime = System.currentTimeMillis();</span>
     long nextScheduleTime;
-<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (millisInterval &lt; HOUR_MILLIS) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (millisInterval &lt; HOUR_MILLIS) {</span>
 <span class="fc" id="L94">      long millisPastHour = currentTime % HOUR_MILLIS;</span>
 <span class="fc" id="L95">      nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;</span>
 <span class="fc" id="L96">    } else {</span>
-<span class="fc" id="L97">      long millisPastDay = currentTime % DAY_MILLIS;</span>
-<span class="fc" id="L98">      nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;</span>
+<span class="nc" id="L97">      long millisPastDay = currentTime % DAY_MILLIS;</span>
+<span class="nc" id="L98">      nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;</span>
     }
 <span class="fc" id="L100">    return INSTANCE.scheduleAtFixedRate(</span>
             command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);

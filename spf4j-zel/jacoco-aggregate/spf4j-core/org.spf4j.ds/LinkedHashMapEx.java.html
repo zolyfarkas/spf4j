@@ -50,24 +50,24 @@ public final class LinkedHashMapEx&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt;
 
   static {
 
-<span class="fc" id="L53">    TAIL = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
+<span class="nc" id="L53">    TAIL = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
       @Override
       public Field run() {
         try {
-<span class="fc" id="L57">          Field field = LinkedHashMap.class.getDeclaredField(&quot;tail&quot;);</span>
-<span class="fc" id="L58">          field.setAccessible(true);</span>
-<span class="fc" id="L59">          return field;</span>
+<span class="nc" id="L57">          Field field = LinkedHashMap.class.getDeclaredField(&quot;tail&quot;);</span>
+<span class="nc" id="L58">          field.setAccessible(true);</span>
+<span class="nc" id="L59">          return field;</span>
 <span class="nc" id="L60">        } catch (NoSuchFieldException | SecurityException ex) {</span>
 <span class="nc" id="L61">          throw new RuntimeException(ex);</span>
         }
       }
     });
 
-<span class="fc" id="L66">  }</span>
+<span class="nc" id="L66">  }</span>
 
   private Map.Entry&lt;K, V&gt; getTail() {
     try {
-<span class="fc" id="L70">      return (Map.Entry&lt;K, V&gt;) TAIL.get(this);</span>
+<span class="nc" id="L70">      return (Map.Entry&lt;K, V&gt;) TAIL.get(this);</span>
 <span class="nc" id="L71">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
 <span class="nc" id="L72">      throw new RuntimeException(ex);</span>
     }
@@ -82,8 +82,8 @@ public final class LinkedHashMapEx&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt;
 <span class="nc" id="L82">  }</span>
 
   public LinkedHashMapEx(final int initialCapacity) {
-<span class="fc" id="L85">    super(initialCapacity);</span>
-<span class="fc" id="L86">  }</span>
+<span class="nc" id="L85">    super(initialCapacity);</span>
+<span class="nc" id="L86">  }</span>
 
   public LinkedHashMapEx(final Map&lt;? extends K, ? extends V&gt; m) {
 <span class="nc" id="L89">    super(m);</span>
@@ -96,17 +96,17 @@ public final class LinkedHashMapEx&lt;K, V&gt; extends LinkedHashMap&lt;K, V&gt;
   @Nullable
   @Override
   public Map.Entry&lt;K, V&gt; getLastEntry() {
-<span class="fc" id="L99">    return getTail();</span>
+<span class="nc" id="L99">    return getTail();</span>
   }
 
   @Nullable
   @Override
   public Map.Entry&lt;K, V&gt; pollLastEntry() {
-<span class="fc" id="L105">    final Entry&lt;K, V&gt; lastEntry = getTail();</span>
-<span class="fc bfc" id="L106" title="All 2 branches covered.">    if (lastEntry != null) {</span>
-<span class="fc" id="L107">      remove(lastEntry.getKey());</span>
+<span class="nc" id="L105">    final Entry&lt;K, V&gt; lastEntry = getTail();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (lastEntry != null) {</span>
+<span class="nc" id="L107">      remove(lastEntry.getKey());</span>
     }
-<span class="fc" id="L109">    return lastEntry;</span>
+<span class="nc" id="L109">    return lastEntry;</span>
   }
 
 }

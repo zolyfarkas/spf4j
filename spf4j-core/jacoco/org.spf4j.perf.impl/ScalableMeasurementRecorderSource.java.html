@@ -71,7 +71,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 public final class ScalableMeasurementRecorderSource implements
         MeasurementRecorderSource, MeasurementsSource, Closeable {
 
-<span class="fc" id="L74">  private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);</span>
+<span class="nc" id="L74">  private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);</span>
 
   private final Map&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt; measurementProcessorMap;
 
@@ -86,111 +86,111 @@ public final class ScalableMeasurementRecorderSource implements
   private final Runnable shutdownHook;
 
   ScalableMeasurementRecorderSource(final MeasurementAccumulator processor,
-<span class="fc" id="L89">          final int sampleTimeMillis, final MeasurementStore database) {</span>
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">    if (sampleTimeMillis &lt; 1000) {</span>
+<span class="nc" id="L89">          final int sampleTimeMillis, final MeasurementStore database) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    if (sampleTimeMillis &lt; 1000) {</span>
 <span class="nc" id="L91">      throw new IllegalArgumentException(&quot;sample time needs to be at least 1000 and not &quot; + sampleTimeMillis);</span>
     }
-<span class="fc" id="L93">    this.processorTemplate = processor;</span>
-<span class="fc" id="L94">    measurementProcessorMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L95">    threadLocalMeasurementProcessorMap = new ThreadLocal&lt;Map&lt;Object, MeasurementAccumulator&gt;&gt;() {</span>
+<span class="nc" id="L93">    this.processorTemplate = processor;</span>
+<span class="nc" id="L94">    measurementProcessorMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L95">    threadLocalMeasurementProcessorMap = new ThreadLocal&lt;Map&lt;Object, MeasurementAccumulator&gt;&gt;() {</span>
 
       @Override
       protected Map&lt;Object, MeasurementAccumulator&gt; initialValue() {
-<span class="fc" id="L99">        Map&lt;Object, MeasurementAccumulator&gt; result = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L100">        synchronized (measurementProcessorMap) {</span>
-<span class="fc" id="L101">          measurementProcessorMap.put(Thread.currentThread(), result);</span>
-<span class="pc" id="L102">        }</span>
-<span class="fc" id="L103">        return result;</span>
+<span class="nc" id="L99">        Map&lt;Object, MeasurementAccumulator&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L100">        synchronized (measurementProcessorMap) {</span>
+<span class="nc" id="L101">          measurementProcessorMap.put(Thread.currentThread(), result);</span>
+<span class="nc" id="L102">        }</span>
+<span class="nc" id="L103">        return result;</span>
       }
 
     };
-<span class="fc" id="L107">    tableIds = new TObjectLongHashMap&lt;&gt;();</span>
-<span class="fc" id="L108">    persister = new Persister(database, sampleTimeMillis, processor);</span>
-<span class="fc" id="L109">    samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
-<span class="fc" id="L110">    shutdownHook = closeOnShutdown();</span>
-<span class="fc" id="L111">  }</span>
+<span class="nc" id="L107">    tableIds = new TObjectLongHashMap&lt;&gt;();</span>
+<span class="nc" id="L108">    persister = new Persister(database, sampleTimeMillis, processor);</span>
+<span class="nc" id="L109">    samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);</span>
+<span class="nc" id="L110">    shutdownHook = closeOnShutdown();</span>
+<span class="nc" id="L111">  }</span>
 
   private Runnable closeOnShutdown() {
-<span class="fc" id="L114">    final AbstractRunnable runnable = new AbstractRunnable(true) {</span>
+<span class="nc" id="L114">    final AbstractRunnable runnable = new AbstractRunnable(true) {</span>
 
       @Override
       public void doRun() {
 <span class="nc" id="L118">        close();</span>
 <span class="nc" id="L119">      }</span>
     };
-<span class="fc" id="L121">    org.spf4j.base.Runtime.queueHook(0, runnable);</span>
-<span class="fc" id="L122">    return runnable;</span>
+<span class="nc" id="L121">    org.spf4j.base.Runtime.queueHook(0, runnable);</span>
+<span class="nc" id="L122">    return runnable;</span>
   }
 
   @Override
   public MeasurementRecorder getRecorder(final Object forWhat) {
-<span class="fc" id="L127">    Map&lt;Object, MeasurementAccumulator&gt; recorders = threadLocalMeasurementProcessorMap.get();</span>
-<span class="fc" id="L128">    synchronized (recorders) {</span>
-<span class="fc" id="L129">      MeasurementAccumulator result = recorders.get(forWhat);</span>
-<span class="fc bfc" id="L130" title="All 2 branches covered.">      if (result == null) {</span>
-<span class="fc" id="L131">        result = (MeasurementAccumulator) processorTemplate.createLike(</span>
-<span class="fc" id="L132">                Pair.of(processorTemplate.getInfo().getMeasuredEntity(), forWhat));</span>
-<span class="fc" id="L133">        recorders.put(forWhat, result);</span>
+<span class="nc" id="L127">    Map&lt;Object, MeasurementAccumulator&gt; recorders = threadLocalMeasurementProcessorMap.get();</span>
+<span class="nc" id="L128">    synchronized (recorders) {</span>
+<span class="nc" id="L129">      MeasurementAccumulator result = recorders.get(forWhat);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">      if (result == null) {</span>
+<span class="nc" id="L131">        result = (MeasurementAccumulator) processorTemplate.createLike(</span>
+<span class="nc" id="L132">                Pair.of(processorTemplate.getInfo().getMeasuredEntity(), forWhat));</span>
+<span class="nc" id="L133">        recorders.put(forWhat, result);</span>
       }
-<span class="fc" id="L135">      return result;</span>
+<span class="nc" id="L135">      return result;</span>
 <span class="nc" id="L136">    }</span>
   }
 
   @Override
   public Map&lt;Object, MeasurementAccumulator&gt; getEntitiesMeasurements() {
-<span class="fc" id="L141">    Map&lt;Object, MeasurementAccumulator&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L141">    Map&lt;Object, MeasurementAccumulator&gt; result = new HashMap&lt;&gt;();</span>
 
-<span class="fc" id="L143">    synchronized (measurementProcessorMap) {</span>
-<span class="fc" id="L144">      Iterator&lt;Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt;&gt; iterator</span>
-<span class="fc" id="L145">              = measurementProcessorMap.entrySet().iterator();</span>
-<span class="fc bfc" id="L146" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
-<span class="fc" id="L147">        Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt; entry = iterator.next();</span>
-<span class="fc" id="L148">        Map&lt;Object, MeasurementAccumulator&gt; measurements = entry.getValue();</span>
-<span class="fc" id="L149">        synchronized (measurements) {</span>
-<span class="fc bfc" id="L150" title="All 2 branches covered.">          for (Map.Entry&lt;Object, MeasurementAccumulator&gt; lentry : measurements.entrySet()) {</span>
+<span class="nc" id="L143">    synchronized (measurementProcessorMap) {</span>
+<span class="nc" id="L144">      Iterator&lt;Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt;&gt; iterator</span>
+<span class="nc" id="L145">              = measurementProcessorMap.entrySet().iterator();</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">      while (iterator.hasNext()) {</span>
+<span class="nc" id="L147">        Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt; entry = iterator.next();</span>
+<span class="nc" id="L148">        Map&lt;Object, MeasurementAccumulator&gt; measurements = entry.getValue();</span>
+<span class="nc" id="L149">        synchronized (measurements) {</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">          for (Map.Entry&lt;Object, MeasurementAccumulator&gt; lentry : measurements.entrySet()) {</span>
 
-<span class="fc" id="L152">            Object what = lentry.getKey();</span>
-<span class="fc" id="L153">            MeasurementAccumulator existingMeasurement = result.get(what);</span>
-<span class="pc bpc" id="L154" title="1 of 2 branches missed.">            if (existingMeasurement == null) {</span>
-<span class="fc" id="L155">              existingMeasurement = lentry.getValue().createClone();</span>
+<span class="nc" id="L152">            Object what = lentry.getKey();</span>
+<span class="nc" id="L153">            MeasurementAccumulator existingMeasurement = result.get(what);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (existingMeasurement == null) {</span>
+<span class="nc" id="L155">              existingMeasurement = lentry.getValue().createClone();</span>
             } else {
 <span class="nc" id="L157">              existingMeasurement = existingMeasurement.aggregate(lentry.getValue().createClone());</span>
             }
-<span class="fc" id="L159">            result.put(what, existingMeasurement);</span>
-<span class="fc" id="L160">          }</span>
-<span class="pc" id="L161">        }</span>
-<span class="fc" id="L162">      }</span>
-<span class="pc" id="L163">    }</span>
-<span class="fc" id="L164">    return result;</span>
+<span class="nc" id="L159">            result.put(what, existingMeasurement);</span>
+<span class="nc" id="L160">          }</span>
+<span class="nc" id="L161">        }</span>
+<span class="nc" id="L162">      }</span>
+<span class="nc" id="L163">    }</span>
+<span class="nc" id="L164">    return result;</span>
   }
 
   @Override
   @Nonnull
   public Map&lt;Object, MeasurementAccumulator&gt; getEntitiesMeasurementsAndReset() {
-<span class="fc" id="L170">    Map&lt;Object, MeasurementAccumulator&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L170">    Map&lt;Object, MeasurementAccumulator&gt; result = new HashMap&lt;&gt;();</span>
 
-<span class="fc" id="L172">    synchronized (measurementProcessorMap) {</span>
-<span class="fc" id="L173">      Iterator&lt;Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt;&gt; iterator</span>
-<span class="fc" id="L174">              = measurementProcessorMap.entrySet().iterator();</span>
-<span class="fc bfc" id="L175" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
-<span class="fc" id="L176">        Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt; entry = iterator.next();</span>
-<span class="fc" id="L177">        Thread thread = entry.getKey();</span>
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (!thread.isAlive()) {</span>
+<span class="nc" id="L172">    synchronized (measurementProcessorMap) {</span>
+<span class="nc" id="L173">      Iterator&lt;Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt;&gt; iterator</span>
+<span class="nc" id="L174">              = measurementProcessorMap.entrySet().iterator();</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">      while (iterator.hasNext()) {</span>
+<span class="nc" id="L176">        Map.Entry&lt;Thread, Map&lt;Object, MeasurementAccumulator&gt;&gt; entry = iterator.next();</span>
+<span class="nc" id="L177">        Thread thread = entry.getKey();</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (!thread.isAlive()) {</span>
 <span class="nc" id="L179">          iterator.remove();</span>
         }
-<span class="fc" id="L181">        Map&lt;Object, MeasurementAccumulator&gt; measurements = entry.getValue();</span>
-<span class="fc" id="L182">        synchronized (measurements) {</span>
-<span class="fc" id="L183">          Iterator&lt;Map.Entry&lt;Object, MeasurementAccumulator&gt;&gt; iterator1 = measurements.entrySet().iterator();</span>
-<span class="fc bfc" id="L184" title="All 2 branches covered.">          while (iterator1.hasNext()) {</span>
-<span class="fc" id="L185">            Map.Entry&lt;Object, MeasurementAccumulator&gt; lentry = iterator1.next();</span>
-<span class="fc" id="L186">            Object what = lentry.getKey();</span>
-<span class="fc" id="L187">            MeasurementAccumulator existingMeasurement = result.get(what);</span>
-<span class="pc bpc" id="L188" title="1 of 2 branches missed.">            if (existingMeasurement == null) {</span>
-<span class="fc" id="L189">              existingMeasurement = lentry.getValue().reset();</span>
-<span class="pc bpc" id="L190" title="1 of 2 branches missed.">              if (existingMeasurement == null) {</span>
+<span class="nc" id="L181">        Map&lt;Object, MeasurementAccumulator&gt; measurements = entry.getValue();</span>
+<span class="nc" id="L182">        synchronized (measurements) {</span>
+<span class="nc" id="L183">          Iterator&lt;Map.Entry&lt;Object, MeasurementAccumulator&gt;&gt; iterator1 = measurements.entrySet().iterator();</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">          while (iterator1.hasNext()) {</span>
+<span class="nc" id="L185">            Map.Entry&lt;Object, MeasurementAccumulator&gt; lentry = iterator1.next();</span>
+<span class="nc" id="L186">            Object what = lentry.getKey();</span>
+<span class="nc" id="L187">            MeasurementAccumulator existingMeasurement = result.get(what);</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (existingMeasurement == null) {</span>
+<span class="nc" id="L189">              existingMeasurement = lentry.getValue().reset();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">              if (existingMeasurement == null) {</span>
 <span class="nc" id="L191">                iterator1.remove();</span>
               } else {
-<span class="fc" id="L193">                result.put(what, existingMeasurement);</span>
+<span class="nc" id="L193">                result.put(what, existingMeasurement);</span>
               }
             } else {
 <span class="nc" id="L196">              final MeasurementAccumulator vals = lentry.getValue().reset();</span>
@@ -201,61 +201,61 @@ public final class ScalableMeasurementRecorderSource implements
 <span class="nc" id="L201">                iterator1.remove();</span>
               }
             }
-<span class="fc" id="L204">          }</span>
-<span class="pc" id="L205">        }</span>
-<span class="fc" id="L206">      }</span>
-<span class="pc" id="L207">    }</span>
-<span class="fc" id="L208">    return result;</span>
+<span class="nc" id="L204">          }</span>
+<span class="nc" id="L205">        }</span>
+<span class="nc" id="L206">      }</span>
+<span class="nc" id="L207">    }</span>
+<span class="nc" id="L208">    return result;</span>
   }
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public void registerJmx() {
-<span class="fc" id="L213">    MeasurementsInfo info = this.processorTemplate.getInfo();</span>
-<span class="fc" id="L214">    new DynamicMBeanBuilder().withJmxExportObject(this)</span>
-<span class="fc" id="L215">            .withAttribute(new GenericExportedValue&lt;&gt;(&quot;measurements&quot;, info.getDescription(),</span>
-<span class="fc" id="L216">                    this::getMeasurements, null, info.toCompositeType()))</span>
-<span class="fc" id="L217">            .register(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString());</span>
-<span class="fc" id="L218">  }</span>
+<span class="nc" id="L213">    MeasurementsInfo info = this.processorTemplate.getInfo();</span>
+<span class="nc" id="L214">    new DynamicMBeanBuilder().withJmxExportObject(this)</span>
+<span class="nc" id="L215">            .withAttribute(new GenericExportedValue&lt;&gt;(&quot;measurements&quot;, info.getDescription(),</span>
+<span class="nc" id="L216">                    this::getMeasurements, null, info.toCompositeType()))</span>
+<span class="nc" id="L217">            .register(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString());</span>
+<span class="nc" id="L218">  }</span>
 
   @Override
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
   public void close() {
-<span class="fc" id="L223">    synchronized (shutdownHook) {</span>
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">      if (!samplingFuture.isCancelled()) {</span>
-<span class="fc" id="L225">        org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);</span>
-<span class="fc" id="L226">        samplingFuture.cancel(false);</span>
+<span class="nc" id="L223">    synchronized (shutdownHook) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">      if (!samplingFuture.isCancelled()) {</span>
+<span class="nc" id="L225">        org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);</span>
+<span class="nc" id="L226">        samplingFuture.cancel(false);</span>
         try {
-<span class="fc" id="L228">          persister.persist(false);</span>
+<span class="nc" id="L228">          persister.persist(false);</span>
 <span class="nc" id="L229">        } catch (IOException ex) {</span>
 <span class="nc" id="L230">          throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L231">        }</span>
-<span class="fc" id="L232">        Registry.unregister(&quot;org.spf4j.perf.recorders&quot;,</span>
-<span class="fc" id="L233">                this.processorTemplate.getInfo().getMeasuredEntity().toString());</span>
+<span class="nc" id="L231">        }</span>
+<span class="nc" id="L232">        Registry.unregister(&quot;org.spf4j.perf.recorders&quot;,</span>
+<span class="nc" id="L233">                this.processorTemplate.getInfo().getMeasuredEntity().toString());</span>
       }
-<span class="pc" id="L235">    }</span>
-<span class="fc" id="L236">  }</span>
+<span class="nc" id="L235">    }</span>
+<span class="nc" id="L236">  }</span>
 
   @JmxExport(description = &quot;measurements as csv&quot;)
   public String getMeasurementsAsString() {
-<span class="fc" id="L240">    StringWriter sw = new StringWriter(128);</span>
-<span class="fc" id="L241">    Map&lt;Object, MeasurementAccumulator&gt; entitiesMeasurements = getEntitiesMeasurements();</span>
-<span class="fc" id="L242">    MeasurementsInfo info = this.processorTemplate.getInfo();</span>
+<span class="nc" id="L240">    StringWriter sw = new StringWriter(128);</span>
+<span class="nc" id="L241">    Map&lt;Object, MeasurementAccumulator&gt; entitiesMeasurements = getEntitiesMeasurements();</span>
+<span class="nc" id="L242">    MeasurementsInfo info = this.processorTemplate.getInfo();</span>
     try {
-<span class="fc" id="L244">      Csv.writeCsvRow2(sw, &quot;Measured&quot;, (Object[]) info.getMeasurementNames());</span>
-<span class="fc" id="L245">      Csv.writeCsvRow2(sw, &quot;string&quot;, (Object[]) info.getMeasurementUnits());</span>
-<span class="fc bfc" id="L246" title="All 2 branches covered.">      for (Map.Entry&lt;Object, MeasurementAccumulator&gt; entry : entitiesMeasurements.entrySet()) {</span>
-<span class="fc" id="L247">        Csv.writeCsvElement(entry.getKey().toString(), sw);</span>
-<span class="fc" id="L248">        sw.write(',');</span>
-<span class="fc" id="L249">        final long[] measurements = entry.getValue().get();</span>
-<span class="pc bpc" id="L250" title="1 of 2 branches missed.">        if (measurements != null) {</span>
-<span class="fc" id="L251">          Csv.writeCsvRow(sw, measurements);</span>
+<span class="nc" id="L244">      Csv.writeCsvRow2(sw, &quot;Measured&quot;, (Object[]) info.getMeasurementNames());</span>
+<span class="nc" id="L245">      Csv.writeCsvRow2(sw, &quot;string&quot;, (Object[]) info.getMeasurementUnits());</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">      for (Map.Entry&lt;Object, MeasurementAccumulator&gt; entry : entitiesMeasurements.entrySet()) {</span>
+<span class="nc" id="L247">        Csv.writeCsvElement(entry.getKey().toString(), sw);</span>
+<span class="nc" id="L248">        sw.write(',');</span>
+<span class="nc" id="L249">        final long[] measurements = entry.getValue().get();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (measurements != null) {</span>
+<span class="nc" id="L251">          Csv.writeCsvRow(sw, measurements);</span>
         }
-<span class="fc" id="L253">      }</span>
+<span class="nc" id="L253">      }</span>
 
 <span class="nc" id="L255">    } catch (IOException ex) {</span>
 <span class="nc" id="L256">      throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L257">    }</span>
-<span class="fc" id="L258">    return sw.toString();</span>
+<span class="nc" id="L257">    }</span>
+<span class="nc" id="L258">    return sw.toString();</span>
   }
 
   public CompositeDataSupport getMeasurements() {
@@ -305,47 +305,47 @@ public final class ScalableMeasurementRecorderSource implements
     private final MeasurementStore database;
     private final int sampleTimeMillis;
     private final MeasurementAccumulator processor;
-<span class="fc" id="L308">    private volatile long lastRun = 0;</span>
+<span class="nc" id="L308">    private volatile long lastRun = 0;</span>
 
 
     Persister(final MeasurementStore database, final int sampleTimeMillis,
-<span class="fc" id="L312">            final MeasurementAccumulator processor) {</span>
-<span class="fc" id="L313">      super(true);</span>
-<span class="fc" id="L314">      this.database = database;</span>
-<span class="fc" id="L315">      this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="fc" id="L316">      this.processor = processor;</span>
-<span class="fc" id="L317">    }</span>
+<span class="nc" id="L312">            final MeasurementAccumulator processor) {</span>
+<span class="nc" id="L313">      super(true);</span>
+<span class="nc" id="L314">      this.database = database;</span>
+<span class="nc" id="L315">      this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="nc" id="L316">      this.processor = processor;</span>
+<span class="nc" id="L317">    }</span>
 
     @Override
     public void doRun() throws IOException {
-<span class="fc" id="L321">      persist(true);</span>
-<span class="fc" id="L322">    }</span>
+<span class="nc" id="L321">      persist(true);</span>
+<span class="nc" id="L322">    }</span>
 
     public void persist(final boolean warn) throws IOException {
-<span class="fc" id="L325">      long currentTime = System.currentTimeMillis();</span>
-<span class="pc bpc" id="L326" title="1 of 2 branches missed.">      if (currentTime &gt; lastRun) {</span>
-<span class="fc" id="L327">        lastRun = currentTime;</span>
+<span class="nc" id="L325">      long currentTime = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">      if (currentTime &gt; lastRun) {</span>
+<span class="nc" id="L327">        lastRun = currentTime;</span>
         for (MeasurementAccumulator m
-<span class="fc bfc" id="L329" title="All 2 branches covered.">                : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {</span>
-<span class="fc" id="L330">          final MeasurementsInfo info = m.getInfo();</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                : ScalableMeasurementRecorderSource.this.getEntitiesMeasurementsAndReset().values()) {</span>
+<span class="nc" id="L330">          final MeasurementsInfo info = m.getInfo();</span>
           long tableId;
-<span class="fc" id="L332">          synchronized (tableIds) {</span>
-<span class="fc" id="L333">            tableId = tableIds.get(info);</span>
-<span class="fc bfc" id="L334" title="All 2 branches covered.">            if (tableId == 0) {</span>
-<span class="fc" id="L335">              tableId = database.alocateMeasurements(info, sampleTimeMillis);</span>
-<span class="fc" id="L336">              tableIds.put(info, tableId);</span>
+<span class="nc" id="L332">          synchronized (tableIds) {</span>
+<span class="nc" id="L333">            tableId = tableIds.get(info);</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">            if (tableId == 0) {</span>
+<span class="nc" id="L335">              tableId = database.alocateMeasurements(info, sampleTimeMillis);</span>
+<span class="nc" id="L336">              tableIds.put(info, tableId);</span>
             }
-<span class="pc" id="L338">          }</span>
-<span class="fc" id="L339">          final long[] data = m.getThenReset();</span>
-<span class="pc bpc" id="L340" title="1 of 2 branches missed.">          if (data != null) {</span>
-<span class="fc" id="L341">            database.saveMeasurements(tableId, currentTime, data);</span>
+<span class="nc" id="L338">          }</span>
+<span class="nc" id="L339">          final long[] data = m.getThenReset();</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">          if (data != null) {</span>
+<span class="nc" id="L341">            database.saveMeasurements(tableId, currentTime, data);</span>
           }
-<span class="fc" id="L343">        }</span>
+<span class="nc" id="L343">        }</span>
 <span class="nc bnc" id="L344" title="All 2 branches missed.">      } else if (warn) {</span>
 <span class="nc" id="L345">        LOG.warn(&quot;Last measurement recording for {} was at {} current run is {}, something is wrong&quot;,</span>
 <span class="nc" id="L346">                processor.getInfo(), lastRun, currentTime);</span>
       }
-<span class="fc" id="L348">    }</span>
+<span class="nc" id="L348">    }</span>
   }
 
   @Override

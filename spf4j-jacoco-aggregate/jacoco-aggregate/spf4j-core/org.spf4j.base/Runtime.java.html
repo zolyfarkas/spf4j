@@ -274,8 +274,8 @@ public final class Runtime {
   }
 
   public static boolean haveJnaPlatform() {
-<span class="fc" id="L277">    URL resource = Thread.currentThread().getContextClassLoader().getResource(&quot;com/sun/jna/platform/package.html&quot;);</span>
-<span class="pc bpc" id="L278" title="1 of 2 branches missed.">    return (resource != null);</span>
+<span class="nc" id="L277">    URL resource = Thread.currentThread().getContextClassLoader().getResource(&quot;com/sun/jna/platform/package.html&quot;);</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">    return (resource != null);</span>
   }
 
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_RETURN_FALSE&quot;)
@@ -306,7 +306,7 @@ public final class Runtime {
   @CheckReturnValue
   @Deprecated
   public static CharSequence getLsofOutput() {
-<span class="fc" id="L309">    return Lsof.getLsofOutput();</span>
+<span class="nc" id="L309">    return Lsof.getLsofOutput();</span>
   }
 
   /**
@@ -496,10 +496,10 @@ public final class Runtime {
    */
   @Nullable
   public static Thread getMainThread() {
-<span class="fc" id="L499">    Thread[] threads = FastStackCollector.getThreads();</span>
-<span class="pc bpc" id="L500" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
-<span class="fc bfc" id="L501" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
-<span class="fc" id="L502">        return t;</span>
+<span class="nc" id="L499">    Thread[] threads = FastStackCollector.getThreads();</span>
+<span class="nc bnc" id="L500" title="All 2 branches missed.">    for (Thread t : threads) {</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">      if (t.getId() == 1L) {</span>
+<span class="nc" id="L502">        return t;</span>
       }
     }
 <span class="nc" id="L505">    return null;</span>
@@ -510,17 +510,17 @@ public final class Runtime {
    */
   @Nullable
   public static Class&lt;?&gt; getMainClass() {
-<span class="fc" id="L513">    Thread mainThread = getMainThread();</span>
-<span class="pc bpc" id="L514" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
+<span class="nc" id="L513">    Thread mainThread = getMainThread();</span>
+<span class="nc bnc" id="L514" title="All 2 branches missed.">    if (mainThread == null) {</span>
 <span class="nc" id="L515">      return null;</span>
     }
-<span class="fc" id="L517">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
-<span class="pc bpc" id="L518" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
+<span class="nc" id="L517">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">    if (stackTrace.length == 0) {</span>
 <span class="nc" id="L519">      return null;</span>
     }
-<span class="fc" id="L521">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
+<span class="nc" id="L521">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
     try {
-<span class="fc" id="L523">      return Class.forName(className);</span>
+<span class="nc" id="L523">      return Class.forName(className);</span>
 <span class="nc" id="L524">    } catch (ClassNotFoundException ex) {</span>
 <span class="nc" id="L525">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
 <span class="nc" id="L526">      tex.initCause(ex);</span>

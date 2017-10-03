@@ -45,32 +45,32 @@ public interface ObjectAppender&lt;T&gt; {
     void append(T object, Appendable appendTo) throws IOException;
 
 
-<span class="fc" id="L48">    ObjectAppender&lt;Object&gt; TOSTRING_APPENDER = new ObjectAppender&lt;Object&gt;() {</span>
+<span class="nc" id="L48">    ObjectAppender&lt;Object&gt; TOSTRING_APPENDER = new ObjectAppender&lt;Object&gt;() {</span>
         @Override
         public void append(final Object object, final Appendable appendTo) throws IOException {
-<span class="fc bfc" id="L51" title="All 2 branches covered.">          if (object instanceof CharSequence) {</span>
-<span class="fc" id="L52">            appendTo.append((CharSequence) object);</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">          if (object instanceof CharSequence) {</span>
+<span class="nc" id="L52">            appendTo.append((CharSequence) object);</span>
           } else {
-<span class="fc" id="L54">            String toString = null;</span>
-<span class="fc" id="L55">            int i = 10;</span>
+<span class="nc" id="L54">            String toString = null;</span>
+<span class="nc" id="L55">            int i = 10;</span>
             do {
               try {
 <span class="nc" id="L58">                toString = object.toString();</span>
-<span class="fc" id="L59">              } catch (ConcurrentModificationException ex) {</span>
-<span class="fc" id="L60">                i--;</span>
+<span class="nc" id="L59">              } catch (ConcurrentModificationException ex) {</span>
+<span class="nc" id="L60">                i--;</span>
 <span class="nc" id="L61">              }</span>
-<span class="pc bpc" id="L62" title="1 of 4 branches missed.">            } while (toString == null &amp;&amp; i &gt; 0);</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (i != 10) {</span>
-<span class="fc" id="L64">                appendTo.append(&quot;ConcurrentlyModifiedDuringToString:&quot;);</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">            } while (toString == null &amp;&amp; i &gt; 0);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (i != 10) {</span>
+<span class="nc" id="L64">                appendTo.append(&quot;ConcurrentlyModifiedDuringToString:&quot;);</span>
             }
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">            if (toString == null) {</span>
-<span class="fc" id="L67">              appendTo.append(object.getClass().getName()).append('@')</span>
-<span class="fc" id="L68">                      .append(Integer.toHexString(System.identityHashCode(object)));</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (toString == null) {</span>
+<span class="nc" id="L67">              appendTo.append(object.getClass().getName()).append('@')</span>
+<span class="nc" id="L68">                      .append(Integer.toHexString(System.identityHashCode(object)));</span>
             } else {
 <span class="nc" id="L70">              appendTo.append(toString);</span>
             }
           }
-<span class="fc" id="L73">        }</span>
+<span class="nc" id="L73">        }</span>
     };
 
 }

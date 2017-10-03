@@ -56,23 +56,23 @@ public final class Ulimit {
   private static final String[] ULIMIT_CMD;
 
   static {
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">    if (org.spf4j.base.Runtime.isWindows()) {</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (org.spf4j.base.Runtime.isWindows()) {</span>
 <span class="nc" id="L60">      ULIMIT_CMD = null;</span>
     } else {
-<span class="fc" id="L62">      ULIMIT_CMD = findUlimitCmd();</span>
+<span class="nc" id="L62">      ULIMIT_CMD = findUlimitCmd();</span>
     }
-<span class="fc" id="L64">  }</span>
+<span class="nc" id="L64">  }</span>
 
 <span class="nc" id="L66">  private Ulimit() {</span>
 <span class="nc" id="L67">  }</span>
 
   @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
   private static String[] findUlimitCmd() {
-<span class="fc" id="L71">    final File bash = new File(&quot;/bin/bash&quot;);</span>
-<span class="fc" id="L72">    final File sh = new File(&quot;/bin/sh&quot;);</span>
-<span class="fc" id="L73">    final File uLimit = new File(&quot;/usr/bin/ulimit&quot;);</span>
-<span class="pc bpc" id="L74" title="2 of 4 branches missed.">    if (uLimit.exists() &amp;&amp; uLimit.canExecute()) {</span>
-<span class="fc" id="L75">      return new String[]{uLimit.getPath()};</span>
+<span class="nc" id="L71">    final File bash = new File(&quot;/bin/bash&quot;);</span>
+<span class="nc" id="L72">    final File sh = new File(&quot;/bin/sh&quot;);</span>
+<span class="nc" id="L73">    final File uLimit = new File(&quot;/usr/bin/ulimit&quot;);</span>
+<span class="nc bnc" id="L74" title="All 4 branches missed.">    if (uLimit.exists() &amp;&amp; uLimit.canExecute()) {</span>
+<span class="nc" id="L75">      return new String[]{uLimit.getPath()};</span>
 <span class="nc bnc" id="L76" title="All 4 branches missed.">    } else if (bash.exists() &amp;&amp; bash.canExecute()) {</span>
 <span class="nc" id="L77">      return new String[]{bash.getPath(), &quot;-c&quot;, &quot;ulimit&quot;};</span>
 <span class="nc bnc" id="L78" title="All 4 branches missed.">    } else if (sh.exists() &amp;&amp; sh.canExecute()) {</span>
@@ -88,29 +88,29 @@ public final class Ulimit {
    * Integer.MAX_VALUE
    */
   public static int runUlimit(final String... options) {
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (ULIMIT_CMD == null) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">    if (ULIMIT_CMD == null) {</span>
 <span class="nc" id="L92">      Lazy.LOG.warn(&quot;Ulimit not available, assuming no limits&quot;);</span>
 <span class="nc" id="L93">      return Integer.MAX_VALUE;</span>
     }
     int mfiles;
     try {
-<span class="fc" id="L97">      String[] cmd = Arrays.concat(ULIMIT_CMD, options);</span>
-<span class="fc" id="L98">      String result = org.spf4j.base.Runtime.run(cmd, 10000).toString();</span>
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">      if (result.contains(&quot;unlimited&quot;)) {</span>
+<span class="nc" id="L97">      String[] cmd = Arrays.concat(ULIMIT_CMD, options);</span>
+<span class="nc" id="L98">      String result = org.spf4j.base.Runtime.run(cmd, 10000).toString();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">      if (result.contains(&quot;unlimited&quot;)) {</span>
 <span class="nc" id="L100">        mfiles = Integer.MAX_VALUE;</span>
       } else {
         try {
-<span class="fc" id="L103">          mfiles = Integer.parseInt(result.trim());</span>
+<span class="nc" id="L103">          mfiles = Integer.parseInt(result.trim());</span>
 <span class="nc" id="L104">        } catch (NumberFormatException ex) {</span>
 <span class="nc" id="L105">          Lazy.LOG.warn(&quot;Error while parsing ulimit output, assuming no limit&quot;, ex);</span>
 <span class="nc" id="L106">          mfiles = Integer.MAX_VALUE;</span>
-<span class="fc" id="L107">        }</span>
+<span class="nc" id="L107">        }</span>
       }
 <span class="nc" id="L109">    } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {</span>
 <span class="nc" id="L110">      Lazy.LOG.warn(&quot;Error while running ulimit, assuming no limit&quot;, ex);</span>
 <span class="nc" id="L111">      mfiles = Integer.MAX_VALUE;</span>
-<span class="fc" id="L112">    }</span>
-<span class="fc" id="L113">    return mfiles;</span>
+<span class="nc" id="L112">    }</span>
+<span class="nc" id="L113">    return mfiles;</span>
   }
 
 }

@@ -45,7 +45,7 @@ import org.spf4j.base.Either;
  */
 @ThreadSafe
 @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
-<span class="fc" id="L48">public class FutureBean&lt;T&gt; implements Future&lt;T&gt; {</span>
+<span class="nc" id="L48">public class FutureBean&lt;T&gt; implements Future&lt;T&gt; {</span>
     
     private volatile Either&lt;T, ? extends ExecutionException&gt; resultStore;
 
@@ -72,10 +72,10 @@ import org.spf4j.base.Either;
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
     @SuppressFBWarnings({&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;, &quot;MDM_WAIT_WITHOUT_TIMEOUT&quot; })
     public final synchronized T get() throws InterruptedException, ExecutionException {
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        while (resultStore == null) {</span>
-<span class="fc" id="L76">            this.wait();</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        while (resultStore == null) {</span>
+<span class="nc" id="L76">            this.wait();</span>
         }
-<span class="fc" id="L78">        return processResult(resultStore);</span>
+<span class="nc" id="L78">        return processResult(resultStore);</span>
     }
 
     @Override
@@ -97,21 +97,21 @@ import org.spf4j.base.Either;
     }
 
     public static &lt;T&gt; T processResult(final Either&lt;T, ? extends ExecutionException&gt; result) throws ExecutionException {
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (result.isLeft()) {</span>
-<span class="fc" id="L101">            return result.getLeft();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (result.isLeft()) {</span>
+<span class="nc" id="L101">            return result.getLeft();</span>
         } else {
 <span class="nc" id="L103">            throw result.getRight();</span>
         }
     }
 
     public final synchronized void setResult(final T result) {
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (resultStore != null) {</span>
 <span class="nc" id="L109">            throw new IllegalStateException(&quot;cannot set result multiple times &quot; +  result);</span>
         }
-<span class="fc" id="L111">        resultStore = Either.left(result);</span>
-<span class="fc" id="L112">        done();</span>
-<span class="fc" id="L113">        this.notifyAll();</span>
-<span class="fc" id="L114">    }</span>
+<span class="nc" id="L111">        resultStore = Either.left(result);</span>
+<span class="nc" id="L112">        done();</span>
+<span class="nc" id="L113">        this.notifyAll();</span>
+<span class="nc" id="L114">    }</span>
     
     public final synchronized void setExceptionResult(final ExecutionException result) {
 <span class="nc bnc" id="L117" title="All 2 branches missed.">        if (resultStore != null) {</span>
@@ -123,7 +123,7 @@ import org.spf4j.base.Either;
 <span class="nc" id="L123">    }</span>
     
     public void done() {
-<span class="fc" id="L126">    }</span>
+<span class="nc" id="L126">    }</span>
 
     @Override
     public final String toString() {

@@ -63,19 +63,19 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
     private final LoadingCache&lt;Object, MeasurementRecorder&gt; recorders;
 
     public DirectRecorderSource(final Object forWhat, final String description,
-<span class="fc" id="L66">            final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
-<span class="fc" id="L67">        recorders = new UnboundedLoadingCache(16,</span>
+<span class="nc" id="L66">            final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
+<span class="nc" id="L67">        recorders = new UnboundedLoadingCache(16,</span>
                 new CreateDirectRecorder(forWhat, description, uom, sampleTimeMillis, store));
-<span class="fc" id="L69">    }</span>
+<span class="nc" id="L69">    }</span>
 
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {
-<span class="fc" id="L73">        return recorders.getUnchecked(forWhat);</span>
+<span class="nc" id="L73">        return recorders.getUnchecked(forWhat);</span>
     }
 
     @Override
     public void close() {
-<span class="fc" id="L78">    }</span>
+<span class="nc" id="L78">    }</span>
 
     private static final class CreateDirectRecorder extends CacheLoader&lt;Object, MeasurementRecorder&gt; {
 
@@ -86,17 +86,17 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
         private final MeasurementStore store;
 
         CreateDirectRecorder(final Object forWhat, final String description,
-<span class="fc" id="L89">                final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
-<span class="fc" id="L90">            this.forWhat = forWhat;</span>
-<span class="fc" id="L91">            this.description = description;</span>
-<span class="fc" id="L92">            this.uom = uom;</span>
-<span class="fc" id="L93">            this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="fc" id="L94">            this.store = store;</span>
-<span class="fc" id="L95">        }</span>
+<span class="nc" id="L89">                final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
+<span class="nc" id="L90">            this.forWhat = forWhat;</span>
+<span class="nc" id="L91">            this.description = description;</span>
+<span class="nc" id="L92">            this.uom = uom;</span>
+<span class="nc" id="L93">            this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="nc" id="L94">            this.store = store;</span>
+<span class="nc" id="L95">        }</span>
 
         @Override
         public MeasurementRecorder load(final Object key) {
-<span class="fc" id="L99">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
+<span class="nc" id="L99">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
                     uom, sampleTimeMillis, store);
         }
     }

@@ -70,10 +70,10 @@ public final class DynamicMBeanBuilder {
   }
 
   public DynamicMBeanBuilder withAttribute(final ExportedValue&lt;?&gt; val) {
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">    if (exportedAttributes.put(val.getName(), val) != null) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    if (exportedAttributes.put(val.getName(), val) != null) {</span>
 <span class="nc" id="L74">      throw new IllegalArgumentException(&quot;Duplicate attribute: &quot; + val);</span>
     }
-<span class="fc" id="L76">    return this;</span>
+<span class="nc" id="L76">    return this;</span>
   }
 
   public DynamicMBeanBuilder withAttributes(final ExportedValue&lt;?&gt;... vals) {
@@ -84,20 +84,20 @@ public final class DynamicMBeanBuilder {
   }
 
   public DynamicMBeanBuilder withAttributes(final Map&lt;String, Object&gt; mapAttributes) {
-<span class="fc bfc" id="L87" title="All 2 branches covered.">    for (Map.Entry&lt;String, Object&gt; entry : mapAttributes.entrySet()) {</span>
-<span class="fc" id="L88">      String key = entry.getKey();</span>
-<span class="pc bpc" id="L89" title="1 of 4 branches missed.">      if (key == null || key.isEmpty()) {</span>
-<span class="fc" id="L90">        continue; // do not exportAgg crap namep mapAttributes.</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : mapAttributes.entrySet()) {</span>
+<span class="nc" id="L88">      String key = entry.getKey();</span>
+<span class="nc bnc" id="L89" title="All 4 branches missed.">      if (key == null || key.isEmpty()) {</span>
+<span class="nc" id="L90">        continue; // do not exportAgg crap namep mapAttributes.</span>
       }
       try {
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (exportedAttributes.put(key, new MapExportedValue(mapAttributes, null, key, entry.getValue())) != null) {</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (exportedAttributes.put(key, new MapExportedValue(mapAttributes, null, key, entry.getValue())) != null) {</span>
 <span class="nc" id="L94">          throw new IllegalArgumentException(&quot;Duplicate attribute: &quot; + key);</span>
         }
 <span class="nc" id="L96">      } catch (NotSerializableException ex) {</span>
 <span class="nc" id="L97">        throw new IllegalArgumentException(&quot;Unable to export map entry via JMX: &quot; + entry, ex);</span>
-<span class="fc" id="L98">      }</span>
-<span class="fc" id="L99">    }</span>
-<span class="fc" id="L100">    return this;</span>
+<span class="nc" id="L98">      }</span>
+<span class="nc" id="L99">    }</span>
+<span class="nc" id="L100">    return this;</span>
   }
 
   /**
@@ -114,7 +114,7 @@ public final class DynamicMBeanBuilder {
         }
 <span class="fc bfc" id="L115" title="All 2 branches covered.">        if (Modifier.isStatic(method.getModifiers())) {</span>
 <span class="fc" id="L116">          JmxExport annot = method.getAnnotation(JmxExport.class);</span>
-<span class="fc bfc" id="L117" title="All 2 branches covered.">          if (annot != null) {</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">          if (annot != null) {</span>
 <span class="fc" id="L118">            exportMethod(method, null, attrs, exportedOps, annot);</span>
           }
         }
@@ -122,8 +122,8 @@ public final class DynamicMBeanBuilder {
     } else {
 <span class="fc" id="L123">      final Class&lt;? extends Object&gt; oClass = object.getClass();</span>
 <span class="fc bfc" id="L124" title="All 2 branches covered.">      for (Method method : oClass.getMethods()) {</span>
-<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (method.isSynthetic()) {</span>
-<span class="fc" id="L126">          continue;</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (method.isSynthetic()) {</span>
+<span class="nc" id="L126">          continue;</span>
         }
 <span class="fc" id="L128">        JmxExport annot = method.getAnnotation(JmxExport.class);</span>
 <span class="fc bfc" id="L129" title="All 2 branches covered.">        if (annot != null) {</span>
@@ -190,20 +190,20 @@ public final class DynamicMBeanBuilder {
    */
   @Nullable
   public ExportedValuesMBean extend(final String packageName, final String mbeanName) {
-<span class="pc bpc" id="L193" title="3 of 4 branches missed.">    if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
+<span class="nc bnc" id="L193" title="All 4 branches missed.">    if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
 <span class="nc" id="L194">      return null;</span>
     }
-<span class="fc" id="L196">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
-<span class="fc" id="L197">    synchronized (Registry.class) {</span>
-<span class="fc" id="L198">      ExportedValuesMBean existing = (ExportedValuesMBean) Registry.unregister(objectName);</span>
+<span class="nc" id="L196">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
+<span class="nc" id="L197">    synchronized (Registry.class) {</span>
+<span class="nc" id="L198">      ExportedValuesMBean existing = (ExportedValuesMBean) Registry.unregister(objectName);</span>
       ExportedValuesMBean mbean;
-<span class="pc bpc" id="L200" title="1 of 2 branches missed.">      if (existing == null) {</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">      if (existing == null) {</span>
 <span class="nc" id="L201">        mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);</span>
       } else {
-<span class="fc" id="L203">        mbean = new ExportedValuesMBean(existing, exportedAttributes, exportedOps);</span>
+<span class="nc" id="L203">        mbean = new ExportedValuesMBean(existing, exportedAttributes, exportedOps);</span>
       }
-<span class="fc" id="L205">      Registry.registerMBean(objectName, mbean);</span>
-<span class="fc" id="L206">      return mbean;</span>
+<span class="nc" id="L205">      Registry.registerMBean(objectName, mbean);</span>
+<span class="nc" id="L206">      return mbean;</span>
 <span class="nc" id="L207">    }</span>
 
   }
@@ -216,8 +216,8 @@ public final class DynamicMBeanBuilder {
    */
   @Nullable
   public ExportedValuesMBean replace(final String packageName, final String mbeanName) {
-<span class="fc bfc" id="L219" title="All 4 branches covered.">    if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
-<span class="fc" id="L220">      return null;</span>
+<span class="pc bpc" id="L219" title="1 of 4 branches missed.">    if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
+<span class="nc" id="L220">      return null;</span>
     }
 <span class="fc" id="L222">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
 <span class="fc" id="L223">    ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);</span>
@@ -234,13 +234,13 @@ public final class DynamicMBeanBuilder {
    */
   @Nullable
   public ExportedValuesMBean register(final String packageName, final String mbeanName) {
-<span class="pc bpc" id="L237" title="3 of 4 branches missed.">    if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
+<span class="nc bnc" id="L237" title="All 4 branches missed.">    if (exportedAttributes.isEmpty() &amp;&amp; exportedOps.isEmpty()) {</span>
 <span class="nc" id="L238">      return null;</span>
     }
-<span class="fc" id="L240">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
-<span class="fc" id="L241">    ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);</span>
-<span class="fc" id="L242">    Registry.registerIfNotExistsMBean(objectName, mbean);</span>
-<span class="fc" id="L243">    return mbean;</span>
+<span class="nc" id="L240">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
+<span class="nc" id="L241">    ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);</span>
+<span class="nc" id="L242">    Registry.registerIfNotExistsMBean(objectName, mbean);</span>
+<span class="nc" id="L243">    return mbean;</span>
   }
 
 
@@ -262,13 +262,13 @@ static void exportMethod(final Method method,
 <span class="fc" id="L262">      String valueName = methodName.substring(&quot;is&quot;.length());</span>
 <span class="fc" id="L263">      valueName = Strings.withFirstCharLower(valueName);</span>
 <span class="fc" id="L264">      addGetter(valueName, exportedAttributes, annot, method, object);</span>
-<span class="fc bfc" id="L265" title="All 4 branches covered.">    } else if (nrParams == 1 &amp;&amp; methodName.startsWith(&quot;set&quot;)) {</span>
-<span class="fc" id="L266">      addSetter(methodName, exportedAttributes, method, object, annot);</span>
+<span class="pc bpc" id="L265" title="1 of 4 branches missed.">    } else if (nrParams == 1 &amp;&amp; methodName.startsWith(&quot;set&quot;)) {</span>
+<span class="nc" id="L266">      addSetter(methodName, exportedAttributes, method, object, annot);</span>
     } else {
 <span class="fc" id="L268">      String opName = methodName;</span>
 <span class="fc" id="L269">      String nameOverwrite = annot.value();</span>
-<span class="fc bfc" id="L270" title="All 2 branches covered.">      if (!&quot;&quot;.equals(nameOverwrite)) {</span>
-<span class="fc" id="L271">        opName = nameOverwrite;</span>
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">      if (!&quot;&quot;.equals(nameOverwrite)) {</span>
+<span class="nc" id="L271">        opName = nameOverwrite;</span>
       }
 <span class="fc" id="L273">      ExportedOperation existing = exportedOps.put(opName, new ExportedOperationImpl(opName,</span>
 <span class="fc" id="L274">              annot.description(), method, object, annot.mapOpenType()));</span>
@@ -280,35 +280,35 @@ static void exportMethod(final Method method,
 
   private static void addSetter(final String methodName, final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedAttributes,
           final Method method, final Object object, final JmxExport annot) {
-<span class="fc" id="L283">    String customName = annot.value();</span>
+<span class="nc" id="L283">    String customName = annot.value();</span>
     String valueName;
-<span class="fc bfc" id="L285" title="All 2 branches covered.">    if (&quot;&quot;.equals(customName)) {</span>
-<span class="fc" id="L286">      valueName = methodName.substring(&quot;set&quot;.length());</span>
-<span class="fc" id="L287">      valueName = Strings.withFirstCharLower(valueName);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">    if (&quot;&quot;.equals(customName)) {</span>
+<span class="nc" id="L286">      valueName = methodName.substring(&quot;set&quot;.length());</span>
+<span class="nc" id="L287">      valueName = Strings.withFirstCharLower(valueName);</span>
     } else {
-<span class="fc" id="L289">      valueName = customName;</span>
+<span class="nc" id="L289">      valueName = customName;</span>
     }
 
-<span class="fc" id="L292">    BeanExportedValue existing = (BeanExportedValue) exportedAttributes.get(valueName);</span>
-<span class="fc" id="L293">    Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];</span>
-<span class="pc bpc" id="L294" title="1 of 2 branches missed.">    if (existing == null) {</span>
+<span class="nc" id="L292">    BeanExportedValue existing = (BeanExportedValue) exportedAttributes.get(valueName);</span>
+<span class="nc" id="L293">    Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">    if (existing == null) {</span>
 <span class="nc" id="L295">      existing = new BeanExportedValue(valueName, null,</span>
 <span class="nc" id="L296">              null, method, object, parameterType, annot.mapOpenType());</span>
     } else {
-<span class="pc bpc" id="L298" title="1 of 2 branches missed.">      if (existing.getValueType() != parameterType) {</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">      if (existing.getValueType() != parameterType) {</span>
 <span class="nc" id="L299">        throw new IllegalArgumentException(</span>
                 &quot;Getter and setter icorrectly defined &quot; + existing + ' ' + method);
       }
-<span class="fc" id="L302">      existing = existing.withSetter(method);</span>
+<span class="nc" id="L302">      existing = existing.withSetter(method);</span>
     }
-<span class="fc" id="L304">    exportedAttributes.put(valueName, existing);</span>
-<span class="fc" id="L305">  }</span>
+<span class="nc" id="L304">    exportedAttributes.put(valueName, existing);</span>
+<span class="nc" id="L305">  }</span>
 
   private static void addGetter(final String pvalueName,
           final Map&lt;String, ExportedValue&lt;?&gt;&gt; exported,
           final JmxExport annot, final Method method, final Object object) {
 <span class="fc" id="L310">    String customName = annot.value();</span>
-<span class="fc bfc" id="L311" title="All 2 branches covered.">    String valueName = &quot;&quot;.equals(customName) ? pvalueName : customName;</span>
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">    String valueName = &quot;&quot;.equals(customName) ? pvalueName : customName;</span>
 <span class="fc" id="L312">    BeanExportedValue existing = (BeanExportedValue) exported.get(valueName);</span>
 <span class="pc bpc" id="L313" title="1 of 2 branches missed.">    if (existing == null) {</span>
 <span class="fc" id="L314">      existing = new BeanExportedValue(</span>

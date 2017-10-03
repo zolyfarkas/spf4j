@@ -47,7 +47,7 @@ import org.spf4j.perf.MeasurementRecorder;
  */
 public final class DirectStoreAccumulator implements MeasurementRecorder, Closeable {
 
-<span class="fc" id="L50">    private static final String[] MEASUREMENTS = {&quot;value&quot;};</span>
+<span class="nc" id="L50">    private static final String[] MEASUREMENTS = {&quot;value&quot;};</span>
 
     private final MeasurementsInfo info;
     private final MeasurementStore measurementStore;
@@ -58,16 +58,16 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
     private volatile long lastRecordedValue;
 
     public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
-<span class="fc" id="L61">            final int sampleTimeMillis, final MeasurementStore measurementStore) {</span>
-<span class="fc" id="L62">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+<span class="nc" id="L61">            final int sampleTimeMillis, final MeasurementStore measurementStore) {</span>
+<span class="nc" id="L62">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
                 MEASUREMENTS, new String[]{unitOfMeasurement});
-<span class="fc" id="L64">        this.measurementStore = measurementStore;</span>
+<span class="nc" id="L64">        this.measurementStore = measurementStore;</span>
         try {
-<span class="fc" id="L66">            tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);</span>
+<span class="nc" id="L66">            tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);</span>
 <span class="nc" id="L67">        } catch (IOException ex) {</span>
 <span class="nc" id="L68">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L69">        }</span>
-<span class="fc" id="L70">    }</span>
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">    }</span>
 
     @JmxExport
     public String getUnitOfMeasurement() {
@@ -77,24 +77,24 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
 
     @Override
     public void record(final long measurement) {
-<span class="fc" id="L80">        recordAt(System.currentTimeMillis(), measurement);</span>
-<span class="fc" id="L81">    }</span>
+<span class="nc" id="L80">        recordAt(System.currentTimeMillis(), measurement);</span>
+<span class="nc" id="L81">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
     public synchronized void recordAt(final long timestampMillis, final long measurement) {
-<span class="fc" id="L86">        lastRecordedValue = measurement;</span>
-<span class="fc" id="L87">        lastRecordedTS = timestampMillis;</span>
+<span class="nc" id="L86">        lastRecordedValue = measurement;</span>
+<span class="nc" id="L87">        lastRecordedTS = timestampMillis;</span>
         try {
-<span class="fc" id="L89">            measurementStore.saveMeasurements(tableId, timestampMillis, measurement);</span>
+<span class="nc" id="L89">            measurementStore.saveMeasurements(tableId, timestampMillis, measurement);</span>
 <span class="nc" id="L90">        } catch (IOException ex) {</span>
 <span class="nc" id="L91">            throw new RuntimeException(ex);</span>
-<span class="fc" id="L92">        }</span>
-<span class="fc" id="L93">    }</span>
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">    }</span>
 
     public void registerJmx() {
-<span class="fc" id="L96">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString(), this);</span>
-<span class="fc" id="L97">    }</span>
+<span class="nc" id="L96">        Registry.export(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString(), this);</span>
+<span class="nc" id="L97">    }</span>
 
     @Override
     public void close() {
