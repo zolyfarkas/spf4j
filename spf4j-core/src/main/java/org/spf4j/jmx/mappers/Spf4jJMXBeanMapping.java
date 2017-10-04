@@ -31,6 +31,7 @@
  */
 package org.spf4j.jmx.mappers;
 
+import com.google.common.reflect.TypeToken;
 import com.sun.jmx.mbeanserver.MXBeanMapping;
 import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -364,7 +365,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
   static class ListMXBeanType extends Spf4jJMXBeanMapping {
 
     private final ParameterizedType javaType;
-    private final JMXBeanMapping paramType;
+    private final JMXBeanMapping paramMapping;
     private final Class<?> rawType;
 
     ListMXBeanType(final ParameterizedType pt, final JMXBeanMappingSupplier mappings)
@@ -373,25 +374,27 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       this.rawType = (Class) pt.getRawType();
       final Type[] argTypes = pt.getActualTypeArguments();
       assert (argTypes.length == 1);
+      Type argType = argTypes[0];
 
-      if (!(argTypes[0] instanceof Class)) {
-        throw new IllegalArgumentException("Element Type for " + pt
-                + " not supported");
-      }
-      final Class<?> et = (Class<?>) argTypes[0];
+//      if (!(argTypes[0] instanceof Class)) {
+//        throw new IllegalArgumentException("Element Type for " + pt
+//                + " not supported");
+//      }
+      TypeToken<?> tt = TypeToken.of(argType);
+      final Class<?> et = tt.getRawType();
       if (et.isArray()) {
         throw new IllegalArgumentException("Element Type for " + pt
                 + " not supported");
       }
-      paramType = mappings.get(et);
-      String cname = "[L" + paramType.getMappedType().getName() + ";";
+      paramMapping = mappings.get(argType);
+      String cname = "[L" + paramMapping.getMappedType().getName() + ";";
       try {
         mappedTypeClass = Class.forName(cname);
       } catch (ClassNotFoundException e) {
         throw new IllegalArgumentException("Array class not found " + cname, e);
       }
       try {
-        openType = new ArrayType<>(1, paramType.getOpenType());
+        openType = new ArrayType<>(1, paramMapping.getOpenType());
       } catch (OpenDataException ex) {
         throw new IllegalArgumentException("Invalid arg " + pt, ex);
       }
@@ -406,20 +409,20 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     public Object toOpenValue(final Object data) throws OpenDataException {
       if (data instanceof Collection) {
         final Collection<Object> list = (Collection<Object>) data;
-        final Object[] openArray = (Object[]) Array.newInstance(paramType.getMappedType(),
+        final Object[] openArray = (Object[]) Array.newInstance(paramMapping.getMappedType(),
                 list.size());
         int i = 0;
         for (Object o : list) {
-          openArray[i++] = paramType.toOpenValue(o);
+          openArray[i++] = paramMapping.toOpenValue(o);
         }
         return openArray;
       } else {
         final Iterable<Object> list = (Iterable<Object>) data;
         List result = new ArrayList(16);
         for (Object o : list) {
-          result.add(paramType.toOpenValue(o));
+          result.add(paramMapping.toOpenValue(o));
         }
-        return result.toArray((Object[]) Array.newInstance(paramType.getMappedType(),
+        return result.toArray((Object[]) Array.newInstance(paramMapping.getMappedType(),
                 result.size()));
 
       }
@@ -449,7 +452,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
         }
       }
       for (Object o : openArray) {
-        result.add(paramType.fromOpenValue(o));
+        result.add(paramMapping.fromOpenValue(o));
       }
       return result;
     }

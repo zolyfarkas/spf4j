@@ -52,6 +52,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ComparablePair;
+import org.spf4j.base.SerializablePair;
 import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -209,6 +210,25 @@ public class OpenTypeConverterTest {
     ComparablePair<Integer, TableDef> pair =
             (ComparablePair<Integer, TableDef>) mxBeanMapping2.fromOpenValue(ov);
     Assert.assertEquals(3L, pair.getFirst().longValue());
+  }
+
+
+
+  @Test
+  public void testListSerializablePair() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping mxBeanMapping2 =
+            conv.get((new TypeToken<List<ComparablePair<Integer, TableDef>>>() { }).getType());
+    Assert.assertNotNull(mxBeanMapping2);
+    Object ov = mxBeanMapping2.toOpenValue(Arrays.asList(Pair.of(3, TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
+            .setSampleTime(10)
+            .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                    .setDescription("bla").setUnitOfMeasurement("um").build())).build())));
+    List<ComparablePair<Integer, TableDef>> res =
+            (List<ComparablePair<Integer, TableDef>>) mxBeanMapping2.fromOpenValue(ov);
+   ComparablePair<Integer, TableDef> pair =
+            (ComparablePair<Integer, TableDef>) res.get(0);
+   Assert.assertEquals(3L, pair.getFirst().longValue());
+
   }
 
 
