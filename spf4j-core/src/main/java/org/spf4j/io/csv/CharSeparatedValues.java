@@ -246,7 +246,7 @@ public final class CharSeparatedValues {
     } catch (IOException ex) {
       throw new IOException("IO issue at line " + lineNr, ex);
     } catch (RuntimeException ex) {
-      throw new CsvRuntimeException("Exception at " + lineNr, ex);
+      throw new CsvRuntimeException("Exception at line " + lineNr, ex);
     }
     handler.endRow();
     return handler.eof();
