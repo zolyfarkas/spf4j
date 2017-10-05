@@ -31,7 +31,9 @@
  */
 package org.spf4j.jmx;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Arrays;
 import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ import javax.management.DynamicMBean;
 import javax.management.ImmutableDescriptor;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
@@ -52,9 +55,16 @@ import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Reflections;
+import org.spf4j.base.Throwables;
 
+// We att the ex history to the message string, since the client is not required to have the exception classes
+@SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
 final class ExportedValuesMBean implements DynamicMBean {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExportedValuesMBean.class);
 
   private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
 
@@ -136,15 +146,16 @@ final class ExportedValuesMBean implements DynamicMBean {
    * {@inheritDoc}
    */
   @Override
-  public Object getAttribute(final String name) throws AttributeNotFoundException {
+  public Object getAttribute(final String name) throws AttributeNotFoundException, MBeanException {
     ExportedValue<?> result = exportedValues.get(name);
     if (result == null) {
       throw new AttributeNotFoundException(name);
     }
     try {
       return result.get();
-    } catch (OpenDataException ex) {
-      throw new UncheckedExecutionException(ex);
+    } catch (OpenDataException | RuntimeException ex) {
+      LOG.error("Exception while getting attr {}", name, ex);
+      throw new MBeanException(null, "Error getting attribute" + name + " detail:\n" + Throwables.toString(ex));
     }
   }
 
@@ -161,10 +172,10 @@ final class ExportedValuesMBean implements DynamicMBean {
     }
     try {
       result.set(attribute.getValue());
-    } catch (InvalidObjectException ex) {
-      InvalidAttributeValueException tex = new InvalidAttributeValueException("Invalid value " + attribute);
-      tex.addSuppressed(ex);
-      throw tex;
+    } catch (InvalidObjectException | RuntimeException ex) {
+      LOG.warn("Exception while setting attr {}", attribute, ex);
+      throw new InvalidAttributeValueException("Invalid value " + attribute
+              + " detail:\n" + Throwables.toString(ex));
     }
   }
 
@@ -176,9 +187,15 @@ final class ExportedValuesMBean implements DynamicMBean {
     AttributeList list = new AttributeList(names.length);
     for (String name : names) {
       try {
-        list.add(new Attribute(name, exportedValues.get(name).get()));
-      } catch (OpenDataException ex) {
-        throw new UncheckedExecutionException(ex);
+        ExportedValue<?> attr = exportedValues.get(name);
+        if (attr == null) {
+          throw new IllegalArgumentException("No attribute with name " + name);
+        }
+        list.add(new Attribute(name, attr.get()));
+      } catch (OpenDataException | RuntimeException ex) {
+          LOG.error("Exception getting attribute {}", name, ex);
+          throw new RuntimeException("Exception while getting attributes " + Arrays.toString(names) + ", detail:\n"
+                  + Throwables.toString(ex));
       }
     }
     return list;
@@ -196,8 +213,10 @@ final class ExportedValuesMBean implements DynamicMBean {
         try {
           eval.set(attr.getValue());
           result.add(attr);
-        } catch (InvalidAttributeValueException | InvalidObjectException ex) {
-          throw new UncheckedExecutionException(ex);
+        } catch (InvalidAttributeValueException | InvalidObjectException | RuntimeException ex) {
+            LOG.warn("Exception while setting attr {}", attr, ex);
+            throw new RuntimeException("Exception while setting attributes " + list + ", detail:\n"
+                    + Throwables.toString(ex));
         }
       }
     }
@@ -208,11 +227,13 @@ final class ExportedValuesMBean implements DynamicMBean {
    * {@inheritDoc}
    */
   @Override
-  public Object invoke(final String name, final Object[] args, final String[] sig) {
+  public Object invoke(final String name, final Object[] args, final String[] sig) throws MBeanException {
     try {
       return exportedOperations.get(name).invoke(args);
-    } catch (OpenDataException | InvalidObjectException ex) {
-      throw new UncheckedExecutionException(ex);
+    } catch (OpenDataException | InvalidObjectException | RuntimeException ex) {
+      LOG.warn("Exception while invoking operation {}({})", name, args, ex);
+      throw new MBeanException(null, "Exception invoking" + name + " with " +  Arrays.toString(args) + ", detail:\n"
+              + Throwables.toString(ex));
     }
   }
 
