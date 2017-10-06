@@ -123,7 +123,7 @@ public class LifoThreadPoolExecutorTest {
           try {
             Thread.sleep(Long.MAX_VALUE);
           } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
+            Thread.currentThread().interrupt();
           }
         });
 
