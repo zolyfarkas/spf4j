@@ -323,11 +323,7 @@ public final class AttributedString {
      * @exception IllegalArgumentException if the AttributedString has length 0
      * (attributes cannot be applied to a 0-length range).
      */
-    public void addAttribute(Attribute attribute, Object value) {
-
-        if (attribute == null) {
-            throw new NullPointerException();
-        }
+    public void addAttribute(@Nonnull Attribute attribute, Object value) {
 
         int len = length();
         if (len == 0) {
@@ -348,12 +344,8 @@ public final class AttributedString {
      * greater than the length of the string, or beginIndex and endIndex together don't
      * define a non-empty subrange of the string.
      */
-    public void addAttribute(Attribute attribute, Object value,
+    public void addAttribute(@Nonnull Attribute attribute, Object value,
             int beginIndex, int endIndex) {
-
-        if (attribute == null) {
-            throw new NullPointerException();
-        }
 
         if (beginIndex < 0 || endIndex > length() || beginIndex >= endIndex) {
             throw new IllegalArgumentException("Invalid substring range " + beginIndex + ',' + endIndex);
@@ -375,13 +367,9 @@ public final class AttributedString {
      * subrange of the string and the attributes parameter is not an
      * empty Map.
      */
-    public void addAttributes(Map<? extends Attribute, ?> attributes,
+    public void addAttributes(@Nonnull Map<? extends Attribute, ?> attributes,
                               int beginIndex, int endIndex)
     {
-        if (attributes == null) {
-            throw new NullPointerException();
-        }
-
         if (beginIndex < 0 || endIndex > length() || beginIndex > endIndex) {
             throw new IllegalArgumentException("Invalid substring range " + beginIndex + ',' + endIndex);
         }
