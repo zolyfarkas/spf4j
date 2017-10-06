@@ -52,86 +52,86 @@ public final class Version implements Comparable&lt;Version&gt;, Serializable {
   private final String image;
 
   public Version(final String version) {
-<span class="nc" id="L55">    this((CharSequence) version);</span>
-<span class="nc" id="L56">  }</span>
+<span class="fc" id="L55">    this((CharSequence) version);</span>
+<span class="fc" id="L56">  }</span>
 
-<span class="nc" id="L58">  public Version(final CharSequence version) {</span>
-<span class="nc" id="L59">    this.image = version.toString();</span>
-<span class="nc" id="L60">    parse(version);</span>
-<span class="nc" id="L61">  }</span>
+<span class="fc" id="L58">  public Version(final CharSequence version) {</span>
+<span class="fc" id="L59">    this.image = version.toString();</span>
+<span class="fc" id="L60">    parse(version);</span>
+<span class="fc" id="L61">  }</span>
 
   private void parse(final CharSequence version) {
-<span class="nc" id="L64">    List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
-<span class="nc" id="L65">    StringBuilder sb = new StringBuilder();</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">    for (int i = 0, l = version.length(); i &lt; l; i++) {</span>
-<span class="nc" id="L67">      char c = version.charAt(i);</span>
-<span class="nc" id="L68">      final int length = sb.length();</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">      if (c == '.') {</span>
-<span class="nc" id="L70">        addPart(sb, comps);</span>
-<span class="nc" id="L71">        sb.setLength(0);</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">      } else if (Character.isDigit(c)) {</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (length &gt; 0) {</span>
-<span class="nc" id="L74">          char prev = sb.charAt(length - 1);</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">          if (!Character.isDigit(prev)) {</span>
-<span class="nc" id="L76">            comps.add(sb.toString());</span>
-<span class="nc" id="L77">            sb.setLength(0);</span>
+<span class="fc" id="L64">    List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
+<span class="fc" id="L65">    StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">    for (int i = 0, l = version.length(); i &lt; l; i++) {</span>
+<span class="fc" id="L67">      char c = version.charAt(i);</span>
+<span class="fc" id="L68">      final int length = sb.length();</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">      if (c == '.') {</span>
+<span class="fc" id="L70">        addPart(sb, comps);</span>
+<span class="fc" id="L71">        sb.setLength(0);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">      } else if (Character.isDigit(c)) {</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (length &gt; 0) {</span>
+<span class="fc" id="L74">          char prev = sb.charAt(length - 1);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">          if (!Character.isDigit(prev)) {</span>
+<span class="fc" id="L76">            comps.add(sb.toString());</span>
+<span class="fc" id="L77">            sb.setLength(0);</span>
           }
         }
-<span class="nc" id="L80">        sb.append(c);</span>
+<span class="fc" id="L80">        sb.append(c);</span>
       } else {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (length &gt; 0) {</span>
-<span class="nc" id="L83">          char prev = sb.charAt(length - 1);</span>
-<span class="nc bnc" id="L84" title="All 2 branches missed.">          if (Character.isDigit(prev)) {</span>
-<span class="nc" id="L85">            comps.add(Integer.valueOf(sb.toString()));</span>
-<span class="nc" id="L86">            sb.setLength(0);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (length &gt; 0) {</span>
+<span class="fc" id="L83">          char prev = sb.charAt(length - 1);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">          if (Character.isDigit(prev)) {</span>
+<span class="fc" id="L85">            comps.add(Integer.valueOf(sb.toString()));</span>
+<span class="fc" id="L86">            sb.setLength(0);</span>
           }
         }
-<span class="nc" id="L89">        sb.append(c);</span>
+<span class="fc" id="L89">        sb.append(c);</span>
       }
     }
-<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (sb.length() &gt; 0) {</span>
-<span class="nc" id="L93">      addPart(sb, comps);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L93">      addPart(sb, comps);</span>
     }
-<span class="nc" id="L95">    components = comps.toArray(new Comparable[comps.size()]);</span>
-<span class="nc" id="L96">  }</span>
+<span class="fc" id="L95">    components = comps.toArray(new Comparable[comps.size()]);</span>
+<span class="fc" id="L96">  }</span>
 
   private static void addPart(final StringBuilder sb, final List&lt;Comparable&lt;?&gt;&gt; comps) {
-<span class="nc" id="L99">    final String strPart = sb.toString();</span>
-<span class="nc" id="L100">    Integer nr = Ints.tryParse(strPart);</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (nr == null) {</span>
-<span class="nc" id="L102">      comps.add(strPart);</span>
+<span class="fc" id="L99">    final String strPart = sb.toString();</span>
+<span class="fc" id="L100">    Integer nr = Ints.tryParse(strPart);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">    if (nr == null) {</span>
+<span class="fc" id="L102">      comps.add(strPart);</span>
     } else {
-<span class="nc" id="L104">      comps.add(nr);</span>
+<span class="fc" id="L104">      comps.add(nr);</span>
     }
-<span class="nc" id="L106">  }</span>
+<span class="fc" id="L106">  }</span>
 
   @Override
   @SuppressWarnings(&quot;unchecked&quot;)
   public int compareTo(final Version o) {
-<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (components.length == o.components.length) {</span>
-<span class="nc" id="L112">      return Comparables.compareArrays(components, o.components);</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">    } else if (components.length &lt; o.components.length) {</span>
-<span class="nc" id="L114">      int res = Comparables.compareArrays(components, o.components, 0, components.length);</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (res == 0) {</span>
-<span class="nc" id="L116">        Comparable component = o.components[components.length];</span>
-<span class="nc bnc" id="L117" title="All 4 branches missed.">        if (component instanceof String &amp;&amp; ((String) component).contains(&quot;SNAPSHOT&quot;)) {</span>
-<span class="nc" id="L118">          return 1;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    if (components.length == o.components.length) {</span>
+<span class="fc" id="L112">      return Comparables.compareArrays(components, o.components);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">    } else if (components.length &lt; o.components.length) {</span>
+<span class="fc" id="L114">      int res = Comparables.compareArrays(components, o.components, 0, components.length);</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">      if (res == 0) {</span>
+<span class="fc" id="L116">        Comparable component = o.components[components.length];</span>
+<span class="pc bpc" id="L117" title="1 of 4 branches missed.">        if (component instanceof String &amp;&amp; ((String) component).contains(&quot;SNAPSHOT&quot;)) {</span>
+<span class="fc" id="L118">          return 1;</span>
         } else {
-<span class="nc" id="L120">          return -1;</span>
+<span class="fc" id="L120">          return -1;</span>
         }
       }
-<span class="nc" id="L123">      return res;</span>
+<span class="fc" id="L123">      return res;</span>
     } else {
-<span class="nc" id="L125">      int res = Comparables.compareArrays(components, o.components, 0, o.components.length);</span>
-<span class="nc bnc" id="L126" title="All 2 branches missed.">      if (res == 0) {</span>
-<span class="nc" id="L127">        Comparable component = components[o.components.length];</span>
-<span class="nc bnc" id="L128" title="All 4 branches missed.">        if (component instanceof String &amp;&amp; ((String) component).contains(&quot;SNAPSHOT&quot;)) {</span>
-<span class="nc" id="L129">          return -1;</span>
+<span class="fc" id="L125">      int res = Comparables.compareArrays(components, o.components, 0, o.components.length);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">      if (res == 0) {</span>
+<span class="fc" id="L127">        Comparable component = components[o.components.length];</span>
+<span class="pc bpc" id="L128" title="2 of 4 branches missed.">        if (component instanceof String &amp;&amp; ((String) component).contains(&quot;SNAPSHOT&quot;)) {</span>
+<span class="fc" id="L129">          return -1;</span>
         } else {
 <span class="nc" id="L131">          return 1;</span>
         }
       }
-<span class="nc" id="L134">      return res;</span>
+<span class="fc" id="L134">      return res;</span>
     }
   }
 
@@ -142,24 +142,24 @@ public final class Version implements Comparable&lt;Version&gt;, Serializable {
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L145" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">    if (this == obj) {</span>
 <span class="nc" id="L146">      return true;</span>
     }
-<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">    if (obj == null) {</span>
 <span class="nc" id="L149">      return false;</span>
     }
-<span class="nc bnc" id="L151" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
 <span class="nc" id="L152">      return false;</span>
     }
-<span class="nc bnc" id="L154" title="All 2 branches missed.">    return this.compareTo((Version) obj) == 0;</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">    return this.compareTo((Version) obj) == 0;</span>
   }
 
   public String getImage() {
-<span class="nc" id="L158">    return image;</span>
+<span class="fc" id="L158">    return image;</span>
   }
 
   public Comparable[] getComponents() {
-<span class="nc" id="L162">    return components.clone();</span>
+<span class="fc" id="L162">    return components.clone();</span>
   }
 
   public Comparable getComponent(final int pos) {
@@ -168,12 +168,12 @@ public final class Version implements Comparable&lt;Version&gt;, Serializable {
 
   @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
   public int getMajor() {
-<span class="nc" id="L171">    return (int) components[0];</span>
+<span class="fc" id="L171">    return (int) components[0];</span>
   }
 
   @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
   public int getMinor() {
-<span class="nc" id="L176">    return (int) components[1];</span>
+<span class="fc" id="L176">    return (int) components[1];</span>
   }
 
   @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
@@ -187,13 +187,13 @@ public final class Version implements Comparable&lt;Version&gt;, Serializable {
 
   private void readObject(final java.io.ObjectInputStream s)
           throws java.io.IOException, ClassNotFoundException {
-<span class="nc" id="L190">    s.defaultReadObject();</span>
-<span class="nc" id="L191">    parse(this.image);</span>
-<span class="nc" id="L192">  }</span>
+<span class="fc" id="L190">    s.defaultReadObject();</span>
+<span class="fc" id="L191">    parse(this.image);</span>
+<span class="fc" id="L192">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L196">    return image;</span>
+<span class="fc" id="L196">    return image;</span>
   }
 
 }

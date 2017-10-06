@@ -74,22 +74,22 @@ public final class Converter {
     private final SampleNode node;
     private final int parentId;
 
-<span class="nc" id="L77">    TraversalNode(final Method method, final SampleNode node, final int parentId) {</span>
-<span class="nc" id="L78">      this.method = method;</span>
-<span class="nc" id="L79">      this.node = node;</span>
-<span class="nc" id="L80">      this.parentId = parentId;</span>
-<span class="nc" id="L81">    }</span>
+<span class="fc" id="L77">    TraversalNode(final Method method, final SampleNode node, final int parentId) {</span>
+<span class="fc" id="L78">      this.method = method;</span>
+<span class="fc" id="L79">      this.node = node;</span>
+<span class="fc" id="L80">      this.parentId = parentId;</span>
+<span class="fc" id="L81">    }</span>
 
     public Method getMethod() {
-<span class="nc" id="L84">      return method;</span>
+<span class="fc" id="L84">      return method;</span>
     }
 
     public SampleNode getNode() {
-<span class="nc" id="L88">      return node;</span>
+<span class="fc" id="L88">      return node;</span>
     }
 
     public int getParentId() {
-<span class="nc" id="L92">      return parentId;</span>
+<span class="fc" id="L92">      return parentId;</span>
     }
 
     @Override
@@ -103,83 +103,83 @@ public final class Converter {
           final int parentId, final int id,
           final Handler&lt;ASample, E&gt; handler) throws E {
 
-<span class="nc" id="L106">    final Deque&lt;TraversalNode&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="nc" id="L107">    dq.addLast(new TraversalNode(method, node, parentId));</span>
-<span class="nc" id="L108">    int nid = id;</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">    while (!dq.isEmpty()) {</span>
-<span class="nc" id="L110">      TraversalNode first = dq.removeFirst();</span>
-<span class="nc" id="L111">      Method m = first.getMethod();</span>
-<span class="nc" id="L112">      ASample sample = new ASample();</span>
-<span class="nc" id="L113">      sample.id = nid;</span>
-<span class="nc" id="L114">      SampleNode n = first.getNode();</span>
-<span class="nc" id="L115">      sample.count = n.getSampleCount();</span>
-<span class="nc" id="L116">      AMethod am = new AMethod();</span>
-<span class="nc" id="L117">      am.setName(m.getMethodName());</span>
-<span class="nc" id="L118">      am.setDeclaringClass(m.getDeclaringClass());</span>
-<span class="nc" id="L119">      sample.method = am;</span>
-<span class="nc" id="L120">      sample.parentId = first.getParentId();</span>
-<span class="nc" id="L121">      final TMap&lt;Method, SampleNode&gt; subNodes = n.getSubNodes();</span>
-<span class="nc" id="L122">      final int pid = nid;</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">      if (subNodes != null) {</span>
-<span class="nc" id="L124">        subNodes.forEachEntry((a, b) -&gt; {</span>
-<span class="nc" id="L125">          dq.addLast(new TraversalNode(a, b, pid));</span>
-<span class="nc" id="L126">          return true;</span>
+<span class="fc" id="L106">    final Deque&lt;TraversalNode&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L107">    dq.addLast(new TraversalNode(method, node, parentId));</span>
+<span class="fc" id="L108">    int nid = id;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">    while (!dq.isEmpty()) {</span>
+<span class="fc" id="L110">      TraversalNode first = dq.removeFirst();</span>
+<span class="fc" id="L111">      Method m = first.getMethod();</span>
+<span class="fc" id="L112">      ASample sample = new ASample();</span>
+<span class="fc" id="L113">      sample.id = nid;</span>
+<span class="fc" id="L114">      SampleNode n = first.getNode();</span>
+<span class="fc" id="L115">      sample.count = n.getSampleCount();</span>
+<span class="fc" id="L116">      AMethod am = new AMethod();</span>
+<span class="fc" id="L117">      am.setName(m.getMethodName());</span>
+<span class="fc" id="L118">      am.setDeclaringClass(m.getDeclaringClass());</span>
+<span class="fc" id="L119">      sample.method = am;</span>
+<span class="fc" id="L120">      sample.parentId = first.getParentId();</span>
+<span class="fc" id="L121">      final TMap&lt;Method, SampleNode&gt; subNodes = n.getSubNodes();</span>
+<span class="fc" id="L122">      final int pid = nid;</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">      if (subNodes != null) {</span>
+<span class="fc" id="L124">        subNodes.forEachEntry((a, b) -&gt; {</span>
+<span class="fc" id="L125">          dq.addLast(new TraversalNode(a, b, pid));</span>
+<span class="fc" id="L126">          return true;</span>
         });
       }
-<span class="nc" id="L129">      handler.handle(sample, parentId);</span>
-<span class="nc" id="L130">      nid++;</span>
-<span class="nc" id="L131">    }</span>
-<span class="nc" id="L132">    return nid;</span>
+<span class="fc" id="L129">      handler.handle(sample, parentId);</span>
+<span class="fc" id="L130">      nid++;</span>
+<span class="fc" id="L131">    }</span>
+<span class="fc" id="L132">    return nid;</span>
   }
 
   public static SampleNode convert(final Iterator&lt;ASample&gt; samples) {
-<span class="nc" id="L136">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">    while (samples.hasNext()) {</span>
-<span class="nc" id="L138">      ASample asmp = samples.next();</span>
-<span class="nc" id="L139">      SampleNode sn = new SampleNode(asmp.count, new THashMap&lt;Method, SampleNode&gt;());</span>
-<span class="nc" id="L140">      SampleNode parent = index.get(asmp.parentId);</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L142">        AMethod method = asmp.getMethod();</span>
-<span class="nc" id="L143">        Method m = Method.getMethod(method.declaringClass, method.getName());</span>
-<span class="nc" id="L144">        final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (subNodes == null) {</span>
+<span class="fc" id="L136">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
+<span class="fc" id="L138">      ASample asmp = samples.next();</span>
+<span class="fc" id="L139">      SampleNode sn = new SampleNode(asmp.count, new THashMap&lt;Method, SampleNode&gt;());</span>
+<span class="fc" id="L140">      SampleNode parent = index.get(asmp.parentId);</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">      if (parent != null) {</span>
+<span class="fc" id="L142">        AMethod method = asmp.getMethod();</span>
+<span class="fc" id="L143">        Method m = Method.getMethod(method.declaringClass, method.getName());</span>
+<span class="fc" id="L144">        final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (subNodes == null) {</span>
 <span class="nc" id="L146">          throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
         }
-<span class="nc" id="L148">        subNodes.put(m, sn);</span>
+<span class="fc" id="L148">        subNodes.put(m, sn);</span>
       }
-<span class="nc" id="L150">      index.put(asmp.id, sn);</span>
-<span class="nc" id="L151">    }</span>
-<span class="nc" id="L152">    return index.get(0);</span>
+<span class="fc" id="L150">      index.put(asmp.id, sn);</span>
+<span class="fc" id="L151">    }</span>
+<span class="fc" id="L152">    return index.get(0);</span>
   }
 
   public static void save(final File file, final SampleNode collected) throws IOException {
-<span class="nc" id="L156">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
-<span class="nc" id="L157">            Files.newOutputStream(file.toPath()))) {</span>
-<span class="nc" id="L158">      final SpecificDatumWriter&lt;ASample&gt; writer = new SpecificDatumWriter&lt;&gt;(ASample.SCHEMA$);</span>
-<span class="nc" id="L159">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
-<span class="nc" id="L160">      Converter.convert(Method.ROOT, collected,</span>
+<span class="pc" id="L156">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="fc" id="L157">            Files.newOutputStream(file.toPath()))) {</span>
+<span class="fc" id="L158">      final SpecificDatumWriter&lt;ASample&gt; writer = new SpecificDatumWriter&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L159">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+<span class="fc" id="L160">      Converter.convert(Method.ROOT, collected,</span>
               -1, 0, (final ASample object, final long deadline) -&gt; {
-<span class="nc" id="L162">                writer.write(object, encoder);</span>
-<span class="nc" id="L163">      });</span>
-<span class="nc" id="L164">      encoder.flush();</span>
-<span class="nc bnc" id="L165" title="All 8 branches missed.">    }</span>
-<span class="nc" id="L166">  }</span>
+<span class="fc" id="L162">                writer.write(object, encoder);</span>
+<span class="fc" id="L163">      });</span>
+<span class="fc" id="L164">      encoder.flush();</span>
+<span class="pc bpc" id="L165" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L166">  }</span>
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   public static SampleNode load(final File file) throws IOException {
-<span class="nc" id="L170">    try (MemorizingBufferedInputStream bis</span>
-<span class="nc" id="L171">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
-<span class="nc" id="L172">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
-<span class="nc" id="L173">      final SpecificDatumReader&lt;ASample&gt; reader = new SpecificDatumReader&lt;&gt;(ASample.SCHEMA$);</span>
-<span class="nc" id="L174">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
-<span class="nc" id="L175">      return convert(new Iterator&lt;ASample&gt;() {</span>
+<span class="pc" id="L170">    try (MemorizingBufferedInputStream bis</span>
+<span class="fc" id="L171">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
+<span class="fc" id="L172">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
+<span class="fc" id="L173">      final SpecificDatumReader&lt;ASample&gt; reader = new SpecificDatumReader&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L174">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
+<span class="fc" id="L175">      return convert(new Iterator&lt;ASample&gt;() {</span>
 
         @Override
         public boolean hasNext() {
           try {
-<span class="nc" id="L180">            int read = pis.read();</span>
-<span class="nc" id="L181">            pis.unread(read);</span>
-<span class="nc bnc" id="L182" title="All 2 branches missed.">            return read &gt;= 0;</span>
+<span class="fc" id="L180">            int read = pis.read();</span>
+<span class="fc" id="L181">            pis.unread(read);</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">            return read &gt;= 0;</span>
 <span class="nc" id="L183">          } catch (IOException ex) {</span>
 <span class="nc" id="L184">            throw new RuntimeException(ex);</span>
           }
@@ -189,7 +189,7 @@ public final class Converter {
         @SuppressFBWarnings
         public ASample next() {
           try {
-<span class="nc" id="L192">            return reader.read(null, decoder);</span>
+<span class="fc" id="L192">            return reader.read(null, decoder);</span>
 <span class="nc" id="L193">          } catch (IOException ex) {</span>
 <span class="nc" id="L194">            NoSuchElementException e = new NoSuchElementException();</span>
 <span class="nc" id="L195">            e.addSuppressed(ex);</span>
@@ -202,7 +202,7 @@ public final class Converter {
 <span class="nc" id="L202">          throw new UnsupportedOperationException();</span>
         }
       });
-<span class="nc bnc" id="L205" title="All 8 branches missed.">    }</span>
+<span class="pc bpc" id="L205" title="6 of 8 branches missed.">    }</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

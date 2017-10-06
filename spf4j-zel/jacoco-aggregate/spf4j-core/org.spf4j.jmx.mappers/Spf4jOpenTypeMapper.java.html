@@ -32,6 +32,7 @@
 package org.spf4j.jmx.mappers;
 
 import com.google.common.reflect.TypeToken;
+import java.io.File;
 import java.io.NotSerializableException;
 import java.io.Serializable;
 import java.lang.reflect.GenericArrayType;
@@ -76,33 +77,32 @@ import org.spf4j.reflect.GraphTypeMap;
  */
 public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
-<span class="fc" id="L79">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.class);</span>
+<span class="fc" id="L80">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.class);</span>
 
-<span class="fc" id="L81">  private static final ThreadLocal&lt;Set&lt;Type&gt;&gt; IN_PROGRESS = new ThreadLocal&lt;Set&lt;Type&gt;&gt;() {</span>
+<span class="fc" id="L82">  private static final ThreadLocal&lt;Set&lt;Type&gt;&gt; IN_PROGRESS = new ThreadLocal&lt;Set&lt;Type&gt;&gt;() {</span>
     @Override
     protected Set&lt;Type&gt; initialValue() {
-<span class="fc" id="L84">      return new HashSet&lt;&gt;(2);</span>
+<span class="fc" id="L85">      return new HashSet&lt;&gt;(2);</span>
     }
 
   };
 
-<span class="fc" id="L89">  private static final Pair&lt;OpenType&lt;?&gt;, Class&lt;?&gt;[]&gt;[] SIMPLE_TYPES = new Pair[]{</span>
-<span class="fc" id="L90">    Pair.of(BIGDECIMAL, new Class[]{BigDecimal.class}),</span>
-<span class="fc" id="L91">    Pair.of(BIGINTEGER, new Class[]{BigInteger.class}),</span>
-<span class="fc" id="L92">    Pair.of(BOOLEAN, new Class[]{Boolean.class, boolean.class}),</span>
-<span class="fc" id="L93">    Pair.of(BYTE, new Class[]{Byte.class, byte.class}),</span>
-<span class="fc" id="L94">    Pair.of(CHARACTER, new Class[]{Character.class, char.class}),</span>
-<span class="fc" id="L95">    Pair.of(DATE, new Class[]{Date.class}),</span>
-<span class="fc" id="L96">    Pair.of(DOUBLE, new Class[]{Double.class, double.class}),</span>
-<span class="fc" id="L97">    Pair.of(FLOAT, new Class[]{Float.class, float.class}),</span>
-<span class="fc" id="L98">    Pair.of(INTEGER, new Class[]{Integer.class, int.class}),</span>
-<span class="fc" id="L99">    Pair.of(LONG, new Class[]{Long.class, long.class}),</span>
-<span class="fc" id="L100">    Pair.of(SHORT, new Class[]{Short.class, short.class}),</span>
-<span class="fc" id="L101">    Pair.of(OBJECTNAME, new Class[]{ObjectName.class}),</span>
-<span class="fc" id="L102">    Pair.of(STRING, new Class[]{String.class}),</span>
-<span class="fc" id="L103">    Pair.of(VOID, new Class[]{Void.class})</span>
+<span class="fc" id="L90">  private static final Pair&lt;OpenType&lt;?&gt;, Class&lt;?&gt;[]&gt;[] SIMPLE_TYPES = new Pair[]{</span>
+<span class="fc" id="L91">    Pair.of(BIGDECIMAL, new Class[]{BigDecimal.class}),</span>
+<span class="fc" id="L92">    Pair.of(BIGINTEGER, new Class[]{BigInteger.class}),</span>
+<span class="fc" id="L93">    Pair.of(BOOLEAN, new Class[]{Boolean.class, boolean.class}),</span>
+<span class="fc" id="L94">    Pair.of(BYTE, new Class[]{Byte.class, byte.class}),</span>
+<span class="fc" id="L95">    Pair.of(CHARACTER, new Class[]{Character.class, char.class}),</span>
+<span class="fc" id="L96">    Pair.of(DATE, new Class[]{Date.class}),</span>
+<span class="fc" id="L97">    Pair.of(DOUBLE, new Class[]{Double.class, double.class}),</span>
+<span class="fc" id="L98">    Pair.of(FLOAT, new Class[]{Float.class, float.class}),</span>
+<span class="fc" id="L99">    Pair.of(INTEGER, new Class[]{Integer.class, int.class}),</span>
+<span class="fc" id="L100">    Pair.of(LONG, new Class[]{Long.class, long.class}),</span>
+<span class="fc" id="L101">    Pair.of(SHORT, new Class[]{Short.class, short.class}),</span>
+<span class="fc" id="L102">    Pair.of(OBJECTNAME, new Class[]{ObjectName.class}),</span>
+<span class="fc" id="L103">    Pair.of(STRING, new Class[]{String.class}),</span>
+<span class="fc" id="L104">    Pair.of(VOID, new Class[]{Void.class})</span>
   };
-
 
   private final CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; cache;
 
@@ -113,26 +113,26 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 <span class="fc" id="L113">          cache.safePut(c, (type) -&gt; new Spf4jJMXBeanMapping.BasicMXBeanType(c, t.getFirst()));</span>
         }
       }
-<span class="pc" id="L116">      cache.safePut(Enum.class, (type) -&gt; new Spf4jJMXBeanMapping.EnumMXBeanType((Class) type));</span>
-<span class="pc" id="L117">      cache.safePut(SpecificRecordBase.class, (type) -&gt; new SpecificRecordOpenTypeMapping((Class) type, this));</span>
-<span class="pc" id="L118">      cache.safePut(Properties.class, (type) -&gt; new Spf4jJMXBeanMapping.MapMXBeanType((Class) type, this));</span>
+<span class="fc" id="L116">      cache.safePut(Enum.class, (type) -&gt; new Spf4jJMXBeanMapping.EnumMXBeanType((Class) type));</span>
+<span class="fc" id="L117">      cache.safePut(SpecificRecordBase.class, (type) -&gt; new SpecificRecordOpenTypeMapping((Class) type, this));</span>
+<span class="fc" id="L118">      cache.safePut(Properties.class, (type) -&gt; new Spf4jJMXBeanMapping.MapMXBeanType((Class) type, this));</span>
 <span class="fc" id="L119">      cache.safePut(Iterable.class, (type) -&gt; {</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (type instanceof ParameterizedType) {</span>
-<span class="nc" id="L121">          return new Spf4jJMXBeanMapping.ListMXBeanType((ParameterizedType) type, this);</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (type instanceof ParameterizedType) {</span>
+<span class="fc" id="L121">          return new Spf4jJMXBeanMapping.ListMXBeanType((ParameterizedType) type, this);</span>
         } else {
 <span class="nc" id="L123">          return Spf4jJMXBeanMapping.defaultHandler(type, this);</span>
         }
       });
 <span class="fc" id="L126">      cache.safePut(Map.class, (type) -&gt; {</span>
-<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (type instanceof ParameterizedType) {</span>
-<span class="nc" id="L128">          return new Spf4jJMXBeanMapping.MapMXBeanType((ParameterizedType) type, this);</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (type instanceof ParameterizedType) {</span>
+<span class="fc" id="L128">          return new Spf4jJMXBeanMapping.MapMXBeanType((ParameterizedType) type, this);</span>
         } else {
-<span class="nc" id="L130">          throw new IllegalArgumentException(&quot;Only parameterized maps can be converted to opentype, not &quot; + type);</span>
+<span class="fc" id="L130">          throw new IllegalArgumentException(&quot;Only parameterized maps can be converted to opentype, not &quot; + type);</span>
         }
       });
 <span class="fc" id="L133">      cache.safePut(Map.Entry.class, (type) -&gt; {</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (type instanceof ParameterizedType) {</span>
-<span class="nc" id="L135">          return new MapEntryOpenTypeMapping((ParameterizedType) type, this);</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (type instanceof ParameterizedType) {</span>
+<span class="fc" id="L135">          return new MapEntryOpenTypeMapping((ParameterizedType) type, this);</span>
         } else {
 <span class="nc" id="L137">          return Spf4jJMXBeanMapping.defaultHandler(type, this);</span>
         }
@@ -140,48 +140,54 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 <span class="fc" id="L140">      cache.safePut(Object.class, (type) -&gt; {</span>
 <span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (type instanceof GenericArrayType) {</span>
 <span class="nc" id="L142">          return new Spf4jJMXBeanMapping.GenericArrayMXBeanType((GenericArrayType) type, this);</span>
-<span class="pc bpc" id="L143" title="2 of 4 branches missed.">        } else if (type instanceof Class &amp;&amp; ((Class) type).isArray()) {</span>
-<span class="nc" id="L144">          return new ArrayMXBeanType(((Class) type), this);</span>
+<span class="fc bfc" id="L143" title="All 4 branches covered.">        } else if (type instanceof Class &amp;&amp; ((Class) type).isArray()) {</span>
+<span class="fc" id="L144">          return new ArrayMXBeanType(((Class) type), this);</span>
         } else {
 <span class="fc" id="L146">          return Spf4jJMXBeanMapping.defaultHandler(type, this);</span>
         }
       });
-<span class="fc" id="L149">  }</span>
+<span class="fc" id="L149">      cache.safePut(File.class, (type) -&gt; JMXBeanMapping.NOMAPPING);</span>
+<span class="fc" id="L150">  }</span>
 
 
   @Override
   public JMXBeanMapping get(final Type t) throws NotSerializableException {
 
-<span class="fc" id="L155">        Set&lt;Type&gt; ip = IN_PROGRESS.get();</span>
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        if (ip.contains(t)) {</span>
-<span class="nc" id="L157">           LOG.debug(&quot;No openType mapping for {} recorsive data structure&quot;, t);</span>
-<span class="nc" id="L158">           return null;</span>
+<span class="fc" id="L156">        Set&lt;Type&gt; ip = IN_PROGRESS.get();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (ip.contains(t)) {</span>
+<span class="fc" id="L158">           LOG.debug(&quot;No openType mapping for {} recorsive data structure&quot;, t);</span>
+<span class="fc" id="L159">           return null;</span>
         }
         try {
-<span class="fc" id="L161">        ip.add(t);</span>
-<span class="fc" id="L162">          return cache.get(t);</span>
-<span class="nc" id="L163">        } catch (RuntimeException ex) {</span>
-<span class="nc" id="L164">          LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
-<span class="nc" id="L165">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
-<span class="nc bnc" id="L166" title="All 4 branches missed.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
-<span class="nc" id="L167">            return null;</span>
+<span class="fc" id="L162">          ip.add(t);</span>
+<span class="fc" id="L163">          JMXBeanMapping val = cache.get(t);</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">          if (val == JMXBeanMapping.NOMAPPING) {</span>
+<span class="fc" id="L165">            return null;</span>
           } else {
-<span class="nc" id="L169">            NotSerializableException nsex = new NotSerializableException(&quot;Type &quot; + t + &quot;  must be serializable&quot;);</span>
-<span class="nc" id="L170">            nsex.addSuppressed(ex);</span>
-<span class="nc" id="L171">            throw nsex;</span>
+<span class="fc" id="L167">            return val;</span>
+          }
+<span class="fc" id="L169">        } catch (RuntimeException ex) {</span>
+<span class="fc" id="L170">          LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
+<span class="fc" id="L171">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
+<span class="fc bfc" id="L172" title="All 4 branches covered.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
+<span class="fc" id="L173">            return null;</span>
+          } else {
+<span class="fc" id="L175">            NotSerializableException nsex = new NotSerializableException(&quot;Type &quot; + t + &quot;  must be serializable&quot;);</span>
+<span class="fc" id="L176">            nsex.addSuppressed(ex);</span>
+<span class="fc" id="L177">            throw nsex;</span>
           }
         } finally {
-<span class="pc" id="L174">          ip.remove(t);</span>
+<span class="fc" id="L180">          ip.remove(t);</span>
         }
   }
 
   public CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; getCache() {
-<span class="nc" id="L179">    return cache;</span>
+<span class="nc" id="L185">    return cache;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L184">    return &quot;Spf4jOpenTypeMapper{&quot; + &quot;convertedTypes=&quot; + cache + '}';</span>
+<span class="nc" id="L190">    return &quot;Spf4jOpenTypeMapper{&quot; + &quot;convertedTypes=&quot; + cache + '}';</span>
   }
 
 }

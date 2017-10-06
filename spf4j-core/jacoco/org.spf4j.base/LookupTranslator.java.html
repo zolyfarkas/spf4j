@@ -92,21 +92,21 @@ public final class LookupTranslator extends CharSequenceTranslator {
      */
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
-<span class="nc" id="L95">        int max = longest;</span>
-<span class="nc" id="L96">        final int l = input.length();</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (index + longest &gt; l) {</span>
+<span class="fc" id="L95">        int max = longest;</span>
+<span class="fc" id="L96">        final int l = input.length();</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (index + longest &gt; l) {</span>
 <span class="nc" id="L98">            max = l - index;</span>
         }
         // descend so as to get a greedy algorithm
-<span class="nc bnc" id="L101" title="All 2 branches missed.">        for (int i = max; i &gt;= shortest; i--) {</span>
-<span class="nc" id="L102">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
-<span class="nc" id="L103">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (result != null) {</span>
-<span class="nc" id="L105">                out.write(result.toString());</span>
-<span class="nc" id="L106">                return i;</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        for (int i = max; i &gt;= shortest; i--) {</span>
+<span class="fc" id="L102">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
+<span class="fc" id="L103">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            if (result != null) {</span>
+<span class="fc" id="L105">                out.write(result.toString());</span>
+<span class="fc" id="L106">                return i;</span>
             }
         }
-<span class="nc" id="L109">        return 0;</span>
+<span class="fc" id="L109">        return 0;</span>
     }
 
     @Override

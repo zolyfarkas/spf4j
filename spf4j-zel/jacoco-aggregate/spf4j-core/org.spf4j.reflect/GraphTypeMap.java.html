@@ -102,12 +102,12 @@ public final class GraphTypeMap&lt;H&gt; implements TypeMap&lt;H&gt; {
   @Override
   public boolean putIfNotPresent(final Type type, final H appender) {
 <span class="fc" id="L104">    TypeToken&lt;?&gt; nType = TypeToken.of(type);</span>
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">    if (typeGraph.addNode(nType)) {</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">    if (typeGraph.addNode(nType)) {</span>
 <span class="fc" id="L106">      handlers.put(nType, appender);</span>
 <span class="fc bfc" id="L107" title="All 2 branches covered.">      for (TypeToken t : typeGraph.nodes()) {</span>
 <span class="fc bfc" id="L108" title="All 2 branches covered.">        if (!nType.equals(t)) {</span>
-<span class="pc bpc" id="L109" title="1 of 2 branches missed.">          if (nType.isSubtypeOf(t)) {</span>
-<span class="nc" id="L110">            typeGraph.putEdge(nType, t);</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">          if (nType.isSubtypeOf(t)) {</span>
+<span class="fc" id="L110">            typeGraph.putEdge(nType, t);</span>
 <span class="fc bfc" id="L111" title="All 2 branches covered.">          } else if (t.isSubtypeOf(nType)) {</span>
 <span class="fc" id="L112">            typeGraph.putEdge(t, nType);</span>
           }
@@ -115,16 +115,16 @@ public final class GraphTypeMap&lt;H&gt; implements TypeMap&lt;H&gt; {
 <span class="fc" id="L115">      }</span>
 <span class="fc" id="L116">      return true;</span>
     } else {
-<span class="nc" id="L118">      return false;</span>
+<span class="fc" id="L118">      return false;</span>
     }
   }
 
   @Override
   public boolean remove(final Type type) {
-<span class="nc" id="L124">    TypeToken&lt;?&gt; tt = TypeToken.of(type);</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (typeGraph.removeNode(tt)) {</span>
-<span class="nc" id="L126">      handlers.remove(tt);</span>
-<span class="nc" id="L127">      return true;</span>
+<span class="fc" id="L124">    TypeToken&lt;?&gt; tt = TypeToken.of(type);</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">    if (typeGraph.removeNode(tt)) {</span>
+<span class="fc" id="L126">      handlers.remove(tt);</span>
+<span class="fc" id="L127">      return true;</span>
     } else {
 <span class="nc" id="L129">      return false;</span>
     }
@@ -132,12 +132,12 @@ public final class GraphTypeMap&lt;H&gt; implements TypeMap&lt;H&gt; {
 
   @Override
   public String toString() {
-<span class="nc" id="L135">    return &quot;GraphTypeMap{&quot; + &quot;typeGraph=&quot; + typeGraph + &quot;, handlers=&quot; + handlers + '}';</span>
+<span class="fc" id="L135">    return &quot;GraphTypeMap{&quot; + &quot;typeGraph=&quot; + typeGraph + &quot;, handlers=&quot; + handlers + '}';</span>
   }
 
   @Override
   public H getExact(final Type t) {
-<span class="nc" id="L140">    return handlers.get(TypeToken.of(t));</span>
+<span class="fc" id="L140">    return handlers.get(TypeToken.of(t));</span>
   }
 
 }

@@ -40,15 +40,15 @@ public abstract class Either&lt;A, B&gt; {
     protected final Object value;
     //CHECKSTYLE:ON
     
-<span class="nc" id="L43">    private Either(final Object value) {</span>
-<span class="nc" id="L44">        this.value = value;</span>
-<span class="nc" id="L45">    }</span>
+<span class="fc" id="L43">    private Either(final Object value) {</span>
+<span class="fc" id="L44">        this.value = value;</span>
+<span class="fc" id="L45">    }</span>
     
     public abstract boolean isLeft();
     
     
     public boolean isRight() {
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        return !isLeft();</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        return !isLeft();</span>
     }
     
     
@@ -77,24 +77,24 @@ public abstract class Either&lt;A, B&gt; {
     
     @Override
     public String toString() {
-<span class="nc" id="L80">        return &quot;Either{&quot; + &quot;value=&quot; + value + '}';</span>
+<span class="fc" id="L80">        return &quot;Either{&quot; + &quot;value=&quot; + value + '}';</span>
     }
 
     
     public static final class Left&lt;A, B&gt; extends Either&lt;A, B&gt; {
 
         public Left(final A a) {
-<span class="nc" id="L87">            super(a);</span>
-<span class="nc" id="L88">        }</span>
+<span class="fc" id="L87">            super(a);</span>
+<span class="fc" id="L88">        }</span>
 
         @Override
         public boolean isLeft() {
-<span class="nc" id="L92">            return true;</span>
+<span class="fc" id="L92">            return true;</span>
         }
 
         @Override
         public A getLeft() {
-<span class="nc" id="L97">            return (A) this.value;</span>
+<span class="fc" id="L97">            return (A) this.value;</span>
         }
 
         @Override
@@ -107,12 +107,12 @@ public abstract class Either&lt;A, B&gt; {
     public static final class Right&lt;A, B&gt; extends Either&lt;A, B&gt; {
         
         public Right(final B b) {
-<span class="nc" id="L110">           super(b);</span>
-<span class="nc" id="L111">        }</span>
+<span class="fc" id="L110">           super(b);</span>
+<span class="fc" id="L111">        }</span>
 
         @Override
         public boolean isLeft() {
-<span class="nc" id="L115">            return false;</span>
+<span class="fc" id="L115">            return false;</span>
         }
 
         @Override
@@ -122,16 +122,16 @@ public abstract class Either&lt;A, B&gt; {
 
         @Override
         public B getRight() {
-<span class="nc" id="L125">            return (B) value;</span>
+<span class="fc" id="L125">            return (B) value;</span>
         }
     }
 
     public static &lt;A, B&gt; Either&lt;A, B&gt; left(final A a) {
-<span class="nc" id="L130">        return new Left&lt;A, B&gt;(a);</span>
+<span class="fc" id="L130">        return new Left&lt;A, B&gt;(a);</span>
     }
     
     public static &lt;A, B&gt; Either&lt;A, B&gt; right(final B b) {
-<span class="nc" id="L134">        return new Right&lt;A, B&gt;(b);</span>
+<span class="fc" id="L134">        return new Right&lt;A, B&gt;(b);</span>
     }
 
 }

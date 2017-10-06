@@ -61,17 +61,17 @@ public interface MeasurementsInfo {
   int getNumberOfMeasurements();
 
   default CompositeType toCompositeType() {
-<span class="nc" id="L64">    OpenType&lt;?&gt;[] types = new OpenType[getNumberOfMeasurements()];</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">    for (int i = 0; i &lt; types.length; i++) {</span>
-<span class="nc" id="L66">      types[i] = javax.management.openmbean.SimpleType.LONG;</span>
+<span class="fc" id="L64">    OpenType&lt;?&gt;[] types = new OpenType[getNumberOfMeasurements()];</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    for (int i = 0; i &lt; types.length; i++) {</span>
+<span class="fc" id="L66">      types[i] = javax.management.openmbean.SimpleType.LONG;</span>
     }
     try {
-<span class="nc" id="L69">      String entityName = getMeasuredEntity().toString();</span>
-<span class="nc" id="L70">      String description = getDescription();</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">      if (description.isEmpty()) {</span>
-<span class="nc" id="L72">        description = entityName;</span>
+<span class="fc" id="L69">      String entityName = getMeasuredEntity().toString();</span>
+<span class="fc" id="L70">      String description = getDescription();</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">      if (description.isEmpty()) {</span>
+<span class="fc" id="L72">        description = entityName;</span>
       }
-<span class="nc" id="L74">      return new CompositeType(entityName, description, getMeasurementNames(), getMeasurementUnits(), types);</span>
+<span class="fc" id="L74">      return new CompositeType(entityName, description, getMeasurementNames(), getMeasurementUnits(), types);</span>
 <span class="nc" id="L75">    } catch (OpenDataException ex) {</span>
 <span class="nc" id="L76">      throw new IllegalArgumentException(&quot;Cannot convert to composite data &quot; + this, ex);</span>
     }

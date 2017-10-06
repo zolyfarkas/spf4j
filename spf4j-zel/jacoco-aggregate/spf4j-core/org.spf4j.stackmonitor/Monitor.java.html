@@ -46,24 +46,24 @@ import static org.spf4j.stackmonitor.Sampler.DEFAULT_SS_DUMP_FOLDER;
  */
 public final class Monitor {
 
-<span class="nc" id="L49">    private static class Options {</span>
+<span class="fc" id="L49">    private static class Options {</span>
 
-<span class="nc" id="L51">        @Option(name = &quot;-df&quot;, usage = &quot;dump folder&quot;)</span>
+<span class="fc" id="L51">        @Option(name = &quot;-df&quot;, usage = &quot;dump folder&quot;)</span>
         private String dumpFolder = DEFAULT_SS_DUMP_FOLDER;
 
-<span class="nc" id="L54">        @Option(name = &quot;-dp&quot;, usage = &quot;dump file prefix&quot;)</span>
+<span class="fc" id="L54">        @Option(name = &quot;-dp&quot;, usage = &quot;dump file prefix&quot;)</span>
         private String dumpFilePrefix = DEFAULT_SS_DUMP_FILE_NAME_PREFIX;
 
         @Option(name = &quot;-main&quot;, usage = &quot;the main class name&quot;, required = true)
         private String mainClass;
 
-<span class="nc" id="L60">        @Option(name = &quot;-si&quot;, usage = &quot;the stack sampling interval in milliseconds&quot;)</span>
+<span class="fc" id="L60">        @Option(name = &quot;-si&quot;, usage = &quot;the stack sampling interval in milliseconds&quot;)</span>
         private int sampleInterval = 100;
 
-<span class="nc" id="L63">        @Option(name = &quot;-di&quot;, usage = &quot;the stack dump to file interval in milliseconds&quot;)</span>
+<span class="fc" id="L63">        @Option(name = &quot;-di&quot;, usage = &quot;the stack dump to file interval in milliseconds&quot;)</span>
         private int dumpInterval = 3600000;
 
-<span class="nc" id="L66">        @Option(name = &quot;-ss&quot;, usage = &quot;start the stack sampling. (can also be done manually via jmx)&quot;)</span>
+<span class="fc" id="L66">        @Option(name = &quot;-ss&quot;, usage = &quot;start the stack sampling. (can also be done manually via jmx)&quot;)</span>
         private boolean startSampler = false;
 
 
@@ -75,37 +75,37 @@ public final class Monitor {
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InvocationTargetException  {
 
-<span class="nc" id="L78">        int sepPos = args.length;</span>
-<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">            if (&quot;--&quot;.equals(args[i])) {</span>
+<span class="fc" id="L78">        int sepPos = args.length;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">            if (&quot;--&quot;.equals(args[i])) {</span>
 <span class="nc" id="L81">                sepPos = i;</span>
 <span class="nc" id="L82">                break;</span>
             }
         }
         String[] newArgs;
         String[] ownArgs;
-<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (sepPos == args.length) {</span>
-<span class="nc" id="L88">            newArgs = new String[0];</span>
-<span class="nc" id="L89">            ownArgs = args;</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (sepPos == args.length) {</span>
+<span class="fc" id="L88">            newArgs = new String[0];</span>
+<span class="fc" id="L89">            ownArgs = args;</span>
         } else {
 <span class="nc" id="L91">            newArgs = new String[args.length - sepPos - 1];</span>
 <span class="nc" id="L92">            ownArgs = new String[sepPos];</span>
 <span class="nc" id="L93">            System.arraycopy(args, sepPos + 1, newArgs, 0, newArgs.length);</span>
 <span class="nc" id="L94">            System.arraycopy(args, 0, ownArgs, 0, sepPos);</span>
         }
-<span class="nc" id="L96">        Options options = new Options();</span>
-<span class="nc" id="L97">        CmdLineParser parser = new CmdLineParser(options);</span>
+<span class="fc" id="L96">        Options options = new Options();</span>
+<span class="fc" id="L97">        CmdLineParser parser = new CmdLineParser(options);</span>
         try {
-<span class="nc" id="L99">            parser.parseArgument(ownArgs);</span>
-<span class="nc" id="L100">        } catch (CmdLineException e) {</span>
-<span class="nc" id="L101">            System.err.println(&quot;Error: &quot; + e.getMessage() + &quot;\nUsage:&quot;);</span>
-<span class="nc" id="L102">            parser.printUsage(System.err);</span>
+<span class="fc" id="L99">            parser.parseArgument(ownArgs);</span>
+<span class="fc" id="L100">        } catch (CmdLineException e) {</span>
+<span class="fc" id="L101">            System.err.println(&quot;Error: &quot; + e.getMessage() + &quot;\nUsage:&quot;);</span>
+<span class="fc" id="L102">            parser.printUsage(System.err);</span>
 <span class="nc" id="L103">            System.exit(SysExits.EX_USAGE.exitCode());</span>
-<span class="nc" id="L104">        }</span>
+<span class="fc" id="L104">        }</span>
 
-<span class="nc" id="L106">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),</span>
-<span class="nc" id="L107">                options.dumpFolder, options.dumpFilePrefix);</span>
-<span class="nc" id="L108">        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {</span>
+<span class="fc" id="L106">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),</span>
+<span class="fc" id="L107">                options.dumpFolder, options.dumpFilePrefix);</span>
+<span class="fc" id="L108">        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {</span>
 
             @Override
             public void doRun() throws InterruptedException, IOException {
@@ -115,12 +115,12 @@ public final class Monitor {
 <span class="nc" id="L115">            }</span>
 
         }, &quot;Sampling report&quot;));
-<span class="nc" id="L118">        sampler.registerJmx();</span>
+<span class="fc" id="L118">        sampler.registerJmx();</span>
 
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (options.startSampler) {</span>
-<span class="nc" id="L121">            sampler.start();</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
+<span class="fc" id="L121">            sampler.start();</span>
         }
-<span class="nc" id="L123">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
+<span class="fc" id="L123">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
 <span class="nc" id="L124">        System.exit(SysExits.OK.exitCode());</span>
 <span class="nc" id="L125">    }</span>
 

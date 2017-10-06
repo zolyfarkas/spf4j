@@ -77,19 +77,19 @@ class BeanExportedValue implements ExportedValue&lt;Object&gt; {
 <span class="fc" id="L77">  }</span>
 
   public BeanExportedValue withSetter(@Nonnull final Method psetMethod) {
-<span class="nc bnc" id="L80" title="All 2 branches missed.">    if (setMethod != null) {</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (setMethod != null) {</span>
 <span class="nc" id="L81">      throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + setMethod</span>
               + &quot;, &quot; + psetMethod);
     }
-<span class="nc bnc" id="L84" title="All 2 branches missed.">    return new BeanExportedValue(name, description, getMethod, psetMethod, object, valueClass, converter != null);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    return new BeanExportedValue(name, description, getMethod, psetMethod, object, valueClass, converter != null);</span>
   }
 
   public BeanExportedValue withGetter(@Nonnull final Method pgetMethod, @Nonnull final String pdescription) {
-<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (getMethod != null) {</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (getMethod != null) {</span>
 <span class="nc" id="L89">      throw new IllegalArgumentException(&quot;duplicate value registration attemted &quot; + getMethod</span>
               + &quot;, &quot; + pgetMethod);
     }
-<span class="nc bnc" id="L92" title="All 2 branches missed.">    return new BeanExportedValue(name, pdescription, pgetMethod, setMethod, object, valueClass, converter != null);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    return new BeanExportedValue(name, pdescription, pgetMethod, setMethod, object, valueClass, converter != null);</span>
   }
 
   @Override
@@ -106,8 +106,8 @@ class BeanExportedValue implements ExportedValue&lt;Object&gt; {
   public Object get() throws OpenDataException {
 
     try {
-<span class="nc bnc" id="L109" title="All 2 branches missed.">      if (converter != null) {</span>
-<span class="nc" id="L110">        return converter.toOpenValue(getMethod.invoke(object));</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">      if (converter != null) {</span>
+<span class="fc" id="L110">        return converter.toOpenValue(getMethod.invoke(object));</span>
       } else {
 <span class="nc" id="L112">        return getMethod.invoke(object);</span>
       }
@@ -120,12 +120,12 @@ class BeanExportedValue implements ExportedValue&lt;Object&gt; {
 
   @Override
   public void set(final Object value) throws InvalidAttributeValueException, InvalidObjectException {
-<span class="nc bnc" id="L123" title="All 2 branches missed.">    if (setMethod == null) {</span>
-<span class="nc" id="L124">      throw new InvalidAttributeValueException(name + &quot; is a read only attribute &quot;);</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">    if (setMethod == null) {</span>
+<span class="fc" id="L124">      throw new InvalidAttributeValueException(name + &quot; is a read only attribute &quot;);</span>
     }
     try {
-<span class="nc bnc" id="L127" title="All 2 branches missed.">      if (converter != null) {</span>
-<span class="nc" id="L128">        setMethod.invoke(object, converter.fromOpenValue(value));</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">      if (converter != null) {</span>
+<span class="fc" id="L128">        setMethod.invoke(object, converter.fromOpenValue(value));</span>
       } else {
 <span class="nc" id="L130">        setMethod.invoke(object, value);</span>
       }
@@ -133,12 +133,12 @@ class BeanExportedValue implements ExportedValue&lt;Object&gt; {
 <span class="nc" id="L133">      InvalidObjectException iox = new InvalidObjectException(&quot;Cannot set &quot; + value);</span>
 <span class="nc" id="L134">      iox.addSuppressed(ex);</span>
 <span class="nc" id="L135">      throw iox;</span>
-<span class="nc" id="L136">    }</span>
-<span class="nc" id="L137">  }</span>
+<span class="fc" id="L136">    }</span>
+<span class="fc" id="L137">  }</span>
 
   @Override
   public boolean isWriteable() {
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">    return setMethod != null;</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">    return setMethod != null;</span>
   }
 
   @Override
@@ -162,7 +162,7 @@ class BeanExportedValue implements ExportedValue&lt;Object&gt; {
 
   @Override
   public OpenType&lt;?&gt; getValueOpenType() {
-<span class="pc bpc" id="L165" title="1 of 2 branches missed.">    return (converter != null) ? converter.getOpenType() : null;</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    return (converter != null) ? converter.getOpenType() : null;</span>
   }
 
 }

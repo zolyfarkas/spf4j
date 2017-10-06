@@ -70,30 +70,30 @@ public final class ScalableSequence implements Sequence {
 
     }
 
-<span class="nc" id="L73">    public ScalableSequence(final long start, final int bucketSize) {</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (bucketSize &lt; 10) {</span>
+<span class="fc" id="L73">    public ScalableSequence(final long start, final int bucketSize) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (bucketSize &lt; 10) {</span>
 <span class="nc" id="L75">            throw new IllegalArgumentException(&quot;Bucket size must be greater than 10 and not &quot; + bucketSize);</span>
         }
-<span class="nc" id="L77">        this.counter = new AtomicLong(start);</span>
-<span class="nc" id="L78">        this.bucketSize = bucketSize;</span>
-<span class="nc" id="L79">        this.buckets = new ThreadLocal() {</span>
+<span class="fc" id="L77">        this.counter = new AtomicLong(start);</span>
+<span class="fc" id="L78">        this.bucketSize = bucketSize;</span>
+<span class="fc" id="L79">        this.buckets = new ThreadLocal() {</span>
             @Override
             protected Bucket initialValue() {
-<span class="nc" id="L82">                long start = counter.getAndAdd(bucketSize);</span>
-<span class="nc" id="L83">                return new Bucket(start, start + bucketSize);</span>
+<span class="fc" id="L82">                long start = counter.getAndAdd(bucketSize);</span>
+<span class="fc" id="L83">                return new Bucket(start, start + bucketSize);</span>
             }
         };
-<span class="nc" id="L86">    }</span>
+<span class="fc" id="L86">    }</span>
 
     @Override
     public long next() {
-<span class="nc" id="L90">        Bucket bucket = buckets.get();</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (bucket.hasValue()) {</span>
-<span class="nc" id="L92">            return bucket.getValue();</span>
+<span class="fc" id="L90">        Bucket bucket = buckets.get();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (bucket.hasValue()) {</span>
+<span class="fc" id="L92">            return bucket.getValue();</span>
         } else {
-<span class="nc" id="L94">            long start = counter.getAndAdd(bucketSize);</span>
-<span class="nc" id="L95">            bucket.reset(start + 1, start + bucketSize);</span>
-<span class="nc" id="L96">            return start;</span>
+<span class="fc" id="L94">            long start = counter.getAndAdd(bucketSize);</span>
+<span class="fc" id="L95">            bucket.reset(start + 1, start + bucketSize);</span>
+<span class="fc" id="L96">            return start;</span>
         }
     }
 

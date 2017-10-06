@@ -110,8 +110,8 @@ public final class Arrays {
 <span class="nc" id="L110">      return false;</span>
     }
 <span class="fc bfc" id="L112" title="All 2 branches covered.">    for (int i = starting; i &lt; ending; i++) {</span>
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">      if (!java.util.Objects.deepEquals(a1[i], a2[i])) {</span>
-<span class="nc" id="L114">        return false;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">      if (!java.util.Objects.deepEquals(a1[i], a2[i])) {</span>
+<span class="fc" id="L114">        return false;</span>
       }
     }
 <span class="fc" id="L117">    return true;</span>
@@ -226,42 +226,42 @@ public final class Arrays {
    */
   @Beta
   public static &lt;T&gt; void fill(final T[] array, final int startIdx, final int endIdx, final T value) {
-<span class="nc" id="L229">    int len = endIdx - startIdx;</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc bnc" id="L231" title="All 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="fc" id="L229">    int len = endIdx - startIdx;</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">    if (len &gt; 0) {</span>
+<span class="pc bpc" id="L231" title="2 of 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
 <span class="nc" id="L232">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
       }
-<span class="nc bnc" id="L234" title="All 2 branches missed.">      if (len &lt;= ARR_CPY_THR) {</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
-<span class="nc" id="L236">          array[i] = value;</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="fc" id="L236">          array[i] = value;</span>
         }
       } else {
-<span class="nc" id="L239">        int fillEnd = startIdx + ARR_CPY_THR;</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
-<span class="nc" id="L241">          array[i] = value;</span>
+<span class="fc" id="L239">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="fc" id="L241">          array[i] = value;</span>
         }
-<span class="nc" id="L243">        array[startIdx] = value;</span>
-<span class="nc bnc" id="L244" title="All 2 branches missed.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
-<span class="nc" id="L245">          int lmi = len - i;</span>
-<span class="nc" id="L246">          int from = startIdx + i;</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">          if (lmi &lt; i) {</span>
-<span class="nc bnc" id="L248" title="All 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="fc" id="L243">        array[startIdx] = value;</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="fc" id="L245">          int lmi = len - i;</span>
+<span class="fc" id="L246">          int from = startIdx + i;</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">          if (lmi &lt; i) {</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
 <span class="nc" id="L249">              int xe = from + lmi;</span>
 <span class="nc bnc" id="L250" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
 <span class="nc" id="L251">                array[j] = value;</span>
               }
 <span class="nc" id="L253">            } else {</span>
-<span class="nc" id="L254">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+<span class="fc" id="L254">              System.arraycopy(array, startIdx, array, from, lmi);</span>
             }
           } else {
-<span class="nc" id="L257">            System.arraycopy(array, startIdx, array, from, i);</span>
+<span class="fc" id="L257">            System.arraycopy(array, startIdx, array, from, i);</span>
           }
         }
-<span class="nc" id="L260">      }</span>
-<span class="nc bnc" id="L261" title="All 2 branches missed.">    } else if (len &lt; 0) {</span>
-<span class="nc" id="L262">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+<span class="fc" id="L260">      }</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="fc" id="L262">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
     }
-<span class="nc" id="L264">  }</span>
+<span class="fc" id="L264">  }</span>
 
   @Beta
   public static void fill(final char[] array, final int startIdx, final int endIdx, final char value) {

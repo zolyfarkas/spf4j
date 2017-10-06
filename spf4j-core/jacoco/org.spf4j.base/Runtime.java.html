@@ -88,7 +88,7 @@ public final class Runtime {
 
     @Override
     protected Long initialValue() {
-<span class="nc" id="L91">      return Long.MAX_VALUE;</span>
+<span class="fc" id="L91">      return Long.MAX_VALUE;</span>
     }
   };
 
@@ -162,7 +162,7 @@ public final class Runtime {
                 }
 <span class="fc" id="L163">              }</span>
 <span class="fc" id="L164">            }</span>
-<span class="pc bpc" id="L165" title="1 of 2 branches missed.">          } else if (((int) runnables.getKey()) &gt;= Integer.MAX_VALUE) {</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">          } else if (((int) runnables.getKey()) &gt;= Integer.MAX_VALUE) {</span>
 <span class="fc" id="L166">            Thread[] threads = new Thread[values.size()];</span>
 <span class="fc" id="L167">            int i = 0;</span>
 <span class="fc bfc" id="L168" title="All 2 branches covered.">            for (Runnable runnable : values) {</span>
@@ -183,11 +183,11 @@ public final class Runtime {
 <span class="fc" id="L183">              }</span>
             }
 <span class="fc" id="L185">          } else {</span>
-<span class="nc" id="L186">            List&lt;Future&lt;?&gt;&gt; futures = new ArrayList&lt;&gt;(values.size());</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            for (Runnable runnable : values) {</span>
-<span class="nc" id="L188">              futures.add(DefaultExecutor.INSTANCE.submit(runnable));</span>
-<span class="nc" id="L189">            }</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">            for (Future&lt;?&gt; future : futures) {</span>
+<span class="fc" id="L186">            List&lt;Future&lt;?&gt;&gt; futures = new ArrayList&lt;&gt;(values.size());</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">            for (Runnable runnable : values) {</span>
+<span class="fc" id="L188">              futures.add(DefaultExecutor.INSTANCE.submit(runnable));</span>
+<span class="fc" id="L189">            }</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">            for (Future&lt;?&gt; future : futures) {</span>
               try {
 <span class="nc" id="L192">                future.get();</span>
 <span class="nc" id="L193">              } catch (InterruptedException | ExecutionException | RuntimeException ex) {</span>
@@ -396,10 +396,10 @@ public final class Runtime {
   }
 
   public static void queueHookAtBeginning(final Runnable runnable) {
-<span class="nc" id="L399">    synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="nc" id="L400">      queueHook(Integer.MIN_VALUE, runnable);</span>
-<span class="nc" id="L401">    }</span>
-<span class="nc" id="L402">  }</span>
+<span class="fc" id="L399">    synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="fc" id="L400">      queueHook(Integer.MIN_VALUE, runnable);</span>
+<span class="pc" id="L401">    }</span>
+<span class="fc" id="L402">  }</span>
 
   public static void queueHookAtEnd(final Runnable runnable) {
 <span class="fc" id="L405">    queueHook(Integer.MAX_VALUE, runnable);</span>
@@ -418,13 +418,13 @@ public final class Runtime {
 <span class="fc" id="L418">  }</span>
 
   public static boolean removeQueuedShutdownHook(final Runnable runnable) {
-<span class="nc bnc" id="L421" title="All 2 branches missed.">    if (&quot;spf4j queued shutdown&quot;.equals(Thread.currentThread().getName())) {</span>
+<span class="pc bpc" id="L421" title="1 of 2 branches missed.">    if (&quot;spf4j queued shutdown&quot;.equals(Thread.currentThread().getName())) {</span>
 <span class="nc" id="L422">      return false;</span>
     }
-<span class="nc" id="L424">    synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="nc bnc" id="L425" title="All 2 branches missed.">      for (Set&lt;Runnable&gt; entry : SHUTDOWN_HOOKS.values()) {</span>
-<span class="nc bnc" id="L426" title="All 2 branches missed.">        if (entry.remove(runnable)) {</span>
-<span class="nc" id="L427">          return true;</span>
+<span class="fc" id="L424">    synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">      for (Set&lt;Runnable&gt; entry : SHUTDOWN_HOOKS.values()) {</span>
+<span class="pc bpc" id="L426" title="1 of 2 branches missed.">        if (entry.remove(runnable)) {</span>
+<span class="fc" id="L427">          return true;</span>
         }
 <span class="nc" id="L429">      }</span>
 <span class="nc" id="L430">    }</span>
@@ -432,7 +432,7 @@ public final class Runtime {
   }
 
   public static long getDeadline() {
-<span class="nc" id="L435">    return DEADLINE.get();</span>
+<span class="fc" id="L435">    return DEADLINE.get();</span>
   }
 
   public static long millisToDeadline() throws TimeoutException {
@@ -446,8 +446,8 @@ public final class Runtime {
   }
 
   public static void setDeadline(final long deadline) {
-<span class="nc" id="L449">    DEADLINE.set(deadline);</span>
-<span class="nc" id="L450">  }</span>
+<span class="fc" id="L449">    DEADLINE.set(deadline);</span>
+<span class="fc" id="L450">  }</span>
 
   /**
    * Attempts to run the GC in a verifiable way.
@@ -469,14 +469,14 @@ public final class Runtime {
           final long timeoutMillis, final String... arguments)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
 <span class="fc" id="L471">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
-<span class="nc" id="L472">    return jrun(classWithMain, classPath, timeoutMillis, arguments);</span>
+<span class="fc" id="L472">    return jrun(classWithMain, classPath, timeoutMillis, arguments);</span>
   }
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
 <span class="fc" id="L477">    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());</span>
 <span class="fc" id="L478">    inputArguments.removeAllSystemPropertiesStartingWith(&quot;com.sun.management.jmxremote&quot;);</span>
-<span class="nc" id="L479">    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);</span>
+<span class="fc" id="L479">    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);</span>
   }
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
@@ -487,7 +487,7 @@ public final class Runtime {
             jvmArgs,
 <span class="fc" id="L488">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
             arguments);
-<span class="nc" id="L490">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
+<span class="fc" id="L490">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
   }
 
   /**

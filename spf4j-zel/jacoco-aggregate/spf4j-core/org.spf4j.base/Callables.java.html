@@ -76,8 +76,8 @@ public final class Callables {
     @Override
     public AdvancedAction apply(@Nonnull final Exception input) {
 <span class="fc" id="L78">      Throwable rootCause = com.google.common.base.Throwables.getRootCause(input);</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">      if (rootCause instanceof RuntimeException) {</span>
-<span class="nc" id="L80">        return AdvancedAction.ABORT;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">      if (rootCause instanceof RuntimeException) {</span>
+<span class="fc" id="L80">        return AdvancedAction.ABORT;</span>
       }
 <span class="fc" id="L82">      Throwable e = Throwables.firstCause(input,</span>
 <span class="pc bpc" id="L83" title="2 of 8 branches missed.">              (ex) -&gt; (ex instanceof SQLTransientException</span>
@@ -313,8 +313,8 @@ public final class Callables {
           final TimeoutRetryPredicate&lt;? super T, T&gt; retryOnReturnVal,
           final TimeoutRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L316">    final long deadline = what.getDeadline();</span>
-<span class="nc" id="L317">    return executeWithRetry(what,</span>
+<span class="fc" id="L316">    final long deadline = what.getDeadline();</span>
+<span class="fc" id="L317">    return executeWithRetry(what,</span>
             new TimeoutDelayPredicate2DelayPredicate&lt;&gt;(deadline, retryOnReturnVal),
             new TimeoutDelayPredicate2DelayPredicate&lt;&gt;(deadline, retryOnException), exceptionClass);
   }
@@ -328,10 +328,10 @@ public final class Callables {
 <span class="fc" id="L328">      mdeadline = overflowSafeAdd(System.currentTimeMillis(), timeoutMillis);</span>
 <span class="fc" id="L329">    }</span>
 
-<span class="nc" id="L331">    public TimeoutCallable(final long deadline) {</span>
-<span class="nc" id="L332">      mdeadline = deadline;</span>
+<span class="fc" id="L331">    public TimeoutCallable(final long deadline) {</span>
+<span class="fc" id="L332">      mdeadline = deadline;</span>
 
-<span class="nc" id="L334">    }</span>
+<span class="fc" id="L334">    }</span>
 
     @Override
     public final T call() throws EX, InterruptedException, TimeoutException {
@@ -439,10 +439,10 @@ public final class Callables {
     @Nonnull
     RetryDecision&lt;R&gt; getDecision(T value, @Nonnull Callable&lt;R&gt; callable);
 
-<span class="nc" id="L442">    RetryPredicate&lt;Object, Object&gt; NORETRY_DELAY_PREDICATE = new RetryPredicate&lt;Object, Object&gt;() {</span>
+<span class="fc" id="L442">    RetryPredicate&lt;Object, Object&gt; NORETRY_DELAY_PREDICATE = new RetryPredicate&lt;Object, Object&gt;() {</span>
       @Override
       public RetryDecision getDecision(final Object value, final Callable callable) {
-<span class="nc" id="L445">         return RetryDecision.abort();</span>
+<span class="fc" id="L445">         return RetryDecision.abort();</span>
       }
     };
   }
@@ -451,7 +451,7 @@ public final class Callables {
   public static &lt;T, EX extends Exception&gt; T executeWithRetry(final TimeoutCallable&lt;T, EX&gt; what,
           final TimeoutRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L454">    return (T) executeWithRetry(what, (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,</span>
+<span class="fc" id="L454">    return (T) executeWithRetry(what, (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,</span>
             retryOnException, exceptionClass);
   }
 
@@ -599,8 +599,8 @@ public final class Callables {
         }
     }
 <span class="fc bfc" id="L601" title="All 2 branches covered.">    if (lastEx != null) {</span>
-<span class="pc bpc" id="L602" title="1 of 2 branches missed.">      if (lastExChain instanceof RuntimeException) {</span>
-<span class="nc" id="L603">        throw (RuntimeException) lastExChain;</span>
+<span class="fc bfc" id="L602" title="All 2 branches covered.">      if (lastExChain instanceof RuntimeException) {</span>
+<span class="fc" id="L603">        throw (RuntimeException) lastExChain;</span>
 <span class="fc bfc" id="L604" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
 <span class="fc" id="L605">        throw (TimeoutException) lastExChain;</span>
 <span class="pc bpc" id="L606" title="1 of 2 branches missed.">      } else if (lastExChain == null) {</span>

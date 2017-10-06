@@ -50,13 +50,13 @@ import javax.annotation.Nonnull;
  *
  * @param &lt;T&gt; the type of entry to store in this RTree.
  */
-<span class="nc bnc" id="L53" title="All 2 branches missed.">@SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;BC_UNCONFIRMED_CAST_OF_RETURN_VALUE&quot;,</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">@SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;BC_UNCONFIRMED_CAST_OF_RETURN_VALUE&quot;,</span>
   &quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;, &quot;PREDICTABLE_RANDOM&quot;, &quot;IMC_IMMATURE_CLASS_WRONG_FIELD_ORDER&quot;})
 public final class RTree&lt;T&gt; {
 
   private static final float DIM_FACTOR = -2.0f;
   private static final float FUDGE_FACTOR = 1.001f;
-<span class="nc" id="L59">  private static final float INIT_COORD = (float) Math.sqrt(Float.MAX_VALUE);</span>
+<span class="fc" id="L59">  private static final float INIT_COORD = (float) Math.sqrt(Float.MAX_VALUE);</span>
 
 <span class="pc" id="L61">  public enum SeedPicker {</span>
 <span class="fc" id="L62">    LINEAR, QUADRATIC</span>
@@ -78,40 +78,40 @@ public final class RTree&lt;T&gt; {
    * @param numDims the number of dimensions of the RTree.
    */
   public RTree(final int maxEntries, final int minEntries, final int numDims,
-<span class="nc" id="L81">          final SeedPicker seedPicker) {</span>
-<span class="nc bnc" id="L82" title="All 4 branches missed.">    assert (minEntries &lt;= (maxEntries / 2));</span>
-<span class="nc" id="L83">    this.numDims = numDims;</span>
-<span class="nc" id="L84">    this.maxEntries = maxEntries;</span>
-<span class="nc" id="L85">    this.minEntries = minEntries;</span>
-<span class="nc" id="L86">    this.seedPicker = seedPicker;</span>
-<span class="nc" id="L87">    pointDims = new float[numDims];</span>
-<span class="nc" id="L88">    root = buildRoot(true);</span>
-<span class="nc" id="L89">  }</span>
+<span class="fc" id="L81">          final SeedPicker seedPicker) {</span>
+<span class="pc bpc" id="L82" title="2 of 4 branches missed.">    assert (minEntries &lt;= (maxEntries / 2));</span>
+<span class="fc" id="L83">    this.numDims = numDims;</span>
+<span class="fc" id="L84">    this.maxEntries = maxEntries;</span>
+<span class="fc" id="L85">    this.minEntries = minEntries;</span>
+<span class="fc" id="L86">    this.seedPicker = seedPicker;</span>
+<span class="fc" id="L87">    pointDims = new float[numDims];</span>
+<span class="fc" id="L88">    root = buildRoot(true);</span>
+<span class="fc" id="L89">  }</span>
 
   public RTree(final int maxEntries, final int minEntries, final int numDims) {
 <span class="nc" id="L92">    this(maxEntries, minEntries, numDims, SeedPicker.LINEAR);</span>
 <span class="nc" id="L93">  }</span>
 
   private Node buildRoot(final boolean asLeaf) {
-<span class="nc" id="L96">    float[] initCoords = new float[numDims];</span>
-<span class="nc" id="L97">    float[] initDimensions = new float[numDims];</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">    for (int i = 0; i &lt; this.numDims; i++) {</span>
-<span class="nc" id="L99">      initCoords[i] = INIT_COORD;</span>
-<span class="nc" id="L100">      initDimensions[i] = DIM_FACTOR * INIT_COORD;</span>
+<span class="fc" id="L96">    float[] initCoords = new float[numDims];</span>
+<span class="fc" id="L97">    float[] initDimensions = new float[numDims];</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">    for (int i = 0; i &lt; this.numDims; i++) {</span>
+<span class="fc" id="L99">      initCoords[i] = INIT_COORD;</span>
+<span class="fc" id="L100">      initDimensions[i] = DIM_FACTOR * INIT_COORD;</span>
     }
-<span class="nc" id="L102">    return new Node(initCoords, initDimensions, asLeaf);</span>
+<span class="fc" id="L102">    return new Node(initCoords, initDimensions, asLeaf);</span>
   }
 
   /**
    * Builds a new RTree using default parameters: maximum 50 entries per node minimum 2 entries per node 2 dimensions
    */
   public RTree() {
-<span class="nc" id="L109">    this(50, 2, 2, SeedPicker.LINEAR);</span>
-<span class="nc" id="L110">  }</span>
+<span class="fc" id="L109">    this(50, 2, 2, SeedPicker.LINEAR);</span>
+<span class="fc" id="L110">  }</span>
 
   public RTree(final int numDimensions) {
-<span class="nc" id="L113">    this(50, 2, numDimensions, SeedPicker.LINEAR);</span>
-<span class="nc" id="L114">  }</span>
+<span class="fc" id="L113">    this(50, 2, numDimensions, SeedPicker.LINEAR);</span>
+<span class="fc" id="L114">  }</span>
 
   /**
    * @return the maximum number of entries per node
@@ -150,21 +150,21 @@ public final class RTree&lt;T&gt; {
    */
   @Nonnull
   public List&lt;T&gt; search(final float[] coords, final float[] dimensions) {
-<span class="nc bnc" id="L153" title="All 4 branches missed.">    assert (coords.length == numDims);</span>
-<span class="nc bnc" id="L154" title="All 4 branches missed.">    assert (dimensions.length == numDims);</span>
-<span class="nc" id="L155">    LinkedList&lt;T&gt; results = new LinkedList&lt;T&gt;();</span>
-<span class="nc" id="L156">    search(coords, dimensions, root, results);</span>
-<span class="nc" id="L157">    return results;</span>
+<span class="pc bpc" id="L153" title="2 of 4 branches missed.">    assert (coords.length == numDims);</span>
+<span class="pc bpc" id="L154" title="2 of 4 branches missed.">    assert (dimensions.length == numDims);</span>
+<span class="fc" id="L155">    LinkedList&lt;T&gt; results = new LinkedList&lt;T&gt;();</span>
+<span class="fc" id="L156">    search(coords, dimensions, root, results);</span>
+<span class="fc" id="L157">    return results;</span>
   }
 
   private void search(final float[] coords, final float[] dimensions, final Node n,
           final LinkedList&lt;T&gt; results) {
-<span class="nc bnc" id="L162" title="All 2 branches missed.">    if (n.leaf) {</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">      for (Node e : n.children) {</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (isOverlap(coords, dimensions, e.coords, e.dimensions)) {</span>
-<span class="nc" id="L165">          results.add(((Entry&lt;T&gt;) e).entry);</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">    if (n.leaf) {</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">      for (Node e : n.children) {</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        if (isOverlap(coords, dimensions, e.coords, e.dimensions)) {</span>
+<span class="fc" id="L165">          results.add(((Entry&lt;T&gt;) e).entry);</span>
         }
-<span class="nc" id="L167">      }</span>
+<span class="fc" id="L167">      }</span>
     } else {
 <span class="nc bnc" id="L169" title="All 2 branches missed.">      for (Node c : n.children) {</span>
 <span class="nc bnc" id="L170" title="All 2 branches missed.">        if (isOverlap(coords, dimensions, c.coords, c.dimensions)) {</span>
@@ -172,7 +172,7 @@ public final class RTree&lt;T&gt; {
         }
 <span class="nc" id="L173">      }</span>
     }
-<span class="nc" id="L175">  }</span>
+<span class="fc" id="L175">  }</span>
 
   /**
    * Deletes the entry associated with the given rectangle from the RTree
@@ -292,20 +292,20 @@ public final class RTree&lt;T&gt; {
    * @param entry the entry to insert
    */
   public void insert(final float[] coords, final float[] dimensions, final T entry) {
-<span class="nc bnc" id="L295" title="All 4 branches missed.">    assert (coords.length == numDims);</span>
-<span class="nc bnc" id="L296" title="All 4 branches missed.">    assert (dimensions.length == numDims);</span>
-<span class="nc" id="L297">    Entry e = new Entry(coords, dimensions, entry);</span>
-<span class="nc" id="L298">    Node l = chooseLeaf(root, e);</span>
-<span class="nc" id="L299">    l.children.add(e);</span>
-<span class="nc" id="L300">    size++;</span>
-<span class="nc" id="L301">    e.parent = l;</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">    if (l.children.size() &gt; maxEntries) {</span>
+<span class="pc bpc" id="L295" title="2 of 4 branches missed.">    assert (coords.length == numDims);</span>
+<span class="pc bpc" id="L296" title="2 of 4 branches missed.">    assert (dimensions.length == numDims);</span>
+<span class="fc" id="L297">    Entry e = new Entry(coords, dimensions, entry);</span>
+<span class="fc" id="L298">    Node l = chooseLeaf(root, e);</span>
+<span class="fc" id="L299">    l.children.add(e);</span>
+<span class="fc" id="L300">    size++;</span>
+<span class="fc" id="L301">    e.parent = l;</span>
+<span class="pc bpc" id="L302" title="1 of 2 branches missed.">    if (l.children.size() &gt; maxEntries) {</span>
 <span class="nc" id="L303">      Node[] splits = splitNode(l);</span>
 <span class="nc" id="L304">      adjustTree(splits[0], splits[1]);</span>
 <span class="nc" id="L305">    } else {</span>
-<span class="nc" id="L306">      adjustTree(l, null);</span>
+<span class="fc" id="L306">      adjustTree(l, null);</span>
     }
-<span class="nc" id="L308">  }</span>
+<span class="fc" id="L308">  }</span>
 
   /**
    * Convenience method for inserting a point
@@ -314,12 +314,12 @@ public final class RTree&lt;T&gt; {
    * @param entry
    */
   public void insert(final float[] coords, final T entry) {
-<span class="nc" id="L317">    insert(coords, pointDims, entry);</span>
-<span class="nc" id="L318">  }</span>
+<span class="fc" id="L317">    insert(coords, pointDims, entry);</span>
+<span class="fc" id="L318">  }</span>
 
   private void adjustTree(final Node n, final Node nn) {
-<span class="nc bnc" id="L321" title="All 2 branches missed.">    if (n == root) {</span>
-<span class="nc bnc" id="L322" title="All 2 branches missed.">      if (nn != null) {</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">    if (n == root) {</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">      if (nn != null) {</span>
         // build new root and add children.
 <span class="nc" id="L324">        root = buildRoot(false);</span>
 <span class="nc" id="L325">        root.children.add(n);</span>
@@ -327,8 +327,8 @@ public final class RTree&lt;T&gt; {
 <span class="nc" id="L327">        root.children.add(nn);</span>
 <span class="nc" id="L328">        nn.parent = root;</span>
       }
-<span class="nc" id="L330">      tighten(root);</span>
-<span class="nc" id="L331">      return;</span>
+<span class="fc" id="L330">      tighten(root);</span>
+<span class="fc" id="L331">      return;</span>
     }
 <span class="nc" id="L333">    tighten(n);</span>
 <span class="nc bnc" id="L334" title="All 2 branches missed.">    if (nn != null) {</span>
@@ -522,40 +522,40 @@ public final class RTree&lt;T&gt; {
   }
 
   private void tighten(final Node... nodes) {
-<span class="nc bnc" id="L525" title="All 4 branches missed.">    assert (nodes.length &gt;= 1) : &quot;Pass some nodes to tighten!&quot;;</span>
-<span class="nc bnc" id="L526" title="All 2 branches missed.">    for (Node n : nodes) {</span>
-<span class="nc bnc" id="L527" title="All 4 branches missed.">      assert (n.children.size() &gt; 0) : &quot;tighten() called on empty node!&quot;;</span>
-<span class="nc" id="L528">      float[] minCoords = new float[numDims];</span>
-<span class="nc" id="L529">      float[] maxCoords = new float[numDims];</span>
-<span class="nc bnc" id="L530" title="All 2 branches missed.">      for (int i = 0; i &lt; numDims; i++) {</span>
-<span class="nc" id="L531">        minCoords[i] = Float.MAX_VALUE;</span>
-<span class="nc" id="L532">        maxCoords[i] = Float.MIN_VALUE;</span>
+<span class="pc bpc" id="L525" title="2 of 4 branches missed.">    assert (nodes.length &gt;= 1) : &quot;Pass some nodes to tighten!&quot;;</span>
+<span class="fc bfc" id="L526" title="All 2 branches covered.">    for (Node n : nodes) {</span>
+<span class="pc bpc" id="L527" title="2 of 4 branches missed.">      assert (n.children.size() &gt; 0) : &quot;tighten() called on empty node!&quot;;</span>
+<span class="fc" id="L528">      float[] minCoords = new float[numDims];</span>
+<span class="fc" id="L529">      float[] maxCoords = new float[numDims];</span>
+<span class="fc bfc" id="L530" title="All 2 branches covered.">      for (int i = 0; i &lt; numDims; i++) {</span>
+<span class="fc" id="L531">        minCoords[i] = Float.MAX_VALUE;</span>
+<span class="fc" id="L532">        maxCoords[i] = Float.MIN_VALUE;</span>
 
-<span class="nc bnc" id="L534" title="All 2 branches missed.">        for (Node c : n.children) {</span>
+<span class="fc bfc" id="L534" title="All 2 branches covered.">        for (Node c : n.children) {</span>
           // we may have bulk-added a bunch of children to a node (eg. in
           // splitNode)
           // so here we just enforce the child-&gt;parent relationship.
-<span class="nc" id="L538">          c.parent = n;</span>
-<span class="nc bnc" id="L539" title="All 2 branches missed.">          if (c.coords[i] &lt; minCoords[i]) {</span>
-<span class="nc" id="L540">            minCoords[i] = c.coords[i];</span>
+<span class="fc" id="L538">          c.parent = n;</span>
+<span class="fc bfc" id="L539" title="All 2 branches covered.">          if (c.coords[i] &lt; minCoords[i]) {</span>
+<span class="fc" id="L540">            minCoords[i] = c.coords[i];</span>
           }
-<span class="nc bnc" id="L542" title="All 2 branches missed.">          if ((c.coords[i] + c.dimensions[i]) &gt; maxCoords[i]) {</span>
-<span class="nc" id="L543">            maxCoords[i] = (c.coords[i] + c.dimensions[i]);</span>
+<span class="pc bpc" id="L542" title="1 of 2 branches missed.">          if ((c.coords[i] + c.dimensions[i]) &gt; maxCoords[i]) {</span>
+<span class="fc" id="L543">            maxCoords[i] = (c.coords[i] + c.dimensions[i]);</span>
           }
-<span class="nc" id="L545">        }</span>
+<span class="fc" id="L545">        }</span>
       }
-<span class="nc bnc" id="L547" title="All 2 branches missed.">      for (int i = 0; i &lt; numDims; i++) {</span>
+<span class="fc bfc" id="L547" title="All 2 branches covered.">      for (int i = 0; i &lt; numDims; i++) {</span>
         // Convert max coords to dimensions
-<span class="nc" id="L549">        maxCoords[i] -= minCoords[i];</span>
+<span class="fc" id="L549">        maxCoords[i] -= minCoords[i];</span>
       }
-<span class="nc" id="L551">      System.arraycopy(minCoords, 0, n.coords, 0, numDims);</span>
-<span class="nc" id="L552">      System.arraycopy(maxCoords, 0, n.dimensions, 0, numDims);</span>
+<span class="fc" id="L551">      System.arraycopy(minCoords, 0, n.coords, 0, numDims);</span>
+<span class="fc" id="L552">      System.arraycopy(maxCoords, 0, n.dimensions, 0, numDims);</span>
     }
-<span class="nc" id="L554">  }</span>
+<span class="fc" id="L554">  }</span>
 
   private Node chooseLeaf(final Node n, final Entry&lt;T&gt; e) {
-<span class="nc bnc" id="L557" title="All 2 branches missed.">    if (n.leaf) {</span>
-<span class="nc" id="L558">      return n;</span>
+<span class="pc bpc" id="L557" title="1 of 2 branches missed.">    if (n.leaf) {</span>
+<span class="fc" id="L558">      return n;</span>
     }
 <span class="nc" id="L560">    float minInc = Float.MAX_VALUE;</span>
 <span class="nc" id="L561">    Node next = null;</span>
@@ -613,24 +613,24 @@ public final class RTree&lt;T&gt; {
   private boolean isOverlap(final float[] scoords, final float[] sdimensions,
           final float[] coords, final float[] dimensions) {
 
-<span class="nc bnc" id="L616" title="All 2 branches missed.">    for (int i = 0; i &lt; scoords.length; i++) {</span>
-<span class="nc" id="L617">      boolean overlapInThisDimension = false;</span>
-<span class="nc bnc" id="L618" title="All 2 branches missed.">      if (scoords[i] == coords[i]) {</span>
+<span class="fc bfc" id="L616" title="All 2 branches covered.">    for (int i = 0; i &lt; scoords.length; i++) {</span>
+<span class="fc" id="L617">      boolean overlapInThisDimension = false;</span>
+<span class="pc bpc" id="L618" title="1 of 2 branches missed.">      if (scoords[i] == coords[i]) {</span>
 <span class="nc" id="L619">        overlapInThisDimension = true;</span>
-<span class="nc bnc" id="L620" title="All 2 branches missed.">      } else if (scoords[i] &lt; coords[i]) {</span>
-<span class="nc bnc" id="L621" title="All 2 branches missed.">        if (scoords[i] + FUDGE_FACTOR * sdimensions[i] &gt;= coords[i]) {</span>
-<span class="nc" id="L622">          overlapInThisDimension = true;</span>
+<span class="fc bfc" id="L620" title="All 2 branches covered.">      } else if (scoords[i] &lt; coords[i]) {</span>
+<span class="pc bpc" id="L621" title="1 of 2 branches missed.">        if (scoords[i] + FUDGE_FACTOR * sdimensions[i] &gt;= coords[i]) {</span>
+<span class="fc" id="L622">          overlapInThisDimension = true;</span>
         }
-<span class="nc bnc" id="L624" title="All 2 branches missed.">      } else if (scoords[i] &gt; coords[i]) {</span>
-<span class="nc bnc" id="L625" title="All 2 branches missed.">        if (coords[i] + FUDGE_FACTOR * dimensions[i] &gt;= scoords[i]) {</span>
-<span class="nc" id="L626">          overlapInThisDimension = true;</span>
+<span class="pc bpc" id="L624" title="1 of 2 branches missed.">      } else if (scoords[i] &gt; coords[i]) {</span>
+<span class="fc bfc" id="L625" title="All 2 branches covered.">        if (coords[i] + FUDGE_FACTOR * dimensions[i] &gt;= scoords[i]) {</span>
+<span class="fc" id="L626">          overlapInThisDimension = true;</span>
         }
       }
-<span class="nc bnc" id="L629" title="All 2 branches missed.">      if (!overlapInThisDimension) {</span>
-<span class="nc" id="L630">        return false;</span>
+<span class="fc bfc" id="L629" title="All 2 branches covered.">      if (!overlapInThisDimension) {</span>
+<span class="fc" id="L630">        return false;</span>
       }
     }
-<span class="nc" id="L633">    return true;</span>
+<span class="fc" id="L633">    return true;</span>
   }
 
   // CHECKSTYLE:OFF
@@ -642,14 +642,14 @@ public final class RTree&lt;T&gt; {
     final boolean leaf;
     Node parent;
 
-<span class="nc" id="L645">    private Node(float[] coords, float[] dimensions, boolean leaf) {</span>
-<span class="nc" id="L646">      this.coords = new float[coords.length];</span>
-<span class="nc" id="L647">      this.dimensions = new float[dimensions.length];</span>
-<span class="nc" id="L648">      System.arraycopy(coords, 0, this.coords, 0, coords.length);</span>
-<span class="nc" id="L649">      System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);</span>
-<span class="nc" id="L650">      this.leaf = leaf;</span>
-<span class="nc" id="L651">      children = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L652">    }</span>
+<span class="fc" id="L645">    private Node(float[] coords, float[] dimensions, boolean leaf) {</span>
+<span class="fc" id="L646">      this.coords = new float[coords.length];</span>
+<span class="fc" id="L647">      this.dimensions = new float[dimensions.length];</span>
+<span class="fc" id="L648">      System.arraycopy(coords, 0, this.coords, 0, coords.length);</span>
+<span class="fc" id="L649">      System.arraycopy(dimensions, 0, this.dimensions, 0, dimensions.length);</span>
+<span class="fc" id="L650">      this.leaf = leaf;</span>
+<span class="fc" id="L651">      children = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L652">    }</span>
 
     @Override
     public String toString() {
@@ -668,9 +668,9 @@ public final class RTree&lt;T&gt; {
       // an entry isn't actually a leaf (its parent is a leaf)
       // but all the algorithms should stop at the first leaf they encounter,
       // so this little hack shouldn't be a problem.
-<span class="nc" id="L671">      super(coords, dimensions, true);</span>
-<span class="nc" id="L672">      this.entry = entry;</span>
-<span class="nc" id="L673">    }</span>
+<span class="fc" id="L671">      super(coords, dimensions, true);</span>
+<span class="fc" id="L672">      this.entry = entry;</span>
+<span class="fc" id="L673">    }</span>
 
     @Override
     public String toString() {

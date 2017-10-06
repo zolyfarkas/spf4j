@@ -63,15 +63,15 @@ public final class JVMArguments {
   private final List&lt;String&gt; arguments;
 
   public JVMArguments(final int size) {
-<span class="nc" id="L66">    this(new ArrayList&lt;&gt;(size));</span>
-<span class="nc" id="L67">  }</span>
+<span class="fc" id="L66">    this(new ArrayList&lt;&gt;(size));</span>
+<span class="fc" id="L67">  }</span>
 
 <span class="fc" id="L69">  public JVMArguments(final Collection&lt;? extends String&gt; c) {</span>
 <span class="fc" id="L70">    arguments = new ArrayList&lt;&gt;(c);</span>
 <span class="fc" id="L71">  }</span>
 
   public String getExecutable() {
-<span class="nc" id="L74">    return arguments.get(0);</span>
+<span class="fc" id="L74">    return arguments.get(0);</span>
   }
 
   public String removeSystemProperty(final String pname) {
@@ -107,8 +107,8 @@ public final class JVMArguments {
 <span class="nc" id="L107">  }</span>
 
   public void add(final String arg) {
-<span class="nc" id="L110">    arguments.add(arg);</span>
-<span class="nc" id="L111">  }</span>
+<span class="fc" id="L110">    arguments.add(arg);</span>
+<span class="fc" id="L111">  }</span>
 
   /**
    * Removes the n items from the end. Useful for removing all the Java arguments to rebuild them.
@@ -126,7 +126,7 @@ public final class JVMArguments {
    * Gets the process argument list of the current process.
    */
   public static JVMArguments current() throws IOException {
-<span class="nc" id="L129">    return of(-1);</span>
+<span class="fc" id="L129">    return of(-1);</span>
   }
 
   /**
@@ -135,14 +135,14 @@ public final class JVMArguments {
    * @param pid -1 to indicate the current process.
    */
   public static JVMArguments of(final int pid) throws IOException {
-<span class="nc" id="L138">    String os = Runtime.OS_NAME;</span>
-<span class="nc bnc" id="L139" title="All 18 branches missed.">    switch (os) {</span>
+<span class="fc" id="L138">    String os = Runtime.OS_NAME;</span>
+<span class="pc bpc" id="L139" title="15 of 18 branches missed.">    switch (os) {</span>
       case &quot;Linux&quot;:
 <span class="nc" id="L141">        return ofLinux(pid);</span>
       case &quot;SunOS&quot;:
 <span class="nc" id="L143">        return ofSolaris(pid);</span>
       case &quot;Mac OS X&quot;:
-<span class="nc" id="L145">        return ofMac(pid);</span>
+<span class="fc" id="L145">        return ofMac(pid);</span>
       case &quot;FreeBSD&quot;:
 <span class="nc" id="L147">        return ofFreeBSD(pid);</span>
       default:
@@ -157,8 +157,8 @@ public final class JVMArguments {
   }
 
   private static int resolvePID(final int pid) {
-<span class="nc bnc" id="L160" title="All 2 branches missed.">    if (pid == -1) {</span>
-<span class="nc" id="L161">      return Runtime.PID;</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">    if (pid == -1) {</span>
+<span class="fc" id="L161">      return Runtime.PID;</span>
     } else {
 <span class="nc" id="L163">      return pid;</span>
     }
@@ -355,26 +355,26 @@ public final class JVMArguments {
   @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
   private static JVMArguments ofMac(final int pid) {
     // local constants
-<span class="nc" id="L358">    final int ctlKern = 1;</span>
-<span class="nc" id="L359">    final int kernArgMax = 8;</span>
-<span class="nc" id="L360">    final int kernProcArgs2 = 49;</span>
-<span class="nc" id="L361">    final int sizeOfInt = Native.getNativeSize(int.class);</span>
-<span class="nc" id="L362">    IntByReference ibf = new IntByReference();</span>
+<span class="fc" id="L358">    final int ctlKern = 1;</span>
+<span class="fc" id="L359">    final int kernArgMax = 8;</span>
+<span class="fc" id="L360">    final int kernProcArgs2 = 49;</span>
+<span class="fc" id="L361">    final int sizeOfInt = Native.getNativeSize(int.class);</span>
+<span class="fc" id="L362">    IntByReference ibf = new IntByReference();</span>
 
-<span class="nc" id="L364">    IntByReference argmaxRef = new IntByReference(0);</span>
-<span class="nc" id="L365">    IntByReference size = new IntByReference(sizeOfInt);</span>
+<span class="fc" id="L364">    IntByReference argmaxRef = new IntByReference(0);</span>
+<span class="fc" id="L365">    IntByReference size = new IntByReference(sizeOfInt);</span>
 
     // for some reason, I was never able to get sysctlbyname work.
 //        if(LIBC.sysctlbyname(&quot;kern.argmax&quot;, argmaxRef.getPointer(), size, NULL, ibf)!=0)
-<span class="nc bnc" id="L369" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax}, 2, argmaxRef.getPointer(), size, NULL, ibf) != 0) {</span>
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax}, 2, argmaxRef.getPointer(), size, NULL, ibf) != 0) {</span>
 <span class="nc" id="L370">      throw new UnsupportedOperationException(&quot;Failed to get kernl.argmax: &quot;</span>
 <span class="nc" id="L371">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
     }
 
-<span class="nc" id="L374">    int argmax = argmaxRef.getValue();</span>
-<span class="nc" id="L375">    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);</span>
-<span class="nc" id="L376">    size.setValue(argmax);</span>
-<span class="nc bnc" id="L377" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {</span>
+<span class="fc" id="L374">    int argmax = argmaxRef.getValue();</span>
+<span class="fc" id="L375">    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);</span>
+<span class="fc" id="L376">    size.setValue(argmax);</span>
+<span class="pc bpc" id="L377" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {</span>
 <span class="nc" id="L378">      throw new UnsupportedOperationException(&quot;Failed to obtain ken.procargs2: &quot;</span>
 <span class="nc" id="L379">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
     }
@@ -417,48 +417,48 @@ public final class JVMArguments {
          * :               :
          * \---------------/ 0xffffffff
      */
-<span class="nc" id="L420">    int nargs = m.readInt();</span>
-<span class="nc" id="L421">    JVMArguments args = new JVMArguments(nargs);</span>
-<span class="nc" id="L422">    m.readString(); // exec path</span>
-<span class="nc bnc" id="L423" title="All 2 branches missed.">    for (int i = 0; i &lt; nargs; i++) {</span>
-<span class="nc" id="L424">      m.skip0();</span>
-<span class="nc" id="L425">      args.add(m.readString());</span>
+<span class="fc" id="L420">    int nargs = m.readInt();</span>
+<span class="fc" id="L421">    JVMArguments args = new JVMArguments(nargs);</span>
+<span class="fc" id="L422">    m.readString(); // exec path</span>
+<span class="fc bfc" id="L423" title="All 2 branches covered.">    for (int i = 0; i &lt; nargs; i++) {</span>
+<span class="fc" id="L424">      m.skip0();</span>
+<span class="fc" id="L425">      args.add(m.readString());</span>
     }
-<span class="nc" id="L427">    return args;</span>
+<span class="fc" id="L427">    return args;</span>
   }
 
   @SuppressFBWarnings(&quot;EQ_DOESNT_OVERRIDE_EQUALS&quot;)
   private static final class StringArrayMemory extends Memory {
 
-<span class="nc" id="L433">    private long offset = 0;</span>
+<span class="fc" id="L433">    private long offset = 0;</span>
     private final int sizeOfInt;
 
     StringArrayMemory(final long l, final int sizeOfInt) {
-<span class="nc" id="L437">      super(l);</span>
-<span class="nc" id="L438">      this.sizeOfInt = sizeOfInt;</span>
-<span class="nc" id="L439">    }</span>
+<span class="fc" id="L437">      super(l);</span>
+<span class="fc" id="L438">      this.sizeOfInt = sizeOfInt;</span>
+<span class="fc" id="L439">    }</span>
 
     int readInt() {
-<span class="nc" id="L442">      int r = getInt(offset);</span>
-<span class="nc" id="L443">      offset += sizeOfInt;</span>
-<span class="nc" id="L444">      return r;</span>
+<span class="fc" id="L442">      int r = getInt(offset);</span>
+<span class="fc" id="L443">      offset += sizeOfInt;</span>
+<span class="fc" id="L444">      return r;</span>
     }
 
     String readString() {
-<span class="nc" id="L448">      ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L448">      ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
       byte ch;
-<span class="nc bnc" id="L450" title="All 2 branches missed.">      while ((ch = getByte(offset++)) != '\0') {</span>
-<span class="nc" id="L451">        baos.write(ch);</span>
+<span class="fc bfc" id="L450" title="All 2 branches covered.">      while ((ch = getByte(offset++)) != '\0') {</span>
+<span class="fc" id="L451">        baos.write(ch);</span>
       }
-<span class="nc" id="L453">      return baos.toString();</span>
+<span class="fc" id="L453">      return baos.toString();</span>
     }
 
     void skip0() {
       // skip trailing '\0's
-<span class="nc bnc" id="L458" title="All 2 branches missed.">      while (getByte(offset) == '\0') {</span>
-<span class="nc" id="L459">        offset++;</span>
+<span class="fc bfc" id="L458" title="All 2 branches covered.">      while (getByte(offset) == '\0') {</span>
+<span class="fc" id="L459">        offset++;</span>
       }
-<span class="nc" id="L461">    }</span>
+<span class="fc" id="L461">    }</span>
   }
 
   private static JVMArguments ofFreeBSD(final int pid) {
@@ -504,7 +504,7 @@ public final class JVMArguments {
 
   @Override
   public String toString() {
-<span class="nc" id="L507">    return &quot;JVMArguments{&quot; + &quot;arguments=&quot; + arguments + '}';</span>
+<span class="fc" id="L507">    return &quot;JVMArguments{&quot; + &quot;arguments=&quot; + arguments + '}';</span>
   }
 
   @Override

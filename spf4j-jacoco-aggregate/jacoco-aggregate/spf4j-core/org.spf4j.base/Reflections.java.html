@@ -175,9 +175,9 @@ public final class Reflections {
 
 
   public static Class&lt;?&gt;[] getParameterTypes(final Constructor&lt;?&gt; m) {
-<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (PARAMETER_TYPES_CONSTR_FIELD_GET != null) {</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    if (PARAMETER_TYPES_CONSTR_FIELD_GET != null) {</span>
       try {
-<span class="nc" id="L180">        return (Class&lt;?&gt;[]) PARAMETER_TYPES_CONSTR_FIELD_GET.invokeExact(m);</span>
+<span class="fc" id="L180">        return (Class&lt;?&gt;[]) PARAMETER_TYPES_CONSTR_FIELD_GET.invokeExact(m);</span>
 <span class="nc" id="L181">      } catch (Error | RuntimeException ex) {</span>
 <span class="nc" id="L182">        throw ex;</span>
 <span class="nc" id="L183">      } catch (Throwable ex) {</span>
@@ -245,21 +245,21 @@ public final class Reflections {
           final String methodName,
           final Class&lt;?&gt;... paramTypes) {
 
-<span class="nc" id="L248">    String internedName = methodName.intern();</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">    for (Method m : c.getDeclaredMethods()) {</span>
-<span class="nc bnc" id="L250" title="All 2 branches missed.">      if (m.getName() == internedName</span>
-<span class="nc bnc" id="L251" title="All 2 branches missed.">              &amp;&amp; Arrays.equals(paramTypes, getParameterTypes(m))) {</span>
-<span class="nc" id="L252">        AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
+<span class="fc" id="L248">    String internedName = methodName.intern();</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">    for (Method m : c.getDeclaredMethods()) {</span>
+<span class="fc bfc" id="L250" title="All 2 branches covered.">      if (m.getName() == internedName</span>
+<span class="fc bfc" id="L251" title="All 2 branches covered.">              &amp;&amp; Arrays.equals(paramTypes, getParameterTypes(m))) {</span>
+<span class="fc" id="L252">        AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
           @Override
           public Void run() {
-<span class="nc" id="L255">             m.setAccessible(true);</span>
-<span class="nc" id="L256">             return null;</span>
+<span class="fc" id="L255">             m.setAccessible(true);</span>
+<span class="fc" id="L256">             return null;</span>
           }
         });
-<span class="nc" id="L259">        return m;</span>
+<span class="fc" id="L259">        return m;</span>
       }
     }
-<span class="nc" id="L262">    return null;</span>
+<span class="fc" id="L262">    return null;</span>
   }
 
   /**
@@ -268,16 +268,16 @@ public final class Reflections {
    */
   @Nullable
   public static Constructor&lt;?&gt; getConstructor(final Class&lt;?&gt; c, final Class&lt;?&gt;... paramTypes) {
-<span class="nc bnc" id="L271" title="All 2 branches missed.">    for (Constructor cons : c.getDeclaredConstructors()) {</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">      if (Arrays.equals(getParameterTypes(cons), paramTypes)) {</span>
-<span class="nc" id="L273">        AccessController.doPrivileged((PrivilegedAction&lt;Void&gt;) () -&gt; {</span>
-<span class="nc" id="L274">          cons.setAccessible(true);</span>
-<span class="nc" id="L275">          return null;</span>
+<span class="fc bfc" id="L271" title="All 2 branches covered.">    for (Constructor cons : c.getDeclaredConstructors()) {</span>
+<span class="fc bfc" id="L272" title="All 2 branches covered.">      if (Arrays.equals(getParameterTypes(cons), paramTypes)) {</span>
+<span class="fc" id="L273">        AccessController.doPrivileged((PrivilegedAction&lt;Void&gt;) () -&gt; {</span>
+<span class="fc" id="L274">          cons.setAccessible(true);</span>
+<span class="fc" id="L275">          return null;</span>
         });
-<span class="nc" id="L277">        return cons;</span>
+<span class="fc" id="L277">        return cons;</span>
       }
     }
-<span class="nc" id="L280">    return null;</span>
+<span class="fc" id="L280">    return null;</span>
   }
 
   /**
@@ -628,18 +628,18 @@ public final class Reflections {
 
   public static &lt;T&gt; T implementStatic(final Class&lt;T&gt; clasz, final Class&lt;?&gt; target) {
 
-<span class="nc" id="L631">    Method[] methods = clasz.getMethods();</span>
-<span class="nc" id="L632">    final Map&lt;Method, Method&gt; map = new HashMap&lt;&gt;(methods.length);</span>
-<span class="nc bnc" id="L633" title="All 2 branches missed.">    for (Method from : methods) {</span>
-<span class="nc" id="L634">      Method to = getCompatibleMethodCached(target, from.getName(), getParameterTypes(from));</span>
-<span class="nc bnc" id="L635" title="All 4 branches missed.">      if (to == null || !Modifier.isStatic(to.getModifiers())) {</span>
+<span class="fc" id="L631">    Method[] methods = clasz.getMethods();</span>
+<span class="fc" id="L632">    final Map&lt;Method, Method&gt; map = new HashMap&lt;&gt;(methods.length);</span>
+<span class="fc bfc" id="L633" title="All 2 branches covered.">    for (Method from : methods) {</span>
+<span class="fc" id="L634">      Method to = getCompatibleMethodCached(target, from.getName(), getParameterTypes(from));</span>
+<span class="pc bpc" id="L635" title="2 of 4 branches missed.">      if (to == null || !Modifier.isStatic(to.getModifiers())) {</span>
 <span class="nc" id="L636">        throw new IllegalArgumentException(&quot;Cannot map from &quot; + clasz + &quot; to &quot; + target);</span>
       }
-<span class="nc" id="L638">      map.put(from, to);</span>
+<span class="fc" id="L638">      map.put(from, to);</span>
     }
 
-<span class="nc" id="L641">    return (T) Proxy.newProxyInstance(clasz.getClassLoader(), new Class[]{clasz},</span>
-<span class="nc" id="L642">            (final Object proxy, final Method method, final Object[] args) -&gt; map.get(method).invoke(null, args));</span>
+<span class="fc" id="L641">    return (T) Proxy.newProxyInstance(clasz.getClassLoader(), new Class[]{clasz},</span>
+<span class="fc" id="L642">            (final Object proxy, final Method method, final Object[] args) -&gt; map.get(method).invoke(null, args));</span>
   }
 
   public static &lt;T&gt; T implement(final Class&lt;T&gt; clasz, final Object target) {

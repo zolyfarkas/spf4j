@@ -145,15 +145,15 @@ public enum UnixResources {
   }
 
   public void setSoftLimit(final long limit) throws UnixException {
-<span class="nc" id="L148">    setRLimit(this, limit, getHardLimit());</span>
-<span class="nc" id="L149">  }</span>
+<span class="fc" id="L148">    setRLimit(this, limit, getHardLimit());</span>
+<span class="fc" id="L149">  }</span>
 
   public void setLimits(final long softLimit, final long hardlimit) throws UnixException {
 <span class="nc" id="L152">    setRLimit(this, softLimit, hardlimit);</span>
 <span class="nc" id="L153">  }</span>
 
   public long getHardLimit() throws UnixException {
-<span class="nc" id="L156">    return getRLimit(this).rlim_max;</span>
+<span class="fc" id="L156">    return getRLimit(this).rlim_max;</span>
   }
 
   private static Resource.Rlimit getRLimit(final UnixResources resourceId) throws UnixException {
@@ -173,20 +173,20 @@ public enum UnixResources {
 
   private static void setRLimit(final UnixResources resourceId, final long softValue, final long hardValue)
           throws UnixException {
-<span class="nc bnc" id="L176" title="All 2 branches missed.">    int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">    if (id &lt; 0) {</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">    int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;</span>
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">    if (id &lt; 0) {</span>
 <span class="nc" id="L178">      throw new UnixException(&quot;Unsupported &quot; + id + &quot; limit on &quot; + Runtime.OS_NAME, 0);</span>
     }
-<span class="nc" id="L180">    final Resource.Rlimit limit = new Resource.Rlimit();</span>
-<span class="nc" id="L181">    limit.rlim_cur = softValue;</span>
-<span class="nc" id="L182">    limit.rlim_max = hardValue;</span>
-<span class="nc" id="L183">    int err = CLibrary.INSTANCE.setrlimit(id, limit);</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (err != 0) {</span>
+<span class="fc" id="L180">    final Resource.Rlimit limit = new Resource.Rlimit();</span>
+<span class="fc" id="L181">    limit.rlim_cur = softValue;</span>
+<span class="fc" id="L182">    limit.rlim_max = hardValue;</span>
+<span class="fc" id="L183">    int err = CLibrary.INSTANCE.setrlimit(id, limit);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">    if (err != 0) {</span>
 <span class="nc" id="L185">      int lastError = Native.getLastError();</span>
 <span class="nc" id="L186">      throw new UnixException(&quot;Error &quot; + CLibrary.INSTANCE.strerror(lastError)</span>
               + &quot; for setrlimit(&quot; + id + &quot;, &quot; + limit + '\'', lastError);
     }
-<span class="nc" id="L189">  }</span>
+<span class="fc" id="L189">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

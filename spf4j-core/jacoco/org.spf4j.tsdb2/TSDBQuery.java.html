@@ -68,23 +68,23 @@ import org.spf4j.tsdb2.avro.TableDef;
  */
 public final class TSDBQuery {
 
-<span class="nc" id="L71">  private static final DateTimeFormatter DATE_FMT = ISODateTimeFormat.dateTime();</span>
+<span class="fc" id="L71">  private static final DateTimeFormatter DATE_FMT = ISODateTimeFormat.dateTime();</span>
 
 <span class="nc" id="L73">  private TSDBQuery() {</span>
 <span class="nc" id="L74">  }</span>
 
   public static ListMultimap&lt;String, TableDef&gt; getAllTables(final File tsdbFile) throws IOException {
-<span class="nc" id="L77">    ListMultimap&lt;String, TableDef&gt; result = ArrayListMultimap.create();</span>
-<span class="nc" id="L78">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L77">    ListMultimap&lt;String, TableDef&gt; result = ArrayListMultimap.create();</span>
+<span class="pc" id="L78">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="nc bnc" id="L80" title="All 2 branches missed.">      while ((read = reader.read()) != null) {</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (read.isLeft()) {</span>
-<span class="nc" id="L82">          final TableDef tdef = read.getLeft();</span>
-<span class="nc" id="L83">          result.put(tdef.getName(), tdef);</span>
-<span class="nc" id="L84">        }</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (read.isLeft()) {</span>
+<span class="fc" id="L82">          final TableDef tdef = read.getLeft();</span>
+<span class="fc" id="L83">          result.put(tdef.getName(), tdef);</span>
+<span class="fc" id="L84">        }</span>
       }
-<span class="nc bnc" id="L86" title="All 8 branches missed.">    }</span>
-<span class="nc" id="L87">    return result;</span>
+<span class="pc bpc" id="L86" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L87">    return result;</span>
   }
 
   public static ListMultimap&lt;String, TableDef&gt; getTables(final File tsdbFile, final Set&lt;String&gt; tables)
@@ -179,46 +179,46 @@ public final class TSDBQuery {
 
   @Nonnull
   public static List&lt;TableDef&gt; getTableDef(final File tsdbFile, final String tableName) throws IOException {
-<span class="nc" id="L182">    List&lt;TableDef&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L183">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L182">    List&lt;TableDef&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="pc" id="L183">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="nc bnc" id="L185" title="All 2 branches missed.">      while ((read = reader.read()) != null) {</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (read.isLeft()) {</span>
-<span class="nc" id="L187">          TableDef left = read.getLeft();</span>
-<span class="nc bnc" id="L188" title="All 2 branches missed.">          if (Strings.equals(tableName, left.name)) {</span>
-<span class="nc" id="L189">            result.add(left);</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (read.isLeft()) {</span>
+<span class="fc" id="L187">          TableDef left = read.getLeft();</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">          if (Strings.equals(tableName, left.name)) {</span>
+<span class="fc" id="L189">            result.add(left);</span>
           }
-<span class="nc" id="L191">        }</span>
+<span class="fc" id="L191">        }</span>
       }
-<span class="nc bnc" id="L193" title="All 8 branches missed.">    }</span>
-<span class="nc" id="L194">    return result;</span>
+<span class="pc bpc" id="L193" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L194">    return result;</span>
   }
 
   public static TimeSeries getTimeSeries(final File tsdbFile, final long[] tableIds,
           final long startTimeMillis, final long endTimeMillis) throws IOException {
-<span class="nc" id="L199">    TLongList timestamps = new TLongArrayList();</span>
-<span class="nc" id="L200">    List&lt;long[]&gt; metrics = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L201">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L199">    TLongList timestamps = new TLongArrayList();</span>
+<span class="fc" id="L200">    List&lt;long[]&gt; metrics = new ArrayList&lt;&gt;();</span>
+<span class="pc" id="L201">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="nc bnc" id="L203" title="All 2 branches missed.">      while ((read = reader.read()) != null) {</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (read.isRight()) {</span>
-<span class="nc" id="L205">          DataBlock data = read.getRight();</span>
-<span class="nc" id="L206">          long baseTs = data.baseTimestamp;</span>
-<span class="nc bnc" id="L207" title="All 2 branches missed.">          for (DataRow row : data.getValues()) {</span>
-<span class="nc bnc" id="L208" title="All 2 branches missed.">            for (long tableId : tableIds) {</span>
-<span class="nc bnc" id="L209" title="All 2 branches missed.">              if (tableId == row.tableDefId) {</span>
-<span class="nc" id="L210">                final long ts = baseTs + row.relTimeStamp;</span>
-<span class="nc bnc" id="L211" title="All 4 branches missed.">                if (ts &gt;= startTimeMillis &amp;&amp; ts &lt;= endTimeMillis) {</span>
-<span class="nc" id="L212">                  timestamps.add(ts);</span>
-<span class="nc" id="L213">                  metrics.add(Longs.toArray(row.data));</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">        if (read.isRight()) {</span>
+<span class="fc" id="L205">          DataBlock data = read.getRight();</span>
+<span class="fc" id="L206">          long baseTs = data.baseTimestamp;</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">          for (DataRow row : data.getValues()) {</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">            for (long tableId : tableIds) {</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">              if (tableId == row.tableDefId) {</span>
+<span class="fc" id="L210">                final long ts = baseTs + row.relTimeStamp;</span>
+<span class="pc bpc" id="L211" title="2 of 4 branches missed.">                if (ts &gt;= startTimeMillis &amp;&amp; ts &lt;= endTimeMillis) {</span>
+<span class="fc" id="L212">                  timestamps.add(ts);</span>
+<span class="fc" id="L213">                  metrics.add(Longs.toArray(row.data));</span>
                 }
               }
             }
-<span class="nc" id="L217">          }</span>
-<span class="nc" id="L218">        }</span>
+<span class="fc" id="L217">          }</span>
+<span class="fc" id="L218">        }</span>
       }
-<span class="nc bnc" id="L220" title="All 8 branches missed.">    }</span>
-<span class="nc" id="L221">    return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));</span>
+<span class="pc bpc" id="L220" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L221">    return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));</span>
   }
 
   public static long[] getIds(final Collection&lt;TableDef&gt; tableDefs) {

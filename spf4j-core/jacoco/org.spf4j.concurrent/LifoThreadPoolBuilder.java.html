@@ -55,23 +55,23 @@ public final class LifoThreadPoolBuilder {
   private boolean mutable;
   private boolean jmxEnabled;
 
-<span class="nc" id="L58">  private LifoThreadPoolBuilder() {</span>
-<span class="nc" id="L59">    poolName = &quot;Lifo Pool&quot;;</span>
-<span class="nc" id="L60">    rejectionHandler = REJECT_EXCEPTION_EXEC_HANDLER;</span>
-<span class="nc" id="L61">    coreSize = 0;</span>
-<span class="nc" id="L62">    maxSize = Short.MAX_VALUE;</span>
-<span class="nc" id="L63">    maxIdleTimeMillis = 60000;</span>
-<span class="nc" id="L64">    taskQueue = new ArrayDeque&lt;&gt;(256);</span>
-<span class="nc" id="L65">    queueSizeLimit = 0;</span>
-<span class="nc" id="L66">    daemonThreads = false;</span>
-<span class="nc" id="L67">    spinLockCount = 1024;</span>
-<span class="nc" id="L68">    threadPriority = Thread.NORM_PRIORITY;</span>
-<span class="nc" id="L69">    mutable = false;</span>
-<span class="nc" id="L70">    jmxEnabled = false;</span>
-<span class="nc" id="L71">  }</span>
+<span class="fc" id="L58">  private LifoThreadPoolBuilder() {</span>
+<span class="fc" id="L59">    poolName = &quot;Lifo Pool&quot;;</span>
+<span class="fc" id="L60">    rejectionHandler = REJECT_EXCEPTION_EXEC_HANDLER;</span>
+<span class="fc" id="L61">    coreSize = 0;</span>
+<span class="fc" id="L62">    maxSize = Short.MAX_VALUE;</span>
+<span class="fc" id="L63">    maxIdleTimeMillis = 60000;</span>
+<span class="fc" id="L64">    taskQueue = new ArrayDeque&lt;&gt;(256);</span>
+<span class="fc" id="L65">    queueSizeLimit = 0;</span>
+<span class="fc" id="L66">    daemonThreads = false;</span>
+<span class="fc" id="L67">    spinLockCount = 1024;</span>
+<span class="fc" id="L68">    threadPriority = Thread.NORM_PRIORITY;</span>
+<span class="fc" id="L69">    mutable = false;</span>
+<span class="fc" id="L70">    jmxEnabled = false;</span>
+<span class="fc" id="L71">  }</span>
 
   public static LifoThreadPoolBuilder newBuilder() {
-<span class="nc" id="L74">    return new LifoThreadPoolBuilder();</span>
+<span class="fc" id="L74">    return new LifoThreadPoolBuilder();</span>
   }
 
   public LifoThreadPoolBuilder withPoolName(final String poolName) {
@@ -80,13 +80,13 @@ public final class LifoThreadPoolBuilder {
   }
 
   public LifoThreadPoolBuilder withCoreSize(final int coreSize) {
-<span class="nc" id="L83">    this.coreSize = coreSize;</span>
-<span class="nc" id="L84">    return this;</span>
+<span class="fc" id="L83">    this.coreSize = coreSize;</span>
+<span class="fc" id="L84">    return this;</span>
   }
 
   public LifoThreadPoolBuilder withMaxSize(final int maxSize) {
-<span class="nc" id="L88">    this.maxSize = maxSize;</span>
-<span class="nc" id="L89">    return this;</span>
+<span class="fc" id="L88">    this.maxSize = maxSize;</span>
+<span class="fc" id="L89">    return this;</span>
   }
 
   public LifoThreadPoolBuilder withMaxIdleTimeMillis(final int maxIdleTimeMillis) {
@@ -100,8 +100,8 @@ public final class LifoThreadPoolBuilder {
   }
 
   public LifoThreadPoolBuilder withQueueSizeLimit(final int queueSizeLimit) {
-<span class="nc" id="L103">    this.queueSizeLimit = queueSizeLimit;</span>
-<span class="nc" id="L104">    return this;</span>
+<span class="fc" id="L103">    this.queueSizeLimit = queueSizeLimit;</span>
+<span class="fc" id="L104">    return this;</span>
   }
 
   public LifoThreadPoolBuilder withDaemonThreads(final boolean daemonThreads) {
@@ -115,8 +115,8 @@ public final class LifoThreadPoolBuilder {
   }
 
   public LifoThreadPoolBuilder withRejectionHandler(final RejectedExecutionHandler rejectionHandler) {
-<span class="nc" id="L118">    this.rejectionHandler = rejectionHandler;</span>
-<span class="nc" id="L119">    return this;</span>
+<span class="fc" id="L118">    this.rejectionHandler = rejectionHandler;</span>
+<span class="fc" id="L119">    return this;</span>
   }
 
   public LifoThreadPoolBuilder withThreadPriority(final int threadPriority) {
@@ -136,17 +136,17 @@ public final class LifoThreadPoolBuilder {
 
   public LifoThreadPool build() {
     LifoThreadPool result;
-<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (mutable) {</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">    if (mutable) {</span>
 <span class="nc" id="L140">      result = new MutableLifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,</span>
               taskQueue, queueSizeLimit, daemonThreads, spinLockCount, rejectionHandler, threadPriority);
     } else {
-<span class="nc" id="L143">      result = new LifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,</span>
+<span class="fc" id="L143">      result = new LifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,</span>
               taskQueue, queueSizeLimit, daemonThreads, spinLockCount, rejectionHandler, threadPriority);
     }
-<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (jmxEnabled) {</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">    if (jmxEnabled) {</span>
 <span class="nc" id="L147">      result.exportJmx();</span>
     }
-<span class="nc" id="L149">    return result;</span>
+<span class="fc" id="L149">    return result;</span>
   }
 
   public MutableLifoThreadPool buildMutable() {

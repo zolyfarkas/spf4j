@@ -65,41 +65,41 @@ public final class Template&lt;T, E extends Exception&gt; {
             final RecyclingSupplier&lt;T&gt; pool, final int nrImmediateRetries,
              final int retryWaitMillis, final int timeoutMillis, final Class&lt;E&gt; exClass)
             throws E, InterruptedException, TimeoutException {
-<span class="nc" id="L68">        Callables.executeWithRetry(new TimeoutCallable&lt;Void, E&gt;(timeoutMillis) {</span>
+<span class="fc" id="L68">        Callables.executeWithRetry(new TimeoutCallable&lt;Void, E&gt;(timeoutMillis) {</span>
 
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
                     throws ObjectCreationException,
                     ObjectBorrowException, InterruptedException, TimeoutException, E {
-<span class="nc" id="L75">                Template.doOnSupplied(handler, pool, deadline);</span>
-<span class="nc" id="L76">                return null;</span>
+<span class="fc" id="L75">                Template.doOnSupplied(handler, pool, deadline);</span>
+<span class="fc" id="L76">                return null;</span>
             }
         }, nrImmediateRetries, retryWaitMillis, exClass);
-<span class="nc" id="L79">    }</span>
+<span class="fc" id="L79">    }</span>
 
     //findbugs does not know about supress in spf4j
     @SuppressFBWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
     private static &lt;T, E extends Exception&gt; void doOnSupplied(final Handler&lt;T, E&gt; handler,
             final RecyclingSupplier&lt;T&gt; pool, final long deadline)
             throws  E, ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
-<span class="nc" id="L86">        T object = pool.get();</span>
+<span class="fc" id="L86">        T object = pool.get();</span>
         try {
-<span class="nc" id="L88">            handler.handle(object, deadline);</span>
-<span class="nc" id="L89">        } catch (Exception e) {</span>
+<span class="fc" id="L88">            handler.handle(object, deadline);</span>
+<span class="fc" id="L89">        } catch (Exception e) {</span>
             try {
-<span class="nc" id="L91">                pool.recycle(object, e);</span>
+<span class="fc" id="L91">                pool.recycle(object, e);</span>
 <span class="nc" id="L92">            } catch (RuntimeException ex) {</span>
 <span class="nc" id="L93">                throw Throwables.suppress(ex, e);</span>
-<span class="nc" id="L94">            }</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">            if (e instanceof RuntimeException) {</span>
+<span class="fc" id="L94">            }</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            if (e instanceof RuntimeException) {</span>
 <span class="nc" id="L96">                throw (RuntimeException) e;</span>
             } else {
-<span class="nc" id="L98">                throw (E) e;</span>
+<span class="fc" id="L98">                throw (E) e;</span>
             }
-<span class="nc" id="L100">        }</span>
-<span class="nc" id="L101">        pool.recycle(object, null);</span>
-<span class="nc" id="L102">    }</span>
+<span class="fc" id="L100">        }</span>
+<span class="fc" id="L101">        pool.recycle(object, null);</span>
+<span class="fc" id="L102">    }</span>
 
     @Override
     public String toString() {

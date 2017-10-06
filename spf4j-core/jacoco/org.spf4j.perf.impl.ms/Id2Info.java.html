@@ -43,29 +43,29 @@ import org.spf4j.perf.MeasurementsInfo;
  */
 public final class Id2Info {
 
-<span class="nc" id="L46">    private static final TObjectLongMap&lt;MeasurementsInfo&gt; INFO2ID = new TObjectLongHashMap&lt;&gt;();</span>
-<span class="nc" id="L47">    private static final TLongObjectMap&lt;MeasurementsInfo&gt; ID2INFO = new TLongObjectHashMap&lt;&gt;();</span>
-<span class="nc" id="L48">    private static long idSeq = 1;</span>
+<span class="fc" id="L46">    private static final TObjectLongMap&lt;MeasurementsInfo&gt; INFO2ID = new TObjectLongHashMap&lt;&gt;();</span>
+<span class="fc" id="L47">    private static final TLongObjectMap&lt;MeasurementsInfo&gt; ID2INFO = new TLongObjectHashMap&lt;&gt;();</span>
+<span class="fc" id="L48">    private static long idSeq = 1;</span>
 
 <span class="nc" id="L50">    private Id2Info() { }</span>
 
     public static synchronized long getId(@Nonnull final MeasurementsInfo info) {
-<span class="nc" id="L53">        long id = INFO2ID.get(info);</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (id &lt;= 0) {</span>
-<span class="nc" id="L55">            id = idSeq++;</span>
-<span class="nc" id="L56">            INFO2ID.put(info, id);</span>
-<span class="nc" id="L57">            ID2INFO.put(id, info);</span>
+<span class="fc" id="L53">        long id = INFO2ID.get(info);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (id &lt;= 0) {</span>
+<span class="fc" id="L55">            id = idSeq++;</span>
+<span class="fc" id="L56">            INFO2ID.put(info, id);</span>
+<span class="fc" id="L57">            ID2INFO.put(id, info);</span>
         }
-<span class="nc" id="L59">        return id;</span>
+<span class="fc" id="L59">        return id;</span>
     }
 
     @Nonnull
     public static synchronized MeasurementsInfo getInfo(final long id) {
-<span class="nc" id="L64">        MeasurementsInfo result = ID2INFO.get(id);</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="fc" id="L64">        MeasurementsInfo result = ID2INFO.get(id);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (result == null) {</span>
 <span class="nc" id="L66">          throw new IllegalArgumentException(&quot;ID &quot; + id + &quot; not known&quot;);</span>
         }
-<span class="nc" id="L68">        return result;</span>
+<span class="fc" id="L68">        return result;</span>
     }
 
 }

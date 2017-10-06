@@ -62,23 +62,23 @@ import org.spf4j.recyclable.ObjectCreationException;
  */
 public final class RecorderFactory {
 
-<span class="nc" id="L65">  private static final Logger LOG = LoggerFactory.getLogger(RecorderFactory.class);</span>
+<span class="fc" id="L65">  private static final Logger LOG = LoggerFactory.getLogger(RecorderFactory.class);</span>
 
   public static final MeasurementStore MEASUREMENT_STORE;
 
   static {
     MeasurementStore mStore;
     try {
-<span class="nc" id="L72">      mStore = buildStoreFromConfig(System.getProperty(&quot;spf4j.perf.ms.config&quot;, null));</span>
+<span class="fc" id="L72">      mStore = buildStoreFromConfig(System.getProperty(&quot;spf4j.perf.ms.config&quot;, null));</span>
 <span class="nc" id="L73">    } catch (IOException | ObjectCreationException ex) {</span>
 <span class="nc" id="L74">      LOG.error(&quot;Cannot initialize measurement store, installing NOP store&quot;, ex);</span>
 <span class="nc" id="L75">      mStore = new NopMeasurementStore();</span>
-<span class="nc" id="L76">    }</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (!(mStore instanceof NopMeasurementStore)) {</span>
-<span class="nc" id="L78">      Flusher.flushEvery(Integer.getInteger(&quot;spf4j.perf.ms.flushIntervalMillis&quot;, 60000), mStore);</span>
+<span class="fc" id="L76">    }</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (!(mStore instanceof NopMeasurementStore)) {</span>
+<span class="fc" id="L78">      Flusher.flushEvery(Integer.getInteger(&quot;spf4j.perf.ms.flushIntervalMillis&quot;, 60000), mStore);</span>
     }
-<span class="nc" id="L80">    MEASUREMENT_STORE = mStore;</span>
-<span class="nc" id="L81">  }</span>
+<span class="fc" id="L80">    MEASUREMENT_STORE = mStore;</span>
+<span class="fc" id="L81">  }</span>
 
 <span class="nc" id="L83">  private RecorderFactory() {</span>
 <span class="nc" id="L84">  }</span>
@@ -99,46 +99,46 @@ public final class RecorderFactory {
   private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
           throws IOException, ObjectCreationException {
 
-<span class="nc bnc" id="L102" title="All 4 branches missed.">    if (configuration == null || configuration.trim().isEmpty()) {</span>
-<span class="nc" id="L103">      return new TSDBMeasurementStore(new File(</span>
-<span class="nc" id="L104">              System.getProperty(&quot;spf4j.perf.ms.defaultTsdbFolderPath&quot;,</span>
-<span class="nc" id="L105">                      System.getProperty(&quot;java.io.tmpdir&quot;))</span>
+<span class="pc bpc" id="L102" title="1 of 4 branches missed.">    if (configuration == null || configuration.trim().isEmpty()) {</span>
+<span class="fc" id="L103">      return new TSDBMeasurementStore(new File(</span>
+<span class="fc" id="L104">              System.getProperty(&quot;spf4j.perf.ms.defaultTsdbFolderPath&quot;,</span>
+<span class="fc" id="L105">                      System.getProperty(&quot;java.io.tmpdir&quot;))</span>
               + File.separator
-<span class="nc" id="L107">              + CharSequences.validatedFileName(System.getProperty(&quot;spf4j.perf.ms.defaultTsdbFileNamePrefix&quot;,</span>
-<span class="nc" id="L108">                      ManagementFactory.getRuntimeMXBean().getName() + &quot;.tsdb2&quot;))));</span>
+<span class="fc" id="L107">              + CharSequences.validatedFileName(System.getProperty(&quot;spf4j.perf.ms.defaultTsdbFileNamePrefix&quot;,</span>
+<span class="fc" id="L108">                      ManagementFactory.getRuntimeMXBean().getName() + &quot;.tsdb2&quot;))));</span>
     }
 
     List&lt;String&gt; stores;
     try {
-<span class="nc" id="L113">      stores = Csv.readRow(new StringReader(configuration));</span>
+<span class="fc" id="L113">      stores = Csv.readRow(new StringReader(configuration));</span>
 <span class="nc" id="L114">    } catch (CsvParseException ex) {</span>
 <span class="nc" id="L115">      throw new IllegalArgumentException(&quot;Invalid configuration &quot; + configuration, ex);</span>
-<span class="nc" id="L116">    }</span>
-<span class="nc" id="L117">    final int size = stores.size();</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (size == 1) {</span>
+<span class="fc" id="L116">    }</span>
+<span class="fc" id="L117">    final int size = stores.size();</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    if (size == 1) {</span>
 <span class="nc" id="L119">      return fromString(stores.get(0));</span>
     } else {
-<span class="nc" id="L121">      MeasurementStore[] mstores = new MeasurementStore[size];</span>
-<span class="nc" id="L122">      int i = 0;</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">      for (String config : stores) {</span>
-<span class="nc" id="L124">        mstores[i] = fromString(config);</span>
-<span class="nc" id="L125">        i++;</span>
-<span class="nc" id="L126">      }</span>
-<span class="nc" id="L127">      return new MultiStore(mstores);</span>
+<span class="fc" id="L121">      MeasurementStore[] mstores = new MeasurementStore[size];</span>
+<span class="fc" id="L122">      int i = 0;</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">      for (String config : stores) {</span>
+<span class="fc" id="L124">        mstores[i] = fromString(config);</span>
+<span class="fc" id="L125">        i++;</span>
+<span class="fc" id="L126">      }</span>
+<span class="fc" id="L127">      return new MultiStore(mstores);</span>
     }
   }
 
   public static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
-<span class="nc" id="L132">    int atIdx = string.indexOf('@');</span>
-<span class="nc" id="L133">    final int length = string.length();</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">    if (atIdx &lt; 0) {</span>
+<span class="fc" id="L132">    int atIdx = string.indexOf('@');</span>
+<span class="fc" id="L133">    final int length = string.length();</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">    if (atIdx &lt; 0) {</span>
 <span class="nc" id="L135">      atIdx = length;</span>
     }
-<span class="nc" id="L137">    StoreType type = StoreType.valueOf(string.substring(0, atIdx));</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">    if (atIdx &gt;= length) {</span>
+<span class="fc" id="L137">    StoreType type = StoreType.valueOf(string.substring(0, atIdx));</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">    if (atIdx &gt;= length) {</span>
 <span class="nc" id="L139">      return type.create(&quot;&quot;);</span>
     } else {
-<span class="nc" id="L141">      return type.create(string.substring(atIdx + 1));</span>
+<span class="fc" id="L141">      return type.create(string.substring(atIdx + 1));</span>
     }
   }
 
@@ -146,11 +146,11 @@ public final class RecorderFactory {
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
           final int factor, final int lowerMagnitude,
           final int higherMagnitude, final int quantasPerMagnitude) {
-<span class="nc" id="L149">    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedAccumulator(forWhat, &quot;&quot;,</span>
+<span class="fc" id="L149">    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedAccumulator(forWhat, &quot;&quot;,</span>
             unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
             quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
-<span class="nc" id="L152">    mr.registerJmx();</span>
-<span class="nc" id="L153">    return mr;</span>
+<span class="fc" id="L152">    mr.registerJmx();</span>
+<span class="fc" id="L153">    return mr;</span>
   }
 
   public static MeasurementRecorder createScalableCountingRecorder(
@@ -163,31 +163,31 @@ public final class RecorderFactory {
 
   public static MeasurementRecorder createScalableMinMaxAvgRecorder(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-<span class="nc" id="L166">    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgAccumulator(forWhat, &quot;&quot;,</span>
+<span class="fc" id="L166">    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgAccumulator(forWhat, &quot;&quot;,</span>
             unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
-<span class="nc" id="L168">    mr.registerJmx();</span>
-<span class="nc" id="L169">    return mr;</span>
+<span class="fc" id="L168">    mr.registerJmx();</span>
+<span class="fc" id="L169">    return mr;</span>
   }
 
   public static MeasurementRecorderSource createScalableQuantizedRecorderSource(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
           final int factor, final int lowerMagnitude,
           final int higherMagnitude, final int quantasPerMagnitude) {
-<span class="nc" id="L176">    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(</span>
+<span class="fc" id="L176">    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(</span>
             new QuantizedAccumulator(forWhat, &quot;&quot;,
                     unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
             sampleTimeMillis, MEASUREMENT_STORE);
-<span class="nc" id="L180">    mrs.registerJmx();</span>
-<span class="nc" id="L181">    return mrs;</span>
+<span class="fc" id="L180">    mrs.registerJmx();</span>
+<span class="fc" id="L181">    return mrs;</span>
   }
 
   public static MeasurementRecorderSource createScalableCountingRecorderSource(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-<span class="nc" id="L186">    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(</span>
+<span class="fc" id="L186">    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(</span>
             new CountingAccumulator(forWhat, &quot;&quot;,
                     unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
-<span class="nc" id="L189">    mrs.registerJmx();</span>
-<span class="nc" id="L190">    return mrs;</span>
+<span class="fc" id="L189">    mrs.registerJmx();</span>
+<span class="fc" id="L190">    return mrs;</span>
   }
 
   public static MeasurementRecorderSource createScalableMinMaxAvgRecorderSource(
@@ -216,15 +216,15 @@ public final class RecorderFactory {
 
   public static MeasurementRecorder createDirectRecorder(final Object forWhat,
           final String unitOfMeasurement, final int sampleTimeMillis) {
-<span class="nc" id="L219">    DirectStoreAccumulator mr = new DirectStoreAccumulator(</span>
+<span class="fc" id="L219">    DirectStoreAccumulator mr = new DirectStoreAccumulator(</span>
             forWhat, &quot;&quot;, unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
-<span class="nc" id="L221">    mr.registerJmx();</span>
-<span class="nc" id="L222">    return mr;</span>
+<span class="fc" id="L221">    mr.registerJmx();</span>
+<span class="fc" id="L222">    return mr;</span>
   }
 
   public static MeasurementRecorderSource createDirectRecorderSource(final Object forWhat,
           final String unitOfMeasurement) {
-<span class="nc" id="L227">    return new DirectRecorderSource(forWhat, &quot;&quot;, unitOfMeasurement, 0, MEASUREMENT_STORE);</span>
+<span class="fc" id="L227">    return new DirectRecorderSource(forWhat, &quot;&quot;, unitOfMeasurement, 0, MEASUREMENT_STORE);</span>
   }
 
   public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,

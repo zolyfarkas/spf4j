@@ -175,16 +175,16 @@ public final class OperatingSystem {
   }
 
   public static long getMaxFileDescriptorCount() {
-<span class="nc" id="L178">    return MAX_NR_OPENFILES;</span>
+<span class="fc" id="L178">    return MAX_NR_OPENFILES;</span>
   }
 
   public static int killProcess(final Process proc, final long terminateTimeoutMillis,
           final long forceTerminateTimeoutMillis)
           throws InterruptedException {
 
-<span class="nc" id="L185">    proc.destroy();</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">    if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
-<span class="nc" id="L187">      return proc.exitValue();</span>
+<span class="fc" id="L185">    proc.destroy();</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">    if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
+<span class="fc" id="L187">      return proc.exitValue();</span>
     } else {
 <span class="nc" id="L189">      proc.destroyForcibly();</span>
 <span class="nc bnc" id="L190" title="All 2 branches missed.">      if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
@@ -200,7 +200,7 @@ public final class OperatingSystem {
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
 <span class="fc" id="L202">    final Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
-<span class="pc" id="L203">    try (InputStream pos = proc.getInputStream();</span>
+<span class="fc" id="L203">    try (InputStream pos = proc.getInputStream();</span>
 <span class="fc" id="L204">            InputStream pes = proc.getErrorStream();</span>
 <span class="fc" id="L205">            OutputStream pis = proc.getOutputStream()) {</span>
       Future&lt;E&gt; esh;
@@ -235,15 +235,15 @@ public final class OperatingSystem {
       boolean isProcessFinished;
       try {
 <span class="fc" id="L237">        isProcessFinished = proc.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L238">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L239">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (cex != null) {</span>
+<span class="fc" id="L238">      } catch (InterruptedException ex) {</span>
+<span class="fc" id="L239">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (cex != null) {</span>
 <span class="nc" id="L241">          ex.addSuppressed(cex);</span>
         }
-<span class="nc" id="L243">        OperatingSystem.killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
-<span class="nc" id="L244">        throw ex;</span>
+<span class="fc" id="L243">        OperatingSystem.killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
+<span class="fc" id="L244">        throw ex;</span>
 <span class="fc" id="L245">      }</span>
-<span class="pc bpc" id="L246" title="1 of 2 branches missed.">      if (isProcessFinished) {</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">      if (isProcessFinished) {</span>
 <span class="fc" id="L247">        Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; results = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh);</span>
 <span class="fc" id="L248">        Exception hex = results.getSecond();</span>
 <span class="fc" id="L249">        Map&lt;Future, Object&gt; asyncRes = results.getFirst();</span>
@@ -254,25 +254,25 @@ public final class OperatingSystem {
 <span class="nc" id="L254">          throw new IllegalStateException();</span>
         }
       } else {
-<span class="nc" id="L257">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
-<span class="nc" id="L258">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
-<span class="nc" id="L259">        TimeoutException tex = new TimeoutException(&quot;Timed out while executing: &quot; + java.util.Arrays.toString(command)</span>
+<span class="fc" id="L257">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
+<span class="fc" id="L258">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
+<span class="fc" id="L259">        TimeoutException tex = new TimeoutException(&quot;Timed out while executing: &quot; + java.util.Arrays.toString(command)</span>
                 + &quot;;\nprocess returned &quot; + result + &quot;;\nhandler:\n&quot; + handler);
-<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (cex != null) {</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        if (cex != null) {</span>
 <span class="nc" id="L262">          tex.addSuppressed(cex);</span>
         }
-<span class="nc" id="L264">        throw tex;</span>
+<span class="fc" id="L264">        throw tex;</span>
       }
-<span class="pc bpc" id="L266" title="18 of 24 branches missed.">    }</span>
+<span class="pc bpc" id="L266" title="12 of 24 branches missed.">    }</span>
   }
 
   public static String forkExec(final String[] command,
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
 <span class="fc" id="L271">    ProcessResponse&lt;String, String&gt; resp</span>
 <span class="fc" id="L272">            = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);</span>
-<span class="pc bpc" id="L273" title="1 of 2 branches missed.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
-<span class="nc" id="L274">      throw new ExecutionException(&quot;Failed to execute &quot; + java.util.Arrays.toString(command)</span>
-<span class="nc" id="L275">              + &quot;, returned&quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
+<span class="fc" id="L274">      throw new ExecutionException(&quot;Failed to execute &quot; + java.util.Arrays.toString(command)</span>
+<span class="fc" id="L275">              + &quot;, returned&quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
     }
 <span class="fc" id="L277">    return resp.getOutput();</span>
   }

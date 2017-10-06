@@ -197,10 +197,10 @@ public final class Reflections {
   }
 
   public static Type primitiveToWrapper(final Type type) {
-<span class="nc bnc" id="L200" title="All 4 branches missed.">    if (type instanceof Class &amp;&amp; ((Class) type).isPrimitive()) {</span>
+<span class="pc bpc" id="L200" title="2 of 4 branches missed.">    if (type instanceof Class &amp;&amp; ((Class) type).isPrimitive()) {</span>
 <span class="nc" id="L201">      return PRIMITIVE_MAP.get((Class) type);</span>
     } else {
-<span class="nc" id="L203">      return type;</span>
+<span class="fc" id="L203">      return type;</span>
     }
   }
 
@@ -301,8 +301,8 @@ public final class Reflections {
       }
 
 <span class="fc" id="L303">      Class&lt;?&gt;[] actualTypes = getParameterTypes(m);</span>
-<span class="pc bpc" id="L304" title="1 of 2 branches missed.">      if (actualTypes.length &gt; paramTypes.length) {</span>
-<span class="nc" id="L305">        continue;</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">      if (actualTypes.length &gt; paramTypes.length) {</span>
+<span class="fc" id="L305">        continue;</span>
       }
 
 <span class="fc" id="L308">      boolean found = true;</span>
@@ -311,27 +311,27 @@ public final class Reflections {
 <span class="fc" id="L311">        final Class&lt;?&gt; actType = actualTypes[j];</span>
 <span class="fc" id="L312">        final Class&lt;?&gt; paramType = paramTypes[j];</span>
 <span class="fc" id="L313">        found = canAssign(actType, paramType);</span>
-<span class="pc bpc" id="L314" title="3 of 4 branches missed.">        if (!found &amp;&amp; j == last) {</span>
-<span class="nc bnc" id="L315" title="All 2 branches missed.">          if (actType.isArray()) {</span>
-<span class="nc" id="L316">            boolean matchvararg = true;</span>
-<span class="nc" id="L317">            Class&lt;?&gt; varargType = actType.getComponentType();</span>
-<span class="nc bnc" id="L318" title="All 2 branches missed.">            for (int k = j; k &lt; paramTypes.length; k++) {</span>
-<span class="nc bnc" id="L319" title="All 2 branches missed.">              if (!canAssign(varargType, paramTypes[k])) {</span>
+<span class="pc bpc" id="L314" title="1 of 4 branches missed.">        if (!found &amp;&amp; j == last) {</span>
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">          if (actType.isArray()) {</span>
+<span class="fc" id="L316">            boolean matchvararg = true;</span>
+<span class="fc" id="L317">            Class&lt;?&gt; varargType = actType.getComponentType();</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">            for (int k = j; k &lt; paramTypes.length; k++) {</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">              if (!canAssign(varargType, paramTypes[k])) {</span>
 <span class="nc" id="L320">                matchvararg = false;</span>
 <span class="nc" id="L321">                break;</span>
               }
             }
-<span class="nc" id="L324">            found = matchvararg;</span>
-<span class="nc" id="L325">          }</span>
-<span class="pc bpc" id="L326" title="1 of 4 branches missed.">        } else if (j == last &amp;&amp; actualTypes.length &lt; paramTypes.length) {</span>
-<span class="nc" id="L327">          found = false;</span>
+<span class="fc" id="L324">            found = matchvararg;</span>
+<span class="fc" id="L325">          }</span>
+<span class="fc bfc" id="L326" title="All 4 branches covered.">        } else if (j == last &amp;&amp; actualTypes.length &lt; paramTypes.length) {</span>
+<span class="fc" id="L327">          found = false;</span>
         }
-<span class="pc bpc" id="L329" title="1 of 2 branches missed.">        if (!found) {</span>
-<span class="nc" id="L330">          break;</span>
+<span class="fc bfc" id="L329" title="All 2 branches covered.">        if (!found) {</span>
+<span class="fc" id="L330">          break;</span>
         }
       }
 
-<span class="pc bpc" id="L334" title="1 of 2 branches missed.">      if (found) {</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">      if (found) {</span>
 <span class="fc" id="L335">        return m;</span>
       }
     }
@@ -385,13 +385,13 @@ public final class Reflections {
   public static boolean canAssign(final Class&lt;?&gt; to, final Class&lt;?&gt; from) {
 <span class="fc" id="L386">    boolean found = true;</span>
 <span class="fc bfc" id="L387" title="All 2 branches covered.">    if (!to.isAssignableFrom(from)) {</span>
-<span class="pc bpc" id="L388" title="1 of 2 branches missed.">      if (to.isPrimitive()) {</span>
+<span class="fc bfc" id="L388" title="All 2 branches covered.">      if (to.isPrimitive()) {</span>
 <span class="fc" id="L389">        Class&lt;?&gt; boxed = PRIMITIVE_MAP.get(to);</span>
 <span class="fc" id="L390">        found = boxed.equals(from);</span>
-<span class="pc bnc" id="L391" title="All 2 branches missed.">      } else if (from.isPrimitive()) {</span>
+<span class="pc bpc" id="L391" title="1 of 2 branches missed.">      } else if (from.isPrimitive()) {</span>
 <span class="nc" id="L392">        found = PRIMITIVE_MAP.get(from).equals(to);</span>
       } else {
-<span class="nc" id="L394">        found = false;</span>
+<span class="fc" id="L394">        found = false;</span>
       }
     }
 <span class="fc" id="L397">    return found;</span>
@@ -431,18 +431,18 @@ public final class Reflections {
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L434" title="All 2 branches missed.">      if (obj == null) {</span>
+<span class="pc bpc" id="L434" title="1 of 2 branches missed.">      if (obj == null) {</span>
 <span class="nc" id="L435">        return false;</span>
       }
-<span class="nc bnc" id="L437" title="All 2 branches missed.">      if (obj instanceof MethodDesc) {</span>
-<span class="nc" id="L438">        final MethodDesc other = (MethodDesc) obj;</span>
-<span class="nc bnc" id="L439" title="All 2 branches missed.">        if (!this.clasz.equals(other.clasz)) {</span>
+<span class="pc bpc" id="L437" title="1 of 2 branches missed.">      if (obj instanceof MethodDesc) {</span>
+<span class="fc" id="L438">        final MethodDesc other = (MethodDesc) obj;</span>
+<span class="pc bpc" id="L439" title="1 of 2 branches missed.">        if (!this.clasz.equals(other.clasz)) {</span>
 <span class="nc" id="L440">          return false;</span>
         }
-<span class="nc bnc" id="L442" title="All 2 branches missed.">        if (!this.name.equals(other.name)) {</span>
+<span class="pc bpc" id="L442" title="1 of 2 branches missed.">        if (!this.name.equals(other.name)) {</span>
 <span class="nc" id="L443">          return false;</span>
         }
-<span class="nc" id="L445">        return (Arrays.equals(this.paramTypes, other.paramTypes));</span>
+<span class="fc" id="L445">        return (Arrays.equals(this.paramTypes, other.paramTypes));</span>
       } else {
 <span class="nc" id="L447">        return false;</span>
       }
@@ -564,7 +564,7 @@ public final class Reflections {
     }
 
     public boolean hasInfo() {
-<span class="pc bpc" id="L567" title="3 of 4 branches missed.">      return url != null || version != null;</span>
+<span class="pc bpc" id="L567" title="1 of 4 branches missed.">      return url != null || version != null;</span>
     }
 
     @Override
@@ -594,8 +594,8 @@ public final class Reflections {
     Class&lt;?&gt; aClass;
     try {
 <span class="fc" id="L596">      aClass = Class.forName(className);</span>
-<span class="nc" id="L597">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
-<span class="nc" id="L598">      return NONE;</span>
+<span class="fc" id="L597">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
+<span class="fc" id="L598">      return NONE;</span>
 <span class="fc" id="L599">    }</span>
 <span class="fc" id="L600">    return getPackageInfoDirect(aClass);</span>
   }

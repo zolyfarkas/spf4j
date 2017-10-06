@@ -166,26 +166,26 @@ public final class Csv {
   }
 
   public static void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-<span class="pc bpc" id="L169" title="1 of 2 branches missed.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
-<span class="nc" id="L170">      writeQuotedCsvElement(elem, writer);</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
+<span class="fc" id="L170">      writeQuotedCsvElement(elem, writer);</span>
     } else {
 <span class="fc" id="L172">      writer.append(elem);</span>
     }
 <span class="fc" id="L174">  }</span>
 
   public static void writeQuotedCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-<span class="nc" id="L177">    int length = elem.length();</span>
-<span class="nc" id="L178">    writer.append('&quot;');</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">    for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L180">      char c = elem.charAt(i);</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">      if (c == '&quot;') {</span>
-<span class="nc" id="L182">        writer.append(&quot;\&quot;\&quot;&quot;);</span>
+<span class="fc" id="L177">    int length = elem.length();</span>
+<span class="fc" id="L178">    writer.append('&quot;');</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">    for (int i = 0; i &lt; length; i++) {</span>
+<span class="fc" id="L180">      char c = elem.charAt(i);</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">      if (c == '&quot;') {</span>
+<span class="fc" id="L182">        writer.append(&quot;\&quot;\&quot;&quot;);</span>
       } else {
-<span class="nc" id="L184">        writer.append(c);</span>
+<span class="fc" id="L184">        writer.append(c);</span>
       }
     }
-<span class="nc" id="L187">    writer.append('&quot;');</span>
-<span class="nc" id="L188">  }</span>
+<span class="fc" id="L187">    writer.append('&quot;');</span>
+<span class="fc" id="L188">  }</span>
 
   public static CharSequence toCsvElement(final CharSequence elem) {
 <span class="nc bnc" id="L191" title="All 2 branches missed.">    if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {</span>
@@ -211,36 +211,36 @@ public final class Csv {
    */
   @CheckReturnValue
   public static int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
-<span class="nc" id="L214">    int c = reader.read();</span>
-<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (c &lt; 0) {</span>
+<span class="fc" id="L214">    int c = reader.read();</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">    if (c &lt; 0) {</span>
 <span class="nc" id="L216">      return c;</span>
     }
-<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (c == '&quot;') {</span>
-<span class="nc" id="L219">      c = reader.read();</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">      while (c &gt;= 0) {</span>
-<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (c == '&quot;') {</span>
-<span class="nc" id="L222">          int c2 = reader.read();</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">          if (c2 &gt;= 0) {</span>
-<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (c2 == '&quot;') {</span>
-<span class="nc" id="L225">              addElemTo.append((char) c);</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">    if (c == '&quot;') {</span>
+<span class="fc" id="L219">      c = reader.read();</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">      while (c &gt;= 0) {</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (c == '&quot;') {</span>
+<span class="fc" id="L222">          int c2 = reader.read();</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">          if (c2 &gt;= 0) {</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">            if (c2 == '&quot;') {</span>
+<span class="fc" id="L225">              addElemTo.append((char) c);</span>
             } else {
 <span class="nc" id="L227">              return c2;</span>
             }
           } else {
-<span class="nc" id="L230">            return c2;</span>
+<span class="fc" id="L230">            return c2;</span>
           }
-<span class="nc" id="L232">        } else {</span>
-<span class="nc" id="L233">          addElemTo.append((char) c);</span>
+<span class="fc" id="L232">        } else {</span>
+<span class="fc" id="L233">          addElemTo.append((char) c);</span>
         }
-<span class="nc" id="L235">        c = reader.read();</span>
+<span class="fc" id="L235">        c = reader.read();</span>
       }
     } else {
-<span class="nc bnc" id="L238" title="All 8 branches missed.">      while (c != ',' &amp;&amp; c != '\n' &amp;&amp; c != '\r' &amp;&amp; c &gt;= 0) {</span>
-<span class="nc" id="L239">        addElemTo.append((char) c);</span>
-<span class="nc" id="L240">        c = reader.read();</span>
+<span class="pc bpc" id="L238" title="3 of 8 branches missed.">      while (c != ',' &amp;&amp; c != '\n' &amp;&amp; c != '\r' &amp;&amp; c &gt;= 0) {</span>
+<span class="fc" id="L239">        addElemTo.append((char) c);</span>
+<span class="fc" id="L240">        c = reader.read();</span>
       }
     }
-<span class="nc" id="L243">    return c;</span>
+<span class="fc" id="L243">    return c;</span>
   }
 
 }

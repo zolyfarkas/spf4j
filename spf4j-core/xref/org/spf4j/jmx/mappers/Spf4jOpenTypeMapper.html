@@ -40,77 +40,77 @@
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.jmx.mappers;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.reflect.TypeToken;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.NotSerializableException;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.Serializable;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.GenericArrayType;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.ParameterizedType;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Type;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.math.BigDecimal;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.HashSet;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.Properties;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> javax.management.ObjectName;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.management.openmbean.OpenType;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BIGDECIMAL;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BIGINTEGER;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BOOLEAN;
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BYTE;
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.CHARACTER;
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.DATE;
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.FLOAT;
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.INTEGER;
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.OBJECTNAME;
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.SHORT;
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.STRING;
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.LONG;
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.DOUBLE;
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.VOID;
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.specific.SpecificRecordBase;
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Pair;
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JMXBeanMapping;
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JMXBeanMappingSupplier;
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.mappers.Spf4jJMXBeanMapping.ArrayMXBeanType;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.spf4j.reflect.CachingTypeMapSupplierWrapper;
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <strong class="jxr_keyword">import</strong> org.spf4j.reflect.GraphTypeMap;
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.NotSerializableException;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.io.Serializable;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.GenericArrayType;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.ParameterizedType;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Type;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.math.BigDecimal;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.HashSet;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.Properties;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.management.ObjectName;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.management.openmbean.OpenType;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BIGDECIMAL;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BIGINTEGER;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BOOLEAN;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.BYTE;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.CHARACTER;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.DATE;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.FLOAT;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.INTEGER;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.OBJECTNAME;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.SHORT;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.STRING;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.LONG;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.DOUBLE;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> javax.management.openmbean.SimpleType.VOID;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.specific.SpecificRecordBase;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Pair;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JMXBeanMapping;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JMXBeanMappingSupplier;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.mappers.Spf4jJMXBeanMapping.ArrayMXBeanType;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <strong class="jxr_keyword">import</strong> org.spf4j.reflect.CachingTypeMapSupplierWrapper;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <strong class="jxr_keyword">import</strong> org.spf4j.reflect.GraphTypeMap;
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>  
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment"> * @author Zoltan Farkas</em>
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/jmx/mappers/Spf4jOpenTypeMapper.html">Spf4jOpenTypeMapper</a> <strong class="jxr_keyword">implements</strong> <a href="../../../../org/spf4j/jmx/JMXBeanMappingSupplier.html">JMXBeanMappingSupplier</a> {
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;Set&lt;Type&gt;&gt; IN_PROGRESS = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;Set&lt;Type&gt;&gt;() {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>      @Override
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <strong class="jxr_keyword">protected</strong> Set&lt;Type&gt; initialValue() {
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>        <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(2);
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>      }
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>    };
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Pair&lt;OpenType&lt;?&gt;, Class&lt;?&gt;[]&gt;[] SIMPLE_TYPES = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/base/Pair.html">Pair</a>[]{
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>      Pair.of(BIGDECIMAL, <strong class="jxr_keyword">new</strong> Class[]{BigDecimal.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>      Pair.of(BIGINTEGER, <strong class="jxr_keyword">new</strong> Class[]{BigInteger.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>      Pair.of(BOOLEAN, <strong class="jxr_keyword">new</strong> Class[]{Boolean.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">boolean</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Pair.of(BYTE, <strong class="jxr_keyword">new</strong> Class[]{Byte.<strong class="jxr_keyword">class</strong>, byte.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>      Pair.of(CHARACTER, <strong class="jxr_keyword">new</strong> Class[]{Character.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">char</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>      Pair.of(DATE, <strong class="jxr_keyword">new</strong> Class[]{Date.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>      Pair.of(DOUBLE, <strong class="jxr_keyword">new</strong> Class[]{Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">double</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>      Pair.of(FLOAT, <strong class="jxr_keyword">new</strong> Class[]{Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">float</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>      Pair.of(INTEGER, <strong class="jxr_keyword">new</strong> Class[]{Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">int</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>      Pair.of(LONG, <strong class="jxr_keyword">new</strong> Class[]{Long.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">long</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>     Pair.of(SHORT, <strong class="jxr_keyword">new</strong> Class[]{Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">short</strong>.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>     Pair.of(OBJECTNAME, <strong class="jxr_keyword">new</strong> Class[]{ObjectName.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Pair.of(STRING, <strong class="jxr_keyword">new</strong> Class[]{String.<strong class="jxr_keyword">class</strong>}),
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>     Pair.of(VOID, <strong class="jxr_keyword">new</strong> Class[]{Void.<strong class="jxr_keyword">class</strong>})
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>   };
-<a class="jxr_linenumber" name="L105" href="#L105">105</a> 
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_javadoccomment"> * @author Zoltan Farkas</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/jmx/mappers/Spf4jOpenTypeMapper.html">Spf4jOpenTypeMapper</a> <strong class="jxr_keyword">implements</strong> <a href="../../../../org/spf4j/jmx/JMXBeanMappingSupplier.html">JMXBeanMappingSupplier</a> {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ThreadLocal&lt;Set&lt;Type&gt;&gt; IN_PROGRESS = <strong class="jxr_keyword">new</strong> ThreadLocal&lt;Set&lt;Type&gt;&gt;() {
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      @Override
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">protected</strong> Set&lt;Type&gt; initialValue() {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>        <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(2);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      }
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>    };
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Pair&lt;OpenType&lt;?&gt;, Class&lt;?&gt;[]&gt;[] SIMPLE_TYPES = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/base/Pair.html">Pair</a>[]{
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      Pair.of(BIGDECIMAL, <strong class="jxr_keyword">new</strong> Class[]{BigDecimal.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      Pair.of(BIGINTEGER, <strong class="jxr_keyword">new</strong> Class[]{BigInteger.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Pair.of(BOOLEAN, <strong class="jxr_keyword">new</strong> Class[]{Boolean.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">boolean</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      Pair.of(BYTE, <strong class="jxr_keyword">new</strong> Class[]{Byte.<strong class="jxr_keyword">class</strong>, byte.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      Pair.of(CHARACTER, <strong class="jxr_keyword">new</strong> Class[]{Character.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">char</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      Pair.of(DATE, <strong class="jxr_keyword">new</strong> Class[]{Date.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      Pair.of(DOUBLE, <strong class="jxr_keyword">new</strong> Class[]{Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">double</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      Pair.of(FLOAT, <strong class="jxr_keyword">new</strong> Class[]{Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">float</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      Pair.of(INTEGER, <strong class="jxr_keyword">new</strong> Class[]{Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">int</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     Pair.of(LONG, <strong class="jxr_keyword">new</strong> Class[]{Long.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">long</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     Pair.of(SHORT, <strong class="jxr_keyword">new</strong> Class[]{Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">short</strong>.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Pair.of(OBJECTNAME, <strong class="jxr_keyword">new</strong> Class[]{ObjectName.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     Pair.of(STRING, <strong class="jxr_keyword">new</strong> Class[]{String.<strong class="jxr_keyword">class</strong>}),
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     Pair.of(VOID, <strong class="jxr_keyword">new</strong> Class[]{Void.<strong class="jxr_keyword">class</strong>})
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>   };
 <a class="jxr_linenumber" name="L106" href="#L106">106</a> 
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; cache;
 <a class="jxr_linenumber" name="L108" href="#L108">108</a> 
@@ -154,45 +154,51 @@
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>           <strong class="jxr_keyword">return</strong> Spf4jJMXBeanMapping.defaultHandler(type, <strong class="jxr_keyword">this</strong>);
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>         }
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>       });
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>   }
-<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>       cache.safePut(File.<strong class="jxr_keyword">class</strong>, (type) -&gt; JMXBeanMapping.NOMAPPING);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>   }
 <a class="jxr_linenumber" name="L151" href="#L151">151</a> 
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>   @Override
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>   <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/jmx/JMXBeanMapping.html">JMXBeanMapping</a> get(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/Callables.html">Type</a> t) <strong class="jxr_keyword">throws</strong> NotSerializableException {
-<a class="jxr_linenumber" name="L154" href="#L154">154</a> 
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>         Set&lt;Type&gt; ip = IN_PROGRESS.get();
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>         <strong class="jxr_keyword">if</strong> (ip.contains(t)) {
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>            LOG.debug(<span class="jxr_string">"No openType mapping for {} recorsive data structure"</span>, t);
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>            <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>         }
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>         ip.add(t);
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>           <strong class="jxr_keyword">return</strong> cache.get(t);
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>         } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>           LOG.debug(<span class="jxr_string">"No mapping for type {}"</span>, t, ex);
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>           TypeToken&lt;?&gt; tt = TypeToken.of(t);
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>           <strong class="jxr_keyword">if</strong> (tt.isSubtypeOf(Serializable.<strong class="jxr_keyword">class</strong>) || tt.getRawType().isInterface()) {
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>           } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>             NotSerializableException nsex = <strong class="jxr_keyword">new</strong> NotSerializableException(<span class="jxr_string">"Type "</span> + t + <span class="jxr_string">"  must be serializable"</span>);
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>             nsex.addSuppressed(ex);
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>             <strong class="jxr_keyword">throw</strong> nsex;
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>           }
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>         } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>           ip.remove(t);
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>         }
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>   }
-<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>   <strong class="jxr_keyword">public</strong> CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; getCache() {
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>     <strong class="jxr_keyword">return</strong> cache;
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>   }
-<a class="jxr_linenumber" name="L181" href="#L181">181</a> 
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>   @Override
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Spf4jOpenTypeMapper{"</span> + <span class="jxr_string">"convertedTypes="</span> + cache + '}';
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>   }
-<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
-<a class="jxr_linenumber" name="L187" href="#L187">187</a> }
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> 
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>   @Override
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>   <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/jmx/JMXBeanMapping.html">JMXBeanMapping</a> get(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/Callables.html">Type</a> t) <strong class="jxr_keyword">throws</strong> NotSerializableException {
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> 
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>         Set&lt;Type&gt; ip = IN_PROGRESS.get();
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         <strong class="jxr_keyword">if</strong> (ip.contains(t)) {
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>            LOG.debug(<span class="jxr_string">"No openType mapping for {} recorsive data structure"</span>, t);
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>            <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         }
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>           ip.add(t);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>           <a href="../../../../org/spf4j/jmx/JMXBeanMapping.html">JMXBeanMapping</a> val = cache.get(t);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>           <strong class="jxr_keyword">if</strong> (val == JMXBeanMapping.NOMAPPING) {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>           } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             <strong class="jxr_keyword">return</strong> val;
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>           }
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>           LOG.debug(<span class="jxr_string">"No mapping for type {}"</span>, t, ex);
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>           TypeToken&lt;?&gt; tt = TypeToken.of(t);
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>           <strong class="jxr_keyword">if</strong> (tt.isSubtypeOf(Serializable.<strong class="jxr_keyword">class</strong>) || tt.getRawType().isInterface()) {
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>           } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>             NotSerializableException nsex = <strong class="jxr_keyword">new</strong> NotSerializableException(<span class="jxr_string">"Type "</span> + t + <span class="jxr_string">"  must be serializable"</span>);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>             nsex.addSuppressed(ex);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             <strong class="jxr_keyword">throw</strong> nsex;
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>           }
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>           ip.remove(t);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         }
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>   }
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>   <strong class="jxr_keyword">public</strong> CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; getCache() {
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     <strong class="jxr_keyword">return</strong> cache;
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>   }
+<a class="jxr_linenumber" name="L187" href="#L187">187</a> 
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>   @Override
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Spf4jOpenTypeMapper{"</span> + <span class="jxr_string">"convertedTypes="</span> + cache + '}';
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>   }
+<a class="jxr_linenumber" name="L192" href="#L192">192</a> 
+<a class="jxr_linenumber" name="L193" href="#L193">193</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

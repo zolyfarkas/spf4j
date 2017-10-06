@@ -61,8 +61,8 @@ public final class Lsof {
   private static final File LSOF;
 
   static {
-<span class="nc" id="L64">    File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
-<span class="nc bnc" id="L65" title="All 4 branches missed.">    if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
+<span class="fc" id="L64">    File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
+<span class="pc bpc" id="L65" title="2 of 4 branches missed.">    if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
 <span class="nc" id="L66">      lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
 <span class="nc bnc" id="L67" title="All 4 branches missed.">      if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
 <span class="nc" id="L68">        lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
@@ -71,14 +71,14 @@ public final class Lsof {
         }
       }
     }
-<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (lsofFile == null) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (lsofFile == null) {</span>
 <span class="nc" id="L75">      Lazy.LOG.warn(&quot;lsof unavailable on this system&quot;);</span>
     }
-<span class="nc" id="L77">    LSOF = lsofFile;</span>
+<span class="fc" id="L77">    LSOF = lsofFile;</span>
   }
 
-<span class="nc bnc" id="L80" title="All 2 branches missed.">  private static final String[] LSOF_CMD = (LSOF == null) ? null</span>
-<span class="nc" id="L81">          : new String[]{LSOF.getAbsolutePath(), &quot;-p&quot;, Integer.toString(PID)};</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">  private static final String[] LSOF_CMD = (LSOF == null) ? null</span>
+<span class="fc" id="L81">          : new String[]{LSOF.getAbsolutePath(), &quot;-p&quot;, Integer.toString(PID)};</span>
 
 
 <span class="nc" id="L84">  private Lsof() { }</span>
@@ -99,11 +99,11 @@ public final class Lsof {
   @Nullable
   @CheckReturnValue
   public static CharSequence getLsofOutput() {
-<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (Lsof.LSOF == null) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (Lsof.LSOF == null) {</span>
 <span class="nc" id="L103">      return null;</span>
     }
     try {
-<span class="nc" id="L106">      return run(Lsof.LSOF_CMD, 60000);</span>
+<span class="fc" id="L106">      return run(Lsof.LSOF_CMD, 60000);</span>
 <span class="nc" id="L107">    } catch (IOException | ExecutionException | TimeoutException ex) {</span>
 <span class="nc" id="L108">      Lazy.LOG.warn(&quot;Unable to run lsof&quot;, ex);</span>
 <span class="nc" id="L109">      return null;</span>

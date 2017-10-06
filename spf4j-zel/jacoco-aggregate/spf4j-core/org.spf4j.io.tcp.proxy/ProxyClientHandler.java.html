@@ -55,7 +55,7 @@ import org.spf4j.io.tcp.DeadlineAction;
 @ParametersAreNonnullByDefault
 public final class ProxyClientHandler implements ClientHandler {
 
-<span class="nc" id="L58">    private static final Logger LOG = LoggerFactory.getLogger(ProxyClientHandler.class);</span>
+<span class="fc" id="L58">    private static final Logger LOG = LoggerFactory.getLogger(ProxyClientHandler.class);</span>
 
     private final HostAndPort fwdDestination;
     private final int proxyBufferSize;
@@ -74,43 +74,43 @@ public final class ProxyClientHandler implements ClientHandler {
 
     public ProxyClientHandler(final HostAndPort fwdDestination,
         @Nullable final SnifferFactory c2sSnifferFact, @Nullable final SnifferFactory s2cSnifferFact,
-<span class="nc" id="L77">        final int proxyBufferSize, final int connectTimeoutMillis) {</span>
-<span class="nc" id="L78">        this.fwdDestination = fwdDestination;</span>
-<span class="nc" id="L79">        this.proxyBufferSize = proxyBufferSize;</span>
-<span class="nc" id="L80">        this.connectTimeoutMillis = connectTimeoutMillis;</span>
-<span class="nc" id="L81">        this.c2sSnifferFact = c2sSnifferFact;</span>
-<span class="nc" id="L82">        this.s2cSnifferFact = s2cSnifferFact;</span>
-<span class="nc" id="L83">    }</span>
+<span class="fc" id="L77">        final int proxyBufferSize, final int connectTimeoutMillis) {</span>
+<span class="fc" id="L78">        this.fwdDestination = fwdDestination;</span>
+<span class="fc" id="L79">        this.proxyBufferSize = proxyBufferSize;</span>
+<span class="fc" id="L80">        this.connectTimeoutMillis = connectTimeoutMillis;</span>
+<span class="fc" id="L81">        this.c2sSnifferFact = c2sSnifferFact;</span>
+<span class="fc" id="L82">        this.s2cSnifferFact = s2cSnifferFact;</span>
+<span class="fc" id="L83">    }</span>
 
     @Override
     public void handle(final Selector serverSelector, final SocketChannel clientChannel,
             final ExecutorService exec, final BlockingQueue&lt;Runnable&gt; tasksToRunBySelector,
             final UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions)  throws IOException {
-<span class="nc" id="L89">        final InetSocketAddress socketAddress = new InetSocketAddress(</span>
-<span class="nc" id="L90">                fwdDestination.getHost(), fwdDestination.getPort());</span>
-<span class="nc" id="L91">        final SocketChannel proxyChannel = SocketChannel.open();</span>
+<span class="fc" id="L89">        final InetSocketAddress socketAddress = new InetSocketAddress(</span>
+<span class="fc" id="L90">                fwdDestination.getHost(), fwdDestination.getPort());</span>
+<span class="fc" id="L91">        final SocketChannel proxyChannel = SocketChannel.open();</span>
         try {
-<span class="nc" id="L93">            proxyChannel.configureBlocking(false);</span>
-<span class="nc" id="L94">            proxyChannel.connect(socketAddress);</span>
-<span class="nc" id="L95">            TransferBuffer c2s = new TransferBuffer(proxyBufferSize);</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (c2sSnifferFact != null) {</span>
-<span class="nc" id="L97">                c2s.setIncomingSniffer(c2sSnifferFact.get(clientChannel));</span>
+<span class="fc" id="L93">            proxyChannel.configureBlocking(false);</span>
+<span class="fc" id="L94">            proxyChannel.connect(socketAddress);</span>
+<span class="fc" id="L95">            TransferBuffer c2s = new TransferBuffer(proxyBufferSize);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            if (c2sSnifferFact != null) {</span>
+<span class="fc" id="L97">                c2s.setIncomingSniffer(c2sSnifferFact.get(clientChannel));</span>
             }
-<span class="nc" id="L99">            TransferBuffer s2c = new TransferBuffer(proxyBufferSize);</span>
-<span class="nc" id="L100">            final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;</span>
-<span class="nc" id="L101">            UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,</span>
+<span class="fc" id="L99">            TransferBuffer s2c = new TransferBuffer(proxyBufferSize);</span>
+<span class="fc" id="L100">            final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;</span>
+<span class="fc" id="L101">            UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,</span>
                     new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
-<span class="nc" id="L103">            new ProxyBufferTransferHandler(c2s, s2c, null, clientChannel,</span>
-<span class="nc" id="L104">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
-<span class="nc" id="L105">            new ProxyBufferTransferHandler(s2c, c2s, s2cSnifferFact, proxyChannel,</span>
-<span class="nc" id="L106">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
+<span class="fc" id="L103">            new ProxyBufferTransferHandler(c2s, s2c, null, clientChannel,</span>
+<span class="fc" id="L104">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
+<span class="fc" id="L105">            new ProxyBufferTransferHandler(s2c, c2s, s2cSnifferFact, proxyChannel,</span>
+<span class="fc" id="L106">                    serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();</span>
 <span class="nc" id="L107">        } catch (IOException ex) {</span>
 <span class="nc" id="L108">            Exception exs = Closeables.closeAll(proxyChannel, clientChannel);</span>
 <span class="nc" id="L109">            ex.addSuppressed(exs);</span>
 <span class="nc" id="L110">            throw ex;</span>
-<span class="nc" id="L111">        }</span>
+<span class="fc" id="L111">        }</span>
 
-<span class="nc" id="L113">    }</span>
+<span class="fc" id="L113">    }</span>
 
     static final class CloseChannelsOnTimeout extends AbstractRunnable {
 
@@ -118,20 +118,20 @@ public final class ProxyClientHandler implements ClientHandler {
         private final SocketChannel clientChannel;
 
         CloseChannelsOnTimeout(final SocketChannel proxyChannel, final SocketChannel clientChannel) {
-<span class="nc" id="L121">            super(true);</span>
-<span class="nc" id="L122">            this.proxyChannel = proxyChannel;</span>
-<span class="nc" id="L123">            this.clientChannel = clientChannel;</span>
-<span class="nc" id="L124">        }</span>
+<span class="fc" id="L121">            super(true);</span>
+<span class="fc" id="L122">            this.proxyChannel = proxyChannel;</span>
+<span class="fc" id="L123">            this.clientChannel = clientChannel;</span>
+<span class="fc" id="L124">        }</span>
 
         @Override
         public void doRun() throws IOException {
-<span class="nc" id="L128">            LOG.warn(&quot;Timed out connecting to {}&quot;, proxyChannel);</span>
+<span class="fc" id="L128">            LOG.warn(&quot;Timed out connecting to {}&quot;, proxyChannel);</span>
             try {
-<span class="nc" id="L130">                clientChannel.close();</span>
+<span class="fc" id="L130">                clientChannel.close();</span>
             } finally {
-<span class="nc" id="L132">                proxyChannel.close();</span>
-<span class="nc" id="L133">            }</span>
-<span class="nc" id="L134">        }</span>
+<span class="pc" id="L132">                proxyChannel.close();</span>
+<span class="fc" id="L133">            }</span>
+<span class="fc" id="L134">        }</span>
     }
 
     @Override
