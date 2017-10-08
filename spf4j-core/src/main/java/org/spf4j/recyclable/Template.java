@@ -31,6 +31,7 @@
  */
 package org.spf4j.recyclable;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeoutException;
 import org.spf4j.base.Callables;
@@ -72,7 +73,7 @@ public final class Template<T, E extends Exception> {
             public Void call(final long deadline)
                     throws ObjectCreationException,
                     ObjectBorrowException, InterruptedException, TimeoutException, E {
-                Template.doOnSupplied(handler, pool, deadline);
+                Template.doOnSupplied(handler, pool, deadline, exClass);
                 return null;
             }
         }, nrImmediateRetries, retryWaitMillis, exClass);
@@ -81,21 +82,28 @@ public final class Template<T, E extends Exception> {
     //findbugs does not know about supress in spf4j
     @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     private static <T, E extends Exception> void doOnSupplied(final Handler<T, E> handler,
-            final RecyclingSupplier<T> pool, final long deadline)
+            final RecyclingSupplier<T> pool, final long deadline, final Class<E> exClass)
             throws  E, ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
         T object = pool.get();
         try {
             handler.handle(object, deadline);
+        }  catch (RuntimeException e) {
+            try {
+                pool.recycle(object, e);
+            } catch (RuntimeException ex) {
+                throw Throwables.suppress(ex, e);
+            }
+            throw e;
         } catch (Exception e) {
             try {
                 pool.recycle(object, e);
             } catch (RuntimeException ex) {
                 throw Throwables.suppress(ex, e);
             }
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            } else {
+            if (exClass.isAssignableFrom(e.getClass())) {
                 throw (E) e;
+            } else {
+                throw new UncheckedExecutionException(e);
             }
         }
         pool.recycle(object, null);
