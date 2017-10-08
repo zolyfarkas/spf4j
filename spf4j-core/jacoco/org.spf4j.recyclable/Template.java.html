@@ -31,6 +31,7 @@
  */
 package org.spf4j.recyclable;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeoutException;
 import org.spf4j.base.Callables;
@@ -48,62 +49,69 @@ public final class Template&lt;T, E extends Exception&gt; {
     private final Class&lt;E&gt; exClass;
 
     public Template(final RecyclingSupplier&lt;T&gt; pool, final int nrImmediateRetries,
-<span class="nc" id="L51">             final int retryWaitMillis, final int timeoutMillis, final Class&lt;E&gt; exClass) {</span>
-<span class="nc" id="L52">        this.pool = pool;</span>
-<span class="nc" id="L53">        this.nrImmediateRetries = nrImmediateRetries;</span>
-<span class="nc" id="L54">        this.retryWaitMillis = retryWaitMillis;</span>
-<span class="nc" id="L55">        this.timeout = timeoutMillis;</span>
-<span class="nc" id="L56">        this.exClass = exClass;</span>
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L52">             final int retryWaitMillis, final int timeoutMillis, final Class&lt;E&gt; exClass) {</span>
+<span class="nc" id="L53">        this.pool = pool;</span>
+<span class="nc" id="L54">        this.nrImmediateRetries = nrImmediateRetries;</span>
+<span class="nc" id="L55">        this.retryWaitMillis = retryWaitMillis;</span>
+<span class="nc" id="L56">        this.timeout = timeoutMillis;</span>
+<span class="nc" id="L57">        this.exClass = exClass;</span>
+<span class="nc" id="L58">    }</span>
 
     public void doOnSupplied(final Handler&lt;T, E&gt; handler)
             throws InterruptedException, E, TimeoutException {
-<span class="nc" id="L61">        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout, exClass);</span>
-<span class="nc" id="L62">    }</span>
+<span class="nc" id="L62">        doOnSupplied(handler, pool, nrImmediateRetries, retryWaitMillis, timeout, exClass);</span>
+<span class="nc" id="L63">    }</span>
 
     public static  &lt;T, E extends Exception&gt; void doOnSupplied(final Handler&lt;T, E&gt; handler,
             final RecyclingSupplier&lt;T&gt; pool, final int nrImmediateRetries,
              final int retryWaitMillis, final int timeoutMillis, final Class&lt;E&gt; exClass)
             throws E, InterruptedException, TimeoutException {
-<span class="fc" id="L68">        Callables.executeWithRetry(new TimeoutCallable&lt;Void, E&gt;(timeoutMillis) {</span>
+<span class="fc" id="L69">        Callables.executeWithRetry(new TimeoutCallable&lt;Void, E&gt;(timeoutMillis) {</span>
 
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
                     throws ObjectCreationException,
                     ObjectBorrowException, InterruptedException, TimeoutException, E {
-<span class="fc" id="L75">                Template.doOnSupplied(handler, pool, deadline);</span>
-<span class="fc" id="L76">                return null;</span>
+<span class="fc" id="L76">                Template.doOnSupplied(handler, pool, deadline, exClass);</span>
+<span class="fc" id="L77">                return null;</span>
             }
         }, nrImmediateRetries, retryWaitMillis, exClass);
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L80">    }</span>
 
     //findbugs does not know about supress in spf4j
     @SuppressFBWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
     private static &lt;T, E extends Exception&gt; void doOnSupplied(final Handler&lt;T, E&gt; handler,
-            final RecyclingSupplier&lt;T&gt; pool, final long deadline)
+            final RecyclingSupplier&lt;T&gt; pool, final long deadline, final Class&lt;E&gt; exClass)
             throws  E, ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
-<span class="fc" id="L86">        T object = pool.get();</span>
+<span class="fc" id="L87">        T object = pool.get();</span>
         try {
-<span class="fc" id="L88">            handler.handle(object, deadline);</span>
-<span class="fc" id="L89">        } catch (Exception e) {</span>
+<span class="fc" id="L89">            handler.handle(object, deadline);</span>
+<span class="nc" id="L90">        }  catch (RuntimeException e) {</span>
             try {
-<span class="fc" id="L91">                pool.recycle(object, e);</span>
-<span class="nc" id="L92">            } catch (RuntimeException ex) {</span>
-<span class="nc" id="L93">                throw Throwables.suppress(ex, e);</span>
-<span class="fc" id="L94">            }</span>
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            if (e instanceof RuntimeException) {</span>
-<span class="nc" id="L96">                throw (RuntimeException) e;</span>
+<span class="nc" id="L92">                pool.recycle(object, e);</span>
+<span class="nc" id="L93">            } catch (RuntimeException ex) {</span>
+<span class="nc" id="L94">                throw Throwables.suppress(ex, e);</span>
+<span class="nc" id="L95">            }</span>
+<span class="nc" id="L96">            throw e;</span>
+<span class="fc" id="L97">        } catch (Exception e) {</span>
+            try {
+<span class="fc" id="L99">                pool.recycle(object, e);</span>
+<span class="nc" id="L100">            } catch (RuntimeException ex) {</span>
+<span class="nc" id="L101">                throw Throwables.suppress(ex, e);</span>
+<span class="fc" id="L102">            }</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">            if (exClass.isAssignableFrom(e.getClass())) {</span>
+<span class="fc" id="L104">                throw (E) e;</span>
             } else {
-<span class="fc" id="L98">                throw (E) e;</span>
+<span class="nc" id="L106">                throw new UncheckedExecutionException(e);</span>
             }
-<span class="fc" id="L100">        }</span>
-<span class="fc" id="L101">        pool.recycle(object, null);</span>
-<span class="fc" id="L102">    }</span>
+<span class="fc" id="L108">        }</span>
+<span class="fc" id="L109">        pool.recycle(object, null);</span>
+<span class="fc" id="L110">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L106">        return &quot;Template{&quot; + &quot;pool=&quot; + pool + &quot;, nrImmediateRetries=&quot; + nrImmediateRetries</span>
+<span class="nc" id="L114">        return &quot;Template{&quot; + &quot;pool=&quot; + pool + &quot;, nrImmediateRetries=&quot; + nrImmediateRetries</span>
                 + &quot;, retryWaitMillis=&quot; + retryWaitMillis + &quot;, timeout=&quot; + timeout + '}';
     }
 

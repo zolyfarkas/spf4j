@@ -73,12 +73,7 @@ public final class OperatingSystem {
 
 <span class="fc" id="L74">  private static final long ABORT_TIMEOUT_MILLIS = Long.getLong(&quot;spf4j.os.abortTimeoutMillis&quot;, 5000);</span>
 
-<span class="nc" id="L76">  private static final class Lazy {</span>
-
-<span class="nc" id="L78">    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Lazy.class);</span>
-  }
-
-<span class="fc" id="L81">  private static final Path FD_FOLDER = Paths.get(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
+<span class="fc" id="L76">  private static final Path FD_FOLDER = Paths.get(&quot;/proc/&quot; + PID + &quot;/fd&quot;);</span>
 
   private static final OperatingSystemMXBean OS_MBEAN;
 
@@ -89,108 +84,112 @@ public final class OperatingSystem {
   public static final long MAX_NR_OPENFILES;
 
   static {
-<span class="fc" id="L92">    OS_MBEAN = ManagementFactory.getOperatingSystemMXBean();</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (OS_MBEAN instanceof com.sun.management.OperatingSystemMXBean) {</span>
-<span class="fc" id="L94">      SUN_OS_MBEAN = (com.sun.management.OperatingSystemMXBean) OS_MBEAN;</span>
+<span class="fc" id="L87">    OS_MBEAN = ManagementFactory.getOperatingSystemMXBean();</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (OS_MBEAN instanceof com.sun.management.OperatingSystemMXBean) {</span>
+<span class="fc" id="L89">      SUN_OS_MBEAN = (com.sun.management.OperatingSystemMXBean) OS_MBEAN;</span>
     } else {
-<span class="nc" id="L96">      SUN_OS_MBEAN = null;</span>
+<span class="nc" id="L91">      SUN_OS_MBEAN = null;</span>
     }
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">    if (OS_MBEAN instanceof UnixOperatingSystemMXBean) {</span>
-<span class="fc" id="L99">      UNIX_OS_MBEAN = (UnixOperatingSystemMXBean) OS_MBEAN;</span>
-<span class="fc" id="L100">      MAX_NR_OPENFILES = UNIX_OS_MBEAN.getMaxFileDescriptorCount();</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (OS_MBEAN instanceof UnixOperatingSystemMXBean) {</span>
+<span class="fc" id="L94">      UNIX_OS_MBEAN = (UnixOperatingSystemMXBean) OS_MBEAN;</span>
+<span class="fc" id="L95">      MAX_NR_OPENFILES = UNIX_OS_MBEAN.getMaxFileDescriptorCount();</span>
     } else {
-<span class="nc" id="L102">      UNIX_OS_MBEAN = null;</span>
-<span class="nc bnc" id="L103" title="All 2 branches missed.">      if (Runtime.isWindows()) {</span>
-<span class="nc" id="L104">        MAX_NR_OPENFILES = Integer.MAX_VALUE;</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">      } else if (Runtime.haveJnaPlatformClib()) {</span>
+<span class="nc" id="L97">      UNIX_OS_MBEAN = null;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">      if (Runtime.isWindows()) {</span>
+<span class="nc" id="L99">        MAX_NR_OPENFILES = Integer.MAX_VALUE;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">      } else if (Runtime.haveJnaPlatformClib()) {</span>
         try {
-<span class="nc" id="L107">          MAX_NR_OPENFILES = UnixResources.RLIMIT_NOFILE.getSoftLimit();</span>
-<span class="nc" id="L108">        } catch (UnixException ex) {</span>
-<span class="nc" id="L109">          throw new ExceptionInInitializerError(ex);</span>
-<span class="nc" id="L110">        }</span>
+<span class="nc" id="L102">          MAX_NR_OPENFILES = UnixResources.RLIMIT_NOFILE.getSoftLimit();</span>
+<span class="nc" id="L103">        } catch (UnixException ex) {</span>
+<span class="nc" id="L104">          throw new ExceptionInInitializerError(ex);</span>
+<span class="nc" id="L105">        }</span>
       } else {
-<span class="nc" id="L112">        MAX_NR_OPENFILES = Integer.MAX_VALUE;</span>
+<span class="nc" id="L107">        MAX_NR_OPENFILES = Integer.MAX_VALUE;</span>
       }
     }
-<span class="fc" id="L115">  }</span>
+<span class="fc" id="L110">  }</span>
 
-<span class="nc" id="L117">  private OperatingSystem() {</span>
-<span class="nc" id="L118">  }</span>
+<span class="nc" id="L112">  private static final class Lazy {</span>
+<span class="nc" id="L113">    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Lazy.class);</span>
+  }
+
+<span class="nc" id="L116">  private OperatingSystem() {</span>
+<span class="nc" id="L117">  }</span>
 
   public static OperatingSystemMXBean getOSMbean() {
-<span class="nc" id="L121">    return OS_MBEAN;</span>
+<span class="nc" id="L120">    return OS_MBEAN;</span>
   }
 
   @Nullable
   public static com.sun.management.OperatingSystemMXBean getSunJdkOSMBean() {
-<span class="fc" id="L126">    return SUN_OS_MBEAN;</span>
+<span class="fc" id="L125">    return SUN_OS_MBEAN;</span>
   }
 
   @Nullable
   public static UnixOperatingSystemMXBean getUnixOsMBean() {
-<span class="nc" id="L131">    return UNIX_OS_MBEAN;</span>
+<span class="nc" id="L130">    return UNIX_OS_MBEAN;</span>
   }
 
   public static long getOpenFileDescriptorCount() {
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    if (UNIX_OS_MBEAN != null) {</span>
-<span class="fc" id="L136">      return UNIX_OS_MBEAN.getOpenFileDescriptorCount();</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">    if (UNIX_OS_MBEAN != null) {</span>
+<span class="fc" id="L135">      return UNIX_OS_MBEAN.getOpenFileDescriptorCount();</span>
     } else {
       try {
-<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (isMacOsx()) {</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (isMacOsx()) {</span>
           try {
-<span class="nc" id="L141">            return Lsof.getNrOpenFiles();</span>
-<span class="nc" id="L142">          } catch (ExecutionException | TimeoutException ex) {</span>
-<span class="nc" id="L143">            Lazy.LOG.warn(&quot;Unable to get nr of open files&quot;, ex);</span>
-<span class="nc" id="L144">            return -1;</span>
-<span class="nc" id="L145">          } catch (InterruptedException ex) {</span>
-<span class="nc" id="L146">            Lazy.LOG.warn(&quot;Unable to get nr of open files&quot;, ex);</span>
-<span class="nc" id="L147">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L148">            return -1;</span>
+<span class="nc" id="L140">            return Lsof.getNrOpenFiles();</span>
+<span class="nc" id="L141">          } catch (ExecutionException | TimeoutException ex) {</span>
+<span class="nc" id="L142">            Lazy.LOG.warn(&quot;Unable to get nr of open files&quot;, ex);</span>
+<span class="nc" id="L143">            return -1;</span>
+<span class="nc" id="L144">          } catch (InterruptedException ex) {</span>
+<span class="nc" id="L145">            Lazy.LOG.warn(&quot;Unable to get nr of open files&quot;, ex);</span>
+<span class="nc" id="L146">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L147">            return -1;</span>
           }
         } else {
-<span class="nc bnc" id="L151" title="All 2 branches missed.">          if (Files.isDirectory(FD_FOLDER)) {</span>
-<span class="nc" id="L152">            int result = 0;</span>
-<span class="nc" id="L153">            try (DirectoryStream&lt;Path&gt; stream = Files.newDirectoryStream(FD_FOLDER)) {</span>
-<span class="nc" id="L154">              Iterator&lt;Path&gt; iterator = stream.iterator();</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">              while (iterator.hasNext()) {</span>
-<span class="nc" id="L156">                iterator.next();</span>
-<span class="nc" id="L157">                result++;</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">          if (Files.isDirectory(FD_FOLDER)) {</span>
+<span class="nc" id="L151">            int result = 0;</span>
+<span class="nc" id="L152">            try (DirectoryStream&lt;Path&gt; stream = Files.newDirectoryStream(FD_FOLDER)) {</span>
+<span class="nc" id="L153">              Iterator&lt;Path&gt; iterator = stream.iterator();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">              while (iterator.hasNext()) {</span>
+<span class="nc" id="L155">                iterator.next();</span>
+<span class="nc" id="L156">                result++;</span>
               }
-<span class="nc bnc" id="L159" title="All 8 branches missed.">            }</span>
-<span class="nc" id="L160">            return result;</span>
+<span class="nc bnc" id="L158" title="All 8 branches missed.">            }</span>
+<span class="nc" id="L159">            return result;</span>
           } else {
-<span class="nc" id="L162">            return -1;</span>
+<span class="nc" id="L161">            return -1;</span>
           }
         }
-<span class="nc" id="L165">      } catch (IOException ex) {</span>
-<span class="nc" id="L166">        String msg = ex.getMessage();</span>
-<span class="nc bnc" id="L167" title="All 4 branches missed.">        if (msg != null &amp;&amp; msg.contains(&quot;Too many open files&quot;)) {</span>
-<span class="nc" id="L168">          return getMaxFileDescriptorCount();</span>
+<span class="nc" id="L164">      } catch (IOException ex) {</span>
+<span class="nc" id="L165">        String msg = ex.getMessage();</span>
+<span class="nc bnc" id="L166" title="All 4 branches missed.">        if (msg != null &amp;&amp; msg.contains(&quot;Too many open files&quot;)) {</span>
+<span class="nc" id="L167">          return getMaxFileDescriptorCount();</span>
         } else {
-<span class="nc" id="L170">          Lazy.LOG.warn(&quot;Unable to get nr of open files&quot;, ex);</span>
-<span class="nc" id="L171">          return -1;</span>
+<span class="nc" id="L169">          Lazy.LOG.warn(&quot;Unable to get nr of open files&quot;, ex);</span>
+<span class="nc" id="L170">          return -1;</span>
         }
       }
     }
   }
 
   public static long getMaxFileDescriptorCount() {
-<span class="fc" id="L178">    return MAX_NR_OPENFILES;</span>
+<span class="fc" id="L177">    return MAX_NR_OPENFILES;</span>
   }
 
   public static int killProcess(final Process proc, final long terminateTimeoutMillis,
           final long forceTerminateTimeoutMillis)
           throws InterruptedException {
 
-<span class="fc" id="L185">    proc.destroy();</span>
-<span class="pc bpc" id="L186" title="1 of 2 branches missed.">    if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
-<span class="fc" id="L187">      return proc.exitValue();</span>
+<span class="fc" id="L184">    proc.destroy();</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">    if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
+<span class="fc" id="L186">      return proc.exitValue();</span>
     } else {
-<span class="nc" id="L189">      proc.destroyForcibly();</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">      if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
-<span class="nc" id="L191">        throw new UncheckedTimeoutException(&quot;Cannot terminate &quot; + proc);</span>
+<span class="nc" id="L188">      proc.destroyForcibly();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">      if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {</span>
+<span class="nc" id="L190">        throw new UncheckedTimeoutException(&quot;Cannot terminate &quot; + proc);</span>
       } else {
-<span class="nc" id="L193">        return proc.exitValue();</span>
+<span class="nc" id="L192">        return proc.exitValue();</span>
       }
     }
   }
@@ -199,82 +198,82 @@ public final class OperatingSystem {
   public static &lt;T, E&gt; ProcessResponse&lt;T, E&gt; forkExec(final String[] command, final ProcessHandler&lt;T, E&gt; handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L202">    final Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
-<span class="fc" id="L203">    try (InputStream pos = proc.getInputStream();</span>
-<span class="fc" id="L204">            InputStream pes = proc.getErrorStream();</span>
-<span class="fc" id="L205">            OutputStream pis = proc.getOutputStream()) {</span>
+<span class="fc" id="L201">    final Process proc = java.lang.Runtime.getRuntime().exec(command);</span>
+<span class="fc" id="L202">    try (InputStream pos = proc.getInputStream();</span>
+<span class="fc" id="L203">            InputStream pes = proc.getErrorStream();</span>
+<span class="fc" id="L204">            OutputStream pis = proc.getOutputStream()) {</span>
       Future&lt;E&gt; esh;
       Future&lt;T&gt; osh;
       try {
-<span class="fc" id="L209">        esh = DefaultExecutor.INSTANCE.submit(() -&gt; handler.handleStdErr(pes));</span>
-<span class="nc" id="L210">      } catch (RuntimeException ex) { // Executor might Reject</span>
-<span class="nc" id="L211">        int result = killProcess(proc, terminationTimeoutMillis, 5000);</span>
-<span class="nc" id="L212">        throw new ExecutionException(&quot;Cannot exec stderr handler, killed process returned &quot; + result, ex);</span>
-<span class="fc" id="L213">      }</span>
+<span class="fc" id="L208">        esh = DefaultExecutor.INSTANCE.submit(() -&gt; handler.handleStdErr(pes));</span>
+<span class="nc" id="L209">      } catch (RuntimeException ex) { // Executor might Reject</span>
+<span class="nc" id="L210">        int result = killProcess(proc, terminationTimeoutMillis, 5000);</span>
+<span class="nc" id="L211">        throw new ExecutionException(&quot;Cannot exec stderr handler, killed process returned &quot; + result, ex);</span>
+<span class="fc" id="L212">      }</span>
       try {
-<span class="fc" id="L215">        osh = DefaultExecutor.INSTANCE.submit(() -&gt; handler.handleStdOut(pos));</span>
-<span class="nc" id="L216">      } catch (RuntimeException ex) { // Executor might Reject</span>
-<span class="nc" id="L217">        RuntimeException cex = Futures.cancelAll(true, esh);</span>
-<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (cex != null) {</span>
-<span class="nc" id="L219">          ex.addSuppressed(cex);</span>
+<span class="fc" id="L214">        osh = DefaultExecutor.INSTANCE.submit(() -&gt; handler.handleStdOut(pos));</span>
+<span class="nc" id="L215">      } catch (RuntimeException ex) { // Executor might Reject</span>
+<span class="nc" id="L216">        RuntimeException cex = Futures.cancelAll(true, esh);</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (cex != null) {</span>
+<span class="nc" id="L218">          ex.addSuppressed(cex);</span>
         }
-<span class="nc" id="L221">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
-<span class="nc" id="L222">        throw new ExecutionException(&quot;Cannot execute stdout handler, killed process returned &quot; + result, ex);</span>
-<span class="fc" id="L223">      }</span>
-<span class="fc" id="L224">      long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L220">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
+<span class="nc" id="L221">        throw new ExecutionException(&quot;Cannot execute stdout handler, killed process returned &quot; + result, ex);</span>
+<span class="fc" id="L222">      }</span>
+<span class="fc" id="L223">      long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);</span>
       try {
-<span class="fc" id="L226">        handler.writeStdIn(pis);</span>
-<span class="nc" id="L227">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L228">        RuntimeException cex = Futures.cancelAll(true, esh, osh);</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (cex != null) {</span>
-<span class="nc" id="L230">          ex.addSuppressed(cex);</span>
+<span class="fc" id="L225">        handler.writeStdIn(pis);</span>
+<span class="nc" id="L226">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L227">        RuntimeException cex = Futures.cancelAll(true, esh, osh);</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (cex != null) {</span>
+<span class="nc" id="L229">          ex.addSuppressed(cex);</span>
         }
-<span class="nc" id="L232">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
-<span class="nc" id="L233">        throw new ExecutionException(&quot;Filure executing stdin handler, killed process returned &quot; + result, ex);</span>
-<span class="fc" id="L234">      }</span>
+<span class="nc" id="L231">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
+<span class="nc" id="L232">        throw new ExecutionException(&quot;Filure executing stdin handler, killed process returned &quot; + result, ex);</span>
+<span class="fc" id="L233">      }</span>
       boolean isProcessFinished;
       try {
-<span class="fc" id="L237">        isProcessFinished = proc.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L238">      } catch (InterruptedException ex) {</span>
-<span class="fc" id="L239">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
-<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (cex != null) {</span>
-<span class="nc" id="L241">          ex.addSuppressed(cex);</span>
+<span class="fc" id="L236">        isProcessFinished = proc.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L237">      } catch (InterruptedException ex) {</span>
+<span class="fc" id="L238">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">        if (cex != null) {</span>
+<span class="nc" id="L240">          ex.addSuppressed(cex);</span>
         }
-<span class="fc" id="L243">        OperatingSystem.killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
-<span class="fc" id="L244">        throw ex;</span>
-<span class="fc" id="L245">      }</span>
-<span class="fc bfc" id="L246" title="All 2 branches covered.">      if (isProcessFinished) {</span>
-<span class="fc" id="L247">        Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; results = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh);</span>
-<span class="fc" id="L248">        Exception hex = results.getSecond();</span>
-<span class="fc" id="L249">        Map&lt;Future, Object&gt; asyncRes = results.getFirst();</span>
-<span class="pc bpc" id="L250" title="1 of 2 branches missed.">        if (hex == null) {</span>
-<span class="fc" id="L251">          return new ProcessResponse&lt;&gt;(proc.exitValue(), (T) asyncRes.get(osh), (E) asyncRes.get(esh));</span>
+<span class="fc" id="L242">        OperatingSystem.killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
+<span class="fc" id="L243">        throw ex;</span>
+<span class="fc" id="L244">      }</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">      if (isProcessFinished) {</span>
+<span class="fc" id="L246">        Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; results = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh);</span>
+<span class="fc" id="L247">        Exception hex = results.getSecond();</span>
+<span class="fc" id="L248">        Map&lt;Future, Object&gt; asyncRes = results.getFirst();</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">        if (hex == null) {</span>
+<span class="fc" id="L250">          return new ProcessResponse&lt;&gt;(proc.exitValue(), (T) asyncRes.get(osh), (E) asyncRes.get(esh));</span>
         } else {
-<span class="nc" id="L253">          Throwables.throwException(hex);</span>
-<span class="nc" id="L254">          throw new IllegalStateException();</span>
+<span class="nc" id="L252">          Throwables.throwException(hex);</span>
+<span class="nc" id="L253">          throw new IllegalStateException();</span>
         }
       } else {
-<span class="fc" id="L257">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
-<span class="fc" id="L258">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
-<span class="fc" id="L259">        TimeoutException tex = new TimeoutException(&quot;Timed out while executing: &quot; + java.util.Arrays.toString(command)</span>
+<span class="fc" id="L256">        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);</span>
+<span class="fc" id="L257">        RuntimeException cex = Futures.cancelAll(true, osh, esh);</span>
+<span class="fc" id="L258">        TimeoutException tex = new TimeoutException(&quot;Timed out while executing: &quot; + java.util.Arrays.toString(command)</span>
                 + &quot;;\nprocess returned &quot; + result + &quot;;\nhandler:\n&quot; + handler);
-<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        if (cex != null) {</span>
-<span class="nc" id="L262">          tex.addSuppressed(cex);</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">        if (cex != null) {</span>
+<span class="nc" id="L261">          tex.addSuppressed(cex);</span>
         }
-<span class="fc" id="L264">        throw tex;</span>
+<span class="fc" id="L263">        throw tex;</span>
       }
-<span class="pc bpc" id="L266" title="12 of 24 branches missed.">    }</span>
+<span class="pc bpc" id="L265" title="12 of 24 branches missed.">    }</span>
   }
 
   public static String forkExec(final String[] command,
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L271">    ProcessResponse&lt;String, String&gt; resp</span>
-<span class="fc" id="L272">            = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);</span>
-<span class="fc bfc" id="L273" title="All 2 branches covered.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
-<span class="fc" id="L274">      throw new ExecutionException(&quot;Failed to execute &quot; + java.util.Arrays.toString(command)</span>
-<span class="fc" id="L275">              + &quot;, returned&quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
+<span class="fc" id="L270">    ProcessResponse&lt;String, String&gt; resp</span>
+<span class="fc" id="L271">            = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);</span>
+<span class="fc bfc" id="L272" title="All 2 branches covered.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
+<span class="fc" id="L273">      throw new ExecutionException(&quot;Failed to execute &quot; + java.util.Arrays.toString(command)</span>
+<span class="fc" id="L274">              + &quot;, returned&quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
     }
-<span class="fc" id="L277">    return resp.getOutput();</span>
+<span class="fc" id="L276">    return resp.getOutput();</span>
   }
 
 }

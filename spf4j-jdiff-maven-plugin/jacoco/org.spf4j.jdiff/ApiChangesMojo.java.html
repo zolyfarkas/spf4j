@@ -48,6 +48,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 
   /**
    * The version range to compute diff for.
+   * THis is a standard maven version range like [v1,v2], etc
    */
   @Parameter(property = &quot;versionRange&quot;, defaultValue = &quot;[,${project.version}]&quot;)
   private String versionRange;
@@ -66,26 +67,26 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 
   @Override
   public String getCategoryName() {
-<span class="nc" id="L69">    return MavenReport.CATEGORY_PROJECT_REPORTS;</span>
+<span class="nc" id="L70">    return MavenReport.CATEGORY_PROJECT_REPORTS;</span>
   }
 
   @Override
   public File getReportOutputDirectory() {
-<span class="nc" id="L74">    return destDir;</span>
+<span class="nc" id="L75">    return destDir;</span>
   }
 
   @Override
   public boolean canGenerateReport() {
-<span class="nc bnc" id="L79" title="All 2 branches missed.">    return !getCompileSourceRoots().isEmpty();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    return !getCompileSourceRoots().isEmpty();</span>
   }
 
   @Override
   public String getOutputName() {
-<span class="nc" id="L84">    return &quot;apidocs/changes&quot;;</span>
+<span class="nc" id="L85">    return &quot;apidocs/changes&quot;;</span>
   }
 
   public String getName(final Locale locale) {
-<span class="nc" id="L88">    return &quot;JDiff Reports&quot;;</span>
+<span class="nc" id="L89">    return &quot;JDiff Reports&quot;;</span>
   }
 
   /**
@@ -98,66 +99,66 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
    */
   public void generate(final Sink aSink, final SinkFactory aSinkFactory, final Locale aLocale)
           throws MavenReportException {
-<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (!canGenerateReport()) {</span>
-<span class="nc" id="L102">      getLog().info(&quot;This report cannot be generated as part of the current build. &quot;</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (!canGenerateReport()) {</span>
+<span class="nc" id="L103">      getLog().info(&quot;This report cannot be generated as part of the current build. &quot;</span>
               + &quot;The report name should be referenced in this line of output.&quot;);
-<span class="nc" id="L104">      return;</span>
+<span class="nc" id="L105">      return;</span>
     }
     try {
-<span class="nc" id="L107">      execute();</span>
-<span class="nc" id="L108">    } catch (MojoExecutionException ex) {</span>
-<span class="nc" id="L109">      throw new MavenReportException(&quot;Failed to exec report: &quot; + this, ex);</span>
-<span class="nc" id="L110">    }</span>
-<span class="nc" id="L111">  }</span>
+<span class="nc" id="L108">      execute();</span>
+<span class="nc" id="L109">    } catch (MojoExecutionException ex) {</span>
+<span class="nc" id="L110">      throw new MavenReportException(&quot;Failed to exec report: &quot; + this, ex);</span>
+<span class="nc" id="L111">    }</span>
+<span class="nc" id="L112">  }</span>
 
   @Override
   public void execute() throws MojoExecutionException {
-<span class="nc" id="L115">    MavenProject mavenProject = getMavenProject();</span>
+<span class="nc" id="L116">    MavenProject mavenProject = getMavenProject();</span>
     try {
-<span class="nc" id="L117">      getLog().info(&quot;Executing JDiff javadoc doclet&quot;);</span>
-<span class="nc" id="L118">      JDiffRunner runner = new JDiffRunner(getMojoExecution(), getToolchainManager(), getMavenSession(),</span>
-<span class="nc" id="L119">              getProjectRepos(), getRepoSystem(), getJavadocExecutable());</span>
-<span class="nc" id="L120">      runner.runDiffBetweenReleases(mavenProject.getGroupId(), mavenProject.getArtifactId(), this.versionRange,</span>
+<span class="nc" id="L118">      getLog().info(&quot;Executing JDiff javadoc doclet&quot;);</span>
+<span class="nc" id="L119">      JDiffRunner runner = new JDiffRunner(getMojoExecution(), getToolchainManager(), getMavenSession(),</span>
+<span class="nc" id="L120">              getProjectRepos(), getRepoSystem(), getJavadocExecutable());</span>
+<span class="nc" id="L121">      runner.runDiffBetweenReleases(mavenProject.getGroupId(), mavenProject.getArtifactId(), this.versionRange,</span>
               destDir, maxNumberOfDiffs);
-<span class="nc" id="L122">      runner.writeChangesIndexHtml(destDir, &quot;changes.html&quot;);</span>
-<span class="nc" id="L123">      getLog().info(&quot;Generated &quot; + destDir + File.separatorChar + &quot;changes.html&quot;);</span>
+<span class="nc" id="L123">      runner.writeChangesIndexHtml(destDir, &quot;changes.html&quot;);</span>
+<span class="nc" id="L124">      getLog().info(&quot;Generated &quot; + destDir + File.separatorChar + &quot;changes.html&quot;);</span>
 
-<span class="nc" id="L125">    } catch (IOException | DependencyResolutionException | VersionRangeResolutionException</span>
+<span class="nc" id="L126">    } catch (IOException | DependencyResolutionException | VersionRangeResolutionException</span>
             | ArtifactResolutionException | JavadocExecutionException ex) {
-<span class="nc" id="L127">      throw new MojoExecutionException(&quot;Failed executing mojo &quot; + this, ex);</span>
-<span class="nc" id="L128">    }</span>
+<span class="nc" id="L128">      throw new MojoExecutionException(&quot;Failed executing mojo &quot; + this, ex);</span>
+<span class="nc" id="L129">    }</span>
 
-<span class="nc" id="L130">  }</span>
+<span class="nc" id="L131">  }</span>
 
 
   @Override
   public void generate(final org.codehaus.doxia.sink.Sink sink, final Locale locale) throws MavenReportException {
     try {
-<span class="nc" id="L136">      execute();</span>
-<span class="nc" id="L137">    } catch (MojoExecutionException ex) {</span>
-<span class="nc" id="L138">      throw new MavenReportException(&quot;Failed to exec report: &quot; + this, ex);</span>
-<span class="nc" id="L139">    }</span>
-<span class="nc" id="L140">  }</span>
+<span class="nc" id="L137">      execute();</span>
+<span class="nc" id="L138">    } catch (MojoExecutionException ex) {</span>
+<span class="nc" id="L139">      throw new MavenReportException(&quot;Failed to exec report: &quot; + this, ex);</span>
+<span class="nc" id="L140">    }</span>
+<span class="nc" id="L141">  }</span>
 
   @Override
   public String getDescription(final Locale locale) {
-<span class="nc" id="L144">    return &quot;API JDiff reports&quot;;</span>
+<span class="nc" id="L145">    return &quot;API JDiff reports&quot;;</span>
   }
 
   @Override
   public void setReportOutputDirectory(final File outputDirectory) {
-<span class="nc" id="L149">    this.destDir = new File(outputDirectory, &quot;apidocs&quot;);</span>
-<span class="nc" id="L150">  }</span>
+<span class="nc" id="L150">    this.destDir = new File(outputDirectory, &quot;apidocs&quot;);</span>
+<span class="nc" id="L151">  }</span>
 
   @Override
   public boolean isExternalReport() {
-<span class="nc" id="L154">    return true;</span>
+<span class="nc" id="L155">    return true;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L159">    return &quot;ApiChangesMojo{&quot; + &quot;versionRange=&quot; + versionRange + &quot;, maxNumberOfDiffs=&quot;</span>
-<span class="nc" id="L160">            + maxNumberOfDiffs + &quot;, destDir=&quot; + destDir  + &quot;, parent=&quot; + super.toString() + '}';</span>
+<span class="nc" id="L160">    return &quot;ApiChangesMojo{&quot; + &quot;versionRange=&quot; + versionRange + &quot;, maxNumberOfDiffs=&quot;</span>
+<span class="nc" id="L161">            + maxNumberOfDiffs + &quot;, destDir=&quot; + destDir  + &quot;, parent=&quot; + super.toString() + '}';</span>
   }
 
 }
