@@ -132,7 +132,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
             try {
               return valueLoader.call();
             } catch (Exception ex) {
-              throw new RuntimeException(ex);
+              throw new UncheckedExecutionException(ex);
             }
           }
         });
