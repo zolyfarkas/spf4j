@@ -54,10 +54,6 @@ import org.spf4j.os.StdOutLineCountProcessHandler;
 // Circular dependency will be gone when deprecated methods from Runtime will be removed.
 public final class Lsof {
 
-  private static final class Lazy {
-    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
-
   private static final File LSOF;
 
   static {
@@ -80,6 +76,10 @@ public final class Lsof {
   private static final String[] LSOF_CMD = (LSOF == null) ? null
           : new String[]{LSOF.getAbsolutePath(), "-p", Integer.toString(PID)};
 
+
+  private static final class Lazy {
+    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
+  }
 
   private Lsof() { }
 

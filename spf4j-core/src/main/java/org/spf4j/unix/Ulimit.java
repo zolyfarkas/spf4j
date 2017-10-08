@@ -48,11 +48,6 @@ import org.spf4j.base.Arrays;
 @Deprecated
 public final class Ulimit {
 
-  private static final class Lazy {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
-
   private static final String[] ULIMIT_CMD;
 
   static {
@@ -61,6 +56,11 @@ public final class Ulimit {
     } else {
       ULIMIT_CMD = findUlimitCmd();
     }
+  }
+
+  private static final class Lazy {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
   }
 
   private Ulimit() {
