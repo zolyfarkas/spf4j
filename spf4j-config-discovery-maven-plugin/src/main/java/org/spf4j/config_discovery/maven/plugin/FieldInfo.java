@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.configDiscovery.maven.plugin;
+package org.spf4j.config_discovery.maven.plugin;
 
 import javax.annotation.Nullable;
 import org.spf4j.base.asm.UnknownValue;

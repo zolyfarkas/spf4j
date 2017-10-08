@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.configDiscovery.maven.plugin;
+package org.spf4j.config_discovery.maven.plugin;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
