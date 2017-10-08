@@ -160,7 +160,7 @@ public final class Registry {
         result = REGISTERED.remove(objectName);
         MBEAN_SERVER.unregisterMBean(objectName);
       } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
-        throw new RuntimeException(ex);
+        throw new IllegalArgumentException("Cannot unregister " + objectName, ex);
       }
     }
     return result;
