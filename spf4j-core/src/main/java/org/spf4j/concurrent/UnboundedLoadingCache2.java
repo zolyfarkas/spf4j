@@ -35,6 +35,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,7 +74,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
             try {
               return loader.load(t);
             } catch (Exception ex) {
-              throw new RuntimeException(ex);
+              throw new UncheckedExecutionException(ex);
             }
           }
         };
