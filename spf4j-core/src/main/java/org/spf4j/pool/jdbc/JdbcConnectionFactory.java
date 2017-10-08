@@ -60,7 +60,7 @@ public final class JdbcConnectionFactory  implements RecyclingSupplier.Factory<C
         try {
             Class.forName(driverName);
         } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalArgumentException("Invalid driver " + driverName, ex);
         }
         this.url = url;
         this.password = password;
