@@ -231,7 +231,7 @@ public final class ImmutableSchema extends Schema {
   }
 
   @Override
-  void fieldsToJson(final Names names, final JsonGenerator gen) throws IOException {
+  public void fieldsToJson(final Names names, final JsonGenerator gen) throws IOException {
     wrapped.fieldsToJson(names, gen);
   }
 

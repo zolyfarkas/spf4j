@@ -49,6 +49,7 @@ import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.Set;
 import com.google.common.base.Supplier;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -168,7 +169,7 @@ public class ConfigScannerMojo
           try {
             return new BufferedInputStream(new FileInputStream(location));
           } catch (FileNotFoundException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
           }
         }
       }, methods);

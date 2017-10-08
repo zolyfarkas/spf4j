@@ -31,6 +31,7 @@
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -94,7 +95,7 @@ public final class JavaMethodCall implements Method {
                         .invoke(object);
             }
         } catch (IllegalAccessException | InvocationTargetException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedExecutionException(ex);
         }
     }
 

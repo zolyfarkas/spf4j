@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,7 @@ public final class Csv {
   public static final CharSeparatedValues CSV = new CharSeparatedValues(',');
 
   private static final char[] TO_ESCAPE = new char[]{',', '\n', '\r', '"'};
-  
+
   private Csv() {
   }
 
@@ -193,7 +194,7 @@ public final class Csv {
       try {
         writeQuotedCsvElement(elem, sw);
       } catch (IOException ex) {
-        throw new RuntimeException(ex);
+        throw new UncheckedIOException(ex);
       }
       return sw.toString();
     } else {

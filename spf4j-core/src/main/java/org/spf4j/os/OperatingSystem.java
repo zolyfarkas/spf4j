@@ -73,11 +73,6 @@ public final class OperatingSystem {
 
   private static final long ABORT_TIMEOUT_MILLIS = Long.getLong("spf4j.os.abortTimeoutMillis", 5000);
 
-  private static final class Lazy {
-
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
-
   private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
 
   private static final OperatingSystemMXBean OS_MBEAN;
@@ -112,6 +107,10 @@ public final class OperatingSystem {
         MAX_NR_OPENFILES = Integer.MAX_VALUE;
       }
     }
+  }
+
+  private static final class Lazy {
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Lazy.class);
   }
 
   private OperatingSystem() {

@@ -31,6 +31,7 @@
  */
 package org.spf4j.zel.vm;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.MathContext;
 import java.util.ArrayList;
@@ -417,7 +418,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
       if (e == null) {
         throw new IllegalStateException();
       } else {
-        throw new RuntimeException(e);
+        throw new UncheckedExecutionException(e);
       }
     }
     if (futures == null || futures.isEmpty()) {

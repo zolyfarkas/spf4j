@@ -81,7 +81,7 @@ public final class ImmutableField extends Field {
 
 
   @Override
-  void writeProps(final JsonGenerator gen) throws IOException {
+  public void writeProps(final JsonGenerator gen) throws IOException {
     wrapped.writeProps(gen);
   }
 
