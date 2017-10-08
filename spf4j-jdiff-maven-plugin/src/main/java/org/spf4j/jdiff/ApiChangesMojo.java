@@ -48,6 +48,7 @@ public final class ApiChangesMojo
 
   /**
    * The version range to compute diff for.
+   * THis is a standard maven version range like [v1,v2], etc
    */
   @Parameter(property = "versionRange", defaultValue = "[,${project.version}]")
   private String versionRange;
