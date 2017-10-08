@@ -133,9 +133,6 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     return openType;
   }
 
-  boolean isBasicType() {
-    return isBasicType;
-  }
 
   @Override
   public Class<?> getMappedType() {
@@ -263,6 +260,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       arrayClass = null;
     }
 
+    @Override
     public Type getJavaType() {
       return arrayClass;
     }
@@ -376,10 +374,6 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       assert (argTypes.length == 1);
       Type argType = argTypes[0];
 
-//      if (!(argTypes[0] instanceof Class)) {
-//        throw new IllegalArgumentException("Element Type for " + pt
-//                + " not supported");
-//      }
       TypeToken<?> tt = TypeToken.of(argType);
       final Class<?> et = tt.getRawType();
       if (et.isArray()) {
