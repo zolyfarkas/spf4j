@@ -44,9 +44,9 @@ import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
  */
 public final class GlobalMXBeanMapperSupplier {
 
-  private GlobalMXBeanMapperSupplier() { }
-
   private static JMXBeanMappingSupplier globalInstance = new Spf4jOpenTypeMapper();
+
+  private GlobalMXBeanMapperSupplier() { }
 
   public static JMXBeanMappingSupplier get() {
     return globalInstance;
