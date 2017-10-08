@@ -52,7 +52,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ComparablePair;
-import org.spf4j.base.SerializablePair;
 import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
