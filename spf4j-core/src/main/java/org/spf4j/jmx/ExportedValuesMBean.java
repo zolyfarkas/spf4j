@@ -45,6 +45,7 @@ import javax.management.AttributeNotFoundException;
 import javax.management.DynamicMBean;
 import javax.management.ImmutableDescriptor;
 import javax.management.InvalidAttributeValueException;
+import javax.management.JMRuntimeException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
@@ -194,7 +195,7 @@ final class ExportedValuesMBean implements DynamicMBean {
         list.add(new Attribute(name, attr.get()));
       } catch (OpenDataException | RuntimeException ex) {
           LOG.error("Exception getting attribute {}", name, ex);
-          throw new RuntimeException("Exception while getting attributes " + Arrays.toString(names) + ", detail:\n"
+          throw new JMRuntimeException("Exception while getting attributes " + Arrays.toString(names) + ", detail:\n"
                   + Throwables.toString(ex));
       }
     }
@@ -215,7 +216,7 @@ final class ExportedValuesMBean implements DynamicMBean {
           result.add(attr);
         } catch (InvalidAttributeValueException | InvalidObjectException | RuntimeException ex) {
             LOG.warn("Exception while setting attr {}", attr, ex);
-            throw new RuntimeException("Exception while setting attributes " + list + ", detail:\n"
+            throw new JMRuntimeException("Exception while setting attributes " + list + ", detail:\n"
                     + Throwables.toString(ex));
         }
       }
