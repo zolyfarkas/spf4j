@@ -116,7 +116,7 @@ public final class GenericRecordBuilder implements Closeable {
     try {
       sc.compileToDestination(null, tmpDir);
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
     try {
       Files.walkFileTree(tmpDir.toPath(), new SetFilesReadOnlyVisitor());
