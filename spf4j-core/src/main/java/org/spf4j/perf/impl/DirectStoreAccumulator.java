@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementsInfo;
@@ -65,7 +66,7 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
         try {
             tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 
