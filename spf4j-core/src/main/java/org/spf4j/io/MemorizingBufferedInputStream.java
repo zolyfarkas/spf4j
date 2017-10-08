@@ -37,6 +37,7 @@ import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
@@ -328,7 +329,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
                             .onUnmappableCharacter(CodingErrorAction.REPLACE).replaceWith("?")
                             .decode(ByteBuffer.wrap(getUnreadBytesFromBuffer()))).append("\"\n");
           } catch (CharacterCodingException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
           }
 
         }
