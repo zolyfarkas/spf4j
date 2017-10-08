@@ -34,7 +34,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Generates an API descriptor of the Java sources.
  */
 @Mojo(name = "descriptor", requiresDependencyResolution = ResolutionScope.COMPILE)
-@Execute(phase = LifecyclePhase.GENERATE_SOURCES)
+@Execute(phase = LifecyclePhase.VERIFY)
 public final class ApiDescriptorMojo
         extends BaseJDiffMojo {
 

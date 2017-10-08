@@ -41,7 +41,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
  * Generates an API difference report between Java sources of two SCM versions
  */
 @Mojo(name = "jdiff", requiresDependencyResolution = ResolutionScope.COMPILE)
-@Execute(phase = LifecyclePhase.GENERATE_SOURCES)
+@Execute(phase = LifecyclePhase.VERIFY)
 public final class ApiChangesMojo
         extends BaseJDiffMojo
         implements MavenReport {
