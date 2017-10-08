@@ -70,8 +70,9 @@ public final class DefaultExecutor {
         INSTANCE = new ForkJoinPool(32767);
         break;
       case "legacy":
-        new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
+        INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("DefaultExecutor", isDaemon));
+        break;
       default:
         throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
     }
