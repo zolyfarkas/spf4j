@@ -36,6 +36,7 @@ import com.google.common.base.Preconditions;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import org.apache.avro.Protocol;
@@ -89,7 +90,7 @@ public final class GenericRecordBuilder implements Closeable {
       src.setSourcePath(new File[]{tmpDir});
       this.source = src;
     } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      throw new IllegalStateException(ex);
     }
   }
 
@@ -120,7 +121,7 @@ public final class GenericRecordBuilder implements Closeable {
     try {
       Files.walkFileTree(tmpDir.toPath(), new SetFilesReadOnlyVisitor());
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 
@@ -129,7 +130,7 @@ public final class GenericRecordBuilder implements Closeable {
     try {
       return (Class<? extends SpecificRecordBase>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
-      throw new RuntimeException(ex);
+      throw new IllegalStateException(ex);
     }
   }
 
@@ -138,7 +139,7 @@ public final class GenericRecordBuilder implements Closeable {
     try {
       return (Class<? extends GenericEnumSymbol>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
-      throw new RuntimeException(ex);
+      throw new IllegalStateException(ex);
     }
   }
 
@@ -147,7 +148,7 @@ public final class GenericRecordBuilder implements Closeable {
     try {
       return (Class<? extends GenericFixed>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
-      throw new RuntimeException(ex);
+      throw new IllegalStateException(ex);
     }
   }
 
@@ -156,7 +157,7 @@ public final class GenericRecordBuilder implements Closeable {
     try {
       Files.walkFileTree(tmpDir.toPath(), new DeletingVisitor());
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new UncheckedIOException(ex);
     }
   }
 
