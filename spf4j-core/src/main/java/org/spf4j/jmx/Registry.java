@@ -100,13 +100,15 @@ public final class Registry {
         replaced = REGISTERED.remove(objectName);
         MBEAN_SERVER.unregisterMBean(objectName);
       } catch (InstanceNotFoundException | MBeanRegistrationException ex) {
-        throw new RuntimeException(ex);
+        throw new IllegalStateException(ex);
       }
     }
     try {
       MBEAN_SERVER.registerMBean(mbean, objectName);
-    } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
-      throw new RuntimeException(ex);
+    } catch (InstanceAlreadyExistsException  ex) {
+      throw new IllegalStateException(ex);
+    } catch (NotCompliantMBeanException | MBeanRegistrationException ex) {
+      throw new IllegalArgumentException("Invalid MBean " + mbean, ex);
     }
     REGISTERED.put(objectName, mbean);
     return replaced;
