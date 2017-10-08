@@ -199,7 +199,7 @@ public final class IntegerOperators {
                     if (leadingZeros > Long.SIZE + 1) {
                         return aa * bb;
                     }
-                    if (!(leadingZeros >= Long.SIZE)) {
+                    if (leadingZeros < Long.SIZE) {
                         return BigInteger.valueOf(aa).multiply(BigInteger.valueOf(bb));
                     }
                     if (!(aa >= 0 || bb != Long.MIN_VALUE)) {
