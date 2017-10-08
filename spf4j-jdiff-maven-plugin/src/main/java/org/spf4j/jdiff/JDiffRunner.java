@@ -305,7 +305,7 @@ public final class JDiffRunner {
               + "<table summary=\"Api Difference Reports\""
               + " width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">");
       Path reportPath = reportOutputDirectory.toPath();
-      java.nio.file.Files.walk(reportPath, 2)
+      Files.walk(reportPath, 2)
               .map((p) -> reportPath.relativize(p))
               .filter((p) -> p.getNameCount() > 1 && p.endsWith("changes.html"))
               .forEach((p) -> {
