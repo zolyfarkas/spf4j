@@ -31,46 +31,61 @@
  */
 package org.spf4j.avro.schema;
 
+import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.specific.SpecificCompiler;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.spf4j.io.AppendableWriter;
 
 /**
  * @author zoly
  */
 public final class SchemaUtils {
 
-  public static final BiConsumer<Schema, Schema> SCHEMA_ESENTIALS =
-          (a, b) -> {
+  private static final JsonFactory JSON_FACT = new JsonFactory();
+
+  public static final BiConsumer<Schema, Schema> SCHEMA_ESENTIALS
+          = (a, b) -> {
             SchemaUtils.copyAliases(a, b);
             SchemaUtils.copyLogicalTypes(a, b);
           };
 
-
-  public static final BiConsumer<Schema.Field, Schema.Field> FIELD_ESENTIALS =
-          (a, b) -> {
+  public static final BiConsumer<Schema.Field, Schema.Field> FIELD_ESENTIALS
+          = (a, b) -> {
             SchemaUtils.copyAliases(a, b);
           };
 
-
-  public static final BiConsumer<Schema, Schema> SCHEMA_EVERYTHING =
-          (a, b) -> {
+  public static final BiConsumer<Schema, Schema> SCHEMA_EVERYTHING
+          = (a, b) -> {
             SchemaUtils.copyAliases(a, b);
             SchemaUtils.copyLogicalTypes(a, b);
             SchemaUtils.copyProperties(a, b);
           };
 
-  public static final BiConsumer<Schema.Field, Schema.Field> FIELD_EVERYTHING =
-          (a, b) -> {
+  public static final BiConsumer<Schema.Field, Schema.Field> FIELD_EVERYTHING
+          = (a, b) -> {
             SchemaUtils.copyAliases(a, b);
             SchemaUtils.copyProperties(a, b);
           };
-
-
 
   private SchemaUtils() {
   }
@@ -130,6 +145,241 @@ public final class SchemaUtils {
       return SpecificCompiler.mangle(schema.getName());
     } else {
       return namespace + '.' + SpecificCompiler.mangle(schema.getName());
+    }
+  }
+
+  @Beta
+  public static void writeIdlProtocol(final String protocolName, final String protocolNameSpace,
+          final Appendable appendable, final Schema... schemas) throws IOException {
+    if (protocolNameSpace != null) {
+      appendable.append("@namespace(\"").append(protocolNameSpace).append("\")\n");
+    }
+    appendable.append("protocol ").append(protocolName).append(" {\n");
+    writeIdl(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
+    appendable.append("}\n");
+  }
+
+  @Beta
+  public static void writeIdl(final Appendable appendable,
+          final Set<String> alreadyDeclared, final String protocolNameSpace, final Schema ... pschemas)
+          throws IOException {
+    JsonGenerator jsonGen;
+    if (appendable instanceof Writer) {
+      jsonGen = JSON_FACT.createJsonGenerator((Writer) appendable);
+    } else {
+      jsonGen = JSON_FACT.createJsonGenerator(new AppendableWriter(appendable));
+    }
+    final Set<Schema> toDeclare = new HashSet<>();
+    toDeclare.addAll(Arrays.asList(pschemas));
+    while (!toDeclare.isEmpty()) {
+      Iterator<Schema> iterator = toDeclare.iterator();
+      Schema schema = iterator.next();
+      iterator.remove();
+      writeSchema(schema, appendable, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
+    }
+  }
+
+  private static void writeSchema(Schema schema, final Appendable appendable, JsonGenerator jsonGen,
+          final String protocolNameSpace, final Set<String> alreadyDeclared, final Set<Schema> toDeclare)
+          throws IOException {
+    Schema.Type type = schema.getType();
+    writeSchemaAttributes(schema, appendable, jsonGen);
+    String namespace = schema.getNamespace();
+    if (!Objects.equals(namespace, protocolNameSpace)) {
+      appendable.append("@namespace(\"").append(namespace).append("\")\n");
+    }
+    Set<String> saliases = schema.getAliases();
+    if (!saliases.isEmpty()) {
+      appendable.append("@aliases(");
+      toJson(saliases, jsonGen);
+      jsonGen.flush();
+      appendable.append(") ");
+    }
+    switch (type) {
+      case RECORD:
+        appendable.append("record ").append(schema.getName()).append(" {\n");
+        alreadyDeclared.add(schema.getFullName());
+        for (Field field : schema.getFields()) {
+          String fDoc = field.doc();
+          if (fDoc != null) {
+            appendable.append("/** ").append(fDoc).append(" */\n");
+          }
+          writeFieldSchema(field.schema(), appendable, jsonGen, alreadyDeclared, toDeclare, schema.getNamespace());
+          appendable.append(' ');
+          Set<String> faliases = field.aliases();
+          if (!faliases.isEmpty()) {
+            appendable.append("@aliases(");
+            toJson(faliases, jsonGen);
+            jsonGen.flush();
+            appendable.append(") ");
+          }
+          writeJsonProperties(field, appendable, jsonGen);
+          appendable.append(' ');
+          appendable.append(field.name());
+          JsonNode defaultValue = field.defaultValue();
+          if (defaultValue != null) {
+            appendable.append(" = ");
+            toJson(field.defaultVal(), jsonGen);
+            jsonGen.flush();
+          }
+          appendable.append(";\n");
+        }
+        appendable.append("}\n");
+        break;
+      case ARRAY:
+      case MAP:
+      case UNION:
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+        throw new UnsupportedOperationException("No IDL entity, nust be part of a record: " + schema);
+      case ENUM:
+        appendable.append("enum ").append(schema.getName()).append(" {");
+        alreadyDeclared.add(schema.getFullName());
+        Iterator<String> i = schema.getEnumSymbols().iterator();
+        if (i.hasNext()) {
+          appendable.append(i.next());
+          while (i.hasNext()) {
+            appendable.append(',');
+            appendable.append(i.next());
+          }
+        } else {
+          throw new IllegalStateException("Enum schema must have at least a symbol " + schema);
+        }
+        appendable.append("}\n");
+        break;
+      case FIXED:
+        appendable.append("fixed ").append(schema.getName()).append('(')
+                .append(Integer.toString(schema.getFixedSize())).append(")\n");
+        alreadyDeclared.add(schema.getFullName());
+        break;
+      default:
+        throw new IllegalStateException("Unsupported schema " + schema);
+    }
+  }
+
+  private static void writeFieldSchema(final Schema schema,
+          final Appendable appendable, final JsonGenerator jsonGen,
+          final Set<String> alreadyDeclared, final Set<Schema> toDeclare,
+          final String recordNameSpace) throws IOException {
+    Schema.Type type = schema.getType();
+    switch (type) {
+      case RECORD:
+      case ENUM:
+      case FIXED:
+        if (Objects.equals(recordNameSpace, schema.getNamespace())) {
+          appendable.append(schema.getName());
+        } else {
+          appendable.append(schema.getFullName());
+        }
+        if (!alreadyDeclared.contains(schema.getFullName())) {
+          toDeclare.add(schema);
+        }
+        break;
+      case ARRAY:
+        writeSchemaAttributes(schema, appendable, jsonGen);
+        appendable.append("array<");
+        writeFieldSchema(schema.getElementType(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);
+        appendable.append('>');
+        break;
+      case MAP:
+        writeSchemaAttributes(schema, appendable, jsonGen);
+        appendable.append("map<");
+        writeFieldSchema(schema.getValueType(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);
+        appendable.append('>');
+        break;
+      case UNION:
+        writeSchemaAttributes(schema, appendable, jsonGen);
+        appendable.append("union {");
+        List<Schema> types = schema.getTypes();
+        Iterator<Schema> iterator = types.iterator();
+        if (iterator.hasNext()) {
+          writeFieldSchema(iterator.next(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);
+          while (iterator.hasNext()) {
+            appendable.append(',');
+            writeFieldSchema(iterator.next(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);
+          }
+        } else {
+          throw new IllegalStateException("Union schmemas must have member types " + schema);
+        }
+        appendable.append('}');
+        break;
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+        writeSchemaAttributes(schema, appendable, jsonGen);
+        appendable.append(schema.getName());
+        break;
+      default:
+        throw new IllegalStateException("Unsupported schema " + schema);
+    }
+  }
+
+  public static void writeSchemaAttributes(final Schema schema,
+          final Appendable appendable, final JsonGenerator jsonGen)
+          throws IOException {
+    String doc = schema.getDoc();
+    if (doc != null) {
+      appendable.append("/** ").append(doc).append(" */\n");
+    }
+    writeJsonProperties(schema, appendable, jsonGen);
+  }
+
+  public static void writeJsonProperties(final JsonProperties props,
+          final Appendable appendable, final JsonGenerator jsonGen) throws IOException {
+    Map<String, Object> objectProps = props.getObjectProps();
+    for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
+      appendable.append('@').append(entry.getKey()).append('(');
+      toJson(entry.getValue(), jsonGen);
+      jsonGen.flush();
+      appendable.append(")\n");
+    }
+  }
+
+  @SuppressWarnings(value="unchecked")
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+  static void toJson(final Object datum, final JsonGenerator generator) throws IOException {
+    if (datum == JsonProperties.NULL_VALUE) { // null
+      generator.writeNull();
+    } else if (datum instanceof Map) { // record, map
+      generator.writeStartObject();
+      for (Map.Entry<Object,Object> entry : ((Map<Object,Object>) datum).entrySet()) {
+        generator.writeFieldName(entry.getKey().toString());
+        toJson(entry.getValue(), generator);
+      }
+      generator.writeEndObject();
+    } else if (datum instanceof Collection) { // array
+      generator.writeStartArray();
+      for (Object element : (Collection<?>) datum) {
+        toJson(element, generator);
+      }
+      generator.writeEndArray();
+    } else if (datum instanceof byte[]) { // bytes, fixed
+      generator.writeString(new String((byte[]) datum, StandardCharsets.ISO_8859_1));
+    } else if (datum instanceof CharSequence || datum instanceof Enum<?>) { // string, enum
+      generator.writeString(datum.toString());
+    } else if (datum instanceof Double) { // double
+      generator.writeNumber((Double) datum);
+    } else if (datum instanceof Float) { // float
+      generator.writeNumber((Float) datum);
+    } else if (datum instanceof Long) { // long
+      generator.writeNumber((Long) datum);
+    } else if (datum instanceof Integer) { // int
+      generator.writeNumber((Integer) datum);
+    } else if (datum instanceof Boolean) { // boolean
+      generator.writeBoolean((Boolean) datum);
+    } else {
+      throw new AvroRuntimeException("Unknown datum class: " + datum.getClass());
     }
   }
 
