@@ -49,6 +49,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.OpenDataException;
 import org.apache.commons.lang3.tuple.Pair;
+import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ComparablePair;
@@ -252,6 +253,20 @@ public class OpenTypeConverterTest {
   @Test
   public void testConverterFile() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping get = conv.get(File.class);
+    Assert.assertNull(get);
+  }
+
+
+  @Test
+  public void testJodaLocalDate() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(LocalDate.class);
+    Assert.assertNull(get);
+  }
+
+
+  @Test
+  public void testJdkLocalDate() throws OpenDataException, InvalidObjectException, NotSerializableException {
+    JMXBeanMapping get = conv.get(java.time.LocalDate.class);
     Assert.assertNull(get);
   }
 

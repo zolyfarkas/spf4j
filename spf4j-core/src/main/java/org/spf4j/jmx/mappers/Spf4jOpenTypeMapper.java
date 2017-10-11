@@ -166,6 +166,13 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
           } else {
             return val;
           }
+        } catch (NotSerializableException ex) {
+          TypeToken<?> tt = TypeToken.of(t);
+          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {
+            return null;
+          } else {
+            throw ex;
+          }
         } catch (RuntimeException ex) {
           LOG.debug("No mapping for type {}", t, ex);
           TypeToken<?> tt = TypeToken.of(t);
