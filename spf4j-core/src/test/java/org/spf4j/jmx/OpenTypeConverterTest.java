@@ -267,7 +267,11 @@ public class OpenTypeConverterTest {
   @Test
   public void testJdkLocalDate() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping get = conv.get(java.time.LocalDate.class);
-    Assert.assertNull(get);
+    Assert.assertNotNull(get);
+    java.time.LocalDate now = java.time.LocalDate.now();
+    Object ov = get.toOpenValue(now);
+    System.out.println(ov);
+    Assert.assertTrue(ov instanceof CompositeData);
   }
 
 
