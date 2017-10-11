@@ -32,12 +32,18 @@
 package org.spf4j.avro.schema;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Sets;
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.MutableGraph;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -54,12 +60,26 @@ import org.apache.avro.compiler.specific.SpecificCompiler;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.spf4j.ds.Graphs;
 import org.spf4j.io.AppendableWriter;
 
 /**
  * @author zoly
  */
 public final class SchemaUtils {
+
+  private static final boolean HAS_IDL_CYCLE_DEF_SUPPORT;
+
+  static {
+    boolean hasIDLCycleSupp = true;
+    try {
+      Class.forName("org.apache.avro.compiler.idl.ResolvingVisitor");
+    } catch (ClassNotFoundException ex) {
+      hasIDLCycleSupp = false;
+    }
+    HAS_IDL_CYCLE_DEF_SUPPORT = hasIDLCycleSupp;
+  }
+
 
   private static final JsonFactory JSON_FACT = new JsonFactory();
 
@@ -89,6 +109,12 @@ public final class SchemaUtils {
 
   private SchemaUtils() {
   }
+
+  public static boolean isIdlCycleSupport() {
+    return HAS_IDL_CYCLE_DEF_SUPPORT;
+  }
+
+
 
   public static void copyAliases(final Schema from, final Schema to) {
     //CHECKSTYLE:OFF
@@ -155,7 +181,11 @@ public final class SchemaUtils {
       appendable.append("@namespace(\"").append(protocolNameSpace).append("\")\n");
     }
     appendable.append("protocol ").append(protocolName).append(" {\n");
-    writeIdl(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
+    if (isIdlCycleSupport()) {
+      writeIdl(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
+    } else {
+      writeIdlLegacy(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
+    }
     appendable.append("}\n");
   }
 
@@ -169,7 +199,7 @@ public final class SchemaUtils {
     } else {
       jsonGen = JSON_FACT.createJsonGenerator(new AppendableWriter(appendable));
     }
-    final Set<Schema> toDeclare = new HashSet<>();
+    final Set<Schema> toDeclare = new HashSet<>(4);
     toDeclare.addAll(Arrays.asList(pschemas));
     while (!toDeclare.isEmpty()) {
       Iterator<Schema> iterator = toDeclare.iterator();
@@ -178,6 +208,55 @@ public final class SchemaUtils {
       writeSchema(schema, appendable, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
     }
   }
+
+  @Beta
+  public static void writeIdlLegacy(final Appendable appendable,
+          final Set<String> alreadyDeclared, final String protocolNameSpace, final Schema ... pschemas)
+          throws IOException {
+    MutableGraph<Schema> schemaDeps = GraphBuilder.directed().allowsSelfLoops(false)
+            .expectedNodeCount(4).build();
+    Map<Schema, String> idlRepresentation = new HashMap<>(4);
+    final Set<Schema> toDeclare = new HashSet<>(4);
+    toDeclare.addAll(Arrays.asList(pschemas));
+    while (!toDeclare.isEmpty()) {
+      Iterator<Schema> iterator = toDeclare.iterator();
+      Schema schema = iterator.next();
+      iterator.remove();
+      StringWriter schemaIdrStr = new StringWriter();
+      JsonGenerator jsonGen = JSON_FACT.createJsonGenerator(schemaIdrStr);
+      Set<Schema> orig = new HashSet<>(toDeclare);
+      writeSchema(schema, schemaIdrStr, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
+      idlRepresentation.put(schema, schemaIdrStr.toString());
+      Set<Schema> dependencies = Sets.difference(toDeclare, orig);
+      for (Schema dep : dependencies) {
+        schemaDeps.putEdge(schema, dep);
+      }
+     }
+     // Now process the nodes from leaves onward.
+
+    MutableGraph<Schema> traverseGraph = Graphs.clone(schemaDeps);
+    Set<Schema> nodes = traverseGraph.nodes();
+    List<Schema> nodesToRemove = new ArrayList<>();
+    do {
+      for (Schema token : nodes) {
+        if (traverseGraph.outDegree(token) == 0) {
+          nodesToRemove.add(token);
+          appendable.append(idlRepresentation.get(token));
+        }
+      }
+      if (nodesToRemove.isEmpty() && !nodes.isEmpty()) {
+        throw new IllegalArgumentException("Schema definition cycle for" + nodes);
+      }
+      for (Schema token : nodesToRemove) {
+        traverseGraph.removeNode(token);
+      }
+      nodesToRemove.clear();
+      nodes = traverseGraph.nodes();
+    } while (!nodes.isEmpty());
+
+
+  }
+
 
   private static void writeSchema(Schema schema, final Appendable appendable, JsonGenerator jsonGen,
           final String protocolNameSpace, final Set<String> alreadyDeclared, final Set<Schema> toDeclare)
@@ -212,6 +291,10 @@ public final class SchemaUtils {
             toJson(faliases, jsonGen);
             jsonGen.flush();
             appendable.append(") ");
+          }
+          Field.Order order = field.order();
+          if (order != null) {
+            appendable.append(" @order(\"").append(order.name()).append("\") ");
           }
           writeJsonProperties(field, appendable, jsonGen);
           appendable.append(' ');
@@ -255,7 +338,7 @@ public final class SchemaUtils {
         break;
       case FIXED:
         appendable.append("fixed ").append(schema.getName()).append('(')
-                .append(Integer.toString(schema.getFixedSize())).append(")\n");
+                .append(Integer.toString(schema.getFixedSize())).append(");\n");
         alreadyDeclared.add(schema.getFullName());
         break;
       default:

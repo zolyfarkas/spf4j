@@ -16,11 +16,14 @@
 package org.spf4j.avro.schema;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.avro.compiler.idl.Idl;
 import org.apache.avro.compiler.idl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +36,7 @@ public class SchemaUtilsTest {
 
   @Test
   public void testIdlGenerator() throws IOException, ParseException {
-    StringWriter idlStr = new StringWriter();
+    StringWriter idlStrWriter = new StringWriter();
     Schema rs = SchemaBuilder.builder().record("TestRecord2")
             .namespace("test")
             .doc("record doc")
@@ -54,12 +57,16 @@ public class SchemaUtilsTest {
             .noDefault()
             .endRecord();
 
-    SchemaUtils.writeIdlProtocol("TestProtocol", "test", idlStr, rs);
-    System.out.println(idlStr);
-    Assert.assertFalse(idlStr.toString().isEmpty());
-//    Idl idl = new Idl(new StringReader(idlStr.toString()));
-//    Protocol protocol = idl.CompilationUnit();
-//    System.out.println(protocol);
+    SchemaUtils.writeIdlProtocol("TestProtocol", "test", idlStrWriter, rs);
+    System.out.println(idlStrWriter);
+    String idlStr = idlStrWriter.toString();
+    Assert.assertFalse(idlStr.isEmpty());
+    Idl idl = new Idl(new StringReader(idlStr));
+    Protocol protocol = idl.CompilationUnit();
+    System.out.println(protocol);
+    Schema rs2 = protocol.getType("test.TestRecord2");
+    Assert.assertEquals(rs, rs2);
+
   }
 
 }
