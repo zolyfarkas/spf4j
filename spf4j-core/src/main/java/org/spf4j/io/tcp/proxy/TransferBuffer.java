@@ -91,7 +91,11 @@ public final class TransferBuffer {
       }
     } catch (IOException ex) {
       oex = ex;
-      readException = incomingSniffer.received(ex);
+      if (incomingSniffer == null) {
+        readException = ex;
+      } else {
+        readException = incomingSniffer.received(ex);
+      }
       if (readException != null) {
         LOG.debug("Exception while reading from {}", channel, ex);
         nrRead = -1;
