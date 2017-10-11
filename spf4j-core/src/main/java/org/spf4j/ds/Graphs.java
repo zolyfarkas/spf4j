@@ -31,30 +31,28 @@
  */
 package org.spf4j.ds;
 
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.spf4j.base.Pair;
+import com.google.common.graph.EndpointPair;
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.MutableGraph;
 
 /**
- * a graph interface.
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public interface Graph<V, E> {
+public final class Graphs {
 
-    VertexEdges<V, E> getEdges(V vertice);
+  private Graphs() { }
 
-    Pair<V, V> getVertices(E edge);
-
-    @Nullable
-    E getEdge(V from, V to);
-
-    @Nullable
-    Set<V> getVertices();
-
-    void remove(V vertice);
-
-    boolean contains(V vertice);
-
-    Graph<V, E> copy();
+  public static <T> MutableGraph<T> clone(final MutableGraph<T> graph) {
+    MutableGraph<T> clone =
+            GraphBuilder.from(graph).build();
+    for (T token : graph.nodes()) {
+      clone.addNode(token);
+    }
+    for (EndpointPair<T> ep : graph.edges()) {
+      clone.putEdge(ep.source(), ep.target());
+    }
+    return clone;
+  }
 
 }

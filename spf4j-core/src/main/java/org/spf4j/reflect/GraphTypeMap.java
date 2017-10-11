@@ -31,7 +31,6 @@
  */
 package org.spf4j.reflect;
 
-import com.google.common.graph.EndpointPair;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import com.google.common.reflect.TypeToken;
@@ -42,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.spf4j.ds.Graphs;
 
 /**
  * @author Zoltan Farkas
@@ -66,7 +66,7 @@ public final class GraphTypeMap<H> implements TypeMap<H> {
   public Set<H> getAll(final Type t) {
     Set<H> result = new HashSet<>(1);
     TypeToken tt = TypeToken.of(t);
-    MutableGraph<TypeToken> traverseGraph = clone(typeGraph);
+    MutableGraph<TypeToken> traverseGraph = Graphs.clone(typeGraph);
     Set<TypeToken> nodes = traverseGraph.nodes();
     List<TypeToken> nodesToRemove = new ArrayList<>();
     do {
@@ -87,17 +87,6 @@ public final class GraphTypeMap<H> implements TypeMap<H> {
     return result;
   }
 
-  public static <T> MutableGraph<T> clone(final MutableGraph<T> graph) {
-    MutableGraph<T> clone =
-            GraphBuilder.from(graph).build();
-    for (T token : graph.nodes()) {
-      clone.addNode(token);
-    }
-    for (EndpointPair<T> ep : graph.edges()) {
-      clone.putEdge(ep.source(), ep.target());
-    }
-    return clone;
-  }
 
   @Override
   public boolean putIfNotPresent(final Type type, final H appender) {
