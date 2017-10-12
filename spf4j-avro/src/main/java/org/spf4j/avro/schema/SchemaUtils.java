@@ -265,7 +265,7 @@ public final class SchemaUtils {
           final String protocolNameSpace, final Set<String> alreadyDeclared, final Set<Schema> toDeclare)
           throws IOException {
     Schema.Type type = schema.getType();
-    writeSchemaAttributes(schema, appendable, jsonGen);
+    writeSchemaAttributes(schema, appendable, jsonGen, true);
     String namespace = schema.getNamespace();
     if (!Objects.equals(namespace, protocolNameSpace)) {
       appendable.append("@namespace(\"").append(namespace).append("\")\n");
@@ -369,19 +369,19 @@ public final class SchemaUtils {
         }
         break;
       case ARRAY:
-        writeSchemaAttributes(schema, appendable, jsonGen);
+        writeSchemaAttributes(schema, appendable, jsonGen, false);
         appendable.append("array<");
         writeFieldSchema(schema.getElementType(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);
         appendable.append('>');
         break;
       case MAP:
-        writeSchemaAttributes(schema, appendable, jsonGen);
+        writeSchemaAttributes(schema, appendable, jsonGen, false);
         appendable.append("map<");
         writeFieldSchema(schema.getValueType(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);
         appendable.append('>');
         break;
       case UNION:
-        writeSchemaAttributes(schema, appendable, jsonGen);
+        writeSchemaAttributes(schema, appendable, jsonGen, false);
         appendable.append("union {");
         List<Schema> types = schema.getTypes();
         Iterator<Schema> iterator = types.iterator();
@@ -404,7 +404,7 @@ public final class SchemaUtils {
       case LONG:
       case NULL:
       case STRING:
-        writeSchemaAttributes(schema, appendable, jsonGen);
+        writeSchemaAttributes(schema, appendable, jsonGen, false);
         appendable.append(schema.getName());
         break;
       default:
@@ -413,13 +413,16 @@ public final class SchemaUtils {
   }
 
   public static void writeSchemaAttributes(final Schema schema,
-          final Appendable appendable, final JsonGenerator jsonGen)
+          final Appendable appendable, final JsonGenerator jsonGen, final boolean crBetween)
           throws IOException {
     String doc = schema.getDoc();
     if (doc != null) {
-      appendable.append("/** ").append(doc).append(" */\n");
+      appendable.append("/** ").append(doc).append(" */");
+      if (crBetween) {
+        appendable.append('\n');
+      }
     }
-    writeJsonProperties(schema, appendable, jsonGen, true);
+    writeJsonProperties(schema, appendable, jsonGen, crBetween);
   }
 
   public static void writeJsonProperties(final JsonProperties props,
