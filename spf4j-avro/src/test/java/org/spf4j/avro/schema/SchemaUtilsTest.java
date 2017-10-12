@@ -49,6 +49,7 @@ public class SchemaUtilsTest {
             .orderAscending()
             .aliases("blaAlias")
             .prop("fprop", "fval")
+            .prop("fprp2", "fval2")
             .type(Schema.createArray(Schema.createEnum("someEnum", "enum doc", "test", Arrays.asList("A", "B"))))
             .withDefault(Collections.EMPTY_LIST)
             .name("fixedField")
