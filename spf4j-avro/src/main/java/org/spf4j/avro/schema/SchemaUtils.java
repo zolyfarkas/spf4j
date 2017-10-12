@@ -420,6 +420,8 @@ public final class SchemaUtils {
       appendable.append("/** ").append(doc).append(" */");
       if (crBetween) {
         appendable.append('\n');
+      } else {
+        appendable.append(' ');
       }
     }
     writeJsonProperties(schema, appendable, jsonGen, crBetween);
@@ -435,6 +437,8 @@ public final class SchemaUtils {
       appendable.append(')');
       if (crBetween) {
         appendable.append('\n');
+      } else {
+        appendable.append(' ');
       }
     }
   }
