@@ -228,6 +228,7 @@ public final class SchemaUtils {
       Set<Schema> orig = new HashSet<>(toDeclare);
       writeSchema(schema, schemaIdrStr, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
       idlRepresentation.put(schema, schemaIdrStr.toString());
+      schemaDeps.addNode(schema);
       Set<Schema> dependencies = Sets.difference(toDeclare, orig);
       for (Schema dep : dependencies) {
         schemaDeps.putEdge(schema, dep);
