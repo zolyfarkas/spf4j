@@ -180,7 +180,7 @@ public final class SchemaUtils {
     if (protocolNameSpace != null) {
       appendable.append("@namespace(\"").append(protocolNameSpace).append("\")\n");
     }
-    appendable.append("protocol ").append(protocolName).append(" {\n");
+    appendable.append("protocol ").append(protocolName).append(" {\n\n");
     if (isIdlCycleSupport()) {
       writeIdl(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
     } else {
@@ -206,6 +206,7 @@ public final class SchemaUtils {
       Schema schema = iterator.next();
       iterator.remove();
       writeSchema(schema, appendable, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
+      appendable.append('\n');
     }
   }
 
@@ -242,6 +243,7 @@ public final class SchemaUtils {
         if (traverseGraph.outDegree(token) == 0) {
           nodesToRemove.add(token);
           appendable.append(idlRepresentation.get(token));
+          appendable.append('\n');
         }
       }
       if (nodesToRemove.isEmpty() && !nodes.isEmpty()) {
@@ -272,17 +274,18 @@ public final class SchemaUtils {
       appendable.append("@aliases(");
       toJson(saliases, jsonGen);
       jsonGen.flush();
-      appendable.append(") ");
+      appendable.append(")\n");
     }
     switch (type) {
       case RECORD:
-        appendable.append("record ").append(schema.getName()).append(" {\n");
+        appendable.append("record ").append(schema.getName()).append(" {\n\n");
         alreadyDeclared.add(schema.getFullName());
         for (Field field : schema.getFields()) {
           String fDoc = field.doc();
           if (fDoc != null) {
-            appendable.append("/** ").append(fDoc).append(" */\n");
+            appendable.append("  /** ").append(fDoc).append(" */\n");
           }
+          appendable.append("  ");
           writeFieldSchema(field.schema(), appendable, jsonGen, alreadyDeclared, toDeclare, schema.getNamespace());
           appendable.append(' ');
           Set<String> faliases = field.aliases();
@@ -296,7 +299,7 @@ public final class SchemaUtils {
           if (order != null) {
             appendable.append(" @order(\"").append(order.name()).append("\") ");
           }
-          writeJsonProperties(field, appendable, jsonGen);
+          writeJsonProperties(field, appendable, jsonGen, false);
           appendable.append(' ');
           appendable.append(field.name());
           JsonNode defaultValue = field.defaultValue();
@@ -305,7 +308,7 @@ public final class SchemaUtils {
             toJson(field.defaultVal(), jsonGen);
             jsonGen.flush();
           }
-          appendable.append(";\n");
+          appendable.append(";\n\n");
         }
         appendable.append("}\n");
         break;
@@ -415,17 +418,20 @@ public final class SchemaUtils {
     if (doc != null) {
       appendable.append("/** ").append(doc).append(" */\n");
     }
-    writeJsonProperties(schema, appendable, jsonGen);
+    writeJsonProperties(schema, appendable, jsonGen, true);
   }
 
   public static void writeJsonProperties(final JsonProperties props,
-          final Appendable appendable, final JsonGenerator jsonGen) throws IOException {
+          final Appendable appendable, final JsonGenerator jsonGen, final boolean crBetween) throws IOException {
     Map<String, Object> objectProps = props.getObjectProps();
     for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
       appendable.append('@').append(entry.getKey()).append('(');
       toJson(entry.getValue(), jsonGen);
       jsonGen.flush();
-      appendable.append(")\n");
+      appendable.append(')');
+      if (crBetween) {
+        appendable.append('\n');
+      }
     }
   }
 
