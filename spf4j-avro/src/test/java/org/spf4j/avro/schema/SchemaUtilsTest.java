@@ -69,4 +69,30 @@ public class SchemaUtilsTest {
 
   }
 
+  @Test
+  public void testIdlGenerator2() throws IOException, ParseException {
+    StringWriter idlStrWriter = new StringWriter();
+    Schema rs = SchemaBuilder.builder().record("TestRecord2")
+            .namespace("test")
+            .doc("record doc")
+            .aliases("recordAlias")
+            .prop("propKey", "propVal")
+            .fields()
+            .requiredBoolean("isThere")
+            .nullableString("strField", null)
+            .endRecord();
+
+    SchemaUtils.writeIdlProtocol("TestProtocol", "test", idlStrWriter, rs);
+    System.out.println(idlStrWriter);
+    String idlStr = idlStrWriter.toString();
+    Assert.assertFalse(idlStr.isEmpty());
+    Idl idl = new Idl(new StringReader(idlStr));
+    Protocol protocol = idl.CompilationUnit();
+    System.out.println(protocol);
+    Schema rs2 = protocol.getType("test.TestRecord2");
+    Assert.assertEquals(rs, rs2);
+
+  }
+
+
 }
