@@ -169,14 +169,15 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
         } catch (NotSerializableException ex) {
           TypeToken<?> tt = TypeToken.of(t);
           if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {
+            LOG.debug("No mapping for type {}", t, ex);
             return null;
           } else {
             throw ex;
           }
         } catch (RuntimeException ex) {
-          LOG.debug("No mapping for type {}", t, ex);
           TypeToken<?> tt = TypeToken.of(t);
           if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {
+            LOG.debug("No mapping for type {}", t, ex);
             return null;
           } else {
             NotSerializableException nsex = new NotSerializableException("Type " + t + "  must be serializable");
