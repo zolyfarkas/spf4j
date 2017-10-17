@@ -53,6 +53,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
   private final BiConsumer<Field, Field> copyField;
   private final BiConsumer<Schema, Schema> copySchema;
   private final boolean copyDocs;
+  private final boolean copyDefaults;
 
   public CloningVisitor(final Schema root) {
     this(SchemaUtils.FIELD_ESENTIALS,
@@ -62,10 +63,17 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
   public CloningVisitor(final BiConsumer<Field, Field> copyField,
           final BiConsumer<Schema, Schema> copySchema,
           final boolean copyDocs, final Schema root) {
+    this(copyField, copySchema, copyDocs, true, root);
+  }
+
+  public CloningVisitor(final BiConsumer<Field, Field> copyField,
+          final BiConsumer<Schema, Schema> copySchema,
+          final boolean copyDocs, final boolean copyDefaults, final Schema root) {
     this.copyField = copyField;
     this.copySchema = copySchema;
     this.copyDocs = copyDocs;
     this.root = root;
+    this.copyDefaults = copyDefaults;
   }
 
   @Override
@@ -130,7 +138,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
          List<Schema.Field> newFields = new ArrayList<>(fields.size());
          for (Schema.Field field : fields) {
           Schema.Field newField = new Schema.Field(field.name(), replace.get(field.schema()),
-                  copyDocs ? field.doc() : null, field.defaultVal(), field.order());
+                  copyDocs ? field.doc() : null, copyDefaults ? field.defaultVal() : null, field.order());
           copyField.accept(field, newField);
           newFields.add(newField);
          }
