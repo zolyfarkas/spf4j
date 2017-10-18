@@ -467,10 +467,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="pc bpc" id="L467" title="1 of 2 branches missed.">            if (releaseDeadOwnerPermits(nrPermits) &lt;= 0) { //wait of we did not find anything dead to release.</span>
 <span class="fc" id="L468">              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),</span>
 <span class="fc" id="L469">                      ThreadLocalRandom.current().nextInt(acquirePollMillis));</span>
-<span class="fc bfc" id="L470" title="All 2 branches covered.">              if (wtimeMilis &gt; 0) {</span>
+<span class="pc bpc" id="L470" title="1 of 2 branches missed.">              if (wtimeMilis &gt; 0) {</span>
 <span class="fc" id="L471">                semName.wait(wtimeMilis);</span>
               } else {
-<span class="fc" id="L473">                break;</span>
+<span class="nc" id="L473">                break;</span>
               }
             }
 <span class="nc" id="L476">          } catch (SQLException ex) {</span>

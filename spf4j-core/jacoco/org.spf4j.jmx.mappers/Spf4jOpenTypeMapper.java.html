@@ -166,28 +166,36 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
           } else {
 <span class="fc" id="L167">            return val;</span>
           }
-<span class="fc" id="L169">        } catch (RuntimeException ex) {</span>
-<span class="fc" id="L170">          LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
-<span class="fc" id="L171">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
-<span class="fc bfc" id="L172" title="All 4 branches covered.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
+<span class="fc" id="L169">        } catch (NotSerializableException ex) {</span>
+<span class="fc" id="L170">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
+<span class="pc bpc" id="L171" title="1 of 4 branches missed.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
+<span class="fc" id="L172">            LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
 <span class="fc" id="L173">            return null;</span>
           } else {
-<span class="fc" id="L175">            NotSerializableException nsex = new NotSerializableException(&quot;Type &quot; + t + &quot;  must be serializable&quot;);</span>
-<span class="fc" id="L176">            nsex.addSuppressed(ex);</span>
-<span class="fc" id="L177">            throw nsex;</span>
+<span class="nc" id="L175">            throw ex;</span>
+          }
+<span class="fc" id="L177">        } catch (RuntimeException ex) {</span>
+<span class="fc" id="L178">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
+<span class="fc bfc" id="L179" title="All 4 branches covered.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
+<span class="fc" id="L180">            LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
+<span class="fc" id="L181">            return null;</span>
+          } else {
+<span class="fc" id="L183">            NotSerializableException nsex = new NotSerializableException(&quot;Type &quot; + t + &quot;  must be serializable&quot;);</span>
+<span class="fc" id="L184">            nsex.addSuppressed(ex);</span>
+<span class="fc" id="L185">            throw nsex;</span>
           }
         } finally {
-<span class="fc" id="L180">          ip.remove(t);</span>
+<span class="fc" id="L188">          ip.remove(t);</span>
         }
   }
 
   public CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; getCache() {
-<span class="nc" id="L185">    return cache;</span>
+<span class="nc" id="L193">    return cache;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L190">    return &quot;Spf4jOpenTypeMapper{&quot; + &quot;convertedTypes=&quot; + cache + '}';</span>
+<span class="nc" id="L198">    return &quot;Spf4jOpenTypeMapper{&quot; + &quot;convertedTypes=&quot; + cache + '}';</span>
   }
 
 }
