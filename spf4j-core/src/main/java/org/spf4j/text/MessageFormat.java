@@ -72,6 +72,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.Strings;
 
@@ -360,6 +361,7 @@ import org.spf4j.base.Strings;
  * @author Mark Davis
  */
 @SuppressFBWarnings("IMC_IMMATURE_CLASS_WRONG_FIELD_ORDER")
+@NotThreadSafe
 public final class MessageFormat extends Format {
 
   private static final long serialVersionUID = 1L;
