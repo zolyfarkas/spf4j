@@ -195,22 +195,6 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
   }
 
-  static long[] createMagnitudeLimits(final int factor, final int lowerMagnitude,
-          final int higherMagnitude) {
-    long[] magnitudes = new long[(higherMagnitude - lowerMagnitude) + 1];
-
-    int idx = 0;
-
-    for (int m = lowerMagnitude; m <= higherMagnitude; m++) {
-      if (m == 0) {
-        magnitudes[idx++] = 0;
-      } else {
-        magnitudes[idx++] = (m < 0 ? -1 : 1) * LongMath.pow(factor, Math.abs(m));
-      }
-    }
-    return magnitudes;
-  }
-
   static long[] createMagnitudeLimits2(final int factor, final int lowerMagnitude,
           final int higherMagnitude) {
     long[] magnitudes = new long[(higherMagnitude - lowerMagnitude) + 1];

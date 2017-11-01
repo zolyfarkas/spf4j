@@ -41,20 +41,6 @@ import org.spf4j.base.Arrays;
  */
 public final class QuantizedRecorderTest {
 
-  @Test
-  public void testMagnitudes() {
-    long[] createMagnitudeLimits = QuantizedAccumulator.createMagnitudeLimits(10, -2, 3);
-    Assert.assertArrayEquals(new long[]{-100, -10, 0, 10, 100, 1000}, createMagnitudeLimits);
-
-    createMagnitudeLimits = QuantizedAccumulator.createMagnitudeLimits(3, -2, 3);
-    Assert.assertArrayEquals(new long[]{-9, -3, 0, 3, 9, 27}, createMagnitudeLimits);
-
-    createMagnitudeLimits = QuantizedAccumulator.createMagnitudeLimits(10, 2, 3);
-    Assert.assertArrayEquals(new long[]{100, 1000}, createMagnitudeLimits);
-
-    createMagnitudeLimits = QuantizedAccumulator.createMagnitudeLimits(10, -3, -1);
-    Assert.assertArrayEquals(new long[]{-1000, -100, -10}, createMagnitudeLimits);
-  }
 
   @Test
   public void testMagnitudes2() {
