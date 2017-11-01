@@ -33,8 +33,6 @@ package org.spf4j.concurrent.jdbc;
 
 import org.spf4j.concurrent.Semaphore;
 import com.google.common.annotations.Beta;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,6 +42,8 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
@@ -88,7 +88,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);
 
-  private static final Interner<String> INTERNER = Interners.newStrongInterner();
+  private static final ConcurrentMap<String, Object> SYNC_OBJS = new ConcurrentHashMap<>();
 
   private final JdbcTemplate jdbc;
 
@@ -125,6 +125,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private final int jdbcTimeoutSeconds;
 
   private final String semName;
+
+  private final Object syncObj;
 
   private final JdbcHeartBeat heartBeat;
 
@@ -179,7 +181,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       throw new IllegalArgumentException("Permits must be positive and not " + nrPermits);
     }
     this.acquirePollMillis = acquirePollMillis;
-    this.semName = INTERNER.intern(semaphoreName);
+    this.semName = semaphoreName;
+    this.syncObj = SYNC_OBJS.computeIfAbsent(semaphoreName, (key) -> new Object());
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.jdbc = new JdbcTemplate(dataSource);
     this.isHealthy = true;
@@ -389,7 +392,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     if (timeout <= 0) {
       throw new IllegalArgumentException("Illegal timeout, please reasonable values, and not: " + timeout);
     }
-    synchronized (semName) {
+    synchronized (syncObj) {
       long toNanos = unit.toNanos(timeout);
       long deadlineNanos;
       if (toNanos < 0) {
@@ -468,7 +471,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
               long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
                       ThreadLocalRandom.current().nextInt(acquirePollMillis));
               if (wtimeMilis > 0) {
-                semName.wait(wtimeMilis);
+                syncObj.wait(wtimeMilis);
               } else {
                 break;
               }
@@ -491,7 +494,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void release(final int nrReservations) {
-    synchronized (semName) {
+    synchronized (syncObj) {
       try {
         jdbc.transactOnConnectionNonInterrupt(new HandlerNano<Connection, Void, SQLException>() {
           @Override
@@ -518,12 +521,12 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       if (ownedReservations < 0) {
         throw new IllegalStateException("Should not be trying to release more than you acquired!" + nrReservations);
       }
-      semName.notifyAll();
+      syncObj.notifyAll();
     }
   }
 
   public void releaseAll() {
-    synchronized (semName) {
+    synchronized (syncObj) {
       release(ownedReservations);
     }
   }
