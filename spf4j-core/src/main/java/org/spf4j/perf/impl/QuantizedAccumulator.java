@@ -32,7 +32,7 @@
 package org.spf4j.perf.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.math.IntMath;
+import com.google.common.math.LongMath;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
@@ -205,7 +205,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
       if (m == 0) {
         magnitudes[idx++] = 0;
       } else {
-        magnitudes[idx++] = (m < 0 ? -1 : 1) * IntMath.pow(factor, Math.abs(m));
+        magnitudes[idx++] = (m < 0 ? -1 : 1) * LongMath.pow(factor, Math.abs(m));
       }
     }
     return magnitudes;
@@ -217,7 +217,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     int idx = 0;
     if (lowerMagnitude < 0) {  // we quantize negative values.
       int toMagnitude = Math.min(-1, higherMagnitude);
-      int toValue = -IntMath.pow(factor, -toMagnitude);
+      long toValue = -LongMath.pow(factor, -toMagnitude);
       idx = toMagnitude - lowerMagnitude;
       int j = idx;
       while (j >= 0) {
@@ -231,7 +231,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     }
 
     int fromMagnitude = Math.max(1, lowerMagnitude);
-    int fromValue = IntMath.pow(factor, fromMagnitude);
+    long fromValue = LongMath.pow(factor, fromMagnitude);
     int j = idx;
     while (j < magnitudes.length) {
       magnitudes[j++] = fromValue;
