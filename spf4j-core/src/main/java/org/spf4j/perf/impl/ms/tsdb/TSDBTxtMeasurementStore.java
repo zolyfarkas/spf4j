@@ -32,8 +32,6 @@
 package org.spf4j.perf.impl.ms.tsdb;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.BufferedWriter;
@@ -57,17 +55,18 @@ import org.spf4j.perf.impl.ms.Id2Info;
 public final class TSDBTxtMeasurementStore
         implements MeasurementStore {
 
-  private static final Interner<String> INTERNER = Interners.newStrongInterner();
-
   private final BufferedWriter writer;
 
   private final String fileName;
+
+  private final Object sync;
 
   public TSDBTxtMeasurementStore(final File file) throws IOException {
     this.writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND),
             Charsets.UTF_8));
-    this.fileName = INTERNER.intern(file.getPath());
+    this.fileName = file.getPath();
+    this.sync = new Object();
   }
 
   @Override
@@ -82,12 +81,10 @@ public final class TSDBTxtMeasurementStore
           throws IOException {
     MeasurementsInfo measurementInfo = Id2Info.getInfo(tableId);
     String groupName = measurementInfo.getMeasuredEntity().toString();
-    synchronized (fileName) {
+    synchronized (sync) {
       Csv.writeCsvElement(groupName, writer);
       writer.write(',');
       writer.write(Long.toString(timeStampMillis));
-//            writer.write(',');
-//            writer.write(Integer.toString(sampleTimeMillis));
       for (int i = 0; i < measurements.length; i++) {
         String measurementName = measurementInfo.getMeasurementName(i);
         writer.write(',');
