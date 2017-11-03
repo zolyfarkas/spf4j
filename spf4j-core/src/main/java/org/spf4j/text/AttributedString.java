@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 
@@ -1064,8 +1065,7 @@ class AttributeEntry implements Map.Entry<Attribute,Object> {
             return false;
         }
         AttributeEntry other = (AttributeEntry) o;
-        return other.key.equals(key) &&
-            (value == null ? other.value == null : other.value.equals(value));
+        return other.key.equals(key) && Objects.equals(value, other.value);
     }
 
     public Attribute getKey() {
