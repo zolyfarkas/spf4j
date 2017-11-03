@@ -250,12 +250,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
           throws SQLException {
     jdbc.transactOnConnectionNonInterrupt((final Connection conn, final long deadlineNanos) -> {
       try (PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {
-        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+        stmt.setNString(1, org.spf4j.base.Runtime.EXEC_ID);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         int nrDeleted = stmt.executeUpdate();
         if (nrDeleted != 1) {
           throw new IllegalStateException("Heartbeat rows deleted: " + nrDeleted
-                  + " for " + org.spf4j.base.Runtime.PROCESS_ID);
+                  + " for " + org.spf4j.base.Runtime.EXEC_ID);
         }
       }
       return null;
@@ -343,13 +343,13 @@ public final class JdbcHeartBeat implements AutoCloseable {
     }
     try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-      stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+      stmt.setNString(1, org.spf4j.base.Runtime.EXEC_ID);
       int rowsUpdated = stmt.executeUpdate();
       if (rowsUpdated != 1) {
         throw new IllegalStateException("Broken Heartbeat for "
-                + org.spf4j.base.Runtime.PROCESS_ID + "sql : " + updateHeartbeatSql + " rows : " + rowsUpdated);
+                + org.spf4j.base.Runtime.EXEC_ID + "sql : " + updateHeartbeatSql + " rows : " + rowsUpdated);
       }
-      LOG.debug("Heart Beat for {}", org.spf4j.base.Runtime.PROCESS_ID);
+      LOG.debug("Heart Beat for {}", org.spf4j.base.Runtime.EXEC_ID);
     } catch (SQLException ex) {
       throw new HeartBeatError(ex);
     }
@@ -374,12 +374,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
-        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+        stmt.setNString(1, org.spf4j.base.Runtime.EXEC_ID);
         try (ResultSet rs = stmt.executeQuery()) {
           if (rs.next()) {
             long result = rs.getLong(1);
             if (rs.next()) {
-              throw new IllegalStateException("Multible beats for same owner " + org.spf4j.base.Runtime.PROCESS_ID);
+              throw new IllegalStateException("Multible beats for same owner " + org.spf4j.base.Runtime.EXEC_ID);
             }
             return result;
           } else {
