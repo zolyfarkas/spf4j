@@ -103,17 +103,16 @@ public final class Runtime {
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
   public static final Version JAVA_PLATFORM;
-  private static final List<Class<?>> PRELOADED; // preload certain classes to have them available.
 
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
     try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
-      Throwables.writeTo(new RuntimeException("priming"), stream, Throwables.PackageDetail.NONE);
+      RuntimeException rex = new RuntimeException("priming");
+      Throwables.writeTo(rex, stream, Throwables.PackageDetail.NONE);
+      Throwables.containsNonRecoverable(rex);
     } catch (UnsupportedEncodingException ex) {
       throw new ExceptionInInitializerError(ex);
     }
-    PRELOADED = new ArrayList<>(2);
-    PRELOADED.add(FastStackCollector.class);
     final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
     final int availableProcessors = runtime.availableProcessors();
