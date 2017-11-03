@@ -58,6 +58,7 @@ import javax.annotation.Nullable;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.concurrent.UIDGenerator;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -103,6 +104,7 @@ public final class Runtime {
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
   public static final Version JAVA_PLATFORM;
+  public static final String EXEC_ID = UIDGenerator.generateIdBase("J", '-').toString();
 
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).

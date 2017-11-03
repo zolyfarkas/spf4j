@@ -45,6 +45,7 @@ public final class UIDGeneratorTest {
 
     @Test
     public void testSomeMethod() {
+        System.out.println("current time:" +  System.currentTimeMillis());
         UIDGenerator idGen = new UIDGenerator(new ScalableSequence(0, 50), System.currentTimeMillis());
         long startTime  = System.currentTimeMillis();
         Set<String> ids = new HashSet<>(100);

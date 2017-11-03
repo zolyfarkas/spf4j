@@ -220,7 +220,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
         try (PreparedStatement insert = conn.prepareStatement(insertHeartbeatSql)) {
-          insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
+          insert.setNString(1, org.spf4j.base.Runtime.EXEC_ID);
           insert.setLong(2, this.intervalMillis);
           insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
           insert.executeUpdate();

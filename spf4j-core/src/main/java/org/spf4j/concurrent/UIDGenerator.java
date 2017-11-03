@@ -37,7 +37,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,39 +83,57 @@ public final class UIDGenerator implements Supplier<CharSequence> {
    * @param baseEncoding - if null MAC address based ID will not be included.
    */
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
-  public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
+  public UIDGenerator(final Sequence sequence, final BaseEncoding baseEncoding,
           final long customEpoch, final char separator, final String prefix) {
     this.sequence = sequence;
+    StringBuilder sb = generateIdBase(prefix, baseEncoding, separator, customEpoch);
+    base = sb;
+    maxSize = base.length() + 16;
+  }
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final char separator) {
+    return generateIdBase(prefix, BaseEncoding.base64Url(), separator, 1509741164184L);
+  }
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final char separator,
+          final long customEpoch) {
+    return generateIdBase(prefix, BaseEncoding.base64Url(), separator, customEpoch);
+  }
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final BaseEncoding baseEncoding, final char separator,
+          final long customEpoch) {
     StringBuilder sb = new StringBuilder(16 + prefix.length());
     sb.append(prefix);
-    if (baseEncoding != null) {
-      byte[] intfMac;
-      try {
-        Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-        if (networkInterfaces != null && networkInterfaces.hasMoreElements()) {
-          do {
-            intfMac = networkInterfaces.nextElement().getHardwareAddress();
-          } while ((intfMac == null || intfMac.length == 0) && networkInterfaces.hasMoreElements());
-          if (intfMac == null) {
-            LOG.info("Unable to get interface MAC address for ID generation");
-            intfMac = new byte[]{0};
-          }
-        } else {
+
+    byte[] intfMac;
+    try {
+      Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+      if (networkInterfaces != null && networkInterfaces.hasMoreElements()) {
+        do {
+          intfMac = networkInterfaces.nextElement().getHardwareAddress();
+        } while ((intfMac == null || intfMac.length == 0) && networkInterfaces.hasMoreElements());
+        if (intfMac == null) {
           LOG.info("Unable to get interface MAC address for ID generation");
           intfMac = new byte[]{0};
         }
-      } catch (SocketException ex) {
-        LOG.info("Unable to get interface MAC address for ID generation", ex);
+      } else {
+        LOG.info("Unable to get interface MAC address for ID generation");
         intfMac = new byte[]{0};
       }
-      sb.append(baseEncoding.encode(intfMac)).append(separator);
+    } catch (SocketException ex) {
+      LOG.info("Unable to get interface MAC address for ID generation", ex);
+      intfMac = new byte[]{0};
     }
+    sb.append(baseEncoding.encode(intfMac)).append(separator);
+
     Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
     sb.append(separator);
     Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
     sb.append(separator);
-    base = sb;
-    maxSize = base.length() + 16;
+    return sb;
   }
 
   public int getMaxSize() {
