@@ -109,7 +109,7 @@ public final class Runtime {
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
   public static final Version JAVA_PLATFORM;
-  private static final Class<?> PRELOADED = new ArrayList<>(2);
+  private static final List<Class<?>> PRELOADED = new ArrayList<>(2);
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
     try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
