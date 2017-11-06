@@ -416,7 +416,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
           final HeartBeatTableDesc hbTableDesc,
           @Nullable final LifecycleHook hook) throws InterruptedException, SQLException {
     return getHeartBeatAndSubscribe(dataSource, hbTableDesc,
-            hook, HEARTBEAT_INTERVAL_MILLIS, HEARTBEAT_INTERVAL_MILLIS);
+            hook, HEARTBEAT_INTERVAL_MILLIS, HEARTBEAT_INTERVAL_MILLIS / 1000);
   }
 
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
