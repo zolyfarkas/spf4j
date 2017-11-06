@@ -71,9 +71,12 @@ public final class Template<T, E extends Exception> {
             @Override
             // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
             public Void call(final long deadline)
-                    throws ObjectCreationException,
-                    ObjectBorrowException, InterruptedException, TimeoutException, E {
-                Template.doOnSupplied(handler, pool, deadline, exClass);
+                    throws InterruptedException, TimeoutException, E {
+                try {
+                  Template.doOnSupplied(handler, pool, deadline, exClass);
+                } catch (ObjectCreationException | ObjectBorrowException ex) {
+                  throw new UncheckedExecutionException(ex);
+                }
                 return null;
             }
         }, nrImmediateRetries, retryWaitMillis, exClass);

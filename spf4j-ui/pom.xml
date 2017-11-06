@@ -17,144 +17,144 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
+  <groupId>org.spf4j</groupId>
+  <artifactId>spf4j-ui</artifactId>
+  <packaging>jar</packaging>
+  <parent>
     <groupId>org.spf4j</groupId>
-    <artifactId>spf4j-ui</artifactId>
-    <packaging>jar</packaging>
-    <parent>
-        <groupId>org.spf4j</groupId>
-        <artifactId>spf4j</artifactId>
-        <version>8.3.14-SNAPSHOT</version>
-    </parent>
-    <name>${project.artifactId}</name>
-    <description>A simple swing UI that allows you to visualize/export diagnostic files generates
+    <artifactId>spf4j</artifactId>
+    <version>8.3.14-SNAPSHOT</version>
+  </parent>
+  <name>${project.artifactId}</name>
+  <description>A simple swing UI that allows you to visualize/export diagnostic files generates
     with the spf4j-core library: tsdb, ssdump...</description>
 
-    <dependencies>        
-        <dependency>
-            <groupId>org.spf4j</groupId>
-            <artifactId>spf4j-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope> 
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <scope>test</scope>  
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.swinglabs</groupId>
-            <artifactId>swing-layout</artifactId>
-            <version>1.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jfree</groupId>
-            <artifactId>jfreechart</artifactId>
-            <version>1.0.19</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>2.6.1</version>
-            <scope>compile</scope>
-        </dependency>                   
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.spf4j</groupId>
+      <artifactId>spf4j-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.swinglabs</groupId>
+      <artifactId>swing-layout</artifactId>
+      <version>1.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreechart</artifactId>
+      <version>1.0.19</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>2.6.1</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
   
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.github.os72</groupId>
-                <artifactId>protoc-jar-maven-plugin</artifactId>
-            </plugin>            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <index>true</index>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>org.spf4j.ui.Explorer</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.os72</groupId>
+        <artifactId>protoc-jar-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <index>true</index>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>org.spf4j.ui.Explorer</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
 
-              <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.spf4j.ui.Explorer</mainClass>
-                                </transformer>
-                            </transformers>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>uber</shadedClassifierName> <!-- Any name that makes sense -->
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>   
-       
-        <!--  attempt to package file for mac      
-        <plugin>
-            <groupId>io.github.appbundler</groupId>
-            <artifactId>appbundle-maven-plugin</artifactId>
-            <version>1.0-SNAPSHOT</version>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
             <configuration>
-                <jvmVersion>1.7+</jvmVersion>
-                <mainClass>org.spf4j.ui.Explorer</mainClass>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>org.spf4j.ui.Explorer</mainClass>
+                </transformer>
+              </transformers>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>uber</shadedClassifierName> <!-- Any name that makes sense -->
             </configuration>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>bundle</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>          
-        -->                                                        
+          </execution>
+        </executions>
+      </plugin>
+       
+      <!--  attempt to package file for mac
+      <plugin>
+          <groupId>io.github.appbundler</groupId>
+          <artifactId>appbundle-maven-plugin</artifactId>
+          <version>1.0-SNAPSHOT</version>
+          <configuration>
+              <jvmVersion>1.7+</jvmVersion>
+              <mainClass>org.spf4j.ui.Explorer</mainClass>
+          </configuration>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>bundle</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
+      -->
                                                                                                                                                                                     
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
                        
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-            </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+      </plugin>
             
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>           
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
             
-        </plugins>
-    </build>
+    </plugins>
+  </build>
 </project>

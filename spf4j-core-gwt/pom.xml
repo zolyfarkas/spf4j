@@ -19,7 +19,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.spf4j</groupId>
   <artifactId>spf4j-core-gwt</artifactId>
   <packaging>jar</packaging>
   <parent>
@@ -28,7 +27,7 @@
     <version>8.3.14-SNAPSHOT</version>
   </parent>
   <name>${project.artifactId}</name>
-  <description>A contiously growing collection of gwt compatible components from spf4-core</description>
+  <description>A continuously growing collection of gwt compatible components from spf4-core</description>
   <properties>
     <argLine>-Djava.io.tmpdir=./target -Xmx64m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false</argLine>
     <gwt.version>2.8.1</gwt.version>
@@ -61,55 +60,55 @@
   </dependencies>
   
   <build>
-      <plugins>
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <artifactId>maven-source-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <artifactId>maven-javadoc-plugin</artifactId>
-        </plugin>
-        <!-- Disable "normal" testing, which doesn't work for GWT tests. -->
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <skip>true</skip>
-          </configuration>
-        </plugin>
-        <plugin>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>unpack-sf4j-core-sources</id>
-              <phase>generate-resources</phase>
-              <goals>
-                <goal>unpack-dependencies</goal>
-              </goals>
-              <configuration>
-                <includeArtifactIds>spf4j-core</includeArtifactIds>
-                <classifier>sources</classifier>
-                <excludeTransitive>true</excludeTransitive>
-                <excludes>META-INF/MANIFEST.MF</excludes>
-                <outputDirectory>${project.build.directory}/spf4j-sources</outputDirectory>
-                <type>java-source</type>
-                <silent>false</silent>
-              </configuration>
-            </execution>
-          </executions>
-          <dependencies>
-            <dependency>
-              <groupId>org.spf4j</groupId>
-              <artifactId>spf4j-core</artifactId>
-              <version>${project.version}</version>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <!-- Disable "normal" testing, which doesn't work for GWT tests. -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-sf4j-core-sources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>spf4j-core</includeArtifactIds>
               <classifier>sources</classifier>
-            </dependency>
-          </dependencies>
-        </plugin>
+              <excludeTransitive>true</excludeTransitive>
+              <excludes>META-INF/MANIFEST.MF</excludes>
+              <outputDirectory>${project.build.directory}/spf4j-sources</outputDirectory>
+              <type>java-source</type>
+              <silent>false</silent>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.spf4j</groupId>
+            <artifactId>spf4j-core</artifactId>
+            <version>${project.version}</version>
+            <classifier>sources</classifier>
+          </dependency>
+        </dependencies>
+      </plugin>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.8</version>
@@ -117,7 +116,9 @@
           <execution>
             <id>copy-gwt-files</id>
             <phase>generate-resources</phase>
-            <goals><goal>run</goal></goals>
+            <goals>
+              <goal>run</goal>
+            </goals>
             <configuration>
               <target name="copy-gwt-resources">
                 <copy toDir="${project.build.directory}/spf4j-gwt-sources" verbose="true">
@@ -150,7 +151,7 @@
           </execution>
         </executions>
       </plugin>
-      </plugins>
+    </plugins>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -160,6 +161,58 @@
       </resource>
     </resources>
 
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>
+                      org.apache.maven.plugins
+                    </groupId>
+                    <artifactId>
+                      maven-dependency-plugin
+                    </artifactId>
+                    <versionRange>[2.10,)</versionRange>
+                    <goals>
+                      <goal>unpack-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute>
+                      <ignore></ignore>
+                    </execute>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>
+                      org.apache.maven.plugins
+                    </groupId>
+                    <artifactId>
+                      maven-antrun-plugin
+                    </artifactId>
+                    <versionRange>[1.8,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   
   
