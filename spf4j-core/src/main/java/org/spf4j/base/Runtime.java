@@ -109,7 +109,7 @@ public final class Runtime {
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
   public static final Version JAVA_PLATFORM;
-
+  private static final Class<?> PRELOADED = new ArrayList<>(2);
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
     try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
@@ -144,6 +144,10 @@ public final class Runtime {
     OS_NAME = osName;
     IS_MAC_OSX = "Mac OS X".equals(osName);
     IS_WINDOWS = osName.startsWith("Windows");
+    final boolean dumpNonDaemonThreadInfoOnShutdown = Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown");
+    if (dumpNonDaemonThreadInfoOnShutdown) { // prime class...
+      PRELOADED.add(FastStackCollector.class);
+    }
     runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
       @Override
       public void doRun() throws Exception {
@@ -208,18 +212,20 @@ public final class Runtime {
           }
         }
         // print out info on all remaining non daemon threads.
-        Thread[] threads = FastStackCollector.getThreads();
-        Thread current = Thread.currentThread();
-        boolean first = true;
-        for (Thread thread : threads) {
-          if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
-                  && !thread.getName().contains("DestroyJavaVM")) {
-            if (first) {
-              System.err.println("Non daemon threads still running:");
-              first = false;
+        if (dumpNonDaemonThreadInfoOnShutdown) {
+          Thread[] threads = FastStackCollector.getThreads();
+          Thread current = Thread.currentThread();
+          boolean first = true;
+          for (Thread thread : threads) {
+            if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
+                    && !thread.getName().contains("DestroyJavaVM")) {
+              if (first) {
+                System.err.println("Non daemon threads still running:");
+                first = false;
+              }
+              System.err.println("Non daemon thread " + thread + ", stackTrace = "
+                      + java.util.Arrays.toString(thread.getStackTrace()));
             }
-            System.err.println("Non daemon thread " + thread + ", stackTrace = "
-                    + java.util.Arrays.toString(thread.getStackTrace()));
           }
         }
         if (rex != null) {
