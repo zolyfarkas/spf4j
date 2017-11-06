@@ -133,7 +133,7 @@ public final class Runtime {
     PROCESS_NAME = mxBeanName;
     boolean useUIDGeneratorForJvmId = Boolean.getBoolean("spf4j.useUIDForProcessId");
     PROCESS_ID = useUIDGeneratorForJvmId ? UIDGenerator.generateIdBase("J", '-').toString()
-            : mxBeanName + ':' + Long.toHexString((System.currentTimeMillis() - 1509741164184L) / 1000);;
+            : mxBeanName + ':' + Long.toHexString((System.currentTimeMillis() - 1509741164184L) / 1000);
     int atIdx = mxBeanName.indexOf('@');
     if (atIdx < 0) {
       PID = -1;
