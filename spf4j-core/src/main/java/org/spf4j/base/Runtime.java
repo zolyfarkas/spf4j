@@ -299,6 +299,7 @@ public final class Runtime {
    * get the number of open files by current java process.
    *
    * @return -1 if cannot get nr of open files
+   * @deprecated use OperatingSystem.getOpenFileDescriptorCount() instead
    */
   @CheckReturnValue
   @Deprecated
