@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.MutableHolder;
+import static org.spf4j.base.Runtime.PROCESS_ID;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LockRuntimeException;
 import org.spf4j.jdbc.JdbcTemplate;
@@ -333,7 +334,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
               insert.setNString(1, semName);
               insert.setInt(2, nrPermits);
               insert.setInt(3, nrPermits);
-              insert.setNString(4, org.spf4j.base.Runtime.EXEC_ID);
+              insert.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);
               insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
               insert.executeUpdate();
             }
@@ -362,7 +363,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
       try (PreparedStatement insert = conn.prepareStatement(insertPermitsByOwnerSql)) {
         insert.setNString(1, this.semName);
-        insert.setNString(2, org.spf4j.base.Runtime.EXEC_ID);
+        insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
         insert.setInt(3, 0);
         insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         insert.executeUpdate();
@@ -414,7 +415,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
               try (PreparedStatement stmt = conn.prepareStatement(acquireSql)) {
                 stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
                 stmt.setInt(1, nrPermits);
-                stmt.setNString(2, org.spf4j.base.Runtime.EXEC_ID);
+                stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
                 stmt.setNString(3, semName);
                 stmt.setInt(4, nrPermits);
                 int rowsUpdated = stmt.executeUpdate();
@@ -422,7 +423,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
                 if (rowsUpdated == 1) {
                   try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {
                     ostmt.setInt(1, nrPermits);
-                    ostmt.setNString(2, org.spf4j.base.Runtime.EXEC_ID);
+                    ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
                     ostmt.setNString(3, semName);
                     ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
                     int nrUpdated = ostmt.executeUpdate();
@@ -502,7 +503,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
             releaseReservations(conn, deadlineNanos, nrReservations);
             try (PreparedStatement ostmt = conn.prepareStatement(releaseByOwnerSql)) {
               ostmt.setInt(1, nrReservations);
-              ostmt.setNString(2, org.spf4j.base.Runtime.EXEC_ID);
+              ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
               ostmt.setNString(3, semName);
               ostmt.setInt(4, nrReservations);
               ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
@@ -537,7 +538,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
       stmt.setInt(1, nrReservations);
       stmt.setInt(2, nrReservations);
-      stmt.setNString(3, org.spf4j.base.Runtime.EXEC_ID);
+      stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
       stmt.setNString(4, semName);
       stmt.executeUpdate(); // Since a release might or might not update a row.
     }
@@ -568,7 +569,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   public int permitsOwned() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {
-        stmt.setNString(1, org.spf4j.base.Runtime.EXEC_ID);
+        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
         stmt.setNString(2, semName);
         stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
         try (ResultSet rs = stmt.executeQuery()) {
@@ -678,7 +679,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
-          stmt.setNString(3, org.spf4j.base.Runtime.EXEC_ID);
+          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
           stmt.setNString(4, semName);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {
@@ -699,7 +700,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
-          stmt.setNString(3, org.spf4j.base.Runtime.EXEC_ID);
+          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
           stmt.setNString(4, semName);
           stmt.setInt(5, nrPermits);
           int rowsUpdated = stmt.executeUpdate();
@@ -721,7 +722,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));
           stmt.setInt(1, nrPermits);
           stmt.setInt(2, nrPermits);
-          stmt.setNString(3, org.spf4j.base.Runtime.EXEC_ID);
+          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);
           stmt.setNString(4, semName);
           int rowsUpdated = stmt.executeUpdate();
           if (rowsUpdated != 1) {

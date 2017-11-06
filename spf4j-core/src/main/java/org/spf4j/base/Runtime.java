@@ -94,17 +94,21 @@ public final class Runtime {
   };
 
   /**
-   * unique identifier identifying this process.
+   * Unix PID identifying your process in the OC image it is running.
    */
   public static final int PID;
   public static final String OS_NAME;
   public static final String PROCESS_NAME;
+
+  /**
+   * a unique ID for this JVM process.
+   * PID@HOSTNAME:HEXNR
+   */
   public static final String PROCESS_ID;
   public static final int NR_PROCESSORS;
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
   public static final Version JAVA_PLATFORM;
-  public static final String EXEC_ID = UIDGenerator.generateIdBase("J", '-').toString();
 
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
@@ -127,7 +131,9 @@ public final class Runtime {
     }
     String mxBeanName = runtimeMxBean.getName();
     PROCESS_NAME = mxBeanName;
-    PROCESS_ID = mxBeanName + ':' + Long.toHexString(System.currentTimeMillis());
+    boolean useUIDGeneratorForJvmId = Boolean.getBoolean("spf4j.useUIDForProcessId");
+    PROCESS_ID = useUIDGeneratorForJvmId ? UIDGenerator.generateIdBase("J", '-').toString()
+            : mxBeanName + ':' + Long.toHexString((System.currentTimeMillis() - 1509741164184L) / 1000);;
     int atIdx = mxBeanName.indexOf('@');
     if (atIdx < 0) {
       PID = -1;
