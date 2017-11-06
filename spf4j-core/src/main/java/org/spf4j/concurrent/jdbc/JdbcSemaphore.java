@@ -55,7 +55,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.MutableHolder;
-import static org.spf4j.base.Runtime.PROCESS_ID;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LockRuntimeException;
 import org.spf4j.jdbc.JdbcTemplate;
