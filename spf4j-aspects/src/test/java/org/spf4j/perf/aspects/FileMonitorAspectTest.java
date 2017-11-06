@@ -47,6 +47,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.os.OperatingSystem;
 import org.spf4j.perf.impl.RecorderFactory;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.tsdb2.TSDBQuery;
@@ -95,7 +96,7 @@ public final class FileMonitorAspectTest {
             Matchers.hasKey("file-read,org.spf4j.perf.aspects.FileMonitorAspectTest"));
     List<TableDefEx> get = allTables.get("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest");
     Assert.assertTrue(get.get(0).getStartTime() != 0);
-    Assert.assertTrue(org.spf4j.base.Runtime.getNrOpenFiles() > 0);
+    Assert.assertTrue(OperatingSystem.getOpenFileDescriptorCount() > 0);
   }
 
 }
