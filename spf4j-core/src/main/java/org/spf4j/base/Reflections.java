@@ -91,7 +91,7 @@ public final class Reflections {
 
   private static final MethodHandle PARAMETER_TYPES_METHOD_FIELD_GET;
   private static final MethodHandle PARAMETER_TYPES_CONSTR_FIELD_GET;
-
+  private static final MethodHandle FIND_CLASS;
 
   static {
     Field mPtField = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
@@ -99,11 +99,9 @@ public final class Reflections {
       try {
         f = Method.class.getDeclaredField("parameterTypes");
         f.setAccessible(true);
-      } catch (NoSuchFieldException ex) {
+      } catch (NoSuchFieldException | SecurityException ex) {
         LOG.info("Para type stealing from Method not supported", ex);
         f = null;
-      } catch (SecurityException ex) {
-        throw new RuntimeException(ex);
       }
       return f;
     });
@@ -112,11 +110,9 @@ public final class Reflections {
       try {
         f = Constructor.class.getDeclaredField("parameterTypes");
         f.setAccessible(true);
-      } catch (NoSuchFieldException ex) {
+      } catch (NoSuchFieldException | SecurityException ex) {
         LOG.info("Para type stealing from Constructor not supported", ex);
         f = null;
-      } catch (SecurityException ex) {
-        throw new RuntimeException(ex);
       }
       return f;
     });
@@ -140,6 +136,23 @@ public final class Reflections {
     } else {
       PARAMETER_TYPES_CONSTR_FIELD_GET = null;
     }
+
+    final Method fc = AccessController.doPrivileged((PrivilegedAction<Method>) () -> {
+      java.lang.reflect.Method m;
+      try {
+        m = ClassLoader.class.getDeclaredMethod("findLoadedClass", String.class);
+        m.setAccessible(true);
+      } catch (NoSuchMethodException | SecurityException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+      return m;
+    });
+    try {
+      FIND_CLASS = lookup.unreflect(fc);
+    } catch (IllegalAccessException ex) {
+      throw new ExceptionInInitializerError(ex);
+    }
+
   }
 
   private Reflections() { }
@@ -626,6 +639,13 @@ public final class Reflections {
           });
 
 
+  /**
+   * create a proxy instance that will proxy interface methods to static methods on the target class.
+   * @param <T>
+   * @param clasz
+   * @param target
+   * @return
+   */
   public static <T> T implementStatic(final Class<T> clasz, final Class<?> target) {
 
     Method[] methods = clasz.getMethods();
@@ -661,5 +681,17 @@ public final class Reflections {
                     map.get(method).invoke(target, args));
   }
 
+
+  @Nullable
+  public static Class<?> getLoadedClass(final ClassLoader cl, final String className) {
+    try {
+      return (Class<?>) FIND_CLASS.invoke(cl, className);
+    } catch (RuntimeException | Error ex) {
+      throw ex;
+    } catch (Throwable ex) {
+      throw new UncheckedExecutionException(ex);
+    }
+
+  }
 
 }

@@ -286,6 +286,22 @@ public final class Runtime {
     return IS_WINDOWS;
   }
 
+  public static boolean isTestFramework() {
+    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(FastStackCollector.getThreads());
+    for (StackTraceElement[] sts : stackTraces) {
+      if (sts != null) {
+        for (StackTraceElement ste : sts) {
+          String className = ste.getClassName();
+          if (className.startsWith("org.junit") || className.startsWith("org.openjdk.jmh")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
   public static boolean haveJnaPlatform() {
     URL resource = Thread.currentThread().getContextClassLoader().getResource("com/sun/jna/platform/package.html");
     return (resource != null);
