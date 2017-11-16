@@ -166,7 +166,7 @@ public final class Callables {
           final Class<EX> exceptionClass)
           throws InterruptedException, EX, TimeoutException {
     long deadline = what.getDeadline();
-    return executeWithRetry(what,  new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
+    return executeWithRetry(what,  new TimeoutRetryPredicate2RetryPredicate<>(deadline, retryOnReturnVal),
             new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                     maxWaitMillis / 100, maxWaitMillis, Callables::rootClass, deadline,
                     () -> System.currentTimeMillis(), TimeUnit.MILLISECONDS),
@@ -315,8 +315,8 @@ public final class Callables {
           throws InterruptedException, EX, TimeoutException {
     final long deadline = what.getDeadline();
     return executeWithRetry(what,
-            new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
-            new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnException), exceptionClass);
+            new TimeoutRetryPredicate2RetryPredicate<>(deadline, retryOnReturnVal),
+            new TimeoutRetryPredicate2RetryPredicate<>(deadline, retryOnException), exceptionClass);
   }
 
   public abstract static class TimeoutCallable<T, EX extends Exception> implements CheckedCallable<T, EX> {
@@ -470,14 +470,14 @@ public final class Callables {
 
   }
 
-  public static final class TimeoutDelayPredicate2DelayPredicate<T, R>
+  static final class TimeoutRetryPredicate2RetryPredicate<T, R>
           implements  RetryPredicate<T, R> {
 
     private final long deadline;
 
     private final TimeoutRetryPredicate<T, R> predicate;
 
-    public TimeoutDelayPredicate2DelayPredicate(final long deadline, final TimeoutRetryPredicate<T, R> predicate) {
+    public TimeoutRetryPredicate2RetryPredicate(final long deadline, final TimeoutRetryPredicate<T, R> predicate) {
       this.deadline = deadline;
       this.predicate = predicate;
     }

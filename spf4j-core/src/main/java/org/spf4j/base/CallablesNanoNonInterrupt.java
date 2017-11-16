@@ -40,7 +40,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
 import org.spf4j.base.Callables.FibonacciBackoffRetryPredicate;
-import org.spf4j.base.Callables.TimeoutDelayPredicate2DelayPredicate;
+import org.spf4j.base.Callables.TimeoutRetryPredicate2RetryPredicate;
 import org.spf4j.base.CallablesNano.NanoTimeoutCallable;
 import org.spf4j.base.Callables.TimeoutRetryPredicate;
 import org.spf4j.base.CallablesNano.TimeoutNanoRetryPredicate;
@@ -100,7 +100,7 @@ public final class CallablesNanoNonInterrupt {
             throws EX {
       final long deadline = what.getDeadline();
       try {
-        return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate<>(deadline, retryOnReturnVal),
+        return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate<>(deadline, retryOnReturnVal),
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
                         () -> System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);
