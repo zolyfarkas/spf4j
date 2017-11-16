@@ -29,45 +29,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io;
+package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import java.util.ConcurrentModificationException;
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.io.ObjectAppender;
 
 /**
+ *
  * @author zoly
- * @param <T> - type of object to append.
  */
-@ParametersAreNonnullByDefault
-public interface ObjectAppender<T> {
+public final class CharsequenceAppender implements ObjectAppender<CharSequence> {
 
-  void append(T object, Appendable appendTo) throws IOException;
-
-  ObjectAppender<Object> TOSTRING_APPENDER = new ObjectAppender<Object>() {
-    @Override
-    public void append(final Object object, final Appendable appendTo) throws IOException {
-
-      String toString = null;
-      int i = 10;
-      do {
-        try {
-          toString = object.toString();
-        } catch (ConcurrentModificationException ex) {
-          i--;
-        }
-      } while (toString == null && i > 0);
-      if (i != 10) {
-        appendTo.append("ConcurrentlyModifiedDuringToString:");
-      }
-      if (toString == null) {
-        appendTo.append(object.getClass().getName()).append('@')
-                .append(Integer.toHexString(System.identityHashCode(object)));
-      } else {
-        appendTo.append(toString);
-      }
-    }
-
-  };
+  @Override
+  public void append(final CharSequence object, final Appendable appendTo) throws IOException {
+    appendTo.append(object);
+  }
 
 }

@@ -61,7 +61,7 @@ public class ConfigurableAppenderSupplierTest {
 
     supplier.replace(Object.class, (x) -> objectAppender);
     supplier.register(ConfigurableAppenderSupplierTest.class, testObjAppender);
-    supplier.register(CharSequence.class, testObjAppender2);
+    supplier.replace(CharSequence.class, x -> testObjAppender2);
 
     Assert.assertEquals(testObjAppender, supplier.get(ConfigurableAppenderSupplierTest.class));
     Assert.assertEquals(objectAppender, supplier.get(Object.class));
@@ -83,7 +83,7 @@ public class ConfigurableAppenderSupplierTest {
   @Test
   public void testRegistration() throws IOException {
     ConfigurableAppenderSupplier appSupplier = new ConfigurableAppenderSupplier(false,
-            ConfigurableAppenderSupplier.NO_FILTER, new TestAppender());
+            x -> false, new TestAppender());
     StringBuilder builder = new StringBuilder();
     appSupplier.get(String.class).append("bla", builder);
     Assert.assertEquals("blaXX", builder.toString());

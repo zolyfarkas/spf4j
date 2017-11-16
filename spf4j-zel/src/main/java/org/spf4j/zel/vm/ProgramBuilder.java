@@ -270,7 +270,7 @@ public final class ProgramBuilder {
     private static final class HasDeterministicFunc implements Function<Object, Boolean> {
 
         @Override
-        @SuppressFBWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+        @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN", "NP_BOOLEAN_RETURN_NULL" })
         public Boolean apply(final Object input) {
             if (input instanceof Program) {
                 Program prog = (Program) input;
@@ -286,7 +286,8 @@ public final class ProgramBuilder {
     private static final class HasAsyncFunc implements Function<Object, Boolean> {
 
         @Override
-        @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN", "ITC_INHERITANCE_TYPE_CHECKING" })
+        @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN",
+          "ITC_INHERITANCE_TYPE_CHECKING", "NP_BOOLEAN_RETURN_NULL" })
         public Boolean apply(final Object input) {
             if (input instanceof Program) {
                 Program prog = (Program) input;

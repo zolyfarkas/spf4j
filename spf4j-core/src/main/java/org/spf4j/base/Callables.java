@@ -477,7 +477,7 @@ public final class Callables {
 
     private final TimeoutRetryPredicate<T, R> predicate;
 
-    public TimeoutRetryPredicate2RetryPredicate(final long deadline, final TimeoutRetryPredicate<T, R> predicate) {
+    TimeoutRetryPredicate2RetryPredicate(final long deadline, final TimeoutRetryPredicate<T, R> predicate) {
       this.deadline = deadline;
       this.predicate = predicate;
     }

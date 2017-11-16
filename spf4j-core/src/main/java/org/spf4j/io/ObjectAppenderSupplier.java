@@ -32,8 +32,8 @@
 package org.spf4j.io;
 
 import java.util.function.Function;
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.reflect.ByTypeSupplier;
 
 
 /**
@@ -41,20 +41,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface ObjectAppenderSupplier extends Function<Class, ObjectAppender> {
+public interface ObjectAppenderSupplier extends Function<Class, ObjectAppender>,
+        ByTypeSupplier<ObjectAppender, RuntimeException> {
 
-    @Nonnull
-    <T> ObjectAppender<? super T> get(Class<T> type);
 
     default ObjectAppender apply(Class clasz) {
-      return get(clasz);
+        return get(clasz);
     }
 
-    ObjectAppenderSupplier TO_STRINGER = new ObjectAppenderSupplier() {
-        @Override
-        public <T> ObjectAppender<T> get(final Class<T> type) {
-            return (ObjectAppender<T>) ObjectAppender.TOSTRING_APPENDER;
-        }
-    };
-
+    ObjectAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 }

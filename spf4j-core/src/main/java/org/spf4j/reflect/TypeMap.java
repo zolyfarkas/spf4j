@@ -107,10 +107,11 @@ public interface TypeMap<H> extends ByTypeSupplier<H, RuntimeException> {
    * @param type
    * @param object
    */
-  default void safePut(final Type type, final H object) {
+  default TypeMap<H> safePut(final Type type, final H object) {
     if (!putIfNotPresent(type, object)) {
       throw new IllegalArgumentException("Cannot put " + type + ", " + object + " exiting mapping present");
     }
+    return this;
   }
 
   /**

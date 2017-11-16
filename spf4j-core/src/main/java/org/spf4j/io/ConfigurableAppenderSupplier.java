@@ -32,13 +32,13 @@
 package org.spf4j.io;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.ServiceLoader;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
@@ -56,17 +56,11 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurableAppenderSupplier.class);
 
-  public static final Predicate<Class<?>> NO_FILTER = new Predicate<Class<?>>() {
-    @Override
-    public boolean apply(final Class<?> input) {
-      return false;
-    }
-  };
 
   private final CachingTypeMapWrapper<ObjectAppender> appenderMap;
 
   public ConfigurableAppenderSupplier() {
-    this(true, NO_FILTER);
+    this(true, x -> false);
   }
 
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
@@ -80,7 +74,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
       while (iterator.hasNext()) {
         ObjectAppender<?> appender = iterator.next();
         Class<?> appenderType = getAppenderType(appender);
-        if (!except.apply(appenderType)) {
+        if (!except.test(appenderType)) {
           if (!register((Class) appenderType, (ObjectAppender) appender)) {
             LOG.warn("Attempting to register duplicate appender({}) for {} ", appender, appenderType);
           }
@@ -140,8 +134,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public <T> ObjectAppender<? super T> get(final Class<T> type) {
+  public ObjectAppender get(final Type type) {
     return appenderMap.get(type);
   }
 

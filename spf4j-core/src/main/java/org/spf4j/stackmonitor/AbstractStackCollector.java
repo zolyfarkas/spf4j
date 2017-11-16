@@ -31,7 +31,7 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -40,12 +40,12 @@ import javax.annotation.concurrent.GuardedBy;
  */
 public abstract class AbstractStackCollector implements StackCollector {
 
-    
+
     private final Object sampleSync = new Object();
     @GuardedBy(value = "sampleSync")
     private SampleNode samples;
 
-    
+
     @Override
     public final SampleNode applyOnSamples(final Function<SampleNode, SampleNode> predicate) {
         synchronized (sampleSync) {
@@ -64,7 +64,7 @@ public abstract class AbstractStackCollector implements StackCollector {
             return result;
         }
     }
-    
+
     @Override
     public final void addSample(final StackTraceElement[] stackTrace) {
         synchronized (sampleSync) {
@@ -93,5 +93,5 @@ public abstract class AbstractStackCollector implements StackCollector {
         }
     }
 
-    
+
 }
