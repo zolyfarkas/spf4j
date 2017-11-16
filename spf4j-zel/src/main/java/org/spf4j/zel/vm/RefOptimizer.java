@@ -31,8 +31,8 @@
  */
 package org.spf4j.zel.vm;
 
-import com.google.common.base.Function;
 import java.util.Map;
+import java.util.function.Function;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LODAX;
 import org.spf4j.zel.instr.LODAXF;

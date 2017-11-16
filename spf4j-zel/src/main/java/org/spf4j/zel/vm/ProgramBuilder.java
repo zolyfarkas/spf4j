@@ -31,7 +31,6 @@
  */
 package org.spf4j.zel.vm;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -41,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.CALLA;
 import org.spf4j.zel.instr.Instruction;
@@ -56,7 +56,7 @@ public final class ProgramBuilder {
     private static final int DEFAULT_SIZE = 16;
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
-    
+
     private Instruction[] instructions;
 
     private final List<Location> debugInfo;
