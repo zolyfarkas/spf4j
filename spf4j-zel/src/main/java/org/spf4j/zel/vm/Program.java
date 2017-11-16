@@ -534,7 +534,7 @@ public final class Program implements Serializable {
     }
 
     @Override
-    @SuppressFBWarnings("TBP_TRISTATE_BOOLEAN_PATTERN")
+    @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN", "NP_BOOLEAN_RETURN_NULL" })
     public Boolean apply(@Nonnull final Object input) {
       if (input.getClass() == instr) {
         return Boolean.TRUE;
