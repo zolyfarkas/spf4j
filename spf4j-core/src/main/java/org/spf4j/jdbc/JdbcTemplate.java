@@ -148,6 +148,10 @@ public final class JdbcTemplate {
   }
 
 
+  /**
+   * @param deadlineNanos the deadline relative to the same as System.nanoTime()
+   * @return
+   */
   public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) {
     long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime());
     if (toSeconds < 0L) {
