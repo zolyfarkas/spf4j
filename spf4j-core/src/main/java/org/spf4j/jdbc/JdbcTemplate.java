@@ -32,6 +32,7 @@
 package org.spf4j.jdbc;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -51,6 +52,14 @@ import org.spf4j.base.JavaUtils;
  */
 @Beta
 public final class JdbcTemplate {
+
+  /**
+   * certain JDBC drivers multiply timeout to transform in milis or nanos without validating overflow.
+   * This value needs to be low enough to account for this case.
+   */
+  private static final int MAX_JDBC_TIMEOUTSECONDS =
+          Integer.getInteger("spf4j.jdbc.maxdbcTimeoutSeconds", 3600 * 24);
+
 
   private final DataSource dataSource;
 
@@ -136,6 +145,19 @@ public final class JdbcTemplate {
           }
         }
       }, 2, 1000, SQLException.class);
+  }
+
+
+  public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) {
+    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime());
+    if (toSeconds < 0L) {
+      throw new UncheckedTimeoutException("deadline exceeded by " + (-toSeconds) + " seconds");
+    }
+    if (toSeconds > MAX_JDBC_TIMEOUTSECONDS) {
+      return MAX_JDBC_TIMEOUTSECONDS;
+    } else {
+     return (int) toSeconds;
+    }
   }
 
   @Override

@@ -222,7 +222,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         try (PreparedStatement insert = conn.prepareStatement(insertHeartbeatSql)) {
           insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
           insert.setLong(2, this.intervalMillis);
-          insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+          insert.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
           insert.executeUpdate();
         }
         return null;
@@ -231,7 +231,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
   @JmxExport(description = "Remove all dead hearbeat rows")
-  public int removeDeadHeartBeatRows(@JmxExport("timeoutSeconds") final int timeoutSeconds)
+  public int removeDeadHeartBeatRows(@JmxExport("timeoutSeconds") final long timeoutSeconds)
           throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       return JdbcHeartBeat.this.removeDeadHeartBeatRows(conn, deadlineNanos);
@@ -241,7 +241,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   int removeDeadHeartBeatRows(final Connection conn, final long deadlineNanos) throws SQLException {
     try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {
-      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+      stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
       return stmt.executeUpdate();
     }
   }
@@ -251,7 +251,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     jdbc.transactOnConnectionNonInterrupt((final Connection conn, final long deadlineNanos) -> {
       try (PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {
         stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
-        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
         int nrDeleted = stmt.executeUpdate();
         if (nrDeleted != 1) {
           throw new IllegalStateException("Heartbeat rows deleted: " + nrDeleted
@@ -263,7 +263,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
   @JmxExport(value = "removeDeadHeartBeatRowsAsync", description = "Remove all dead hearbeat rows async")
-  public void removeDeadHeartBeatRowsAsyncNoReturn(@JmxExport("timeoutSeconds") final int timeoutSeconds) {
+  public void removeDeadHeartBeatRowsAsyncNoReturn(@JmxExport("timeoutSeconds") final long timeoutSeconds) {
     DefaultExecutor.INSTANCE.execute(new AbstractRunnable(true) {
       @Override
       public void doRun() throws SQLException, InterruptedException {
@@ -272,7 +272,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     });
   }
 
-  public Future<Integer> removeDeadHeartBeatRowsAsync(final int timeoutSeconds) {
+  public Future<Integer> removeDeadHeartBeatRowsAsync(final long timeoutSeconds) {
     return DefaultExecutor.INSTANCE.submit(() -> removeDeadHeartBeatRows(timeoutSeconds));
   }
 
@@ -342,7 +342,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       }
     }
     try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {
-      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+      stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
       stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
       int rowsUpdated = stmt.executeUpdate();
       if (rowsUpdated != 1) {
@@ -354,6 +354,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       throw new HeartBeatError(ex);
     }
   }
+
 
   boolean tryBeat(final Connection conn, final long deadlineNanos) {
     if (System.currentTimeMillis() - lastRun > intervalMillis / 2) {
@@ -373,7 +374,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   public long getLastRunDB() throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {
-        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
+        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
         stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);
         try (ResultSet rs = stmt.executeQuery()) {
           if (rs.next()) {
