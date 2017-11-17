@@ -742,7 +742,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }, timeoutSeconds, TimeUnit.SECONDS);
   }
 
-  int removeDeadHeartBeatAndNotOwnerRows(final Connection conn, final long deadlineNanos) throws SQLException {
+  private int removeDeadHeartBeatAndNotOwnerRows(final Connection conn, final long deadlineNanos) throws SQLException {
     int removedDeadHeartBeatRows = this.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);
     if (removedDeadHeartBeatRows > 0) {
       return removeDeadNotOwnedRowsOnly(conn, deadlineNanos);
@@ -751,7 +751,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }
   }
 
-  int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
+  private int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
     try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {
       stmt.setNString(1, semName);
       stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));
