@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 public interface TimeoutRetryPredicate<T, R> {
 
   @Nonnull
-  RetryDecision<R> getDecision(T value, long deadlineMillis, Callable<R> what);
+  RetryDecision<R> getDecision(T value, Callable<R> what, long deadlineMillis);
 
   @Nonnull
   default TimeoutRetryPredicate<T, R> newInstance() {
@@ -51,7 +51,7 @@ public interface TimeoutRetryPredicate<T, R> {
   TimeoutRetryPredicate NORETRY = new TimeoutRetryPredicate<Object, Object>() {
 
     @Override
-    public RetryDecision<Object> getDecision(final Object value, final long deadline, final Callable<Object> what) {
+    public RetryDecision<Object> getDecision(final Object value, final Callable<Object> what, final long deadline) {
       return RetryDecision.abort();
     }
 
