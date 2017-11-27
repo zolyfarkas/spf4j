@@ -49,7 +49,7 @@ public class TimingTest {
     long currMillis = System.currentTimeMillis();
     long millisInTheFutureCalculated = currentTiming.fromNanoTimeToEpochMillis(currNanos
             + TimeUnit.MILLISECONDS.toNanos(10));
-    Assert.assertEquals(currMillis + 10, millisInTheFutureCalculated);
+    Assert.assertTrue(currMillis + 10 - millisInTheFutureCalculated <= 1);
   }
 
 }
