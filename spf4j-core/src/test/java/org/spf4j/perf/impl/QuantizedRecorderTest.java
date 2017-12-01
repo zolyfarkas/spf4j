@@ -190,6 +190,7 @@ public final class QuantizedRecorderTest {
     instance.record(399);
     instance.record(200);
     instance.record(400);
+    instance.record(600);
     instance.record(15000);
     System.out.println(instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
@@ -205,7 +206,8 @@ public final class QuantizedRecorderTest {
     Assert.assertEquals(1, vals[niIdx3]);
     int niIdx4 = Arrays.indexOf(measurementNames, "Q-400_-100");
     Assert.assertEquals(5, vals[niIdx4]);
-
+    int niIdx5 = Arrays.indexOf(measurementNames, "Q600_800");
+    Assert.assertEquals(1, vals[niIdx5]);
 
   }
 

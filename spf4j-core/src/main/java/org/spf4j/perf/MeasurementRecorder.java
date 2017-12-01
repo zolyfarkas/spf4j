@@ -34,11 +34,15 @@ package org.spf4j.perf;
 import java.io.Closeable;
 
 /**
- *
+ * Interface to record a measurement tuple (timestamp, long value)
  * @author zoly
  */
 public interface MeasurementRecorder  extends Closeable {
 
+    /**
+     * record a measurement for current time. System.currentTimeMillis().
+     * @param measurement the measurement value
+     */
     void record(long measurement);
 
     void recordAt(long timestampMillis, long measurement);
