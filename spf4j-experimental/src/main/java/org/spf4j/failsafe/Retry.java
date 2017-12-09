@@ -34,8 +34,8 @@ package org.spf4j.failsafe;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.spf4j.base.Callables;
 import org.spf4j.base.Throwables;
 
 /**
@@ -60,14 +60,13 @@ public final class Retry {
    * @throws EX - the exception thrown by callable.
    */
   @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "MDM_THREAD_YIELD" })
-  public static <T, EX extends Exception> T execute(
-          final Callables.CheckedCallable<T, EX> pwhat,
-          final TimeoutRetryPredicate<? super T, T> retryOnReturnVal,
-          final TimeoutRetryPredicate<Exception, T> retryOnException,
-          final long deadline,
+  public static <T, EX extends Exception, C extends Callable<T>> T execute(
+          final C pwhat,
+          final RetryPredicate<T, C> retryOnReturnVal,
+          final RetryPredicate<Exception, C> retryOnException,
           final Class<EX> exceptionClass)
           throws InterruptedException, TimeoutException, EX {
-    Callable<T> what = pwhat;
+    C what = pwhat;
     T result = null;
     Exception lastEx = null; // last exception
     try {
@@ -78,7 +77,7 @@ public final class Retry {
       lastEx = e;
     }
     Exception lastExChain = lastEx; // last exception chained with all previous exceptions
-    RetryDecision decision = null;
+    RetryDecision<C> decision = null;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
     while ((lastEx != null
             && (decision = retryOnException.getDecision(lastEx, what)).getDecisionType()
@@ -89,9 +88,11 @@ public final class Retry {
         Thread.currentThread().interrupt();
         throw new InterruptedException();
       }
-      long delayMillis = decision.getDelayMillis();
-      if (delayMillis > 0) {
-        Thread.sleep(delayMillis);
+      long delayNanos = decision.getDelayNanos();
+      if (delayNanos > 0) {
+        TimeUnit.NANOSECONDS.sleep(delayNanos);
+      } else if (delayNanos < 0) {
+        throw new IllegalStateException("Invalid retry decision delay: " + delayNanos);
       }
       what = decision.getNewCallable();
       result = null;

@@ -45,10 +45,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.Callables;
-import org.spf4j.base.ParameterizedSupplier;
 import org.spf4j.base.Throwables;
-import org.spf4j.base.TimeoutRunnable;
+import org.spf4j.failsafe.RetryDecision;
+import org.spf4j.failsafe.RetryPolicy;
+import org.spf4j.failsafe.RetryPredicate;
+import org.spf4j.failsafe.TimeSource;
 
 /**
  * Executor that will execute Callables with retry.
@@ -60,10 +61,6 @@ import org.spf4j.base.TimeoutRunnable;
 public class RetryExecutor {
 
   private final ExecutorService executionService;
-  /**
-   * can contain: DelayedCallables for execution. (delayed retries) or FailedExecutionResults for results.
-   *
-   */
   private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
   private volatile RetryManager retryManager;
   private Future<?> retryManagerFuture;
@@ -97,24 +94,24 @@ public class RetryExecutor {
 
     private final ExecutionException exception;
     private final RetryableCallable<Object> callable;
-    private final long deadline;
+    private final long deadlineNanos;
 
     FailedExecutionResult(@Nullable final ExecutionException exception,
-            final RetryableCallable callable, final long delay) {
+            final RetryableCallable callable, final long delayNanos) {
       this.exception = exception;
       this.callable = callable;
-      this.deadline = delay + System.currentTimeMillis();
+      this.deadlineNanos = TimeSource.getDeadlineNanos(delayNanos, TimeUnit.NANOSECONDS);
     }
 
     @Override
     public long getDelay(final TimeUnit unit) {
-      return unit.convert(deadline - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+      return TimeSource.getTimeToDeadline(deadlineNanos, unit);
     }
 
     @Override
     public int compareTo(final Delayed o) {
-      long tDelay = getDelay(TimeUnit.MILLISECONDS);
-      long oDelay = o.getDelay(TimeUnit.MILLISECONDS);
+      long tDelay = getDelay(TimeUnit.NANOSECONDS);
+      long oDelay = o.getDelay(TimeUnit.NANOSECONDS);
       if (tDelay > oDelay) {
         return 1;
       } else if (tDelay < oDelay) {
@@ -160,24 +157,24 @@ public class RetryExecutor {
     @Nullable
     private final FutureBean<T> future;
     private volatile FailedExecutionResult previousResult;
-    private final Callables.RetryPredicate<Object, T> resultRetryPredicate;
-    private final Callables.RetryPredicate<Exception, T> exceptionRetryPredicate;
+    private final RetryPredicate<Object, Callable<T>> resultRetryPredicate;
+    private final RetryPredicate<Exception, Callable<T>> exceptionRetryPredicate;
 
     RetryableCallable(final Callable<T> callable, @Nullable final FutureBean<T> future,
             final FailedExecutionResult previousResult,
-            final Callables.RetryPredicate<?, T> resultRetryPredicate,
-            final Callables.RetryPredicate<Exception, T> exceptionRetryPredicate) {
+            final RetryPredicate<?, Callable<T>> resultRetryPredicate,
+            final RetryPredicate<Exception, Callable<T>> exceptionRetryPredicate) {
       this.callable = callable;
       this.future = future;
       this.previousResult = previousResult;
-      this.resultRetryPredicate = (Callables.RetryPredicate<Object, T>) resultRetryPredicate;
+      this.resultRetryPredicate = (RetryPredicate<Object, Callable<T>>) resultRetryPredicate;
       this.exceptionRetryPredicate = exceptionRetryPredicate;
     }
 
     RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean<T> future,
             @Nullable final FailedExecutionResult previousResult,
-            final Callables.RetryPredicate<?, T> resultRetryPredicate,
-            final Callables.RetryPredicate<Exception, T> exceptionRetryPredicate) {
+            final RetryPredicate<?, Callable<T>> resultRetryPredicate,
+            final RetryPredicate<Exception, Callable<T>> exceptionRetryPredicate) {
       this(new Callable() {
 
         @Override
@@ -193,14 +190,14 @@ public class RetryExecutor {
     public T call() {
       try {
         T result = callable.call();
-        Callables.RetryDecision<T> decision = this.resultRetryPredicate.getDecision(sync, callable);
-        final Callables.RetryDecision.Type decisionType = decision.getDecisionType();
+        RetryDecision<Callable<T>> decision = this.resultRetryPredicate.getDecision(sync, callable);
+        final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
-            final long delay = decision.getDelayMillis();
+            final long delayNanos = decision.getDelayNanos();
             startRetryManager();
             this.callable = decision.getNewCallable();
-            executionEvents.add(new FailedExecutionResult(null, this, delay));
+            executionEvents.add(new FailedExecutionResult(null, this, delayNanos));
             break;
           case Abort:
             if (future != null) {
@@ -212,11 +209,11 @@ public class RetryExecutor {
         }
         return null;
       } catch (Exception e) {
-        Callables.RetryDecision<T> decision = this.exceptionRetryPredicate.getDecision(e, callable);
-        final Callables.RetryDecision.Type decisionType = decision.getDecisionType();
+        RetryDecision<Callable<T>> decision = this.exceptionRetryPredicate.getDecision(e, callable);
+        final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
-            final long delay = decision.getDelayMillis();
+            final long delayNanos = decision.getDelayNanos();
             startRetryManager();
             this.callable = decision.getNewCallable();
             startRetryManager();
@@ -226,7 +223,7 @@ public class RetryExecutor {
                 e = Throwables.suppress(e, exception);
               }
             }
-            executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, delay));
+            executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, delayNanos));
             break;
           case Abort:
             if (future != null) {
@@ -333,52 +330,33 @@ public class RetryExecutor {
     }
   }
 
-  public final <A, E extends Exception> Future<A> submit(final Callables.TimeoutCallable<A, E> task,
-          TimeoutRetryPredicate<>) {
+  public final <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPolicy<A, C> policy) {
     FutureBean<?> result = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, null,
-            resultRetryPredicateSupplier.get((Callable<Object>) task),
-            exceptionRetryPredicateSupplier.get((Callable<Object>) task)));
+            policy.getRetryOnReturnVal(),
+            policy.getRetryOnReturnVal()));
     return (Future<A>) result;
   }
 
-  public final <A> Future<A> submit(final Callable<A> task) {
-    FutureBean<?> result = createFutureBean();
-    executionService.execute(new RetryableCallable(task, result, null,
-            resultRetryPredicateSupplier.get((Callable<Object>) task),
-            exceptionRetryPredicateSupplier.get((Callable<Object>) task)));
-    return (Future<A>) result;
-  }
 
-  public final <A, E extends Exception> Future<A> submit(final TimeoutRunnable<E> task, final A result) {
+  public final <A> Future<A> submit(final Runnable task, final A result,
+          final RetryPolicy<A, Callable<A>> policy) {
     FutureBean<?> resultFuture = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, resultFuture, null,
-            resultRetryPredicateSupplier.get((Callable<?>) task),
-            exceptionRetryPredicateSupplier.get((Callable<?>) task)));
+            policy.getRetryOnReturnVal(),
+            policy.getRetryOnReturnVal()));
     return (Future<A>) resultFuture;
   }
 
-  public final <E extends Exception> Future<?> submit(final TimeoutRunnable<E> task) {
-    FutureBean<?> resultFuture = createFutureBean();
-    executionService.execute(new RetryableCallable(task, null, resultFuture, null,
-            resultRetryPredicateSupplier.get((Callable<?>) task),
-            exceptionRetryPredicateSupplier.get((Callable<?>) task)));
-    return resultFuture;
+  public final Future<?> submit(final Runnable task, final RetryPolicy<Void, Callable<Void>> policy) {
+    return submit(task, null, policy);
   }
 
-  public final <E extends Exception> void execute(final TimeoutRunnable<E> command) {
+  public final void execute(final Runnable command, final RetryPolicy<Void, Callable<Void>> policy) {
     executionService.execute(new RetryableCallable(command, null, null, null,
-            resultRetryPredicateSupplier.get((Callable<?>) command),
-            exceptionRetryPredicateSupplier.get((Callable<?>) command)));
+            policy.getRetryOnReturnVal(),
+            policy.getRetryOnException()));
   }
 
-  @Override
-  public final String toString() {
-    return "RetryExecutor{" + "executionService=" + executionService + ", executionEvents="
-            + executionEvents + ", resultRetryPredicateSupplier=" + resultRetryPredicateSupplier
-            + ", exceptionRetryPredicateSupplier=" + exceptionRetryPredicateSupplier + ", retryManager="
-            + retryManager + ", retryManagerFuture=" + retryManagerFuture + ", completionQueue="
-            + completionQueue + ", sync=" + sync + '}';
-  }
 
 }

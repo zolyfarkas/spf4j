@@ -32,19 +32,32 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * A failsafe Callable with a deadline.
  *
  * @author Zoltan Farkas
  */
-interface TimeoutCallable<T, EX extends Exception> extends Callable<T> {
+public abstract class TimeoutCallable<T> implements Callable<T> {
 
-    T call(long deadline) throws EX, InterruptedException, TimeoutException;
+  private final long deadlineNanos;
 
-    @Override
-    default T call() throws EX, InterruptedException, TimeoutException {
-      return call(org.spf4j.base.Runtime.getDeadline());
-    }
+  public TimeoutCallable(final long deadlineNanos) {
+    this.deadlineNanos = deadlineNanos;
+  }
+
+  public TimeoutCallable(final long timout, final TimeUnit unit) {
+    this(TimeSource.getDeadlineNanos(timout, unit));
+  }
+
+  public final long getDeadlineNanos() {
+    return deadlineNanos;
+  }
+
+  @Override
+  public String toString() {
+    return super.toString() + "{" + "deadlineNanos=" + deadlineNanos + '}';
+  }
 
 }

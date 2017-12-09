@@ -31,27 +31,38 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
-import org.spf4j.base.Callables;
 
 /**
  * @author Zoltan Farkas
  */
-public final class RetryPolicy<T> {
+public class RetryPolicy<T, C extends Callable<T>> {
 
-  private final RetryPredicate<? super T, T> retryOnReturnVal;
-  private final RetryPredicate<Exception, T> retryOnException;
+  private final RetryPredicate<T, C> retryOnReturnVal;
+  private final RetryPredicate<Exception, C> retryOnException;
 
-  private RetryPolicy(final RetryPredicate<? super T, T> retryOnReturnVal,
-          final RetryPredicate<Exception, T> retryOnException) {
+  public RetryPolicy(final RetryPredicate<T, C> retryOnReturnVal,
+          final RetryPredicate<Exception, C> retryOnException) {
     this.retryOnReturnVal = retryOnReturnVal;
     this.retryOnException = retryOnException;
   }
 
+  public RetryPolicy(final RetryPredicate<Exception, C> retryOnException) {
+    this(RetryPredicate.NORETRY, retryOnException);
+  }
 
-  public <EX extends Exception> T execute(final Callables.CheckedCallable<T, EX> pwhat,
-          final Class<EX> exceptionClass) throws EX, InterruptedException, TimeoutException {
-    return Retry.execute(pwhat, retryOnReturnVal, retryOnException, exceptionClass);
+  public final <EX extends Exception> T execute(final C pwhat, final Class<EX> exceptionClass)
+          throws EX, InterruptedException, TimeoutException {
+    return Retry.execute(pwhat, getRetryOnReturnVal(), getRetryOnException(), exceptionClass);
+  }
+
+  public RetryPredicate<T, C> getRetryOnReturnVal() {
+    return retryOnReturnVal.newInstance();
+  }
+
+  public RetryPredicate<Exception, C> getRetryOnException() {
+    return retryOnException.newInstance();
   }
 
 

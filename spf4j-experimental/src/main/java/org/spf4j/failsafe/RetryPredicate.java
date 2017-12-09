@@ -33,29 +33,48 @@ package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- *
+ * A retry predicate.
  * @author Zoltan Farkas
  */
-public interface TimeoutRetryPredicate<T, R> {
+public interface RetryPredicate<T, C extends Callable> {
 
+  /**
+   * Get the RetryDecision for the result value returned by Callable C.
+   * @param value the operation result.
+   * @param what the operation.
+   * @return
+   */
   @Nonnull
-  RetryDecision<R> getDecision(T value, Callable<R> what, long deadlineMillis);
+  RetryDecision<C> getDecision(@Nullable T value, @Nonnull C what);
 
+
+  /**
+   * Factory method for a predicate. Predicates can be stateful or not (default).
+   * @return a new instance of predicate.
+   */
   @Nonnull
-  default TimeoutRetryPredicate<T, R> newInstance() {
+  default RetryPredicate<T, C> newInstance() {
     return this;
   }
 
-  TimeoutRetryPredicate NORETRY = new TimeoutRetryPredicate<Object, Object>() {
+
+  /**
+   * Simple predicate that does not retry anything.
+   */
+  RetryPredicate NORETRY = new RetryPredicate<Object, Callable<Object>>() {
 
     @Override
-    public RetryDecision<Object> getDecision(final Object value, final Callable<Object> what, final long deadline) {
+    public RetryDecision<Callable<Object>> getDecision(final Object value,
+            final Callable<Object> what) {
       return RetryDecision.abort();
     }
 
   };
 
+
+  RetryPredicate<Exception, Callable<?>> DEFAULT = new DefaultRetryPredicate();
 
 }

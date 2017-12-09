@@ -34,12 +34,13 @@ package org.spf4j.failsafe;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- *
+ * A class that describes a "decision" that is returned by the RetryPredicate.
  * @author Zoltan Farkas
  */
-public class RetryDecision<R> {
+public class RetryDecision<C extends Callable> {
 
   private static final RetryDecision<?> ABORT = new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, null, null);
 
@@ -53,25 +54,34 @@ public class RetryDecision<R> {
 
   private final Exception exception;
 
-  private final Callable<R> newCallable;
+  private final C newCallable;
 
   protected RetryDecision(final Type decisionType, final long delay,
           final TimeUnit timeUnit,
-          final Exception exception, final Callable<R> newCallable) {
+          @Nullable final Exception exception,
+          final C newCallable) {
     this.decisionType = decisionType;
     this.delayNanos = timeUnit.toNanos(delay);
     this.exception = exception;
     this.newCallable = newCallable;
   }
 
-  public static RetryDecision abort(final Exception exception) {
+  /**
+   * Create a Abort decision with a custom Exception.
+   * @param exception the custom exception.
+   * @return a Abort decision with a custom Exception.
+   */
+  public static RetryDecision abort(@Nonnull final Exception exception) {
     return new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, exception, null);
   }
 
-  public static <R> RetryDecision<R> retry(final long retryNanos, @Nonnull final Callable<R> callable) {
+  public static <C extends Callable> RetryDecision<C> retry(final long retryNanos, @Nonnull final C callable) {
     return new RetryDecision(Type.Retry, retryNanos, TimeUnit.NANOSECONDS,  null, callable);
   }
 
+  /**
+   * @return Create Abort retry decision. The last successful result or exception is returned.
+   */
   public static RetryDecision abort() {
     return ABORT;
   }
@@ -80,6 +90,9 @@ public class RetryDecision<R> {
     return decisionType;
   }
 
+  /**
+   * @return The delay in nanoseconds
+   */
   public final long getDelayNanos() {
     return delayNanos;
   }
@@ -89,7 +102,7 @@ public class RetryDecision<R> {
   }
 
   @Nonnull
-  public Callable<R> getNewCallable() {
+  public C getNewCallable() {
     return newCallable;
   }
 
