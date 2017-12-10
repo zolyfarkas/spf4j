@@ -18,9 +18,12 @@ package org.spf4j.failsafe;
 import java.net.SocketException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,20 +37,29 @@ public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPredicate.class);
 
-  private static final long MAX_DELAY_NANOS = TimeUnit.SECONDS.toNanos(10);
+  private static final long DEFAULT_MAX_DELAY_NANOS = TimeUnit.SECONDS.toNanos(5);
+
+  private static final long DEFAULT_INITIAL_DELAY_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
+
+  private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
 
   private final Predicate<Exception> predicate;
 
-  private long i = 0;
+  private final Map<Class<? extends Exception>, BackoffDelay> typeBackoff;
 
-  private long j = TimeUnit.MILLISECONDS.toNanos(1);
+  private final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier;
 
   public DefaultRetryPredicate() {
-    this(DefaultRetryPredicate::isRecoverable);
+    this(DefaultRetryPredicate::isRecoverable, (e) -> new RandomizedBackoff(
+            new FibonacciBackoff(DEFAULT_INITIAL_NODELAY_RETRIES,
+            DEFAULT_INITIAL_DELAY_NANOS, DEFAULT_MAX_DELAY_NANOS)));
   }
 
-  public DefaultRetryPredicate(final Predicate<Exception> predicate) {
+  public DefaultRetryPredicate(final Predicate<Exception> predicate,
+          final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier) {
     this.predicate = predicate;
+    this.typeBackoff = new HashMap<>(4);
+    this.backoffSupplier = backoffSupplier;
   }
 
   @Override
@@ -73,19 +85,12 @@ public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable
 
   }
 
-
   @Override
   public RetryDecision getDecision(final Exception value, final Callable what) {
     if (predicate.test(value)) {
       LOG.debug("Exception encountered, retrying {}...", what, value);
-      long delay = i;
-      if (delay < MAX_DELAY_NANOS) {
-        i = j;
-        j = i + delay;
-      } else {
-        delay = MAX_DELAY_NANOS;
-      }
-      return RetryDecision.retry(delay, what);
+      BackoffDelay backoff = typeBackoff.computeIfAbsent(value.getClass(), backoffSupplier);
+      return RetryDecision.retry(backoff.nextDelay(), what);
     } else {
       return RetryDecision.abort(value);
     }
