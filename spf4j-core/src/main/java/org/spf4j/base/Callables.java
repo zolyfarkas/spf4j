@@ -33,9 +33,6 @@ package org.spf4j.base;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.net.SocketException;
-import java.sql.SQLRecoverableException;
-import java.sql.SQLTransientException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -75,16 +72,7 @@ public final class Callables {
           = new AdvancedRetryPredicate<Exception>() {
     @Override
     public AdvancedAction apply(@Nonnull final Exception input) {
-      Throwable rootCause = com.google.common.base.Throwables.getRootCause(input);
-      if (rootCause instanceof RuntimeException) {
-        return AdvancedAction.ABORT;
-      }
-      Throwable e = Throwables.firstCause(input,
-              (ex) -> (ex instanceof SQLTransientException
-              || ex instanceof SQLRecoverableException
-              || ex instanceof SocketException
-              || ex instanceof TimeoutException));
-      if (e != null) {
+      if (Throwables.isRetryable(input)) {
         LOG.debug("Exception encountered, retrying...", input);
         return AdvancedAction.RETRY;
       }

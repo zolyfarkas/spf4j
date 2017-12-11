@@ -36,8 +36,11 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.net.SocketException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.sql.SQLRecoverableException;
+import java.sql.SQLTransientException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -133,12 +136,50 @@ public final class Throwables {
   };
 
 
+  private static volatile Predicate<Throwable> isRetryablePredicate = new Predicate<Throwable>() {
+    @Override
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    public boolean test(final Throwable t) {
+      Throwable rootCause = com.google.common.base.Throwables.getRootCause(t);
+      if (rootCause instanceof RuntimeException) {
+        return false;
+      }
+      Throwable e = Throwables.firstCause(t,
+              (ex) -> (ex instanceof SQLTransientException
+              || ex instanceof SQLRecoverableException
+              || ex instanceof SocketException
+              || ex instanceof TimeoutException));
+      return e != null;
+    }
+  };
+
+
   private Throwables() {
   }
 
   static final class Lazy {
 
     private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);
+  }
+
+
+  /**
+   * figure out if a Exception is retry-able or not.
+   * If while executing a operation a exception is returned, that exception is retryable if retrying the operation
+   * can potentially succeed.
+   * @param value
+   * @return
+   */
+  public static boolean isRetryable(final Exception value) {
+    return isRetryablePredicate.test(value);
+  }
+
+  public static Predicate<Throwable> getIsRetryablePredicate() {
+    return isRetryablePredicate;
+  }
+
+  public static void setIsRetryablePredicate(final Predicate<Throwable> isRetryablePredicate) {
+    Throwables.isRetryablePredicate = isRetryablePredicate;
   }
 
 
@@ -602,10 +643,20 @@ public final class Throwables {
     }
   }
 
+  /**
+   * Is this Throwable a JVM non-recoverable exception. (Oom, VMError, etc...)
+   * @param t
+   * @return
+   */
   public static boolean isNonRecoverable(@Nonnull final Throwable t) {
     return nonRecoverableClassificationPredicate.test(t);
   }
 
+  /**
+   * Does this Throwable contain a JVM non-recoverable exception. (Oom, VMError, etc...)
+   * @param t
+   * @return
+   */
   public static boolean containsNonRecoverable(@Nonnull final Throwable t) {
     return contains(t, nonRecoverableClassificationPredicate);
   }
@@ -694,6 +745,10 @@ public final class Throwables {
     return nonRecoverableClassificationPredicate;
   }
 
+  /**
+   * Overwrite the default non-recoverable predicate.
+   * @param predicate
+   */
   public static void setNonRecoverablePredicate(final Predicate<Throwable> predicate) {
     Throwables.nonRecoverableClassificationPredicate = predicate;
   }
