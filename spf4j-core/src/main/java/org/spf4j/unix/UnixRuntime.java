@@ -43,17 +43,32 @@ public final class UnixRuntime {
   private UnixRuntime() {
   }
 
+  /**
+   * Restart current process with same arguments except -Dspf4j.restart which is added/updated.
+   * @throws IOException
+   */
   public static void restart() throws IOException {
+     restart(JVMArguments.current());
+  }
+
+
+  /**
+   * Restart current process.
+   * This will issue a "exec" system call after closing all existing open files.
+   * @param newArguments new process arguments. spf4j has a system property: spf4j.restart that will automatically add
+   * or update to indicate a process was restarted and how many times.
+   * @throws IOException
+   */
+  public static void restart(final JVMArguments newArguments) throws IOException {
     if (haveJnaPlatformClib()) {
-      JVMArguments current = JVMArguments.current();
-      String existing = current.removeSystemProperty("spf4j.restart");
+      String existing = newArguments.removeSystemProperty("spf4j.restart");
       int count;
       if (existing == null) {
         count = 1;
       } else {
         count = Integer.parseInt(existing) + 1;
       }
-      current.setSystemProperty("spf4j.restart", Integer.toString(count));
+      newArguments.setSystemProperty("spf4j.restart", Integer.toString(count));
       // close all files upon exec, except stdin, stdout, and stderr
       int sz = CLibrary.INSTANCE.getdtablesize();
       for (int i = 3; i < sz; i++) {
@@ -65,8 +80,8 @@ public final class UnixRuntime {
       }
 
       // exec to self
-      String exe = current.getExecutable();
-      CLibrary.INSTANCE.execvp(exe, current.toStringArray());
+      String exe = newArguments.getExecutable();
+      CLibrary.INSTANCE.execvp(exe, newArguments.toStringArray());
       throw new IOException("Failed to exec '" + exe + "' " + CLibrary.INSTANCE.strerror(Native.getLastError()));
 
     } else {
