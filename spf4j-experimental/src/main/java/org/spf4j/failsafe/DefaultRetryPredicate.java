@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.Throwables;
 
 /**
- *
  * @author Zoltan Farkas
  */
 public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable<?>> {
@@ -43,11 +42,13 @@ public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable
 
   private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
 
-  private final Predicate<Exception> predicate;
+  private final Predicate<Exception> defaultPredicate;
 
   private final Map<Class<? extends Exception>, BackoffDelay> typeBackoff;
 
   private final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier;
+
+  private final PartialRetryPredicate<Exception, Callable<?>> [] predicates;
 
   public DefaultRetryPredicate() {
     this(DefaultRetryPredicate::isRecoverable, (e) -> new RandomizedBackoff(
@@ -56,10 +57,12 @@ public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable
   }
 
   public DefaultRetryPredicate(final Predicate<Exception> predicate,
-          final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier) {
-    this.predicate = predicate;
+          final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier,
+          final PartialRetryPredicate<Exception, Callable<?>> ... predicates) {
+    this.defaultPredicate = predicate;
     this.typeBackoff = new HashMap<>(4);
     this.backoffSupplier = backoffSupplier;
+    this.predicates = predicates;
   }
 
   @Override
@@ -87,7 +90,20 @@ public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable
 
   @Override
   public RetryDecision getDecision(final Exception value, final Callable what) {
-    if (predicate.test(value)) {
+
+    for (PartialRetryPredicate<Exception, Callable<?>> predicate : predicates) {
+      RetryDecision<Callable<?>> decision = predicate.getDecision(value, what);
+      if (decision != null) {
+        LOG.debug("Exception encountered, retrying {}...", what, value);
+        if (decision.getDecisionType() == RetryDecision.Type.Retry && decision.getDelayNanos() < 0) {
+          BackoffDelay backoff = typeBackoff.computeIfAbsent(value.getClass(), backoffSupplier);
+          return RetryDecision.retry(backoff.nextDelay(), what);
+        } else {
+          return decision;
+        }
+      }
+    }
+    if (defaultPredicate.test(value)) {
       LOG.debug("Exception encountered, retrying {}...", what, value);
       BackoffDelay backoff = typeBackoff.computeIfAbsent(value.getClass(), backoffSupplier);
       return RetryDecision.retry(backoff.nextDelay(), what);

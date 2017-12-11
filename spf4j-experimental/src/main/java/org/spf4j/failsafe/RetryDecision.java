@@ -56,10 +56,13 @@ public class RetryDecision<C extends Callable> {
 
   private final C newCallable;
 
-  protected RetryDecision(final Type decisionType, final long delay,
+  private RetryDecision(final Type decisionType, final long delay,
           final TimeUnit timeUnit,
           @Nullable final Exception exception,
           final C newCallable) {
+    if (decisionType == Type.Abort && delay > 0) {
+      throw new IllegalArgumentException("Cannot add a delay to Abort " + delay);
+    }
     this.decisionType = decisionType;
     this.delayNanos = timeUnit.toNanos(delay);
     this.exception = exception;
@@ -99,6 +102,10 @@ public class RetryDecision<C extends Callable> {
 
   public final Exception getException() {
     return exception;
+  }
+
+  public final RetryDecision<C> withDelayNanos(final int delayNanos) {
+    return new RetryDecision<>(decisionType, delayNanos, TimeUnit.NANOSECONDS, exception, newCallable);
   }
 
   @Nonnull
