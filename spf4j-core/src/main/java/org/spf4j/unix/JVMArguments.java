@@ -50,6 +50,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import org.spf4j.base.Runtime;
 import org.spf4j.unix.CLibrary.FILE;
 
@@ -63,7 +64,7 @@ public final class JVMArguments {
   private final List<String> arguments;
 
   public JVMArguments(final int size) {
-    this(new ArrayList<>(size));
+    arguments = new ArrayList<>(size);
   }
 
   public JVMArguments(final Collection<? extends String> c) {
@@ -74,6 +75,12 @@ public final class JVMArguments {
     return arguments.get(0);
   }
 
+  /**
+   * Removes the first System property.
+   * @param pname the name of the system property to remove.
+   * @return the value of the removed system property. or null if there is no such property.
+   */
+  @Nullable
   public String removeSystemProperty(final String pname) {
     String name = "-D" + pname;
     String nameeq = name + '=';
@@ -87,10 +94,28 @@ public final class JVMArguments {
     return null;
   }
 
+  public boolean hasSystemProperty(final String pname) {
+    String name = "-D" + pname;
+    String nameeq = name + '=';
+    for (int i = 1, l = arguments.size(); i < l; i++) {
+      String s = arguments.get(i);
+      if (s.equals(name) || s.startsWith(nameeq)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * remove all system properties starting with a prefix.
+   * @param pname the prefix
+   * @return number of system properties removed.
+   */
   public int removeAllSystemPropertiesStartingWith(final String pname) {
     String name = "-D" + pname;
     int nrRemoved = 0;
-    for (Iterator<String> itr = arguments.iterator(); itr.hasNext();) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next();
+    while (itr.hasNext()) {
       String s = itr.next();
       if (s.startsWith(name)) {
         itr.remove();
@@ -105,6 +130,50 @@ public final class JVMArguments {
     // index 0 is the executable name
     arguments.add(1, "-D" + name + '=' + value);
   }
+
+  public void setVMArgument(final String argument) {
+    if (!hasVMArgument(argument)) {
+      arguments.add(1, argument);
+    }
+  }
+
+  public boolean removeVMArgument(final String argument) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next();
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.equals(argument)) {
+        itr.remove();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasVMArgument(final String argument) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next();
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.equals(argument)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasVMArgumentStartingWith(final String argumentPrefix) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next();
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.startsWith(argumentPrefix)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   public void add(final String arg) {
     arguments.add(arg);
