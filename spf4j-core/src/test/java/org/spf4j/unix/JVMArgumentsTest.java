@@ -51,6 +51,7 @@ public class JVMArgumentsTest {
     Assert.assertThat(current.getExecutable(), Matchers.endsWith("java"));
     current.setVMArgument("-Xbla");
     Assert.assertTrue(current.hasVMArgument("-Xbla"));
+    Assert.assertTrue(current.hasVMArgumentStartingWith("-Xb"));
     Assert.assertTrue(current.removeVMArgument("-Xbla"));
     Assert.assertFalse(current.hasVMArgument("-Xbla"));
   }
