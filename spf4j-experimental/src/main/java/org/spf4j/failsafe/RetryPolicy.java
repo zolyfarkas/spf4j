@@ -31,8 +31,12 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 /**
  * @author Zoltan Farkas
@@ -64,6 +68,48 @@ public class RetryPolicy<T, C extends Callable<T>> {
   public RetryPredicate<Exception, C> getRetryOnException() {
     return retryOnException.newInstance();
   }
+
+  public static final class Builder<T, C extends Callable<T>> {
+
+      private static final long DEFAULT_MAX_DELAY_NANOS = TimeUnit.SECONDS.toNanos(5);
+
+      private static final long DEFAULT_INITIAL_DELAY_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
+
+      private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
+
+
+      private static final class PredicateDetail<A, B extends Callable> {
+          private RetryPredicate defaultPredicate = RetryPredicate.NORETRY;
+
+          private Function<Class<?>, BackoffDelay> backoffSupplier =
+                  (x) -> new RandomizedBackoff(new FibonacciBackoff(DEFAULT_INITIAL_NODELAY_RETRIES,
+                          DEFAULT_INITIAL_DELAY_NANOS, DEFAULT_MAX_DELAY_NANOS));
+
+          private List<PartialRetryPredicate<A, B>> predicates = new ArrayList<>();
+      }
+
+      private PredicateDetail<T, C> resultPredicate = null;
+      private PredicateDetail<Exception, C> exceptionPredicate = null;
+
+      public RetryPolicy<T, C> build(Class<T> class) {
+         RetryPredicate<T, C> rp = resultPredicate == null ? RetryPredicate.NORETRY
+                 : new DefaultRetryPredicate<T>(resultPredicate.defaultPredicate,
+                         resultPredicate.backoffSupplier,
+                         resultPredicate.predicates.toArray(
+                                 new PartialRetryPredicate[resultPredicate.predicates.size()]));
+        PredicateDetail<Exception, C> ep = exceptionPredicate == null ? RetryPredicate.NORETRY
+                 : new DefaultRetryPredicate(exceptionPredicate.defaultPredicate,
+                         exceptionPredicate.backoffSupplier,
+                         exceptionPredicate.predicates.toArray(
+                                 new PartialRetryPredicate[exceptionPredicate.predicates.size()]));
+      }
+
+
+
+
+
+  }
+
 
 
 }

@@ -74,7 +74,4 @@ public interface RetryPredicate<T, C extends Callable> {
 
   };
 
-
-  RetryPredicate<Exception, Callable<?>> DEFAULT = new DefaultRetryPredicate();
-
 }

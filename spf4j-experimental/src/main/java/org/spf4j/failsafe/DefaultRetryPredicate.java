@@ -15,83 +15,46 @@
  */
 package org.spf4j.failsafe;
 
-import java.net.SocketException;
-import java.sql.SQLRecoverableException;
-import java.sql.SQLTransientException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Throwables;
 
 /**
  * @author Zoltan Farkas
  */
-public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable<?>> {
+class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPredicate.class);
 
-  private static final long DEFAULT_MAX_DELAY_NANOS = TimeUnit.SECONDS.toNanos(5);
+  private final Map<Class<?>, BackoffDelay> typeBackoff;
+  
+  private final RetryPredicate<T, Callable<?>> defaultPredicate;
 
-  private static final long DEFAULT_INITIAL_DELAY_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
+  private final Function<Class<?>, BackoffDelay> backoffSupplier;
 
-  private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
+  private final PartialRetryPredicate<T, Callable<?>> [] predicates;
 
-  private final Predicate<Exception> defaultPredicate;
-
-  private final Map<Class<? extends Exception>, BackoffDelay> typeBackoff;
-
-  private final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier;
-
-  private final PartialRetryPredicate<Exception, Callable<?>> [] predicates;
-
-  public DefaultRetryPredicate() {
-    this(DefaultRetryPredicate::isRecoverable, (e) -> new RandomizedBackoff(
-            new FibonacciBackoff(DEFAULT_INITIAL_NODELAY_RETRIES,
-            DEFAULT_INITIAL_DELAY_NANOS, DEFAULT_MAX_DELAY_NANOS)));
-  }
-
-  public DefaultRetryPredicate(final Predicate<Exception> predicate,
-          final Function<Class<? extends Exception>, BackoffDelay> backoffSupplier,
-          final PartialRetryPredicate<Exception, Callable<?>> ... predicates) {
-    this.defaultPredicate = predicate;
+  DefaultRetryPredicate(final RetryPredicate<T, Callable<?>> defaultPredicate,
+          final Function<Class<?>, BackoffDelay> backoffSupplier,
+          final PartialRetryPredicate<T, Callable<?>> ... predicates) {
+    this.defaultPredicate = defaultPredicate;
     this.typeBackoff = new HashMap<>(4);
     this.backoffSupplier = backoffSupplier;
     this.predicates = predicates;
   }
 
   @Override
-  public RetryPredicate<Exception, Callable<?>> newInstance() {
-    return new DefaultRetryPredicate();
-  }
-
-  public static final boolean isRecoverable(final Exception value) {
-    Throwable rootCause = com.google.common.base.Throwables.getRootCause(value);
-    if (rootCause instanceof RuntimeException) {
-      return false;
-    }
-    Throwable e = Throwables.firstCause(value,
-            (ex) -> (ex instanceof SQLTransientException
-            || ex instanceof SQLRecoverableException
-            || ex instanceof SocketException
-            || ex instanceof TimeoutException));
-    if (e != null) {
-      return true;
-    } else {
-      return false;
-    }
-
+  public RetryPredicate<T, Callable<?>> newInstance() {
+    return new DefaultRetryPredicate(defaultPredicate, backoffSupplier, predicates);
   }
 
   @Override
-  public RetryDecision getDecision(final Exception value, final Callable what) {
+  public RetryDecision getDecision(final T value, final Callable<?> what) {
 
-    for (PartialRetryPredicate<Exception, Callable<?>> predicate : predicates) {
+    for (PartialRetryPredicate<T, Callable<?>> predicate : predicates) {
       RetryDecision<Callable<?>> decision = predicate.getDecision(value, what);
       if (decision != null) {
         LOG.debug("Exception encountered, retrying {}...", what, value);
@@ -103,12 +66,13 @@ public class DefaultRetryPredicate implements RetryPredicate<Exception, Callable
         }
       }
     }
-    if (defaultPredicate.test(value)) {
+    RetryDecision<Callable<?>> decision = defaultPredicate.getDecision(value, what);
+    if (decision.getDecisionType() == RetryDecision.Type.Retry && decision.getDelayNanos() < 0) {
       LOG.debug("Exception encountered, retrying {}...", what, value);
       BackoffDelay backoff = typeBackoff.computeIfAbsent(value.getClass(), backoffSupplier);
       return RetryDecision.retry(backoff.nextDelay(), what);
     } else {
-      return RetryDecision.abort(value);
+      return decision;
     }
   }
 
