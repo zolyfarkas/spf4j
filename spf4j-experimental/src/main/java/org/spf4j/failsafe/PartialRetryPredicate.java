@@ -34,5 +34,14 @@ public interface PartialRetryPredicate<T, C extends Callable> {
   @Nullable
   RetryDecision<C> getDecision(@Nullable T value, @Nonnull C what);
 
+  /**
+   * Factory method for a predicate. Predicates can be stateful or not (default).
+   * @return a new instance of predicate.
+   */
+  @Nonnull
+  default PartialRetryPredicate<T, C> newInstance() {
+    return this;
+  }
+
 
 }

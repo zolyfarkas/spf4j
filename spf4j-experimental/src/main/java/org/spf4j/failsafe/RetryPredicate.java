@@ -39,7 +39,7 @@ import javax.annotation.Nullable;
  * A retry predicate.
  * @author Zoltan Farkas
  */
-public interface RetryPredicate<T, C extends Callable> {
+public interface RetryPredicate<T, C extends Callable> extends PartialRetryPredicate<T, C> {
 
   /**
    * Get the RetryDecision for the result value returned by Callable C.
@@ -48,6 +48,7 @@ public interface RetryPredicate<T, C extends Callable> {
    * @return
    */
   @Nonnull
+  @Override
   RetryDecision<C> getDecision(@Nullable T value, @Nonnull C what);
 
 
@@ -56,10 +57,10 @@ public interface RetryPredicate<T, C extends Callable> {
    * @return a new instance of predicate.
    */
   @Nonnull
+  @Override
   default RetryPredicate<T, C> newInstance() {
     return this;
   }
-
 
   /**
    * Simple predicate that does not retry anything.
