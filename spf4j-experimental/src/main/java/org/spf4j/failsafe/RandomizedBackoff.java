@@ -21,11 +21,11 @@ import java.util.concurrent.ThreadLocalRandom;
  * A randomizing Backoff strategy.
  * @author Zoltan Farkas
  */
-public class RandomizedBackoff implements BackoffDelay {
+public class RandomizedBackoff implements BackoffDelaySupplier {
 
-  private final BackoffDelay wrapped;
+  private final BackoffDelaySupplier wrapped;
 
-  public RandomizedBackoff(final BackoffDelay wrapped) {
+  public RandomizedBackoff(final BackoffDelaySupplier wrapped) {
     this.wrapped = wrapped;
   }
 
@@ -34,5 +34,15 @@ public class RandomizedBackoff implements BackoffDelay {
     return ThreadLocalRandom.current().nextLong(wrapped.nextDelay());
   }
 
+  @Override
+  public BackoffDelaySupplier newInstance() {
+    BackoffDelaySupplier wrappedNewInstance = wrapped.newInstance();
+    return wrappedNewInstance == wrapped ? this : new RandomizedBackoff(wrappedNewInstance);
+  }
+
+  @Override
+  public String toString() {
+    return "RandomizedBackoff{" + "wrapped=" + wrapped + '}';
+  }
 
 }

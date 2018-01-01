@@ -43,8 +43,8 @@ public class TimeoutRetryPredicate<T, C extends TimeoutCallable> implements Retr
   }
 
   @Override
-  public RetryPredicate<T, C> newInstance() {
-    return new TimeoutRetryPredicate<>(predicate.newInstance());
+  public TimeoutRetryPredicate<T, C> newInstance() {
+    return new TimeoutRetryPredicate<T, C>(predicate.newInstance());
   }
 
 }

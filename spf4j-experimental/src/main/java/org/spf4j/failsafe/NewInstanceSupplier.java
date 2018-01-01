@@ -15,12 +15,22 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.function.Supplier;
+
 /**
  *
  * @author Zoltan Farkas
  */
-public interface BackoffDelay {
+public interface NewInstanceSupplier<T extends NewInstanceSupplier>
+          extends Supplier<T> {
 
-  long nextDelay();
+  default T newInstance() {
+    return (T) this;
+  }
+
+  @Override
+  default T get() {
+    return newInstance();
+  }
 
 }

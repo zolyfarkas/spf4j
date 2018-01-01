@@ -37,6 +37,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Zoltan Farkas
@@ -77,28 +78,39 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
 
-    private static final class PredicateDetail<A, B extends Callable> {
+    public final class PredicateBuilder<A, B extends Callable> {
 
-      private RetryPredicate defaultPredicate = RetryPredicate.NORETRY;
-
-      private Function<A, BackoffDelay> backoffSupplier
-              = (x) -> new RandomizedBackoff(new FibonacciBackoff(DEFAULT_INITIAL_NODELAY_RETRIES,
-                      DEFAULT_INITIAL_DELAY_NANOS, DEFAULT_MAX_DELAY_NANOS));
+      private Supplier<Function<A, BackoffDelaySupplier>> backoffSupplier
+              = () -> new TypeBasedBackoffSupplier<>((x) -> new RandomizedBackoff(new FibonacciBackoff(DEFAULT_INITIAL_NODELAY_RETRIES,
+                      DEFAULT_INITIAL_DELAY_NANOS, DEFAULT_MAX_DELAY_NANOS)));
 
       private List<PartialRetryPredicate<A, B>> predicates = new ArrayList<>();
+
+      public PredicateBuilder<A, B> withPartialPredicate(PartialRetryPredicate predicate) {
+        predicates.add(predicate);
+        return this;
+      }
+
+      public RetryPredicate<A, B> build() {
+         return new DefaultRetryPredicate<A>(defaultPredicate, backoffSupplier,
+                 predicates.toArray(
+                              new PartialRetryPredicate[predicates.size()]));
+
+      }
+
     }
 
-    private PredicateDetail<T, C> resultPredicate = null;
-    private PredicateDetail<Exception, C> exceptionPredicate = null;
+    private PredicateBuilder<T, C> resultPredicate = null;
+    private PredicateBuilder<Exception, C> exceptionPredicate = null;
 
     public RetryPolicy<T, C> build(Class<T> clasz) {
       RetryPredicate<T, C> rp = resultPredicate == null ? RetryPredicate.NORETRY
-              : new DefaultRetryPredicate<T>(resultPredicate.defaultPredicate,
+              : (RetryPredicate<T, C>) new DefaultRetryPredicate<T>(resultPredicate.defaultPredicate,
                       resultPredicate.backoffSupplier,
                       resultPredicate.predicates.toArray(
                               new PartialRetryPredicate[resultPredicate.predicates.size()]));
-      PredicateDetail<Exception, C> ep = exceptionPredicate == null ? RetryPredicate.NORETRY
-              : new DefaultRetryPredicate(exceptionPredicate.defaultPredicate,
+      RetryPredicate<Exception, C> ep = exceptionPredicate == null ? RetryPredicate.NORETRY
+              : (RetryPredicate<Exception, C>) new DefaultRetryPredicate(exceptionPredicate.defaultPredicate,
                       exceptionPredicate.backoffSupplier,
                       exceptionPredicate.predicates.toArray(
                               new PartialRetryPredicate[exceptionPredicate.predicates.size()]));

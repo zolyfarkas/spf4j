@@ -22,23 +22,24 @@ import java.util.function.Function;
 /**
  * @author Zoltan Farkas
  */
-public final class TypeBasedBackoffSupplier<T> implements Function<T, BackoffDelay> {
+public final class TypeBasedBackoffSupplier<T> implements Function<T, BackoffDelaySupplier> {
 
-  private final Map<Class<T>, BackoffDelay> delays;
+  private final Map<Class<T>, BackoffDelaySupplier> delays;
 
-  private final Function<T, BackoffDelay> supplier;
+  private final Function<Class<T>, BackoffDelaySupplier> supplier;
 
-  public TypeBasedBackoffSupplier(final int immediateLeft,
-          final Function<T, BackoffDelay> supplier) {
+  public TypeBasedBackoffSupplier(
+          final Function<Class<T>, BackoffDelaySupplier> supplier) {
     this.delays = new HashMap<>(4);
     this.supplier = supplier;
   }
 
 
   @Override
-  public BackoffDelay apply(final T t) {
-    return delays.computeIfAbsent((Class<T>) t.getClass(),
-            (cl) -> supplier.apply(t));
+  public BackoffDelaySupplier apply(final T t) {
+    Class<T> clasz = (Class<T>) t.getClass();
+    return delays.computeIfAbsent(clasz,
+            (x) -> supplier.apply(x));
   }
 
   @Override

@@ -17,6 +17,7 @@ package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,17 +28,17 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPredicate.class);
 
-  private final RetryPredicate<T, Callable<?>> defaultPredicate;
-
-  private final Function<T, BackoffDelay> backoffSupplier;
+  private final Function<T, BackoffDelaySupplier> defaultBackoffSupplier;
 
   private final PartialRetryPredicate<T, Callable<?>> [] predicates;
 
-  DefaultRetryPredicate(final RetryPredicate<T, Callable<?>> defaultPredicate,
-          final Function<T, BackoffDelay> backoffSupplier,
+  private final Supplier<Function<T, BackoffDelaySupplier>> defaultBackoffSupplierSupplier;
+
+  DefaultRetryPredicate(
+          final Supplier<Function<T, BackoffDelaySupplier>> defaultBackoffSupplierSupplier,
           final PartialRetryPredicate<T, Callable<?>> ... predicates) {
-    this.defaultPredicate = defaultPredicate;
-    this.backoffSupplier = backoffSupplier;
+    this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
+    this.defaultBackoffSupplierSupplier = defaultBackoffSupplierSupplier;
     this.predicates = predicates;
   }
 
@@ -47,7 +48,7 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
     for (int i = 0; i < p.length; i++) {
       p[i] = p[i].newInstance();
     }
-    return new DefaultRetryPredicate(defaultPredicate.newInstance(), backoffSupplier, p);
+    return new DefaultRetryPredicate(defaultBackoffSupplierSupplier, p);
   }
 
   @Override
@@ -58,21 +59,14 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
       if (decision != null) {
         LOG.debug("Exception encountered, retrying {}...", what, value);
         if (decision.getDecisionType() == RetryDecision.Type.Retry && decision.getDelayNanos() < 0) {
-          BackoffDelay backoff = backoffSupplier.apply(value);
+          BackoffDelaySupplier backoff = defaultBackoffSupplier.apply(value);
           return RetryDecision.retry(backoff.nextDelay(), what);
         } else {
           return decision;
         }
       }
     }
-    RetryDecision<Callable<?>> decision = defaultPredicate.getDecision(value, what);
-    if (decision.getDecisionType() == RetryDecision.Type.Retry && decision.getDelayNanos() < 0) {
-      LOG.debug("Exception encountered, retrying {}...", what, value);
-      BackoffDelay backoff = backoffSupplier.apply(value);
-      return RetryDecision.retry(backoff.nextDelay(), what);
-    } else {
-      return decision;
-    }
+    return RetryDecision.abort();
   }
 
 }

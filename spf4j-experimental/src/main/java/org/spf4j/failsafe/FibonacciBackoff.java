@@ -19,42 +19,56 @@ package org.spf4j.failsafe;
  *
  * @author Zoltan Farkas
  */
-public final class FibonacciBackoff implements BackoffDelay {
+public final class FibonacciBackoff implements BackoffDelaySupplier {
 
-    private int immediateLeft;
+  private int immediateLeft;
 
-    private long p1;
+  private long p1;
 
-    private long p2;
+  private long p2;
 
-    private final long maxDelay;
+  private final long maxDelay;
 
-    public FibonacciBackoff(final int immediateLeft, final long startDelay, final long maxDelay) {
-      this.immediateLeft = immediateLeft;
-      if (startDelay < 1) {
-        this.p1 = 0;
-        this.p2 = 1;
-      } else {
-        this.p1 = startDelay;
-        this.p2 = startDelay;
-      }
-      this.maxDelay = maxDelay;
+  private final long startDelay;
+
+  public FibonacciBackoff(final int immediateLeft, final long startDelay, final long maxDelay) {
+    this.immediateLeft = immediateLeft;
+    this.startDelay = startDelay;
+    this.maxDelay = maxDelay;
+    if (startDelay < 1) {
+      this.p1 = 0;
+      this.p2 = 1;
+    } else {
+      this.p1 = startDelay;
+      this.p2 = startDelay;
     }
-
-  @Override
-    public long nextDelay() {
-      if (immediateLeft > 0) {
-        immediateLeft--;
-        return 0;
-      } else if (p2 > maxDelay) {
-        return maxDelay;
-      } else {
-        long result = p2;
-        p2 = p1 + p2;
-        p1 = result;
-        return result;
-      }
-    }
-
   }
 
+  @Override
+  public long nextDelay() {
+    if (immediateLeft > 0) {
+      immediateLeft--;
+      return 0;
+    } else if (p2 > maxDelay) {
+      return maxDelay;
+    } else {
+      long result = p2;
+      p2 = p1 + p2;
+      p1 = result;
+      return result;
+    }
+  }
+
+  @Override
+  public FibonacciBackoff newInstance() {
+    return new FibonacciBackoff(immediateLeft, startDelay, maxDelay);
+  }
+
+  @Override
+  public String toString() {
+    return "FibonacciBackoff{" + "immediateLeft=" + immediateLeft + ", p1=" + p1
+            + ", p2=" + p2 + ", maxDelay=" + maxDelay + ", startDelay=" + startDelay + '}';
+  }
+
+
+}

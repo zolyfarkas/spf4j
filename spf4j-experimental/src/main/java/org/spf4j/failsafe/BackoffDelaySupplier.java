@@ -15,25 +15,20 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.Callable;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.function.LongSupplier;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public interface PartialRetryPredicate<T, C extends Callable>
-        extends NewInstanceSupplier<PartialRetryPredicate<T, C>> {
+public interface BackoffDelaySupplier
+        extends LongSupplier, NewInstanceSupplier<BackoffDelaySupplier> {
 
-  /**
-   * Get the RetryDecision for the result value returned by Callable C.
-   * @param value the operation result.
-   * @param what the operation.
-   * @return
-   */
-  @Nullable
-  RetryDecision<C> getDecision(@Nullable T value, @Nonnull C what);
+  long nextDelay();
 
+  @Override
+  default long getAsLong() {
+    return nextDelay();
+  }
 
 }
