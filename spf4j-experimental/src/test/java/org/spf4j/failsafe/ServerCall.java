@@ -15,14 +15,40 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.Callable;
+import org.spf4j.base.Timing;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public interface TimeoutCallable<T> extends Callable<T> {
+public class ServerCall implements TimeoutCallable<Response>{
 
-  long getDeadlineNanos();
-  
+  private final Server server;
+
+  private final Request request;
+
+  public ServerCall(Server server, Request request) {
+    this.server = server;
+    this.request = request;
+  }
+
+  @Override
+  public Response call() throws Exception {
+    return server.execute(request);
+  }
+
+  public Server getServer() {
+    return server;
+  }
+
+  public Request getRequest() {
+    return request;
+  }
+
+  @Override
+  public long getDeadlineNanos() {
+    return Timing.getCurrentTiming().fromEpochMillisToNanoTime(request.getDeadlineMSEpoch());
+  }
+
+
 }

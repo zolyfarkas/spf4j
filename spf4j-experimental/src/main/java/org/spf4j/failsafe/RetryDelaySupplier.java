@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 SPF4J.
+ * Copyright 2017 SPF4J.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,20 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.Callable;
+import java.util.function.LongSupplier;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public interface TimeoutCallable<T> extends Callable<T> {
+public interface RetryDelaySupplier
+        extends LongSupplier, NewInstanceSupplier<RetryDelaySupplier> {
 
-  long getDeadlineNanos();
-  
+  long nextDelay();
+
+  @Override
+  default long getAsLong() {
+    return nextDelay();
+  }
+
 }

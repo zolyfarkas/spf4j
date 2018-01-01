@@ -22,11 +22,11 @@ import java.util.concurrent.TimeoutException;
  *
  * @author Zoltan Farkas
  */
-public class TimeoutRetryPredicate<T, C extends TimeoutCallable> implements RetryPredicate<T,C> {
+public class TimeoutRetryPredicate<T, C extends TimeoutCallable> implements RetryPredicate<T, C> {
 
   private final RetryPredicate<T, C> predicate;
 
-  public TimeoutRetryPredicate(RetryPredicate<T, C> predicate) {
+  public TimeoutRetryPredicate(final RetryPredicate<T, C> predicate) {
     this.predicate = predicate;
   }
 

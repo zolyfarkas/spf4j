@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 SPF4J.
+ * Copyright 2018 SPF4J.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,33 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.function.LongSupplier;
-
 /**
  *
  * @author Zoltan Farkas
  */
-public interface BackoffDelaySupplier
-        extends LongSupplier, NewInstanceSupplier<BackoffDelaySupplier> {
+public final class Request {
 
-  long nextDelay();
+  private final String url;
+
+  private final long deadlineMSEpoch;
+
+
+  public Request(String url, final long deadlineMSEpoch) {
+    this.url = url;
+    this.deadlineMSEpoch = deadlineMSEpoch;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public long getDeadlineMSEpoch() {
+    return deadlineMSEpoch;
+  }
 
   @Override
-  default long getAsLong() {
-    return nextDelay();
+  public String toString() {
+    return "Request{" + "url=" + url + ", deadlineMSEpoch=" + deadlineMSEpoch + '}';
   }
 
 }

@@ -28,14 +28,14 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPredicate.class);
 
-  private final Function<T, BackoffDelaySupplier> defaultBackoffSupplier;
+  private final Function<T, RetryDelaySupplier> defaultBackoffSupplier;
 
   private final PartialRetryPredicate<T, Callable<?>> [] predicates;
 
-  private final Supplier<Function<T, BackoffDelaySupplier>> defaultBackoffSupplierSupplier;
+  private final Supplier<Function<T, RetryDelaySupplier>> defaultBackoffSupplierSupplier;
 
   DefaultRetryPredicate(
-          final Supplier<Function<T, BackoffDelaySupplier>> defaultBackoffSupplierSupplier,
+          final Supplier<Function<T, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
           final PartialRetryPredicate<T, Callable<?>> ... predicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     this.defaultBackoffSupplierSupplier = defaultBackoffSupplierSupplier;
@@ -57,10 +57,14 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
     for (PartialRetryPredicate<T, Callable<?>> predicate : predicates) {
       RetryDecision<Callable<?>> decision = predicate.getDecision(value, what);
       if (decision != null) {
-        LOG.debug("Exception encountered, retrying {}...", what, value);
-        if (decision.getDecisionType() == RetryDecision.Type.Retry && decision.getDelayNanos() < 0) {
-          BackoffDelaySupplier backoff = defaultBackoffSupplier.apply(value);
-          return RetryDecision.retry(backoff.nextDelay(), what);
+        if (decision.getDecisionType() == RetryDecision.Type.Retry) {
+          LOG.debug("Exception encountered, retrying {}...", what, value);
+          if (decision.getDelayNanos() < 0) {
+            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
+            return RetryDecision.retry(backoff.nextDelay(), what);
+          } else {
+            return decision;
+          }
         } else {
           return decision;
         }

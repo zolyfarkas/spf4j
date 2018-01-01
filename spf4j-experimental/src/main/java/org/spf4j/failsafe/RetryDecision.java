@@ -33,19 +33,25 @@ package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * A class that describes a "decision" that is returned by the RetryPredicate.
  * @author Zoltan Farkas
  */
+@Immutable
 public class RetryDecision<C extends Callable> {
 
   private static final RetryDecision<?> ABORT = new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, null, null);
 
   public enum Type {
-    Abort, Retry
+    /** Do not retry operation */
+    Abort,
+    /** Retry operation */
+    Retry
   }
 
   private final Type decisionType;
@@ -74,21 +80,31 @@ public class RetryDecision<C extends Callable> {
    * @param exception the custom exception.
    * @return a Abort decision with a custom Exception.
    */
+  @CheckReturnValue
   public static RetryDecision abort(@Nonnull final Exception exception) {
     return new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, exception, null);
   }
 
+  @CheckReturnValue
   public static <C extends Callable> RetryDecision<C> retry(final long retryNanos, @Nonnull final C callable) {
     return new RetryDecision(Type.Retry, retryNanos, TimeUnit.NANOSECONDS,  null, callable);
+  }
+
+
+  @CheckReturnValue
+  public static <C extends Callable> RetryDecision<C> retryDefault(@Nonnull final C callable) {
+    return new RetryDecision(Type.Retry, -1, TimeUnit.NANOSECONDS,  null, callable);
   }
 
   /**
    * @return Create Abort retry decision. The last successful result or exception is returned.
    */
+  @CheckReturnValue
   public static RetryDecision abort() {
     return ABORT;
   }
 
+  @CheckReturnValue
   public final Type getDecisionType() {
     return decisionType;
   }
@@ -96,18 +112,22 @@ public class RetryDecision<C extends Callable> {
   /**
    * @return The delay in nanoseconds
    */
+  @CheckReturnValue
   public final long getDelayNanos() {
     return delayNanos;
   }
 
+  @CheckReturnValue
   public final Exception getException() {
     return exception;
   }
 
+  @CheckReturnValue
   public final RetryDecision<C> withDelayNanos(final int delayNanos) {
     return new RetryDecision<>(decisionType, delayNanos, TimeUnit.NANOSECONDS, exception, newCallable);
   }
 
+  @CheckReturnValue
   @Nonnull
   public C getNewCallable() {
     return newCallable;

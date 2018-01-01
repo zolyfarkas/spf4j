@@ -19,7 +19,7 @@ package org.spf4j.failsafe;
  *
  * @author Zoltan Farkas
  */
-public final class FibonacciBackoff implements BackoffDelaySupplier {
+public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
 
   private int immediateLeft;
 
@@ -31,7 +31,7 @@ public final class FibonacciBackoff implements BackoffDelaySupplier {
 
   private final long startDelay;
 
-  public FibonacciBackoff(final int immediateLeft, final long startDelay, final long maxDelay) {
+  public FibonacciRetryDelaySupplier(final int immediateLeft, final long startDelay, final long maxDelay) {
     this.immediateLeft = immediateLeft;
     this.startDelay = startDelay;
     this.maxDelay = maxDelay;
@@ -60,8 +60,8 @@ public final class FibonacciBackoff implements BackoffDelaySupplier {
   }
 
   @Override
-  public FibonacciBackoff newInstance() {
-    return new FibonacciBackoff(immediateLeft, startDelay, maxDelay);
+  public FibonacciRetryDelaySupplier newInstance() {
+    return new FibonacciRetryDelaySupplier(immediateLeft, startDelay, maxDelay);
   }
 
   @Override

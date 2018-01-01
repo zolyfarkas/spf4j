@@ -20,23 +20,26 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
+ * A retry Delay supplier that will provide the same instance of a RetryDelaySupplier for a
+ * particular java class.
+ * 
  * @author Zoltan Farkas
  */
-public final class TypeBasedBackoffSupplier<T> implements Function<T, BackoffDelaySupplier> {
+public final class TypeBasedRetryDelaySupplier<T> implements Function<T, RetryDelaySupplier> {
 
-  private final Map<Class<T>, BackoffDelaySupplier> delays;
+  private final Map<Class<T>, RetryDelaySupplier> delays;
 
-  private final Function<Class<T>, BackoffDelaySupplier> supplier;
+  private final Function<Class<T>, RetryDelaySupplier> supplier;
 
-  public TypeBasedBackoffSupplier(
-          final Function<Class<T>, BackoffDelaySupplier> supplier) {
+  public TypeBasedRetryDelaySupplier(
+          final Function<Class<T>, RetryDelaySupplier> supplier) {
     this.delays = new HashMap<>(4);
     this.supplier = supplier;
   }
 
 
   @Override
-  public BackoffDelaySupplier apply(final T t) {
+  public RetryDelaySupplier apply(final T t) {
     Class<T> clasz = (Class<T>) t.getClass();
     return delays.computeIfAbsent(clasz,
             (x) -> supplier.apply(x));
