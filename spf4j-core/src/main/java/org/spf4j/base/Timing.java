@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
 
@@ -42,13 +43,17 @@ import org.spf4j.concurrent.DefaultScheduler;
 @Beta
 public final class Timing {
 
+  private static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);
+
   private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong("spf4j.timing.updateIntervalMinutes", 60);
 
   private static volatile Timing latestTiming;
 
+  private static final ScheduledFuture UPDATER;
+
   static {
     latestTiming = new Timing();
-    DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -> latestTiming = new Timing(),
+    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -> latestTiming = new Timing(),
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
   }
 
@@ -64,8 +69,22 @@ public final class Timing {
     return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);
   }
 
+
+  public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
+    long msSinceLast = epochTimeMillis - currentTimeMillisRef;
+    if (Math.abs(msSinceLast) > MAX_MS_SPAN) {
+      throw new IllegalArgumentException("Epoch time millis cannot be converted to nanotime " + epochTimeMillis);
+    }
+    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);
+  }
+
   public static Timing getCurrentTiming() {
     return latestTiming;
+  }
+
+
+  public static void stopUpdate() {
+    UPDATER.cancel(false);
   }
 
   @Override

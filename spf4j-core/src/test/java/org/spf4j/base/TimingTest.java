@@ -50,6 +50,17 @@ public class TimingTest {
     long millisInTheFutureCalculated = currentTiming.fromNanoTimeToEpochMillis(currNanos
             + TimeUnit.MILLISECONDS.toNanos(10));
     Assert.assertTrue(currMillis + 10 - millisInTheFutureCalculated <= 1);
+    try {
+      currentTiming.fromEpochMillisToNanoTime(Long.MAX_VALUE);
+      Assert.fail();
+    } catch (IllegalArgumentException ex) {
+    }
+    currNanos = System.nanoTime();
+    long nanoTimeIn100ms = currentTiming.fromEpochMillisToNanoTime(System.currentTimeMillis() + 100);
+    long expectNanoTimeIn100ms = currNanos + TimeUnit.MILLISECONDS.toNanos(100);
+    Assert.assertTrue("expected = " + expectNanoTimeIn100ms + ", actual =" + nanoTimeIn100ms,
+            Math.abs( expectNanoTimeIn100ms - nanoTimeIn100ms) < TimeUnit.MILLISECONDS.toNanos(1));
+
   }
 
 }
