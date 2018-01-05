@@ -462,6 +462,10 @@ public final class Runtime {
     return false;
   }
 
+  /**
+   * @deprecated see ExecutionContext.
+   */
+  @Deprecated
   public static long getDeadline() {
     ExecutionContext ec = ExecutionContext.current();
     if (ec == null) {
@@ -471,6 +475,10 @@ public final class Runtime {
     }
   }
 
+  /**
+   * @deprecated see ExecutionContext.
+   */
+  @Deprecated
   public static long millisToDeadline() throws TimeoutException {
     ExecutionContext ec = ExecutionContext.current();
     if (ec == null) {
@@ -480,7 +488,11 @@ public final class Runtime {
     }
   }
 
-  public static boolean setContextDeadline(final long deadline) {
+  /**
+   * @deprecated Use ExecutionContext
+   */
+  @Deprecated
+  public static boolean setDeadline(final long deadline) {
     ExecutionContext ec = ExecutionContext.current();
     if (ec != null) {
       ec.setDeadlineNanos(Timing.getCurrentTiming().fromEpochMillisToNanoTime(deadline));

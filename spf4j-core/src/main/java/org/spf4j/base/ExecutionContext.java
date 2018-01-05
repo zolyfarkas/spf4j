@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /**
@@ -66,6 +67,27 @@ public final class ExecutionContext implements AutoCloseable {
     ExecutionContext ctx = new ExecutionContext(DEADLINE.get(), deadlineNanos);
     DEADLINE.set(ctx);
     return ctx;
+  }
+
+  public static long getContextDeadlineNanos() {
+    ExecutionContext ec = ExecutionContext.current();
+    if (ec == null) {
+      return System.nanoTime() + Long.MAX_VALUE;
+    } else {
+      return ec.getDeadlineNanos();
+    }
+  }
+
+  public static long getSecondsToDeadline() {
+    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - System.nanoTime());
+  }
+
+  public static long getMillisToDeadline() {
+    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - System.nanoTime());
+  }
+
+  public static long getNanosToDeadline() {
+    return getContextDeadlineNanos() - System.nanoTime();
   }
 
   public ExecutionContext getParent() {
