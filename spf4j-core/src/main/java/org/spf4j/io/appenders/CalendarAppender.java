@@ -43,7 +43,7 @@ public final class CalendarAppender implements ObjectAppender<Calendar> {
 
     @Override
     public void append(final Calendar instant, final Appendable appendTo) throws IOException {
-        InstantAppender.FMT.printTo(appendTo, instant.getTimeInMillis());
+        org.spf4j.base.Runtime.TS_FORMAT.formatTo(instant.toInstant(), appendTo);
     }
-    
+
 }

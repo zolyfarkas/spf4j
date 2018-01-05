@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -47,8 +48,6 @@ import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.IntMath;
@@ -83,8 +82,6 @@ public final class Sampler {
   private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[]{
     new StackTraceElement("java.lang.System", "gc", "System.java", -1)
   };
-
-  private static final DateTimeFormatter TS_FORMAT = ISODateTimeFormat.basicDateTimeNoMillis();
 
   private volatile boolean stopped;
   private volatile int sampleTimeMillis;
@@ -219,8 +216,8 @@ public final class Sampler {
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
     String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
-            + TS_FORMAT.print(lastDumpTime) + '_'
-            + TS_FORMAT.print(System.currentTimeMillis()) + ".ssdump2");
+            + org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(lastDumpTime)) + '_'
+            + org.spf4j.base.Runtime.TS_FORMAT.format(Instant.now()) + ".ssdump2");
     File file = new File(fileName);
     return dumpToFile(file);
   }

@@ -54,6 +54,8 @@ import java.lang.management.ManagementFactory;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,8 +65,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
@@ -599,7 +599,7 @@ public final class TimeSeriesDatabase implements Closeable {
   public void writeCsvTable(final String tableName, final File output) throws IOException {
     TSTable table = getTSTable(tableName);
     TimeSeries data = readAll(tableName);
-    DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
+    DateTimeFormatter formatter = org.spf4j.base.Runtime.TS_FORMAT;
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
       Csv.writeCsvElement("timestamp", writer);
@@ -611,7 +611,7 @@ public final class TimeSeriesDatabase implements Closeable {
       long[] timestamps = data.getTimeStamps();
       long[][] values = data.getValues();
       for (int i = 0; i < timestamps.length; i++) {
-        Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
+        Csv.writeCsvElement(formatter.format(Instant.ofEpochMilli(timestamps[i])), writer);
         for (long val : values[i]) {
           writer.append(',');
           Csv.writeCsvElement(Long.toString(val), writer);
@@ -622,7 +622,7 @@ public final class TimeSeriesDatabase implements Closeable {
   }
 
   public void writeCsvTables(final List<String> tableNames, final File output) throws IOException {
-    DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
+    DateTimeFormatter formatter = org.spf4j.base.Runtime.TS_FORMAT;
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
       String firstTable = tableNames.get(0);
@@ -643,7 +643,7 @@ public final class TimeSeriesDatabase implements Closeable {
         for (int i = 0; i < timestamps.length; i++) {
           Csv.writeCsvElement(tableName, writer);
           writer.append(',');
-          Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
+          Csv.writeCsvElement(formatter.format(Instant.ofEpochMilli(timestamps[i])), writer);
           for (long val : values[i]) {
             writer.append(',');
             Csv.writeCsvElement(Long.toString(val), writer);

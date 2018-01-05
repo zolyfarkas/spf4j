@@ -43,6 +43,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +58,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UIDGenerator;
@@ -75,6 +77,12 @@ import org.spf4j.unix.UnixRuntime;
  * @author zoly
  */
 public final class Runtime {
+
+  public static final DateTimeFormatter TS_FORMAT = DateTimeFormatter
+          .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZone(ZoneId.systemDefault());
+
+  public static final DateTimeFormatter DT_FORMAT = DateTimeFormatter
+          .ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
 
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
   public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
@@ -469,7 +477,7 @@ public final class Runtime {
     final long deadline = DEADLINE.get();
     long result = deadline - System.currentTimeMillis();
     if (result < 0) {
-      throw new TimeoutException("Deadline passed " + ISODateTimeFormat.basicDateTime().print(deadline));
+      throw new TimeoutException("Deadline passed " + TS_FORMAT.format(Instant.ofEpochMilli(deadline)));
     } else {
       return result;
     }

@@ -32,7 +32,7 @@
 package org.spf4j.io;
 
 import java.io.IOException;
-import org.joda.time.format.ISODateTimeFormat;
+import java.time.Instant;
 
 /**
  *
@@ -47,7 +47,7 @@ public class IOTimeoutException extends IOException {
 
     public IOTimeoutException(final long deadline, final long millisAfterDeadline) {
         super("Timeout encountered, " + millisAfterDeadline + " ms after deadline: "
-                + ISODateTimeFormat.dateTime().print(deadline));
+                + org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(deadline)));
         this.deadline = deadline;
         this.millisAfterDeadline = deadline;
     }

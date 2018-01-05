@@ -32,8 +32,9 @@
 package org.spf4j.perf.impl.chart;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import org.jfree.chart.axis.NumberTickUnit;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * This class although implements Serializable is not implemented correctly to serialize. Since I do not intend to
@@ -68,7 +69,7 @@ class TimestampTickUnitImpl extends NumberTickUnit {
     } else {
       val = timestamps[ival];
     }
-    return formatter.print(val);
+    return formatter.format(Instant.ofEpochMilli(val));
   }
 
   @Override

@@ -35,12 +35,12 @@ import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.io.AppendableLimiterWithOverflow;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.appenders.LocalDateAppender;
 import org.spf4j.ssdump2.avro.AMethod;
 
 /**
@@ -79,7 +79,7 @@ public class Slf4jMessageFormatterTest {
         StringBuilder sb = new StringBuilder();
         final long currentTimeMillis = System.currentTimeMillis();
         Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, new java.sql.Date(currentTimeMillis));
-        Assert.assertEquals("bla bla " + LocalDateAppender.FMT.print(currentTimeMillis), sb.toString());
+        Assert.assertEquals("bla bla " + org.spf4j.base.Runtime.DT_FORMAT.format(Instant.now()), sb.toString());
         sb.setLength(0);
         AMethod method = AMethod.newBuilder().setName("m1").setDeclaringClass("c1").build();
         int written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method);

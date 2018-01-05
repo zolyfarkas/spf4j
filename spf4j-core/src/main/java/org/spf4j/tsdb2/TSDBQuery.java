@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,8 +53,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Either;
 import org.spf4j.base.Strings;
 import org.spf4j.io.Csv;
@@ -67,8 +66,6 @@ import org.spf4j.tsdb2.avro.TableDef;
  * @author zoly
  */
 public final class TSDBQuery {
-
-  private static final DateTimeFormatter DATE_FMT = ISODateTimeFormat.dateTime();
 
   private TSDBQuery() {
   }
@@ -253,7 +250,7 @@ public final class TSDBQuery {
     long[] timestamps = data.getTimeStamps();
     long[][] values = data.getValues();
     for (int i = 0; i < timestamps.length; i++) {
-      Csv.writeCsvElement(DATE_FMT.print(timestamps[i]), writer);
+      Csv.writeCsvElement(org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);
       for (long val : values[i]) {
         writer.append(',');
         Csv.writeCsvElement(Long.toString(val), writer);
@@ -268,7 +265,6 @@ public final class TSDBQuery {
       return;
     }
     ListMultimap<String, TableDef> tables = getTables(tsDB, tableNames);
-    DateTimeFormatter formatter = ISODateTimeFormat.dateTime();
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
       TableDef table = tables.values().iterator().next();
@@ -289,7 +285,7 @@ public final class TSDBQuery {
         for (int i = 0; i < timestamps.length; i++) {
           Csv.writeCsvElement(tEntry.getKey(), writer);
           writer.append(',');
-          Csv.writeCsvElement(formatter.print(timestamps[i]), writer);
+          Csv.writeCsvElement(org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);
           for (long val : values[i]) {
             writer.append(',');
             Csv.writeCsvElement(Long.toString(val), writer);

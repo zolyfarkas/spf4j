@@ -55,8 +55,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.joda.time.DateTime;
 import org.spf4j.base.Pair;
+import org.spf4j.base.SuppressForbiden;
 import org.spf4j.tsdb2.Charts;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBQuery.TableDefEx;
@@ -76,6 +76,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form TSDBViewJInternalFrame
      */
+    @SuppressForbiden
     public TSDB2ViewJInternalFrame(final File tsDb) throws IOException {
         super(tsDb.getPath());
         this.tsDb = tsDb;
@@ -117,7 +118,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
         }
         measurementTree.setModel(new DefaultTreeModel(root));
         measurementTree.setVisible(true);
-        this.startDate.setValue(new DateTime(startDateMillis).toDate());
+        this.startDate.setValue(new Date(startDateMillis));
     }
 
     /**

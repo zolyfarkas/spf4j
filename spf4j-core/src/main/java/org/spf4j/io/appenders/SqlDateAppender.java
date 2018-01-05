@@ -43,7 +43,7 @@ public final class SqlDateAppender implements ObjectAppender<Date> {
 
     @Override
     public void append(final Date date, final Appendable appendTo) throws IOException {
-        LocalDateAppender.FMT.printTo(appendTo, date.getTime());
+        org.spf4j.base.Runtime.DT_FORMAT.formatTo(date.toLocalDate(), appendTo);
     }
     
 }
