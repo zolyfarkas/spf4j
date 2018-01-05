@@ -93,7 +93,7 @@ public final class Runtime {
   public static final String USER_HOME = System.getProperty("user.home");
   public static final String JAVA_HOME = System.getProperty("java.home");
   private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
-  public static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
+  private static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
 
     @Override
     protected Long initialValue() {
