@@ -43,7 +43,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,6 +54,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -93,13 +93,6 @@ public final class Runtime {
   public static final String USER_HOME = System.getProperty("user.home");
   public static final String JAVA_HOME = System.getProperty("java.home");
   private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
-  private static final ThreadLocal<Long> DEADLINE = new ThreadLocal<Long>() {
-
-    @Override
-    protected Long initialValue() {
-      return Long.MAX_VALUE;
-    }
-  };
 
   /**
    * Unix PID identifying your process in the OC image it is running.
@@ -470,21 +463,30 @@ public final class Runtime {
   }
 
   public static long getDeadline() {
-    return DEADLINE.get();
-  }
-
-  public static long millisToDeadline() throws TimeoutException {
-    final long deadline = DEADLINE.get();
-    long result = deadline - System.currentTimeMillis();
-    if (result < 0) {
-      throw new TimeoutException("Deadline passed " + TS_FORMAT.format(Instant.ofEpochMilli(deadline)));
+    ExecutionContext ec = ExecutionContext.current();
+    if (ec == null) {
+      return System.currentTimeMillis() + Timing.MAX_MS_SPAN;
     } else {
-      return result;
+      return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ec.getDeadlineNanos());
     }
   }
 
-  public static void setDeadline(final long deadline) {
-    DEADLINE.set(deadline);
+  public static long millisToDeadline() throws TimeoutException {
+    ExecutionContext ec = ExecutionContext.current();
+    if (ec == null) {
+      return Timing.MAX_MS_SPAN;
+    } else {
+      return TimeUnit.NANOSECONDS.toMillis(ec.getDeadlineNanos() - System.nanoTime());
+    }
+  }
+
+  public static boolean setContextDeadline(final long deadline) {
+    ExecutionContext ec = ExecutionContext.current();
+    if (ec != null) {
+      ec.setDeadlineNanos(Timing.getCurrentTiming().fromEpochMillisToNanoTime(deadline));
+      return true;
+    }
+    return false;
   }
 
   /**

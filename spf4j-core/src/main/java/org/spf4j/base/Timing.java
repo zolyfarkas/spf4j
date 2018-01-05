@@ -43,7 +43,7 @@ import org.spf4j.concurrent.DefaultScheduler;
 @Beta
 public final class Timing {
 
-  private static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);
+  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);
 
   private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong("spf4j.timing.updateIntervalMinutes", 60);
 
