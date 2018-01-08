@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import com.google.common.annotations.Beta;
 import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
 import java.util.Map;
@@ -95,6 +96,7 @@ public final class ExecutionContext implements AutoCloseable {
   }
 
   @Nullable
+  @Beta
   public synchronized <T> T put(@Nonnull final T data) {
     if (baggage.isEmpty()) {
       baggage = new THashMap<>(2);
@@ -103,6 +105,7 @@ public final class ExecutionContext implements AutoCloseable {
   }
 
   @Nullable
+  @Beta
   public synchronized <T> T get(@Nonnull final Class<T> clasz) {
     return (T) baggage.get(clasz);
   }
