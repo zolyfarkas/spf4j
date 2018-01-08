@@ -17,6 +17,7 @@ package org.spf4j.failsafe;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  *
@@ -25,9 +26,9 @@ import java.util.Map;
 public class Server {
 
 
-  public final Map<String, Response> responses;
+  public final Map<String, Function<Request, Response>> responses;
 
-  public Exception breakException;
+  private volatile Exception breakException;
 
   public Server() {
     responses = new HashMap<>();
@@ -37,7 +38,7 @@ public class Server {
     breakException = ex;
   }
 
-  public void setResponse(String url, Response response) {
+  public void setResponse(String url, Function<Request, Response> response) {
     responses.put(url, response);
   }
 
@@ -51,7 +52,7 @@ public class Server {
     if (timeout < 0) {
       return new Response(Response.Type.TRANSIENT_ERROR, timeout);
     }
-    Response resp = responses.get(request.getUrl());
+    Response resp = responses.get(request.getUrl()).apply(request);
     if (resp == null) {
       return new Response(Response.Type.CLIENT_ERROR, null);
     } else {

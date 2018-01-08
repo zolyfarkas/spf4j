@@ -31,6 +31,7 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
@@ -45,10 +46,11 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class RetryDecision<C extends Callable> {
 
-  private static final RetryDecision<?> ABORT = new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, null, null);
+  private static final RetryDecision<?> ABORT = new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, null,
+          null, Optional.empty());
 
   public enum Type {
-    /** Do not retry operation */
+    /** Do not retry operation*/
     Abort,
     /** Retry operation */
     Retry
@@ -60,12 +62,15 @@ public class RetryDecision<C extends Callable> {
 
   private final Exception exception;
 
+  private final Optional<Object> result;
+
   private final C newCallable;
 
   private RetryDecision(final Type decisionType, final long delay,
           final TimeUnit timeUnit,
           @Nullable final Exception exception,
-          final C newCallable) {
+          final C newCallable,
+          final Optional<Object> result) {
     if (decisionType == Type.Abort && delay > 0) {
       throw new IllegalArgumentException("Cannot add a delay to Abort " + delay);
     }
@@ -73,6 +78,7 @@ public class RetryDecision<C extends Callable> {
     this.delayNanos = timeUnit.toNanos(delay);
     this.exception = exception;
     this.newCallable = newCallable;
+    this.result = result;
   }
 
   /**
@@ -81,19 +87,25 @@ public class RetryDecision<C extends Callable> {
    * @return a Abort decision with a custom Exception.
    */
   @CheckReturnValue
-  public static RetryDecision abort(@Nonnull final Exception exception) {
-    return new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, exception, null);
+  public static RetryDecision abortThrow(@Nonnull final Exception exception) {
+    return new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, exception, null, Optional.empty());
   }
 
   @CheckReturnValue
+  public static RetryDecision abortReturn(final Object result) {
+    return new RetryDecision(Type.Abort, -1, TimeUnit.NANOSECONDS, null, null, Optional.of(result));
+  }
+
+
+  @CheckReturnValue
   public static <C extends Callable> RetryDecision<C> retry(final long retryNanos, @Nonnull final C callable) {
-    return new RetryDecision(Type.Retry, retryNanos, TimeUnit.NANOSECONDS,  null, callable);
+    return new RetryDecision(Type.Retry, retryNanos, TimeUnit.NANOSECONDS,  null, callable, Optional.empty());
   }
 
 
   @CheckReturnValue
   public static <C extends Callable> RetryDecision<C> retryDefault(@Nonnull final C callable) {
-    return new RetryDecision(Type.Retry, -1, TimeUnit.NANOSECONDS,  null, callable);
+    return new RetryDecision(Type.Retry, -1, TimeUnit.NANOSECONDS,  null, callable, Optional.empty());
   }
 
   /**
@@ -107,6 +119,10 @@ public class RetryDecision<C extends Callable> {
   @CheckReturnValue
   public final Type getDecisionType() {
     return decisionType;
+  }
+
+  public Optional<Object> getResult() {
+    return result;
   }
 
   /**
@@ -124,7 +140,7 @@ public class RetryDecision<C extends Callable> {
 
   @CheckReturnValue
   public final RetryDecision<C> withDelayNanos(final int delayNanos) {
-    return new RetryDecision<>(decisionType, delayNanos, TimeUnit.NANOSECONDS, exception, newCallable);
+    return new RetryDecision<>(decisionType, delayNanos, TimeUnit.NANOSECONDS, exception, newCallable, result);
   }
 
   @CheckReturnValue

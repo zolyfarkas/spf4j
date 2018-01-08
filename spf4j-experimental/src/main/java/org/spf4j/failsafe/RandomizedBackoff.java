@@ -31,7 +31,12 @@ public class RandomizedBackoff implements RetryDelaySupplier {
 
   @Override
   public long nextDelay() {
-    return ThreadLocalRandom.current().nextLong(wrapped.nextDelay());
+    long nextDelay = wrapped.nextDelay();
+    if (nextDelay > 1) {
+      return ThreadLocalRandom.current().nextLong(nextDelay);
+    } else {
+      return nextDelay;
+    }
   }
 
   @Override

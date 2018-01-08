@@ -33,6 +33,7 @@ package org.spf4j.failsafe;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -121,6 +122,12 @@ public final class Retry {
             lastExChain = Throwables.suppress(lastEx, lastExChain);
           } else {
             lastExChain = lastEx;
+          }
+        } else {
+          Optional<T> newres = (Optional<T>) decision.getResult();
+          if (newres.isPresent()) {
+            result = newres.get();
+            lastEx = null;
           }
         }
     }

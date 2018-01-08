@@ -67,5 +67,9 @@ public final class Response {
     return Objects.equals(this.payload, other.payload);
   }
 
+  @Override
+  public String toString() {
+    return "Response{" + "type=" + type + ", payload=" + payload + '}';
+  }
 
 }
