@@ -38,9 +38,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.TimeSource;
+import org.spf4j.base.Timing;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -73,7 +77,7 @@ public final class PipedOutputStream extends OutputStream {
   private boolean writerClosed;
   private int nrReadStreams;
   private final SizedRecyclingSupplier<byte[]> bufferProvider;
-  private final Long globalDeadline;
+  private final Long globalDeadlineNanos;
 
   public PipedOutputStream() {
     this(8192);
@@ -83,17 +87,18 @@ public final class PipedOutputStream extends OutputStream {
     this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);
   }
 
-  public PipedOutputStream(final int bufferSize, final long globalDeadline) {
-    this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW, globalDeadline);
+  public PipedOutputStream(final int bufferSize, final long globalDeadlineMillis) {
+    this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW, globalDeadlineMillis);
   }
 
   public PipedOutputStream(final int bufferSize,
           final SizedRecyclingSupplier<byte[]> bufferProvider) {
-    this(bufferSize, bufferProvider, null);
+    this(null, bufferSize, bufferProvider);
   }
 
+  @Deprecated
   public PipedOutputStream(final int bufferSize,
-          final SizedRecyclingSupplier<byte[]> bufferProvider, @Nullable final Long globalDeadline) {
+          final SizedRecyclingSupplier<byte[]> bufferProvider, @Nullable final Long globalDeadlineMillis) {
     if (bufferSize < 2) {
       throw new IllegalArgumentException("Illegal buffer size " + bufferSize);
     }
@@ -104,20 +109,38 @@ public final class PipedOutputStream extends OutputStream {
     readerPerceivedEndIdx = 0;
     writerClosed = false;
     nrReadStreams = 0;
-    this.globalDeadline = globalDeadline;
+    this.globalDeadlineNanos = globalDeadlineMillis != null
+            ? Timing.getCurrentTiming().fromEpochMillisToNanoTime(globalDeadlineMillis)
+            : null;
+  }
+
+
+  public PipedOutputStream(@Nullable final Long globalDeadlineNanos, final int bufferSize,
+          final SizedRecyclingSupplier<byte[]> bufferProvider) {
+    if (bufferSize < 2) {
+      throw new IllegalArgumentException("Illegal buffer size " + bufferSize);
+    }
+    this.bufferProvider = bufferProvider;
+    buffer = bufferProvider.get(bufferSize);
+    startIdx = 0;
+    endIdx = 0;
+    readerPerceivedEndIdx = 0;
+    writerClosed = false;
+    nrReadStreams = 0;
+    this.globalDeadlineNanos = globalDeadlineNanos;
   }
 
   @Override
   public void write(final byte[] b, final int off, final int len) throws IOException {
-    long deadline = getDeadline();
+    long deadline = getNanoDeadline();
     writeUntil(b, off, len, deadline);
   }
 
-  public long getDeadline() {
-    if (globalDeadline == null) {
-      return org.spf4j.base.Runtime.getDeadline();
+  public long getNanoDeadline() {
+    if (globalDeadlineNanos == null) {
+      return ExecutionContext.getNanosToDeadline();
     } else {
-      return globalDeadline;
+      return globalDeadlineNanos;
     }
   }
 
@@ -127,12 +150,12 @@ public final class PipedOutputStream extends OutputStream {
       synchronized (sync) {
         int a2w = 0;
         while (!writerClosed && nrReadStreams > 0 && (a2w = availableToWrite()) < 1) {
-          long timeToWait = deadline - System.currentTimeMillis();
+          long timeToWait = deadline - TimeSource.nanoTime();
           if (timeToWait <= 0) {
             throw new IOTimeoutException(deadline, -timeToWait);
           }
           try {
-            sync.wait(timeToWait);
+            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
           } catch (InterruptedException ex) {
             throw new IOException("Interrupted while writing " + Arrays.toString(b), ex);
           }
@@ -164,7 +187,7 @@ public final class PipedOutputStream extends OutputStream {
 
   @Override
   public void write(final int b) throws IOException {
-    long deadline = getDeadline();
+    long deadline = getNanoDeadline();
     writeUntil(b, deadline);
   }
 
@@ -173,11 +196,11 @@ public final class PipedOutputStream extends OutputStream {
       int a2w = 0;
       while (!writerClosed && nrReadStreams > 0 && (a2w = availableToWrite()) < 1) {
         try {
-          long timeToWait = deadline - System.currentTimeMillis();
+          long timeToWait = deadline - TimeSource.nanoTime();
           if (timeToWait <= 0) {
             throw new IOTimeoutException(deadline, -timeToWait);
           }
-          sync.wait(timeToWait);
+          TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
         } catch (InterruptedException ex) {
           throw new IOException("Interrupted while writing " + b, ex);
         }
@@ -263,7 +286,7 @@ public final class PipedOutputStream extends OutputStream {
 
         @Override
         public int read() throws IOException {
-          long deadline = getDeadline();
+          long deadline = getNanoDeadline();
           return readUntil(deadline);
         }
 
@@ -271,12 +294,12 @@ public final class PipedOutputStream extends OutputStream {
           synchronized (sync) {
             int availableToRead = 0;
             while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-              long timeToWait = deadline - System.currentTimeMillis();
+              long timeToWait = deadline - TimeSource.nanoTime();
               if (timeToWait <= 0) {
                 throw new IOTimeoutException(deadline, -timeToWait);
               }
               try {
-                sync.wait(timeToWait);
+                TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
               } catch (InterruptedException ex) {
                 throw new IOException("Interrupted while reading from "
                         + PipedOutputStream.this, ex);
@@ -303,7 +326,7 @@ public final class PipedOutputStream extends OutputStream {
 
         @Override
         public int read(final byte[] b, final int off, final int len) throws IOException {
-          long deadline = getDeadline();
+          long deadline = getNanoDeadline();
           return readUntil(len, b, off, deadline);
         }
 
@@ -313,12 +336,12 @@ public final class PipedOutputStream extends OutputStream {
           synchronized (sync) {
             int availableToRead = 0;
             while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-              long timeToWait = deadline - System.currentTimeMillis();
+              long timeToWait = deadline - TimeSource.nanoTime();
               if (timeToWait <= 0) {
                 throw new IOTimeoutException(deadline, -timeToWait);
               }
               try {
-                sync.wait(timeToWait);
+                TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
               } catch (InterruptedException ex) {
                 throw new IOException("Interrupted while reading from " + PipedOutputStream.this, ex);
               }

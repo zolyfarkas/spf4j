@@ -39,6 +39,8 @@ import org.spf4j.annotations.Retry;
 import org.spf4j.annotations.VoidPredicate;
 import org.spf4j.base.Callables;
 import org.spf4j.base.Callables.TimeoutCallable;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.Timing;
 
 /**
  * Aspect that measures execution time and does performance logging for all methods annotated with: PerformanceMonitor
@@ -67,14 +69,12 @@ public final class RetryAspect {
         }
       }
     };
-    final long origDeadline = org.spf4j.base.Runtime.getDeadline();
-    org.spf4j.base.Runtime.setDeadline(timeoutCallable.getDeadline());
-    try {
+    try (ExecutionContext ctx = ExecutionContext.start(
+            Timing.getCurrentTiming().fromEpochMillisToNanoTime(timeoutCallable.getDeadline()))
+            ) {
       return Callables.executeWithRetry(timeoutCallable, annot.immediateRetries(), annot.retryDelayMillis(),
               annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY
               : annot.exRetry().newInstance(), Exception.class);
-    } finally {
-      org.spf4j.base.Runtime.setDeadline(origDeadline);
     }
 
   }
