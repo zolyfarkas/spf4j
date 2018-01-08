@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import org.spf4j.base.TimeSource;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,15 +28,15 @@ public class TimeSourceTest {
 
   @Test
   public void testTimeout() {
-    long nano1 = TimeSource.getNanos();
-    long nano2 = TimeSource.getNanos();
+    long nano1 = TimeSource.nanoTime();
+    long nano2 = TimeSource.nanoTime();
     long deadline = nano1 + TimeSource.MAX_TIMEOUT;
     Assert.assertTrue(nano2 - nano1 >= 0);
     Assert.assertEquals(TimeSource.MAX_TIMEOUT, deadline - nano1);
 
     long deadlineNanos = TimeSource.getDeadlineNanos(Long.MAX_VALUE, TimeUnit.MINUTES);
-    System.out.println(deadlineNanos - TimeSource.getNanos());
-    Assert.assertTrue(deadlineNanos - TimeSource.getNanos() > 0);
+    System.out.println(deadlineNanos - TimeSource.nanoTime());
+    Assert.assertTrue(deadlineNanos - TimeSource.nanoTime() > 0);
   }
 
 }

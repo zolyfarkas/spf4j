@@ -489,19 +489,6 @@ public final class Runtime {
   }
 
   /**
-   * @deprecated Use ExecutionContext
-   */
-  @Deprecated
-  public static boolean setDeadline(final long deadline) {
-    ExecutionContext ec = ExecutionContext.current();
-    if (ec != null) {
-      ec.setDeadlineNanos(Timing.getCurrentTiming().fromEpochMillisToNanoTime(deadline));
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * Attempts to run the GC in a verifiable way.
    *
    * @param timeoutMillis - timeout for GC attempt

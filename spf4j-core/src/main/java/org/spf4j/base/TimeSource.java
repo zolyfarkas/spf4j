@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.failsafe;
+package org.spf4j.base;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -24,12 +24,10 @@ import java.util.function.LongSupplier;
  */
 public final class TimeSource {
 
-  public static final long MAX_TIMEOUT= Long.MAX_VALUE;
-
   private static final LongSupplier TIMESUPP;
 
   static {
-    String cfgTimeSource = System.getProperty("spf4j.failsafe.timeSource");
+    String cfgTimeSource = System.getProperty("spf4j.timeSource");
     if (cfgTimeSource == null) {
       TIMESUPP = () -> System.nanoTime();
     } else {
@@ -42,7 +40,14 @@ public final class TimeSource {
 
   }
 
-  public static long getNanos() {
+  private TimeSource() { }
+
+  /**
+   * Get JVM. time source. Default implementation calls System.nanotime.
+   *
+   * @return
+   */
+  public static long nanoTime() {
     return TIMESUPP.getAsLong();
   }
 
@@ -50,11 +55,12 @@ public final class TimeSource {
     if (timeout < 0) {
       throw new IllegalArgumentException("Invalid timeout " + timeout + " " + timeUnit);
     }
-    return getNanos() + timeUnit.toNanos(timeout);
+    return nanoTime() + timeUnit.toNanos(timeout);
   }
 
-  public static long getTimeToDeadlineStrict(final long deadlineNanos, final TimeUnit timeUnit) throws TimeoutException {
-    long timeoutNanos = deadlineNanos - getNanos();
+  public static long getTimeToDeadlineStrict(final long deadlineNanos, final TimeUnit timeUnit)
+          throws TimeoutException {
+    long timeoutNanos = deadlineNanos - nanoTime();
     if (timeoutNanos < 0) {
       throw new TimeoutException("Exceeded deadline " + deadlineNanos + " with " + (-timeoutNanos));
     }
@@ -62,7 +68,7 @@ public final class TimeSource {
   }
 
   public static long getTimeToDeadline(final long deadlineNanos, final TimeUnit timeUnit) {
-    long timeoutNanos = deadlineNanos - getNanos();
+    long timeoutNanos = deadlineNanos - nanoTime();
     return timeUnit.convert(timeoutNanos, TimeUnit.NANOSECONDS);
   }
 

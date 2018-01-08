@@ -31,63 +31,123 @@
  */
 package org.spf4j.base;
 
+import gnu.trove.map.hash.THashMap;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public final class ExecutionContext implements AutoCloseable {
 
-  private static final ThreadLocal<ExecutionContext> DEADLINE = new ThreadLocal<ExecutionContext>();
+  private static final ThreadLocal<ExecutionContext> EXEC_CTX = new ThreadLocal<ExecutionContext>();
+
+  /**
+   * The previous context on Thread.
+   */
+  private final ExecutionContext tParent;
 
   private final ExecutionContext parent;
 
-  private long deadlineNanos;
+  private final long deadlineNanos;
 
-  private ExecutionContext(final ExecutionContext parent, final long deadlineNanos) {
+  private Map<Class, Object> baggage;
+
+  @SuppressWarnings("unchecked")
+  private ExecutionContext(final ExecutionContext parent, final ExecutionContext tParent, final long deadlineNanos) {
     this.deadlineNanos = deadlineNanos;
+    this.tParent = tParent;
     this.parent = parent;
+    this.baggage = Collections.EMPTY_MAP;
   }
 
   public long getDeadlineNanos() {
     return deadlineNanos;
   }
 
-  public void setDeadlineNanos(final long deadlineNanos) {
-    this.deadlineNanos = deadlineNanos;
+  public long getUnitsToDeadline(final TimeUnit unit) {
+    return unit.convert(deadlineNanos - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
+  }
+
+  public ExecutionContext subCtx() {
+    return subCtx(deadlineNanos);
+  }
+
+  public ExecutionContext subCtx(final long timeout, final TimeUnit tu) {
+    return subCtx(TimeSource.getDeadlineNanos(timeout, tu));
+  }
+
+  public ExecutionContext subCtx(final long pdeadlineNanos) {
+    ExecutionContext xCtx = EXEC_CTX.get();
+    ExecutionContext ctx = new ExecutionContext(this, xCtx, pdeadlineNanos);
+    EXEC_CTX.set(ctx);
+    return ctx;
   }
 
   @Nullable
   public static ExecutionContext current() {
-    return DEADLINE.get();
+    return EXEC_CTX.get();
   }
 
+  @Nullable
+  public synchronized <T> T put(@Nonnull final T data) {
+    if (baggage.isEmpty()) {
+      baggage = new THashMap<>(2);
+    }
+    return (T) baggage.put(data.getClass(), data);
+  }
+
+  @Nullable
+  public synchronized <T> T get(@Nonnull final Class<T> clasz) {
+    return (T) baggage.get(clasz);
+  }
+
+  /**
+   * start a execution context.
+   * @param deadlineNanos the deadline for this context. (System.nanotime)
+   * @return the execution context.
+   */
   public static ExecutionContext start(final long deadlineNanos) {
-    ExecutionContext ctx = new ExecutionContext(DEADLINE.get(), deadlineNanos);
-    DEADLINE.set(ctx);
+    ExecutionContext xCtx = EXEC_CTX.get();
+    ExecutionContext ctx = new ExecutionContext(xCtx, xCtx, deadlineNanos);
+    EXEC_CTX.set(ctx);
     return ctx;
+  }
+
+  /**
+   * start a execution context.
+   * @param timeout
+   * @param tu
+   * @return
+   */
+  public static ExecutionContext start(final long timeout, final TimeUnit tu) {
+    return start(TimeSource.getDeadlineNanos(timeout, tu));
   }
 
   public static long getContextDeadlineNanos() {
     ExecutionContext ec = ExecutionContext.current();
     if (ec == null) {
-      return System.nanoTime() + Long.MAX_VALUE;
+      return TimeSource.nanoTime() + Long.MAX_VALUE;
     } else {
       return ec.getDeadlineNanos();
     }
   }
 
   public static long getSecondsToDeadline() {
-    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - System.nanoTime());
+    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - TimeSource.nanoTime());
   }
 
   public static long getMillisToDeadline() {
-    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - System.nanoTime());
+    return TimeUnit.NANOSECONDS.toMillis(getContextDeadlineNanos() - TimeSource.nanoTime());
   }
 
   public static long getNanosToDeadline() {
-    return getContextDeadlineNanos() - System.nanoTime();
+    return getContextDeadlineNanos() - TimeSource.nanoTime();
   }
 
   public ExecutionContext getParent() {
@@ -96,7 +156,7 @@ public final class ExecutionContext implements AutoCloseable {
 
   @Override
   public void close()  {
-    DEADLINE.set(this.parent);
+    EXEC_CTX.set(this.tParent);
   }
 
 }

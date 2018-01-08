@@ -29,36 +29,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.failsafe;
+package org.spf4j.base;
 
-import org.spf4j.base.TimeSource;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Test;
+import org.spf4j.concurrent.DefaultExecutor;
 
 /**
- * A failsafe Callable with a deadline.
  *
  * @author Zoltan Farkas
  */
-public abstract class AbstractTimeoutCallable<T> implements TimeoutCallable<T> {
+public class ExecutionContextTest {
 
-  private final long deadlineNanos;
-
-  public AbstractTimeoutCallable(final long deadlineNanos) {
-    this.deadlineNanos = deadlineNanos;
-  }
-
-  public AbstractTimeoutCallable(final long timout, final TimeUnit unit) {
-    this(TimeSource.getDeadlineNanos(timout, unit));
-  }
-
-  @Override
-  public final long getDeadlineNanos() {
-    return deadlineNanos;
-  }
-
-  @Override
-  public String toString() {
-    return super.toString() + "{" + "deadlineNanos=" + deadlineNanos + '}';
+  @Test
+  public void testExecutionContext() throws InterruptedException, ExecutionException {
+    try (ExecutionContext ec = ExecutionContext.start(TimeSource.getDeadlineNanos(10, TimeUnit.SECONDS))) {
+      long unitsToDeadline = ExecutionContext.current().getUnitsToDeadline(TimeUnit.SECONDS);
+      Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
+      Assert.assertThat(unitsToDeadline, Matchers.greaterThanOrEqualTo(9L));
+      Future<?> submit = DefaultExecutor.INSTANCE.submit(() -> {
+        try (ExecutionContext subCtx = ec.subCtx()) {
+          long utd = ExecutionContext.current().getUnitsToDeadline(TimeUnit.SECONDS);
+          Assert.assertThat(utd, Matchers.lessThanOrEqualTo(10L));
+          Assert.assertThat(utd, Matchers.greaterThanOrEqualTo(9L));
+          Assert.assertEquals(ec, subCtx.getParent());
+        }
+        Assert.assertNull(ExecutionContext.current());
+      });
+      submit.get();
+    }
+    Assert.assertNull(ExecutionContext.current());
   }
 
 }

@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import org.spf4j.base.TimeSource;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 

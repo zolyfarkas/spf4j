@@ -49,7 +49,7 @@ import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.RetryPredicate;
-import org.spf4j.failsafe.TimeSource;
+import org.spf4j.base.TimeSource;
 
 /**
  * Executor that will execute Callables with retry.
