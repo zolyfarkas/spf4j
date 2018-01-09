@@ -65,7 +65,8 @@ public final class Retry {
           final C pwhat,
           final RetryPredicate<T, C> retryOnReturnVal,
           final RetryPredicate<Exception, C> retryOnException,
-          final Class<EX> exceptionClass)
+          final Class<EX> exceptionClass,
+          final int maxExceptionChain)
           throws InterruptedException, TimeoutException, EX {
     C what = pwhat;
     T result = null;
@@ -105,7 +106,7 @@ public final class Retry {
       } catch (Exception e) { // only EX and RuntimeException
         lastEx = e;
         if (lastExChain != null) {
-          lastExChain = Throwables.suppress(lastEx, lastExChain);
+          lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
         } else {
           lastExChain = lastEx;
         }
@@ -119,7 +120,7 @@ public final class Retry {
         if (ex != null) {
           lastEx = ex;
           if (lastExChain != null) {
-            lastExChain = Throwables.suppress(lastEx, lastExChain);
+            lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
           } else {
             lastExChain = lastEx;
           }

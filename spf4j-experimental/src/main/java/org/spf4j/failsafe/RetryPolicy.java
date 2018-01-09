@@ -48,22 +48,26 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class RetryPolicy<T, C extends Callable<T>> {
 
+  private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.maxExceptionChain", 10);
+
   private final RetryPredicate<T, C> retryOnReturnVal;
   private final RetryPredicate<Exception, C> retryOnException;
+  private final int maxExceptionChain;
 
   public RetryPolicy(final RetryPredicate<T, C> retryOnReturnVal,
-          final RetryPredicate<Exception, C> retryOnException) {
+          final RetryPredicate<Exception, C> retryOnException, final int maxExceptionChain) {
     this.retryOnReturnVal = retryOnReturnVal;
     this.retryOnException = retryOnException;
+    this.maxExceptionChain = maxExceptionChain;
   }
 
   public RetryPolicy(final RetryPredicate<Exception, C> retryOnException) {
-    this(RetryPredicate.NORETRY, retryOnException);
+    this(RetryPredicate.NORETRY, retryOnException, MAX_EX_CHAIN_DEFAULT);
   }
 
   public final <EX extends Exception> T execute(final C pwhat, final Class<EX> exceptionClass)
           throws InterruptedException, TimeoutException, EX {
-    return Retry.execute(pwhat, getRetryOnReturnVal(), getRetryOnException(), exceptionClass);
+    return Retry.execute(pwhat, getRetryOnReturnVal(), getRetryOnException(), exceptionClass, maxExceptionChain);
   }
 
   public RetryPredicate<T, C> getRetryOnReturnVal() {
@@ -117,7 +121,12 @@ public class RetryPolicy<T, C extends Callable<T>> {
     private RetryPredicate<T, C> resultPredicate = null;
     private RetryPredicate<Exception, C> exceptionPredicate = null;
 
+    private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
+    public Builder<T, C> withMaxExceptionChain(final int maxExChain) {
+      maxExceptionChain = maxExChain;
+      return this;
+    }
 
     @CheckReturnValue
     public  PredicateBuilder<T, C> resultPredicateBuilder() {
@@ -141,7 +150,7 @@ public class RetryPolicy<T, C extends Callable<T>> {
         rp = new TimeoutRetryPredicate(rp);
         ep = new TimeoutRetryPredicate(ep);
       }
-      return new RetryPolicy<>(rp, ep);
+      return new RetryPolicy<>(rp, ep, maxExceptionChain);
     }
 
   }
