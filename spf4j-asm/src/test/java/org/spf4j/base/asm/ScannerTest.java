@@ -49,12 +49,16 @@ public final class ScannerTest {
 
   public static class A {
 
+    /**
+     * Test method for override, this implementation returns a Object.
+     * @return some test object.
+     */
     Object getValue() {
       return new Object();
     }
   }
 
-  public static class B extends A {
+  public static final class B extends A {
 
     @Override
     String getValue() {
@@ -110,7 +114,8 @@ public final class ScannerTest {
             Matchers.allOf(
                     Matchers.hasProperty("caleeMethodName",
                             Matchers.equalTo("testSomeMethod")),
-                    Matchers.hasProperty("invokedMethod", Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
+                    Matchers.hasProperty("invokedMethod",
+                            Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
                     Matchers.hasProperty("parameters", Matchers.arrayContaining("some.property", "default value")))));
 
      Assert.assertThat(findUsages2, CoreMatchers.hasItem(

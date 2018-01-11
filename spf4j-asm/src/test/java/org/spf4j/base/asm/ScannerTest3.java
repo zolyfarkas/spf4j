@@ -78,7 +78,8 @@ public class ScannerTest3 {
     Assert.assertThat(findUsages2, CoreMatchers.hasItem(
         Matchers.allOf(
              Matchers.hasProperty("invokedMethod", Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
-             Matchers.hasProperty("parameters", Matchers.hasItemInArray("spf4j.jdbc.heartBeats.sql.currTsSqlFunction")))));
+             Matchers.hasProperty("parameters",
+                     Matchers.hasItemInArray("spf4j.jdbc.heartBeats.sql.currTsSqlFunction")))));
   }
 
 }

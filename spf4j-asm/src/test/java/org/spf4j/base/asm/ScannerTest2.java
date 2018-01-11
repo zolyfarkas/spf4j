@@ -66,8 +66,10 @@ public class ScannerTest2 {
     System.out.println("Scan 1 = " + findUsages2);
     Assert.assertThat(findUsages2, CoreMatchers.hasItem(
             Matchers.allOf(
-                    Matchers.hasProperty("invokedMethod", Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
-                    Matchers.hasProperty("parameters", Matchers.hasItemInArray("spf4j.perf.ms.defaultSsdumpFilePrefix")))));
+                    Matchers.hasProperty("invokedMethod",
+                            Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
+                    Matchers.hasProperty("parameters",
+                            Matchers.hasItemInArray("spf4j.perf.ms.defaultSsdumpFilePrefix")))));
   }
 
 }
