@@ -40,80 +40,76 @@ import org.junit.Test;
  */
 public final class StringsTest {
 
-    @Test
-    public void testDistance() {
-        Assert.assertEquals(3, Strings.distance("abc", "abcdef"));
-        Assert.assertEquals(3, Strings.distance("def", "abcdef"));
-        Assert.assertEquals(1, Strings.distance("abc", "bc"));
-        Assert.assertEquals(3, Strings.distance("abc", "def"));
-        Assert.assertEquals(1, Strings.distance("zoltran", "zoltan"));
-    }
+  @Test
+  public void testDistance() {
+    Assert.assertEquals(3, Strings.distance("abc", "abcdef"));
+    Assert.assertEquals(3, Strings.distance("def", "abcdef"));
+    Assert.assertEquals(1, Strings.distance("abc", "bc"));
+    Assert.assertEquals(3, Strings.distance("abc", "def"));
+    Assert.assertEquals(1, Strings.distance("zoltran", "zoltan"));
+  }
 
-    @Test
-    public void testEscaping() {
-        String res = Strings.unescape("a\\n");
-        Assert.assertEquals("a\n", res);
-    }
+  @Test
+  public void testEscaping() {
+    String res = Strings.unescape("a\\n");
+    Assert.assertEquals("a\n", res);
+  }
 
-    @Test
-    public void testUnsafeOps() {
-       String testString = "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&\u63A5\u53D7*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
-       char [] chars = Strings.steal(testString);
-       String otherString = Strings.wrap(chars);
-       Assert.assertEquals(testString, otherString);
+  @Test
+  public void testUnsafeOps() {
+    String testString = "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&\u63A5\u53D7*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
+    char[] chars = Strings.steal(testString);
+    String otherString = Strings.wrap(chars);
+    Assert.assertEquals(testString, otherString);
 
-       byte [] bytes = Strings.toUtf8(testString);
-       otherString = Strings.fromUtf8(bytes);
-       Assert.assertEquals(testString, otherString);
+    byte[] bytes = Strings.toUtf8(testString);
+    otherString = Strings.fromUtf8(bytes);
+    Assert.assertEquals(testString, otherString);
 
-    }
+  }
 
-    @Test
-    public void testSubSequence() {
-        String str = "dsfhjgsdjfgwuergfedhgfjhwheriufwiueruhfguyerugfweuyrygfwueyrghfuwoeruhgfdgwsjhfg";
-        Assert.assertEquals(0, CharSequences.compare(str, 3, 12, str, 3, 12));
-        Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
-        Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
-        Assert.assertEquals(str.subSequence(3, 15).toString(), Strings.subSequence(str, 3, 15).toString());
-    }
+  @Test
+  public void testSubSequence() {
+    String str = "dsfhjgsdjfgwuergfedhgfjhwheriufwiueruhfguyerugfweuyrygfwueyrghfuwoeruhgfdgwsjhfg";
+    Assert.assertEquals(0, CharSequences.compare(str, 3, 12, str, 3, 12));
+    Assert.assertTrue(Strings.equals(str.subSequence(15, 15), Strings.subSequence(str, 15, 15)));
+    Assert.assertTrue(Strings.equals(str.subSequence(0, str.length()), Strings.subSequence(str, 0, str.length())));
+    Assert.assertEquals(str.subSequence(3, 15).toString(), Strings.subSequence(str, 3, 15).toString());
+  }
 
+  @Test
+  public void testEndsWith() {
+    Assert.assertTrue(Strings.endsWith("dfjkshfks", "hfks"));
+    Assert.assertTrue(Strings.endsWith("dfjkshfks", ""));
+    Assert.assertFalse(Strings.endsWith("dfjkshfks", "hfk"));
+    Assert.assertTrue(Strings.endsWith("dfjkshfks", "dfjkshfks"));
+    Assert.assertFalse(Strings.endsWith("dfjkshfks", "dfjkshfksu"));
+  }
 
-    @Test
-    public void testEndsWith() {
-        Assert.assertTrue(Strings.endsWith("dfjkshfks", "hfks"));
-        Assert.assertTrue(Strings.endsWith("dfjkshfks", ""));
-        Assert.assertFalse(Strings.endsWith("dfjkshfks", "hfk"));
-        Assert.assertTrue(Strings.endsWith("dfjkshfks", "dfjkshfks"));
-        Assert.assertFalse(Strings.endsWith("dfjkshfks", "dfjkshfksu"));
-    }
+  @Test
+  public void testEncoding() {
+    StringBuilder sb = new StringBuilder();
+    Strings.appendUnsignedString(sb, 38, 4);
+    Assert.assertEquals(Integer.toHexString(38), sb.toString());
+    System.out.println("Encoded: " + sb);
+  }
 
-    @Test
-    public void testEncoding() {
-        StringBuilder sb = new StringBuilder();
-        Strings.appendUnsignedString(sb, 38, 4);
-        Assert.assertEquals(Integer.toHexString(38), sb.toString());
-        System.out.println("Encoded: " + sb);
-    }
+  @Test
+  public void testEncoding2() {
+    StringBuilder sb = new StringBuilder();
+    Strings.appendUnsignedStringPadded(sb, 38, 5, 4);
+    Assert.assertEquals(4, sb.length());
+    System.out.println("Encoded: " + sb);
+  }
 
-    @Test
-    public void testEncoding2() {
-        StringBuilder sb = new StringBuilder();
-        Strings.appendUnsignedStringPadded(sb, 38, 5, 4);
-        Assert.assertEquals(4, sb.length());
-        System.out.println("Encoded: " + sb);
-    }
-
-
-    @Test
-    public void testJsonEncoding() {
-        StringBuilder sb = new StringBuilder();
-        sb.append('\"');
-        Strings.escapeJsonString("\n\u0008\u0000abc\"", sb);
-        sb.append('\"');
-        System.out.println("Encoded: " + sb);
-        Assert.assertEquals("\"\\n\\b\\u0000abc\\\"\"", sb.toString());
-    }
-
-
+  @Test
+  public void testJsonEncoding() {
+    StringBuilder sb = new StringBuilder();
+    sb.append('\"');
+    Strings.escapeJsonString("\n\u0008\u0000abc\"", sb);
+    sb.append('\"');
+    System.out.println("Encoded: " + sb);
+    Assert.assertEquals("\"\\n\\b\\u0000abc\\\"\"", sb.toString());
+  }
 
 }

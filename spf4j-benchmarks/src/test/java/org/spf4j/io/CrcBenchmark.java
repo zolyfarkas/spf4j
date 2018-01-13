@@ -50,7 +50,7 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class CrcBenchmark {
 
-  private static final byte[] testData = ("asfsdfhjgsdjhfgsjhdgfjhsdgfjhgsdjhfgjsdhgkjfsdkhf34hfHGHDG"
+  private static final byte[] TEST_DATA = ("asfsdfhjgsdjhfgsjhdgfjhsdgfjhgsdjhfgjsdhgkjfsdkhf34hfHGHDG"
           + "SFDGHJJIU&^%ERSDFGVNHKJU&^%!#@#$%^&*()OJHGCXFDGHJUYTRWERTGFHHJYREWRDFGHJUYTredscxvbbhuytdsdfbvnmjhgfd"
           + "dkjhfkjsdhfkdskgfskjdhfjkdfghsdkjhfglskdfhjgkldfhgksjdfhgklhsdfkghklsfdhgkdfhlkfghfslkdjhgklsdhkghs")
           .getBytes(Charset.defaultCharset());
@@ -58,14 +58,14 @@ public class CrcBenchmark {
   @Benchmark
   public long testJavaCrc32() throws IOException {
     CRC32 crc = new CRC32();
-    testCrc(testData, crc);
+    testCrc(TEST_DATA, crc);
     return crc.getValue();
   }
 
   @Benchmark
   public long testHadoopCrc32() throws IOException {
     Crc32C crc = new Crc32C();
-    testCrc(testData, crc);
+    testCrc(TEST_DATA, crc);
     return crc.getValue();
   }
 

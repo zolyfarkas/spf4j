@@ -56,7 +56,7 @@ import org.junit.Test;
  *
  * @author zoly
  */
-@SuppressFBWarnings({"HARD_CODE_PASSWORD", "SQL_INJECTION_JDBC" })
+@SuppressFBWarnings({"HARD_CODE_PASSWORD", "SQL_INJECTION_JDBC"})
 public class JdbcSemaphoreTest {
 
   private static String hbddl;
@@ -71,7 +71,7 @@ public class JdbcSemaphoreTest {
     }
   }
 
-  static void createSchemaObjects(DataSource ds) throws SQLException {
+  static void createSchemaObjects(final DataSource ds) throws SQLException {
     try (Connection conn = ds.getConnection()) {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute(hbddl);
@@ -82,7 +82,6 @@ public class JdbcSemaphoreTest {
       }
     }
   }
-
 
   @Test
   public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException {
@@ -124,7 +123,6 @@ public class JdbcSemaphoreTest {
 
   }
 
-
   @Test(expected = SQLException.class)
   public void testSingleMultipleInstance() throws SQLException, IOException, InterruptedException, TimeoutException {
 
@@ -145,9 +143,8 @@ public class JdbcSemaphoreTest {
 
   }
 
-
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testReleaseAck(final DataSource ds, final String semName, final int maxReservations)
+  public static void testReleaseAck(final DataSource ds, final String semName, final int maxReservations)
           throws SQLException, InterruptedException, TimeoutException {
     JdbcSemaphore semaphore = new JdbcSemaphore(ds, semName, maxReservations);
 
@@ -197,7 +194,8 @@ public class JdbcSemaphoreTest {
 
   @Test
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-  public void testMultiProcess() throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
+  public void testMultiProcess()
+          throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
     Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
 
     File tempDB = File.createTempFile("test", "h2db");
@@ -224,14 +222,14 @@ public class JdbcSemaphoreTest {
     }
   }
 
-
   @Test
-  public void testMultiProcess2() throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
+  public void testMultiProcess2()
+          throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
     Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
-    try  {
-    File tempDB = File.createTempFile("test", "h2db");
-    tempDB.deleteOnExit();
-    String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+    try {
+      File tempDB = File.createTempFile("test", "h2db");
+      tempDB.deleteOnExit();
+      String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
       JdbcDataSource ds = new JdbcDataSource();
       ds.setURL(connStr);
       ds.setUser("sa");
@@ -246,8 +244,8 @@ public class JdbcSemaphoreTest {
       System.out.println(o1);
       System.out.println("P2:");
       System.out.println(o2);
-      String [] nr1 = o1.split("\n");
-      String [] nr2 = o2.split("\n");
+      String[] nr1 = o1.split("\n");
+      String[] nr2 = o2.split("\n");
       int totatl = nr1.length + nr2.length;
       Set<String> numbers = new HashSet<>(totatl);
       numbers.addAll(Arrays.asList(nr1));

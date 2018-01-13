@@ -76,8 +76,8 @@ public final class RunListenerRegister extends RunListener {
 
   public static void addRunListener(final RunListener listener, final boolean first) {
     if (!tryAddRunListener(listener, first)) {
-      System.err.println("Ignoring " + listener + " registration,"
-                + " please start junit with RunListenerRegister run listener,"
+      throw new IllegalStateException("Cannot register " + listener
+                + " please start junit with org.spf4j.junit.RunListenerRegister run listener,"
                 + "for more detail see http://maven.apache.org/surefire/maven-surefire-plugin/examples/junit.html");
     }
   }

@@ -65,24 +65,24 @@ import org.spf4j.recyclable.ObjectCreationException;
 public final class GraphiteUdpStoreTest {
 
 
-  private static final File tsdbtxt;
+  private static final File TSDB_TXT;
 
   static {
     File tsdb;
     try {
       tsdb = File.createTempFile("ttt", "tsdb");
-      tsdbtxt = File.createTempFile("ttt", "tsdbtxt");
+      TSDB_TXT = File.createTempFile("ttt", "tsdbtxt");
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }
     System.setProperty("spf4j.perf.ms.config",
-            "TSDB@" + tsdb.getAbsolutePath() + "," + "TSDB_TXT@" + tsdbtxt.getAbsolutePath()
+            "TSDB@" + tsdb.getAbsolutePath() + "," + "TSDB_TXT@" + TSDB_TXT.getAbsolutePath()
             + ",GRAPHITE_UDP@127.0.0.1:1976");
   }
 
   private static volatile boolean terminated = false;
   private static volatile Future<?> server;
-  private static final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+  private static final BlockingQueue<String> QUEUE = new LinkedBlockingQueue<>();
 
 
   @Test
@@ -94,20 +94,20 @@ public final class GraphiteUdpStoreTest {
             new String[]{"ms", "ms", "ms"}), 0);
     store.saveMeasurements(id, 1L, 2L, 3L, 5L);
     System.out.println("measurements sent");
-    String line = queue.poll(5, TimeUnit.SECONDS);
+    String line = QUEUE.poll(5, TimeUnit.SECONDS);
     System.out.println("measurements received " + line);
     Assert.assertEquals("bla/val1 2 1", line);
-    line = queue.poll(5, TimeUnit.SECONDS);
+    line = QUEUE.poll(5, TimeUnit.SECONDS);
     System.out.println("measurements received " + line);
     Assert.assertEquals("bla/val2 3 1", line);
-    line = queue.poll(5, TimeUnit.SECONDS);
+    line = QUEUE.poll(5, TimeUnit.SECONDS);
     System.out.println("measurements received " + line);
     Assert.assertEquals("bla/val3 5 1", line);
   }
 
   @Before
   public void beforeTest() {
-    queue.drainTo(new ArrayList<String>());
+    QUEUE.drainTo(new ArrayList<String>());
   }
 
 
@@ -125,11 +125,11 @@ public final class GraphiteUdpStoreTest {
     recorder.close();
     RecorderFactory.MEASUREMENT_STORE.flush();
 //    RecorderFactory.MEASUREMENT_STORE.close();
-    List<String> lines = Files.readAllLines(tsdbtxt.toPath(), StandardCharsets.UTF_8);
+    List<String> lines = Files.readAllLines(TSDB_TXT.toPath(), StandardCharsets.UTF_8);
     System.out.println("measurements = " + lines);
     Assert.assertThat(lines, Matchers.hasItem(Matchers.allOf(
             Matchers.containsString("Q6_7"), Matchers.containsString("test measurement"))));
-    String line = queue.poll(5, TimeUnit.SECONDS);
+    String line = QUEUE.poll(5, TimeUnit.SECONDS);
     Assert.assertThat(line, Matchers.containsString("test-measurement"));
 
   }
@@ -155,7 +155,7 @@ public final class GraphiteUdpStoreTest {
           String[] lines = receivedString.split("\n");
           System.out.println("Received = " + Arrays.toString(lines));
           for (String line : lines) {
-            queue.put(line);
+            QUEUE.put(line);
           }
         }
       }

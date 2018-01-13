@@ -85,7 +85,7 @@ public final class DefaultExecutor {
         INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
         List<Runnable> remaining = INSTANCE.shutdownNow();
         if (remaining.size() > 0) {
-          System.err.println("Remaining tasks: " + remaining);
+          org.spf4j.base.Runtime.error("Remaining tasks: " + remaining);
         }
       }
     });

@@ -63,62 +63,62 @@ import org.spf4j.io.tcp.proxy.Sniffer;
 import org.spf4j.io.tcp.proxy.SnifferFactory;
 
 /**
- * https://unix.stackexchange.com/questions/17218/how-long-is-a-tcp-local-socket-address-that-has-been-bound-unavailable-after-clo
+ * https://unix.stackexchange.com/questions/17218/
+ * how-long-is-a-tcp-local-socket-address-that-has-been-bound-unavailable-after-clo
  * https://stackoverflow.com/questions/13838256/java-closing-a-serversocket-and-opening-up-the-port
+ *
  * @author zoly
  */
 @SuppressFBWarnings({"SIC_INNER_SHOULD_BE_STATIC_ANON", "MDM_THREAD_YIELD"})
 public class TcpServerTest {
 
-  private static final String testSite = "charizard.homeunix.net";
+  private static final String TEST_SITE = "charizard.homeunix.net";
 
   private SnifferFactory printSnifferFactory = new SnifferFactory() {
-      @Override
-      public Sniffer get(SocketChannel channel) {
-        return new Sniffer() {
+    @Override
+    public Sniffer get(final SocketChannel channel) {
+      return new Sniffer() {
 
-          CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
+        private final CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
 
-          @Override
-          public int received(ByteBuffer data, int nrBytes) {
-            // Naive printout using ASCII
-            if (nrBytes < 0) {
-              System.err.println("EOF");
-              return nrBytes;
-            }
-            ByteBuffer duplicate = data.duplicate();
-            duplicate.position(data.position() - nrBytes);
-            duplicate = duplicate.slice();
-            duplicate.position(nrBytes);
-            duplicate.flip();
-            CharBuffer cb = CharBuffer.allocate((int) (asciiDecoder.maxCharsPerByte() * duplicate.limit()));
-            asciiDecoder.decode(duplicate, cb, true);
-            cb.flip();
-            System.err.print(cb.toString());
+        @Override
+        public int received(final ByteBuffer data, final int nrBytes) {
+          // Naive printout using ASCII
+          if (nrBytes < 0) {
+            System.err.println("EOF");
             return nrBytes;
           }
+          ByteBuffer duplicate = data.duplicate();
+          duplicate.position(data.position() - nrBytes);
+          duplicate = duplicate.slice();
+          duplicate.position(nrBytes);
+          duplicate.flip();
+          CharBuffer cb = CharBuffer.allocate((int) (asciiDecoder.maxCharsPerByte() * duplicate.limit()));
+          asciiDecoder.decode(duplicate, cb, true);
+          cb.flip();
+          System.err.print(cb.toString());
+          return nrBytes;
+        }
 
-          @Override
-          public IOException received(IOException ex) {
-            return ex;
-          }
-        };
-      }
-    };
-
-
+        @Override
+        public IOException received(final IOException ex) {
+          return ex;
+        }
+      };
+    }
+  };
 
   @Test(timeout = 1000000)
   public void testProxy() throws IOException, InterruptedException {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
-            new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), printSnifferFactory,
+            new ProxyClientHandler(HostAndPort.fromParts(TEST_SITE, 80), printSnifferFactory,
                     printSnifferFactory, 10000, 5000),
             1976, 10)) {
       server.startAsync().awaitRunning();
-      //byte [] originalContent = readfromSite("http://" + testSite);
+      //byte [] originalContent = readfromSite("http://" + TEST_SITE);
       long start = System.currentTimeMillis();
-      byte[] originalContent = readfromSite("http://" + testSite);
+      byte[] originalContent = readfromSite("http://" + TEST_SITE);
       long time1 = System.currentTimeMillis();
       byte[] proxiedContent = readfromSite("http://localhost:1976");
       long time2 = System.currentTimeMillis();
@@ -132,7 +132,8 @@ public class TcpServerTest {
     ForkJoinPool pool = new ForkJoinPool(1024);
 
     try (TcpServer server = new TcpServer(pool,
-            new ProxyClientHandler(HostAndPort.fromParts(testSite, 80), printSnifferFactory, printSnifferFactory, 10000, 5000),
+            new ProxyClientHandler(
+                    HostAndPort.fromParts(TEST_SITE, 80), printSnifferFactory, printSnifferFactory, 10000, 5000),
             1977, 10)) {
       server.startAsync().awaitRunning();
 
@@ -174,9 +175,9 @@ public class TcpServerTest {
     try (TcpServer rejServer = new TcpServer(pool,
             new ClientHandler() {
       @Override
-      public void handle(Selector serverSelector, SocketChannel clientChannel,
-              ExecutorService exec, BlockingQueue<Runnable> tasksToRunBySelector,
-              UpdateablePriorityQueue<DeadlineAction> deadlineActions) throws IOException {
+      public void handle(final Selector serverSelector, final SocketChannel clientChannel,
+              final ExecutorService exec, final BlockingQueue<Runnable> tasksToRunBySelector,
+              final UpdateablePriorityQueue<DeadlineAction> deadlineActions) throws IOException {
         clientChannel.configureBlocking(true);
         ByteBuffer allocate = ByteBuffer.allocate(1024);
         clientChannel.read(allocate); // read something
@@ -221,7 +222,7 @@ public class TcpServerTest {
     }
   }
 
-  private static byte[] readfromSite(String siteUrl) throws IOException {
+  private static byte[] readfromSite(final String siteUrl) throws IOException {
     URL url = new URL(siteUrl);
     InputStream stream = url.openStream();
     ByteArrayOutputStream bos = new ByteArrayOutputStream();

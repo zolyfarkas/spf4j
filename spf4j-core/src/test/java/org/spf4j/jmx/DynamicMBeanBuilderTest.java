@@ -46,13 +46,16 @@ public class DynamicMBeanBuilderTest {
   public void testGenericExportedOperation() throws MBeanException {
     ExportedValuesMBean replace = new DynamicMBeanBuilder()
             .withOperation(new GenericExportedOperation("testOp",
-            "some TestOp",
-            (params) -> { System.out.print("bla"); return params[0]; },
-            new Type[] {String.class}, String.class,
-            new String[] {"p1"},
-            new String[] {"descP1"},
-            new boolean[] {true}, true)).replace("test", "dynatest");
-    Assert.assertEquals("ok", replace.invoke("testOp", new Object[] {"ok"}, new String [] {}));
+                    "some TestOp",
+                    (params) -> {
+                      System.out.print("bla");
+                      return params[0];
+                    },
+                    new Type[]{String.class}, String.class,
+                    new String[]{"p1"},
+                    new String[]{"descP1"},
+                    new boolean[]{true}, true)).replace("test", "dynatest");
+    Assert.assertEquals("ok", replace.invoke("testOp", new Object[]{"ok"}, new String[]{}));
 
   }
 

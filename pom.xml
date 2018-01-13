@@ -437,21 +437,36 @@ java.util.Calendar#getInstance()
                       <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.2</version>
+                        <version>8.7</version>
                       </dependency>
                     </dependencies>                    
                     <configuration>
                         <logViolationsToConsole>true</logViolationsToConsole>
                         <consoleOutput>true</consoleOutput>
                         <configLocation>${project.basedir}/../checkstyle_checks.xml</configLocation>
-                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
                     </configuration>
                     <executions>
                         <execution>
+                            <id>test-code</id>
                             <phase>post-integration-test</phase>
                             <goals>
                                 <goal>check</goal>
                             </goals>
+                            <configuration>
+                              <configLocation>${project.basedir}/../checkstyle_checks.xml</configLocation>
+                              <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                            </configuration>
+                        </execution>
+                        <execution>
+                           <id>test-code_and_tests</id>
+                            <phase>post-integration-test</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                              <configLocation>${project.basedir}/../checkstyle_checks_junit.xml</configLocation>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>

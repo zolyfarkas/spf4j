@@ -50,7 +50,7 @@ public class ArraysBenchmark {
   @State(Scope.Thread)
   public static class ThreadState {
 
-    String[] testArray = new String[10000];
+    private final String[] testArray = new String[10000];
 
     {
       java.util.Arrays.fill(testArray, "a");

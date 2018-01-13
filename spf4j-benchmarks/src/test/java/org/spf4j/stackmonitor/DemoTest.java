@@ -36,6 +36,9 @@ import java.util.List;
 
 public final class DemoTest {
 
+  private DemoTest() { }
+
+
   private static volatile boolean stopped;
 
   public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {

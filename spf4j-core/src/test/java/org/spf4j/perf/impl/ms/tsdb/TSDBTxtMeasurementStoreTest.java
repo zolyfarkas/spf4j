@@ -48,14 +48,13 @@ import org.spf4j.perf.impl.MeasurementsInfoImpl;
  */
 public class TSDBTxtMeasurementStoreTest {
 
-
   @Test
   public void testCreateAppend() throws IOException {
     Path tmpFile = Paths.get(org.spf4j.base.Runtime.TMP_FOLDER, "testM.txt");
     File file = tmpFile.toFile();
     TSDBTxtMeasurementStore store = new TSDBTxtMeasurementStore(file);
     long id = store.alocateMeasurements(new MeasurementsInfoImpl("test", "bla",
-            new String[] {"a", "b"}, new String [] {"ms", "ms"}), 10000);
+            new String[]{"a", "b"}, new String[]{"ms", "ms"}), 10000);
     store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
     store.close();
     String content = Files.lines(tmpFile, Charsets.UTF_8).collect(Collectors.joining("\n"));

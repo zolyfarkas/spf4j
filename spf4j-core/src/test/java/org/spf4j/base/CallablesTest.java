@@ -233,7 +233,7 @@ public final class CallablesTest {
 
     private int count;
 
-    public CallableImpl(final int timeoutMillis) {
+    CallableImpl(final int timeoutMillis) {
       super(timeoutMillis);
     }
 
@@ -253,7 +253,7 @@ public final class CallablesTest {
 
     private int count;
 
-    public CallableImpl2(final int timeoutMillis) {
+    CallableImpl2(final int timeoutMillis) {
       super(timeoutMillis);
     }
 

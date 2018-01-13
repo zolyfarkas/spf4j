@@ -46,99 +46,97 @@ import org.junit.Test;
  */
 public final class ThrowablesTest {
 
-    /**
-     * Test of chain method, of class ExceptionChain.
-     */
-    @Test(timeout = 3000)
-    public void testChain() {
-        System.out.println("chain");
-        Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
-        Throwable newRootCause = new TimeoutException("Booo");
-        Throwable result = Throwables.chain(t, newRootCause);
-        System.out.println(Throwables.toString(result));
-        Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
-        Assert.assertEquals(3, com.google.common.base.Throwables.getCausalChain(result).size());
-        Throwable firstCause = Throwables.firstCause(t, (l) -> false);
-        Assert.assertNull(firstCause);
+  /**
+   * Test of chain method, of class ExceptionChain.
+   */
+  @Test(timeout = 3000)
+  public void testChain() {
+    System.out.println("chain");
+    Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
+    Throwable newRootCause = new TimeoutException("Booo");
+    Throwable result = Throwables.chain(t, newRootCause);
+    System.out.println(Throwables.toString(result));
+    Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
+    Assert.assertEquals(3, com.google.common.base.Throwables.getCausalChain(result).size());
+    Throwable firstCause = Throwables.firstCause(t, (l) -> false);
+    Assert.assertNull(firstCause);
+  }
+
+  @Test
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
+  public void testChain2() {
+    System.out.println("chain");
+    Throwable t = new RuntimeException("bla1",
+            new BatchUpdateException("Sql bla", "ORA-500", 500, new int[]{1, 2}, new RuntimeException("la la")));
+    Throwable newRootCause = new TimeoutException("Booo");
+    Throwable result = Throwables.chain(t, newRootCause);
+    System.out.println(Throwables.toString(result));
+    Assert.assertArrayEquals(new int[]{1, 2}, ((BatchUpdateException) result.getCause()).getUpdateCounts());
+    Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
+    Assert.assertEquals(4, com.google.common.base.Throwables.getCausalChain(result).size());
+
+  }
+
+  @Test
+  public void testChain3() {
+    Exception e = new RuntimeException(new RuntimeException(new RuntimeException()));
+    for (int i = 0; i < 10; i++) {
+      e = Throwables.suppress(e, new RuntimeException());
     }
+    Throwable[] suppressed = Throwables.getSuppressed(e);
+    Assert.assertEquals(10, suppressed.length);
+    final SQLException sqlException = new SQLException(e);
+    sqlException.setNextException(new SQLException("bla", new RuntimeException(new RuntimeException())));
+    sqlException.setNextException(new SQLException("bla"));
+    System.out.println(Throwables.toString(sqlException));
+    Assert.assertEquals(2, Throwables.getSuppressed(sqlException).length);
 
-    @Test
-    @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
-    public void testChain2() {
-        System.out.println("chain");
-        Throwable t = new RuntimeException("bla1",
-                new BatchUpdateException("Sql bla", "ORA-500", 500, new int[] {1, 2}, new RuntimeException("la la")));
-        Throwable newRootCause = new TimeoutException("Booo");
-        Throwable result = Throwables.chain(t, newRootCause);
-        System.out.println(Throwables.toString(result));
-        Assert.assertArrayEquals(new int[] {1, 2}, ((BatchUpdateException) result.getCause()).getUpdateCounts());
-        Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
-        Assert.assertEquals(4, com.google.common.base.Throwables.getCausalChain(result).size());
+  }
 
+  @Test
+  public void testSuppressedManipulation() {
+    Exception ex = new Exception("test");
+    Assert.assertEquals(0, Throwables.getNrSuppressedExceptions(ex));
+    final Exception sex = new Exception("tests");
+    ex.addSuppressed(sex);
+    Assert.assertEquals(1, Throwables.getNrSuppressedExceptions(ex));
+    sex.addSuppressed(new Exception("tests2"));
+    Assert.assertEquals(1, Throwables.getNrSuppressedExceptions(ex));
+    Assert.assertEquals(2, Throwables.getNrRecursiveSuppressedExceptions(ex));
+    Throwables.removeOldestSuppressedRecursive(ex);
+    Assert.assertEquals(1, Throwables.getNrRecursiveSuppressedExceptions(ex));
+
+    Exception exs = new Exception(ex);
+    for (int i = 0; i < 500; i++) {
+      exs = Throwables.suppress(new Exception("test" + i), exs);
     }
+    Assert.assertEquals(100, Throwables.getNrRecursiveSuppressedExceptions(exs));
+  }
 
-    @Test
-    public void testChain3() {
-        Exception e = new RuntimeException(new RuntimeException(new RuntimeException()));
-        for (int i = 0; i < 10; i++) {
-            e = Throwables.suppress(e, new RuntimeException());
-        }
-        Throwable [] suppressed = Throwables.getSuppressed(e);
-        Assert.assertEquals(10, suppressed.length);
-        final SQLException sqlException = new SQLException(e);
-        sqlException.setNextException(new SQLException("bla", new RuntimeException(new RuntimeException())));
-        sqlException.setNextException(new SQLException("bla"));
-        System.out.println(Throwables.toString(sqlException));
-        Assert.assertEquals(2, Throwables.getSuppressed(sqlException).length);
+  @Test
+  public void testRecoverable() {
+    Throwable t = new RuntimeException();
+    Assert.assertFalse(Throwables.containsNonRecoverable(t));
+    t.addSuppressed(new IOException());
+    Assert.assertFalse(Throwables.containsNonRecoverable(t));
+    t.addSuppressed(new OutOfMemoryError());
+    Assert.assertTrue(Throwables.containsNonRecoverable(t));
+    t = new RuntimeException(new RuntimeException(new IOException("Too many open files")));
+    Assert.assertTrue(Throwables.containsNonRecoverable(t));
+    t = new RuntimeException(new RuntimeException(new StackOverflowError()));
+    Assert.assertFalse(Throwables.containsNonRecoverable(t));
+  }
 
-    }
+  @Test
+  public void testAbbreviation() throws IOException {
+    StringBuilder sb = new StringBuilder();
+    Throwables.writeAbreviatedClassName("org.spf4j.Class", sb);
+    Assert.assertEquals("o.s.Class", sb.toString());
 
-    @Test
-    public void testSuppressedManipulation() {
-        Exception ex = new Exception("test");
-        Assert.assertEquals(0, Throwables.getNrSuppressedExceptions(ex));
-        final Exception sex = new Exception("tests");
-        ex.addSuppressed(sex);
-        Assert.assertEquals(1, Throwables.getNrSuppressedExceptions(ex));
-        sex.addSuppressed(new Exception("tests2"));
-        Assert.assertEquals(1, Throwables.getNrSuppressedExceptions(ex));
-        Assert.assertEquals(2, Throwables.getNrRecursiveSuppressedExceptions(ex));
-        Throwables.removeOldestSuppressedRecursive(ex);
-        Assert.assertEquals(1, Throwables.getNrRecursiveSuppressedExceptions(ex));
+    sb = new StringBuilder();
+    Throwables.writeAbreviatedClassName("Class", sb);
+    Assert.assertEquals("Class", sb.toString());
 
-        Exception exs = new Exception(ex);
-        for (int i = 0; i < 500; i++) {
-            exs = Throwables.suppress(new Exception("test"  + i), exs);
-        }
-        Assert.assertEquals(100, Throwables.getNrRecursiveSuppressedExceptions(exs));
-    }
-
-    @Test
-    public void testRecoverable() {
-      Throwable t =  new RuntimeException();
-      Assert.assertFalse(Throwables.containsNonRecoverable(t));
-      t.addSuppressed(new IOException());
-      Assert.assertFalse(Throwables.containsNonRecoverable(t));
-      t.addSuppressed(new OutOfMemoryError());
-      Assert.assertTrue(Throwables.containsNonRecoverable(t));
-      t = new RuntimeException(new RuntimeException(new IOException("Too many open files")));
-      Assert.assertTrue(Throwables.containsNonRecoverable(t));
-      t = new RuntimeException(new RuntimeException(new StackOverflowError()));
-      Assert.assertFalse(Throwables.containsNonRecoverable(t));
-    }
-
-
-    @Test
-    public void testAbbreviation() throws IOException {
-      StringBuilder sb = new StringBuilder();
-      Throwables.writeAbreviatedClassName("org.spf4j.Class", sb);
-      Assert.assertEquals("o.s.Class", sb.toString());
-
-      sb = new StringBuilder();
-      Throwables.writeAbreviatedClassName("Class", sb);
-      Assert.assertEquals("Class", sb.toString());
-
-    }
-
+  }
 
 }

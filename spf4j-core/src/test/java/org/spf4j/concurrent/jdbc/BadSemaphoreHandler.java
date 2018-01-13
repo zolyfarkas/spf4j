@@ -42,7 +42,9 @@ import org.h2.jdbcx.JdbcDataSource;
  * @author zoly
  */
 @SuppressFBWarnings("HARD_CODE_PASSWORD")
-public class BadSemaphoreHandler {
+public final class BadSemaphoreHandler {
+
+  private BadSemaphoreHandler() { }
 
   static {
     System.setProperty("spf4j.heartbeat.intervalMillis", "2000"); // 2 second heartbeat

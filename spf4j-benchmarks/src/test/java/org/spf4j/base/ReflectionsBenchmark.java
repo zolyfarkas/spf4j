@@ -47,27 +47,25 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 4)
 public class ReflectionsBenchmark {
 
-    public static final java.lang.reflect.Method TEST_METHOD;
+  public static final java.lang.reflect.Method TEST_METHOD;
 
-    static {
-      try {
-        TEST_METHOD = System.class.getMethod("arraycopy",
-                Object.class, int.class, Object.class, int.class, int.class);
-      } catch (NoSuchMethodException | SecurityException ex) {
-        throw new ExceptionInInitializerError(ex);
-      }
+  static {
+    try {
+      TEST_METHOD = System.class.getMethod("arraycopy",
+              Object.class, int.class, Object.class, int.class, int.class);
+    } catch (NoSuchMethodException | SecurityException ex) {
+      throw new ExceptionInInitializerError(ex);
     }
+  }
 
-    @Benchmark
-    public final Class<?> [] optimizedGetTypes() throws UnsupportedEncodingException {
-        return Reflections.getParameterTypes(TEST_METHOD);
-    }
+  @Benchmark
+  public final Class<?>[] optimizedGetTypes() throws UnsupportedEncodingException {
+    return Reflections.getParameterTypes(TEST_METHOD);
+  }
 
-    @Benchmark
-    public final Class<?> [] normalGetTypes() {
-        return TEST_METHOD.getParameterTypes();
-    }
-
-
+  @Benchmark
+  public final Class<?>[] normalGetTypes() {
+    return TEST_METHOD.getParameterTypes();
+  }
 
 }

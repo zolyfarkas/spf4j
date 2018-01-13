@@ -41,7 +41,7 @@ public class ComparablesTest {
 
   @Test
   public void testCompare() {
-    int compareArrays = Comparables.compareArrays(new String [] {}, new String[] {"bla"});
+    int compareArrays = Comparables.compareArrays(new String[] {}, new String[] {"bla"});
     Assert.assertTrue(compareArrays < 0);
   }
 

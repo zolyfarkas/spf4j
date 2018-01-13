@@ -47,28 +47,26 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 4)
 public class StringsBenchmark {
 
-    public static final String TEST_STRING;
+  public static final String TEST_STRING;
 
-    static {
-        IntMath.XorShift32 rnd = new IntMath.XorShift32();
-        StringBuilder builder = new StringBuilder(2200);
-        for (int i = 0; i < 2200; i++) {
-            builder.append('A' + Math.abs(rnd.nextInt()) % 22);
-        }
-        builder.append("cw==");
-        TEST_STRING = builder.toString();
+  static {
+    IntMath.XorShift32 rnd = new IntMath.XorShift32();
+    StringBuilder builder = new StringBuilder(2200);
+    for (int i = 0; i < 2200; i++) {
+      builder.append('A' + Math.abs(rnd.nextInt()) % 22);
     }
+    builder.append("cw==");
+    TEST_STRING = builder.toString();
+  }
 
-    @Benchmark
-    public final byte [] optimizedSubStringDecode() throws UnsupportedEncodingException {
-        return Base64.decodeBase64(CharSequences.subSequence(TEST_STRING, 10, TEST_STRING.length()));
-    }
+  @Benchmark
+  public final byte[] optimizedSubStringDecode() throws UnsupportedEncodingException {
+    return Base64.decodeBase64(CharSequences.subSequence(TEST_STRING, 10, TEST_STRING.length()));
+  }
 
-    @Benchmark
-    public final byte [] subStringDecode() {
-        return Base64.decodeBase64(TEST_STRING.subSequence(10, TEST_STRING.length()));
-    }
-
-
+  @Benchmark
+  public final byte[] subStringDecode() {
+    return Base64.decodeBase64(TEST_STRING.subSequence(10, TEST_STRING.length()));
+  }
 
 }

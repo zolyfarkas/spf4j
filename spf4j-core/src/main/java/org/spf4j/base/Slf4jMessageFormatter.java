@@ -55,7 +55,29 @@ public final class Slf4jMessageFormatter {
   private static final String DELIM_STR = "{}";
   private static final char ESCAPE_CHAR = '\\';
 
+
+  public interface ErrorHandler {
+    void accept(Object obj, Appendable sbuf, Throwable t) throws IOException;
+  }
+
+
+
   private Slf4jMessageFormatter() {
+  }
+
+
+  @SuppressWarnings("checkstyle:regexp")
+  public static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
+    String className = obj.getClass().getName();
+    synchronized (System.err) {
+      System.err.print("SPF4J: Failed toString() invocation on an object of type [");
+      System.err.print(className);
+      System.err.println(']');
+    }
+    Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
+    sbuf.append("[FAILED toString() for ");
+    sbuf.append(className);
+    sbuf.append(']');
   }
 
   /**
@@ -116,14 +138,14 @@ public final class Slf4jMessageFormatter {
    */
   public static int format(final int firstArgIdx, @Nonnull final Appendable to, @Nonnull final String messagePattern,
           @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray) throws IOException {
-    return format(true, firstArgIdx, to, messagePattern, appSupplier, argArray);
+    return format(Slf4jMessageFormatter::exHandle, firstArgIdx, to, messagePattern, appSupplier, argArray);
   }
 
   /**
    * Slf4j message formatter.
    *
-   * @param safe - if true recoverable exception will be caught when writing arguments, and a error will be appended
-   * instead.
+   * @param safe - if true recoverable exHandle will be caught when writing arguments, and a error will be appended
+ instead.
    * @param to Appendable to put formatted message to.
    * @param messagePattern see org.slf4j.helpers.MessageFormatter for format.
    * @param appSupplier a supplier that will provide the serialization method for a particular argument type.
@@ -132,7 +154,7 @@ public final class Slf4jMessageFormatter {
    * @return the index of the last arguments used in the message + 1.
    * @throws IOException something wend wrong while writing to the appendable.
    */
-  public static int format(final boolean safe, final int firstArgIdx,
+  public static int format(final ErrorHandler exHandler, final int firstArgIdx,
           @Nonnull final Appendable to, @Nonnull final String messagePattern,
           @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray)
           throws IOException {
@@ -164,13 +186,13 @@ public final class Slf4jMessageFormatter {
             // itself escaped: "abc x:\\{}"
             // we have to consume one backward slash
             to.append(messagePattern, i, j - 1);
-            deeplyAppendParameter(safe, to, argArray[k], new THashSet<>(), appSupplier);
+            deeplyAppendParameter(exHandler, to, argArray[k], new THashSet<>(), appSupplier);
             i = j + 2;
           }
         } else {
           // normal case
           to.append(messagePattern, i, j);
-          deeplyAppendParameter(safe, to, argArray[k], new THashSet<>(), appSupplier);
+          deeplyAppendParameter(exHandler, to, argArray[k], new THashSet<>(), appSupplier);
           i = j + 2;
         }
       }
@@ -193,14 +215,14 @@ public final class Slf4jMessageFormatter {
 
   // special treatment of array values was suggested by 'lizongbo'
   @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-  private static void deeplyAppendParameter(final boolean safe, final Appendable sbuf, final Object o,
+  private static void deeplyAppendParameter(final ErrorHandler exHandler, final Appendable sbuf, final Object o,
           final Set<Object[]> seen, final ObjectAppenderSupplier appSupplier) throws IOException {
     if (o == null) {
       sbuf.append("null");
       return;
     }
     if (!o.getClass().isArray()) {
-      safeObjectAppend(safe, sbuf, o, appSupplier);
+      safeObjectAppend(exHandler, sbuf, o, appSupplier);
     } else {
       // check for primitive array types because they
       // unfortunately cannot be cast to Object[]
@@ -221,37 +243,24 @@ public final class Slf4jMessageFormatter {
       } else if (o instanceof double[]) {
         doubleArrayAppend(sbuf, (double[]) o);
       } else {
-        objectArrayAppend(safe, sbuf, (Object[]) o, seen, appSupplier);
+        objectArrayAppend(exHandler, sbuf, (Object[]) o, seen, appSupplier);
       }
     }
   }
 
   @SuppressWarnings("unchecked")
-  public static void safeObjectAppend(final boolean safe, final Appendable sbuf, final Object obj,
+  public static void safeObjectAppend(final ErrorHandler exHandler, final Appendable sbuf, final Object obj,
           final ObjectAppenderSupplier appSupplier) throws IOException {
     try {
       appSupplier.get((Class) obj.getClass()).append(obj, sbuf);
     } catch (IOException | RuntimeException | StackOverflowError t) {
-      if (safe) {
-        String className = obj.getClass().getName();
-        synchronized (System.err) {
-          System.err.print("SPF4J: Failed toString() invocation on an object of type [");
-          System.err.print(className);
-          System.err.println(']');
-        }
-        Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
-        sbuf.append("[FAILED toString() for ");
-        sbuf.append(className);
-        sbuf.append(']');
-      } else {
-        throw t;
-      }
+      exHandler.accept(obj, sbuf, t);
     }
 
   }
 
   @SuppressFBWarnings("ABC_ARRAY_BASED_COLLECTIONS")
-  private static void objectArrayAppend(final boolean safe, final Appendable sbuf,
+  private static void objectArrayAppend(final ErrorHandler exHandler, final Appendable sbuf,
           final Object[] a, final Set<Object[]> seen,
           final ObjectAppenderSupplier appSupplier) throws IOException {
     sbuf.append('[');
@@ -259,10 +268,10 @@ public final class Slf4jMessageFormatter {
       seen.add(a);
       final int len = a.length;
       if (len > 0) {
-        deeplyAppendParameter(safe, sbuf, a[0], seen, appSupplier);
+        deeplyAppendParameter(exHandler, sbuf, a[0], seen, appSupplier);
         for (int i = 1; i < len; i++) {
           sbuf.append(", ");
-          deeplyAppendParameter(safe, sbuf, a[i], seen, appSupplier);
+          deeplyAppendParameter(exHandler, sbuf, a[i], seen, appSupplier);
         }
       }
       // allow repeats in siblings

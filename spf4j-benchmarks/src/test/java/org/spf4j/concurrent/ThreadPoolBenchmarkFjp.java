@@ -49,18 +49,18 @@ public class ThreadPoolBenchmarkFjp {
   @State(Scope.Benchmark)
   public static class LazyFjp {
 
-    public final ExecutorService EX = new ForkJoinPool(8);
+    private final ExecutorService es = new ForkJoinPool(8);
 
     @TearDown
     public void close() {
-      EX.shutdown();
+      es.shutdown();
       DefaultExecutor.INSTANCE.shutdown();
     }
   }
 
   @Benchmark
   public final long fjpBenchmark(final LazyFjp exec) throws InterruptedException, IOException, ExecutionException {
-    return ThreadPoolBenchmark.testPool(exec.EX);
+    return ThreadPoolBenchmark.testPool(exec.es);
   }
 
 }

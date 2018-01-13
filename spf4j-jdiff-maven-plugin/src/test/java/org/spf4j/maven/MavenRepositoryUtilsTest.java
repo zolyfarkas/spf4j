@@ -34,7 +34,8 @@ import org.junit.Test;
 public class MavenRepositoryUtilsTest {
 
   @Test
-  public void testRepositoryOperations() throws VersionRangeResolutionException, ArtifactResolutionException, DependencyResolutionException {
+  public void testRepositoryOperations()
+          throws VersionRangeResolutionException, ArtifactResolutionException, DependencyResolutionException {
     File localRepo = new File(System.getProperty("user.home"), ".m2/repository");
     RemoteRepository mavenCentralRepository = MavenRepositoryUtils.getDefaultlRepository();
     List<Version> versions = MavenRepositoryUtils.getVersions(Arrays.asList(mavenCentralRepository), localRepo,

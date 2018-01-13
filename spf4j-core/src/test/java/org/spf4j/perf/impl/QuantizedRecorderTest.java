@@ -41,7 +41,6 @@ import org.spf4j.base.Arrays;
  */
 public final class QuantizedRecorderTest {
 
-
   @Test
   public void testMagnitudes2() {
     long[] createMagnitudeLimits = QuantizedAccumulator.createMagnitudeLimits2(10, -2, 3);
@@ -57,10 +56,9 @@ public final class QuantizedRecorderTest {
     Assert.assertArrayEquals(new long[]{-1000, -100, -10}, createMagnitudeLimits);
   }
 
-
   @Test
   public void testFindBucket() {
-    long [] bucketLimits = new long [] {-100, -80, -60, -40, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 40, 60, 80, 100};
+    long[] bucketLimits = new long[]{-100, -80, -60, -40, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 40, 60, 80, 100};
     Assert.assertEquals(0, QuantizedAccumulator.findBucket(bucketLimits, -1000));
     Assert.assertEquals(1, QuantizedAccumulator.findBucket(bucketLimits, -100));
     Assert.assertEquals(1, QuantizedAccumulator.findBucket(bucketLimits, -90));

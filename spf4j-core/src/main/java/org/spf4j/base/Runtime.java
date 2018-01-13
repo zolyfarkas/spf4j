@@ -124,7 +124,7 @@ public final class Runtime {
     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
     final int availableProcessors = runtime.availableProcessors();
     if (availableProcessors <= 0) {
-      System.err.println("Invalid number of processors " + availableProcessors
+      error("Invalid number of processors " + availableProcessors
               + " defaulting to 1");
       NR_PROCESSORS = 1;
     } else {
@@ -221,10 +221,10 @@ public final class Runtime {
             if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
                     && !thread.getName().contains("DestroyJavaVM")) {
               if (first) {
-                System.err.println("Non daemon threads still running:");
+                error("Non daemon threads still running:");
                 first = false;
               }
-              System.err.println("Non daemon thread " + thread + ", stackTrace = "
+              error("Non daemon thread " + thread + ", stackTrace = "
                       + java.util.Arrays.toString(thread.getStackTrace()));
             }
           }
@@ -254,6 +254,18 @@ public final class Runtime {
 
   private Runtime() {
   }
+
+  @SuppressWarnings("checkstyle:regexp")
+  public static void error(final String message) {
+    System.err.println(message);
+  }
+
+  @SuppressWarnings("checkstyle:regexp")
+  public static void error(final String message, final Throwable t) {
+    System.err.println(message);
+    Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
+  }
+
 
   public static void goDownWithError(final SysExits exitCode) {
     goDownWithError(null, exitCode.exitCode());

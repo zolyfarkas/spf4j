@@ -29,61 +29,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.recyclable;
 
-import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
-//import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Threads;
+import java.util.concurrent.Callable;
+import org.apache.commons.pool.ObjectPool;
+import org.spf4j.recyclable.impl.ExpensiveTestObject;
 
 /**
  *
  * @author zoly
  */
-@State(Scope.Benchmark)
-@Fork(2)
-@Threads(value = 8)
-public class RandomBenchmark {
+public final class TestCallableApache implements Callable<Integer> {
 
-  private static final IntMath.XorShift32ThreadSafe RND = new IntMath.XorShift32ThreadSafe();
+  private final ObjectPool<ExpensiveTestObject> pool;
+  private final int testNr;
 
-  @State(Scope.Thread)
-  public static class ThreadState {
-
-    final IntMath.XorShift32 rnd = new IntMath.XorShift32();
-
+  public TestCallableApache(final ObjectPool<ExpensiveTestObject> pool, final int testNr) {
+    this.pool = pool;
+    this.testNr = testNr;
   }
 
-  @State(Scope.Thread)
-  public static class ThreadState2 {
-
-    final ThreadLocalRandom rnd = ThreadLocalRandom.current();
-
+  @Override
+  public Integer call() throws Exception {
+    ExpensiveTestObject object = pool.borrowObject();
+    try {
+      object.doStuff();
+      pool.returnObject(object);
+    } catch (Exception e) {
+      pool.invalidateObject(object);
+      throw e;
+    }
+    return testNr;
   }
 
-
-  //@Benchmark
-  public int testSpf4jRandomThreadLocal() throws IOException {
-    return RND.nextInt();
+  @Override
+  public String toString() {
+    return "TestCallableApache{" + "pool=" + pool + ", testNr=" + testNr + '}';
   }
-
-  //@Benchmark
-  public int testSpf4jRandomLocal(ThreadState ts) throws IOException {
-    return ts.rnd.nextInt();
-  }
-
-  //@Benchmark
-  public int testJdkRandomLocal(ThreadState2 ts) throws IOException {
-    return ts.rnd.nextInt();
-  }
-
-  //@Benchmark
-  public int testJdkRandomThreadLocal() throws IOException {
-    return ThreadLocalRandom.current().nextInt();
-  }
-
 
 }

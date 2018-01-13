@@ -46,47 +46,44 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class CacheBenchmark {
 
+  private static final CacheLoader<String, String> TEST_LOADER
+          = new CacheLoader<String, String>() {
 
-    private static final CacheLoader<String, String> TEST_LOADER
-            = new CacheLoader<String, String>() {
-
-        @Override
-        public String load(String key) throws Exception {
-            return "TEST";
-        }
-    };
-
-    private static final LoadingCache<String, String> GUAVA = CacheBuilder.newBuilder()
-            .initialCapacity(16)
-            .concurrencyLevel(16)
-            .build(TEST_LOADER);
-    private static final LoadingCache<String, String> SPF4J = new UnboundedLoadingCache<>(16, 16, TEST_LOADER);
-
-    private static final LoadingCache<String, String> SPF4J2 = new UnboundedLoadingCache2<>(16, 16, TEST_LOADER);
-
-    private static final LoadingCache<String, String> SPF4J_RACY =
-            new UnboundedRacyLoadingCache<>(16, 16, TEST_LOADER);
-
-
-    @Benchmark
-    public final String spf4jCache() {
-        return SPF4J.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
+    @Override
+    public String load(final String key) throws Exception {
+      return "TEST";
     }
+  };
 
-    @Benchmark
-    public final String spf4j2Cache() {
-        return SPF4J2.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
-    }
+  private static final LoadingCache<String, String> GUAVA = CacheBuilder.newBuilder()
+          .initialCapacity(16)
+          .concurrencyLevel(16)
+          .build(TEST_LOADER);
+  private static final LoadingCache<String, String> SPF4J = new UnboundedLoadingCache<>(16, 16, TEST_LOADER);
 
-    @Benchmark
-    public final String spf4jRacyCache() {
-        return SPF4J_RACY.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
-    }
+  private static final LoadingCache<String, String> SPF4J2 = new UnboundedLoadingCache2<>(16, 16, TEST_LOADER);
 
-    @Benchmark
-    public final String guavaCache() {
-        return GUAVA.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
-    }
+  private static final LoadingCache<String, String> SPF4J_RACY
+          = new UnboundedRacyLoadingCache<>(16, 16, TEST_LOADER);
 
+  @Benchmark
+  public final String spf4jCache() {
+    return SPF4J.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
+  }
+
+  @Benchmark
+  public final String spf4j2Cache() {
+    return SPF4J2.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
+  }
+
+  @Benchmark
+  public final String spf4jRacyCache() {
+    return SPF4J_RACY.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
+  }
+
+  @Benchmark
+  public final String guavaCache() {
+    return GUAVA.getUnchecked("key" + (ThreadLocalRandom.current().nextInt(100)));
+  }
 
 }

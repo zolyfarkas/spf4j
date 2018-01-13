@@ -46,23 +46,22 @@ import org.spf4j.base.IntMath;
  */
 public final class SleepSortTest {
 
-
-    @Test
-    public void testSort() throws CompileException, ExecutionException, InterruptedException, IOException {
-       String sort = Resources.toString(Resources.getResource(SleepSortTest.class, "sleepSort.zel"),
-                Charsets.US_ASCII);
-        Program p = Program.compile(sort, "x");
-        System.out.println(Arrays.toString(p.getCode()));
-        Integer [] testArray = new Integer [100];
-        IntMath.XorShift32 random = new IntMath.XorShift32();
-        for (int i = 0; i < testArray.length; i++) {
-            testArray[i] = Math.abs(random.nextInt()) % 100;
-        }
-
-        Integer [] resutlSt = testArray.clone();
-        p.execute(new Object [] {resutlSt});
-        Arrays.sort(testArray);
-        Assert.assertArrayEquals(testArray, (Object []) resutlSt);
+  @Test
+  public void testSort() throws CompileException, ExecutionException, InterruptedException, IOException {
+    String sort = Resources.toString(Resources.getResource(SleepSortTest.class, "sleepSort.zel"),
+            Charsets.US_ASCII);
+    Program p = Program.compile(sort, "x");
+    System.out.println(Arrays.toString(p.getCode()));
+    Integer[] testArray = new Integer[100];
+    IntMath.XorShift32 random = new IntMath.XorShift32();
+    for (int i = 0; i < testArray.length; i++) {
+      testArray[i] = Math.abs(random.nextInt()) % 100;
     }
+
+    Integer[] resutlSt = testArray.clone();
+    p.execute(new Object[]{resutlSt});
+    Arrays.sort(testArray);
+    Assert.assertArrayEquals(testArray, (Object[]) resutlSt);
+  }
 
 }

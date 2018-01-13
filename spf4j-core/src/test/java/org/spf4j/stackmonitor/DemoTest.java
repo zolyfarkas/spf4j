@@ -46,82 +46,84 @@ import org.spf4j.ssdump2.Converter;
 @NotThreadSafe
 public final class DemoTest {
 
-   private static volatile boolean stopped;
+  private DemoTest() { }
 
-    @BeforeClass
-    public static void init() {
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(final Thread t, final Throwable e) {
-                Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
+  private static volatile boolean stopped;
+
+  @BeforeClass
+  public static void init() {
+    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      @Override
+      public void uncaughtException(final Thread t, final Throwable e) {
+        Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
+      }
+    });
+  }
+
+  @Test
+  public void testJmx() throws InterruptedException, IOException {
+    Sampler sampler = new Sampler(new SimpleStackCollector());
+    sampler.registerJmx();
+    sampler.start();
+    main(new String[]{});
+    sampler.stop();
+    SampleNode original = sampler.getStackCollector().applyOnSamples((SampleNode input) -> input);
+    File file = sampler.dumpToFile();
+    System.out.println("Samples saved to " + file);
+    Assert.assertNotNull(file);
+    Assert.assertTrue(file.exists());
+    SampleNode loaded = Converter.load(file);
+    Assert.assertEquals(original, loaded);
+    sampler.stop();
+  }
+
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  public static void main(final String[] args) throws InterruptedException {
+    List<Thread> threads = startTestThreads(20);
+    Thread.sleep(5000);
+    stopTestThreads(threads);
+  }
+
+  public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {
+    stopped = true;
+    for (Thread t : threads) {
+      t.join(3000);
+    }
+  }
+
+  public static List<Thread> startTestThreads(final int nrThreads) {
+    stopped = false;
+    List<Thread> threads = new ArrayList<>(nrThreads);
+    for (int i = 0; i < nrThreads; i++) {
+      Thread t = new Thread(new Runnable() {
+        @Override
+        @SuppressFBWarnings("MDM_THREAD_YIELD")
+        public void run() {
+          try {
+            double d = 0;
+            while (!stopped) {
+              d += doStuff();
+              Thread.sleep(1);
             }
-        });
-    }
+            System.err.println("nr = " + d);
+          } catch (InterruptedException e) {
+            // do nothing
+          }
 
-    @Test
-    public void testJmx() throws InterruptedException, IOException {
-        Sampler sampler = new Sampler(new SimpleStackCollector());
-        sampler.registerJmx();
-        sampler.start();
-        main(new String[]{});
-        sampler.stop();
-        SampleNode original = sampler.getStackCollector().applyOnSamples((SampleNode input) -> input);
-        File file = sampler.dumpToFile();
-        System.out.println("Samples saved to " + file);
-        Assert.assertNotNull(file);
-        Assert.assertTrue(file.exists());
-        SampleNode loaded = Converter.load(file);
-        Assert.assertEquals(original, loaded);
-        sampler.stop();
-    }
-
-    @SuppressFBWarnings("MDM_THREAD_YIELD")
-    public static void main(final String[] args) throws InterruptedException {
-        List<Thread> threads = startTestThreads(20);
-        Thread.sleep(5000);
-        stopTestThreads(threads);
-    }
-
-    public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {
-        stopped = true;
-        for (Thread t : threads) {
-            t.join(3000);
         }
-    }
 
-    public static List<Thread> startTestThreads(final int nrThreads) {
-        stopped = false;
-        List<Thread> threads = new ArrayList<>(nrThreads);
-        for (int i = 0; i < nrThreads; i++) {
-            Thread t = new Thread(new Runnable() {
-                @Override
-                @SuppressFBWarnings("MDM_THREAD_YIELD")
-                public void run() {
-                    try {
-                        double d = 0;
-                        while (!stopped) {
-                            d += doStuff();
-                            Thread.sleep(1);
-                        }
-                        System.err.println("nr = " + d);
-                    } catch (InterruptedException e) {
-                      // do nothing
-                    }
-
-                }
-
-                private double doStuff() {
-                    return getStuff(10) * getStuff(10) * getStuff(10) * getStuff(10);
-                }
-
-                private double getStuff(final double nr) {
-                    return Math.exp(nr);
-                }
-            }, "Thread" + i);
-            t.start();
-            threads.add(t);
+        private double doStuff() {
+          return getStuff(10) * getStuff(10) * getStuff(10) * getStuff(10);
         }
-        return threads;
 
+        private double getStuff(final double nr) {
+          return Math.exp(nr);
+        }
+      }, "Thread" + i);
+      t.start();
+      threads.add(t);
     }
+    return threads;
+
+  }
 }

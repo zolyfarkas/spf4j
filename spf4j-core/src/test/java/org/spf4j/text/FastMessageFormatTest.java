@@ -41,13 +41,11 @@ import org.junit.Test;
  */
 public class FastMessageFormatTest {
 
-
-
   @Test
   public void testFormatter() throws IOException {
     StringBuilder sb = new StringBuilder();
     MessageFormat format = new MessageFormat("{0}, {1}");
-    format.format(new Object [] {"a", "b"}, sb, null);
+    format.format(new Object[]{"a", "b"}, sb, null);
     Assert.assertEquals("a, b", sb.toString());
   }
 
@@ -55,7 +53,7 @@ public class FastMessageFormatTest {
   public void testFormatter5() throws IOException {
     StringBuilder sb = new StringBuilder();
     MessageFormat format = new MessageFormat("{0}, {1}, {2}, {3}, {4}");
-    format.format(new Object [] {"a", "b", "c", "d", "e"}, sb, null);
+    format.format(new Object[]{"a", "b", "c", "d", "e"}, sb, null);
     Assert.assertEquals("a, b, c, d, e", sb.toString());
   }
 
@@ -71,7 +69,7 @@ public class FastMessageFormatTest {
   public void testFormatter3() throws IOException {
     StringBuilder sb = new StringBuilder();
     MessageFormat format = new MessageFormat("pre {1}, {0} suf");
-    format.format(new Object [] {"a", "b"}, sb, null);
+    format.format(new Object[]{"a", "b"}, sb, null);
     Assert.assertEquals("pre b, a suf", sb.toString());
   }
 
@@ -79,9 +77,8 @@ public class FastMessageFormatTest {
   public void testFormatter4() throws IOException {
     StringBuilder sb = new StringBuilder();
     MessageFormat format = new MessageFormat("pre {1}, {0}, {2,number,$'#',##} suf");
-    format.format(new Object [] {"a", "b", 100}, sb, null);
+    format.format(new Object[]{"a", "b", 100}, sb, null);
     Assert.assertEquals("pre b, a, $#1,00 suf", sb.toString());
   }
-
 
 }

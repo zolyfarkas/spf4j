@@ -61,185 +61,180 @@ import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "MDM_THREAD_YIELD", "SIC_INNER_SHOULD_BE_STATIC_ANON" })
+@SuppressFBWarnings({"MDM_THREAD_YIELD", "SIC_INNER_SHOULD_BE_STATIC_ANON"})
 @NotThreadSafe
 public final class ObjectPoolBuilderTest {
 
-    /**
-     * Test of build method, of class RecyclingSupplierBuilder.
-     */
-    @Test
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void testBuild() throws ObjectCreationException, InterruptedException,
-            ObjectBorrowException, TimeoutException, ObjectDisposeException {
-        System.out.println("test=build");
-        RecyclingSupplier<ExpensiveTestObject> pool =
-                new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
-        System.out.println(pool);
-        ExpensiveTestObject object = pool.get();
-        System.out.println(pool);
-        pool.recycle(object, null);
-        System.out.println(pool);
-        ExpensiveTestObject object2 = pool.get();
-        Assert.assertSame(object2, object);
+  /**
+   * Test of build method, of class RecyclingSupplierBuilder.
+   */
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testBuild() throws ObjectCreationException, InterruptedException,
+          ObjectBorrowException, TimeoutException, ObjectDisposeException {
+    System.out.println("test=build");
+    RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+    System.out.println(pool);
+    ExpensiveTestObject object = pool.get();
+    System.out.println(pool);
+    pool.recycle(object, null);
+    System.out.println(pool);
+    ExpensiveTestObject object2 = pool.get();
+    Assert.assertSame(object2, object);
 
-        pool.dispose();
+    pool.dispose();
+  }
+
+  @Test(expected = RuntimeException.class)
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testBuildSimple()
+          throws ObjectCreationException, ObjectBorrowException,
+          InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
+    System.out.println("test=buildSimple");
+    RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+    System.out.println(pool);
+    pool.get();
+    pool.get();
+    System.out.println(pool);
+    try (ExecutionContext start = ExecutionContext.start(System.currentTimeMillis() + 1000)) {
+      pool.dispose();
+      pool.get();
+      System.out.println(pool);
+    }
+  }
+
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testBuild2() throws ObjectCreationException, InterruptedException,
+          ObjectBorrowException, ExecutionException, TimeoutException {
+    System.out.println("test=build2");
+    final RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+    System.out.println(pool);
+    final ExpensiveTestObject object = pool.get();
+    System.out.println(pool);
+    Future<Void> submit = DefaultExecutor.INSTANCE.submit(() -> {
+      pool.recycle(object, null);
+      return null;
+    });
+    submit.get();
+    final ExpensiveTestObject object2 = pool.get();
+    Assert.assertSame(object, object2);
+    System.out.println(pool);
+  }
+
+  @Test(timeout = 20000)
+  public void testPoolUseNoFailures()
+          throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+          TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    System.out.println("test=poolUse");
+    RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
+    runTest(pool, 0, 10000);
+    pool.dispose();
+  }
+
+  @Test(timeout = 16000)
+  public void testPoolUseNoFailuresStarvation()
+          throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+          TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    System.out.println("test=poolUse");
+    RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(1, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
+    runTest(pool, 0, 15000);
+    pool.dispose();
+  }
+
+  @Test(timeout = 20000)
+  public void testPoolUse()
+          throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+          TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    System.out.println("test=poolUse");
+    final RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+
+    runTest(pool, 0, 10000);
+    try {
+      ExpensiveTestObject.setFailAll(true);
+      pool.dispose();
+      Assert.fail();
+    } catch (ObjectDisposeException ex) {
+      Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+    } finally {
+      ExpensiveTestObject.setFailAll(false);
+    }
+  }
+
+  @Test(timeout = 20000)
+  public void testPoolUseWithMaintenance()
+          throws ObjectCreationException, ObjectBorrowException, InterruptedException,
+          TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    System.out.println("test=poolUseWithMainteinance");
+
+    final RecyclingSupplier<ExpensiveTestObject> pool =
+            new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
+            .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
+    runTest(pool, 5, 20000);
+    try {
+      pool.dispose();
+    } catch (ObjectDisposeException ex) {
+      Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
     }
 
-    @Test(expected = RuntimeException.class)
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void testBuildSimple()
-            throws ObjectCreationException, ObjectBorrowException,
-            InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
-        System.out.println("test=buildSimple");
-        RecyclingSupplier<ExpensiveTestObject> pool =
-                new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
-        System.out.println(pool);
-        pool.get();
-        pool.get();
-        System.out.println(pool);
-        try (ExecutionContext start = ExecutionContext.start(System.currentTimeMillis() + 1000)) {
-        pool.dispose();
-        pool.get();
-        System.out.println(pool);
-        }
+  }
+
+  private volatile boolean isDeadlock = false;
+
+  private Thread startDeadlockMonitor(final RecyclingSupplier<ExpensiveTestObject> pool,
+          final long deadlockTimeout) {
+    isDeadlock = false;
+    Thread monitor = new Thread(() -> {
+      try {
+        Thread.sleep(deadlockTimeout);
+        ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
+        System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
+        System.err.println(pool.toString());
+        isDeadlock = true;
+      } catch (InterruptedException ex) {
+        // terminating monitor
+        return;
+      }
+    });
+    monitor.start();
+    return monitor;
+  }
+
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
+          final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
+    Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
+    ExecutorService execService = new LifoThreadPoolExecutorSQP("test", 10, 10,
+            5000, 1024, true);
+    BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
+    RetryExecutor exec = new RetryExecutor(execService, (final Callable<Object> parameter)
+            -> new Callables.RetryPredicate<Exception, Object>() {
+      @Override
+      public Callables.RetryDecision<Object> getDecision(final Exception value, final Callable<Object> callable) {
+        return Callables.RetryDecision.retry(0, callable);
+      }
+    }, completionQueue);
+    int nrTests = 1000;
+    for (int i = 0; i < nrTests; i++) {
+      exec.submit(new TestCallable(pool, i));
+      Thread.sleep(sleepBetweenSubmit);
     }
-
-
-
-    @Test
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void testBuild2() throws ObjectCreationException, InterruptedException,
-            ObjectBorrowException, ExecutionException, TimeoutException {
-        System.out.println("test=build2");
-        final RecyclingSupplier<ExpensiveTestObject> pool =
-                new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
-        System.out.println(pool);
-        final ExpensiveTestObject object = pool.get();
-        System.out.println(pool);
-        Future<Void> submit = DefaultExecutor.INSTANCE.submit(() -> {
-          pool.recycle(object, null);
-          return null;
-        });
-        submit.get();
-        final ExpensiveTestObject object2 = pool.get();
-        Assert.assertSame(object, object2);
-        System.out.println(pool);
+    for (int i = 0; i < nrTests; i++) {
+      System.out.println("Done(" + completionQueue.take().get() + ')');
     }
-
-
-
-    @Test(timeout = 20000)
-    public void testPoolUseNoFailures()
-                throws ObjectCreationException, ObjectBorrowException, InterruptedException,
-                TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-        System.out.println("test=poolUse");
-        RecyclingSupplier<ExpensiveTestObject> pool
-                = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
-        runTest(pool, 0, 10000);
-        pool.dispose();
+    monitor.interrupt();
+    monitor.join();
+    Thread.sleep(100);
+    Assert.assertEquals(0, completionQueue.size());
+    if (isDeadlock) {
+      Assert.fail("deadlock detected");
     }
-
-    @Test(timeout = 16000)
-    public void testPoolUseNoFailuresStarvation()
-                throws ObjectCreationException, ObjectBorrowException, InterruptedException,
-                TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-        System.out.println("test=poolUse");
-        RecyclingSupplier<ExpensiveTestObject> pool
-                = new RecyclingSupplierBuilder(1, new ExpensiveTestObjectFactory(1000000, 1000000, 1, 5)).build();
-        runTest(pool, 0, 15000);
-        pool.dispose();
-    }
-
-
-    @Test(timeout = 20000)
-    public void testPoolUse()
-            throws ObjectCreationException, ObjectBorrowException, InterruptedException,
-            TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-                System.out.println("test=poolUse");
-        final RecyclingSupplier<ExpensiveTestObject> pool
-                = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
-
-        runTest(pool, 0, 10000);
-        try {
-            ExpensiveTestObject.setFAILALL(true);
-            pool.dispose();
-            Assert.fail();
-        } catch (ObjectDisposeException ex) {
-            Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
-        } finally {
-          ExpensiveTestObject.setFAILALL(false);
-        }
-    }
-
-    @Test(timeout = 20000)
-    public void testPoolUseWithMaintenance()
-            throws ObjectCreationException, ObjectBorrowException, InterruptedException,
-            TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
-        System.out.println("test=poolUseWithMainteinance");
-
-        final RecyclingSupplier<ExpensiveTestObject> pool = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
-                .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
-        runTest(pool, 5, 20000);
-        try {
-          pool.dispose();
-        } catch (ObjectDisposeException ex) {
-          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
-        }
-
-    }
-
-    private volatile boolean isDeadlock = false;
-
-    private Thread startDeadlockMonitor(final RecyclingSupplier<ExpensiveTestObject> pool,
-            final long deadlockTimeout) {
-        isDeadlock = false;
-        Thread monitor = new Thread(() -> {
-          try {
-            Thread.sleep(deadlockTimeout);
-            ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
-            System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
-            System.err.println(pool.toString());
-            isDeadlock = true;
-          } catch (InterruptedException ex) {
-            // terminating monitor
-            return;
-          }
-        });
-        monitor.start();
-        return monitor;
-    }
-
-   @SuppressFBWarnings("MDM_THREAD_YIELD")
-   private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
-            final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
-        Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
-        ExecutorService execService = new LifoThreadPoolExecutorSQP("test", 10, 10,
-                5000, 1024, true);
-        BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
-        RetryExecutor exec = new RetryExecutor(execService, (final Callable<Object> parameter)
-                        -> new Callables.RetryPredicate<Exception, Object>() {
-          @Override
-          public Callables.RetryDecision<Object> getDecision(Exception value, Callable<Object> callable) {
-            return Callables.RetryDecision.retry(0, callable);
-          }
-                }, completionQueue);
-        int nrTests = 1000;
-        for (int i = 0; i < nrTests; i++) {
-            exec.submit(new TestCallable(pool, i));
-            Thread.sleep(sleepBetweenSubmit);
-        }
-        for (int i = 0; i < nrTests; i++) {
-            System.out.println("Done(" + completionQueue.take().get() + ')');
-        }
-        monitor.interrupt();
-        monitor.join();
-        Thread.sleep(100);
-        Assert.assertEquals(0, completionQueue.size());
-        if (isDeadlock) {
-            Assert.fail("deadlock detected");
-        }
-    }
-
+  }
 
 }

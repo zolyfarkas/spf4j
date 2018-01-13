@@ -57,6 +57,7 @@ public final class ApiDiffCmd {
 
   }
 
+  @SuppressWarnings("checkstyle:regexp")
   public static void main(final String[] args) throws DependencyResolutionException, VersionRangeResolutionException,
           IOException, ArtifactResolutionException, JavadocExecutionException {
     Options options = new Options();

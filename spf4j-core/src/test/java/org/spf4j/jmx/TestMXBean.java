@@ -37,12 +37,12 @@ package org.spf4j.jmx;
  */
 public interface TestMXBean {
 
-    String [] getArray();
+  String[] getArray();
 
-    String [][] getMatrix();
+  String[][] getMatrix();
 
-    TestEnum getEnum();
+  TestEnum getEnum();
 
-    String getStuff();
+  String getStuff();
 
 }

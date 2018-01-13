@@ -51,7 +51,7 @@ public class AppendableWriterBenchmark {
   @State(Scope.Benchmark)
   public static class BenchmarkState {
 
-    public final char[] testChars;
+    private final char[] testChars;
 
     {
       StringBuilder builder = new StringBuilder(4096);
@@ -65,8 +65,8 @@ public class AppendableWriterBenchmark {
 
   @State(Scope.Thread)
   public static class ThreadState {
-    public final StringBuilder sb = new StringBuilder(100000);
-    public final IntMath.XorShift32 random = new IntMath.XorShift32();
+    private final StringBuilder sb = new StringBuilder(100000);
+    private final IntMath.XorShift32 random = new IntMath.XorShift32();
   }
 
   @Benchmark

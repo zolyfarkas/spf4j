@@ -47,7 +47,7 @@ public final class ExpensiveTestObject implements Closeable {
 
   private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
 
-  private static volatile boolean FAILALL = false;
+  private static volatile boolean failAll = false;
 
   private final long maxIdleMillis;
   private final int nrUsesToFailAfter;
@@ -58,11 +58,11 @@ public final class ExpensiveTestObject implements Closeable {
   private final String id;
 
   public static boolean isFAILALL() {
-    return FAILALL;
+    return failAll;
   }
 
-  public static void setFAILALL(final boolean FAILALL) {
-    ExpensiveTestObject.FAILALL = FAILALL;
+  public static void setFailAll(final boolean failAll) {
+    ExpensiveTestObject.failAll = failAll;
   }
 
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
@@ -79,7 +79,7 @@ public final class ExpensiveTestObject implements Closeable {
   }
 
   public void doStuff() throws IOException {
-    if (FAILALL) {
+    if (failAll) {
       throw new IOExceptionImpl("Failall " + id);
     }
     long currentTime = System.currentTimeMillis();
@@ -133,7 +133,7 @@ public final class ExpensiveTestObject implements Closeable {
 
   private static final class IOExceptionImpl extends IOException {
 
-    public IOExceptionImpl(String message) {
+    IOExceptionImpl(final String message) {
       super(message);
     }
 

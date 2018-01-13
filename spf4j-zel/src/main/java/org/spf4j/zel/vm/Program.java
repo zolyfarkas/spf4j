@@ -407,13 +407,13 @@ public final class Program implements Serializable {
   }
 
   /**
-   * *
+   *
    * This allows to run ZEL in an interactive mode
    *
    * @param args
    */
+  @SuppressWarnings("checkstyle:regexp")
   public static void main(final String[] args) throws IOException, InterruptedException {
-    LOGGER.info("ZEL Shell");
     System.out.println("ZEL Shell");
     Map<String, Integer> localSymTable = Collections.emptyMap();
     Pair<Object[], Map<String, Integer>> gmemPair = ZEL_GLOBAL_FUNC.build();

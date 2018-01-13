@@ -37,24 +37,24 @@ package org.spf4j.jmx;
  */
 public final class Test implements TestMXBean {
 
-    @Override
-    public String[] getArray() {
-        return new String [] {"test1", "test2"};
-    }
+  @Override
+  public String[] getArray() {
+    return new String[]{"test1", "test2"};
+  }
 
-    @Override
-    public String getStuff() {
-        return "bla";
-    }
+  @Override
+  public String getStuff() {
+    return "bla";
+  }
 
-    @Override
-    public String[][] getMatrix() {
-        return new String [][] {{"a", "b"}, {"c", "d"}};
-    }
+  @Override
+  public String[][] getMatrix() {
+    return new String[][]{{"a", "b"}, {"c", "d"}};
+  }
 
-    @Override
-    public TestEnum getEnum() {
-        return TestEnum.VAL1;
-    }
+  @Override
+  public TestEnum getEnum() {
+    return TestEnum.VAL1;
+  }
 
 }

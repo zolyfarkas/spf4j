@@ -49,6 +49,8 @@ public final class DecentSemaphoreHandler {
     System.setProperty("spf4j.heartbeat.intervalMillis", "2000"); // 2 second heartbeat
   }
 
+  private DecentSemaphoreHandler() { }
+
   @SuppressFBWarnings("MDM_THREAD_YIELD")
   public static void main(final String[] args) throws InterruptedException, TimeoutException, SQLException {
     Runtime.getRuntime().addShutdownHook(new Thread() {

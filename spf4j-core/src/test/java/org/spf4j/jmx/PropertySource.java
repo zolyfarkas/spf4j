@@ -37,9 +37,9 @@ package org.spf4j.jmx;
  */
 public abstract class PropertySource {
 
-    public abstract Object getProperty(final String name);
+    public abstract Object getProperty(String name);
 
 
-    public abstract void setProperty(final String name, final String value);
+    public abstract void setProperty(String name, String value);
 
 }

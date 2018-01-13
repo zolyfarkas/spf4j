@@ -51,20 +51,20 @@ public class ThreadPoolBenchmarkStdJdk {
   @State(Scope.Benchmark)
   public static class LazyStd {
 
-    public final ExecutorService EX = new ThreadPoolExecutor(8, 8,
+    private final ExecutorService es = new ThreadPoolExecutor(8, 8,
                                       0L, TimeUnit.MILLISECONDS,
                                       new ArrayBlockingQueue<Runnable>(10000));
 
     @TearDown
     public void close() {
-      EX.shutdown();
+      es.shutdown();
       DefaultExecutor.INSTANCE.shutdown();
     }
   }
 
   @Benchmark
   public final long stdJdkBenchmark(final LazyStd exec) throws InterruptedException, IOException, ExecutionException {
-    return ThreadPoolBenchmark.testPool(exec.EX);
+    return ThreadPoolBenchmark.testPool(exec.es);
   }
 
 }

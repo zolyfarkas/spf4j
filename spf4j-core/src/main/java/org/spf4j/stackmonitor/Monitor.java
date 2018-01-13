@@ -71,6 +71,7 @@ public final class Monitor {
 
     private Monitor() { }
 
+    @SuppressWarnings("checkstyle:regexp")
     public static void main(final String[] args)
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
             InvocationTargetException  {

@@ -53,7 +53,7 @@ public final class ScannerTest {
      * Test method for override, this implementation returns a Object.
      * @return some test object.
      */
-    Object getValue() {
+    public Object getValue() {
       return new Object();
     }
   }
@@ -61,7 +61,7 @@ public final class ScannerTest {
   public static final class B extends A {
 
     @Override
-    String getValue() {
+    public String getValue() {
       return "B";
     }
   }

@@ -41,7 +41,6 @@ import org.junit.Test;
  */
 public class TimingTest {
 
-
   @Test
   public void testTiming() {
     Timing currentTiming = Timing.getCurrentTiming();
@@ -56,7 +55,7 @@ public class TimingTest {
     long nanoTimeIn100ms = currentTiming.fromEpochMillisToNanoTime(System.currentTimeMillis() + 100);
     long expectNanoTimeIn100ms = currNanos + TimeUnit.MILLISECONDS.toNanos(100);
     Assert.assertTrue("expected = " + expectNanoTimeIn100ms + ", actual =" + nanoTimeIn100ms,
-            Math.abs( expectNanoTimeIn100ms - nanoTimeIn100ms) < TimeUnit.MILLISECONDS.toNanos(1));
+            Math.abs(expectNanoTimeIn100ms - nanoTimeIn100ms) < TimeUnit.MILLISECONDS.toNanos(1));
 
   }
 

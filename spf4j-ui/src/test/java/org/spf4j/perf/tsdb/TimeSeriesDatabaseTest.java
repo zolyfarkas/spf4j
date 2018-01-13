@@ -43,69 +43,66 @@ import org.spf4j.tsdb2.TimeSeries;
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN" })
+@SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN"})
 public final class TimeSeriesDatabaseTest {
 
-    private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
+  private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
 
-    /**
-     * Test of close method, of class TimeSeriesDatabase.
-     */
-    @Test
-    public void testWriteTSDB() throws Exception {
-        System.out.println("testWriteTSDB");
-        if (new File(FILE_NAME).delete()) {
-            System.out.println("existing tsdb file deleted");
-        }
-        try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[] {})) {
-            instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
-            instance.write(System.currentTimeMillis(), "gr1", new long[] {0, 1});
-            Thread.sleep(5);
-            instance.write(System.currentTimeMillis(), "gr1", new long[] {1, 2});
-            Thread.sleep(5);
-            instance.write(System.currentTimeMillis(), "gr1", new long[] {3, 4});
-            Thread.sleep(5);
-            instance.addTSTable("gr2", new byte []{}, 5, new String[] {"a", "b"}, new byte [][] {});
-            instance.write(System.currentTimeMillis(), "gr2",  new long[] {7, 8});
-            instance.flush();
+  /**
+   * Test of close method, of class TimeSeriesDatabase.
+   */
+  @Test
+  public void testWriteTSDB() throws Exception {
+    System.out.println("testWriteTSDB");
+    if (new File(FILE_NAME).delete()) {
+      System.out.println("existing tsdb file deleted");
+    }
+    try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[]{})) {
+      instance.addTSTable("gr1", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
+      instance.write(System.currentTimeMillis(), "gr1", new long[]{0, 1});
+      Thread.sleep(5);
+      instance.write(System.currentTimeMillis(), "gr1", new long[]{1, 2});
+      Thread.sleep(5);
+      instance.write(System.currentTimeMillis(), "gr1", new long[]{3, 4});
+      Thread.sleep(5);
+      instance.addTSTable("gr2", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
+      instance.write(System.currentTimeMillis(), "gr2", new long[]{7, 8});
+      instance.flush();
 
-            instance.addTSTable("gr3", new byte []{}, 5, new String[] {"a", "b"}, new byte [][] {});
-            instance.write(System.currentTimeMillis(), "gr3",  new long[] {7, 8});
-            Thread.sleep(5);
-            instance.write(System.currentTimeMillis(), "gr3",  new long[] {9, 10});
-            instance.flush();
-            System.out.println(instance.getTSTables());
-            TimeSeries readAll = instance.readAll("gr1");
-            Assert.assertEquals(2, readAll.getValues()[1][1]);
-            System.out.println(readAll);
-            readAll = instance.readAll("gr2");
-            Assert.assertEquals(7, readAll.getValues()[0][0]);
-            System.out.println(readAll);
-            readAll = instance.readAll("gr3");
-            Assert.assertEquals(10, readAll.getValues()[1][1]);
-            System.out.println(readAll);
-        }
-
-        TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(new File(FILE_NAME), null);
-      Collection<TSTable> tsTables = instanceRead.getTSTables();
-
-        System.out.println(tsTables);
-        Assert.assertEquals(3, tsTables.size());
-        instanceRead.writeCsvTable("gr1", File.createTempFile("test", ".csv"));
-        instanceRead.writeCsvTables(Arrays.asList("gr1", "gr2", "gr3"), File.createTempFile("testAll", ".csv"));
-
+      instance.addTSTable("gr3", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
+      instance.write(System.currentTimeMillis(), "gr3", new long[]{7, 8});
+      Thread.sleep(5);
+      instance.write(System.currentTimeMillis(), "gr3", new long[]{9, 10});
+      instance.flush();
+      System.out.println(instance.getTSTables());
+      TimeSeries readAll = instance.readAll("gr1");
+      Assert.assertEquals(2, readAll.getValues()[1][1]);
+      System.out.println(readAll);
+      readAll = instance.readAll("gr2");
+      Assert.assertEquals(7, readAll.getValues()[0][0]);
+      System.out.println(readAll);
+      readAll = instance.readAll("gr3");
+      Assert.assertEquals(10, readAll.getValues()[1][1]);
+      System.out.println(readAll);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testWriteBadTSDB() throws Exception {
-        System.out.println("testWriteBadTSDB");
-        try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[] {})) {
-            instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
-            instance.addTSTable("gr1", new byte []{}, 5, new String[]{"a", "b"}, new byte [][] {});
-        }
+    TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(new File(FILE_NAME), null);
+    Collection<TSTable> tsTables = instanceRead.getTSTables();
+
+    System.out.println(tsTables);
+    Assert.assertEquals(3, tsTables.size());
+    instanceRead.writeCsvTable("gr1", File.createTempFile("test", ".csv"));
+    instanceRead.writeCsvTables(Arrays.asList("gr1", "gr2", "gr3"), File.createTempFile("testAll", ".csv"));
+
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testWriteBadTSDB() throws Exception {
+    System.out.println("testWriteBadTSDB");
+    try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[]{})) {
+      instance.addTSTable("gr1", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
+      instance.addTSTable("gr1", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
     }
-
-
-
+  }
 
 }

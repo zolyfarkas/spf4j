@@ -50,36 +50,37 @@ import org.spf4j.base.Throwables;
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "HES_LOCAL_EXECUTOR_SERVICE", "MDM_THREAD_YIELD" })
+@SuppressFBWarnings({"HES_LOCAL_EXECUTOR_SERVICE", "MDM_THREAD_YIELD"})
 public class LifoThreadPoolExecutorTest {
 
-    @Test
-    public void testLifoExecSQ() throws InterruptedException, IOException {
-        LifoThreadPoolExecutorSQP executor =
-                new LifoThreadPoolExecutorSQP("test", 8, 8, 60000, 1024, 1024);
-        testPool(executor);
-    }
+  @Test
+  public void testLifoExecSQ() throws InterruptedException, IOException {
+    LifoThreadPoolExecutorSQP executor
+            = new LifoThreadPoolExecutorSQP("test", 8, 8, 60000, 1024, 1024);
+    testPool(executor);
+  }
 
-    @Test
-    public void testLifoExecSQZeroQueue() throws InterruptedException, IOException {
-        LifoThreadPoolExecutorSQP executor =
-                new LifoThreadPoolExecutorSQP("test", 0, 16, 60000, 0, 1024);
-        testPool(executor);
-    }
+  @Test
+  public void testLifoExecSQZeroQueue() throws InterruptedException, IOException {
+    LifoThreadPoolExecutorSQP executor
+            = new LifoThreadPoolExecutorSQP("test", 0, 16, 60000, 0, 1024);
+    testPool(executor);
+  }
 
   @Test(expected = RejectedExecutionException.class)
   public void testRejectZeroQueueSizeTp() {
     LifoThreadPool executor
             = LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(1).withQueueSizeLimit(0).build();
     try {
-    executor.execute(() -> {
-      try {
-        Thread.sleep(10000);
-      } catch (InterruptedException ex) {
-        Thread.interrupted();
-      }
-    });
-    executor.execute(() -> {});
+      executor.execute(() -> {
+        try {
+          Thread.sleep(10000);
+        } catch (InterruptedException ex) {
+          Thread.interrupted();
+        }
+      });
+      executor.execute(() -> {
+      });
     } finally {
       executor.shutdownNow();
     }
@@ -99,92 +100,91 @@ public class LifoThreadPoolExecutorTest {
           Thread.interrupted();
         }
       });
-      executor.execute(() -> {ref.set(Thread.currentThread());});
+      executor.execute(() -> {
+        ref.set(Thread.currentThread());
+      });
       Assert.assertEquals(Thread.currentThread(), ref.get());
     } finally {
       executor.shutdownNow();
     }
   }
 
+  @Test
+  public void testLifoExecSQShutdownNow() throws InterruptedException, IOException {
+    LifoThreadPool executor
+            = LifoThreadPoolBuilder.newBuilder().withCoreSize(2).withMaxSize(8).withQueueSizeLimit(1024).build();
+    executor.execute(() -> {
+      try {
+        Thread.sleep(Long.MAX_VALUE);
+      } catch (InterruptedException ex) {
+        Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+      }
+    });
 
-    @Test
-    public void testLifoExecSQShutdownNow() throws InterruptedException, IOException {
-        LifoThreadPool executor =
-                LifoThreadPoolBuilder.newBuilder().withCoreSize(2).withMaxSize(8).withQueueSizeLimit(1024).build();
-        executor.execute(() -> {
-          try {
-            Thread.sleep(Long.MAX_VALUE);
-          } catch (InterruptedException ex) {
-            Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
-          }
-        });
+    executor.execute(() -> {
+      try {
+        Thread.sleep(Long.MAX_VALUE);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+    });
 
-        executor.execute(() -> {
-          try {
-            Thread.sleep(Long.MAX_VALUE);
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-          }
-        });
+    executor.shutdown();
+    Assert.assertFalse(executor.awaitTermination(10, TimeUnit.MILLISECONDS));
+    executor.shutdownNow();
+    Assert.assertTrue(executor.awaitTermination(1000, TimeUnit.MILLISECONDS));
 
-        executor.shutdown();
-        Assert.assertFalse(executor.awaitTermination(10, TimeUnit.MILLISECONDS));
-        executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1000, TimeUnit.MILLISECONDS));
+  }
 
+  @Test
+  @Ignore
+  public void testJdkExec() throws InterruptedException, IOException {
+    final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
+    ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
+            linkedBlockingQueue);
+    testPool(executor);
+  }
+
+  @Test
+  @Ignore
+  public void testJdkFJPExec() throws InterruptedException, IOException {
+    ExecutorService executor = new ForkJoinPool(8);
+    testPool(executor);
+  }
+
+  public static void testPool(final ExecutorService executor)
+          throws InterruptedException, IOException {
+    final LongAdder adder = new LongAdder();
+    final int testCount = 20000000;
+    long rejected = 0;
+    final Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        adder.increment();
+      }
+    };
+    long start = System.currentTimeMillis();
+    executor.execute(new Runnable() {
+
+      @Override
+      public void run() {
+        throw new RuntimeException();
+      }
+    });
+    for (int i = 0; i < testCount; i++) {
+      try {
+        executor.execute(runnable);
+      } catch (RejectedExecutionException ex) {
+        rejected++;
+        runnable.run();
+      }
     }
-
-
-    @Test
-    @Ignore
-    public void testJdkExec() throws InterruptedException, IOException {
-        final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
-                linkedBlockingQueue);
-        testPool(executor);
-    }
-
-    @Test
-    @Ignore
-    public void testJdkFJPExec() throws InterruptedException, IOException {
-        ExecutorService executor = new ForkJoinPool(8);
-        testPool(executor);
-    }
-
-
-    public static void testPool(final ExecutorService executor)
-            throws InterruptedException, IOException {
-        final LongAdder adder = new LongAdder();
-        final int testCount = 20000000;
-        long rejected = 0;
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                adder.increment();
-            }
-        };
-        long start = System.currentTimeMillis();
-        executor.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                throw new RuntimeException();
-            }
-        });
-        for (int i = 0; i < testCount; i++) {
-            try {
-                executor.execute(runnable);
-            } catch (RejectedExecutionException ex) {
-                rejected++;
-                runnable.run();
-            }
-        }
-        executor.shutdown();
-        boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
-        System.out.println("Stats for " + executor.getClass()
-                + ", rejected = " + rejected + ", Exec time = " + (System.currentTimeMillis() - start));
-        Assert.assertTrue(awaitTermination);
-        Assert.assertEquals(testCount, adder.sum());
-    }
+    executor.shutdown();
+    boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
+    System.out.println("Stats for " + executor.getClass()
+            + ", rejected = " + rejected + ", Exec time = " + (System.currentTimeMillis() - start));
+    Assert.assertTrue(awaitTermination);
+    Assert.assertEquals(testCount, adder.sum());
+  }
 
 }

@@ -45,7 +45,7 @@ public final class TestClass {
     private TestClass() { }
 
 
-    private static IntMath.XorShift32 RND = new IntMath.XorShift32();
+    private static final IntMath.XorShift32 RND = new IntMath.XorShift32();
 
     public static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {

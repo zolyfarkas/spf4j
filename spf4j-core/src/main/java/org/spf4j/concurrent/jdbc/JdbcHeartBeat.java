@@ -59,7 +59,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Iterables;
-import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jdbc.JdbcTemplate;
@@ -457,9 +456,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
               fbeat.close();
             } catch (SQLException | HeartBeatError ex) {
               // logging in shutdownhooks is not reliable.
-              System.err.println("WARN: Could not clean heartbeat record,"
-                      + " this error can be ignored since it is a best effort attempt, detail:");
-              Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+              org.spf4j.base.Runtime.error("WARN: Could not clean heartbeat record,"
+                      + " this error can be ignored since it is a best effort attempt, detail:", ex);
             }
           }
         });

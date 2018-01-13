@@ -45,59 +45,57 @@ import org.spf4j.recyclable.RecyclingSupplier;
  */
 public class SharingObjectPoolTest {
 
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testSharingPool()
+          throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
 
-    @Test
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void testSharingPool()
-            throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
+    SharingObjectPool<String> pool = createTestPool();
 
-        SharingObjectPool<String> pool = createTestPool();
+    String obj = pool.get();
+    Assert.assertEquals("O0", obj);
+    String obj2 = pool.get();
+    Assert.assertEquals("O1", obj2);
+    pool.recycle(obj);
+    String obj3 = pool.get();
+    Assert.assertEquals("O0", obj3);
 
-        String obj = pool.get();
-        Assert.assertEquals("O0", obj);
-        String obj2 = pool.get();
-        Assert.assertEquals("O1", obj2);
-        pool.recycle(obj);
-        String obj3 = pool.get();
-        Assert.assertEquals("O0", obj3);
+  }
 
-    }
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testSharingPool2()
+          throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
 
-    @Test
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void testSharingPool2()
-            throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
+    SharingObjectPool<String> pool = createTestPool();
 
-        SharingObjectPool<String> pool = createTestPool();
+    String obj = pool.get();
+    Assert.assertEquals("O0", obj);
+    pool.recycle(obj);
+    String obj2 = pool.get();
+    Assert.assertEquals("O0", obj2);
+  }
 
-        String obj = pool.get();
-        Assert.assertEquals("O0", obj);
-        pool.recycle(obj);
-        String obj2 = pool.get();
-        Assert.assertEquals("O0", obj2);
-    }
+  @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
+  public static SharingObjectPool<String> createTestPool() throws ObjectCreationException {
+    return new SharingObjectPool<>(new RecyclingSupplier.Factory<String>() {
 
+      private int i = 0;
 
-    @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
-    public SharingObjectPool<String> createTestPool() throws ObjectCreationException {
-        return new SharingObjectPool<>(new RecyclingSupplier.Factory<String>(){
+      @Override
+      public String create() {
+        return "O" + (i++);
+      }
 
-            int i = 0;
+      @Override
+      public void dispose(final String object) {
+      }
 
-            @Override
-            public String create() {
-                return "O" + (i++);
-            }
-
-            @Override
-            public void dispose(String object) {
-            }
-
-            @Override
-            public boolean validate(String object, Exception e) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        }, 0, 4);
-    }
+      @Override
+      public boolean validate(final String object, final Exception e) {
+        throw new UnsupportedOperationException("Not supported yet.");
+      }
+    }, 0, 4);
+  }
 
 }

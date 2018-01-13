@@ -67,7 +67,8 @@ public class ThreadPoolExecutorTest {
     Assert.assertTrue("expected that FJP tasks cannot be interrupted", assertError);
   }
 
-  public void testPoolTaskCancellation(ExecutorService executor) throws InterruptedException, ExecutionException {
+  public static void testPoolTaskCancellation(final ExecutorService executor)
+          throws InterruptedException, ExecutionException {
     RunnableImpl testRunnable = new RunnableImpl();
     Future<?> submit = executor.submit(testRunnable);
     Assert.assertTrue("task did not start", testRunnable.getStartedlatch().await(5, TimeUnit.SECONDS));

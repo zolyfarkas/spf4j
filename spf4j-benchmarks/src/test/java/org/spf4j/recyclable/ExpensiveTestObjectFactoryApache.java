@@ -29,12 +29,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.recyclable.impl;
+package org.spf4j.recyclable;
 
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.apache.commons.pool.PoolableObjectFactory;
+import org.spf4j.recyclable.impl.ExpensiveTestObject;
 
 /**
  *

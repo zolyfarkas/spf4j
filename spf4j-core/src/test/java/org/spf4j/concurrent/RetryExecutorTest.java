@@ -47,35 +47,34 @@ import org.spf4j.base.Callables;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class RetryExecutorTest {
 
+  @Test
+  public void testSubmitCallable() throws InterruptedException, ExecutionException {
+    System.out.println("submit");
+    final LifoThreadPoolExecutorSQP lifoThreadPoolExecutorSQP = new LifoThreadPoolExecutorSQP(10, "test");
+    RetryExecutor instance = new RetryExecutor(lifoThreadPoolExecutorSQP,
+            (final Callable<Object> parameter) -> new Callables.RetryPredicate<Exception, Object>() {
+      @Override
+      public Callables.RetryDecision<Object> getDecision(final Exception value, final Callable<Object> callable) {
+        return Callables.RetryDecision.retry(0, callable);
+      }
 
-    @Test
-    public void testSubmitCallable() throws InterruptedException, ExecutionException {
-        System.out.println("submit");
-        final LifoThreadPoolExecutorSQP lifoThreadPoolExecutorSQP = new LifoThreadPoolExecutorSQP(10, "test");
-        RetryExecutor instance = new RetryExecutor(lifoThreadPoolExecutorSQP,
-                (final Callable<Object> parameter) -> new Callables.RetryPredicate<Exception, Object>() {
-          @Override
-          public Callables.RetryDecision<Object> getDecision(Exception value, Callable<Object> callable) {
-            return Callables.RetryDecision.retry(0, callable);
-          }
+    }, null);
+    Future result = instance.submit(new Callable<Integer>() {
 
-        }, null);
-        Future result = instance.submit(new Callable<Integer>() {
+      private int count;
 
-            private int count;
+      @Override
+      public Integer call() throws Exception {
+        System.out.println("exec " + count + " st " + System.currentTimeMillis());
+        count++;
+        if (count < 5) {
+          throw new IOException("Aaaaaaaaaaa" + count);
+        }
 
-            @Override
-            public Integer call() throws Exception {
-                System.out.println("exec " + count + " st " + System.currentTimeMillis());
-                count++;
-                if (count < 5) {
-                    throw new IOException("Aaaaaaaaaaa" + count);
-                }
-
-                return 1;
-            }
-        });
-        Assert.assertEquals(1, result.get());
-        instance.shutdown();
-    }
+        return 1;
+      }
+    });
+    Assert.assertEquals(1, result.get());
+    instance.shutdown();
+  }
 }

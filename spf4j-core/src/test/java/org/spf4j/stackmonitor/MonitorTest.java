@@ -40,9 +40,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ExitException;
@@ -55,7 +55,7 @@ public final class MonitorTest {
     private static volatile boolean stopped;
 
     private static SecurityManager original;
-    @BeforeClass
+    @Before
     public static void init() {
         original = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
@@ -69,7 +69,7 @@ public final class MonitorTest {
         });
     }
 
-    @AfterClass
+    @After
     public static void cleanup() {
       System.setSecurityManager(original);
     }
@@ -78,14 +78,9 @@ public final class MonitorTest {
     public void testError() throws ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, IOException {
         String report = File.createTempFile("stackSample", ".html").getPath();
-        SecurityManager original = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
-        try {
         Monitor.main(new String[]{"-ASDF", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
             MonitorTest.class.getName()});
-        } finally {
-          System.setSecurityManager(original);
-        }
     }
 
     @Test

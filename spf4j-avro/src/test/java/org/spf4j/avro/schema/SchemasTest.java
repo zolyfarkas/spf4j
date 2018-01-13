@@ -49,21 +49,22 @@ import org.junit.Test;
 public class SchemasTest {
 
   private static final String SCHEMA = "{\"type\":\"record\",\"name\":\"SampleNode\",\"doc\":\"caca\","
-      + "\"namespace\":\"org.spf4j.ssdump2.avro\",\n" +
-      " \"fields\":[\n" +
-      "    {\"name\":\"count\",\"type\":\"int\",\"default\":0,\"doc\":\"caca\"},\n" +
-      "    {\"name\":\"subNodes\",\"type\":\n" +
-      "       {\"type\":\"array\",\"items\":{\n" +
-      "           \"type\":\"record\",\"name\":\"SamplePair\",\n" +
-      "           \"fields\":[\n" +
-      "              {\"name\":\"method\",\"type\":\n" +
-      "                  {\"type\":\"record\",\"name\":\"Method\",\n" +
-      "                  \"fields\":[\n" +
-      "                     {\"name\":\"declaringClass\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},\n" +
-      "                     {\"name\":\"methodName\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}\n" +
-      "                  ]}},\n" +
-      "              {\"name\":\"node\",\"type\":\"SampleNode\"}]}}}]}";
-
+          + "\"namespace\":\"org.spf4j.ssdump2.avro\",\n"
+          + " \"fields\":[\n"
+          + "    {\"name\":\"count\",\"type\":\"int\",\"default\":0,\"doc\":\"caca\"},\n"
+          + "    {\"name\":\"subNodes\",\"type\":\n"
+          + "       {\"type\":\"array\",\"items\":{\n"
+          + "           \"type\":\"record\",\"name\":\"SamplePair\",\n"
+          + "           \"fields\":[\n"
+          + "              {\"name\":\"method\",\"type\":\n"
+          + "                  {\"type\":\"record\",\"name\":\"Method\",\n"
+          + "                  \"fields\":[\n"
+          + "                     {\"name\":\"declaringClass\","
+          + "\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},\n"
+          + "                     {\"name\":\"methodName\","
+          + "\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}\n"
+          + "                  ]}},\n"
+          + "              {\"name\":\"node\",\"type\":\"SampleNode\"}]}}}]}";
 
   @Test
   public void testVisit() throws IOException {
@@ -80,16 +81,16 @@ public class SchemasTest {
     Assert.assertNull(trimmed.getDoc());
     Assert.assertNotNull(recSchema.getDoc());
 
-    SchemaCompatibility.SchemaCompatibilityType compat =
-            SchemaCompatibility.checkReaderWriterCompatibility(trimmed, recSchema).getType();
+    SchemaCompatibility.SchemaCompatibilityType compat
+            = SchemaCompatibility.checkReaderWriterCompatibility(trimmed, recSchema).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
     compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, trimmed).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
 
     Schema unmodifyable = Schemas.visit(recSchema, new ImmutableCloningVisitor(recSchema, false));
     Assert.assertNotNull(unmodifyable.getDoc());
-    compat =
-            SchemaCompatibility.checkReaderWriterCompatibility(unmodifyable, recSchema).getType();
+    compat
+            = SchemaCompatibility.checkReaderWriterCompatibility(unmodifyable, recSchema).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
     compat = SchemaCompatibility.checkReaderWriterCompatibility(recSchema, unmodifyable).getType();
     Assert.assertEquals(SchemaCompatibility.SchemaCompatibilityType.COMPATIBLE, compat);
@@ -112,19 +113,19 @@ public class SchemasTest {
   private static class PrintingVisitor implements SchemaVisitor {
 
     @Override
-    public SchemaVisitorAction visitTerminal(Schema terminal) {
+    public SchemaVisitorAction visitTerminal(final Schema terminal) {
       System.out.println("Terminal: " + terminal.getFullName());
       return SchemaVisitorAction.CONTINUE;
     }
 
     @Override
-    public SchemaVisitorAction visitNonTerminal(Schema terminal) {
+    public SchemaVisitorAction visitNonTerminal(final Schema terminal) {
       System.out.println("NONTerminal start: " + terminal.getFullName());
       return SchemaVisitorAction.CONTINUE;
     }
 
     @Override
-    public SchemaVisitorAction afterVisitNonTerminal(Schema terminal) {
+    public SchemaVisitorAction afterVisitNonTerminal(final Schema terminal) {
       System.out.println("NONTerminal end: " + terminal.getFullName());
       return SchemaVisitorAction.CONTINUE;
     }

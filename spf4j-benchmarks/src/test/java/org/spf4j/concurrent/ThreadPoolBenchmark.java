@@ -49,13 +49,13 @@ public class ThreadPoolBenchmark {
   @State(Scope.Benchmark)
   public static class LazySpf {
 
-    public final ExecutorService EX = LifoThreadPoolBuilder.newBuilder()
+    private final ExecutorService es = LifoThreadPoolBuilder.newBuilder()
             .withQueueSizeLimit(10000)
             .withMaxSize(8).build();
 
     @TearDown
     public void close() {
-      EX.shutdown();
+      es.shutdown();
       DefaultExecutor.INSTANCE.shutdown();
     }
 
@@ -64,14 +64,14 @@ public class ThreadPoolBenchmark {
   @State(Scope.Benchmark)
   public static class MutableLazySpf {
 
-    public final ExecutorService EX = LifoThreadPoolBuilder.newBuilder()
+    private final ExecutorService es = LifoThreadPoolBuilder.newBuilder()
             .withQueueSizeLimit(10000)
             .mutable()
             .withMaxSize(8).build();
 
     @TearDown
     public void close() {
-      EX.shutdown();
+      es.shutdown();
       DefaultExecutor.INSTANCE.shutdown();
     }
 
@@ -103,13 +103,15 @@ public class ThreadPoolBenchmark {
   }
 
   @Benchmark
-  public final long spfLifoTpBenchmark(final LazySpf exec) throws InterruptedException, IOException, ExecutionException {
-    return testPool(exec.EX);
+  public final long spfLifoTpBenchmark(final LazySpf exec)
+          throws InterruptedException, IOException, ExecutionException {
+    return testPool(exec.es);
   }
 
   @Benchmark
-  public final long mutaleSpfLifoTpBenchmark(final MutableLazySpf exec) throws InterruptedException, IOException, ExecutionException {
-    return testPool(exec.EX);
+  public final long mutaleSpfLifoTpBenchmark(final MutableLazySpf exec)
+          throws InterruptedException, IOException, ExecutionException {
+    return testPool(exec.es);
   }
 
 

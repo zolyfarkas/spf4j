@@ -31,7 +31,6 @@
  */
 package org.spf4j.text;
 
-import org.spf4j.base.*;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
@@ -40,6 +39,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
+import org.spf4j.base.Slf4jMessageFormatter;
 
 /**
  *
@@ -77,7 +77,7 @@ public class MessageFormatterBenchmark {
   @Benchmark
   public final CharSequence jdkMessageFormatter() throws UnsupportedEncodingException, IOException {
     StringBuffer result = SBF.get();
-    result.setLength(0);    
+    result.setLength(0);
     java.text.MessageFormat fmt = new java.text.MessageFormat(
             "Here is some message wi parameter 0 = {0} and parameter 1 = {1} for testing performance", Locale.US);
     fmt.format(new Object[]{"[parameter 1]", "[parameter 2]"}, result, null);

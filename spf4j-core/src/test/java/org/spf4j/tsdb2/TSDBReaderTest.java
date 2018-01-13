@@ -67,16 +67,17 @@ public class TSDBReaderTest {
           .build();
 
   @Test
-  @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
-                        "NP_LOAD_OF_KNOWN_NULL_VALUE", "CLI_CONSTANT_LIST_INDEX"})
+  @SuppressFBWarnings({"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE",
+    "NP_LOAD_OF_KNOWN_NULL_VALUE", "CLI_CONSTANT_LIST_INDEX"})
   // try with resources trips up findbugs sometimes.
+  @SuppressWarnings("checkstyle:EmptyBlock")
   public void testTsdb() throws IOException {
-    File TEST_FILE = File.createTempFile("test", ".tsdb2");
+    File testFile = File.createTempFile("test", ".tsdb2");
     long tableId;
-    try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", false)) {
+    try (TSDBWriter writer = new TSDBWriter(testFile, 4, "test", false)) {
 
     }
-    try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", false)) {
+    try (TSDBWriter writer = new TSDBWriter(testFile, 4, "test", false)) {
       tableId = writer.writeTableDef(tableDef);
       final long time = System.currentTimeMillis();
       writer.writeDataRow(tableId, time, 0, 1, 2);
@@ -85,26 +86,26 @@ public class TSDBReaderTest {
       writer.writeDataRow(tableId, time + 30, 3, 1, 2);
       writer.writeDataRow(tableId, time + 40, 4, 1, 2);
     }
-    try (TSDBReader reader = new TSDBReader(TEST_FILE, 1024)) {
+    try (TSDBReader reader = new TSDBReader(testFile, 1024)) {
       Either<TableDef, DataBlock> read;
       while ((read = reader.read()) != null) {
         System.out.println(read);
       }
     }
 
-    ListMultimap<String, TableDef> allTables = TSDBQuery.getAllTables(TEST_FILE);
+    ListMultimap<String, TableDef> allTables = TSDBQuery.getAllTables(testFile);
     Assert.assertEquals(1, allTables.size());
     Assert.assertTrue(allTables.containsKey(tableDef.name));
-    TimeSeries timeSeries = TSDBQuery.getTimeSeries(TEST_FILE, new long[]{tableId}, 0, Long.MAX_VALUE);
+    TimeSeries timeSeries = TSDBQuery.getTimeSeries(testFile, new long[]{tableId}, 0, Long.MAX_VALUE);
     Assert.assertEquals(2L, timeSeries.getValues()[2][0]);
 
   }
 
   @Test
   public void testTailing() throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    File TEST_FILE = File.createTempFile("test", ".tsdb2");
-    try (TSDBWriter writer = new TSDBWriter(TEST_FILE, 4, "test", true);
-            TSDBReader reader = new TSDBReader(TEST_FILE, 1024)) {
+    File testFile = File.createTempFile("test", ".tsdb2");
+    try (TSDBWriter writer = new TSDBWriter(testFile, 4, "test", true);
+            TSDBReader reader = new TSDBReader(testFile, 1024)) {
       writer.flush();
       final BlockingQueue<Either<TableDef, DataBlock>> queue = new ArrayBlockingQueue<>(100);
       Future<Void> bgWatch = reader.bgWatch((Either<TableDef, DataBlock> object, long deadline) -> {

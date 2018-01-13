@@ -41,65 +41,64 @@ import org.junit.Test;
  */
 public class VersionTest {
 
-    @Test
-    @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
-    public void testVersion() {
-        Version version1 = new Version("1.u1.3");
-        Version version2 = new Version("1.u10.3");
-        Assert.assertTrue(version1.compareTo(version2) < 0);
-        System.out.println("version1" + version1);
-        Assert.assertEquals(Integer.valueOf(3), version1.getComponents()[3]);
-        Version javaVersion = new Version(org.spf4j.base.Runtime.JAVA_VERSION);
-        System.out.println("version1" + javaVersion + ", " + javaVersion.getImage());
-        Assert.assertTrue(javaVersion.compareTo(new Version ("1.6.0_1")) > 0);
-    }
+  @Test
+  @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
+  public void testVersion() {
+    Version version1 = new Version("1.u1.3");
+    Version version2 = new Version("1.u10.3");
+    Assert.assertTrue(version1.compareTo(version2) < 0);
+    System.out.println("version1" + version1);
+    Assert.assertEquals(Integer.valueOf(3), version1.getComponents()[3]);
+    Version javaVersion = new Version(org.spf4j.base.Runtime.JAVA_VERSION);
+    System.out.println("version1" + javaVersion + ", " + javaVersion.getImage());
+    Assert.assertTrue(javaVersion.compareTo(new Version("1.6.0_1")) > 0);
+  }
 
-    @Test
-    public void testVersion2() {
-        Version version1 = new Version("1.1");
-        Version version2 = new Version("1.1.2");
-        Assert.assertTrue(version1.compareTo(version2) < 0);
-    }
+  @Test
+  public void testVersion2() {
+    Version version1 = new Version("1.1");
+    Version version2 = new Version("1.1.2");
+    Assert.assertTrue(version1.compareTo(version2) < 0);
+  }
 
-    @Test
-    public void testVersion3() {
-        Version version1 = new Version("1.8.1");
-        Version version2 = new Version("1.8.0.25p");
-        Assert.assertTrue(version1.compareTo(version2) > 0);
-        Assert.assertTrue(version2.compareTo(version1) < 0);
-    }
+  @Test
+  public void testVersion3() {
+    Version version1 = new Version("1.8.1");
+    Version version2 = new Version("1.8.0.25p");
+    Assert.assertTrue(version1.compareTo(version2) > 0);
+    Assert.assertTrue(version2.compareTo(version1) < 0);
+  }
 
-    @Test
-    public void testVersion4() {
-        Version version = new Version(org.spf4j.base.Runtime.JAVA_VERSION);
-        Assert.assertEquals(1, version.getMajor());
-        Assert.assertEquals(8, version.getMinor());
-        Version clone = Objects.clone(version);
-        Assert.assertEquals(version, clone);
-    }
+  @Test
+  public void testVersion4() {
+    Version version = new Version(org.spf4j.base.Runtime.JAVA_VERSION);
+    Assert.assertEquals(1, version.getMajor());
+    Assert.assertEquals(8, version.getMinor());
+    Version clone = Objects.clone(version);
+    Assert.assertEquals(version, clone);
+  }
 
-    @Test
-    public void testVersion5() {
-        Version version1 = new Version("1.8.1");
-        Version version2 = new Version("1.8.2-SNAPSHOT");
-        Assert.assertTrue(version1.compareTo(version2) < 0);
-    }
+  @Test
+  public void testVersion5() {
+    Version version1 = new Version("1.8.1");
+    Version version2 = new Version("1.8.2-SNAPSHOT");
+    Assert.assertTrue(version1.compareTo(version2) < 0);
+  }
 
-    @Test
-    public void testVersion6() {
-        Version version1 = new Version("1.8.2");
-        Version version2 = new Version("1.8.2-SNAPSHOT");
-        Assert.assertTrue(version1.compareTo(version2) > 0);
-        Assert.assertTrue(version2.compareTo(version1) < 0);
-    }
+  @Test
+  public void testVersion6() {
+    Version version1 = new Version("1.8.2");
+    Version version2 = new Version("1.8.2-SNAPSHOT");
+    Assert.assertTrue(version1.compareTo(version2) > 0);
+    Assert.assertTrue(version2.compareTo(version1) < 0);
+  }
 
-    @Test
-    public void testVersion7() {
-        Version version1 = new Version("1.8.3-SNAPSHOT");
-        Version version2 = new Version("1.8.2-SNAPSHOT");
-        Assert.assertTrue(version1.compareTo(version2) > 0);
-        Assert.assertTrue(version2.compareTo(version1) < 0);
-    }
-
+  @Test
+  public void testVersion7() {
+    Version version1 = new Version("1.8.3-SNAPSHOT");
+    Version version2 = new Version("1.8.2-SNAPSHOT");
+    Assert.assertTrue(version1.compareTo(version2) > 0);
+    Assert.assertTrue(version2.compareTo(version1) < 0);
+  }
 
 }

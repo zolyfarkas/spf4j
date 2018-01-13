@@ -45,13 +45,13 @@ import org.junit.Test;
  */
 public final class StreamsTest {
 
-    @Test
-    public void testCopy() throws IOException {
-        byte [] testArray = PipedOutputStreamTest.generateTestStr(10001).toString().getBytes(Charsets.UTF_8);
-        InputStream bis = new ByteArrayInputStream(testArray);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        Streams.copy(bis, bos);
-        Assert.assertArrayEquals(testArray, bos.toByteArray());
-    }
+  @Test
+  public void testCopy() throws IOException {
+    byte[] testArray = PipedOutputStreamTest.generateTestStr(10001).toString().getBytes(Charsets.UTF_8);
+    InputStream bis = new ByteArrayInputStream(testArray);
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    Streams.copy(bis, bos);
+    Assert.assertArrayEquals(testArray, bos.toByteArray());
+  }
 
 }

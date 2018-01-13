@@ -46,7 +46,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
-import org.spf4j.base.Throwables;
 
 /**
  *
@@ -72,7 +71,7 @@ public final class VMExecutor {
 
               @Override
               public void uncaughtException(final Thread t, final Throwable e) {
-                System.err.println(Throwables.toString(e, Throwables.PackageDetail.SHORT));
+                org.spf4j.base.Runtime.error("Uncaucht Exception zel default executor", e);
               }
             }, true);
 

@@ -42,49 +42,47 @@ import org.junit.Test;
  */
 public final class ReflectionsTest {
 
+  private static final Class<?>[] PARAMS = new Class<?>[]{String.class, Integer.class};
 
-    private static final Class<?>[] params = new Class<?>[]{String.class, Integer.class};
+  @Test
+  public void testReflections() {
+    Method reflect = Reflections.getCompatibleMethod(String.class, "indexOf", PARAMS);
+    Method fastM = Reflections.getCompatibleMethodCached(String.class, "indexOf", PARAMS);
+    Assert.assertEquals(reflect, fastM);
 
-    @Test
-    public void testReflections() {
-        Method reflect = Reflections.getCompatibleMethod(String.class, "indexOf", params);
-        Method fastM = Reflections.getCompatibleMethodCached(String.class, "indexOf", params);
-        Assert.assertEquals(reflect, fastM);
+    Method method = Reflections.getMethod(String.class, "indexOf", int.class);
+    Assert.assertEquals("indexOf", method.getName());
+    method = Reflections.getMethod(String.class, "bla", char.class);
+    Assert.assertNull(method);
 
-        Method method = Reflections.getMethod(String.class, "indexOf", int.class);
-        Assert.assertEquals("indexOf", method.getName());
-        method = Reflections.getMethod(String.class, "bla", char.class);
-        Assert.assertNull(method);
+    Constructor cons = Reflections.getConstructor(String.class, byte[].class);
+    Assert.assertNotNull(cons);
+    cons = Reflections.getConstructor(String.class, Pair.class);
+    Assert.assertNull(cons);
 
-        Constructor cons = Reflections.getConstructor(String.class, byte[].class);
-        Assert.assertNotNull(cons);
-        cons = Reflections.getConstructor(String.class, Pair.class);
-        Assert.assertNull(cons);
+  }
 
-    }
+  public static String print(final Object... args) {
+    return java.util.Arrays.toString(args);
+  }
 
-    public static String print(Object ... args) {
-      return java.util.Arrays.toString(args);
-    }
+  public static void caca() {
+    //nothing
+  }
 
-    public static void caca() {
-      //nothing
-    }
+  public interface Printing {
 
-    public interface Printing {
-      String print(Object ... args);
+    String print(Object... args);
 
-      void caca();
-    }
+    void caca();
+  }
 
-
-
-    @Test
-    public void testImplement() {
-      Printing prt = Reflections.implementStatic(Printing.class, ReflectionsTest.class);
-      String result = prt.print("a", 3);
-      System.out.println(result);
-      Assert.assertEquals("[a, 3]", result);
-    }
+  @Test
+  public void testImplement() {
+    Printing prt = Reflections.implementStatic(Printing.class, ReflectionsTest.class);
+    String result = prt.print("a", 3);
+    System.out.println(result);
+    Assert.assertEquals("[a, 3]", result);
+  }
 
 }
