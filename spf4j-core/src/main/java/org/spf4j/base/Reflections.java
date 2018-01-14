@@ -138,7 +138,7 @@ public final class Reflections {
     }
 
     final Method fc = AccessController.doPrivileged((PrivilegedAction<Method>) () -> {
-      java.lang.reflect.Method m;
+      Method m;
       try {
         m = ClassLoader.class.getDeclaredMethod("findLoadedClass", String.class);
         m.setAccessible(true);
@@ -235,8 +235,8 @@ public final class Reflections {
       if (method.getName().equals(attributeName)) {
         try {
           return method.invoke(annot);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-          throw new RuntimeException(ex);
+        } catch (IllegalAccessException | InvocationTargetException ex) {
+          throw new UncheckedExecutionException(ex);
         }
       }
     }
