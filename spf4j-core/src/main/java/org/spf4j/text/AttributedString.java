@@ -75,15 +75,15 @@ public final class AttributedString {
     private static final int ARRAY_SIZE_INCREMENT = 10;
 
     // field holding the text
-    String text;
+    private String text;
 
     // fields holding run attribute information
     // run attributes are organized by run
-    int runArraySize;               // current size of the arrays
-    int runCount;                   // actual number of runs, <= runArraySize
-    int runStarts[];                // start index for each run
-    ArrayList<Attribute> runAttributes[];         // vector of attribute keys for each run
-    ArrayList<Object> runAttributeValues[];    // parallel vector of attribute values for each run
+    private int runArraySize;               // current size of the arrays
+    private int runCount;                   // actual number of runs, <= runArraySize
+    private int runStarts[];                // start index for each run
+    private ArrayList<Attribute> runAttributes[];         // vector of attribute keys for each run
+    private ArrayList<Object> runAttributeValues[];    // parallel vector of attribute values for each run
 
     /**
      * Constructs an AttributedString instance with the given

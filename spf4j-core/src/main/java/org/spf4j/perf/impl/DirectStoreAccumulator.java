@@ -89,7 +89,7 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
         try {
             measurementStore.saveMeasurements(tableId, timestampMillis, measurement);
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
         }
     }
 

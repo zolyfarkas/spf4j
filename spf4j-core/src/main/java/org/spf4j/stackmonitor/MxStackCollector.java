@@ -53,7 +53,7 @@ public final class MxStackCollector extends AbstractStackCollector {
         final long id = ignore.getId();
         for (ThreadInfo entry : stackDump) {
             StackTraceElement[] stackTrace = entry.getStackTrace();
-            if (stackTrace.length > 0 && !(entry.getThreadId() == id)) {
+            if (stackTrace.length > 0 && (entry.getThreadId() != id)) {
                 addSample(stackTrace);
             }
         }

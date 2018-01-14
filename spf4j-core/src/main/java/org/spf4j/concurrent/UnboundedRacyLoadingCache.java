@@ -35,6 +35,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,7 +58,7 @@ public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V>
     public UnboundedRacyLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
         this(initialSize, 8, loader);
     }
-    
+
     public UnboundedRacyLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
         this.map = new ConcurrentHashMap<>(
                 initialSize, 0.75f, concurrency);
@@ -83,7 +84,7 @@ public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V>
         try {
             return get(key);
         } catch (ExecutionException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedExecutionException(ex);
         }
     }
 

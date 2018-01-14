@@ -195,6 +195,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
   }
 
+  @VisibleForTesting
   static long[] createMagnitudeLimits2(final int factor, final int lowerMagnitude,
           final int higherMagnitude) {
     long[] magnitudes = new long[(higherMagnitude - lowerMagnitude) + 1];

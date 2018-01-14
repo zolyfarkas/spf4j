@@ -118,7 +118,7 @@ public final class Registry {
     try {
       MBEAN_SERVER.registerMBean(mbean, objectName);
     } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {
-      throw new RuntimeException(ex);
+      throw new IllegalArgumentException(ex);
     }
     REGISTERED.put(objectName, mbean);
   }
