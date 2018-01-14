@@ -46,8 +46,6 @@ import org.spf4j.ssdump2.Converter;
 @NotThreadSafe
 public final class DemoTest {
 
-  private DemoTest() { }
-
   private static volatile boolean stopped;
 
   @BeforeClass

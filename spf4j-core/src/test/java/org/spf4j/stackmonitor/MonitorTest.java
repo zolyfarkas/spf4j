@@ -56,7 +56,7 @@ public final class MonitorTest {
 
     private static SecurityManager original;
     @Before
-    public static void init() {
+    public void init() {
         original = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -70,7 +70,7 @@ public final class MonitorTest {
     }
 
     @After
-    public static void cleanup() {
+    public void cleanup() {
       System.setSecurityManager(original);
     }
 
