@@ -507,13 +507,13 @@ public final class JVMArguments {
       this.sizeOfInt = sizeOfInt;
     }
 
-    int readInt() {
+    private int readInt() {
       int r = getInt(offset);
       offset += sizeOfInt;
       return r;
     }
 
-    String readString() {
+    private String readString() {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       byte ch;
       while ((ch = getByte(offset++)) != '\0') {
