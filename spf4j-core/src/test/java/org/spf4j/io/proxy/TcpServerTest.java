@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.Selector;
@@ -127,7 +128,7 @@ public class TcpServerTest {
     }
   }
 
-  @Test
+  @Test(timeout = 10000)
   public void testProxySimple() throws IOException, InterruptedException {
     ForkJoinPool pool = new ForkJoinPool(1024);
 
@@ -155,7 +156,7 @@ public class TcpServerTest {
     }
   }
 
-  @Test
+  @Test(timeout = 20000)
   public void testRestart() throws IOException, InterruptedException, TimeoutException {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
@@ -168,7 +169,7 @@ public class TcpServerTest {
     }
   }
 
-  @Test(expected = IOException.class)
+  @Test(expected = IOException.class, timeout = 10000)
   public void testRejectingServer() throws IOException, InterruptedException {
     String testSite = "localhost";
     ForkJoinPool pool = new ForkJoinPool(1024);
@@ -224,7 +225,10 @@ public class TcpServerTest {
 
   private static byte[] readfromSite(final String siteUrl) throws IOException {
     URL url = new URL(siteUrl);
-    InputStream stream = url.openStream();
+    URLConnection conn = url.openConnection();
+    conn.setConnectTimeout(10000);
+    conn.setReadTimeout(30000);
+    InputStream stream = conn.getInputStream();
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     Streams.copy(stream, bos);
     return bos.toByteArray();
