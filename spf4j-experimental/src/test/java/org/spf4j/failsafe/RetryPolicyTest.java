@@ -26,7 +26,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
-import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 
 /**

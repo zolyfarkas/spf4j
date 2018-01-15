@@ -37,8 +37,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -91,16 +89,20 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       private Consumer<RetryPredicate<A, B>> consumer;
 
-      public PredicateBuilder(final Consumer<RetryPredicate<A, B>> consumer) {
+      private int nrInitialRetries;
+
+      private long startDelayNanos;
+
+      private long maxDelayNanos;
+
+      private PredicateBuilder(final Consumer<RetryPredicate<A, B>> consumer) {
         this.consumer = consumer;
+        this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
+        this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
+        this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;
       }
 
-      private Supplier<Function<A, RetryDelaySupplier>> backoffSupplier
-              = () -> new TypeBasedRetryDelaySupplier<>(
-                      (x) -> new RandomizedBackoff(new FibonacciRetryDelaySupplier(DEFAULT_INITIAL_NODELAY_RETRIES,
-                      DEFAULT_INITIAL_DELAY_NANOS, DEFAULT_MAX_DELAY_NANOS)));
-
-      private List<PartialRetryPredicate<A, B>> predicates = new ArrayList<>(2);
+      private final List<PartialRetryPredicate<A, B>> predicates = new ArrayList<>(2);
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withPartialPredicate(final PartialRetryPredicate<A, B> predicate) {
@@ -109,10 +111,30 @@ public class RetryPolicy<T, C extends Callable<T>> {
       }
 
       @CheckReturnValue
+      public PredicateBuilder<A, B> withInitialRetries(final int retries) {
+        this.nrInitialRetries = retries;
+        return this;
+      }
+
+      @CheckReturnValue
+      public PredicateBuilder<A, B> withInitialDelay(final long delay, final TimeUnit unit) {
+        this.startDelayNanos = unit.toNanos(delay);
+        return this;
+      }
+
+      @CheckReturnValue
+      public PredicateBuilder<A, B> withMaxDelay(final long delay, final TimeUnit unit) {
+        this.maxDelayNanos = unit.toNanos(delay);
+        return this;
+      }
+
+
+      @CheckReturnValue
       public Builder<T, C> finishPredicate() {
-         consumer.accept(new DefaultRetryPredicate(backoffSupplier,
-                 predicates.toArray(
-                              new PartialRetryPredicate[predicates.size()])));
+         consumer.accept(new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+                      (x) -> new RandomizedBackoff(new FibonacciRetryDelaySupplier(nrInitialRetries,
+                      startDelayNanos, maxDelayNanos))),
+                 predicates.toArray(new PartialRetryPredicate[predicates.size()])));
          return Builder.this;
       }
 
