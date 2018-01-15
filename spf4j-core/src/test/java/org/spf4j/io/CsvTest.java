@@ -58,6 +58,8 @@ import org.junit.Test;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.io.csv.CsvReader;
 import org.spf4j.io.csv.CsvReader.TokenType;
+import org.spf4j.io.csv.CsvRuntimeException;
+import org.spf4j.io.csv.UncheckedCsvParseException;
 
 /**
  *
@@ -121,6 +123,42 @@ public final class CsvTest {
     Assert.assertEquals("\"", d1.get("b"));
     Assert.assertEquals("0\n", d1.get("c"));
   }
+
+  @Test(expected = CsvParseException.class)
+  public void testCsvReadWriteException() throws IOException, CsvParseException {
+    File testFile = createTestCsv();
+
+    Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<Void>() {
+      @Override
+      public void element(final CharSequence elem) throws CsvParseException {
+        throw new CsvParseException("Yohooo");
+      }
+
+      @Override
+      public Void eof() {
+        return null;
+      }
+    });
+  }
+
+
+  @Test(expected = CsvRuntimeException.class)
+  public void testCsvReadWriteException2() throws IOException, CsvParseException {
+    File testFile = createTestCsv();
+
+    Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<Void>() {
+      @Override
+      public void element(final CharSequence elem) throws CsvParseException {
+        throw new IllegalArgumentException("Yohooo");
+      }
+
+      @Override
+      public Void eof() {
+        return null;
+      }
+    });
+  }
+
 
   @Test
   public void testCsvReadWrite2() throws IOException, CsvParseException {
@@ -300,6 +338,14 @@ public final class CsvTest {
       nr++;
     }
     Assert.assertEquals(3, nr);
+  }
+
+  @Test(expected = UncheckedCsvParseException.class)
+  public void testLineIterationError() {
+    for (Iterable<String> line : Csv.asIterable(new StringReader("bla,\"bla"))) {
+      System.out.println(line);
+    }
+    Assert.fail();
   }
 
   @Test
