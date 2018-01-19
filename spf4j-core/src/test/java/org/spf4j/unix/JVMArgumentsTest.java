@@ -54,6 +54,17 @@ public class JVMArgumentsTest {
     Assert.assertTrue(current.hasVMArgumentStartingWith("-Xb"));
     Assert.assertTrue(current.removeVMArgument("-Xbla"));
     Assert.assertFalse(current.hasVMArgument("-Xbla"));
+
+    current.createOrUpdateSystemProperty("spf4j.restart",
+              (old) -> old == null ? "1" :  Integer.toString(Integer.parseInt(old) + 1));
+    Assert.assertEquals("1", current.getSystemProperty("spf4j.restart"));
+    current.createOrUpdateSystemProperty("spf4j.restart",
+              (old) -> old == null ? "1" :  Integer.toString(Integer.parseInt(old) + 1));
+    Assert.assertEquals("2", current.getSystemProperty("spf4j.restart"));
+    Assert.assertEquals("2", current.removeSystemProperty("spf4j.restart"));
+    Assert.assertNull(current.getSystemProperty("spf4j.restart"));
+
+
   }
 
 }

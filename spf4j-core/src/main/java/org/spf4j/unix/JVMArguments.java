@@ -49,7 +49,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.spf4j.base.Runtime;
 import org.spf4j.unix.CLibrary.FILE;
@@ -82,25 +84,84 @@ public final class JVMArguments {
    */
   @Nullable
   public String removeSystemProperty(final String pname) {
-    String name = "-D" + pname;
-    String nameeq = name + '=';
-    for (Iterator<String> itr = arguments.iterator(); itr.hasNext();) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next(); // skip command.
+    while (itr.hasNext()) {
       String s = itr.next();
-      if (s.equals(name) || s.startsWith(nameeq)) {
-        itr.remove();
-        return s.substring(nameeq.length());
+      if (s.startsWith("-D")) {
+        if (s.regionMatches(2, pname, 0, pname.length())) {
+          int l = pname.length() + 2;
+          if (s.length() == l) {
+            itr.remove();
+            return "";
+          } else if (s.charAt(l) == '=') {
+            itr.remove();
+            return s.substring(l + 1);
+          }
+        }
       }
     }
     return null;
   }
 
+  @Nullable
+  public String getSystemProperty(final String pname) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next(); // skip command.
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.startsWith("-D")) {
+        if (s.regionMatches(2, pname, 0, pname.length())) {
+          int l = pname.length() + 2;
+          if (s.length() == l) {
+            return "";
+          } else if (s.charAt(l) == '=') {
+            return s.substring(l + 1);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+
+  @Nullable
+  public void createOrUpdateSystemProperty(final String pname, final Function<String, String> replacer) {
+    ListIterator<String> itr = arguments.listIterator();
+    itr.next(); // skip command.
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.startsWith("-D")) {
+        if (s.regionMatches(2, pname, 0, pname.length())) {
+          int l = pname.length() + 2;
+          if (s.length() == l) {
+            itr.set("-D" + pname + '=' + replacer.apply(""));
+            return;
+          } else if (s.charAt(l) == '=') {
+            itr.set("-D" + pname + '=' + replacer.apply(s.substring(l + 1)));
+            return;
+          }
+        }
+      }
+    }
+    arguments.add(1, "-D" + pname + '=' + replacer.apply(null));
+  }
+
+
   public boolean hasSystemProperty(final String pname) {
-    String name = "-D" + pname;
-    String nameeq = name + '=';
-    for (int i = 1, l = arguments.size(); i < l; i++) {
-      String s = arguments.get(i);
-      if (s.equals(name) || s.startsWith(nameeq)) {
-        return true;
+    Iterator<String> itr = arguments.iterator();
+    itr.next(); // skip command.
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.startsWith("-D")) {
+        if (s.regionMatches(2, pname, 0, pname.length())) {
+          int l = pname.length() + 2;
+          if (s.length() == l) {
+            return true;
+          } else if (s.charAt(l) == '=') {
+            return true;
+          }
+        }
       }
     }
     return false;

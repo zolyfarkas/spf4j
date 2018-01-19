@@ -61,14 +61,8 @@ public final class UnixRuntime {
    */
   public static void restart(final JVMArguments newArguments) throws IOException {
     if (haveJnaPlatformClib()) {
-      String existing = newArguments.removeSystemProperty("spf4j.restart");
-      int count;
-      if (existing == null) {
-        count = 1;
-      } else {
-        count = Integer.parseInt(existing) + 1;
-      }
-      newArguments.setSystemProperty("spf4j.restart", Integer.toString(count));
+      newArguments.createOrUpdateSystemProperty("spf4j.restart",
+              (old) -> old == null ? "1" :  Integer.toString(Integer.parseInt(old) + 1));
       // close all files upon exec, except stdin, stdout, and stderr
       int sz = CLibrary.INSTANCE.getdtablesize();
       for (int i = 3; i < sz; i++) {
