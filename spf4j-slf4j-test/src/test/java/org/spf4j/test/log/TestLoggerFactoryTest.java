@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +28,33 @@ public class TestLoggerFactoryTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest.class);
 
-  @Test(expected = AssertionError.class)
+  @Test
   public void testLogging() {
     try (HandlerRegistration printer = TestLoggers.printer("org.spf4j.test", Level.TRACE)) {
       LOG.trace("Hello logger");
       LOG.info("Hello logger2");
       LOG.warn("Hello {} logger", "my");
       LOG.warn("Hello {} logger", "my", "some", "extra", new RuntimeException());
+      LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+              Matchers.hasProperty("format", Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
+      expect.assertSeen();
     }
+  }
+
+  @Test(expected = AssertionError.class)
+  public void testLogging2() {
+    LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+            Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+    LOG.error("Booo", new RuntimeException());
+    expect.assertNotSeen();
+  }
+
+  @Test(expected = AssertionError.class)
+  public void testLogging3() {
+    LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+            Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+    expect.assertSeen();
   }
 
 }

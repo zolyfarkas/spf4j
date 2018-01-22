@@ -132,7 +132,8 @@ public class LogPrinter implements LogHandler {
     return record;
   }
 
-  private void print(final LogRecord record, final Appendable wr, final EscapeJsonStringAppendableWrapper wrapper)
+  static void print(final LogRecord record, final Appendable wr,
+          final EscapeJsonStringAppendableWrapper wrapper)
           throws IOException {
     FMT.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);
     wr.append(' ');
@@ -148,7 +149,7 @@ public class LogPrinter implements LogHandler {
     wrapper.append(record.getThread().getName());
     wr.append("\" \"");
     Object[] arguments = record.getArguments();
-    int i = Slf4jMessageFormatter.format(this::exHandle, 0, wrapper, record.getFormat(),
+    int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getFormat(),
             ObjectAppenderSupplier.TO_STRINGER, arguments);
     wr.append("\" ");
     Throwable t = null;
@@ -196,7 +197,7 @@ public class LogPrinter implements LogHandler {
     }
   }
 
-  private void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
+  private static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
     String className = obj.getClass().getName();
     sbuf.append("[FAILED toString() for ");
     sbuf.append(className);

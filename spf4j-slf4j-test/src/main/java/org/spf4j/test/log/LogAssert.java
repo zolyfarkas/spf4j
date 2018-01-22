@@ -16,24 +16,19 @@
 package org.spf4j.test.log;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public final class DefaultAsserter implements LogHandler {
+public interface LogAssert {
 
-  public static final String ASSERTED = "ASSERTED";
+  /**
+   * Assert that a sequence of messages has not been seen.
+   */
+  void assertNotSeen();
 
-  @Override
-  public boolean handles(final Level level) {
-    return level == Level.ERROR;
-  }
-
-  @Override
-  public LogRecord handle(final LogRecord record) {
-    if (!record.hasAttachment(ASSERTED)) {
-      throw new AssertionError("Most test should not log errors, if a error scenario is validated,"
-              + " please assert this behavior using TestLoggers.expect, received:\n" + record);
-    }
-    return record;
-  }
+  /**
+   * Assert that a sequence of leg messages has been seen.
+   */
+  void assertSeen();
 
 }
