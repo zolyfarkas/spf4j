@@ -15,8 +15,12 @@
  */
 package org.spf4j.test.log;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
@@ -24,14 +28,18 @@ import org.slf4j.Marker;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
+@ThreadSafe
 public final class LogRecord {
 
+
+  private final Thread thread;
   private final Logger logger;
   private final Level level;
   private final long timeStamp;
   private final Marker marker;
   private final String format;
   private final Object[] arguments;
+  private Set<Object> attachments;
 
   public LogRecord(final Logger logger, final Level level,
           final String format, final Object... arguments) {
@@ -46,6 +54,8 @@ public final class LogRecord {
     this.marker = marker;
     this.format = format;
     this.arguments = arguments;
+    this.thread = Thread.currentThread();
+    this.attachments = Collections.EMPTY_SET;
   }
 
   public Logger getLogger() {
@@ -73,11 +83,28 @@ public final class LogRecord {
     return arguments;
   }
 
+  public Thread getThread() {
+    return thread;
+  }
+
+  public synchronized void attach(final Object obj) {
+    if (attachments.isEmpty()) {
+      attachments = new HashSet<>(2);
+    }
+    attachments.add(obj);
+  }
+
+  public synchronized boolean hasAttachment(final Object obj) {
+    return attachments.contains(obj);
+  }
+
   @Override
   public String toString() {
-    return "LogRecord{" + "logger=" + logger + ", level=" + level
-            + ", timeStamp=" + timeStamp + ", marker=" + marker + ", format="
+    return "LogRecord{" + "thread=" + thread + ", logger=" + logger + ", level="
+            + level + ", timeStamp=" + timeStamp + ", marker=" + marker + ", format="
             + format + ", arguments=" + arguments + '}';
   }
+
+
 
 }

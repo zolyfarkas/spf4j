@@ -38,6 +38,8 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @ParametersAreNonnullByDefault
 public class LogPrinter implements LogHandler {
 
+  private static final String PRINTED = "PRINTED";
+
   private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_INSTANT;
 
   private final Level minLogged;
@@ -109,6 +111,9 @@ public class LogPrinter implements LogHandler {
    */
   @Override
   public LogRecord handle(final LogRecord record) {
+    if (record.hasAttachment(PRINTED)) {
+      return record;
+    }
     try {
       Buffer buff = TL_BUFFER.get();
       buff.clear();
@@ -123,6 +128,7 @@ public class LogPrinter implements LogHandler {
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
+    record.attach(PRINTED);
     return record;
   }
 
@@ -139,6 +145,8 @@ public class LogPrinter implements LogHandler {
       }
     }
     wr.append('"');
+    wrapper.append(record.getThread().getName());
+    wr.append("\" \"");
     Object[] arguments = record.getArguments();
     int i = Slf4jMessageFormatter.format(this::exHandle, 0, wrapper, record.getFormat(),
             ObjectAppenderSupplier.TO_STRINGER, arguments);
