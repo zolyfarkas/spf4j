@@ -50,5 +50,10 @@ public class ServerCall implements TimeoutCallable<Response>{
     return Timing.getCurrentTiming().fromEpochMillisToNanoTime(request.getDeadlineMSEpoch());
   }
 
+  @Override
+  public String toString() {
+    return "ServerCall{" + "request=" + request + '}';
+  }
+
 
 }

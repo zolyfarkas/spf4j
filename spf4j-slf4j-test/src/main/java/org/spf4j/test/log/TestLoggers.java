@@ -70,10 +70,35 @@ public final class TestLoggers implements ILoggerFactory {
     return handler;
   }
 
+  /**
+   * Create an log expectation that can be asserted like:
+   *
+   *  LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+   *          Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+   *  LOG.error("Booo", new RuntimeException());
+   *  expect.assertSeen();
+   *
+   *
+   * @param category the category under which we should expect theese messages.
+   * @param minimumLogLevel minimum log level of expected log messages
+   * @param matchers a succession of LogMessages with each matching a Matcher is expected.
+   * @return
+   */
   @CheckReturnValue
   public static LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
     return INSTANCE.createExpectation(category, minimumLogLevel, matchers);
+  }
+
+  public static LogAssert expect(final String category, final Level minimumLogLevel,
+          final int nrTimes, final Matcher<LogRecord>... matchers) {
+      Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
+      for (int i = 0, j = 0; i < nrTimes; i++) {
+        for (Matcher<LogRecord> m : matchers) {
+          newMatchers[j++] = m;
+        }
+      }
+      return expect(category, minimumLogLevel, newMatchers);
   }
 
   @CheckReturnValue

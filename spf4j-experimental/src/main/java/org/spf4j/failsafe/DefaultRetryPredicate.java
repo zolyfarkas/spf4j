@@ -58,10 +58,11 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
       RetryDecision<Callable<?>> decision = predicate.getDecision(value, what);
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-          LOG.debug("Exception encountered, retrying {}...", what, value);
+          Callable<?> newCallable = decision.getNewCallable();
+          LOG.debug("Result {} for {} retrying {}", value, what, newCallable);
           if (decision.getDelayNanos() < 0) {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
-            return RetryDecision.retry(backoff.nextDelay(), what);
+            return RetryDecision.retry(backoff.nextDelay(), newCallable);
           } else {
             return decision;
           }
