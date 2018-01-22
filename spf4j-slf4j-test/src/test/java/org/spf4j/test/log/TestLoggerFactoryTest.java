@@ -29,11 +29,13 @@ public class TestLoggerFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testLogging() {
-    LOG.trace("Hello logger");
-    LOG.info("Hello logger");
-    LOG.warn("Hello {} logger", "my");
-    LOG.warn("Hello {} logger", "my", "some", "extra", new RuntimeException());
-    LOG.error("Booo", new RuntimeException());
+    try (HandlerRegistration printer = TestLoggers.printer("org.spf4j.test", Level.TRACE)) {
+      LOG.trace("Hello logger");
+      LOG.info("Hello logger2");
+      LOG.warn("Hello {} logger", "my");
+      LOG.warn("Hello {} logger", "my", "some", "extra", new RuntimeException());
+      LOG.error("Booo", new RuntimeException());
+    }
   }
 
 }

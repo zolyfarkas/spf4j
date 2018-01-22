@@ -17,6 +17,7 @@ package org.spf4j.test.log;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -29,14 +30,61 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class LogConfigImpl implements LogConfig {
 
+  private static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
+
   private final List<LogHandler> rootHandler;
 
   private final SortedMap<String, List<LogHandler>> logHandlers;
 
-  public LogConfigImpl(final List<LogHandler> rootHandler) {
+  public LogConfigImpl(final List<LogHandler> rootHandler, final Map<String, List<LogHandler>> catHandlers) {
     this.rootHandler = rootHandler;
-    logHandlers = new TreeMap<>(((Comparator<String>) String::compareTo).reversed());
+    logHandlers = new TreeMap<>(REV_STR_COMPARATOR);
+    logHandlers.putAll(catHandlers);
   }
+
+  public LogConfigImpl add(final String category, final LogHandler handler) {
+    List<LogHandler> rh;
+    Map<String, List<LogHandler>> ch;
+    if (category == null || category.isEmpty()) {
+      rh = new ArrayList<>(rootHandler);
+      rh.add(handler);
+      ch = logHandlers;
+    } else {
+      rh = rootHandler;
+      ch = new HashMap<>(logHandlers);
+      List<LogHandler> hndlrs = ch.get(category);
+      if (hndlrs == null) {
+        hndlrs = new ArrayList<>(2);
+        ch.put(category, hndlrs);
+      }
+      hndlrs.add(handler);
+    }
+    return new LogConfigImpl(rh, ch);
+  }
+
+
+  public LogConfigImpl remove(final String category, final LogHandler handler) {
+    List<LogHandler> rh;
+    Map<String, List<LogHandler>> ch;
+    if (category == null || category.isEmpty()) {
+      rh = new ArrayList<>(rootHandler);
+      rh.remove(handler);
+      ch = logHandlers;
+    } else {
+      rh = rootHandler;
+      ch = new HashMap<>(logHandlers);
+      List<LogHandler> hndlrs = ch.get(category);
+      if (hndlrs != null) {
+        hndlrs.remove(handler);
+        if (hndlrs.isEmpty()) {
+          ch.remove(category);
+        }
+      }
+    }
+    return new LogConfigImpl(rh, ch);
+  }
+
+
 
   private static final ThreadLocal<ArrayList<LogHandler>> HNDLRS
           = new ThreadLocal<ArrayList<LogHandler>>() {

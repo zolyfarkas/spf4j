@@ -15,34 +15,10 @@
  */
 package org.spf4j.test.log;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-
 /**
  *
  * @author Zoltan Farkas
  */
-@Immutable
-public final class CategoryConfig {
-
-  private final String category;
-
-  private final Iterable<LogHandler> handlers;
-
-  public CategoryConfig(final String category, final Level level, final Iterable<LogHandler> handlers) {
-    this.category = category;
-    this.handlers = handlers;
-  }
-
-  @Nonnull
-  public String getCategory() {
-    return category;
-  }
-
-  @Nonnull
-  public Iterable<LogHandler> getHandlers() {
-    return handlers;
-  }
-
-
+public interface HandlerRegistration extends AutoCloseable {
+  void close();
 }
