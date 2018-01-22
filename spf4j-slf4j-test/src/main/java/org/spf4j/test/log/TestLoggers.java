@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.concurrent.GuardedBy;
 import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -34,6 +35,9 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final ConcurrentMap<String, Logger> loggerMap;
 
+  private final Object sync;
+
+  @GuardedBy("sync")
   private volatile LogConfigImpl config;
 
   private final Function<String, Logger> computer;
@@ -44,6 +48,7 @@ public final class TestLoggers implements ILoggerFactory {
             System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"))), new DefaultAsserter()),
             Collections.EMPTY_MAP);
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
+    sync = new Object();
   }
 
   public LogConfig getConfig() {
@@ -53,9 +58,13 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public HandlerRegistration addPrinter(final String category, final Level level) {
     LogPrinter logPrinter = new LogPrinter(level);
-    config = config.add(category, logPrinter);
+    synchronized (sync) {
+      config = config.add(category, logPrinter);
+    }
     return () -> {
-      config = config.remove(category, logPrinter);
+      synchronized (sync) {
+        config = config.remove(category, logPrinter);
+      }
     };
   }
 
@@ -64,19 +73,21 @@ public final class TestLoggers implements ILoggerFactory {
           final Matcher<LogRecord>... matchers) {
     LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers);
     handler.setOnAssert(() -> {
-      config = config.remove(category, handler);
+      synchronized (sync) {
+        config = config.remove(category, handler);
+      }
     });
-    config = config.add(category, handler);
+    synchronized (sync) {
+      config = config.add(category, handler);
+    }
     return handler;
   }
 
   /**
    * Create an log expectation that can be asserted like:
    *
-   *  LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
-   *          Matchers.hasProperty("format", Matchers.equalTo("Booo")));
-   *  LOG.error("Booo", new RuntimeException());
-   *  expect.assertSeen();
+   * LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR, Matchers.hasProperty("format",
+   * Matchers.equalTo("Booo"))); LOG.error("Booo", new RuntimeException()); expect.assertSeen();
    *
    *
    * @param category the category under which we should expect theese messages.
@@ -92,13 +103,13 @@ public final class TestLoggers implements ILoggerFactory {
 
   public static LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final Matcher<LogRecord>... matchers) {
-      Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
-      for (int i = 0, j = 0; i < nrTimes; i++) {
-        for (Matcher<LogRecord> m : matchers) {
-          newMatchers[j++] = m;
-        }
+    Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
+    for (int i = 0, j = 0; i < nrTimes; i++) {
+      for (Matcher<LogRecord> m : matchers) {
+        newMatchers[j++] = m;
       }
-      return expect(category, minimumLogLevel, newMatchers);
+    }
+    return expect(category, minimumLogLevel, newMatchers);
   }
 
   @CheckReturnValue
