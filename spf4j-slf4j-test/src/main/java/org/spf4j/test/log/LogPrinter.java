@@ -197,7 +197,7 @@ public class LogPrinter implements LogHandler {
     }
   }
 
-  private static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
+  static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
     String className = obj.getClass().getName();
     sbuf.append("[FAILED toString() for ");
     sbuf.append(className);

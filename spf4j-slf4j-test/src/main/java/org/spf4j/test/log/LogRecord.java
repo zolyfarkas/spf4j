@@ -15,14 +15,20 @@
  */
 package org.spf4j.test.log;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.spf4j.base.Arrays;
+import org.spf4j.base.Slf4jMessageFormatter;
+import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  * @author Zoltan Farkas
@@ -40,6 +46,8 @@ public final class LogRecord {
   private final String format;
   private final Object[] arguments;
   private Set<Object> attachments;
+  private int startExtra;
+  private String message;
 
   public LogRecord(final Logger logger, final Level level,
           final String format, final Object... arguments) {
@@ -56,6 +64,8 @@ public final class LogRecord {
     this.arguments = arguments;
     this.thread = Thread.currentThread();
     this.attachments = Collections.EMPTY_SET;
+    this.startExtra = arguments.length;
+    this.message = null;
   }
 
   public Logger getLogger() {
@@ -85,6 +95,46 @@ public final class LogRecord {
 
   public Thread getThread() {
     return thread;
+  }
+
+  public String getMessage() {
+    materializeMessage();
+    return message;
+  }
+
+  public synchronized void materializeMessage() throws UncheckedIOException {
+    if (message == null) {
+      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);
+      try {
+        this.startExtra = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, sb, format,
+                ObjectAppenderSupplier.TO_STRINGER, arguments);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+      message = sb.toString();
+    }
+  }
+
+  @Nonnull
+  public Object[] getExtraArguments() {
+    materializeMessage();
+    if (startExtra < arguments.length) {
+      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
+    } else {
+      return Arrays.EMPTY_OBJ_ARRAY;
+    }
+  }
+
+  @Nullable
+  public Throwable getFirstExtraThrowable() {
+    materializeMessage();
+    for (int i = startExtra; i < arguments.length; i++) {
+      Object argument = arguments[i];
+      if (argument instanceof Throwable) {
+        return (Throwable) argument;
+      }
+    }
+    return null;
   }
 
   public synchronized void attach(final Object obj) {

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import javax.annotation.CheckReturnValue;
 import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public final class TestLoggers implements ILoggerFactory {
     return config;
   }
 
+  @CheckReturnValue
   public HandlerRegistration addPrinter(final String category, final Level level) {
     LogPrinter logPrinter = new LogPrinter(level);
     config = config.add(category, logPrinter);
@@ -57,6 +59,7 @@ public final class TestLoggers implements ILoggerFactory {
     };
   }
 
+  @CheckReturnValue
   public LogAssert createExpectation(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
     LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers);
@@ -67,11 +70,13 @@ public final class TestLoggers implements ILoggerFactory {
     return handler;
   }
 
+  @CheckReturnValue
   public static LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
     return INSTANCE.createExpectation(category, minimumLogLevel, matchers);
   }
 
+  @CheckReturnValue
   public static HandlerRegistration printer(final String category, final Level level) {
     return INSTANCE.addPrinter(category, level);
   }
