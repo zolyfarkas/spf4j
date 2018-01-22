@@ -70,31 +70,46 @@ public final class ThreadUsageSampler {
       @Override
       public void doRun() {
         stop();
-        writePeakThreadInfo(System.err);
+        String pto = System.getProperty("spf4j.threadUsageSampler.peakThreadsOnShutdown", "out");
+        switch (pto) {
+          case "out":
+            writePeakThreadInfo(System.out);
+            break;
+          case "err":
+            writePeakThreadInfo(System.err);
+            break;
+          case "none":
+            break;
+          default:
+            throw new IllegalArgumentException("Invalida settign for spf4j.threadUsageSampler.peakThreadsOnShutdown: "
+                    + pto);
+        }
       }
 
     });
     Registry.export(ThreadUsageSampler.class);
   }
-  
+
   private ThreadUsageSampler() {
   }
 
   public static void writePeakThreadInfo(final PrintStream out) {
-    out.println("Peak Threads:");
-    int i = 0;
-    boolean haveStacktraces = PEAK_THREAD_TRACES.size() > 0;
-    for (String tname : PEAK_THREAD_NAMES) {
-      out.print(tname);
-      out.print(", daemon =");
-      out.print(PEAK_THREAD_DAEMON.get(i));
-      out.print(',');
-      if (haveStacktraces) {
-        out.print(' ');
-        out.print(Arrays.toString(PEAK_THREAD_TRACES.get(i)));
+    if (!PEAK_THREAD_NAMES.isEmpty()) {
+      out.println("Peak Threads:");
+      int i = 0;
+      boolean haveStacktraces = !PEAK_THREAD_TRACES.isEmpty();
+      for (String tname : PEAK_THREAD_NAMES) {
+        out.print(tname);
+        out.print(", daemon =");
+        out.print(PEAK_THREAD_DAEMON.get(i));
+        out.print(',');
+        if (haveStacktraces) {
+          out.print(' ');
+          out.print(Arrays.toString(PEAK_THREAD_TRACES.get(i)));
+        }
+        out.println();
+        i++;
       }
-      out.println();
-      i++;
     }
   }
 
