@@ -18,7 +18,7 @@ package org.spf4j.test.log;
 /**
  * @author Zoltan Farkas
  */
-public final class DefaultAsserter implements LogHandler {
+final class DefaultAsserter implements LogHandler {
 
   public static final String ASSERTED = "ASSERTED";
 

@@ -36,7 +36,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public class LogPrinter implements LogHandler {
+class LogPrinter implements LogHandler {
 
   private static final String PRINTED = "PRINTED";
 
@@ -93,7 +93,7 @@ public class LogPrinter implements LogHandler {
 
   };
 
-  public LogPrinter(final Level minLogged) {
+  LogPrinter(final Level minLogged) {
     this.minLogged = minLogged;
   }
 

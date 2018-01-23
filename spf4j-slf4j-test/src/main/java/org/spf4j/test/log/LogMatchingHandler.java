@@ -49,7 +49,7 @@ class LogMatchingHandler implements LogHandler, LogAssert {
     this.at = 0;
     this.minLevel = minLevel;
     this.seen = new ArrayList<>();
-    this.onAssert = onAssert;
+    this.onAssert = null;
   }
 
   @PostConstruct

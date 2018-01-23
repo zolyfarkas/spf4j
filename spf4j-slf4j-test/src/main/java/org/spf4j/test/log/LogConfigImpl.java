@@ -28,7 +28,7 @@ import javax.annotation.concurrent.Immutable;
  * @author Zoltan Farkas
  */
 @Immutable
-public final class LogConfigImpl implements LogConfig {
+final class LogConfigImpl implements LogConfig {
 
   private static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
 
@@ -36,13 +36,13 @@ public final class LogConfigImpl implements LogConfig {
 
   private final SortedMap<String, List<LogHandler>> logHandlers;
 
-  public LogConfigImpl(final List<LogHandler> rootHandler, final Map<String, List<LogHandler>> catHandlers) {
+  LogConfigImpl(final List<LogHandler> rootHandler, final Map<String, List<LogHandler>> catHandlers) {
     this.rootHandler = rootHandler;
     logHandlers = new TreeMap<>(REV_STR_COMPARATOR);
     logHandlers.putAll(catHandlers);
   }
 
-  public LogConfigImpl add(final String category, final LogHandler handler) {
+  LogConfigImpl add(final String category, final LogHandler handler) {
     List<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category == null || category.isEmpty()) {
@@ -63,7 +63,7 @@ public final class LogConfigImpl implements LogConfig {
   }
 
 
-  public LogConfigImpl remove(final String category, final LogHandler handler) {
+  LogConfigImpl remove(final String category, final LogHandler handler) {
     List<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category == null || category.isEmpty()) {
