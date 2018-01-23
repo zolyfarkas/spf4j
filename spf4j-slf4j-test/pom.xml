@@ -51,10 +51,22 @@
       <version>3.0.2</version>
     </dependency>
     <dependency>
+      <groupId>net.sf.trove4j</groupId>
+      <artifactId>trove4j</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <!--
+    <dependency>
       <groupId>org.spf4j</groupId>
       <artifactId>spf4j-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+    -->
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
@@ -67,9 +79,83 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>create avsc destination folder</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="target/generated-sources/spf4j-core" />
+                <copy todir="target/generated-sources/spf4j-core" verbose = "true">
+                  <fileset dir = "${project.build.directory}/../../spf4j-core/src/main/java/">
+                    <include name="org/spf4j/base/EscapeJsonStringAppendableWrapper.java"/>
+                    <include name="org/spf4j/base/Arrays.java"/>
+                    <include name="org/spf4j/base/Strings.java"/>
+                    <include name="org/spf4j/base/Objects.java"/>
+                    <include name="org/spf4j/base/IntAppender.java"/>
+                    <include name="org/spf4j/base/IntMath.java"/>
+                    <include name="org/spf4j/base/TLScratch.java"/>
+                    <include name="org/spf4j/base/OctalUnescaper.java"/>
+                    <include name="org/spf4j/base/UnicodeUnescaper.java"/>
+                    <include name="org/spf4j/base/LookupTranslator.java"/>
+                    <include name="org/spf4j/base/CloneFailedException.java"/>
+                    <include name="org/spf4j/base/IntSequence.java"/>
+                    <include name="org/spf4j/base/CharSequences.java"/>
+                    <include name="org/spf4j/base/MemorizedCallable.java"/>
+                    <include name="org/spf4j/base/ReferenceType.java"/>
+                    <include name="org/spf4j/base/Reflections.java"/>
+                    <include name="org/spf4j/base/Slf4jMessageFormatter.java"/>
+                    <include name="org/spf4j/io/ObjectAppenderSupplier.java"/>
+                    <include name="org/spf4j/io/ConfigurableAppenderSupplier.java"/>
+                    <include name="org/spf4j/io/ObjectAppender.java"/>
+                    <include name="org/spf4j/reflect/ByTypeSupplier.java"/>
+                    <include name="org/spf4j/reflect/CachingTypeMapWrapper.java"/>
+                    <include name="org/spf4j/reflect/GraphTypeMap.java"/>
+                    <include name="org/spf4j/reflect/TypeMap.java"/>
+                    <include name="org/spf4j/base/Throwables.java"/>
+                    <include name="org/spf4j/io/ByteArrayBuilder.java"/>
+                    <include name="org/spf4j/recyclable/impl/ArraySuppliers.java" />
+                    <include name="org/spf4j/recyclable/SizedRecyclingSupplier.java" />
+                    <include name="org/spf4j/recyclable/impl/Powerof2ThreadLocalRecyclingSupplier.java" />
+                    <include name="org/spf4j/recyclable/impl/Powerof2SizedGlobalRecyclingSupplier.java" />
+                    <include name="org/spf4j/concurrent/UnboundedLoadingCache.java"/>
+                    <include name="org/spf4j/ds/IdentityHashSet.java"/>
+                    <include name="org/spf4j/base/CharSequenceTranslator.java"/>
+                    <include name="org/spf4j/base/AggregateTranslator.java"/>
+                    <include name="org/spf4j/ds/Graphs.java"/>
+                  </fileset>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
-                       
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/spf4j-core/</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
