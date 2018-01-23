@@ -86,7 +86,7 @@ public class RetryPolicyTest {
             }).finishPredicate()
             .build(ServerCall.class);
     Server server = new Server();
-    try (HandlerRegistration printer = TestLoggers.config().printer("", Level.DEBUG)) {
+    try (HandlerRegistration printer = TestLoggers.config().print("", Level.DEBUG)) {
       Response response1 = new Response(Response.Type.OK, "");
       server.setResponse("url1", (r) -> response1);
       server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));

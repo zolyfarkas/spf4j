@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
@@ -29,7 +28,7 @@ import org.spf4j.base.EscapeJsonStringAppendableWrapper;
  *
  * @author Zoltan Farkas
  */
-class LogMatchingHandler implements LogHandler, LogAssert {
+abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final Level minLevel;
 
@@ -39,8 +38,6 @@ class LogMatchingHandler implements LogHandler, LogAssert {
 
   private int at;
 
-  private Runnable onAssert;
-
   LogMatchingHandler(final Level minLevel, final Matcher<LogRecord>... matchers) {
     if (matchers.length < 1) {
       throw new IllegalArgumentException("You need to provide at least a matcher " + matchers);
@@ -49,13 +46,9 @@ class LogMatchingHandler implements LogHandler, LogAssert {
     this.at = 0;
     this.minLevel = minLevel;
     this.seen = new ArrayList<>();
-    this.onAssert = null;
   }
 
-  @PostConstruct
-  void setOnAssert(final Runnable onAssert) {
-    this.onAssert = onAssert;
-  }
+  abstract void unregister();
 
 
   @Override
@@ -78,7 +71,7 @@ class LogMatchingHandler implements LogHandler, LogAssert {
    */
   @Override
   public void assertSeen() {
-    onAssert.run();
+    unregister();
     if (at < matchers.length) {
       Description description = new StringDescription();
       description.appendText("Expected:\n");
@@ -92,7 +85,7 @@ class LogMatchingHandler implements LogHandler, LogAssert {
       EscapeJsonStringAppendableWrapper wrapper = new EscapeJsonStringAppendableWrapper(result);
       for (LogRecord record : seen) {
         try {
-          LogPrinter.print(record, result, wrapper);
+          LogPrinter.print(record, result, wrapper, "");
         } catch (IOException ex) {
           throw new UncheckedIOException(ex);
         }
@@ -107,7 +100,7 @@ class LogMatchingHandler implements LogHandler, LogAssert {
    */
   @Override
   public void assertNotSeen() {
-    onAssert.run();
+    unregister();
     if (at >= matchers.length) {
       Description description = new StringDescription();
       description.appendText("Not expected:\n");
@@ -121,7 +114,7 @@ class LogMatchingHandler implements LogHandler, LogAssert {
       EscapeJsonStringAppendableWrapper wrapper = new EscapeJsonStringAppendableWrapper(result);
       for (LogRecord record : seen) {
         try {
-          LogPrinter.print(record, result, wrapper);
+          LogPrinter.print(record, result, wrapper, "");
         } catch (IOException ex) {
           throw new UncheckedIOException(ex);
         }
@@ -134,7 +127,7 @@ class LogMatchingHandler implements LogHandler, LogAssert {
   @Override
   public String toString() {
     return "LogMatchingHandler{" + "minLevel=" + minLevel + ", matchers=" + matchers
-            + ", seen=" + seen + ", at=" + at + ", onAssert=" + onAssert + '}';
+            + ", seen=" + seen + ", at=" + at + '}';
   }
 
 

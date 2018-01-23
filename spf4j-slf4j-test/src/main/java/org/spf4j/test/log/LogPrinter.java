@@ -36,9 +36,9 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-class LogPrinter implements LogHandler {
+public class LogPrinter implements LogHandler {
 
-  private static final String PRINTED = "PRINTED";
+  static final String PRINTED = "PRINTED";
 
   private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_INSTANT;
 
@@ -97,7 +97,6 @@ class LogPrinter implements LogHandler {
     this.minLogged = minLogged;
   }
 
-
   /**
    * {@inheritDoc}
    */
@@ -117,7 +116,7 @@ class LogPrinter implements LogHandler {
     try {
       Buffer buff = TL_BUFFER.get();
       buff.clear();
-      print(record, buff.getWriter(), buff.getWriterEscaper());
+      print(record, buff.getWriter(), buff.getWriterEscaper(), "");
       if (record.getLevel() == Level.ERROR) {
         System.err.write(buff.getBytes(), 0, buff.size());
         System.err.flush();
@@ -132,9 +131,22 @@ class LogPrinter implements LogHandler {
     return record;
   }
 
+  public static void printToStderr(final LogRecord record, final String annotate) {
+    Buffer buff = TL_BUFFER.get();
+    buff.clear();
+    try {
+      print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);
+      System.err.write(buff.getBytes(), 0, buff.size());
+      System.err.flush();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
   static void print(final LogRecord record, final Appendable wr,
-          final EscapeJsonStringAppendableWrapper wrapper)
+          final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
           throws IOException {
+    wr.append(annotate);
     FMT.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);
     wr.append(' ');
     String level = record.getLevel().toString();

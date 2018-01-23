@@ -15,7 +15,10 @@
  */
 package org.spf4j.test.log;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Assert;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +33,7 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testLogging() {
-    try (HandlerRegistration printer = TestLoggers.config().printer("org.spf4j.test", Level.TRACE)) {
+    try (HandlerRegistration printer = TestLoggers.config().print("org.spf4j.test", Level.TRACE)) {
       LOG.trace("Hello logger");
       LOG.info("Hello logger2");
       LOG.warn("Hello {} logger", "my");
@@ -55,6 +58,30 @@ public class TestLoggerFactoryTest {
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
             Matchers.hasProperty("format", Matchers.equalTo("Booo")));
     expect.assertSeen();
+  }
+
+  @Ignore
+  @Test
+  public void testLogging4() {
+    LOG.debug("log {}", 1);
+    LOG.debug("log {} {}", 1, 2);
+    LOG.debug("log {} {} {}", 1, 2, 3);
+    LOG.debug("log {} {} {}", 1, 2, 3, 4);
+    Assert.fail("booo");
+  }
+
+  @Test
+  public void testLogging5() {
+    LogCollectionHandler collect = TestLoggers.config().collect(Level.DEBUG, 10, false);
+    LOG.debug("log {}", 1);
+    LOG.debug("log {} {}", 1, 2);
+    LOG.debug("log {} {} {}", 1, 2, 3);
+    LOG.debug("log {} {} {}", 1, 2, 3, 4);
+    AtomicInteger count = new AtomicInteger();
+    collect.forEach((r) -> {
+      count.incrementAndGet();
+    });
+    Assert.assertEquals(4, count.get());
   }
 
 }

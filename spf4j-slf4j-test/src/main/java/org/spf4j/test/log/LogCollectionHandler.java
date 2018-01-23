@@ -15,26 +15,14 @@
  */
 package org.spf4j.test.log;
 
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.util.function.Consumer;
 
 /**
  *
  * @author Zoltan Farkas
  */
-@CleanupObligation
-public interface LogAssert {
+public interface LogCollectionHandler extends HandlerRegistration {
 
-  /**
-   * Assert that a sequence of messages has not been seen.
-   */
-  @DischargesObligation
-  void assertNotSeen();
-
-  /**
-   * Assert that a sequence of leg messages has been seen.
-  */
-  @DischargesObligation
-  void assertSeen();
+  void forEach(Consumer<LogRecord> consumer);
 
 }

@@ -59,8 +59,14 @@ public final class TestLoggers implements ILoggerFactory {
     return config;
   }
 
+  /**
+   * Print logs above a category and log level.
+   * @param category the log category.
+   * @param level the log level.
+   * @return a handler that allows this printing to stop (when calling close).
+   */
   @CheckReturnValue
-  public HandlerRegistration printer(final String category, final Level level) {
+  public HandlerRegistration print(final String category, final Level level) {
     LogPrinter logPrinter = new LogPrinter(level);
     synchronized (sync) {
       config = config.add(category, logPrinter);
@@ -87,18 +93,36 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
-    LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers);
-    handler.setOnAssert(() -> {
-      synchronized (sync) {
-        config = config.remove(category, handler);
+    LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers) {
+
+      private boolean isClosed = false;
+
+      @Override
+      void unregister() {
+        synchronized (sync) {
+          if (!isClosed) {
+            config = config.remove(category, this);
+            isClosed = true;
+          }
+        }
       }
-    });
+
+
+    };
     synchronized (sync) {
       config = config.add(category, handler);
     }
     return handler;
   }
 
+  /**
+   * Ability to assert is you expect a sequence of logs to be repeated.
+   * @param category
+   * @param minimumLogLevel
+   * @param nrTimes
+   * @param matchers
+   * @return
+   */
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final Matcher<LogRecord>... matchers) {
     Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
@@ -108,6 +132,33 @@ public final class TestLoggers implements ILoggerFactory {
       }
     }
     return expect(category, minimumLogLevel, newMatchers);
+  }
+
+  /**
+   * register a log collector that collects up to maxNrLogs unprinted logs with a minimumLogLevel log level
+   * @param minimumLogLevel
+   * @param maxNrLogs
+   * @return a handler that allows you to access the collected logs and stop this collection.
+   */
+  public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs, final boolean collectPrinted) {
+    DebugLogCollector handler = new DebugLogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {
+
+      private boolean isClosed = false;
+
+      @Override
+      public void close() {
+        synchronized (sync) {
+          if (!isClosed) {
+            config = config.remove("", this);
+            isClosed = true;
+          }
+        }
+      }
+    };
+    synchronized (sync) {
+      config = config.add("", handler);
+    }
+    return handler;
   }
 
   /**
