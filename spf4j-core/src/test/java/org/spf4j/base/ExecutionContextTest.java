@@ -65,4 +65,14 @@ public class ExecutionContextTest {
     Assert.assertNull(ExecutionContext.current());
   }
 
+  @Test
+  public void testExecutionContext2() {
+    try (ExecutionContext start = ExecutionContext.start(10, TimeUnit.SECONDS)) {
+      long secs = start.getUnitsToDeadline(TimeUnit.SECONDS);
+      Assert.assertTrue(secs >= 9);
+      Assert.assertTrue(secs <= 10);
+    }
+  }
+
+
 }
