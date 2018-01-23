@@ -149,6 +149,10 @@ public final class ExecutionContext implements AutoCloseable {
     return TimeUnit.NANOSECONDS.toMillis(getContextDeadlineNanos() - TimeSource.nanoTime());
   }
 
+  public static boolean deadlinePassed() {
+    return TimeUnit.NANOSECONDS.toMillis(getContextDeadlineNanos() - TimeSource.nanoTime()) <= 0;
+  }
+
   public static long getNanosToDeadline() {
     return getContextDeadlineNanos() - TimeSource.nanoTime();
   }

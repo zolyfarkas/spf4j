@@ -44,6 +44,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
 import org.spf4j.base.Either;
+import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.recyclable.ObjectBorower;
@@ -86,7 +87,6 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public T get(final ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException {
-        long deadline = org.spf4j.base.Runtime.getDeadline();
         lock.lock();
         try {
             // trying to be fair here, if others are already waiting, we will not get one.
@@ -107,8 +107,9 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                 }
                 while (borrowedObjects.isEmpty()) {
                      available.await(1, TimeUnit.MILLISECONDS);
-                     if (deadline < System.currentTimeMillis()) {
-                         throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                     long millisToDeadline = ExecutionContext.getMillisToDeadline();
+                     if (millisToDeadline < 0) {
+                         throw new TimeoutException("Object wait timeout expired by " + (-millisToDeadline));
                      }
                 }
                 // try to reclaim object from borrowers
@@ -156,20 +157,21 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
                         // probably was unable to acquire the locks
                         do {
                             available.await(1, TimeUnit.MILLISECONDS);
-                            if (deadline < System.currentTimeMillis()) {
-                               throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                            long millisToDeadline = ExecutionContext.getMillisToDeadline();
+                            if (millisToDeadline < 0) {
+                               throw new TimeoutException("Object wait timeout expired by " + (-millisToDeadline));
                             }
                         } while (borrowedObjects.isEmpty());
                     }
                 }
                 waitingForReturn++;
                 while (availableObjects.isEmpty()) {
-                    long waitTime = deadline - System.currentTimeMillis();
+                    long waitTime = ExecutionContext.getMillisToDeadline();
                     if (waitTime <= 0) {
-                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                        throw new TimeoutException("Object wait timeout expired, waitTime = " + waitTime);
                     }
                     if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
-                        throw new TimeoutException("Object wait timeout expired, deadline = " + deadline);
+                        throw new TimeoutException("Object wait timeout expired, waitTime = " + waitTime);
                     }
                 }
                 waitingForReturn--;
