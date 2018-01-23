@@ -32,13 +32,14 @@
 package org.spf4j.base;
 
 /**
- *
+ * @deprecated use java.util.Optional
  * @author zoly
  */
+@Deprecated
 public final  class Holder<T> {
 
     public static final Holder OF_NULL = Holder.of(null);
-  
+
     private final T value;
 
     public Holder(final T value) {

@@ -59,6 +59,7 @@ import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import javax.annotation.Nonnull;
@@ -469,14 +470,14 @@ public final class Reflections {
 
   }
 
-  private static final LoadingCache<MethodDesc, Holder<Method>> CACHE_FAST
+  private static final LoadingCache<MethodDesc, Optional<Method>> CACHE_FAST
           = new UnboundedLoadingCache<>(64,
-                  new CacheLoader<MethodDesc, Holder<Method>>() {
+                  new CacheLoader<MethodDesc, Optional<Method>>() {
             @Override
-            public Holder<Method> load(final MethodDesc k) {
+            public Optional<Method> load(final MethodDesc k) {
               final Method m = getCompatibleMethod(k.getClasz(), k.getName(), k.getParamTypes());
               if (m == null) {
-                return Holder.OF_NULL;
+                return Optional.empty();
               }
               AccessController.doPrivileged(new PrivilegedAction() {
                 @Override
@@ -485,7 +486,7 @@ public final class Reflections {
                   return null; // nothing to return
                 }
               });
-              return Holder.of(m);
+              return Optional.of(m);
             }
           });
 
@@ -493,7 +494,7 @@ public final class Reflections {
   public static Method getCompatibleMethodCached(final Class<?> c,
           final String methodName,
           final Class<?>... paramTypes) {
-    return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes)).getValue();
+    return CACHE_FAST.getUnchecked(new MethodDesc(c, methodName, paramTypes)).orElse(null);
   }
 
   private static final LoadingCache<MethodDesc, MethodHandle> CACHE_FAST_MH
