@@ -58,7 +58,7 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
     private final ILoggerFactory loggerFactory;
 
     private StaticLoggerBinder() {
-        loggerFactory = TestLoggers.INSTANCE;
+        loggerFactory = TestLoggers.config();
     }
 
     public ILoggerFactory getLoggerFactory() {

@@ -30,12 +30,12 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testLogging() {
-    try (HandlerRegistration printer = TestLoggers.printer("org.spf4j.test", Level.TRACE)) {
+    try (HandlerRegistration printer = TestLoggers.config().printer("org.spf4j.test", Level.TRACE)) {
       LOG.trace("Hello logger");
       LOG.info("Hello logger2");
       LOG.warn("Hello {} logger", "my");
       LOG.warn("Hello {} logger", "my", "some", "extra", new RuntimeException());
-      LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+      LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
               Matchers.hasProperty("format", Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertSeen();
@@ -44,7 +44,7 @@ public class TestLoggerFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testLogging2() {
-    LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
             Matchers.hasProperty("format", Matchers.equalTo("Booo")));
     LOG.error("Booo", new RuntimeException());
     expect.assertNotSeen();
@@ -52,7 +52,7 @@ public class TestLoggerFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testLogging3() {
-    LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR,
+    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
             Matchers.hasProperty("format", Matchers.equalTo("Booo")));
     expect.assertSeen();
   }

@@ -40,6 +40,7 @@ import org.spf4j.annotations.VoidPredicate;
 import org.spf4j.base.Callables;
 import org.spf4j.base.Callables.TimeoutCallable;
 import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Timing;
 
 /**
@@ -69,7 +70,7 @@ public final class RetryAspect {
         }
       }
     };
-    try (ExecutionContext ctx = ExecutionContext.start(
+    try (ExecutionContext ctx = ExecutionContexts.start(
             Timing.getCurrentTiming().fromEpochMillisToNanoTime(timeoutCallable.getDeadline()))
             ) {
       return Callables.executeWithRetry(timeoutCallable, annot.immediateRetries(), annot.retryDelayMillis(),

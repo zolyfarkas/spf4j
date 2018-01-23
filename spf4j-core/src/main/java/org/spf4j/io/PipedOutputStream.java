@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
-import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
@@ -138,7 +138,7 @@ public final class PipedOutputStream extends OutputStream {
 
   public long getNanoDeadline() {
     if (globalDeadlineNanos == null) {
-      return ExecutionContext.getNanosToDeadline();
+      return ExecutionContexts.getNanosToDeadline();
     } else {
       return globalDeadlineNanos;
     }

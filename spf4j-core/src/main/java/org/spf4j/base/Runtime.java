@@ -479,7 +479,7 @@ public final class Runtime {
    */
   @Deprecated
   public static long getDeadline() {
-    ExecutionContext ec = ExecutionContext.current();
+    ExecutionContext ec = ExecutionContexts.current();
     if (ec == null) {
       return System.currentTimeMillis() + Timing.MAX_MS_SPAN;
     } else {
@@ -492,7 +492,7 @@ public final class Runtime {
    */
   @Deprecated
   public static long millisToDeadline() throws TimeoutException {
-    ExecutionContext ec = ExecutionContext.current();
+    ExecutionContext ec = ExecutionContexts.current();
     if (ec == null) {
       return Timing.MAX_MS_SPAN;
     } else {

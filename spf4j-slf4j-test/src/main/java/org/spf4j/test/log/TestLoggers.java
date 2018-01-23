@@ -31,7 +31,11 @@ import org.slf4j.Logger;
  */
 public final class TestLoggers implements ILoggerFactory {
 
-  public static final TestLoggers INSTANCE = new TestLoggers();
+  private static final TestLoggers INSTANCE = new TestLoggers();
+
+  public static TestLoggers config() {
+    return INSTANCE;
+  }
 
   private final ConcurrentMap<String, Logger> loggerMap;
 
@@ -56,7 +60,7 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   @CheckReturnValue
-  public HandlerRegistration addPrinter(final String category, final Level level) {
+  public HandlerRegistration printer(final String category, final Level level) {
     LogPrinter logPrinter = new LogPrinter(level);
     synchronized (sync) {
       config = config.add(category, logPrinter);
@@ -66,21 +70,6 @@ public final class TestLoggers implements ILoggerFactory {
         config = config.remove(category, logPrinter);
       }
     };
-  }
-
-  @CheckReturnValue
-  public LogAssert createExpectation(final String category, final Level minimumLogLevel,
-          final Matcher<LogRecord>... matchers) {
-    LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers);
-    handler.setOnAssert(() -> {
-      synchronized (sync) {
-        config = config.remove(category, handler);
-      }
-    });
-    synchronized (sync) {
-      config = config.add(category, handler);
-    }
-    return handler;
   }
 
   /**
@@ -96,12 +85,21 @@ public final class TestLoggers implements ILoggerFactory {
    * @return
    */
   @CheckReturnValue
-  public static LogAssert expect(final String category, final Level minimumLogLevel,
+  public LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
-    return INSTANCE.createExpectation(category, minimumLogLevel, matchers);
+    LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers);
+    handler.setOnAssert(() -> {
+      synchronized (sync) {
+        config = config.remove(category, handler);
+      }
+    });
+    synchronized (sync) {
+      config = config.add(category, handler);
+    }
+    return handler;
   }
 
-  public static LogAssert expect(final String category, final Level minimumLogLevel,
+  public LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final Matcher<LogRecord>... matchers) {
     Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
     for (int i = 0, j = 0; i < nrTimes; i++) {
@@ -110,11 +108,6 @@ public final class TestLoggers implements ILoggerFactory {
       }
     }
     return expect(category, minimumLogLevel, newMatchers);
-  }
-
-  @CheckReturnValue
-  public static HandlerRegistration printer(final String category, final Level level) {
-    return INSTANCE.addPrinter(category, level);
   }
 
   /**

@@ -53,6 +53,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
@@ -98,7 +99,7 @@ public final class ObjectPoolBuilderTest {
     pool.get();
     pool.get();
     System.out.println(pool);
-    try (ExecutionContext start = ExecutionContext.start(System.currentTimeMillis() + 1000)) {
+    try (ExecutionContext start = ExecutionContexts.start(System.currentTimeMillis() + 1000)) {
       pool.dispose();
       pool.get();
       System.out.println(pool);

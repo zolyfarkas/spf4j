@@ -86,7 +86,7 @@ public class RetryPolicyTest {
             }).finishPredicate()
             .build(ServerCall.class);
     Server server = new Server();
-    try (HandlerRegistration printer = TestLoggers.printer("", Level.DEBUG)) {
+    try (HandlerRegistration printer = TestLoggers.config().printer("", Level.DEBUG)) {
       Response response1 = new Response(Response.Type.OK, "");
       server.setResponse("url1", (r) -> response1);
       server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
@@ -94,7 +94,7 @@ public class RetryPolicyTest {
       ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
       long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());
       LOG.info("Timeout = {}", timeoutms);
-      LogAssert retryExpect = TestLoggers.expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG,
+      LogAssert retryExpect = TestLoggers.config().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG,
               Matchers.hasProperty("message",
                       Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")));
       Response resp
@@ -102,7 +102,7 @@ public class RetryPolicyTest {
       Assert.assertEquals(response1, resp);
       retryExpect.assertSeen();
       server.breakException(new SocketException("Bla bla"));
-      LogAssert retryExpect2 = TestLoggers.expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+      LogAssert retryExpect2 = TestLoggers.config().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
               Matchers.hasProperty("message",
                       Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")));
       try {

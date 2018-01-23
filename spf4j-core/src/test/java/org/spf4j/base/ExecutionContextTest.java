@@ -47,30 +47,32 @@ public class ExecutionContextTest {
 
   @Test
   public void testExecutionContext() throws InterruptedException, ExecutionException {
-    try (ExecutionContext ec = ExecutionContext.start(TimeSource.getDeadlineNanos(10, TimeUnit.SECONDS))) {
-      long unitsToDeadline = ExecutionContext.current().getUnitsToDeadline(TimeUnit.SECONDS);
+    try (ExecutionContext ec = ExecutionContexts.start(TimeSource.getDeadlineNanos(10, TimeUnit.SECONDS))) {
+      long unitsToDeadline = ExecutionContexts.current().getUnitsToDeadline(TimeUnit.SECONDS);
       Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
       Assert.assertThat(unitsToDeadline, Matchers.greaterThanOrEqualTo(9L));
       Future<?> submit = DefaultExecutor.INSTANCE.submit(() -> {
         try (ExecutionContext subCtx = ec.subCtx()) {
-          long utd = ExecutionContext.current().getUnitsToDeadline(TimeUnit.SECONDS);
+          long utd = ExecutionContexts.current().getUnitsToDeadline(TimeUnit.SECONDS);
           Assert.assertThat(utd, Matchers.lessThanOrEqualTo(10L));
           Assert.assertThat(utd, Matchers.greaterThanOrEqualTo(9L));
           Assert.assertEquals(ec, subCtx.getParent());
         }
-        Assert.assertNull(ExecutionContext.current());
+        Assert.assertNull(ExecutionContexts.current());
       });
       submit.get();
     }
-    Assert.assertNull(ExecutionContext.current());
+    Assert.assertNull(ExecutionContexts.current());
   }
 
   @Test
   public void testExecutionContext2() {
-    try (ExecutionContext start = ExecutionContext.start(10, TimeUnit.SECONDS)) {
+    try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
       long secs = start.getUnitsToDeadline(TimeUnit.SECONDS);
       Assert.assertTrue(secs >= 9);
       Assert.assertTrue(secs <= 10);
+      start.put("BAGAGE");
+      Assert.assertEquals("BAGAGE", start.get(String.class));
     }
   }
 
