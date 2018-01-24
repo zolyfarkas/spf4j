@@ -36,6 +36,8 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
@@ -44,6 +46,8 @@ import org.spf4j.stackmonitor.FastStackCollector;
  */
 @SuppressFBWarnings({"PREDICTABLE_RANDOM", "HARD_CODE_PASSWORD" })
 public final class DecentSemaphoreHandler {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DecentSemaphoreHandler.class);
 
   static {
     System.setProperty("spf4j.heartbeat.intervalMillis", "2000"); // 2 second heartbeat
@@ -70,7 +74,7 @@ public final class DecentSemaphoreHandler {
     for (int i = 0; i < 50; i++) {
       semaphore.acquire(1, 1L, TimeUnit.SECONDS);
       Thread.sleep((long) (Math.random() * 10) + 10);
-      System.out.println(System.currentTimeMillis());
+      LOG.debug("beat");
       Thread.sleep((long) (Math.random() * 10) + 10);
       semaphore.release();
     }

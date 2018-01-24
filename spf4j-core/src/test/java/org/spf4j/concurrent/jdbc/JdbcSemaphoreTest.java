@@ -51,6 +51,8 @@ import org.junit.Assert;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -58,6 +60,8 @@ import org.junit.Test;
  */
 @SuppressFBWarnings({"HARD_CODE_PASSWORD", "SQL_INJECTION_JDBC"})
 public class JdbcSemaphoreTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphoreTest.class);
 
   private static String hbddl;
   private static String semddl;
@@ -96,7 +100,7 @@ public class JdbcSemaphoreTest {
       JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartBeatAndSubscribe(ds,
               HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.LifecycleHook) null);
       long lb = heartbeat.getLastRunDB();
-      System.out.println("last TS = " + lb + " " + Instant.ofEpochMilli(lb));
+      LOG.debug("last TS = {}", Instant.ofEpochMilli(lb));
       heartbeat.beat();
 
       testReleaseAck(ds, "testSem", 2);
@@ -240,10 +244,8 @@ public class JdbcSemaphoreTest {
       String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2").toString();
       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
       Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS));
-      System.out.println("P1:");
-      System.out.println(o1);
-      System.out.println("P2:");
-      System.out.println(o2);
+      LOG.debug("P1: {}", o1);
+      LOG.debug("P2: {}", o2);
       String[] nr1 = o1.split("\n");
       String[] nr2 = o2.split("\n");
       int totatl = nr1.length + nr2.length;

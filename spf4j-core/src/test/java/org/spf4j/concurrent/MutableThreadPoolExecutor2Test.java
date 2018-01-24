@@ -33,47 +33,41 @@ package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.perf.cpu.CpuUsageSampler;
 
 /**
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "MDM_THREAD_YIELD", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
-public class LifoThreadPoolExecutorTestCoreIdling {
+public class MutableThreadPoolExecutor2Test {
 
 
     @Test
-    public void testLifoExecSQ() throws InterruptedException, IOException {
-        LifoThreadPoolExecutorSQP executor =
-                new LifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
-        Thread.sleep(20);
-        long time = CpuUsageSampler.getProcessCpuTimeNanos();
-        Thread.sleep(3000);
-        long cpuTime =  CpuUsageSampler.getProcessCpuTimeNanos() - time;
-        Assert.assertTrue(cpuTime < 200000000);
-        System.out.println(cpuTime); // 6069497000 with bug  53945000 without bug
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.SECONDS);
+    public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {
+        MutableLifoThreadPoolExecutorSQP executor
+                = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 60000, 1024, 1024);
+        testPoolThreadDynamics(executor);
     }
 
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
+    public static void testPoolThreadDynamics(final MutableLifoThreadPoolExecutorSQP le) throws InterruptedException {
+        le.setMaxIdleTimeMillis(1000);
+        LifoThreadPoolExecutor2Test.testMaxParallel(le, 10);
 
-    @Test
-    public void testLifoExecSQMutable() throws InterruptedException, IOException {
-        MutableLifoThreadPoolExecutorSQP executor =
-                new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
-        Thread.sleep(20);
-        long time = CpuUsageSampler.getProcessCpuTimeNanos();
-        Thread.sleep(3000);
-        long cpuTime =  CpuUsageSampler.getProcessCpuTimeNanos() - time;
-        Assert.assertTrue(cpuTime < 200000000);
-        System.out.println(cpuTime); // 6069497000 with bug  53945000 without bug
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.SECONDS);
+        Assert.assertEquals(8, le.getThreadCount());
+        le.setMaxThreadCount(4);
+        Thread.sleep(1000); // allow time for threads to retire.
+        Assert.assertEquals(2, le.getThreadCount());
+        le.setMaxIdleTimeMillis(1000);
+        LifoThreadPoolExecutor2Test.testMaxParallel(le, 8);
+        Assert.assertEquals(4, le.getThreadCount());
+
+        le.shutdown();
+        boolean awaitTermination = le.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        Assert.assertTrue(awaitTermination);
     }
-
 
 }

@@ -44,6 +44,8 @@ import java.util.concurrent.atomic.LongAdder;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Throwables;
 
 /**
@@ -52,6 +54,8 @@ import org.spf4j.base.Throwables;
  */
 @SuppressFBWarnings({"HES_LOCAL_EXECUTOR_SERVICE", "MDM_THREAD_YIELD"})
 public class LifoThreadPoolExecutorTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorTest.class);
 
   @Test
   public void testLifoExecSQ() throws InterruptedException, IOException {
@@ -181,8 +185,8 @@ public class LifoThreadPoolExecutorTest {
     }
     executor.shutdown();
     boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
-    System.out.println("Stats for " + executor.getClass()
-            + ", rejected = " + rejected + ", Exec time = " + (System.currentTimeMillis() - start));
+    LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
+            (System.currentTimeMillis() - start));
     Assert.assertTrue(awaitTermination);
     Assert.assertEquals(testCount, adder.sum());
   }

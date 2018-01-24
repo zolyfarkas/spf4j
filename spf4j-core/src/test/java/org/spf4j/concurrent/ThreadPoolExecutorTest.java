@@ -61,7 +61,6 @@ public class ThreadPoolExecutorTest {
     try {
       testPoolTaskCancellation(new ForkJoinPool(16));
     } catch (AssertionError err) {
-      System.err.println("expected " + err);
       assertError = true;
     }
     Assert.assertTrue("expected that FJP tasks cannot be interrupted", assertError);
@@ -105,17 +104,10 @@ public class ThreadPoolExecutorTest {
       return interruptedLatch;
     }
 
-
-
-
     public CountDownLatch getStartedlatch() {
       return startedlatch;
     }
 
-
-
-
   }
-
 
 }

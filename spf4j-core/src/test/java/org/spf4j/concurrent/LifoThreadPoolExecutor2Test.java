@@ -34,7 +34,6 @@ package org.spf4j.concurrent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +46,8 @@ import java.util.concurrent.atomic.LongAdder;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
@@ -54,7 +55,9 @@ import org.spf4j.stackmonitor.FastStackCollector;
  * @author zoly
  */
 @SuppressFBWarnings({"HES_LOCAL_EXECUTOR_SERVICE", "PREDICTABLE_RANDOM"})
-public class LifoThreadPoolExecutorTest2 {
+public class LifoThreadPoolExecutor2Test {
+
+  private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutor2Test.class);
 
   @Test
   public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {
@@ -149,11 +152,11 @@ public class LifoThreadPoolExecutorTest2 {
       }
     }
     nrExCaught += consume(futures);
+    LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
+            (System.currentTimeMillis() - start));
+    LOG.debug("Threads: {}", FastStackCollector.getThreads());
     Assert.assertEquals(testCount, adder.sum());
     Assert.assertEquals(nrExCaught, exNr.sum());
-    System.out.println("Stats for " + executor.getClass()
-            + ", rejected = " + rejected + ", Exec time = " + (System.currentTimeMillis() - start));
-    System.out.println("Threads: " + Arrays.toString(FastStackCollector.getThreads()));
   }
 
   public static int consume(final List<Future<?>> futures) throws InterruptedException {

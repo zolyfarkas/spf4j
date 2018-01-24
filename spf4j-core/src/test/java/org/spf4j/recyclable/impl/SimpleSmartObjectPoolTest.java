@@ -40,6 +40,8 @@ import java.util.Collection;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Either;
 import org.spf4j.recyclable.ObjectDisposeException;
 
@@ -50,108 +52,110 @@ import org.spf4j.recyclable.ObjectDisposeException;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmartObjectPoolTest.TestObject> {
 
-    private TestObject borowedObject = null;
-    private final SimpleSmartObjectPool<TestObject> instance;
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleSmartObjectPoolTest.class);
 
-    public SimpleSmartObjectPoolTest() throws ObjectCreationException {
-        instance = new SimpleSmartObjectPool(2, 10, new RecyclingSupplier.Factory<TestObject>() {
-            @Override
-            public TestObject create() {
-                System.out.println("Creating Object");
-                return new TestObject("Object");
-            }
+  private TestObject borowedObject = null;
+  private final SimpleSmartObjectPool<TestObject> instance;
 
-            @Override
-            public void dispose(final TestObject object) throws ObjectDisposeException {
-              try {
-                System.out.println("Disposing Object");
-                object.dispose();
-              } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-              }
-            }
+  public SimpleSmartObjectPoolTest() throws ObjectCreationException {
+    instance = new SimpleSmartObjectPool(2, 10, new RecyclingSupplier.Factory<TestObject>() {
+      @Override
+      public TestObject create() {
+        TestObject obj = new TestObject("Object");
+        LOG.debug("Created {}", obj);
+        return obj;
+      }
 
-            @Override
-            public boolean validate(final TestObject object, final Exception e) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-        }, true);
-    }
-
-    @Override
-    @SuppressFBWarnings("MDM_THREAD_YIELD")
-    public Either<Action, SimpleSmartObjectPoolTest.TestObject> tryRequestReturnObject() {
-        if (borowedObject != null) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                throw new RuntimeException(ex);
-            }
-            instance.recycle(borowedObject, this);
+      @Override
+      public void dispose(final TestObject object) throws ObjectDisposeException {
+        try {
+          LOG.debug("Disposing Object {}", object);
+          object.dispose();
+        } catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
         }
-        return Either.left(Action.NONE);
-    }
+      }
 
-    @Override
-    public TestObject tryReturnObjectIfNotInUse() {
-        return borowedObject;
-    }
-
-    @Override
-    public boolean scan(final ScanHandler<TestObject> handler) {
+      @Override
+      public boolean validate(final TestObject object, final Exception e) {
         throw new UnsupportedOperationException("Not supported yet.");
+      }
+
+    }, true);
+  }
+
+  @Override
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  public Either<Action, SimpleSmartObjectPoolTest.TestObject> tryRequestReturnObject() {
+    if (borowedObject != null) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException ex) {
+        throw new RuntimeException(ex);
+      }
+      instance.recycle(borowedObject, this);
+    }
+    return Either.left(Action.NONE);
+  }
+
+  @Override
+  public TestObject tryReturnObjectIfNotInUse() {
+    return borowedObject;
+  }
+
+  @Override
+  public boolean scan(final ScanHandler<TestObject> handler) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public Collection<TestObject> tryReturnObjectsIfNotNeededAnymore() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public Collection<TestObject> tryReturnObjectsIfNotInUse() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public boolean nevermind(final TestObject object) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  public static final class TestObject implements Disposable {
+
+    private boolean disposed = false;
+    private final String data;
+
+    public TestObject(final String data) {
+      this.data = data;
+    }
+
+    public String getData() {
+      if (!disposed) {
+        return data;
+      } else {
+        throw new RuntimeException(data + " is already disposed");
+      }
     }
 
     @Override
-    public Collection<TestObject> tryReturnObjectsIfNotNeededAnymore() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean tryDispose(final long timeoutMillis) {
+      disposed = true;
+      return true;
     }
+  }
 
-    @Override
-    public Collection<TestObject> tryReturnObjectsIfNotInUse() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean nevermind(final TestObject object) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public static final class TestObject implements Disposable {
-
-        private boolean disposed = false;
-        private final String data;
-
-        public TestObject(final String data) {
-            this.data = data;
-        }
-
-        public String getData() {
-            if (!disposed) {
-                return data;
-            } else {
-                throw new RuntimeException(data + " is already disposed");
-            }
-        }
-
-        @Override
-        public boolean tryDispose(final long timeoutMillis) {
-            disposed = true;
-            return true;
-        }
-    }
-
-    /**
-     * Test of get method, of class SimpleSmartObjectPool.
-     */
-    @Test
-    public void testPool() throws InterruptedException, TimeoutException,
-            ObjectCreationException, ObjectDisposeException  {
-        System.out.println("borrowObject");
-        borowedObject = instance.get(this);
-        Assert.assertNotNull(borowedObject);
-        instance.recycle(borowedObject, this);
-        instance.dispose();
-    }
+  /**
+   * Test of get method, of class SimpleSmartObjectPool.
+   */
+  @Test
+  public void testPool() throws InterruptedException, TimeoutException,
+          ObjectCreationException, ObjectDisposeException {
+    borowedObject = instance.get(this);
+    Assert.assertNotNull(borowedObject);
+    instance.recycle(borowedObject, this);
+    instance.dispose();
+  }
 }

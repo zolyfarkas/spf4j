@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -43,23 +45,24 @@ import org.junit.Test;
  */
 public final class UIDGeneratorTest {
 
-    @Test
-    public void testSomeMethod() {
-        System.out.println("current time:" +  System.currentTimeMillis());
-        UIDGenerator idGen = new UIDGenerator(new ScalableSequence(0, 50), System.currentTimeMillis());
-        long startTime  = System.currentTimeMillis();
-        Set<String> ids = new HashSet<>(100);
-        for (int i = 0; i < 100; i++) {
-            Assert.assertTrue(ids.add(idGen.next().toString()));
-        }
-        ids.clear();
-        long sw1 = System.currentTimeMillis();
-        for (int i = 0; i < 100; i++) {
-            Assert.assertTrue(ids.add(UUID.randomUUID().toString()));
-        }
-        long end = System.currentTimeMillis();
-        System.out.println("Fast = " + (sw1 - startTime));
-        System.out.println("Slow = " + (end - sw1));
+  private static final Logger LOG = LoggerFactory.getLogger(UIDGeneratorTest.class);
+
+  @Test
+  public void testSomeMethod() {
+    UIDGenerator idGen = new UIDGenerator(new ScalableSequence(0, 50), System.currentTimeMillis());
+    long startTime = System.currentTimeMillis();
+    Set<String> ids = new HashSet<>(100);
+    for (int i = 0; i < 100; i++) {
+      Assert.assertTrue(ids.add(idGen.next().toString()));
     }
+    ids.clear();
+    long sw1 = System.currentTimeMillis();
+    for (int i = 0; i < 100; i++) {
+      Assert.assertTrue(ids.add(UUID.randomUUID().toString()));
+    }
+    long end = System.currentTimeMillis();
+    LOG.debug("Fast = {}", (sw1 - startTime));
+    LOG.debug("Slow = {}", (end - sw1));
+  }
 
 }

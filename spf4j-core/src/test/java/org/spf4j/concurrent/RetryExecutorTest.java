@@ -33,11 +33,14 @@ package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Callables;
 
 /**
@@ -47,9 +50,10 @@ import org.spf4j.base.Callables;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class RetryExecutorTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(RetryExecutorTest.class);
+
   @Test
   public void testSubmitCallable() throws InterruptedException, ExecutionException {
-    System.out.println("submit");
     final LifoThreadPoolExecutorSQP lifoThreadPoolExecutorSQP = new LifoThreadPoolExecutorSQP(10, "test");
     RetryExecutor instance = new RetryExecutor(lifoThreadPoolExecutorSQP,
             (final Callable<Object> parameter) -> new Callables.RetryPredicate<Exception, Object>() {
@@ -65,12 +69,11 @@ public final class RetryExecutorTest {
 
       @Override
       public Integer call() throws Exception {
-        System.out.println("exec " + count + " st " + System.currentTimeMillis());
+        LOG.debug("exec {} st {}", count, Instant.now());
         count++;
         if (count < 5) {
           throw new IOException("Aaaaaaaaaaa" + count);
         }
-
         return 1;
       }
     });

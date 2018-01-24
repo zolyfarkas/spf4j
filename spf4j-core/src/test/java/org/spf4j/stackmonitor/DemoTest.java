@@ -95,7 +95,7 @@ public final class DemoTest {
               d += doStuff();
               Thread.sleep(1);
             }
-            System.err.println("nr = " + d);
+            LOG.debug("nr = {}", d);
           } catch (InterruptedException e) {
             // do nothing
           }

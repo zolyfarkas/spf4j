@@ -62,12 +62,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro-tools</artifactId>
-      <version>${avro.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.spf4j</groupId>
       <artifactId>spf4j-junit</artifactId>
       <version>${project.version}</version>
@@ -253,7 +247,7 @@
               <target>
                 <apply executable="java" force="true">
                   <arg value="-cp" />
-                  <arg pathref="maven.test.classpath" />
+                  <arg pathref="maven.plugin.classpath" />
                   <arg value="org.apache.avro.tool.Main" />
                   <arg value="idl2schemata" />
                   <srcfile />
@@ -301,6 +295,13 @@
             </configuration>
           </execution>
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-tools</artifactId>
+            <version>${avro.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
