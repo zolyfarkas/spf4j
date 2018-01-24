@@ -34,6 +34,8 @@ package org.spf4j.zel.vm;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,28 +43,29 @@ import org.junit.Test;
  */
 public final class TestZelSingleThreaded {
 
-    @Test
-    public void testPi() throws CompileException, ExecutionException, InterruptedException {
-        for (int i = 0; i < 3; i++) {
-            testPiImpl();
-        }
+  private static final Logger LOG = LoggerFactory.getLogger(TestZelSingleThreaded.class);
+
+  @Test
+  public void testPi() throws CompileException, ExecutionException, InterruptedException {
+    for (int i = 0; i < 3; i++) {
+      testPiImpl();
     }
+  }
 
+  public void testPiImpl() throws CompileException, ExecutionException, InterruptedException {
+    String pi = "pi = func sync (x) {"
+            + "term = func sync (k) {4 * (-1 ** k) / (2d * k + 1)};"
+            + "for i = 0, result = 0; i < x; i = i + 1 { result = result + term(i) };"
+            + "return result};"
+            + "pi(x)";
+    Program prog = Program.compile(pi, "x");
+    long startTime = System.currentTimeMillis();
+    Number result = (Number) prog.execute(100000);
+    long endTime = System.currentTimeMillis();
+    LOG.debug("zel pi = {} in {} ms", result, (endTime - startTime));
+    // pi is 3.141592653589793
+    Assert.assertEquals(3.141592653589793, result.doubleValue(), 0.0001);
 
-    public void testPiImpl() throws CompileException, ExecutionException, InterruptedException {
-        String pi = "pi = func sync (x) {"
-                + "term = func sync (k) {4 * (-1 ** k) / (2d * k + 1)};"
-                + "for i = 0, result = 0; i < x; i = i + 1 { result = result + term(i) };"
-                + "return result};"
-                + "pi(x)";
-        Program prog = Program.compile(pi, "x");
-        long startTime = System.currentTimeMillis();
-        Number result = (Number) prog.execute(100000);
-        long endTime = System.currentTimeMillis();
-        System.out.println("zel pi = " + result + " in " + (endTime - startTime) + "ms");
-        // pi is 3.141592653589793
-        Assert.assertEquals(3.141592653589793, result.doubleValue(), 0.0001);
-
-    }
+  }
 
 }

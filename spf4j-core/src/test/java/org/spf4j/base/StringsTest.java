@@ -91,7 +91,6 @@ public final class StringsTest {
     StringBuilder sb = new StringBuilder();
     Strings.appendUnsignedString(sb, 38, 4);
     Assert.assertEquals(Integer.toHexString(38), sb.toString());
-    System.out.println("Encoded: " + sb);
   }
 
   @Test
@@ -99,7 +98,6 @@ public final class StringsTest {
     StringBuilder sb = new StringBuilder();
     Strings.appendUnsignedStringPadded(sb, 38, 5, 4);
     Assert.assertEquals(4, sb.length());
-    System.out.println("Encoded: " + sb);
   }
 
   @Test
@@ -108,7 +106,6 @@ public final class StringsTest {
     sb.append('\"');
     Strings.escapeJsonString("\n\u0008\u0000abc\"", sb);
     sb.append('\"');
-    System.out.println("Encoded: " + sb);
     Assert.assertEquals("\"\\n\\b\\u0000abc\\\"\"", sb.toString());
   }
 

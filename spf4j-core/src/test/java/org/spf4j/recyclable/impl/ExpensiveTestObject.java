@@ -36,6 +36,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.http.ConnectionClosedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a pooled object implementation, that behaves like a connection object.
@@ -44,6 +46,8 @@ import org.apache.http.ConnectionClosedException;
  */
 @SuppressFBWarnings("PREDICTABLE_RANDOM") //not security related
 public final class ExpensiveTestObject implements Closeable {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExpensiveTestObject.class);
 
   private static final AtomicInteger OBJ_COUNT = new AtomicInteger();
 
@@ -95,7 +99,7 @@ public final class ExpensiveTestObject implements Closeable {
   }
 
   public void testObject() throws IOException {
-    System.out.println("Test " + id);
+    LOG.debug("Testing object {}", id);
     long currentTime = System.currentTimeMillis();
     if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
       throw new IOException("Connection closed " + id);

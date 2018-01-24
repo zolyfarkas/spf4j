@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.time.Instant;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.io.AppendableLimiterWithOverflow;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
@@ -49,6 +51,8 @@ import org.spf4j.ssdump2.avro.AMethod;
  */
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public class Slf4jMessageFormatterTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Slf4jMessageFormatterTest.class);
 
   @Test
   public void testFormatter() throws IOException {
@@ -75,7 +79,7 @@ public class Slf4jMessageFormatterTest {
   @Test
   public void testFormatter2() throws IOException {
     ConfigurableAppenderSupplier appSupp = new ConfigurableAppenderSupplier();
-    System.out.println(appSupp);
+    LOG.debug("ConfAppenderSupp = {}", appSupp);
     StringBuilder sb = new StringBuilder();
     final long currentTimeMillis = System.currentTimeMillis();
     Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, new java.sql.Date(currentTimeMillis));
@@ -91,17 +95,17 @@ public class Slf4jMessageFormatterTest {
     Assert.assertEquals(2, written);
     sb.setLength(0);
     written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method, "yohooo");
-    System.out.println("formatted message: " + sb.toString());
+    LOG.debug("formatted message: {}", sb);
     Assert.assertEquals(1, written);
     sb.setLength(0);
     written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp);
-    System.out.println("formatted message: " + sb.toString());
+    LOG.debug("formatted message: {}", sb);
     Assert.assertEquals(0, written);
     sb.setLength(0);
     EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);
     Slf4jMessageFormatter.format(escaper, "bla bla {} {}", appSupp, "\n\u2013\u0010",
             new int[]{1, 2, 3});
-    System.out.println("formatted message: " + sb);
+    LOG.debug("formatted message: {}", sb);
     Assert.assertEquals("bla bla \\n–\\u0010 [1, 2, 3]", sb.toString());
     appSupp.replace(String.class, (final ObjectAppender<? super String> input) -> new ObjectAppender<String>() {
       @Override
@@ -117,7 +121,7 @@ public class Slf4jMessageFormatterTest {
     Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp,
             "012345678901234567890123456789012345678901234567"
                     + "89012345678901234567890123456789012345678901234567890123456789");
-    System.out.println(sb.toString());
+    LOG.debug("formatted message: {}", sb);
 
   }
 

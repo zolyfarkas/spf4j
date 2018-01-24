@@ -34,8 +34,8 @@ public class TimeSourceTest {
     Assert.assertEquals(Long.MAX_VALUE, deadline - nano1);
 
     long deadlineNanos = TimeSource.getDeadlineNanos(Long.MAX_VALUE, TimeUnit.MINUTES);
-    System.out.println(deadlineNanos - TimeSource.nanoTime());
-    Assert.assertTrue(deadlineNanos - TimeSource.nanoTime() > 0);
+    long time2 = deadlineNanos - TimeSource.nanoTime();
+    Assert.assertTrue("Time must be non-zero positive " + time2, time2 > 0);
   }
 
 }

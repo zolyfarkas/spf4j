@@ -81,7 +81,6 @@ public final class ReflectionsTest {
   public void testImplement() {
     Printing prt = Reflections.implementStatic(Printing.class, ReflectionsTest.class);
     String result = prt.print("a", 3);
-    System.out.println(result);
     Assert.assertEquals("[a, 3]", result);
   }
 

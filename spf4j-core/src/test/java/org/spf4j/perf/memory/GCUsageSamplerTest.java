@@ -35,12 +35,16 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
 public final class GCUsageSamplerTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GCUsageSamplerTest.class);
 
     @Test
     @SuppressFBWarnings("MDM_THREAD_YIELD")
@@ -52,7 +56,7 @@ public final class GCUsageSamplerTest {
         for (int i = 0; i < 100000; i++) {
             str = Integer.toString(i);
         }
-        System.out.println(str);
+        LOG.debug("lastNr = {}", str);
         Thread.sleep(1000);
         MemoryUsageSampler.stop();
         GCUsageSampler.stop();

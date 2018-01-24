@@ -34,21 +34,23 @@ package org.spf4j.zel.vm;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
-public final  class TestLongOperations {
+public final class TestLongOperations {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TestLongOperations.class);
 
-    @Test
-    public void test() throws CompileException, ExecutionException, InterruptedException {
-        Program prog = Program.compile("(1l+3l-2)/2*1");
-        Long result = (Long) prog.execute();
-        System.out.println(result.toString());
-        Assert.assertEquals(1, result.intValue());
-    }
-
+  @Test
+  public void test() throws CompileException, ExecutionException, InterruptedException {
+    Program prog = Program.compile("(1l+3l-2)/2*1");
+    Long result = (Long) prog.execute();
+    LOG.debug("Result = {}", result);
+    Assert.assertEquals(1, result.intValue());
+  }
 
 }

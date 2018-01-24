@@ -46,7 +46,6 @@ public final  class TestDoubleOperations {
     public void test() throws CompileException, ExecutionException, InterruptedException {
         Program prog = Program.compile("(1d+3d-2)/2*1");
         Double result = (Double) prog.execute();
-        System.out.println(result.toString());
         Assert.assertEquals(1, result.intValue());
     }
 

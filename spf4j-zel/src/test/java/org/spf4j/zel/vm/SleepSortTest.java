@@ -51,7 +51,6 @@ public final class SleepSortTest {
     String sort = Resources.toString(Resources.getResource(SleepSortTest.class, "sleepSort.zel"),
             Charsets.US_ASCII);
     Program p = Program.compile(sort, "x");
-    System.out.println(Arrays.toString(p.getCode()));
     Integer[] testArray = new Integer[100];
     IntMath.XorShift32 random = new IntMath.XorShift32();
     for (int i = 0; i < testArray.length; i++) {

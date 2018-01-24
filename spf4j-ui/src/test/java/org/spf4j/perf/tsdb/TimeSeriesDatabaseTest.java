@@ -37,6 +37,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.tsdb2.TimeSeries;
 
 /**
@@ -46,6 +48,8 @@ import org.spf4j.tsdb2.TimeSeries;
 @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN"})
 public final class TimeSeriesDatabaseTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDatabaseTest.class);
+
   private static final String FILE_NAME = System.getProperty("java.io.tmpdir") + "/testdb.tsdb";
 
   /**
@@ -53,9 +57,8 @@ public final class TimeSeriesDatabaseTest {
    */
   @Test
   public void testWriteTSDB() throws Exception {
-    System.out.println("testWriteTSDB");
     if (new File(FILE_NAME).delete()) {
-      System.out.println("existing tsdb file deleted");
+      LOG.debug("existing tsdb {} file deleted", FILE_NAME);
     }
     try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[]{})) {
       instance.addTSTable("gr1", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
@@ -74,22 +77,22 @@ public final class TimeSeriesDatabaseTest {
       Thread.sleep(5);
       instance.write(System.currentTimeMillis(), "gr3", new long[]{9, 10});
       instance.flush();
-      System.out.println(instance.getTSTables());
+      LOG.debug("TSTables = {}", instance.getTSTables());
       TimeSeries readAll = instance.readAll("gr1");
       Assert.assertEquals(2, readAll.getValues()[1][1]);
-      System.out.println(readAll);
+      LOG.debug("TimeSeries = {}", readAll);
       readAll = instance.readAll("gr2");
       Assert.assertEquals(7, readAll.getValues()[0][0]);
-      System.out.println(readAll);
+      LOG.debug("TimeSeries = {}", readAll);
       readAll = instance.readAll("gr3");
       Assert.assertEquals(10, readAll.getValues()[1][1]);
-      System.out.println(readAll);
+      LOG.debug("TimeSeries = {}", readAll);
     }
 
     TimeSeriesDatabase instanceRead = new TimeSeriesDatabase(new File(FILE_NAME), null);
     Collection<TSTable> tsTables = instanceRead.getTSTables();
 
-    System.out.println(tsTables);
+    LOG.debug("Tables = {}", tsTables);
     Assert.assertEquals(3, tsTables.size());
     instanceRead.writeCsvTable("gr1", File.createTempFile("test", ".csv"));
     instanceRead.writeCsvTables(Arrays.asList("gr1", "gr2", "gr3"), File.createTempFile("testAll", ".csv"));
@@ -98,7 +101,6 @@ public final class TimeSeriesDatabaseTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testWriteBadTSDB() throws Exception {
-    System.out.println("testWriteBadTSDB");
     try (TimeSeriesDatabase instance = new TimeSeriesDatabase(new File(FILE_NAME), new byte[]{})) {
       instance.addTSTable("gr1", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});
       instance.addTSTable("gr1", new byte[]{}, 5, new String[]{"a", "b"}, new byte[][]{});

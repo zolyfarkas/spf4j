@@ -41,12 +41,16 @@ import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
 
 /**
  * @author zoly
  */
 public class TSDBTxtMeasurementStoreTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(TSDBTxtMeasurementStoreTest.class);
 
   @Test
   public void testCreateAppend() throws IOException {
@@ -58,7 +62,7 @@ public class TSDBTxtMeasurementStoreTest {
     store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
     store.close();
     String content = Files.lines(tmpFile, Charsets.UTF_8).collect(Collectors.joining("\n"));
-    System.out.println(content);
+    LOG.debug("File Content: {}", content);
     Assert.assertThat(content, Matchers.containsString("a,3,b,4"));
     TSDBTxtMeasurementStore store2 = new TSDBTxtMeasurementStore(file);
     store2.saveMeasurements(id, System.currentTimeMillis(), 5L, 6L);

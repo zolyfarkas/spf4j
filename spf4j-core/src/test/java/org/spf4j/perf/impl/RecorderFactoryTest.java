@@ -65,7 +65,6 @@ public class RecorderFactoryTest {
         }
        String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
-       System.out.println(ret3);
        Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
        rec.close();
     }
@@ -102,7 +101,6 @@ public class RecorderFactoryTest {
        String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
                 "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName() + "_RsTest",
                 "measurementsAsString");
-       System.out.println(ret3);
        Assert.assertThat(ret3, Matchers.containsString("test," + sum + "," + 11));
        rec.close();
     }

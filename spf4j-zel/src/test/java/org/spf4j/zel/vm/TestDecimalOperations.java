@@ -35,38 +35,40 @@ import java.math.BigDecimal;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
-public final  class TestDecimalOperations {
+public final class TestDecimalOperations {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TestDecimalOperations.class);
 
-    @Test
-    public void test() throws CompileException, ExecutionException, InterruptedException {
-        Program prog = Program.compile("use dec 64; 1.0/3");
-        BigDecimal result = (BigDecimal) prog.execute();
-        String psRes = result.toPlainString();
-        System.out.println(psRes);
-        Assert.assertEquals(18, psRes.length());
-    }
+  @Test
+  public void test() throws CompileException, ExecutionException, InterruptedException {
+    Program prog = Program.compile("use dec 64; 1.0/3");
+    BigDecimal result = (BigDecimal) prog.execute();
+    String psRes = result.toPlainString();
+    LOG.debug("Result = {}", psRes);
+    Assert.assertEquals(18, psRes.length());
+  }
 
-    @Test
-    public void test2() throws CompileException, ExecutionException, InterruptedException {
-        Program prog = Program.compile("use dec 128; 1.0/3");
-        BigDecimal result = (BigDecimal) prog.execute();
-        String psRes = result.toPlainString();
-        System.out.println(psRes);
-        Assert.assertEquals(36, psRes.length());
-    }
+  @Test
+  public void test2() throws CompileException, ExecutionException, InterruptedException {
+    Program prog = Program.compile("use dec 128; 1.0/3");
+    BigDecimal result = (BigDecimal) prog.execute();
+    String psRes = result.toPlainString();
+    LOG.debug("Result = {}", psRes);
+    Assert.assertEquals(36, psRes.length());
+  }
 
-    @Test
-    public void test3() throws CompileException, ExecutionException, InterruptedException {
-        BigDecimal result = (BigDecimal) Program.compile("use dec 128; (1.0/3) * 3 + (1 - 1.0/3*3)").execute();
-        System.out.println(result.toPlainString());
-        Assert.assertEquals(0, BigDecimal.ONE.compareTo(result));
-    }
-
+  @Test
+  public void test3() throws CompileException, ExecutionException, InterruptedException {
+    BigDecimal result = (BigDecimal) Program.compile("use dec 128; (1.0/3) * 3 + (1 - 1.0/3*3)").execute();
+    LOG.debug("Result = {}", result.toPlainString());
+    Assert.assertEquals(0, BigDecimal.ONE.compareTo(result));
+  }
 
 }

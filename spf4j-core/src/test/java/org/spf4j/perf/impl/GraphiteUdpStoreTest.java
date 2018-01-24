@@ -42,7 +42,6 @@ import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -54,16 +53,18 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.recyclable.ObjectCreationException;
 
 /**
- *
  * @author zoly
  */
 public final class GraphiteUdpStoreTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(GraphiteUdpStoreTest.class);
 
   private static final File TSDB_TXT;
 
@@ -93,15 +94,15 @@ public final class GraphiteUdpStoreTest {
             new String[]{"val1", "val2", "val3"},
             new String[]{"ms", "ms", "ms"}), 0);
     store.saveMeasurements(id, 1L, 2L, 3L, 5L);
-    System.out.println("measurements sent");
+    LOG.debug("measurements sent: {} {} {} {}", 1L, 2L, 3L, 5L);
     String line = QUEUE.poll(5, TimeUnit.SECONDS);
-    System.out.println("measurements received " + line);
+    LOG.debug("measurements received: {} ", line);
     Assert.assertEquals("bla/val1 2 1", line);
     line = QUEUE.poll(5, TimeUnit.SECONDS);
-    System.out.println("measurements received " + line);
+    LOG.debug("measurements received: {} ", line);
     Assert.assertEquals("bla/val2 3 1", line);
     line = QUEUE.poll(5, TimeUnit.SECONDS);
-    System.out.println("measurements received " + line);
+    LOG.debug("measurements received: {} ", line);
     Assert.assertEquals("bla/val3 5 1", line);
   }
 
@@ -126,7 +127,7 @@ public final class GraphiteUdpStoreTest {
     RecorderFactory.MEASUREMENT_STORE.flush();
 //    RecorderFactory.MEASUREMENT_STORE.close();
     List<String> lines = Files.readAllLines(TSDB_TXT.toPath(), StandardCharsets.UTF_8);
-    System.out.println("measurements = " + lines);
+    LOG.debug("measurements = {}", lines);
     Assert.assertThat(lines, Matchers.hasItem(Matchers.allOf(
             Matchers.containsString("Q6_7"), Matchers.containsString("test measurement"))));
     String line = QUEUE.poll(5, TimeUnit.SECONDS);
@@ -153,7 +154,7 @@ public final class GraphiteUdpStoreTest {
           bb.get(rba);
           String receivedString = new String(rba, Charsets.UTF_8);
           String[] lines = receivedString.split("\n");
-          System.out.println("Received = " + Arrays.toString(lines));
+          LOG.debug("Received = {}", lines);
           for (String line : lines) {
             QUEUE.put(line);
           }

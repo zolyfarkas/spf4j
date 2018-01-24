@@ -42,6 +42,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -49,6 +51,8 @@ import org.junit.Test;
  */
 @SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
 public final class ZelTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ZelTest.class);
 
   @Test
   public void helloWorld()
@@ -106,10 +110,9 @@ public final class ZelTest {
             + "val2";
 
     Program compiledProgram = Program.compile(program);
-    System.out.println(compiledProgram);
+    LOG.debug("Program = {}", compiledProgram);
     Number result = (Number) compiledProgram.execute();
     Assert.assertEquals(new BigInteger("280571172992510140037611932413038677189525"), result);
-    System.out.println(result);
   }
 
   public BigInteger fibB(final int i) {
@@ -154,19 +157,19 @@ public final class ZelTest {
     long javaResult = fib(40);
     long stopTime = System.currentTimeMillis();
     Assert.assertEquals(zelResult.longValue(), javaResult);
-    System.out.println("zel exec " + (intTime - startTime));
-    System.out.println("java exec " + (stopTime - intTime));
+    LOG.debug("zel exec {}", (intTime - startTime));
+    LOG.debug("java exec {}", (stopTime - intTime));
 
     startTime = System.currentTimeMillis();
     BigInteger zelResult2 = (BigInteger) fibZel.execute(10000);
     intTime = System.currentTimeMillis();
     BigInteger javaResult2 = fibBNr(10000);
     stopTime = System.currentTimeMillis();
-    System.out.println("fib(10000) = " + zelResult2);
-    System.out.println("fib(10000) = " + javaResult2);
+    LOG.debug("fib(10000) = {}", zelResult2);
+    LOG.debug("fib(10000) = {}", javaResult2);
     Assert.assertEquals(zelResult2, javaResult2);
-    System.out.println("zel exec " + (intTime - startTime));
-    System.out.println("java exec " + (stopTime - intTime));
+    LOG.debug("zel exec {}", (intTime - startTime));
+    LOG.debug("java exec {}", (stopTime - intTime));
   }
 
   @Test
@@ -175,7 +178,7 @@ public final class ZelTest {
             + "f2 = func {sleep 5000; 2};"
             + "f1() + f2()";
     Program prog = Program.compile(program);
-    System.out.println(prog);
+    LOG.debug("Program = {}", prog);
     long startTime = System.currentTimeMillis();
     Number result = (Number) prog.execute();
     long endTime = System.currentTimeMillis();
@@ -190,7 +193,7 @@ public final class ZelTest {
             + "f2 = func {sleep 5000; 2};"
             + "f1() + f2()";
     Program prog = Program.compile(program);
-    System.out.println(prog);
+    LOG.debug("Program = {}", prog);
     long startTime = System.currentTimeMillis();
     Number result = (Number) prog.execute(Executors.newSingleThreadExecutor());
     long endTime = System.currentTimeMillis();
@@ -233,7 +236,7 @@ public final class ZelTest {
     long startTime = System.currentTimeMillis();
     Number result = (Number) Program.compile(prog).execute(newFixedThreadPool);
     long elapsed = System.currentTimeMillis() - startTime;
-    System.out.println(elapsed);
+    LOG.debug("Elapsed = {} ms", elapsed);
     //       Assert.assertTrue("Execution is " + elapsed + "should be smaller than 1200" , elapsed < 1200);
     Assert.assertEquals(10, result.intValue());
     newFixedThreadPool.shutdown();
@@ -256,7 +259,7 @@ public final class ZelTest {
     Number result = (Number) Program.compile(prog, "f")
             .execute(newFixedThreadPool, new JavaMethodCall(TestF.class, "f"));
     long elapsed = System.currentTimeMillis() - startTime;
-    System.out.println(elapsed);
+    LOG.debug("Elapsed = {} ms", elapsed);
 //        Assert.assertTrue(elapsed < 2200);
     Assert.assertEquals(10, result.intValue());
     newFixedThreadPool.shutdown();
@@ -273,7 +276,7 @@ public final class ZelTest {
   @Test
   public void testCond2() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x >= 0 ? \"positive\" : \"negative\" ", "x");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     String result = (String) p.execute(1);
     Assert.assertEquals("positive", result);
   }
@@ -281,7 +284,7 @@ public final class ZelTest {
   @Test
   public void testCond3() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile(" if x >= 0 { \"positive\" } else { \"negative\" } ", "x");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     String result = (String) p.execute(1);
     Assert.assertEquals("positive", result);
   }
@@ -289,7 +292,7 @@ public final class ZelTest {
   @Test
   public void testFor() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x = 0; for i=0; i < 10; i++ {out(i); x = x + i}; x ");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute(1);
     Assert.assertEquals(45, result.intValue());
   }
@@ -298,7 +301,7 @@ public final class ZelTest {
   @SuppressFBWarnings("SACM_STATIC_ARRAY_CREATED_IN_METHOD")
   public void testSwap() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x[0] <-> x[1]; x[1]", "x");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     String[] testArray = new String[]{"a", "b"};
     String result = (String) p.execute(new Object[]{testArray});
     Assert.assertEquals("a", result);
@@ -307,7 +310,7 @@ public final class ZelTest {
   @Test
   public void testArray() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x = array(2); x.length");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(2, result.intValue());
   }
@@ -318,7 +321,7 @@ public final class ZelTest {
             + "ret {1, 2} };"
             + "x,y = test();"
             + "out(y); ret x");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(1, result.intValue());
   }
@@ -326,7 +329,7 @@ public final class ZelTest {
   @Test
   public void testMultiAssignement() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x, y, z = {1, 2, 3}; ret y");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(2, result.intValue());
   }
@@ -334,7 +337,7 @@ public final class ZelTest {
   @Test
   public void testAbs() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("|3 - 5|");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(2, result.intValue());
   }
@@ -342,7 +345,7 @@ public final class ZelTest {
   @Test
   public void testDecode() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("decode(1+1, 3, 0, 1, -1, 2, 666, 777)");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(666, result.intValue());
   }
@@ -350,7 +353,7 @@ public final class ZelTest {
   @Test
   public void testDecode2() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("decode(1+1, 3, 0, 1, -1, 100, 666, 777)");
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(777, result.intValue());
   }
@@ -358,7 +361,7 @@ public final class ZelTest {
   @Test
   public void testType() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("" + Long.MAX_VALUE);
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Long result = (Long) p.execute();
     Assert.assertEquals(Long.MAX_VALUE, result.longValue());
   }
@@ -366,7 +369,7 @@ public final class ZelTest {
   @Test
   public void testOverflow() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("" + Long.MAX_VALUE + " + " + 1);
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     BigInteger result = (BigInteger) p.execute();
     Assert.assertEquals(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE),
             result);
@@ -375,7 +378,7 @@ public final class ZelTest {
   @Test
   public void testOverflow2() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("" + Long.MIN_VALUE + " - " + 1);
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     BigInteger result = (BigInteger) p.execute();
     Assert.assertEquals(BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.ONE),
             result);
@@ -384,7 +387,7 @@ public final class ZelTest {
   @Test
   public void testOverflow3() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("" + Long.MIN_VALUE + " - " + Long.MAX_VALUE);
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     BigInteger result = (BigInteger) p.execute();
     Assert.assertEquals(BigInteger.valueOf(Long.MIN_VALUE).subtract(BigInteger.valueOf(Long.MAX_VALUE)),
             result);

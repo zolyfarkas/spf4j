@@ -35,6 +35,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -42,50 +44,21 @@ import org.junit.Test;
  */
 public final class Scratch {
 
+
+  private static final Logger LOG = LoggerFactory.getLogger(Scratch.class);
+
   @Test
   public void test() throws CompileException, ExecutionException, InterruptedException {
-//        Program p1 = Program.compile("a-b+1+c.length()", "a", "b", "c");
-//        Number actualReturn = (Number) p1.execute(3, 2, "");
-//        System.out.println(actualReturn);
-//        Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
-//        String result = (String) prog.execute(String.class);
-//        assertEquals(String.format("Number %d", 3), result);
-
-//                String prog = "f = func (a, b) {sleep 1000; a + b };"
-//                + "f(f(1, 2),f(3, 4))";
-//        long startTime = System.currentTimeMillis();
-//        Number result = (Number) Program.compile(prog).execute();
-//        long elapsed = System.currentTimeMillis() - startTime;
-//        System.out.println(elapsed);
-//        Assert.assertTrue("Execution is " + elapsed + "should be smaller than 1200" , elapsed < 1200);
-//        Assert.assertEquals(10, result.intValue());
-//
-//                String program
-//                = "func det fib (x) { fib(x-1) + fib(x-2) };\n"
-//                + "fib(0) = 0;\n"
-//                + "fib(1) = 1;\n"
-//                + "fib(10)";
-//
-//        Program compiledProgram = Program.compile(program);
-//        System.out.println(compiledProgram);
-//        Number result = (Number) compiledProgram.execute();
-//        System.out.println(result);
-//
     String program = "f1 = func {sleep 5000; 1};"
             + "f2 = func {sleep 5000; 2};"
             + "f1() + f2()";
     Program prog = Program.compile(program);
-    System.out.println(prog);
+    LOG.debug("Program = {}", prog);
     long startTime = System.currentTimeMillis();
     Number result = (Number) prog.execute(Executors.newSingleThreadExecutor());
     long endTime = System.currentTimeMillis();
     Assert.assertEquals(3, result.intValue());
     Assert.assertTrue("functions need to execute in parallel not in " + (endTime - startTime),
             endTime - startTime < 5200);
-
-//       Program program = Program.compile("x.split(\",\")[1] = \"A\"", "x");
-//       System.out.println(program);
-//       String result = (String) program.execute("a,b,c");
-//       Assert.assertEquals("A", result);
   }
 }

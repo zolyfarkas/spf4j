@@ -45,15 +45,17 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 
 /**
- *
  * @author zoly
  */
 public final class RuntimeTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(RuntimeTest.class);
 
   @Test
   public void testHaveJnaPlatform() {
@@ -80,16 +82,16 @@ public final class RuntimeTest {
    */
   @Test
   public void testSomeParams() {
-    System.out.println("PID=" + Runtime.PID);
-    System.out.println("OSNAME=" + Runtime.OS_NAME);
+    LOG.debug("PID={}", Runtime.PID);
+    LOG.debug("OSNAME={}", Runtime.OS_NAME);
     int nrOpenFiles = Runtime.getNrOpenFiles();
-    System.out.println("NR_OPEN_FILES=" + nrOpenFiles);
+    LOG.debug("NR_OPEN_FILES={}", nrOpenFiles);
     Assert.assertThat(nrOpenFiles, Matchers.greaterThan(0));
     CharSequence lsofOutput = Runtime.getLsofOutput();
-    System.out.println("LSOF_OUT=" + lsofOutput);
+    LOG.debug("LSOF_OUT={}", lsofOutput);
     Assert.assertNotNull(lsofOutput);
     Assert.assertThat(lsofOutput.toString(), Matchers.containsString("jar"));
-    System.out.println("MAX_OPEN_FILES=" + OperatingSystem.getMaxFileDescriptorCount());
+    LOG.debug("MAX_OPEN_FILES={}", OperatingSystem.getMaxFileDescriptorCount());
   }
 
   @Test(expected = ExecutionException.class, timeout = 60000)

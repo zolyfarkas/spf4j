@@ -49,7 +49,6 @@ public final class MinMaxTest {
         String qsort = Resources.toString(Resources.getResource(MinMaxTest.class, "minmax.zel"),
                 Charsets.US_ASCII);
         Program p = Program.compile(qsort);
-        System.out.println(p);
         Integer max = (Integer) p.execute();
         Assert.assertEquals(8, (int) max);
     }

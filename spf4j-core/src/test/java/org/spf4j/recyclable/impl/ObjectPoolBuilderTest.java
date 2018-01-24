@@ -41,7 +41,6 @@ import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.ObjectReturnException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -191,8 +190,8 @@ public final class ObjectPoolBuilderTest {
       try {
         Thread.sleep(deadlockTimeout);
         ThreadMXBean threadMX = ManagementFactory.getThreadMXBean();
-        System.err.println(Arrays.toString(threadMX.dumpAllThreads(true, true)));
-        System.err.println(pool.toString());
+        LOG.debug("Thread Info: {}", threadMX.dumpAllThreads(true, true));
+        LOG.debug("Pool = {}", pool);
         isDeadlock = true;
       } catch (InterruptedException ex) {
         // terminating monitor

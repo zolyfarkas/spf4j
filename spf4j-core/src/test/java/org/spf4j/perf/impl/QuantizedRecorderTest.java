@@ -33,6 +33,8 @@ package org.spf4j.perf.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Arrays;
 
 /**
@@ -40,6 +42,8 @@ import org.spf4j.base.Arrays;
  * @author zoly
  */
 public final class QuantizedRecorderTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(QuantizedRecorderTest.class);
 
   @Test
   public void testMagnitudes2() {
@@ -75,7 +79,6 @@ public final class QuantizedRecorderTest {
    */
   @Test
   public void testRecord1() {
-    System.out.println("record");
     QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
             10, 0, 3, 10);
     instance.record(-1);
@@ -94,7 +97,7 @@ public final class QuantizedRecorderTest {
     instance.record(250);
     instance.record(15000);
     instance.record(15000);
-    System.out.println(instance);
+    LOG.debug("Quantized Acc = {}", instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
     Assert.assertEquals(-1, instance.getMinMeasurement());
     long[] vals = instance.get();
@@ -112,7 +115,6 @@ public final class QuantizedRecorderTest {
 
   @Test
   public void testRecord2() {
-    System.out.println("record");
     QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
             10, -3, 3, 10);
     instance.record(-15000);
@@ -135,7 +137,7 @@ public final class QuantizedRecorderTest {
     instance.record(250);
     instance.record(250);
     instance.record(15000);
-    System.out.println(instance);
+    LOG.debug("Quantized Acc = {}", instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
     Assert.assertEquals(-15000, instance.getMinMeasurement());
     long[] vals = instance.get();
@@ -158,7 +160,6 @@ public final class QuantizedRecorderTest {
 
   @Test
   public void testRecord2P() {
-    System.out.println("record");
     QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
             10, -3, 3, 5);
     instance.record(-15000);
@@ -190,7 +191,7 @@ public final class QuantizedRecorderTest {
     instance.record(400);
     instance.record(600);
     instance.record(15000);
-    System.out.println(instance);
+    LOG.debug("Quantized Acc = {}", instance);
     Assert.assertEquals(15000, instance.getMaxMeasurement());
     Assert.assertEquals(-15000, instance.getMinMeasurement());
     long[] vals = instance.get();
@@ -211,7 +212,6 @@ public final class QuantizedRecorderTest {
 
   @Test
   public void testRecord3() {
-    System.out.println("record");
     QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
             10, 0, 1, 10);
     instance.record(-1);
@@ -223,10 +223,10 @@ public final class QuantizedRecorderTest {
     instance.record(11);
     instance.record(250);
     instance.record(15000);
-    System.out.println(instance);
+    LOG.debug("Quantized Acc = {}", instance);
     long[] vals = instance.get();
     long[] result = vals;
-    System.out.println(java.util.Arrays.toString(result));
+    LOG.debug("Values = {}", result);
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_0");
     Assert.assertEquals(1, vals[niIdx]);
@@ -239,7 +239,6 @@ public final class QuantizedRecorderTest {
 
   @Test
   public void testRecord4() {
-    System.out.println("record");
     QuantizedAccumulator instance = new QuantizedAccumulator("test", "", "ms",
             10, -1, 1, 10);
     instance.record(0);
@@ -252,10 +251,10 @@ public final class QuantizedRecorderTest {
     instance.record(-15000);
     instance.record(-10);
     instance.record(-10);
-    System.out.println(instance);
+    LOG.debug("Quantized Acc = {}", instance);
     long[] vals = instance.get();
     long[] result = vals;
-    System.out.println(java.util.Arrays.toString(result));
+    LOG.debug("Metrics = {}", result);
     String[] measurementNames = instance.getInfo().getMeasurementNames();
     int niIdx = Arrays.indexOf(measurementNames, "QNI_-10");
     Assert.assertEquals(1, vals[niIdx]);

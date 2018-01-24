@@ -38,9 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.spf4j.base.Throwables;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.tsdb2.TimeSeries;
 import org.spf4j.tsdb2.TSDBQuery;
@@ -55,25 +53,11 @@ import org.spf4j.tsdb2.avro.TableDef;
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class RecorderFactoryTest {
 
-  @BeforeClass
-  public static void init() {
-    Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
-      StringBuilder sb = new StringBuilder(128);
-      try {
-        Throwables.writeTo(e, sb, Throwables.PackageDetail.SHORT);
-      } catch (IOException ex) {
-        Assert.fail("Got Exception: " + ex);
-      }
-      Assert.fail("Got Exception: " + sb.toString());
-    });
-  }
-
   /**
    * Test of createScalableQuantizedRecorder method, of class RecorderFactory.
    */
   @Test
   public void testCreateScalableQuantizedRecorder() throws IOException, InterruptedException {
-    System.out.println("createScalableQuantizedRecorder");
     String forWhat = "test1";
     String unitOfMeasurement = "ms";
     int sampleTime = 1000;
@@ -96,7 +80,6 @@ public final class RecorderFactoryTest {
    */
   @Test
   public void testCreateScalableQuantizedRecorderSource() throws IOException, InterruptedException {
-    System.out.println("createScalableQuantizedRecorderSource");
     Object forWhat = "bla";
     String unitOfMeasurement = "ms";
     int sampleTime = 1000;
@@ -116,7 +99,6 @@ public final class RecorderFactoryTest {
 
   @Test
   public void testOutofQuantizedZoneValues() throws IOException, InterruptedException {
-    System.out.println("testOutofQuantizedZoneValues");
     String forWhat = "largeVals";
     String unitOfMeasurement = "ms";
     int sampleTime = 1000;
@@ -140,7 +122,6 @@ public final class RecorderFactoryTest {
    */
   @Test
   public void testCreateScalableCountingRecorderSource() throws IOException, InterruptedException {
-    System.out.println("createScalableCountingRecorderSource");
     String forWhat = "counters";
     String unitOfMeasurement = "counts";
     int sampleTime = 1000;

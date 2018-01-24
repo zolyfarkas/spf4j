@@ -39,6 +39,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.IntMath;
 
 /**
@@ -47,12 +49,14 @@ import org.spf4j.base.IntMath;
  */
 public final class QSortTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(QSortTest.class);
+
   @Test
   public void test() throws CompileException, ExecutionException, InterruptedException, IOException {
     String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sort.zel"),
             Charsets.US_ASCII);
     Program p = Program.compile(qsort);
-    System.out.println(p);
+    LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
     Assert.assertEquals(10000, result.intValue());
   }
@@ -73,7 +77,7 @@ public final class QSortTest {
       long startTime = System.currentTimeMillis();
       resultPar = testArray.clone();
       p.execute(new Object[]{resultPar});
-      System.out.println("Parallel exec time = " + (System.currentTimeMillis() - startTime));
+      LOG.debug("Parallel exec time = {}", (System.currentTimeMillis() - startTime));
     }
 
     Integer[] resultSt = null;
@@ -81,7 +85,7 @@ public final class QSortTest {
       long startTime = System.currentTimeMillis();
       resultSt = testArray.clone();
       p.execute(Executors.newSingleThreadExecutor(), new Object[]{resultSt});
-      System.out.println("ST exec time = " + (System.currentTimeMillis() - startTime));
+      LOG.debug("ST exec time = {}", (System.currentTimeMillis() - startTime));
     }
 
     Arrays.sort(testArray);

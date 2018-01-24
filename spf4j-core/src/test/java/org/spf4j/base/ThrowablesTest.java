@@ -39,6 +39,8 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -46,16 +48,17 @@ import org.junit.Test;
  */
 public final class ThrowablesTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(ThrowablesTest.class);
+
   /**
    * Test of chain method, of class ExceptionChain.
    */
   @Test(timeout = 3000)
   public void testChain() {
-    System.out.println("chain");
     Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
     Throwable newRootCause = new TimeoutException("Booo");
     Throwable result = Throwables.chain(t, newRootCause);
-    System.out.println(Throwables.toString(result));
+    LOG.debug("Thowable string = {}", Throwables.toString(result));
     Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
     Assert.assertEquals(3, com.google.common.base.Throwables.getCausalChain(result).size());
     Throwable firstCause = Throwables.firstCause(t, (l) -> false);
@@ -65,12 +68,11 @@ public final class ThrowablesTest {
   @Test
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
   public void testChain2() {
-    System.out.println("chain");
     Throwable t = new RuntimeException("bla1",
             new BatchUpdateException("Sql bla", "ORA-500", 500, new int[]{1, 2}, new RuntimeException("la la")));
     Throwable newRootCause = new TimeoutException("Booo");
     Throwable result = Throwables.chain(t, newRootCause);
-    System.out.println(Throwables.toString(result));
+    LOG.debug("Thowable string = {}", Throwables.toString(result));
     Assert.assertArrayEquals(new int[]{1, 2}, ((BatchUpdateException) result.getCause()).getUpdateCounts());
     Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
     Assert.assertEquals(4, com.google.common.base.Throwables.getCausalChain(result).size());
@@ -88,7 +90,7 @@ public final class ThrowablesTest {
     final SQLException sqlException = new SQLException(e);
     sqlException.setNextException(new SQLException("bla", new RuntimeException(new RuntimeException())));
     sqlException.setNextException(new SQLException("bla"));
-    System.out.println(Throwables.toString(sqlException));
+    LOG.debug("Thowable string = {}", Throwables.toString(sqlException));
     Assert.assertEquals(2, Throwables.getSuppressed(sqlException).length);
 
   }

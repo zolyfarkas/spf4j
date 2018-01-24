@@ -36,6 +36,8 @@ import java.util.concurrent.Callable;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
@@ -46,6 +48,8 @@ import org.spf4j.test.log.TestLoggers;
  */
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class PerformanceMonitorTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorTest.class);
 
   @Test
   public void testSomeMethod() throws Exception {
@@ -58,7 +62,7 @@ public final class PerformanceMonitorTest {
       @Override
       @SuppressFBWarnings("MDM_THREAD_YIELD")
       public String call() throws Exception {
-        System.out.println("testing");
+        LOG.debug("testing");
         Thread.sleep(3);
         return "test";
       }
