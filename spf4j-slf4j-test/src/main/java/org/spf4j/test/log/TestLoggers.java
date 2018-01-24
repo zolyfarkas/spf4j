@@ -48,8 +48,10 @@ public final class TestLoggers implements ILoggerFactory {
 
   private TestLoggers() {
     loggerMap = new ConcurrentHashMap<String, Logger>();
-    config = new LogConfigImpl(Arrays.asList(new LogPrinter(Level.valueOf(
-            System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"))), new DefaultAsserter()),
+    Level rootPrintLevel = TestUtils.isExecutedFromIDE()
+            ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
+            : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
+    config = new LogConfigImpl(Arrays.asList(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
             Collections.EMPTY_MAP);
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
     sync = new Object();
