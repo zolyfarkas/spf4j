@@ -84,7 +84,7 @@ public abstract class RestartableServiceImpl implements RestartableService {
                 restart();
                 break;
             case TERMINATED:
-                LOG.warn("Restarting a terminated service");
+                LOG.info("Restarting a terminated service");
                 restart();
                 break;
             default:
