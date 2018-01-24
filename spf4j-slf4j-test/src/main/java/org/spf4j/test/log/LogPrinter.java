@@ -158,7 +158,9 @@ public final class LogPrinter implements LogHandler {
         wr.append(' ');
       }
     }
-    wr.append('"');
+    wr.append(' ');
+    Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);
+    wr.append(" \"");
     wrapper.append(record.getThread().getName());
     wr.append("\" \"");
     Object[] arguments = record.getArguments();
@@ -190,8 +192,6 @@ public final class LogPrinter implements LogHandler {
         wr.append(']');
       }
     }
-    wr.append(' ');
-    Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);
     if (t != null) {
       wr.append('\n');
       Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT);
