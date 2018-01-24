@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,8 @@ import javax.management.openmbean.OpenDataException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.ComparablePair;
 import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
 import org.spf4j.tsdb2.avro.ColumnDef;
@@ -64,6 +65,8 @@ import org.spf4j.tsdb2.avro.Type;
  */
 @SuppressFBWarnings({"SE_BAD_FIELD_INNER_CLASS", "SIC_INNER_SHOULD_BE_STATIC_ANON"})
 public class OpenTypeConverterTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(OpenTypeConverterTest.class);
 
   private final Spf4jOpenTypeMapper conv = new Spf4jOpenTypeMapper();
 
@@ -92,13 +95,14 @@ public class OpenTypeConverterTest {
   public void testConverterAvroArray() throws OpenDataException, NotSerializableException {
     JMXBeanMapping mxBeanMapping2 = conv.get(TableDef[].class);
     Assert.assertNotNull(mxBeanMapping2);
-    Object toOpenValue = mxBeanMapping2.toOpenValue(new TableDef[]{
+    TableDef[] defs = new TableDef[]{
       TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
-      .setSampleTime(10)
-      .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
-      .setDescription("bla").setUnitOfMeasurement("um").build())).build()
-    });
-    System.out.println(toOpenValue);
+              .setSampleTime(10)
+              .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                      .setDescription("bla").setUnitOfMeasurement("um").build())).build()
+    };
+    Object toOpenValue = mxBeanMapping2.toOpenValue(defs);
+    LOG.debug("Open value {} from {}", toOpenValue, defs);
   }
 
   @Test
@@ -112,9 +116,9 @@ public class OpenTypeConverterTest {
                     .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                             .setDescription("bla").setUnitOfMeasurement("um").build())).build()
     ));
-    System.out.println(toOpenValue);
+    LOG.debug("OpenValue = {}", toOpenValue);
     Object fromOpenValue = mxBeanMapping2.fromOpenValue(toOpenValue);
-    System.out.println(fromOpenValue);
+    LOG.debug("Back to object = {}", fromOpenValue);
     Assert.assertTrue("must be set, not " + fromOpenValue.getClass(), fromOpenValue instanceof Set);
   }
 
@@ -129,9 +133,9 @@ public class OpenTypeConverterTest {
                     .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                             .setDescription("bla").setUnitOfMeasurement("um").build())).build()
     ));
-    System.out.println(toOpenValue);
+    LOG.debug("To open value: {}", toOpenValue);
     Object fromOpenValue = mxBeanMapping2.fromOpenValue(toOpenValue);
-    System.out.println(fromOpenValue);
+    LOG.debug("Back to object: {}", fromOpenValue);
     Assert.assertTrue("must be Iterable, not " + fromOpenValue.getClass(), fromOpenValue instanceof Iterable);
   }
 
@@ -142,7 +146,7 @@ public class OpenTypeConverterTest {
     Assert.assertNotNull(mxBeanMapping2);
     Object ov = mxBeanMapping2.toOpenValue(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
             .setDescription("bla").setUnitOfMeasurement("um").build()));
-    System.out.println(ov);
+    LOG.debug("OpenValue = {}", ov);
     mxBeanMapping2.fromOpenValue(ov);
   }
 
@@ -165,7 +169,7 @@ public class OpenTypeConverterTest {
             "K2",
             ColumnDef.newBuilder().setName("bla2").setType(Type.LONG)
                     .setDescription("bla").setUnitOfMeasurement("um").build()));
-    System.out.println(ov);
+    LOG.debug("OpenValue = {}", ov);
     mxBeanMapping2.fromOpenValue(ov);
   }
 
@@ -177,7 +181,7 @@ public class OpenTypeConverterTest {
     Properties props = new Properties();
     props.setProperty("K", "V");
     Object ov = mxBeanMapping2.toOpenValue(props);
-    System.out.println(ov);
+    LOG.debug("Open Value = {}", ov);
     Properties properties = (Properties) mxBeanMapping2.fromOpenValue(ov);
     Assert.assertEquals(props, properties);
   }
@@ -199,10 +203,6 @@ public class OpenTypeConverterTest {
   @Test
   public void testConverterMapStrObject3() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping mxBeanMapping2 = conv.get(Map.class);
-//    Map map = new HashMap();
-//    map.put("bla", "bla");
-//    Object toOpenValue = mxBeanMapping2.toOpenValue(map);
-//    System.out.println(toOpenValue);
     Assert.assertNull(mxBeanMapping2);
   }
 
@@ -243,7 +243,7 @@ public class OpenTypeConverterTest {
   @Test(expected = NotSerializableException.class)
   public void testConverterRecursiveData() throws OpenDataException, InvalidObjectException, NotSerializableException {
     JMXBeanMapping get = conv.get(RecursiveTestBean.class);
-    System.out.println(get);
+    LOG.debug("Mapping = {}", get);
   }
 
   @Test
@@ -271,7 +271,7 @@ public class OpenTypeConverterTest {
     Assert.assertNotNull(get);
     java.time.LocalDate now = java.time.LocalDate.now();
     Object ov = get.toOpenValue(now);
-    System.out.println(ov);
+    LOG.debug("Open Value = {}", ov);
     Assert.assertTrue(ov instanceof CompositeData);
   }
 
