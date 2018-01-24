@@ -26,12 +26,16 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.version.Version;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Zoltan Farkas
  */
 public class MavenRepositoryUtilsTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MavenRepositoryUtilsTest.class);
 
   @Test
   public void testRepositoryOperations()
@@ -40,21 +44,21 @@ public class MavenRepositoryUtilsTest {
     RemoteRepository mavenCentralRepository = MavenRepositoryUtils.getDefaultlRepository();
     List<Version> versions = MavenRepositoryUtils.getVersions(Arrays.asList(mavenCentralRepository), localRepo,
             "org.spf4j", "spf4j-core", "[8.3,]");
-    System.out.println(versions);
+    LOG.debug("Versions = {}", versions);
     String oldest = versions.get(0).toString();
     Assert.assertEquals("8.3.1", oldest);
     versions = MavenRepositoryUtils.getVersions(Arrays.asList(mavenCentralRepository), localRepo,
             "org.spf4j", "spf4j-core", "[,8.3.9-SNAPSHOT)");
-    System.out.println(versions);
+    LOG.debug("Versions = {}", versions);
     File resolveArtifact = MavenRepositoryUtils.resolveArtifact(Arrays.asList(mavenCentralRepository), localRepo,
             "org.spf4j", "spf4j-core", "sources", "jar", oldest);
-    System.out.println(resolveArtifact);
+    LOG.debug("Artifact file = {}", resolveArtifact);
     Assert.assertTrue(resolveArtifact.canRead());
 
     Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies(Arrays.asList(mavenCentralRepository),
             localRepo, "compile",
             "jdiff", "jdiff", null, "jar", "1.0.9");
-    System.out.println(deps);
+    LOG.debug("Dependency files = {}", deps);
   }
 
 }

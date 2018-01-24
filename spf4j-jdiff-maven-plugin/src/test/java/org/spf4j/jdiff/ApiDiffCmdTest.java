@@ -18,8 +18,6 @@ package org.spf4j.jdiff;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.security.Permission;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.DependencyResolutionException;
@@ -28,11 +26,15 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Zoltan Farkas
  */
 public class ApiDiffCmdTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ApiDiffCmdTest.class);
 
   private static SecurityManager original;
 
@@ -40,14 +42,6 @@ public class ApiDiffCmdTest {
   public static void init() {
     original = System.getSecurityManager();
     System.setSecurityManager(new NoExitSecurityManager());
-    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(final Thread t, final Throwable e) {
-        StringWriter strw = new StringWriter();
-        e.printStackTrace(new PrintWriter(strw));
-        Assert.fail("Got Exception: " + strw);
-      }
-    });
   }
 
   @AfterClass
@@ -71,7 +65,7 @@ public class ApiDiffCmdTest {
     } catch (ExitException ex) {
       Assert.assertEquals(0, ex.getExitCode());
     }
-    System.out.println("Written diff reports to: " + dest);
+    LOG.debug("Written diff reports to: {}", dest);
     Assert.assertTrue(new File(dest, "changes.html").exists());
   }
 
