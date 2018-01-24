@@ -57,7 +57,7 @@ public class MemorizingBufferedInputStreamTest {
           = "This is a super \u00EF cool, mega dupper test string for testing piping..........E";
 
   @Test
-  @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
+  @SuppressFBWarnings({ "SIC_INNER_SHOULD_BE_STATIC_ANON", "RV_RETURN_VALUE_IGNORED" })
   public void testBuffering() throws IOException {
     byte[] bytes = new byte[16384];
     for (int i = 0; i < bytes.length; i++) {

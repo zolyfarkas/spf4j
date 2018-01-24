@@ -65,9 +65,13 @@ public abstract class RestartableServiceImpl implements RestartableService {
         Registry.export(RestartableService.class.getName(), getServiceName(), this);
     }
 
-    @Override
-    @SuppressFBWarnings("SF_SWITCH_FALLTHROUGH") // this is on purpose.
     @JmxExport
+    public final void jmxStart() {
+      startAsync().awaitRunning();
+    }
+
+    @Override
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
     public final synchronized Service startAsync() {
         final Service svc = guavaService;
         final State state = svc.state();
@@ -80,6 +84,7 @@ public abstract class RestartableServiceImpl implements RestartableService {
                 restart();
                 break;
             case TERMINATED:
+                LOG.warn("Restarting a terminated service");
                 restart();
                 break;
             default:
@@ -88,6 +93,7 @@ public abstract class RestartableServiceImpl implements RestartableService {
         return this;
     }
 
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
     private void restart() {
         Service newSvc = supplier.get();
         guavaService = newSvc;
@@ -106,8 +112,13 @@ public abstract class RestartableServiceImpl implements RestartableService {
         return guavaService.state();
     }
 
-    @Override
     @JmxExport
+    public final void jmxStop() {
+      stopAsync().awaitTerminated();
+    }
+
+    @Override
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
     public final Service stopAsync() {
         guavaService.stopAsync();
         return this;

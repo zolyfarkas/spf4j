@@ -53,9 +53,9 @@ public final class DetailOnFailureRunListener extends RunListener {
 
   @Override
   public void testFailure(final Failure failure) throws Exception {
-    LogCollectionHandler handler = collections.get(failure.getDescription());
-    handler.close();
     Description description = failure.getDescription();
+    LogCollectionHandler handler = collections.get(description);
+    handler.close();
     LOG.info("Test {} failed", description, failure.getException());
     LOG.info("Dumping last {} unprinted logs for {description}", maxDebugLogsCollected);
     final String annotation = description.toString() + ' ';
@@ -74,6 +74,13 @@ public final class DetailOnFailureRunListener extends RunListener {
   public void testStarted(final Description description) throws Exception {
     collections.put(description, TestLoggers.config().collect(minLogLevel, maxDebugLogsCollected, collectPrinted));
     super.testStarted(description);
+  }
+
+  @Override
+  public String toString() {
+    return "DetailOnFailureRunListener{" + "minLogLevel=" + minLogLevel
+            + ", maxDebugLogsCollected=" + maxDebugLogsCollected + ", collections="
+            + collections + ", collectPrinted=" + collectPrinted + '}';
   }
 
 }

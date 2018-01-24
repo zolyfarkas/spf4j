@@ -34,6 +34,7 @@ package org.spf4j.reflect;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import com.google.common.reflect.TypeToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,7 +80,9 @@ public final class GraphTypeMap<H> implements TypeMap<H> {
         }
       }
       for (TypeToken token : nodesToRemove) {
-        traverseGraph.removeNode(token);
+        if (!traverseGraph.removeNode(token)) {
+          throw new IllegalStateException("Cannot remove " + token + " from " + traverseGraph);
+        }
       }
       nodesToRemove.clear();
       nodes = traverseGraph.nodes();
@@ -89,6 +92,7 @@ public final class GraphTypeMap<H> implements TypeMap<H> {
 
 
   @Override
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public boolean putIfNotPresent(final Type type, final H appender) {
     TypeToken<?> nType = TypeToken.of(type);
     if (typeGraph.addNode(nType)) {

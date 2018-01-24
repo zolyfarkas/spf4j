@@ -31,7 +31,6 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
 import java.util.Calendar;
 import org.spf4j.io.ObjectAppender;
 
@@ -42,7 +41,7 @@ import org.spf4j.io.ObjectAppender;
 public final class CalendarAppender implements ObjectAppender<Calendar> {
 
     @Override
-    public void append(final Calendar instant, final Appendable appendTo) throws IOException {
+    public void append(final Calendar instant, final Appendable appendTo) {
         org.spf4j.base.Runtime.TS_FORMAT.formatTo(instant.toInstant(), appendTo);
     }
 

@@ -79,6 +79,11 @@ public final class Reflections {
   private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
 
   static {
+    initPrimitiveMap();
+  }
+
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
+  private static void initPrimitiveMap() {
     PRIMITIVE_MAP.put(boolean.class, Boolean.class);
     PRIMITIVE_MAP.put(byte.class, Byte.class);
     PRIMITIVE_MAP.put(char.class, Character.class);

@@ -54,18 +54,15 @@ public final class MonitorTest {
 
     private static volatile boolean stopped;
 
-    private static SecurityManager original;
+    private  SecurityManager original;
     @Before
     public void init() {
         original = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(final Thread t, final Throwable e) {
-                StringWriter strw = new StringWriter();
-                e.printStackTrace(new PrintWriter(strw));
-                Assert.fail("Got Exception: " + strw);
-            }
+        Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
+          StringWriter strw = new StringWriter();
+          e.printStackTrace(new PrintWriter(strw));
+          Assert.fail("Got Exception: " + strw);
         });
     }
 

@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,7 @@ import org.spf4j.concurrent.DefaultExecutor;
  *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public class ExecutionContextTest {
 
   @Test

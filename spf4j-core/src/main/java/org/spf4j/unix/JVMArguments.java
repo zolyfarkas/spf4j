@@ -86,11 +86,12 @@ public final class JVMArguments {
   public String removeSystemProperty(final String pname) {
     Iterator<String> itr = arguments.iterator();
     itr.next(); // skip command.
+    int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
       if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, pname.length())) {
-          int l = pname.length() + 2;
+        if (s.regionMatches(2, pname, 0, nl)) {
+          int l = nl + 2;
           if (s.length() == l) {
             itr.remove();
             return "";
@@ -108,11 +109,12 @@ public final class JVMArguments {
   public String getSystemProperty(final String pname) {
     Iterator<String> itr = arguments.iterator();
     itr.next(); // skip command.
+    int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
       if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, pname.length())) {
-          int l = pname.length() + 2;
+        if (s.regionMatches(2, pname, 0, nl)) {
+          int l = nl + 2;
           if (s.length() == l) {
             return "";
           } else if (s.charAt(l) == '=') {
@@ -129,11 +131,12 @@ public final class JVMArguments {
   public void createOrUpdateSystemProperty(final String pname, final Function<String, String> replacer) {
     ListIterator<String> itr = arguments.listIterator();
     itr.next(); // skip command.
+    int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
       if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, pname.length())) {
-          int l = pname.length() + 2;
+        if (s.regionMatches(2, pname, 0, nl)) {
+          int l = nl + 2;
           if (s.length() == l) {
             itr.set("-D" + pname + '=' + replacer.apply(""));
             return;
@@ -151,11 +154,12 @@ public final class JVMArguments {
   public boolean hasSystemProperty(final String pname) {
     Iterator<String> itr = arguments.iterator();
     itr.next(); // skip command.
+    int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
       if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, pname.length())) {
-          int l = pname.length() + 2;
+        if (s.regionMatches(2, pname, 0, nl)) {
+          int l = nl + 2;
           if (s.length() == l) {
             return true;
           } else if (s.charAt(l) == '=') {

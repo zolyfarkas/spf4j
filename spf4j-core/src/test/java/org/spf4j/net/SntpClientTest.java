@@ -32,9 +32,9 @@
 package org.spf4j.net;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
-import org.joda.time.DateTime;
 import org.junit.Assert;
 //import org.junit.Ignore;
 import org.junit.Test;
@@ -52,8 +52,8 @@ public final class SntpClientTest {
     Timing requestTime = SntpClient.requestTimeHA(60000, "time.apple.com");
     long currentTimeMachine = System.currentTimeMillis();
     long currentTimeNtp = requestTime.getTime();
-    System.out.println("Current time machine = " + currentTimeMachine + " " + new DateTime(currentTimeMachine));
-    System.out.println("Current time ntp = " + currentTimeNtp + " " + new DateTime(currentTimeNtp));
+    System.out.println("Current time machine = " + currentTimeMachine + " " + Instant.ofEpochMilli(currentTimeMachine));
+    System.out.println("Current time ntp = " + currentTimeNtp + " " + Instant.ofEpochMilli(currentTimeNtp));
     Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 10000);
   }
 

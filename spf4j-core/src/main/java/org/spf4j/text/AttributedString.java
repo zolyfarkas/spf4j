@@ -900,6 +900,7 @@ public final class AttributedString {
             }
         }
 
+        @SuppressFBWarnings("SEO_SUBOPTIMAL_EXPRESSION_ORDER") // looks like a FP
         public Map<Attribute,Object> getAttributes() {
             if (runAttributes == null || currentRunIndex == -1 || runAttributes[currentRunIndex] == null) {
                 // ??? would be nice to return null, but current spec doesn't allow it

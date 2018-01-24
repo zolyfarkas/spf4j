@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,7 +50,6 @@ import javax.sql.DataSource;
 import org.junit.Assert;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 /**
@@ -96,7 +96,7 @@ public class JdbcSemaphoreTest {
       JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartBeatAndSubscribe(ds,
               HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.LifecycleHook) null);
       long lb = heartbeat.getLastRunDB();
-      System.out.println("last TS = " + lb + " " + new DateTime(lb));
+      System.out.println("last TS = " + lb + " " + Instant.ofEpochMilli(lb));
       heartbeat.beat();
 
       testReleaseAck(ds, "testSem", 2);

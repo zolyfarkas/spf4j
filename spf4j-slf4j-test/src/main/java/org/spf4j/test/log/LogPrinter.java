@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -36,11 +37,18 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public class LogPrinter implements LogHandler {
+public final class LogPrinter implements LogHandler {
 
   static final String PRINTED = "PRINTED";
 
   private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_INSTANT;
+
+  private static final ThreadLocal<Buffer> TL_BUFFER = new ThreadLocal<Buffer>() {
+    @Override
+    protected Buffer initialValue() {
+      return new Buffer();
+    }
+  };
 
   private final Level minLogged;
 
@@ -85,14 +93,6 @@ public class LogPrinter implements LogHandler {
 
   }
 
-  private static final ThreadLocal<Buffer> TL_BUFFER = new ThreadLocal<Buffer>() {
-    @Override
-    protected Buffer initialValue() {
-      return new Buffer();
-    }
-
-  };
-
   LogPrinter(final Level minLogged) {
     this.minLogged = minLogged;
   }
@@ -108,6 +108,7 @@ public class LogPrinter implements LogHandler {
   /**
    * {@inheritDoc}
    */
+  @SuppressFBWarnings({ "CFS_CONFUSING_FUNCTION_SEMANTICS", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
   @Override
   public LogRecord handle(final LogRecord record) {
     if (record.hasAttachment(PRINTED)) {
@@ -204,7 +205,7 @@ public class LogPrinter implements LogHandler {
       wr.append("null");
     } else {
       wr.append('"');
-      wrapper.append(obj.toString());
+      ObjectAppenderSupplier.TO_STRINGER.apply(obj.getClass()).append(obj, wrapper);
       wr.append('"');
     }
   }
@@ -217,5 +218,13 @@ public class LogPrinter implements LogHandler {
     Throwables.writeTo(t, sbuf, Throwables.PackageDetail.SHORT);
     sbuf.append('}');
   }
+
+  @Override
+  public String toString() {
+    return "LogPrinter{" + "minLogged=" + minLogged + '}';
+  }
+
+
+
 
 }

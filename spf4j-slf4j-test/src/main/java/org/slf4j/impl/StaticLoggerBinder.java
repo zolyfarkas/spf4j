@@ -15,14 +15,15 @@
  */
 package org.slf4j.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.test.log.TestLoggers;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 
 /**
- *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("MS_SHOULD_BE_FINAL")
 public final class StaticLoggerBinder implements LoggerFactoryBinder {
 
     /**
@@ -68,5 +69,11 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
     public String getLoggerFactoryClassStr() {
         return LOGGER_FACTORY_CLASS_STR;
     }
+
+  @Override
+  public String toString() {
+    return "StaticLoggerBinder{" + "loggerFactory=" + loggerFactory + '}';
+  }
+
 }
 

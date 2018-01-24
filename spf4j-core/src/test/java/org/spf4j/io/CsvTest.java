@@ -131,7 +131,7 @@ public final class CsvTest {
     Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<Void>() {
       @Override
       public void element(final CharSequence elem) throws CsvParseException {
-        throw new CsvParseException("Yohooo");
+        throw new CsvParseException("Yohooo at " + elem);
       }
 
       @Override
@@ -148,8 +148,8 @@ public final class CsvTest {
 
     Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<Void>() {
       @Override
-      public void element(final CharSequence elem) throws CsvParseException {
-        throw new IllegalArgumentException("Yohooo");
+      public void element(final CharSequence elem) {
+        throw new IllegalArgumentException("Yohooo at " + elem);
       }
 
       @Override

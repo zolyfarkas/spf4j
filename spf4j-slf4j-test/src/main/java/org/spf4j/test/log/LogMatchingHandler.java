@@ -15,9 +15,11 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -40,7 +42,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   LogMatchingHandler(final Level minLevel, final Matcher<LogRecord>... matchers) {
     if (matchers.length < 1) {
-      throw new IllegalArgumentException("You need to provide at least a matcher " + matchers);
+      throw new IllegalArgumentException("You need to provide at least a matcher " + Arrays.toString(matchers));
     }
     this.matchers = matchers;
     this.at = 0;
@@ -57,6 +59,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   }
 
   @Override
+  @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
   public LogRecord handle(final LogRecord record) {
     if (at < matchers.length && matchers[at].matches(record)) {
       at++;
@@ -69,6 +72,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   /**
    * Assert that a sequence of leg messages has been seen.
    */
+  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   @Override
   public void assertSeen() {
     unregister();
@@ -99,6 +103,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    * Assert that a sequence of messages has not been seen.
    */
   @Override
+  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void assertNotSeen() {
     unregister();
     if (at >= matchers.length) {
@@ -126,7 +131,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   @Override
   public String toString() {
-    return "LogMatchingHandler{" + "minLevel=" + minLevel + ", matchers=" + matchers
+    return "LogMatchingHandler{" + "minLevel=" + minLevel + ", matchers=" + Arrays.toString(matchers)
             + ", seen=" + seen + ", at=" + at + '}';
   }
 

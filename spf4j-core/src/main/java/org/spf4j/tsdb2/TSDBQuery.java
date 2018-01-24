@@ -35,6 +35,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.primitives.Longs;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongObjectMap;
@@ -70,6 +71,7 @@ public final class TSDBQuery {
   private TSDBQuery() {
   }
 
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static ListMultimap<String, TableDef> getAllTables(final File tsdbFile) throws IOException {
     ListMultimap<String, TableDef> result = ArrayListMultimap.create();
     try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {
@@ -84,6 +86,8 @@ public final class TSDBQuery {
     return result;
   }
 
+
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static ListMultimap<String, TableDef> getTables(final File tsdbFile, final Set<String> tables)
           throws IOException {
     ListMultimap<String, TableDef> result = ArrayListMultimap.create();
@@ -141,6 +145,7 @@ public final class TSDBQuery {
 
   }
 
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static ListMultimap<String, TableDefEx> getAllTablesWithDataRanges(final File tsdbFile) throws IOException {
     ListMultimap<String, TableDefEx> result = ArrayListMultimap.create();
     TLongObjectMap<TableDefEx> id2Def = new TLongObjectHashMap<>();

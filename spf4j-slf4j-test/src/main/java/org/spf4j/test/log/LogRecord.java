@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
@@ -49,11 +50,13 @@ public final class LogRecord {
   private int startExtra;
   private String message;
 
+  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
   public LogRecord(final Logger logger, final Level level,
           final String format, final Object... arguments) {
     this(logger, level, null, format, arguments);
   }
 
+  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
   public LogRecord(final Logger logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
     this.logger = logger;
@@ -89,6 +92,7 @@ public final class LogRecord {
     return format;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP") // risk I take...
   public Object[] getArguments() {
     return arguments;
   }
@@ -97,12 +101,12 @@ public final class LogRecord {
     return thread;
   }
 
-  public String getMessage() {
+  public synchronized String getMessage() {
     materializeMessage();
     return message;
   }
 
-  public synchronized void materializeMessage() throws UncheckedIOException {
+  public synchronized void materializeMessage() {
     if (message == null) {
       StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);
       try {
@@ -116,7 +120,7 @@ public final class LogRecord {
   }
 
   @Nonnull
-  public Object[] getExtraArguments() {
+  public synchronized Object[] getExtraArguments() {
     materializeMessage();
     if (startExtra < arguments.length) {
       return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
@@ -126,7 +130,7 @@ public final class LogRecord {
   }
 
   @Nullable
-  public Throwable getFirstExtraThrowable() {
+  public synchronized Throwable getFirstExtraThrowable() {
     materializeMessage();
     for (int i = startExtra; i < arguments.length; i++) {
       Object argument = arguments[i];
@@ -152,7 +156,7 @@ public final class LogRecord {
   public String toString() {
     return "LogRecord{" + "thread=" + thread + ", logger=" + logger + ", level="
             + level + ", timeStamp=" + timeStamp + ", marker=" + marker + ", format="
-            + format + ", arguments=" + arguments + '}';
+            + format + ", arguments=" + java.util.Arrays.toString(arguments) + '}';
   }
 
 

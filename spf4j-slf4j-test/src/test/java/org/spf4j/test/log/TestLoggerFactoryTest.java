@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.hamcrest.Matchers;
@@ -27,11 +28,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS")
 public class TestLoggerFactoryTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest.class);
 
   @Test
+  @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT" })
   public void testLogging() {
     try (HandlerRegistration printer = TestLoggers.config().print("org.spf4j.test", Level.TRACE)) {
       LOG.trace("Hello logger");

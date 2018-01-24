@@ -34,7 +34,8 @@ public interface LogHandler {
   /**
    * Handler handling method
    * @param record the log record.
-   * @return return the log message, or null if the handler chains should be interrupted.
+   * @return return the log message potentially with an attachment,
+   * or null if the handler chains should be interrupted.
    */
   @Nullable
   LogRecord handle(LogRecord record);

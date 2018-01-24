@@ -34,6 +34,7 @@ package org.spf4j.ds;
 import com.google.common.graph.EndpointPair;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  *
@@ -43,6 +44,7 @@ public final class Graphs {
 
   private Graphs() { }
 
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static <T> MutableGraph<T> clone(final MutableGraph<T> graph) {
     MutableGraph<T> clone =
             GraphBuilder.from(graph).build();

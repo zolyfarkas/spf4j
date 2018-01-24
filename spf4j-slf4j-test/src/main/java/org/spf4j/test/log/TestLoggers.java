@@ -168,4 +168,9 @@ public final class TestLoggers implements ILoggerFactory {
     return loggerMap.computeIfAbsent(name, computer);
   }
 
+  @Override
+  public String toString() {
+    return "TestLoggers{" + "loggerMap=" + loggerMap + ", config=" + config + '}';
+  }
+
 }

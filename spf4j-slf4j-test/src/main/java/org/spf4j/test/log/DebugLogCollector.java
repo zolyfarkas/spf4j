@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.function.Consumer;
 
@@ -45,6 +46,7 @@ public abstract class DebugLogCollector implements  LogHandler, LogCollectionHan
   }
 
   @Override
+  @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
   public final  LogRecord handle(final LogRecord record) {
     if (collectPrinted || !record.hasAttachment(LogPrinter.PRINTED)) {
       synchronized (records) {

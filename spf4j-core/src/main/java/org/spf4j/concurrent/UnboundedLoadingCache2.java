@@ -36,6 +36,7 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,6 +93,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
     }
 
     @Override
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
     public ImmutableMap<K, V> getAll(final Iterable<? extends K> keys) {
         ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
         for (K key : keys) {
@@ -139,6 +141,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
     }
 
     @Override
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
     public ImmutableMap<K, V> getAllPresent(final Iterable<?> keys) {
         ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
         for (K key : (Iterable<K>) keys) {

@@ -31,7 +31,6 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import org.spf4j.io.ObjectAppender;
 
@@ -42,7 +41,7 @@ import org.spf4j.io.ObjectAppender;
 public final class LocalDateAppender implements ObjectAppender<LocalDate> {
 
     @Override
-    public void append(final LocalDate date, final Appendable appendTo) throws IOException {
+    public void append(final LocalDate date, final Appendable appendTo) {
         org.spf4j.base.Runtime.DT_FORMAT.formatTo(date, appendTo);
     }
 

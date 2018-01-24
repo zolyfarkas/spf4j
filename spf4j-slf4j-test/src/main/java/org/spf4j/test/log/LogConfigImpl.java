@@ -32,6 +32,14 @@ final class LogConfigImpl implements LogConfig {
 
   private static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
 
+  private static final ThreadLocal<ArrayList<LogHandler>> HNDLRS
+          = new ThreadLocal<ArrayList<LogHandler>>() {
+    @Override
+    protected ArrayList<LogHandler> initialValue() {
+      return new ArrayList<>(2);
+    }
+  };
+
   private final List<LogHandler> rootHandler;
 
   private final SortedMap<String, List<LogHandler>> logHandlers;
@@ -84,16 +92,6 @@ final class LogConfigImpl implements LogConfig {
     return new LogConfigImpl(rh, ch);
   }
 
-
-
-  private static final ThreadLocal<ArrayList<LogHandler>> HNDLRS
-          = new ThreadLocal<ArrayList<LogHandler>>() {
-    @Override
-    protected ArrayList<LogHandler> initialValue() {
-      return new ArrayList<>(2);
-    }
-  };
-
   @Override
   public List<LogHandler> getLogHandlers(final String category, final Level level) {
     ArrayList<LogHandler> res = HNDLRS.get();
@@ -118,6 +116,11 @@ final class LogConfigImpl implements LogConfig {
         to.add(handler);
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    return "LogConfigImpl{" + "rootHandler=" + rootHandler + ", logHandlers=" + logHandlers + '}';
   }
 
 }

@@ -780,6 +780,7 @@ public final class TimeSeriesDatabase implements Closeable {
     }
   }
 
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   private static Multimap<String, TSTable> getCounters(final Collection<TSTable> columnInfos) {
     Multimap<String, TSTable> result = HashMultimap.create();
     for (TSTable info : columnInfos) {

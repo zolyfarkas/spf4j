@@ -200,13 +200,13 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
     if (data.length == 0) {
       return tux;
     }
-
+    ZoneId systemDefault = ZoneId.systemDefault();
     final DateTimeFormatter formatter = DateTimeFormatter
-          .ofPattern("yyyyMMdd'T'HH:mm:ss").withZone(ZoneId.systemDefault());
+          .ofPattern("yyyyMMdd'T'HH:mm:ss").withZone(systemDefault);
     final DateTimeFormatter shortFormat = DateTimeFormatter
-          .ofPattern("yyyyMMdd'T'HH").withZone(ZoneId.systemDefault());
+          .ofPattern("yyyyMMdd'T'HH").withZone(systemDefault);
     final DateTimeFormatter mediumFormat = DateTimeFormatter
-          .ofPattern("yyyyMMdd'T'HH:mm").withZone(ZoneId.systemDefault());
+          .ofPattern("yyyyMMdd'T'HH:mm").withZone(systemDefault);
     final long[] timestamps = new long[data[0].length];
     long time = startTimeMillis;
     for (int i = 0; i < timestamps.length; i++) {

@@ -78,11 +78,13 @@ import org.spf4j.unix.UnixRuntime;
  */
 public final class Runtime {
 
+  public static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();
+
   public static final DateTimeFormatter TS_FORMAT = DateTimeFormatter
-          .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZone(ZoneId.systemDefault());
+          .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZone(DEFAULT_ZONE);
 
   public static final DateTimeFormatter DT_FORMAT = DateTimeFormatter
-          .ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
+          .ofPattern("yyyy-MM-dd").withZone(DEFAULT_ZONE);
 
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
   public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
@@ -496,7 +498,11 @@ public final class Runtime {
     if (ec == null) {
       return Timing.MAX_MS_SPAN;
     } else {
-      return TimeUnit.NANOSECONDS.toMillis(ec.getDeadlineNanos() - System.nanoTime());
+      long ms = TimeUnit.NANOSECONDS.toMillis(ec.getDeadlineNanos() - System.nanoTime());
+      if (ms < 0) {
+        throw new TimeoutException("Deadline exceeded by " + (-ms));
+      }
+      return ms;
     }
   }
 

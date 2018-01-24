@@ -31,6 +31,7 @@
  */
 package org.spf4j.unix;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -43,6 +44,7 @@ import org.junit.Test;
  */
 public class JVMArgumentsTest {
 
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   @Test
   public void testCurrentArgs() throws IOException {
     Assume.assumeFalse(org.spf4j.base.Runtime.isWindows());

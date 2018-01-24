@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
 import java.util.Map;
@@ -42,6 +43,7 @@ import javax.annotation.Nullable;
  *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 final class BasicExecutionContext implements ExecutionContext {
   /**
    * The previous context on Thread.
@@ -112,6 +114,12 @@ final class BasicExecutionContext implements ExecutionContext {
   @Override
   public void close()  {
     ExecutionContexts.setCurrent(this.tParent);
+  }
+
+  @Override
+  public String toString() {
+    return "BasicExecutionContext{" + "tParent=" + tParent + ", parent=" + parent
+            + ", deadlineNanos=" + deadlineNanos + ", baggage=" + baggage + '}';
   }
 
 }

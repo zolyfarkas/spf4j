@@ -211,6 +211,7 @@ public final class SchemaUtils {
   }
 
   @Beta
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static void writeIdlLegacy(final Appendable appendable,
           final Set<String> alreadyDeclared, final String protocolNameSpace, final Schema ... pschemas)
           throws IOException {

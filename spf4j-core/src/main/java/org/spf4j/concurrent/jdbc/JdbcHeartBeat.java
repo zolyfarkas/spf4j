@@ -125,6 +125,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private ScheduledHeartBeat heartbeatRunnable;
 
   @Override
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public void close() throws SQLException {
     boolean weClosed = false;
     synchronized (jdbc) {
