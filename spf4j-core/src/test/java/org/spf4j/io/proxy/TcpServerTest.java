@@ -54,6 +54,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.ds.UpdateablePriorityQueue;
@@ -73,6 +75,10 @@ import org.spf4j.io.tcp.proxy.SnifferFactory;
 @SuppressFBWarnings({"SIC_INNER_SHOULD_BE_STATIC_ANON", "MDM_THREAD_YIELD"})
 public class TcpServerTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(TcpServerTest.class);
+
+  private static final Logger SNIFFER_LOG = LoggerFactory.getLogger(TcpServerTest.class + ".SNIFFER");
+
   private static final String TEST_SITE = "charizard.homeunix.net";
 
   private SnifferFactory printSnifferFactory = new SnifferFactory() {
@@ -80,13 +86,14 @@ public class TcpServerTest {
     public Sniffer get(final SocketChannel channel) {
       return new Sniffer() {
 
+
         private final CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
 
         @Override
         public int received(final ByteBuffer data, final int nrBytes) {
           // Naive printout using ASCII
           if (nrBytes < 0) {
-            System.err.println("EOF");
+            SNIFFER_LOG.debug("EOF");
             return nrBytes;
           }
           ByteBuffer duplicate = data.duplicate();
@@ -97,7 +104,7 @@ public class TcpServerTest {
           CharBuffer cb = CharBuffer.allocate((int) (asciiDecoder.maxCharsPerByte() * duplicate.limit()));
           asciiDecoder.decode(duplicate, cb, true);
           cb.flip();
-          System.err.print(cb.toString());
+          SNIFFER_LOG.debug(cb.toString());
           return nrBytes;
         }
 
@@ -123,7 +130,7 @@ public class TcpServerTest {
       long time1 = System.currentTimeMillis();
       byte[] proxiedContent = readfromSite("http://localhost:1976");
       long time2 = System.currentTimeMillis();
-      System.out.println("Direct = " + (time1 - start) + " ms, proxied = " + (time2 - time1));
+      LOG.debug("Direct = {}  ms, proxied = {}", (time1 - start), (time2 - time1));
       Assert.assertArrayEquals(originalContent, proxiedContent);
     }
   }
@@ -199,7 +206,7 @@ public class TcpServerTest {
               1981, 10)) {
         server.startAsync().awaitRunning();
         byte[] readfromSite = readfromSite("http://localhost:1981");
-        System.out.println("Response: " + new String(readfromSite, StandardCharsets.UTF_8));
+        LOG.debug("Response: {}", new String(readfromSite, StandardCharsets.UTF_8)); //probably wrong charset assumtion
       }
     }
   }

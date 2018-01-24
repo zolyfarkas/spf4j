@@ -37,6 +37,8 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -44,12 +46,14 @@ import org.junit.Test;
  */
 public class JVMArgumentsTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(JVMArgumentsTest.class);
+
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   @Test
   public void testCurrentArgs() throws IOException {
     Assume.assumeFalse(org.spf4j.base.Runtime.isWindows());
     JVMArguments current = JVMArguments.current();
-    System.out.println(current);
+    LOG.debug("Current jvm args: {}", current);
     Assert.assertThat(current.getExecutable(), Matchers.endsWith("java"));
     current.setVMArgument("-Xbla");
     Assert.assertTrue(current.hasVMArgument("-Xbla"));

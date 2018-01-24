@@ -40,6 +40,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -47,10 +49,11 @@ import org.junit.Test;
  */
 public class AppendableLimiterWithFileOverflowTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AppendableLimiterWithFileOverflowTest.class);
+
   @Test
   public void testOverflow() throws IOException {
     File ovflow = File.createTempFile("overflow", ".txt");
-    System.out.println();
     StringBuilder destination = new StringBuilder();
     final String testStr
             = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
@@ -61,20 +64,16 @@ public class AppendableLimiterWithFileOverflowTest {
       limiter.append(testStr.charAt(45));
       limiter.append(testStr.subSequence(46, testStr.length()));
     }
-
-    System.out.println(destination);
+    LOG.debug("Destination str {}", destination);
     Assert.assertEquals(90, destination.length());
-    System.out.println(destination);
     String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
             StandardCharsets.UTF_8));
-    System.out.println(oContent);
     Assert.assertEquals(testStr, oContent);
   }
 
   @Test
   public void testOverflowX() throws IOException {
     File ovflow = File.createTempFile("overflow", ".txt");
-    System.out.println();
     StringBuilder destination = new StringBuilder();
     final String testStr
             = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
@@ -86,19 +85,16 @@ public class AppendableLimiterWithFileOverflowTest {
       limiter.append(testStr.subSequence(nr + 1, testStr.length()));
     }
 
-    System.out.println(destination);
+    LOG.debug("Destination: {}", destination);
     Assert.assertEquals(90, destination.length());
-    System.out.println(destination);
     String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
             StandardCharsets.UTF_8));
-    System.out.println(oContent);
     Assert.assertEquals(testStr, oContent);
   }
 
   @Test
   public void testOverflow2() throws IOException {
     File ovflow = File.createTempFile("overflow", ".txt");
-    System.out.println();
     StringBuilder destination = new StringBuilder();
     final String testStr
             = "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
@@ -109,13 +105,11 @@ public class AppendableLimiterWithFileOverflowTest {
       limiter.append(testStr.subSequence(46, testStr.length()));
     }
 
-    System.out.println(destination);
+    LOG.debug("Destination: {}", destination);
     Assert.assertEquals(90, destination.length());
     Assert.assertEquals(testStr, destination.toString());
-    System.out.println(destination);
     String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
             StandardCharsets.UTF_8));
-    System.out.println(oContent);
     Assert.assertEquals("", oContent);
   }
 

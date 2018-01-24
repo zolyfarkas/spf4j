@@ -38,25 +38,17 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.spf4j.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.ssdump2.Converter;
 
 @NotThreadSafe
 public final class DemoTest {
 
-  private static volatile boolean stopped;
+  private static final Logger LOG = LoggerFactory.getLogger(DemoTest.class);
 
-  @BeforeClass
-  public static void init() {
-    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(final Thread t, final Throwable e) {
-        Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
-      }
-    });
-  }
+  private static volatile boolean stopped;
 
   @Test
   public void testJmx() throws InterruptedException, IOException {
@@ -67,7 +59,7 @@ public final class DemoTest {
     sampler.stop();
     SampleNode original = sampler.getStackCollector().applyOnSamples((SampleNode input) -> input);
     File file = sampler.dumpToFile();
-    System.out.println("Samples saved to " + file);
+    LOG.debug("Samples saved to {}", file);
     Assert.assertNotNull(file);
     Assert.assertTrue(file.exists());
     SampleNode loaded = Converter.load(file);

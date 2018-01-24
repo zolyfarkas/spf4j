@@ -31,6 +31,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,7 +45,6 @@ public final class StackTraceTest {
   public void testSomeMethod() {
     StackTraceElement[] stack = Thread.currentThread().getStackTrace();
     StackTrace st = new StackTrace(stack, 1);
-    System.out.println(st);
-    Assert.assertFalse(st.toString().contains("getStackTrace"));
+    Assert.assertThat(st.toString(), Matchers.containsString("getStackTrace"));
   }
 }

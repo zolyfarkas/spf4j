@@ -41,6 +41,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.spf4j.base.IntMath;
 import org.spf4j.base.Strings;
 import static org.spf4j.io.PipedOutputStreamTest.generateTestStr;
@@ -52,6 +54,8 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * @author zoly
  */
 public class MemorizingBufferedInputStreamTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MemorizingBufferedInputStreamTest.class);
 
   private static final String TSTR
           = "This is a super \u00EF cool, mega dupper test string for testing piping..........E";
@@ -111,12 +115,12 @@ public class MemorizingBufferedInputStreamTest {
 
     for (int i = 0; i < 6; i++) {
       int val = mis.read();
-      System.out.print((char) val);
+      LOG.debug("Read char '{}'", (char) val);
       Assert.assertEquals(array[i], (byte) val);
     }
-    System.out.println(mis);
+    LOG.debug("MIS before close {}", mis);
     mis.close();
-    System.out.println(mis);
+    LOG.debug("MIS after close {}", mis);
   }
 
   @Test

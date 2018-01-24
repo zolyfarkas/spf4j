@@ -34,6 +34,8 @@ package org.spf4j.stackmonitor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,49 +43,50 @@ import org.junit.Test;
  */
 public final class SimpleStackCollectorTest {
 
-    /**
-     * Test of sample method, of class SimpleStackCollector.
-     */
-    @Test
-    @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ES_COMPARING_STRINGS_WITH_EQ" })
-    public void testSample() {
-        System.out.println("sample");
-        SimpleStackCollector instance = new SimpleStackCollector();
-        StackTraceElement[] st1 = new StackTraceElement[3];
-        st1[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
-        st1[1] = new StackTraceElement("C1", "m2", "C1.java", 11);
-        st1[2] = new StackTraceElement("C1", "m3", "C1.java", 12);
-        instance.addSample(st1);
-        System.out.println(instance);
-        Assert.assertEquals(4, instance.getNrNodes());
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleStackCollectorTest.class);
 
-        StackTraceElement[] st2 = new StackTraceElement[1];
-        st2[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
-        instance.addSample(st2);
-        System.out.println(instance);
-        Assert.assertEquals(5, instance.getNrNodes());
+  /**
+   * Test of sample method, of class SimpleStackCollector.
+   */
+  @Test
+  @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ES_COMPARING_STRINGS_WITH_EQ"})
+  public void testSample() {
+    SimpleStackCollector instance = new SimpleStackCollector();
+    StackTraceElement[] st1 = new StackTraceElement[3];
+    st1[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
+    st1[1] = new StackTraceElement("C1", "m2", "C1.java", 11);
+    st1[2] = new StackTraceElement("C1", "m3", "C1.java", 12);
+    instance.addSample(st1);
+    LOG.debug("Collector = {}", instance);
+    Assert.assertEquals(4, instance.getNrNodes());
 
-        StackTraceElement[] st3 = new StackTraceElement[3];
-        st3[0] = new StackTraceElement("C2", "m1", "C2.java", 10);
-        st3[1] = new StackTraceElement("C2", "m2", "C2.java", 11);
-        st3[2] = new StackTraceElement("C2", "m3", "C2.java", 12);
-        instance.addSample(st3);
-        System.out.println(instance);
+    StackTraceElement[] st2 = new StackTraceElement[1];
+    st2[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
+    instance.addSample(st2);
+    LOG.debug("Collector = {}", instance);
+    Assert.assertEquals(5, instance.getNrNodes());
 
-        StackTraceElement[] st4 = new StackTraceElement[3];
-        st4[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
-        st4[1] = new StackTraceElement("C1", "m2", "C1.java", 11);
-        st4[2] = new StackTraceElement("C1", "m4", "C1.java", 14);
-        instance.addSample(st4);
+    StackTraceElement[] st3 = new StackTraceElement[3];
+    st3[0] = new StackTraceElement("C2", "m1", "C2.java", 10);
+    st3[1] = new StackTraceElement("C2", "m2", "C2.java", 11);
+    st3[2] = new StackTraceElement("C2", "m3", "C2.java", 12);
+    instance.addSample(st3);
+    LOG.debug("Collector = {}", instance);
 
-        System.out.println(instance);
-        Thread currentThread = Thread.currentThread();
+    StackTraceElement[] st4 = new StackTraceElement[3];
+    st4[0] = new StackTraceElement("C1", "m1", "C1.java", 10);
+    st4[1] = new StackTraceElement("C1", "m2", "C1.java", 11);
+    st4[2] = new StackTraceElement("C1", "m4", "C1.java", 14);
+    instance.addSample(st4);
 
-        Assert.assertSame(currentThread.getStackTrace()[0].getClassName(),
-                currentThread.getStackTrace()[0].getClassName());
-        Assert.assertSame(currentThread.getStackTrace()[0].getMethodName(),
-                currentThread.getStackTrace()[0].getMethodName());
+    LOG.debug("Collector = {}", instance);
+    Thread currentThread = Thread.currentThread();
 
-    }
+    Assert.assertSame(currentThread.getStackTrace()[0].getClassName(),
+            currentThread.getStackTrace()[0].getClassName());
+    Assert.assertSame(currentThread.getStackTrace()[0].getMethodName(),
+            currentThread.getStackTrace()[0].getMethodName());
+
+  }
 
 }

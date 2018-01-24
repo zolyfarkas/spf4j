@@ -33,57 +33,46 @@ package org.spf4j.stackmonitor;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.ssdump2.Converter;
 
 public final class SsdumpTest {
 
-    @BeforeClass
-    public static void init() {
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(final Thread t, final Throwable e) {
-                StringWriter strw = new StringWriter();
-                e.printStackTrace(new PrintWriter(strw));
-                Assert.fail("Got Exception: " + strw);
-            }
-        });
-    }
+  private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
 
-    @Test
-    public void testProto() throws InterruptedException, IOException  {
+  @Test
+  public void testProto() throws InterruptedException, IOException {
 
-        Sampler sampler = new Sampler(1);
-        sampler.registerJmx();
-        sampler.start();
-        MonitorTest.main(new String[]{});
-        final File serializedFile = File.createTempFile("stackSample", ".samp");
-        sampler.getStackCollector().applyOnSamples((final SampleNode f) -> {
-          if (f != null) {
-            try {
-              Converter.save(serializedFile, f);
-            } catch (IOException ex) {
-              throw new RuntimeException(ex);
-            }
+    Sampler sampler = new Sampler(1);
+    sampler.registerJmx();
+    sampler.start();
+    MonitorTest.main(new String[]{});
+    final File serializedFile = File.createTempFile("stackSample", ".samp");
+    sampler.getStackCollector().applyOnSamples((final SampleNode f) -> {
+      if (f != null) {
+        try {
+          Converter.save(serializedFile, f);
+        } catch (IOException ex) {
+          throw new RuntimeException(ex);
+        }
 
-          }
-          return f;
-        });
-        sampler.stop();
-        final SampleNode samples = Converter.load(serializedFile);
-        Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-        Traversals.traverse(graph, InvokedMethod.ROOT,
-                (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
-          System.out.println("Method: " + vertex + " from " + edges);
-        }, true);
-        Assert.assertNotNull(graph);
+      }
+      return f;
+    });
+    sampler.stop();
+    final SampleNode samples = Converter.load(serializedFile);
+    Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
+    Traversals.traverse(graph, InvokedMethod.ROOT,
+            (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
+              LOG.debug("Method: {} from {}", vertex, edges);
+            }, true);
+    Assert.assertNotNull(graph);
 
-    }
+  }
 }

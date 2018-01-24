@@ -55,6 +55,8 @@ import java.util.zip.GZIPInputStream;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.io.csv.CsvReader;
 import org.spf4j.io.csv.CsvReader.TokenType;
@@ -67,6 +69,8 @@ import org.spf4j.io.csv.UncheckedCsvParseException;
  */
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class CsvTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CsvTest.class);
 
   @Test
   public void testCsvReadWrite() throws IOException, CsvParseException {
@@ -190,14 +194,14 @@ public final class CsvTest {
 
   private File createTestCsv() throws IOException {
     File testFile = File.createTempFile("csvTest", ".csv");
-    System.out.println("test file : " + testFile);
+    LOG.debug("test file : {}", testFile);
     try (BufferedWriter writer = new BufferedWriter(
             new OutputStreamWriter(Files.newOutputStream(testFile.toPath()), Charsets.UTF_8))) {
       Csv.writeCsvRow(writer, "a", "b", "c", "d");
       Csv.writeCsvRow(writer, "1.2\r", "1", "1,3", 1);
       Csv.writeCsvRow(writer, "0", "\"", "0\n", "1,3");
     }
-    System.out.println("test file written");
+    LOG.debug("test file written {}", testFile);
     return testFile;
   }
 
@@ -242,7 +246,7 @@ public final class CsvTest {
           return count;
         }
       });
-      System.out.println("Line count is " + count + " in " + (System.currentTimeMillis() - startTime));
+      LOG.debug("Line count is {} in {}", count, (System.currentTimeMillis() - startTime));
       Assert.assertEquals(3173959L, count);
     }
   }
@@ -334,7 +338,7 @@ public final class CsvTest {
   public void testLineIteration() {
     int nr = 0;
     for (Iterable<String> line : Csv.asIterable(new StringReader("bla,\"bla\"\nuhu,uhu2\n"))) {
-      System.out.println(line);
+      LOG.debug("{}", line);
       nr++;
     }
     Assert.assertEquals(3, nr);
@@ -343,7 +347,7 @@ public final class CsvTest {
   @Test(expected = UncheckedCsvParseException.class)
   public void testLineIterationError() {
     for (Iterable<String> line : Csv.asIterable(new StringReader("bla,\"bla"))) {
-      System.out.println(line);
+      LOG.debug("{}", line);
     }
     Assert.fail();
   }
@@ -357,7 +361,7 @@ public final class CsvTest {
 
         @Override
         public void row(final Map<String, String> row) {
-          System.out.println("Row " + row);
+          LOG.debug("Row {}", row);
           i++;
         }
 
@@ -379,7 +383,7 @@ public final class CsvTest {
       List<String> lastRow = null;
       for (Iterable<String> row : asIterable) {
         lastRow = Lists.newArrayList(row);
-        System.out.println("row " + row);
+        LOG.debug("row {}", row);
         i++;
       }
       Assert.assertEquals(4, i);
@@ -394,7 +398,7 @@ public final class CsvTest {
               new Csv.CsvMapHandler<Void>() {
         @Override
         public void row(final Map<String, String> row) {
-          System.out.println("Row " + row);
+          LOG.debug("Row {}", row);
         }
 
         @Override

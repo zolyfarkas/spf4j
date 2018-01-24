@@ -50,126 +50,129 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
-@SuppressFBWarnings({ "MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN" })
+@SuppressFBWarnings({"MDM_THREAD_YIELD", "PATH_TRAVERSAL_IN"})
 public final class FileBasedLockTest {
 
-    private static final String LOCK_FILE = org.spf4j.base.Runtime.TMP_FOLDER + File.separatorChar
-            + "test.lock";
-    private volatile boolean isOtherRunning;
+  private static final Logger LOG = LoggerFactory.getLogger(FileBasedLockTest.class);
 
-    @Test(timeout = 60000)
-    public void test() throws IOException, InterruptedException, ExecutionException {
+  private static final String LOCK_FILE = org.spf4j.base.Runtime.TMP_FOLDER + File.separatorChar
+          + "test.lock";
+  private volatile boolean isOtherRunning;
 
-        FileBasedLock lock = FileBasedLock.getLock(new File(LOCK_FILE));
-        lock.lock();
-        Future<Void> future = DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
+  @Test(timeout = 60000)
+  public void test() throws IOException, InterruptedException, ExecutionException {
 
-            @Override
-            public Void call() throws Exception {
-                org.spf4j.base.Runtime.jrun(FileBasedLockTest.class, 60000, LOCK_FILE);
-                isOtherRunning = false;
-                return null;
-            }
-        });
+    FileBasedLock lock = FileBasedLock.getLock(new File(LOCK_FILE));
+    lock.lock();
+    Future<Void> future = DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
 
-        try {
-            isOtherRunning = true;
-            for (int i = 1; i < 10000; i++) {
-                if (!isOtherRunning) {
-                    future.get();
-                    Assert.fail("The Other process should be running, lock is not working");
-                }
-                Thread.sleep(1);
-            }
-        } finally {
-            lock.unlock();
+      @Override
+      public Void call() throws Exception {
+        org.spf4j.base.Runtime.jrun(FileBasedLockTest.class, 60000, LOCK_FILE);
+        isOtherRunning = false;
+        return null;
+      }
+    });
+
+    try {
+      isOtherRunning = true;
+      for (int i = 1; i < 10000; i++) {
+        if (!isOtherRunning) {
+          future.get();
+          Assert.fail("The Other process should be running, lock is not working");
         }
-        System.out.println("Lock test successful");
-
-    }
-
-    @Test
-    @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-    public void testReentrace() throws IOException {
-        File tmp = File.createTempFile("bla", ".lock");
-        try (FileBasedLock lock = FileBasedLock.getLock(tmp)) {
-            lock.lock();
-            try {
-                lock.lock();
-                try {
-                    System.out.println("Reentered lock");
-                } finally {
-                    lock.unlock();
-                }
-              boolean tryLock = lock.tryLock();
-              Assert.assertTrue(tryLock);
-              lock.unlock();
-            } finally {
-                lock.unlock();
-            }
-        } finally {
-          if (!tmp.delete()) {
-            throw new IOException("Cannot delete " + tmp);
-          }
-        }
-    }
-
-
-    public static void main(final String[] args) throws  InterruptedException, IOException {
-        FileBasedLock lock = FileBasedLock.getLock(new File(args[0]));
-        lock.lock();
-        try {
-            Thread.sleep(100);
-        } finally {
-            lock.unlock();
-        }
-        System.exit(0);
-    }
-
-    @Test(expected = OverlappingFileLockException.class)
-    @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public void testFileLock() throws IOException {
-      File tmp = File.createTempFile("test", ".lock");
-      tmp.deleteOnExit();
-      RandomAccessFile file = new RandomAccessFile(tmp, "rws");
-      FileChannel channel = file.getChannel();
-      FileLock lock = channel.lock();
-      FileLock lock1 = channel.lock();
-      Assert.fail();
-      lock1.release();
-      lock.release();
-    }
-
-    @Test
-    public void testFileLock2() throws IOException, InterruptedException {
-      File tmp = File.createTempFile("test", ".lock");
-      tmp.deleteOnExit();
-      FileBasedLock lock = FileBasedLock.getLock(tmp);
-      Assert.assertTrue(lock.tryLock());
-      FileBasedLock lock2 = FileBasedLock.getLock(tmp);
-      Assert.assertTrue(lock2.tryLock(1, TimeUnit.SECONDS));
-      lock2.unlock();
+        Thread.sleep(1);
+      }
+    } finally {
       lock.unlock();
     }
+    LOG.debug("Lock test successful");
 
-    @Test
-    @SuppressFBWarnings("UAC_UNNECESSARY_API_CONVERSION_FILE_TO_PATH")
-    public void testFileLockPermissions() throws IOException {
-      File tmpDir = Files.createTempDir();
-      Set<PosixFilePermission> reqPermissions = EnumSet.of(PosixFilePermission.GROUP_READ,
-              PosixFilePermission.GROUP_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
-      FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(reqPermissions);
-      File file = new File(tmpDir, "file.lock");
-      FileBasedLock lock = FileBasedLock.getLock(file, attr);
-      Assert.assertTrue(lock.tryLock());
-      lock.unlock();
-      Set<PosixFilePermission> actualPermissions = java.nio.file.Files.getPosixFilePermissions(file.toPath());
-      Assert.assertEquals(reqPermissions, actualPermissions);
+  }
+
+  @Test
+  @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
+  public void testReentrace() throws IOException {
+    File tmp = File.createTempFile("bla", ".lock");
+    try (FileBasedLock lock = FileBasedLock.getLock(tmp)) {
+      lock.lock();
+      try {
+        lock.lock();
+        try {
+          LOG.debug("Reentered lock");
+        } finally {
+          lock.unlock();
+        }
+        boolean tryLock = lock.tryLock();
+        Assert.assertTrue(tryLock);
+        lock.unlock();
+      } finally {
+        lock.unlock();
+      }
+    } finally {
+      if (!tmp.delete()) {
+        throw new IOException("Cannot delete " + tmp);
+      }
     }
+  }
+
+  public static void main(final String[] args) throws InterruptedException, IOException {
+    FileBasedLock lock = FileBasedLock.getLock(new File(args[0]));
+    lock.lock();
+    try {
+      Thread.sleep(100);
+    } finally {
+      lock.unlock();
+    }
+    System.exit(0);
+  }
+
+  @Test(expected = OverlappingFileLockException.class)
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testFileLock() throws IOException {
+    File tmp = File.createTempFile("test", ".lock");
+    tmp.deleteOnExit();
+    RandomAccessFile file = new RandomAccessFile(tmp, "rws");
+    FileChannel channel = file.getChannel();
+    FileLock lock = channel.lock();
+    FileLock lock1 = channel.lock();
+    Assert.fail();
+    lock1.release();
+    lock.release();
+  }
+
+  @Test
+  public void testFileLock2() throws IOException, InterruptedException {
+    File tmp = File.createTempFile("test", ".lock");
+    tmp.deleteOnExit();
+    FileBasedLock lock = FileBasedLock.getLock(tmp);
+    Assert.assertTrue(lock.tryLock());
+    FileBasedLock lock2 = FileBasedLock.getLock(tmp);
+    Assert.assertTrue(lock2.tryLock(1, TimeUnit.SECONDS));
+    lock2.unlock();
+    lock.unlock();
+  }
+
+  @Test
+  @SuppressFBWarnings("UAC_UNNECESSARY_API_CONVERSION_FILE_TO_PATH")
+  public void testFileLockPermissions() throws IOException {
+    File tmpDir = Files.createTempDir();
+    Set<PosixFilePermission> reqPermissions = EnumSet.of(PosixFilePermission.GROUP_READ,
+            PosixFilePermission.GROUP_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+    FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(reqPermissions);
+    File file = new File(tmpDir, "file.lock");
+    FileBasedLock lock = FileBasedLock.getLock(file, attr);
+    Assert.assertTrue(lock.tryLock());
+    lock.unlock();
+    Set<PosixFilePermission> actualPermissions = java.nio.file.Files.getPosixFilePermissions(file.toPath());
+    Assert.assertEquals(reqPermissions, actualPermissions);
+  }
 
 }
