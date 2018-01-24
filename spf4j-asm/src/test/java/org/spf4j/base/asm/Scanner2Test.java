@@ -40,15 +40,19 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
-public class ScannerTest2 {
+public class Scanner2Test {
 
-    public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX =
-            System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
+  public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX
+          = System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix", ManagementFactory.getRuntimeMXBean().getName());
+
+  private static final Logger LOG = LoggerFactory.getLogger(Scanner2Test.class);
 
   @Test
   public void testScan() throws NoSuchMethodException, IOException {
@@ -62,8 +66,8 @@ public class ScannerTest2 {
             Long.class.getDeclaredMethod("getLong", String.class, Long.class),
             Long.class.getDeclaredMethod("getLong", String.class, long.class),
             Boolean.class.getDeclaredMethod("getBoolean", String.class));
-    List<Invocation> findUsages2 = Scanner.findUsages(ScannerTest2.class, lookFor);
-    System.out.println("Scan 1 = " + findUsages2);
+    List<Invocation> findUsages2 = Scanner.findUsages(Scanner2Test.class, lookFor);
+    LOG.debug("Scan 1 = {}", findUsages2);
     Assert.assertThat(findUsages2, CoreMatchers.hasItem(
             Matchers.allOf(
                     Matchers.hasProperty("invokedMethod",

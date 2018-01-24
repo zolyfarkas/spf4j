@@ -40,12 +40,16 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
 public final class ScannerTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ScannerTest.class);
 
   public static class A {
 
@@ -89,7 +93,7 @@ public final class ScannerTest {
 
     List<Invocation> findUsages = Scanner.findUsages(ScannerTest.class,
             ImmutableSet.of(A.class.getDeclaredMethod("getValue")));
-    System.out.println(findUsages);
+    LOG.debug("Usages: {}", findUsages);
     final ImmutableSet<Method> lookFor = ImmutableSet.of(System.class.getDeclaredMethod("getProperty", String.class),
             System.class.getDeclaredMethod("getProperty", String.class, String.class),
             Integer.class.getDeclaredMethod("getInteger", String.class),
@@ -100,9 +104,9 @@ public final class ScannerTest {
             Long.class.getDeclaredMethod("getLong", String.class, long.class),
             Boolean.class.getDeclaredMethod("getBoolean", String.class));
     List<Invocation> findUsages2 = Scanner.findUsages(ScannerTest.class, lookFor);
-    System.out.println("Scan 1 = " + findUsages2);
+    LOG.debug("Scan 1 = {}", findUsages2);
     List<Invocation> findUsages3 = Scanner.findUsages(ScannerTest.class.getPackage().getName(), lookFor);
-    System.out.println("Scan 2 = " + findUsages3);
+    LOG.debug("Scan 2 = {}", findUsages3);
     Assert.assertThat(findUsages2, CoreMatchers.hasItem(
             Matchers.allOf(
                     Matchers.hasProperty("caleeMethodName",

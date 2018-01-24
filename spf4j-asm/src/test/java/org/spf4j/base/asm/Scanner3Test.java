@@ -39,25 +39,30 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
-public class ScannerTest4 {
+public class Scanner3Test {
 
-  public static final class Something {
-    public static final int NRPROCS;
-    static {
-        NRPROCS = java.lang.Runtime.getRuntime().availableProcessors();
-    }
+  private static final Logger LOG = LoggerFactory.getLogger(Scanner3Test.class);
+
+  public enum Something {
+    BLA
   }
 
- private static final int SPIN_LIMITER = Integer.getInteger("spf4j.lifoTp.maxSpinning",
-            Something.NRPROCS / 2);
+  static final Object[] DEFAULT = new Object[]{
+    System.getProperty("spf4j.jdbc.heartBeats.sql.tableName", "HEARTBEATS"),
+    System.getProperty("spf4j.jdbc.heartBeats.sql.ownerColumn", "OWNER"),
+    System.getProperty("spf4j.jdbc.heartBeats.sql.intervalMillisColumn", "INTERVAL_MILLIS"),
+    System.getProperty("spf4j.jdbc.heartBeats.sql.lastHeartBeatMillisColumn", "LAST_HEARTBEAT_INSTANT_MILLIS"),
+    System.getProperty("spf4j.jdbc.heartBeats.sql.currTsSqlFunction", getStuff(Something.BLA))};
 
   public static String getStuff(final Something bla) {
-    return "caca" + SPIN_LIMITER + bla;
+    return "caca" + bla;
   }
 
   @Test
@@ -72,12 +77,13 @@ public class ScannerTest4 {
             Long.class.getDeclaredMethod("getLong", String.class, Long.class),
             Long.class.getDeclaredMethod("getLong", String.class, long.class),
             Boolean.class.getDeclaredMethod("getBoolean", String.class));
-    List<Invocation> findUsages2 = Scanner.findUsages(ScannerTest4.class, lookFor);
-    System.out.println("Scan 1 = " + findUsages2);
+    List<Invocation> findUsages2 = Scanner.findUsages(Scanner3Test.class, lookFor);
+    LOG.debug("Scan 1 = {}", findUsages2);
     Assert.assertThat(findUsages2, CoreMatchers.hasItem(
         Matchers.allOf(
-             Matchers.hasProperty("invokedMethod", Matchers.hasProperty("name", Matchers.equalTo("getInteger"))),
-             Matchers.hasProperty("parameters", Matchers.hasItemInArray("spf4j.lifoTp.maxSpinning")))));
+             Matchers.hasProperty("invokedMethod", Matchers.hasProperty("name", Matchers.equalTo("getProperty"))),
+             Matchers.hasProperty("parameters",
+                     Matchers.hasItemInArray("spf4j.jdbc.heartBeats.sql.currTsSqlFunction")))));
   }
 
 }
