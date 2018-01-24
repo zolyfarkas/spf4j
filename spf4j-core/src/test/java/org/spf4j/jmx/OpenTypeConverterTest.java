@@ -264,11 +264,6 @@ public class OpenTypeConverterTest {
     Assert.assertNull(get);
   }
 
-  @Test
-  public void testJodaLocalDate() throws OpenDataException, InvalidObjectException, NotSerializableException {
-    JMXBeanMapping get = conv.get(LocalDate.class);
-    Assert.assertNull(get);
-  }
 
   @Test
   public void testJdkLocalDate() throws OpenDataException, InvalidObjectException, NotSerializableException {
