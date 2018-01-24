@@ -79,7 +79,6 @@ public class ConverterTest {
           samples.add(object);
         });
         SampleNode back = Converter.convert(samples.iterator());
-        System.out.println(back);
         Assert.assertEquals(testSample.toString(), back.toString());
     }
 

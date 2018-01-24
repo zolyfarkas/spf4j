@@ -44,6 +44,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Either;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
@@ -55,6 +57,8 @@ import org.spf4j.tsdb2.avro.TableDef;
  */
 @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public class TSDBReaderTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(TSDBReaderTest.class);
 
   private final TableDef tableDef = TableDef.newBuilder()
           .setName("test")
@@ -89,7 +93,7 @@ public class TSDBReaderTest {
     try (TSDBReader reader = new TSDBReader(testFile, 1024)) {
       Either<TableDef, DataBlock> read;
       while ((read = reader.read()) != null) {
-        System.out.println(read);
+        LOG.debug("TSDB block: {}", read);
       }
     }
 

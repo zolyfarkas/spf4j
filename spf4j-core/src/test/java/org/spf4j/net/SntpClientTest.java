@@ -38,6 +38,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
 //import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -47,13 +49,15 @@ import org.junit.Test;
 @NotThreadSafe
 public final class SntpClientTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(SntpClientTest.class);
+
   @Test
   public void test() throws IOException, InterruptedException, TimeoutException {
     Timing requestTime = SntpClient.requestTimeHA(60000, "time.apple.com");
     long currentTimeMachine = System.currentTimeMillis();
     long currentTimeNtp = requestTime.getTime();
-    System.out.println("Current time machine = " + currentTimeMachine + " " + Instant.ofEpochMilli(currentTimeMachine));
-    System.out.println("Current time ntp = " + currentTimeNtp + " " + Instant.ofEpochMilli(currentTimeNtp));
+    LOG.debug("Current time machine = {} ", Instant.ofEpochMilli(currentTimeMachine));
+    LOG.debug("Current time ntp = {} ", Instant.ofEpochMilli(currentTimeNtp));
     Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 10000);
   }
 

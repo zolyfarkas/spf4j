@@ -49,6 +49,8 @@ import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Runtime.Jmx;
 import org.spf4j.base.Throwables;
 import org.spf4j.tsdb2.avro.ColumnDef;
@@ -61,6 +63,9 @@ import org.spf4j.tsdb2.avro.Type;
  */
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class RegistryTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RegistryTest.class);
+
 
   public static final class JmxTest extends PropertySource {
 
@@ -215,7 +220,7 @@ public final class RegistryTest {
 
     @JmxExport
     public void print(final int nr, final boolean flag, final String bla, final ColumnDef id) {
-      System.out.println(bla + nr + flag + id);
+      LOG.info("{}, {}, {}, {}", bla, nr, flag, id);
     }
 
   }
@@ -289,17 +294,17 @@ public final class RegistryTest {
 
     CompositeData cd = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
             "test", "Test", "columnDef");
-    System.out.println("CD=" + cd);
+    LOG.debug("CD={}", cd);
     Assert.assertEquals("bla", cd.get("name"));
 
     CompositeData cd2 = (CompositeData) Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
             "test", "Test", "getColumnDef", "bubu");
-    System.out.println("CD2=" + cd2);
+    LOG.debug("CD2={}", cd2);
     Assert.assertEquals("bubu", cd2.get("name"));
 
     CompositeData cd3 = (CompositeData) Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
             "test", "Test", "echo", cd2);
-    System.out.println("CD3=" + cd3);
+    LOG.debug("CD3={}", cd3);
     Assert.assertEquals("bubu", cd3.get("name"));
 
     Client.callOperation("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
@@ -390,7 +395,7 @@ public final class RegistryTest {
             "service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
             Jmx.class.getPackage().getName(),
             Jmx.class.getSimpleName(), "getPackageInfo", Registry.class.getName());
-    System.out.println(info);
+    LOG.debug("Returned {}", info);
     Assert.assertNotNull(info);
   }
 
