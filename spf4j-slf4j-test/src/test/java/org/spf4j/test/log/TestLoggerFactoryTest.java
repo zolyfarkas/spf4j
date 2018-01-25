@@ -118,12 +118,13 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
+  @SuppressFBWarnings("LO_TOSTRING_PARAMETER") // this is on purpose configs change over time.
   public void testIsEnabled() {
     LOG.debug("Log Config: {}", TestLoggers.config().toString());
     Marker marker = MarkerFactory.getMarker("TEST");
     Assert.assertFalse(LOG.isTraceEnabled());
     Assert.assertFalse(LOG.isTraceEnabled(marker));
-    
+
     //DEBUG is enabled since debug logs are collected in the background...
     Assert.assertTrue(LOG.isDebugEnabled());
     Assert.assertTrue(LOG.isDebugEnabled(marker));
