@@ -98,11 +98,12 @@ public final class DetailOnFailureRunListener extends RunListener {
           final Throwable failure) {
     handler.close();
     LOG.info("Test {} failed", description, failure);
-    LOG.info("Dumping last {} unprinted logs for {description}", maxDebugLogsCollected);
+    LOG.info("Dumping last {} unprinted logs for {}", maxDebugLogsCollected, description);
     final String annotation = description.toString() + ' ';
     handler.forEach((record) -> {
       LogPrinter.printToStderr(record, annotation);
     });
+    LOG.info("End dump for {}", description);
   }
 
   @Override
