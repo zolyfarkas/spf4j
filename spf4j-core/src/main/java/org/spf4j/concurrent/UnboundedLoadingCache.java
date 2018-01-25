@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.MemorizedCallable;
 
@@ -151,6 +152,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
   }
 
   @Override
+  @Nullable
   public V getIfPresent(final Object key) {
     Callable<? extends V> existingValHolder = map.get(key);
     if (existingValHolder != null) {

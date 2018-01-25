@@ -213,6 +213,7 @@ public final class Throwables {
     }
   }
 
+  @Nullable
   public static Throwable removeOldestSuppressedRecursive(final Throwable t) {
     try {
       final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
@@ -231,6 +232,7 @@ public final class Throwables {
     }
   }
 
+  @Nullable
   public static Throwable removeOldestSuppressed(final Throwable t) {
     try {
       final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);

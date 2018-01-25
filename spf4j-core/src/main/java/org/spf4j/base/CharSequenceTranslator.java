@@ -53,6 +53,7 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Locale;
+import javax.annotation.Nullable;
 
 
 public abstract class CharSequenceTranslator {
@@ -61,7 +62,8 @@ public abstract class CharSequenceTranslator {
     public abstract int translate(CharSequence input, int index, Writer out) throws IOException;
 
 
-    public final String translate(final CharSequence input) {
+    @Nullable
+    public final String translate(@Nullable final CharSequence input) {
         if (input == null) {
             return null;
         }

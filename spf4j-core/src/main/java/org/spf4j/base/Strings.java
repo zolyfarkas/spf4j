@@ -56,6 +56,7 @@ import sun.nio.cs.ArrayEncoder;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -146,7 +147,8 @@ public final class Strings {
     return CharSequences.distance(s1, s2);
   }
 
-  public static String unescape(final String what) {
+  @Nullable
+  public static String unescape(@Nullable final String what) {
     return UNESCAPE_JAVA.translate(what);
   }
 
