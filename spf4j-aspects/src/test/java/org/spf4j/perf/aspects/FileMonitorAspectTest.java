@@ -47,6 +47,8 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.os.OperatingSystem;
 import org.spf4j.perf.impl.RecorderFactory;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
@@ -59,6 +61,8 @@ import org.spf4j.tsdb2.TSDBWriter;
  */
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class FileMonitorAspectTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(FileMonitorAspectTest.class);
 
   /**
    * Test of nioReadLong method, of class FileMonitorAspect.
@@ -79,7 +83,7 @@ public final class FileMonitorAspectTest {
             Files.newInputStream(tempFile.toPath()), StandardCharsets.UTF_8))) {
       String line = fr.readLine();
       while (line != null) {
-        System.out.println(line);
+        LOG.debug("Read: {}", line);
         line = fr.readLine();
         Thread.sleep(500);
       }
@@ -88,7 +92,7 @@ public final class FileMonitorAspectTest {
     dbWriter.flush();
     final File file = dbWriter.getFile();
     ListMultimap<String, TableDefEx> allTables = TSDBQuery.getAllTablesWithDataRanges(file);
-    System.out.println("Tables" +  allTables);
+    LOG.debug("Tables {}", allTables);
     Map<String, Collection<TableDefEx>> asMap = allTables.asMap();
     Assert.assertThat(asMap, (Matcher)
             Matchers.hasKey("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest"));

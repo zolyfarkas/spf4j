@@ -34,6 +34,8 @@ package org.spf4j.perf.aspects;
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
@@ -45,31 +47,33 @@ import org.spf4j.perf.memory.TestClass;
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class SamplingAllocationMonitorAspectTest {
 
-    private static void testAllocInStaticContext() throws InterruptedException {
-        for (int i = 0; i < 1000; i++) {
-            System.err.println("S" + i + Strings.repeat("A", i % 2 * 2));
-            if (i % 100 == 0) {
-                Thread.sleep(100);
-            }
-        }
-    }
+  private static final Logger LOG = LoggerFactory.getLogger(SamplingAllocationMonitorAspectTest.class);
 
-    /**
-     * Test of afterAllocation method, of class AllocationMonitorAspect.
-     */
-    @Test
-    public void testAfterAllocation() throws InterruptedException {
-        System.setProperty("spf4j.perf.allocations.sampleTimeMillis", "1000");
-        System.setProperty("spf4j.perf.allocations.sampleCount", "10");
-        MemoryUsageSampler.start(500);
-        OpenFilesSampler.start(500, 512, 1000, false);
-        for (int i = 0; i < 1000; i++) {
-            System.err.println("T" + i);
-            if (i % 100 == 0) {
-                Thread.sleep(500);
-            }
-        }
-        testAllocInStaticContext();
-        TestClass.testAllocInStaticContext();
+  private static void testAllocInStaticContext() throws InterruptedException {
+    for (int i = 0; i < 1000; i++) {
+      LOG.debug("S{}{}", i, Strings.repeat("A", i % 2 * 2));
+      if (i % 100 == 0) {
+        Thread.sleep(100);
+      }
     }
+  }
+
+  /**
+   * Test of afterAllocation method, of class AllocationMonitorAspect.
+   */
+  @Test
+  public void testAfterAllocation() throws InterruptedException {
+    System.setProperty("spf4j.perf.allocations.sampleTimeMillis", "1000");
+    System.setProperty("spf4j.perf.allocations.sampleCount", "10");
+    MemoryUsageSampler.start(500);
+    OpenFilesSampler.start(500, 512, 1000, false);
+    for (int i = 0; i < 1000; i++) {
+      LOG.debug("T{}", i);
+      if (i % 100 == 0) {
+        Thread.sleep(500);
+      }
+    }
+    testAllocInStaticContext();
+    TestClass.testAllocInStaticContext();
+  }
 }

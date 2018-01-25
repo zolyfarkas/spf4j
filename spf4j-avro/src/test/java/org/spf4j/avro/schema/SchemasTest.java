@@ -41,12 +41,16 @@ import org.apache.avro.SchemaCompatibility;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author zoly
  */
 public class SchemasTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SchemasTest.class);
 
   private static final String SCHEMA = "{\"type\":\"record\",\"name\":\"SampleNode\",\"doc\":\"caca\","
           + "\"namespace\":\"org.spf4j.ssdump2.avro\",\n"
@@ -114,19 +118,19 @@ public class SchemasTest {
 
     @Override
     public SchemaVisitorAction visitTerminal(final Schema terminal) {
-      System.out.println("Terminal: " + terminal.getFullName());
+      LOG.debug("Terminal: {}", terminal.getFullName());
       return SchemaVisitorAction.CONTINUE;
     }
 
     @Override
     public SchemaVisitorAction visitNonTerminal(final Schema terminal) {
-      System.out.println("NONTerminal start: " + terminal.getFullName());
+      LOG.debug("NONTerminal start: {}", terminal.getFullName());
       return SchemaVisitorAction.CONTINUE;
     }
 
     @Override
     public SchemaVisitorAction afterVisitNonTerminal(final Schema terminal) {
-      System.out.println("NONTerminal end: " + terminal.getFullName());
+      LOG.debug("NONTerminal end: {}", terminal.getFullName());
       return SchemaVisitorAction.CONTINUE;
     }
   }

@@ -42,6 +42,8 @@ import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -49,6 +51,7 @@ import org.junit.Test;
  */
 public class GenericRecordBuilderTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(GenericRecordBuilderTest.class);
 
   @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
@@ -64,8 +67,8 @@ public class GenericRecordBuilderTest {
       SpecificRecordBase nr = nestedRecordClass.newInstance();
       nr.put("nestedRequiredBoolean", Boolean.TRUE);
       record.put("optionalRecord", nr);
+      LOG.debug("Record = {}", record);
       Assert.assertEquals(nr, record.get("optionalRecord"));
-      System.out.println(record);
     }
   }
 
@@ -90,7 +93,7 @@ public class GenericRecordBuilderTest {
       Assert.assertEquals(35, (int) myRecord.get("number"));
       Class<? extends SpecificRecordBase> aClass = builder.getRecordClass(record2);
       GenericRecord r2 = aClass.newInstance();
-      System.out.println(r2);
+      LOG.debug("Record = {}", r2);
     }
   }
 

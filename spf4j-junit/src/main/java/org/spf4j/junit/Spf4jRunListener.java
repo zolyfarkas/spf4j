@@ -39,6 +39,8 @@ import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.stackmonitor.Sampler;
 
@@ -81,6 +83,8 @@ import org.spf4j.stackmonitor.Sampler;
 @NotThreadSafe
 public final class Spf4jRunListener extends RunListener {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Spf4jRunListener.class);
+
   private final Sampler sampler;
 
   private final File destinationFolder;
@@ -105,7 +109,7 @@ public final class Spf4jRunListener extends RunListener {
           throws IOException {
     File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump2"));
     if (dumpToFile != null) {
-      System.out.print("Profile saved to " + dumpToFile);
+      LOG.info("Profile saved to {}", dumpToFile);
     }
   }
 
@@ -114,7 +118,7 @@ public final class Spf4jRunListener extends RunListener {
           throws IOException {
     File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
     if (dump != null) {
-      System.out.print("Profile saved to " + dump);
+      LOG.info("Profile saved to {}", dump);
       lastWrittenFile = dump;
     }
   }

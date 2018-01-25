@@ -27,12 +27,16 @@ import org.apache.avro.compiler.idl.Idl;
 import org.apache.avro.compiler.idl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Zoltan Farkas
  */
 public class SchemaUtilsTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SchemaUtilsTest.class);
 
   @Test
   public void testIdlGenerator() throws IOException, ParseException {
@@ -59,12 +63,12 @@ public class SchemaUtilsTest {
             .endRecord();
 
     SchemaUtils.writeIdlProtocol("TestProtocol", "test", idlStrWriter, rs);
-    System.out.println(idlStrWriter);
+    LOG.debug("writer = {}", idlStrWriter);
     String idlStr = idlStrWriter.toString();
     Assert.assertFalse(idlStr.isEmpty());
     Idl idl = new Idl(new StringReader(idlStr));
     Protocol protocol = idl.CompilationUnit();
-    System.out.println(protocol);
+    LOG.debug("Protocol = {}", protocol);
     Schema rs2 = protocol.getType("test.TestRecord2");
     Assert.assertEquals(rs, rs2);
 
@@ -84,12 +88,12 @@ public class SchemaUtilsTest {
             .endRecord();
 
     SchemaUtils.writeIdlProtocol("TestProtocol", "test", idlStrWriter, rs);
-    System.out.println(idlStrWriter);
+    LOG.debug("writer = {}", idlStrWriter);
     String idlStr = idlStrWriter.toString();
     Assert.assertFalse(idlStr.isEmpty());
     Idl idl = new Idl(new StringReader(idlStr));
     Protocol protocol = idl.CompilationUnit();
-    System.out.println(protocol);
+    LOG.debug("Protocol = {}", protocol);
     Schema rs2 = protocol.getType("test.TestRecord2");
     Assert.assertEquals(rs, rs2);
 
