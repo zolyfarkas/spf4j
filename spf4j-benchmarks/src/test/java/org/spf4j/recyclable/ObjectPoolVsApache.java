@@ -61,7 +61,6 @@ public final class ObjectPoolVsApache {
   @Test(timeout = 200000)
   @SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
   public void testPerformance() throws ObjectCreationException, InterruptedException, ExecutionException {
-    System.out.println("poolUse");
     final RecyclingSupplier<ExpensiveTestObject> pool
             = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory(1000, 100, 0, 1)).build();
     final GenericObjectPool apool
@@ -92,9 +91,7 @@ public final class ObjectPoolVsApache {
     for (int i = 0; i < TEST_TASKS; i++) {
       completionQueue.take().get();
     }
-    long elapsedTime = System.currentTimeMillis() - startTime;
-    System.out.println("Completed all " + TEST_TASKS + " tasks in " + elapsedTime + "ms ");
-    return elapsedTime;
+    return System.currentTimeMillis() - startTime;
   }
 
   private long testPoolApache(final RetryExecutor exec,
@@ -107,9 +104,7 @@ public final class ObjectPoolVsApache {
     for (int i = 0; i < TEST_TASKS; i++) {
       completionQueue.take().get();
     }
-    long elapsedTime = System.currentTimeMillis() - startTime;
-    System.out.println("Completed all " + TEST_TASKS + " tasks in " + elapsedTime + "ms ");
-    return elapsedTime;
+    return System.currentTimeMillis() - startTime;
   }
 
 }

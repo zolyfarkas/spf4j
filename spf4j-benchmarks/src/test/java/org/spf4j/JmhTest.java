@@ -38,19 +38,22 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
 import org.spf4j.stackmonitor.Spf4jJmhProfiler;
 
 /**
- *
  * @author zoly
  */
 public final class JmhTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(JmhTest.class);
+
   @Test
   public void runJmh() throws RunnerException, IOException {
     if ("true".equalsIgnoreCase(System.getenv("TRAVIS"))) {
-      System.err.println("Benchmarks disabled in travis, not enough resources for this...");
+      LOG.info("Benchmarks disabled in travis, not enough resources for this...");
       return;
     }
     final String destinationFolder = System.getProperty("basedir",
