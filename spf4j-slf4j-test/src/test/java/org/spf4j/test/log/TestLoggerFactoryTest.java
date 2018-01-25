@@ -119,17 +119,15 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testIsEnabled() {
-    LOG.debug("Log Config: {}", TestLoggers.config());
+    LOG.debug("Log Config: {}", TestLoggers.config().toString());
     Marker marker = MarkerFactory.getMarker("TEST");
     Assert.assertFalse(LOG.isTraceEnabled());
     Assert.assertFalse(LOG.isTraceEnabled(marker));
-    if (TestUtils.isExecutedFromIDE()) {
-      Assert.assertTrue(LOG.isDebugEnabled());
-      Assert.assertTrue(LOG.isDebugEnabled(marker));
-    } else {
-      Assert.assertFalse(LOG.isDebugEnabled());
-      Assert.assertFalse(LOG.isDebugEnabled(marker));
-    }
+    
+    //DEBUG is enabled since debug logs are collected in the background...
+    Assert.assertTrue(LOG.isDebugEnabled());
+    Assert.assertTrue(LOG.isDebugEnabled(marker));
+
     Assert.assertTrue(LOG.isInfoEnabled());
     Assert.assertTrue(LOG.isInfoEnabled(marker));
     Assert.assertTrue(LOG.isWarnEnabled());
