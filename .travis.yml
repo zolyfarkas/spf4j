@@ -3,14 +3,14 @@ language: java
 jdk:
   - oraclejdk8
 
-script: mvn -B -Dgpg.skip=true install
+script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install
 
 before_install: 
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
   - sudo apt-get install jq
   - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
 
-install: mvn -B -DskipTests=true -Dgpg.skip=true install
+install: mvn -B -DskipTests=true -Dgpg.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install
 
 env:
   global:
