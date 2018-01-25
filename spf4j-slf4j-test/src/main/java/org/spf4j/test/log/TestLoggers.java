@@ -172,7 +172,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   @Override
   public String toString() {
-    return "TestLoggers{" + "loggerMap=" + loggerMap + ", config=" + config + '}';
+    return "TestLoggers{ config=" + config + ", loggerMap=" + loggerMap + '}';
   }
 
 }

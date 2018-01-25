@@ -119,6 +119,7 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testIsEnabled() {
+    LOG.debug("Log Config: {}", TestLoggers.config());
     Marker marker = MarkerFactory.getMarker("TEST");
     Assert.assertFalse(LOG.isTraceEnabled());
     Assert.assertFalse(LOG.isTraceEnabled(marker));
