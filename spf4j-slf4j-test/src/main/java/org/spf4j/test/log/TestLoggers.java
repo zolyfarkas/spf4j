@@ -20,11 +20,13 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import java.util.logging.LogManager;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.concurrent.GuardedBy;
 import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * @author Zoltan Farkas
@@ -46,7 +48,16 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final Function<String, Logger> computer;
 
+  private final java.util.logging.Logger julGlobal;
+
   private TestLoggers() {
+    LogManager.getLogManager().reset();
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+    julGlobal = java.util.logging.Logger.getLogger("global");
+    julGlobal.setLevel(java.util.logging.Level.parse(
+            System.getProperty("spf4j.testLog.julRedirectLevel", "FINEST")));
+
     loggerMap = new ConcurrentHashMap<String, Logger>();
     Level rootPrintLevel = TestUtils.isExecutedFromIDE()
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
