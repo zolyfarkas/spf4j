@@ -78,7 +78,7 @@ public abstract class DebugLogCollector implements  LogHandler, LogCollectionHan
   @Override
   public final String toString() {
     return "DebugLogCollector{" + "minLevelToCollect=" + minLevelToCollect + ", maxLogsToCollect="
-            + maxLogsToCollect + ", records=" + records + '}';
+            + maxLogsToCollect + '}';
   }
 
 
