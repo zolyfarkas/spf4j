@@ -38,9 +38,21 @@ public class TestLoggerFactoryTest {
   public void testLogging() {
     try (HandlerRegistration printer = TestLoggers.config().print("org.spf4j.test", Level.TRACE)) {
       LOG.trace("Hello logger");
-      LOG.info("Hello logger2");
-      LOG.warn("Hello {} logger", "my");
-      LOG.warn("Hello {} logger", "my", "some", "extra", new RuntimeException());
+      LOG.trace("Hello logger {}", 1);
+      LOG.trace("Hello logger {} {} {}", 1, 2, 3);
+      LOG.trace("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+      LOG.debug("Hello logger");
+      LOG.debug("Hello logger {}", 1);
+      LOG.debug("Hello logger {} {} {}", 1, 2, 3);
+      LOG.debug("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+      LOG.info("Hello logger");
+      LOG.info("Hello logger {}", 1);
+      LOG.info("Hello logger {} {} {}", 1, 2, 3);
+      LOG.info("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+      LOG.warn("Hello logger");
+      LOG.warn("Hello logger {}", 1);
+      LOG.warn("Hello logger {} {} {}", 1, 2, 3);
+      LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
       LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
               Matchers.hasProperty("format", Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
@@ -63,6 +75,13 @@ public class TestLoggerFactoryTest {
     expect.assertSeen();
   }
 
+  @Test
+  public void testLogging33() {
+    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
+            Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+    expect.assertNotSeen();
+  }
+
   @Ignore
   @Test
   public void testLogging4() {
@@ -75,7 +94,7 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testLogging5() {
-    LogCollectionHandler collect = TestLoggers.config().collect(Level.DEBUG, 10, false);
+    LogCollectionHandler collect = TestLoggers.config().collect(Level.DEBUG, 10, true);
     LOG.debug("log {}", 1);
     LOG.debug("log {} {}", 1, 2);
     LOG.debug("log {} {} {}", 1, 2, 3);
