@@ -1,4 +1,4 @@
-## spf4j-junit the module that allows to profile your usint tests.
+## spf4j-junit the module that allows to profile your unit tests.
 
  To enable the spf4j profilling, you will need to configure your maven-surefire-plugin to run the spf4j run listener:
 

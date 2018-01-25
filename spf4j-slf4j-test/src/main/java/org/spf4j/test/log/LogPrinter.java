@@ -187,10 +187,9 @@ public final class LogPrinter implements LogHandler {
     }
     Marker marker = record.getMarker();
     if (marker != null) {
-      wr.append(' ');
       printMarker(marker, wr, wrapper);
+      wr.append(' ');
     }
-    wr.append(' ');
     Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);
     wr.append(" \"");
     wrapper.append(record.getThread().getName());
