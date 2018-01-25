@@ -16,15 +16,10 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
-import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 
 /**
  *
@@ -36,8 +31,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final Matcher<LogRecord>[] matchers;
 
-  private final List<LogRecord> seen;
-
   private int at;
 
   LogMatchingHandler(final Level minLevel, final Matcher<LogRecord>... matchers) {
@@ -47,7 +40,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     this.matchers = matchers;
     this.at = 0;
     this.minLevel = minLevel;
-    this.seen = new ArrayList<>();
   }
 
   abstract void unregister();
@@ -64,7 +56,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     if (at < matchers.length && matchers[at].matches(record)) {
       at++;
     }
-    seen.add(record);
     record.attach(DefaultAsserter.ASSERTED);
     return record;
   }
@@ -84,17 +75,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
         description.appendText("\n");
         matchers[i].describeTo(description);
       }
-      description.appendText("\n but have seen:\n");
-      StringBuilder result = new StringBuilder(seen.size() * 120);
-      EscapeJsonStringAppendableWrapper wrapper = new EscapeJsonStringAppendableWrapper(result);
-      for (LogRecord record : seen) {
-        try {
-          LogPrinter.print(record, result, wrapper, "");
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
-      }
-      description.appendText(result.toString());
       throw new AssertionError(description.toString());
     }
   }
@@ -114,17 +94,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
         description.appendText("\n");
         matchers[i].describeTo(description);
       }
-      description.appendText("\n but have seen:\n");
-      StringBuilder result = new StringBuilder(seen.size() * 120);
-      EscapeJsonStringAppendableWrapper wrapper = new EscapeJsonStringAppendableWrapper(result);
-      for (LogRecord record : seen) {
-        try {
-          LogPrinter.print(record, result, wrapper, "");
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
-      }
-      description.appendText(result.toString());
       throw new AssertionError(description.toString());
     }
   }
@@ -132,7 +101,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   @Override
   public String toString() {
     return "LogMatchingHandler{" + "minLevel=" + minLevel + ", matchers=" + Arrays.toString(matchers)
-            + ", seen=" + seen + ", at=" + at + '}';
+            + ", at=" + at + '}';
   }
 
 

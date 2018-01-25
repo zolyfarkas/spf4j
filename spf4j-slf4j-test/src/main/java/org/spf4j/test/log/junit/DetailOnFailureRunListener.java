@@ -89,7 +89,9 @@ public final class DetailOnFailureRunListener extends RunListener {
   public void testFailure(final Failure failure) {
     Description description = failure.getDescription();
     LogCollectionHandler handler = collections.get(description);
-    dumpDebugInfo(handler, description, failure.getException());
+    if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
+      dumpDebugInfo(handler, description, failure.getException());
+    }
   }
 
   public void dumpDebugInfo(final LogCollectionHandler handler, final Description description,

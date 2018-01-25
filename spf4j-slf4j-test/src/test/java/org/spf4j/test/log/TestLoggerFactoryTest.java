@@ -23,6 +23,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  *
@@ -34,30 +36,105 @@ public class TestLoggerFactoryTest {
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest.class);
 
   @Test
-  @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT" })
+  @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT"})
   public void testLogging() {
     try (HandlerRegistration printer = TestLoggers.config().print("org.spf4j.test", Level.TRACE)) {
-      LOG.trace("Hello logger");
-      LOG.trace("Hello logger {}", 1);
-      LOG.trace("Hello logger {} {} {}", 1, 2, 3);
-      LOG.trace("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-      LOG.debug("Hello logger");
-      LOG.debug("Hello logger {}", 1);
-      LOG.debug("Hello logger {} {} {}", 1, 2, 3);
-      LOG.debug("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-      LOG.info("Hello logger");
-      LOG.info("Hello logger {}", 1);
-      LOG.info("Hello logger {} {} {}", 1, 2, 3);
-      LOG.info("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-      LOG.warn("Hello logger");
-      LOG.warn("Hello logger {}", 1);
-      LOG.warn("Hello logger {} {} {}", 1, 2, 3);
-      LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+      logTests();
+      logMarkerTests();
       LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
               Matchers.hasProperty("format", Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertSeen();
     }
+  }
+
+  public static void logTests() {
+    LOG.trace("Hello logger", new RuntimeException());
+    LOG.trace("Hello logger");
+    LOG.trace("Hello logger {}", 1);
+    LOG.trace("Hello logger {} {} {}", 1, 2, 3);
+    LOG.trace("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.debug("Hello logger", new RuntimeException());
+    LOG.debug("Hello logger");
+    LOG.debug("Hello logger {}", 1);
+    LOG.debug("Hello logger {} {} {}", 1, 2, 3);
+    LOG.debug("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.info("Hello logger", new RuntimeException());
+    LOG.info("Hello logger");
+    LOG.info("Hello logger {}", 1);
+    LOG.info("Hello logger {} {} {}", 1, 2, 3);
+    LOG.info("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.warn("Hello logger", new RuntimeException());
+    LOG.warn("Hello logger");
+    LOG.warn("Hello logger {}", 1);
+    LOG.warn("Hello logger {} {} {}", 1, 2, 3);
+    LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR, 4,
+            Matchers.hasProperty("format", Matchers.containsString("Hello logger")));
+    LOG.error("Hello logger", new RuntimeException());
+    LOG.error("Hello logger");
+    LOG.error("Hello logger {}", 1);
+    LOG.error("Hello logger {} {} {}", 1, 2, 3);
+    LOG.error("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    expect.assertSeen();
+  }
+
+  public static void logMarkerTests() {
+    Marker marker = MarkerFactory.getMarker("TEST");
+    Marker marker2 = MarkerFactory.getMarker("TEST2");
+    marker2.add(marker);
+    marker2.add(MarkerFactory.getMarker("TEST3"));
+
+    LOG.trace(marker, "Hello logger", new RuntimeException());
+    LOG.trace(marker, "Hello logger");
+    LOG.trace(marker, "Hello logger {}", 1);
+    LOG.trace(marker, "Hello logger {} {} {}", 1, 2, 3);
+    LOG.trace(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.debug(marker, "Hello logger", new RuntimeException());
+    LOG.debug(marker, "Hello logger");
+    LOG.debug(marker, "Hello logger {}", 1);
+    LOG.debug(marker, "Hello logger {} {} {}", 1, 2, 3);
+    LOG.debug(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.info(marker, "Hello logger", new RuntimeException());
+    LOG.info(marker2, "Hello logger");
+    LOG.info(marker2, "Hello logger {}", 1);
+    LOG.info(marker2, "Hello logger {} {} {}", 1, 2, 3);
+    LOG.info(marker2, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.warn(marker, "Hello logger", new RuntimeException());
+    LOG.warn(marker, "Hello logger");
+    LOG.warn(marker, "Hello logger {}", 1);
+    LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3);
+    LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR, 4,
+            Matchers.allOf(
+              Matchers.hasProperty("format", Matchers.containsString("Hello logger")),
+              Matchers.hasProperty("marker", Matchers.equalTo(marker))));
+    LOG.error(marker, "Hello logger", new RuntimeException());
+    LOG.error(marker, "Hello logger");
+    LOG.error(marker, "Hello logger {}", 1);
+    LOG.error(marker, "Hello logger {} {} {}", 1, 2, 3);
+    LOG.error(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    expect.assertSeen();
+  }
+
+  @Test
+  public void testIsEnabled() {
+    Marker marker = MarkerFactory.getMarker("TEST");
+    Assert.assertFalse(LOG.isTraceEnabled());
+    Assert.assertFalse(LOG.isTraceEnabled(marker));
+    if (TestUtils.isExecutedFromIDE()) {
+      Assert.assertTrue(LOG.isDebugEnabled());
+      Assert.assertTrue(LOG.isDebugEnabled(marker));
+    } else {
+      Assert.assertFalse(LOG.isDebugEnabled());
+      Assert.assertFalse(LOG.isDebugEnabled(marker));
+    }
+    Assert.assertTrue(LOG.isInfoEnabled());
+    Assert.assertTrue(LOG.isInfoEnabled(marker));
+    Assert.assertTrue(LOG.isWarnEnabled());
+    Assert.assertTrue(LOG.isWarnEnabled(marker));
+    Assert.assertTrue(LOG.isErrorEnabled());
+    Assert.assertTrue(LOG.isErrorEnabled(marker));
   }
 
   @Test(expected = AssertionError.class)
@@ -76,6 +153,7 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLogging33() {
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
             Matchers.hasProperty("format", Matchers.equalTo("Booo")));
@@ -90,6 +168,18 @@ public class TestLoggerFactoryTest {
     LOG.debug("log {} {} {}", 1, 2, 3);
     LOG.debug("log {} {} {}", 1, 2, 3, 4);
     Assert.fail("booo");
+  }
+
+  @Test
+  @Ignore
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  public void testLoggingUncaught() throws InterruptedException {
+    Thread thread = new Thread(() -> {
+      throw new RuntimeException();
+    });
+    thread.start();
+    Thread.sleep(1000);
+    Assert.assertTrue(true);
   }
 
   @Test

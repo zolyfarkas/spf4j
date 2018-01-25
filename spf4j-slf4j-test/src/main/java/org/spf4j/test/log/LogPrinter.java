@@ -24,8 +24,10 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Marker;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Slf4jMessageFormatter;
 import org.spf4j.base.Throwables;
@@ -144,6 +146,31 @@ public final class LogPrinter implements LogHandler {
     }
   }
 
+   static void printMarker(final Marker marker, final Appendable wr,
+          final EscapeJsonStringAppendableWrapper wrapper)
+          throws IOException {
+      if (marker.hasReferences()) {
+        wr.append('{');
+        wr.append('"');
+        wrapper.append(marker.getName());
+        wr.append("\":[");
+        Iterator<Marker> it = marker.iterator();
+        if (it.hasNext()) {
+          printMarker(it.next(), wr, wrapper);
+          while (it.hasNext()) {
+            wr.append(',');
+            printMarker(it.next(), wr, wrapper);
+          }
+        }
+        wr.append("]}");
+      } else {
+        wr.append('"');
+        wrapper.append(marker.getName());
+        wr.append('"');
+      }
+   }
+
+
   static void print(final LogRecord record, final Appendable wr,
           final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
           throws IOException {
@@ -157,6 +184,11 @@ public final class LogPrinter implements LogHandler {
       for (int i = 0, l = 6 - ll; i < l; i++) {
         wr.append(' ');
       }
+    }
+    Marker marker = record.getMarker();
+    if (marker != null) {
+      wr.append(' ');
+      printMarker(marker, wr, wrapper);
     }
     wr.append(' ');
     Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);
