@@ -36,8 +36,6 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.perf.cpu.CpuUsageSampler;
 
 /**
@@ -47,8 +45,6 @@ import org.spf4j.perf.cpu.CpuUsageSampler;
 @SuppressFBWarnings({"MDM_THREAD_YIELD", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"})
 public class LifoThreadPoolExecutorCoreIdlingTest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorCoreIdlingTest.class);
-
   @Test
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
@@ -57,8 +53,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
-    Assert.assertTrue(cpuTime < 200000000);
-    LOG.debug("cpuTime = {}", cpuTime); // 6069497000 with bug  53945000 without bug
+    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 200000000); // 6069497000 with bug  53945000 without bug
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
   }
@@ -71,8 +66,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
-    Assert.assertTrue(cpuTime < 200000000);
-    LOG.debug("cpuTime = {}", cpuTime); // 6069497000 with bug  53945000 without bug
+    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 200000000); // 6069497000 with bug  53945000 without bug
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
   }
