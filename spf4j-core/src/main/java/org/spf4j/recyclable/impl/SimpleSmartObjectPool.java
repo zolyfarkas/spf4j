@@ -106,7 +106,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         return object;
       } else {
         if (borrowedObjects.isEmpty() && availableObjects.isEmpty()) {
-          throw new RuntimeException(
+          throw new IllegalStateException(
                   "Pool is probably closing down or is missconfigured with size 0 " + this);
         }
         while (borrowedObjects.isEmpty()) {

@@ -35,6 +35,7 @@ package org.spf4j.base;
 import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -397,7 +398,7 @@ public final class Strings {
         cr.throwException();
       }
     } catch (CharacterCodingException x) {
-      throw new Error(x);
+      throw new UncheckedIOException(x);
     }
     return new String(ca, 0, cb.position());
   }

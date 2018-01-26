@@ -78,28 +78,12 @@ public final class Reflections {
 
   private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
 
-  static {
-    initPrimitiveMap();
-  }
-
-  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
-  private static void initPrimitiveMap() {
-    PRIMITIVE_MAP.put(boolean.class, Boolean.class);
-    PRIMITIVE_MAP.put(byte.class, Byte.class);
-    PRIMITIVE_MAP.put(char.class, Character.class);
-    PRIMITIVE_MAP.put(short.class, Short.class);
-    PRIMITIVE_MAP.put(int.class, Integer.class);
-    PRIMITIVE_MAP.put(long.class, Long.class);
-    PRIMITIVE_MAP.put(float.class, Float.class);
-    PRIMITIVE_MAP.put(double.class, Double.class);
-  }
-
-
   private static final MethodHandle PARAMETER_TYPES_METHOD_FIELD_GET;
   private static final MethodHandle PARAMETER_TYPES_CONSTR_FIELD_GET;
   private static final MethodHandle FIND_CLASS;
 
   static {
+    initPrimitiveMap();
     Field mPtField = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
       Field f;
       try {
@@ -160,6 +144,19 @@ public final class Reflections {
     }
 
   }
+
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
+  private static void initPrimitiveMap() {
+    PRIMITIVE_MAP.put(boolean.class, Boolean.class);
+    PRIMITIVE_MAP.put(byte.class, Byte.class);
+    PRIMITIVE_MAP.put(char.class, Character.class);
+    PRIMITIVE_MAP.put(short.class, Short.class);
+    PRIMITIVE_MAP.put(int.class, Integer.class);
+    PRIMITIVE_MAP.put(long.class, Long.class);
+    PRIMITIVE_MAP.put(float.class, Float.class);
+    PRIMITIVE_MAP.put(double.class, Double.class);
+  }
+
 
   private Reflections() { }
 

@@ -35,10 +35,6 @@ public final class TestLoggers implements ILoggerFactory {
 
   private static final TestLoggers INSTANCE = new TestLoggers();
 
-  public static TestLoggers config() {
-    return INSTANCE;
-  }
-
   private final ConcurrentMap<String, Logger> loggerMap;
 
   private final Object sync;
@@ -49,6 +45,10 @@ public final class TestLoggers implements ILoggerFactory {
   private final Function<String, Logger> computer;
 
   private final java.util.logging.Logger julGlobal;
+
+  public static TestLoggers config() {
+    return INSTANCE;
+  }
 
   private TestLoggers() {
     LogManager.getLogManager().reset();
@@ -179,6 +179,10 @@ public final class TestLoggers implements ILoggerFactory {
    */
   public Logger getLogger(final String name) {
     return loggerMap.computeIfAbsent(name, computer);
+  }
+
+  public java.util.logging.Logger getJulGlobal() {
+    return julGlobal;
   }
 
   @Override

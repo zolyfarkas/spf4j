@@ -46,9 +46,9 @@ public final class TestClass {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestClass.class);
 
-    private TestClass() { }
-
     private static final IntMath.XorShift32 RND = new IntMath.XorShift32();
+
+    private TestClass() { }
 
     public static void testAllocInStaticContext() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
