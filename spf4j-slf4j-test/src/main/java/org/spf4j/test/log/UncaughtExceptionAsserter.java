@@ -96,6 +96,8 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
       }
     } catch (Throwable error) {
       exception = error;
+    } finally {
+      unregister();
     }
     finished = true;
   }
@@ -132,7 +134,6 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
           }
           AssertionError assertionError = new AssertionError("Encountered " + ucx);
           assertionError.addSuppressed(ucx.getThrowable());
-          unregister();
           throw assertionError;
         } else {
           if (!replyQueue.offer(Boolean.FALSE, 10, TimeUnit.SECONDS)) {
@@ -141,7 +142,6 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
         }
       }
     }
-    unregister();
   }
 
   private void assertSeen() throws InterruptedException {
@@ -160,7 +160,6 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
           if (!replyQueue.offer(Boolean.TRUE, 10, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
           }
-          unregister();
           return;
         } else {
           if (!replyQueue.offer(Boolean.FALSE, 10, TimeUnit.SECONDS)) {
@@ -169,7 +168,6 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
         }
       }
     }
-    unregister();
     throw new AssertionError("Did not observe: " + matcher);
   }
 
