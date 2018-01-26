@@ -45,6 +45,7 @@ public final class StackTraceTest {
   public void testSomeMethod() {
     StackTraceElement[] stack = Thread.currentThread().getStackTrace();
     StackTrace st = new StackTrace(stack, 1);
-    Assert.assertThat(st.toString(), Matchers.containsString("getStackTrace"));
+    Assert.assertThat(st.toString(), Matchers.containsString("testSomeMethod"));
+    Assert.assertThat(st.toString(), Matchers.not(Matchers.containsString("getStackTrace")));
   }
 }
