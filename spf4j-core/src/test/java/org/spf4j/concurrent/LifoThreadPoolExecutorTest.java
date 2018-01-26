@@ -41,12 +41,15 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Throwables;
+import org.spf4j.test.log.AsyncObservationAssert;
+import org.spf4j.test.log.TestLoggers;
 
 /**
  *
@@ -168,13 +171,16 @@ public class LifoThreadPoolExecutorTest {
       }
     };
     long start = System.currentTimeMillis();
+    AsyncObservationAssert obs = TestLoggers.config().expectUncaughtException(Matchers.hasProperty("throwable",
+            Matchers.any(IllegalStateException.class)));
     executor.execute(new Runnable() {
 
       @Override
       public void run() {
-        throw new RuntimeException();
+        throw new IllegalStateException("Yohoo");
       }
     });
+    obs.assertObservation(5, TimeUnit.SECONDS);
     for (int i = 0; i < testCount; i++) {
       try {
         executor.execute(runnable);
