@@ -31,17 +31,16 @@
  */
 package org.spf4j.zel.vm;
 
-
 public final class SuspendedException extends Exception {
 
-    private SuspendedException() {
-    }
+  public static final SuspendedException INSTANCE = new SuspendedException();
 
-    @Override
-    public Throwable fillInStackTrace() {
-        return this;
-    }
-    
-    public static final SuspendedException INSTANCE = new SuspendedException();
+  private SuspendedException() {
+  }
+
+  @Override
+  public Throwable fillInStackTrace() {
+    return this;
+  }
 
 }
