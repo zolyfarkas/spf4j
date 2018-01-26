@@ -177,7 +177,7 @@ public class LifoThreadPoolExecutorTest {
 
       @Override
       public void run() {
-        throw new IllegalStateException("Yohoo");
+        throw new IllegalStateException();
       }
     });
     obs.assertObservation(5, TimeUnit.SECONDS);

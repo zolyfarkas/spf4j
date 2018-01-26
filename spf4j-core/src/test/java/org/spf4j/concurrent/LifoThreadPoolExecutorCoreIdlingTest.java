@@ -32,11 +32,16 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.perf.cpu.CpuUsageSampler;
+import org.spf4j.stackmonitor.FastStackCollector;
+import org.spf4j.stackmonitor.Sampler;
 
 /**
  *
@@ -45,15 +50,25 @@ import org.spf4j.perf.cpu.CpuUsageSampler;
 @SuppressFBWarnings({"MDM_THREAD_YIELD", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"})
 public class LifoThreadPoolExecutorCoreIdlingTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorCoreIdlingTest.class);
+
   @Test
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
     Thread.sleep(20);
+    Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
+            new File(org.spf4j.base.Runtime.TMP_FOLDER),
+            "lifeTest1");
+    s.start();
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
-    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 200000000); // 6069497000 with bug  53945000 without bug
+    LOG.info("Cpu profile saved to {}", s.dumpToFile());
+    LOG.debug("CPU time = {} ns", cpuTime);
+    s.stop();
+    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 300000000);
+   // 6069497000 with bug  53945000/8035000/6000000 without bug without profiler, 119628000 with profiler
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
   }
@@ -63,10 +78,17 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     MutableLifoThreadPoolExecutorSQP executor
             = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
     Thread.sleep(20);
+    Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
+            new File(org.spf4j.base.Runtime.TMP_FOLDER),
+            "lifeTest1");
+    s.start();
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
-    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 200000000); // 6069497000 with bug  53945000 without bug
+    LOG.info("Cpu profile saved to {}", s.dumpToFile());
+    LOG.debug("CPU time = {} ns", cpuTime);
+    s.stop();
+    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 300000000); // 6069497000 with bug  53945000 without bug
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
   }

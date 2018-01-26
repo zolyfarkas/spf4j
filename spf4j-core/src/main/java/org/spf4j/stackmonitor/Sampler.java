@@ -68,6 +68,8 @@ import org.spf4j.ssdump2.Converter;
 @ThreadSafe
 public final class Sampler {
 
+  private static Sampler instance;
+
   private static final int STOP_FLAG_READ_MILLIS = Integer.getInteger("spf4j.perf.ms.stopFlagReadMIllis", 2000);
 
     public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
@@ -132,6 +134,25 @@ public final class Sampler {
     this.stackCollector = collector;
     this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
   }
+
+  public static synchronized Sampler getSampler(final int sampleTimeMillis,
+          final int dumpTimeMillis, final StackCollector collector,
+          final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
+    if (instance == null) {
+      instance =  new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
+              dumpFolder.getAbsolutePath(), dumpFilePrefix);
+      instance.registerJmx();
+      return instance;
+    } else {
+        instance.dispose();
+        instance =  new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
+                dumpFolder.getAbsolutePath(), dumpFilePrefix);
+        instance.registerJmx();
+        return instance;
+    }
+  }
+
+
 
   public void registerJmx() {
     Registry.export(this);
