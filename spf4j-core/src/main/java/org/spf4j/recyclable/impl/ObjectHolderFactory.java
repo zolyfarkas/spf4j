@@ -36,11 +36,13 @@ import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import java.util.LinkedList;
 import java.util.Queue;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class ObjectHolderFactory<T> implements RecyclingSupplier.Factory<ObjectHolder<T>> {
 
     private final Queue<ObjectHolder<T>> objects;
