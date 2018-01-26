@@ -74,7 +74,7 @@ public final class DecentSemaphoreHandler {
     for (int i = 0; i < 50; i++) {
       semaphore.acquire(1, 1L, TimeUnit.SECONDS);
       Thread.sleep((long) (Math.random() * 10) + 10);
-      LOG.debug("beat");
+      LOG.info("beat");
       Thread.sleep((long) (Math.random() * 10) + 10);
       semaphore.release();
     }
