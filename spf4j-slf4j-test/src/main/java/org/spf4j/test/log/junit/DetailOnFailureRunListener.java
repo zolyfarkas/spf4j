@@ -63,7 +63,8 @@ public final class DetailOnFailureRunListener extends RunListener {
     List<UncaughtExceptionDetail> exceptions = new ArrayList<>(uncaughtExceptions);
     if (!exceptions.isEmpty()) {
       for (UncaughtExceptionDetail ex : uncaughtExceptions) {
-        LOG.error("Uncaught exceptions during {} in thread {}", result, ex.getThread(), ex.getThrowable());
+        LOG.error("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
+                ex.getThread(), ex.getThrowable());
       }
       throw new AssertionError("Uncaught exceptions encountered " + exceptions);
     }
@@ -112,11 +113,13 @@ public final class DetailOnFailureRunListener extends RunListener {
     handler.close();
     List<UncaughtExceptionDetail> exceptions = new ArrayList<>(uncaughtExceptions);
     if (!exceptions.isEmpty()) {
+      AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
       for (UncaughtExceptionDetail ex : uncaughtExceptions) {
         LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
+        assertionError.addSuppressed(ex.getThrowable());
       }
       dumpDebugInfo(handler, description, null);
-      throw new AssertionError("Uncaught exceptions encountered " + exceptions);
+      throw assertionError;
     }
   }
 

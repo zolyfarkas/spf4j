@@ -154,7 +154,7 @@ public final class TestLoggers implements ILoggerFactory {
    * @return a handler that allows you to access the collected logs and stop this collection.
    */
   public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs, final boolean collectPrinted) {
-    DebugLogCollector handler = new DebugLogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {
+    LogCollector handler = new LogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {
 
       private boolean isClosed = false;
 

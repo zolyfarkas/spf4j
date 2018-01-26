@@ -17,11 +17,13 @@ package org.spf4j.test.log;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
+@ThreadSafe
 public interface LogHandler {
 
   /**

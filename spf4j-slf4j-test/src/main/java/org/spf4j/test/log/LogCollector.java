@@ -23,7 +23,7 @@ import java.util.function.Consumer;
  *
  * @author Zoltan Farkas
  */
-public abstract class DebugLogCollector implements  LogHandler, LogCollectionHandler {
+public abstract class LogCollector implements  LogHandler, LogCollectionHandler {
 
   private final Level minLevelToCollect;
 
@@ -33,7 +33,7 @@ public abstract class DebugLogCollector implements  LogHandler, LogCollectionHan
 
   private final boolean collectPrinted;
 
-  public DebugLogCollector(final Level minLevelToCollect,  final int maxLogsToCollect, final boolean collectPrinted) {
+  public LogCollector(final Level minLevelToCollect,  final int maxLogsToCollect, final boolean collectPrinted) {
     this.minLevelToCollect = minLevelToCollect;
     this.maxLogsToCollect = maxLogsToCollect;
     records = new ArrayDeque<>();
