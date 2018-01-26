@@ -59,6 +59,19 @@ with tons of debug info dumped to output all the time. But making it available w
       LOG.error("Booo", new RuntimeException());
       expect.assertSeen(); // whithout assert the unit test fails when logging an error.
 
+ Assert uncaught exceptions:
+
+      AsyncObservationAssert obs = TestLoggers.config().expectUncaughtException(Matchers.hasProperty("throwable",
+              Matchers.any(IllegalStateException.class)));
+      executor.execute(new Runnable() {
+
+        @Override
+        public void run() {
+          throw new IllegalStateException("Yohoo");
+        }
+      });
+      obs.assertObservation(5, TimeUnit.SECONDS);
+
  Global configuration system properties with the defaults:
 
       spf4j.testLog.rootPrintLevelIDE = DEBUG
