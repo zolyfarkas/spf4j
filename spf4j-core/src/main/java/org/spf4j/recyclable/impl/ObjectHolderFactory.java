@@ -57,11 +57,6 @@ public final class ObjectHolderFactory<T> implements RecyclingSupplier.Factory<O
         }
     }
 
-    public ObjectHolderFactory(final RecyclingSupplier.Factory<T> factory) {
-        objects = new LinkedList<>();
-        this.factory = factory;
-    }
-
     @Override
     public ObjectHolder<T> create() throws ObjectCreationException {
         if (objects.isEmpty()) {
