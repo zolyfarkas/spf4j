@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.hamcrest.Matchers;
@@ -171,15 +172,69 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @Ignore
-  @SuppressFBWarnings("MDM_THREAD_YIELD")
-  public void testLoggingUncaught() throws InterruptedException {
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  public void testUncaught() throws InterruptedException {
+    IllegalStateException ex = new IllegalStateException();
     Thread thread = new Thread(() -> {
-      throw new RuntimeException();
+      throw ex;
     });
+    TestLoggers config = TestLoggers.config();
+    AsyncObservationAssert obs = config
+            .expectUncaughtException(
+                    Matchers.hasProperty("throwable", Matchers.equalTo(ex)));
+    AsyncObservationAssert ass2 = config
+            .expectNoUncaughtException(
+                    Matchers.hasProperty("throwable", Matchers.any(IllegalArgumentException.class)));
     thread.start();
-    Thread.sleep(1000);
-    Assert.assertTrue(true);
+    ass2.assertObservation(5, TimeUnit.SECONDS);
+    obs.assertObservation(5, TimeUnit.SECONDS);
+  }
+
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  @Test
+  public void testUncaught2() throws InterruptedException {
+    TestLoggers config = TestLoggers.config();
+    AsyncObservationAssert obs = config
+            .expectUncaughtException(
+                    Matchers.hasProperty("throwable", Matchers.equalTo(new IllegalStateException())));
+    AsyncObservationAssert ass2 = config
+            .expectNoUncaughtException(
+                    Matchers.hasProperty("throwable", Matchers.any(IllegalArgumentException.class)));
+    ass2.assertObservation(5, TimeUnit.SECONDS);
+    try {
+      obs.assertObservation(5, TimeUnit.SECONDS);
+      Assert.fail();
+    } catch (AssertionError ex) {
+      // expected
+    }
+  }
+
+  @Test
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  public void testUncaught3() throws InterruptedException {
+    IllegalStateException ex = new IllegalStateException();
+    Thread thread = new Thread(() -> {
+      throw ex;
+    });
+    TestLoggers config = TestLoggers.config();
+    AsyncObservationAssert obs = config
+            .expectUncaughtException(
+                    Matchers.hasProperty("throwable", Matchers.equalTo(ex)));
+    AsyncObservationAssert ass2 = config
+            .expectNoUncaughtException(
+                    Matchers.hasProperty("throwable", Matchers.any(IllegalArgumentException.class)));
+    thread.start();
+    Thread thread2 = new Thread(() -> {
+      throw new IllegalArgumentException();
+    });
+    thread2.start();
+    try {
+      ass2.assertObservation(5, TimeUnit.SECONDS);
+      Assert.fail();
+    } catch (AssertionError err) {
+      // expected
+    }
+    obs.assertObservation(5, TimeUnit.SECONDS);
   }
 
   @Test

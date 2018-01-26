@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,10 +29,12 @@ import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
 
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class TestLoggers implements ILoggerFactory {
 
   private static final TestLoggers INSTANCE = new TestLoggers();
@@ -74,6 +78,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   /**
    * Print logs above a category and log level.
+   *
    * @param category the log category.
    * @param level the log level.
    * @return a handler that allows this printing to stop (when calling close).
@@ -120,7 +125,6 @@ public final class TestLoggers implements ILoggerFactory {
         }
       }
 
-
     };
     synchronized (sync) {
       config = config.add(category, handler);
@@ -130,6 +134,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   /**
    * Ability to assert is you expect a sequence of logs to be repeated.
+   *
    * @param category
    * @param minimumLogLevel
    * @param nrTimes
@@ -147,12 +152,36 @@ public final class TestLoggers implements ILoggerFactory {
     return expect(category, minimumLogLevel, newMatchers);
   }
 
-  /**
-   * register a log collector that collects up to maxNrLogs unprinted logs with a minimumLogLevel log level
-   * @param minimumLogLevel
-   * @param maxNrLogs
-   * @return a handler that allows you to access the collected logs and stop this collection.
-   */
+  @Beta
+  public AsyncObservationAssert expectUncaughtException(final Matcher<UncaughtExceptionDetail> matcher) {
+    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
+    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(matcher, true) {
+      @Override
+      void unregister() {
+        reg.remove(this);
+      }
+    };
+    reg.add(asserter);
+    asserter.waitUntilReading();
+    return asserter;
+  }
+
+  @Beta
+  public AsyncObservationAssert expectNoUncaughtException(final Matcher<UncaughtExceptionDetail> matcher) {
+    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
+    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(matcher, false) {
+      @Override
+      void unregister() {
+        reg.remove(this);
+      }
+    };
+    reg.add(asserter);
+    asserter.waitUntilReading();
+    return asserter;
+  }
+
+
+
   public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs, final boolean collectPrinted) {
     LogCollector handler = new LogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {
 
