@@ -212,12 +212,12 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testUncaught3() throws InterruptedException {
-    try (HandlerRegistration reg = TestLoggers.config().print("", Level.TRACE)) {
+    TestLoggers config = TestLoggers.config();
+    try (HandlerRegistration reg = config.print("", Level.TRACE)) {
       IllegalStateException ex = new IllegalStateException();
       Thread thread = new Thread(() -> {
         throw ex;
       });
-      TestLoggers config = TestLoggers.config();
       AsyncObservationAssert obs = config
               .expectUncaughtException(
                       Matchers.hasProperty("throwable", Matchers.equalTo(ex)));
@@ -236,7 +236,8 @@ public class TestLoggerFactoryTest {
         // expected
       }
       obs.assertObservation(5, TimeUnit.SECONDS);
-    }  }
+    }
+  }
 
   @Test
   public void testLogging5() {
