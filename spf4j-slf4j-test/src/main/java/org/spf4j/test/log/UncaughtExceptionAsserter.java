@@ -67,6 +67,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
     } catch (InterruptedException ex) {
       throw new AssertionError("Tests interrupted", ex);
     }
+    LOG.debug("{} is ready", this);
   }
 
   abstract void unregister();
@@ -127,7 +128,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
         ucx = null;
       }
       if (ucx != null) {
-        LOG.trace("{} received {}", this, ucx);
+        LOG.debug("{} received {}", this, ucx);
         if (matcher.matches(ucx)) {
           if (!replyQueue.offer(Boolean.TRUE, 10, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
@@ -155,7 +156,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
         ucx = null;
       }
       if (ucx != null) {
-        LOG.trace("{} received {}", this, ucx);
+        LOG.debug("{} received {}", this, ucx);
         if (matcher.matches(ucx)) {
           if (!replyQueue.offer(Boolean.TRUE, 10, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
@@ -174,10 +175,10 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
   @Override
   public boolean offer(final UncaughtExceptionDetail exDetail) {
     if (receiveQueue.offer(exDetail)) {
-      LOG.trace("Sent {} to {}", exDetail, this);
+      LOG.debug("Sent {} to {}", exDetail, this);
       try {
         Boolean consumed = replyQueue.poll(10, TimeUnit.SECONDS);
-        LOG.trace("Reply with {} from {}", consumed, this);
+        LOG.debug("Reply with {} from {}", consumed, this);
         if (consumed == null) {
           throw new IllegalStateException("Illegal state " + this);
         }
@@ -187,6 +188,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
         return false;
       }
     } else {
+      LOG.warn("{} could not process {}", this, exDetail);
       return false;
     }
   }
