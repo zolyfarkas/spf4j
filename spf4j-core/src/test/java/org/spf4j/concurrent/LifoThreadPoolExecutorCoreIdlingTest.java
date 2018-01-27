@@ -68,7 +68,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     LOG.info("Cpu profile saved to {}", s.dumpToFile());
     LOG.debug("CPU time = {} ns", cpuTime);
     s.stop();
-    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 300000000);
+    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 1000000000);
    // 6069497000 with bug  53945000/8035000/6000000 without bug without profiler, 119628000 with profiler
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
@@ -90,7 +90,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     LOG.info("Cpu profile saved to {}", s.dumpToFile());
     LOG.debug("CPU time = {} ns", cpuTime);
     s.stop();
-    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 300000000); // 6069497000 with bug  53945000 without bug
+    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 1000000000); // 6069497000 with bug  53945000 without bug
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
   }
