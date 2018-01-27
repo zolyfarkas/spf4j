@@ -61,7 +61,7 @@ public final class DefaultSchedulerTest {
       @Override
       public void run() {
         long time = System.currentTimeMillis();
-        if (time % 1000 >= 50) {
+        if (time % 1000 >= 100) {
           notAligned = true;
         }
         LOG.debug("Executed {}", this);
