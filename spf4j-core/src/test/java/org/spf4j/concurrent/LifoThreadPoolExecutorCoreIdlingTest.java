@@ -56,11 +56,12 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
-    Thread.sleep(20);
     Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
             new File(org.spf4j.base.Runtime.TMP_FOLDER),
             "lifeTest1");
     s.start();
+    org.spf4j.base.Runtime.gc(5000);
+    Thread.sleep(100);
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
@@ -77,11 +78,12 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
   public void testLifoExecSQMutable() throws InterruptedException, IOException {
     MutableLifoThreadPoolExecutorSQP executor
             = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
-    Thread.sleep(20);
     Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
             new File(org.spf4j.base.Runtime.TMP_FOLDER),
             "lifeTest1");
     s.start();
+    org.spf4j.base.Runtime.gc(5000);
+    Thread.sleep(100);
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
