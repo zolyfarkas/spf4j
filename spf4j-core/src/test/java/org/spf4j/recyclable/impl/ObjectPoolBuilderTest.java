@@ -57,6 +57,7 @@ import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 
 /**
@@ -112,7 +113,31 @@ public final class ObjectPoolBuilderTest {
   public void testBuild2() throws ObjectCreationException, InterruptedException,
           ObjectBorrowException, ExecutionException, TimeoutException {
     final RecyclingSupplier<ExpensiveTestObject> pool
-            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory()).build();
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
+                    .withMaintenance(DefaultScheduler.INSTANCE, 1L, true)
+                    .build();
+    LOG.debug("pool = {}", pool);
+    final ExpensiveTestObject object = pool.get();
+    LOG.debug("pool = {}", pool);
+    Future<Void> submit = DefaultExecutor.INSTANCE.submit(() -> {
+      pool.recycle(object, null);
+      return null;
+    });
+    submit.get();
+    Thread.sleep(100);
+    final ExpensiveTestObject object2 = pool.get();
+    LOG.debug("pool = {}", pool);
+    Assert.assertNotNull(object2);
+  }
+
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testBuild3() throws ObjectCreationException, InterruptedException,
+          ObjectBorrowException, ExecutionException, TimeoutException {
+    final RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
+                    .withMaintenance(DefaultScheduler.INSTANCE, 1L, true)
+                    .build();
     LOG.debug("pool = {}", pool);
     final ExpensiveTestObject object = pool.get();
     LOG.debug("pool = {}", pool);

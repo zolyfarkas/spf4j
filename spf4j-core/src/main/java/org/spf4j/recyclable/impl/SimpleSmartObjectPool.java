@@ -67,6 +67,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
   private final ReentrantLock lock;
   private final Condition available;
   private final RecyclingSupplier.Factory<T> factory;
+  private T sample;
 
   SimpleSmartObjectPool(final int initialSize, final int maxSize,
           final RecyclingSupplier.Factory<T> factory, final boolean fair)
@@ -81,6 +82,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
       availableObjects.add(factory.create());
     }
     waitingForReturn = 0;
+    this.sample = factory.create();
   }
 
   @Override
@@ -231,6 +233,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
 
   @Override
   public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
+    factory.dispose(sample);
     long deadline = System.currentTimeMillis() + timeoutMillis;
     lock.lock();
     try {
@@ -384,5 +387,10 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     } finally {
       lock.unlock();
     }
+  }
+
+  @Override
+  public T getSample() {
+    return sample;
   }
 }

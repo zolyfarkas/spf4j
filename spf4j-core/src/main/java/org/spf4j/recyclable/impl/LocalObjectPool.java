@@ -101,7 +101,7 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
             ObjectHolder holder = borrowedObjects.remove(object);
             if (holder == null) {
                 // not borrowed from here.
-                globalPool.recycle(new ObjectHolder<>(object), this);
+                globalPool.recycle(new ObjectHolder<>(object, globalPool.getSample().getFactory()), this);
             } else {
                 try {
                     holder.returnObject(object, e);

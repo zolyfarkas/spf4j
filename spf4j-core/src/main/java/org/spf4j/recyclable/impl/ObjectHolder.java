@@ -32,6 +32,7 @@
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nonnull;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
@@ -49,119 +50,126 @@ import org.slf4j.LoggerFactory;
 @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
 public final class ObjectHolder<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);
-    private T obj;
-    private boolean borrowed;
-    private final RecyclingSupplier.Factory<T> factory;
+  private static final Logger LOG = LoggerFactory.getLogger(ObjectHolder.class);
+  private T obj;
+  private boolean borrowed;
+  @Nonnull
+  private final RecyclingSupplier.Factory<T> factory;
 
-    ObjectHolder(final RecyclingSupplier.Factory<T> factory) {
-        this.factory = factory;
-        borrowed = false;
+  ObjectHolder(final RecyclingSupplier.Factory<T> factory) {
+    this.factory = factory;
+    this.borrowed = false;
+    this.obj = null;
+  }
+
+  ObjectHolder(final RecyclingSupplier.Factory<T> factory, final boolean lazy) throws ObjectCreationException {
+    this(factory);
+    if (!lazy) {
+      obj = factory.create();
     }
+  }
 
-    ObjectHolder(final RecyclingSupplier.Factory<T> factory, final boolean lazy) throws ObjectCreationException {
-        this(factory);
-        if (!lazy) {
-            obj = factory.create();
+  ObjectHolder(final T object, @Nonnull final RecyclingSupplier.Factory<T> factory) {
+    this.factory = factory;
+    borrowed = false;
+    this.obj = object;
+  }
+
+  public synchronized T getObj() {
+    return obj;
+  }
+
+  public synchronized T borrowOrCreateObjectIfPossible() throws ObjectCreationException {
+    if (borrowed) {
+      return null;
+    }
+    if (obj == null) {
+      obj = factory.create();
+    }
+    borrowed = true;
+    return obj;
+  }
+
+  @Nullable
+  public synchronized T borrowObjectIfAvailable() {
+    if (borrowed || obj == null) {
+      return null;
+    }
+    borrowed = true;
+    return obj;
+  }
+
+  public synchronized void returnObject(final T object, @Nullable final Exception e) {
+    if (!borrowed || object != obj) {
+      throw new IllegalStateException("Cannot return something that was "
+              + "not borrowed from here " + object);
+    }
+    borrowed = false;
+    if (e != null) {
+      boolean isValid;
+      Exception vex = null;
+      try {
+        isValid = factory.validate(object, e);
+      } catch (Exception ex) {
+        isValid = false;
+        vex = ex;
+      }
+      if (!isValid) {
+        LOG.warn("Validation of {} failed, detail {}", obj, vex, e);
+        obj = null;
+        try {
+          factory.dispose(object);
+        } catch (ObjectDisposeException ex1) {
+          LOG.warn("Failed to dispose {}", object, ex1);
+        } catch (RuntimeException ex1) {
+          LOG.error("Failed to dispose {}", object, ex1);
         }
+      }
     }
+  }
 
-    ObjectHolder(final T object) {
-        this.factory = null;
-        borrowed = false;
-        this.obj = object;
+  public synchronized void validateObjectIfNotBorrowed() throws ObjectDisposeException {
+    if (!borrowed && obj != null) {
+      boolean isValid;
+      Exception vex = null;
+      try {
+        isValid = factory.validate(obj, null);
+      } catch (RuntimeException ex) {
+        isValid = false;
+      } catch (Exception ex) {
+        isValid = false;
+      }
+      if (!isValid) {
+        LOG.warn("Validation of {} failed, detail {} ", obj, vex);
+        T object = obj;
+        obj = null;
+        factory.dispose(object);
+      }
     }
+  }
 
-    public synchronized T getObj() {
-        return obj;
+  public synchronized boolean disposeIfNotBorrowed() throws ObjectDisposeException {
+    if (borrowed) {
+      return false;
     }
+    if (obj != null) {
+      try {
+        factory.dispose(obj);
+      } finally {
+        obj = null;
+      }
+    }
+    return true;
+  }
 
-    public synchronized T borrowOrCreateObjectIfPossible() throws ObjectCreationException {
-        if (borrowed) {
-            return null;
-        }
-        if (obj == null) {
-            obj = factory.create();
-        }
-        borrowed = true;
-        return obj;
-    }
+  @Override
+  public synchronized String toString() {
+    return "ObjectHolder{" + "obj=" + obj + ", borrowed=" + borrowed + ", factory=" + factory + '}';
+  }
 
-    @Nullable
-    public synchronized T borrowObjectIfAvailable() {
-        if (borrowed || obj == null) {
-            return null;
-        }
-        borrowed = true;
-        return obj;
-    }
+  public RecyclingSupplier.Factory<T> getFactory() {
+    return factory;
+  }
 
-    public synchronized void returnObject(final T object, @Nullable final Exception e) {
-        if (!borrowed || object != obj) {
-            throw new IllegalStateException("Cannot return something that was "
-                    + "not borrowed from here " + object);
-        }
-        borrowed = false;
-        if (e != null) {
-            boolean isValid;
-            Exception vex = null;
-            try {
-                isValid = factory.validate(object, e);
-            } catch (Exception ex) {
-                isValid = false;
-                vex = ex;
-            }
-            if (!isValid) {
-                LOG.warn("Validation of {} failed, detail {}", obj, vex, e);
-                obj = null;
-                try {
-                    factory.dispose(object);
-                } catch (ObjectDisposeException ex1) {
-                    LOG.warn("Failed to dispose {}", object, ex1);
-                } catch (RuntimeException ex1) {
-                    LOG.error("Failed to dispose {}", object, ex1);
-                }
-            }
-        }
-    }
-
-    public synchronized void validateObjectIfNotBorrowed() throws ObjectDisposeException {
-        if (!borrowed && obj != null) {
-            boolean isValid;
-            Exception vex = null;
-            try {
-                isValid = factory.validate(obj, null);
-            } catch (RuntimeException ex) {
-                isValid = false;
-            } catch (Exception ex) {
-                isValid = false;
-            }
-            if (!isValid) {
-                LOG.warn("Validation of {} failed, detail {} ", obj, vex);
-                T object = obj;
-                obj = null;
-                factory.dispose(object);
-            }
-        }
-    }
-
-    public synchronized boolean disposeIfNotBorrowed() throws ObjectDisposeException {
-        if (borrowed) {
-            return false;
-        }
-        if (obj != null) {
-            try {
-                factory.dispose(obj);
-            } finally {
-                obj = null;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public synchronized String toString() {
-        return "ObjectHolder{" + "obj=" + obj + ", borrowed=" + borrowed + ", factory=" + factory + '}';
-    }
 
 }

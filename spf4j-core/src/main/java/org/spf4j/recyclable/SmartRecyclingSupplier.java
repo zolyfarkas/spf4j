@@ -59,4 +59,10 @@ public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
      */
     void recycle(T object, ObjectBorower borower);
 
+
+    /**
+     * @return the object sample.
+     */
+    T getSample();
+
 }

@@ -103,18 +103,18 @@ public final class RecyclingSupplierBuilder<T> {
             pool = underlyingPool;
         }
         if (maintenanceExecutor != null) {
-            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl<>(underlyingPool, collectBorrowed),
+            maintenanceExecutor.scheduleWithFixedDelay(new MaintenanceRunner<>(underlyingPool, collectBorrowed),
                     maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
         return pool;
     }
 
-     static final class AbstractRunnableImpl<T> extends AbstractRunnable {
+    private static final class MaintenanceRunner<T> extends AbstractRunnable {
 
         private final ScalableObjectPool<T> underlyingPool;
         private final boolean collectBorrowed;
 
-        AbstractRunnableImpl(final ScalableObjectPool<T> underlyingPool, final boolean collectBorrowed) {
+        MaintenanceRunner(final ScalableObjectPool<T> underlyingPool, final boolean collectBorrowed) {
             super(true);
             this.underlyingPool = underlyingPool;
             this.collectBorrowed = collectBorrowed;
