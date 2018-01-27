@@ -155,7 +155,7 @@ public final class TestLoggers implements ILoggerFactory {
   @Beta
   public AsyncObservationAssert expectUncaughtException(final Matcher<UncaughtExceptionDetail> matcher) {
     ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
-    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(matcher, true) {
+    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(matcher) {
       @Override
       void unregister() {
         reg.remove(this);
@@ -165,22 +165,6 @@ public final class TestLoggers implements ILoggerFactory {
     asserter.waitUntilReading();
     return asserter;
   }
-
-  @Beta
-  public AsyncObservationAssert expectNoUncaughtException(final Matcher<UncaughtExceptionDetail> matcher) {
-    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
-    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(matcher, false) {
-      @Override
-      void unregister() {
-        reg.remove(this);
-      }
-    };
-    reg.add(asserter);
-    asserter.waitUntilReading();
-    return asserter;
-  }
-
-
 
   public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs, final boolean collectPrinted) {
     LogCollector handler = new LogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {

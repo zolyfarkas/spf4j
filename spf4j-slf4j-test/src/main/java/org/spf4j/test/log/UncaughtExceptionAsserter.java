@@ -41,18 +41,15 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
 
   private long deadlineNanos;
 
-  private boolean assertSeenMatching;
-
   private final CountDownLatch isReading;
 
   private volatile Throwable exception;
   private volatile boolean finished;
 
-  UncaughtExceptionAsserter(final Matcher<UncaughtExceptionDetail> matcher, final boolean assertSeenMatching) {
+  UncaughtExceptionAsserter(final Matcher<UncaughtExceptionDetail> matcher) {
     this.matcher = matcher;
     this.exception = null;
     this.finished = false;
-    this.assertSeenMatching = assertSeenMatching;
     receiveQueue = new SynchronousQueue<>();
     replyQueue = new SynchronousQueue<>();
     deadlineNanos = System.nanoTime() + TimeUnit.HOURS.toNanos(1);
@@ -92,11 +89,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
   @Override
   public void run() {
     try {
-      if (assertSeenMatching) {
-        assertSeen();
-      } else {
-        assertNotSeen();
-      }
+      assertSeen();
     } catch (Throwable error) {
       exception = error;
     } finally {
@@ -119,33 +112,33 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
   }
 
 
-  private void assertNotSeen() throws InterruptedException {
-    long timeout;
-    isReading.countDown();
-    while ((timeout = getDeadlineNanos() - System.nanoTime()) > 0) {
-      UncaughtExceptionDetail ucx;
-      try {
-        ucx = receiveQueue.poll(timeout, TimeUnit.NANOSECONDS);
-      } catch (InterruptedException ex) {
-        ucx = null;
-      }
-      if (ucx != null) {
-        LOG.debug("{} received {}", this, ucx);
-        if (matcher.matches(ucx)) {
-          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("Other side dissapeared for " + this);
-          }
-          AssertionError assertionError = new AssertionError("Encountered " + ucx);
-          assertionError.addSuppressed(ucx.getThrowable());
-          throw assertionError;
-        } else {
-          if (!replyQueue.offer(Boolean.FALSE, SETUP_SECONDS, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("Other side dissapeared for " + this);
-          }
-        }
-      }
-    }
-  }
+//  private void assertNotSeen() throws InterruptedException {
+//    long timeout;
+//    isReading.countDown();
+//    while ((timeout = getDeadlineNanos() - System.nanoTime()) > 0) {
+//      UncaughtExceptionDetail ucx;
+//      try {
+//        ucx = receiveQueue.poll(timeout, TimeUnit.NANOSECONDS);
+//      } catch (InterruptedException ex) {
+//        ucx = null;
+//      }
+//      if (ucx != null) {
+//        LOG.debug("{} received {}", this, ucx);
+//        if (matcher.matches(ucx)) {
+//          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {
+//            throw new IllegalStateException("Other side dissapeared for " + this);
+//          }
+//          AssertionError assertionError = new AssertionError("Encountered " + ucx);
+//          assertionError.addSuppressed(ucx.getThrowable());
+//          throw assertionError;
+//        } else {
+//          if (!replyQueue.offer(Boolean.FALSE, SETUP_SECONDS, TimeUnit.SECONDS)) {
+//            throw new IllegalStateException("Other side dissapeared for " + this);
+//          }
+//        }
+//      }
+//    }
+//  }
 
   private void assertSeen() throws InterruptedException {
     isReading.countDown();
