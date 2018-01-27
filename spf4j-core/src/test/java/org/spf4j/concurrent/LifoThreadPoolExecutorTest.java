@@ -180,7 +180,7 @@ public class LifoThreadPoolExecutorTest {
         throw new IllegalStateException();
       }
     });
-    obs.assertObservation(5, TimeUnit.SECONDS);
+    obs.assertObservation(10, TimeUnit.SECONDS);
     for (int i = 0; i < testCount; i++) {
       try {
         executor.execute(runnable);
