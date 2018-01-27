@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
  */
 abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, UncaughtExceptionConsumer, Runnable {
 
+  private static final long SETUP_SECONDS = 10;
+
   private static final Logger LOG = LoggerFactory.getLogger(UncaughtExceptionAsserter.class);
 
   private final Matcher<UncaughtExceptionDetail> matcher;
@@ -130,14 +132,14 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
       if (ucx != null) {
         LOG.debug("{} received {}", this, ucx);
         if (matcher.matches(ucx)) {
-          if (!replyQueue.offer(Boolean.TRUE, 10, TimeUnit.SECONDS)) {
+          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
           }
           AssertionError assertionError = new AssertionError("Encountered " + ucx);
           assertionError.addSuppressed(ucx.getThrowable());
           throw assertionError;
         } else {
-          if (!replyQueue.offer(Boolean.FALSE, 10, TimeUnit.SECONDS)) {
+          if (!replyQueue.offer(Boolean.FALSE, SETUP_SECONDS, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
           }
         }
@@ -158,12 +160,12 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
       if (ucx != null) {
         LOG.debug("{} received {}", this, ucx);
         if (matcher.matches(ucx)) {
-          if (!replyQueue.offer(Boolean.TRUE, 10, TimeUnit.SECONDS)) {
+          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
           }
           return;
         } else {
-          if (!replyQueue.offer(Boolean.FALSE, 10, TimeUnit.SECONDS)) {
+          if (!replyQueue.offer(Boolean.FALSE, SETUP_SECONDS, TimeUnit.SECONDS)) {
             throw new IllegalStateException("Other side dissapeared for " + this);
           }
         }
@@ -174,10 +176,17 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
 
   @Override
   public boolean offer(final UncaughtExceptionDetail exDetail) {
-    if (receiveQueue.offer(exDetail)) {
+    boolean offer;
+    try {
+      offer = receiveQueue.offer(exDetail, SETUP_SECONDS, TimeUnit.SECONDS);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      offer = false;
+    }
+    if (offer) {
       LOG.debug("Sent {} to {}", exDetail, this);
       try {
-        Boolean consumed = replyQueue.poll(10, TimeUnit.SECONDS);
+        Boolean consumed = replyQueue.poll(SETUP_SECONDS, TimeUnit.SECONDS);
         LOG.debug("Reply with {} from {}", consumed, this);
         if (consumed == null) {
           throw new IllegalStateException("Illegal state " + this);
