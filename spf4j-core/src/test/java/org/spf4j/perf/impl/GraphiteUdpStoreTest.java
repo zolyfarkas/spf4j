@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -148,7 +149,12 @@ public final class GraphiteUdpStoreTest {
         ByteBuffer bb = ByteBuffer.allocate(512);
         while (!terminated) {
           bb.rewind();
-          channel.receive(bb);
+          try {
+            channel.receive(bb);
+          } catch (ClosedByInterruptException ex) {
+            // this we receive when we interrupt this exec with server.cancel.
+            break;
+          }
           byte[] rba = new byte[bb.position()];
           bb.rewind();
           bb.get(rba);
