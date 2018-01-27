@@ -212,30 +212,31 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testUncaught3() throws InterruptedException {
-    IllegalStateException ex = new IllegalStateException();
-    Thread thread = new Thread(() -> {
-      throw ex;
-    });
-    TestLoggers config = TestLoggers.config();
-    AsyncObservationAssert obs = config
-            .expectUncaughtException(
-                    Matchers.hasProperty("throwable", Matchers.equalTo(ex)));
-    AsyncObservationAssert ass2 = config
-            .expectNoUncaughtException(
-                    Matchers.hasProperty("throwable", Matchers.any(IllegalArgumentException.class)));
-    thread.start();
-    Thread thread2 = new Thread(() -> {
-      throw new IllegalArgumentException();
-    });
-    thread2.start();
-    try {
-      ass2.assertObservation(5, TimeUnit.SECONDS);
-      Assert.fail();
-    } catch (AssertionError err) {
-      // expected
-    }
-    obs.assertObservation(5, TimeUnit.SECONDS);
-  }
+    try (HandlerRegistration reg = TestLoggers.config().print("", Level.TRACE)) {
+      IllegalStateException ex = new IllegalStateException();
+      Thread thread = new Thread(() -> {
+        throw ex;
+      });
+      TestLoggers config = TestLoggers.config();
+      AsyncObservationAssert obs = config
+              .expectUncaughtException(
+                      Matchers.hasProperty("throwable", Matchers.equalTo(ex)));
+      AsyncObservationAssert ass2 = config
+              .expectNoUncaughtException(
+                      Matchers.hasProperty("throwable", Matchers.any(IllegalArgumentException.class)));
+      thread.start();
+      Thread thread2 = new Thread(() -> {
+        throw new IllegalArgumentException();
+      });
+      thread2.start();
+      try {
+        ass2.assertObservation(5, TimeUnit.SECONDS);
+        Assert.fail();
+      } catch (AssertionError err) {
+        // expected
+      }
+      obs.assertObservation(5, TimeUnit.SECONDS);
+    }  }
 
   @Test
   public void testLogging5() {
