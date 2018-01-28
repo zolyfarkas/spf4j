@@ -26,8 +26,13 @@ public final class TestUtils {
     return mvnNetbeansCP != null && mvnNetbeansCP.contains("netbeans");
   }
 
+  /**
+   * Supporting netbeans only at this time.
+   * For other IDEs you need to configure them to pass the spf4j.execFromIDE property.
+   * @return
+   */
   public static boolean isExecutedFromIDE() {
-    return isExecutedFromNetbeans(); // Supporting netbeans only at this time.
+    return isExecutedFromNetbeans() || System.getProperty("spf4j.execFromIDE") != null;
   }
 
 }
