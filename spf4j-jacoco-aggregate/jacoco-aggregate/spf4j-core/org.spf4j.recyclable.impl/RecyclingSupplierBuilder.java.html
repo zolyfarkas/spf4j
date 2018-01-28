@@ -38,6 +38,7 @@ import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Scanable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.spf4j.base.Handler;
 
 /**
@@ -56,88 +57,88 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
     private int initialSize;
     private boolean collectBorrowed;
 
-<span class="fc" id="L59">    public RecyclingSupplierBuilder(final int maxSize, final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
-<span class="fc" id="L60">        this.fair = true;</span>
-<span class="fc" id="L61">        this.maxSize = maxSize;</span>
-<span class="fc" id="L62">        this.factory = factory;</span>
-<span class="fc" id="L63">        this.initialSize = 0;</span>
-<span class="fc" id="L64">    }</span>
+<span class="fc" id="L60">    public RecyclingSupplierBuilder(final int maxSize, @Nonnull final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
+<span class="fc" id="L61">        this.fair = true;</span>
+<span class="fc" id="L62">        this.maxSize = maxSize;</span>
+<span class="fc" id="L63">        this.factory = factory;</span>
+<span class="fc" id="L64">        this.initialSize = 0;</span>
+<span class="fc" id="L65">    }</span>
 
     public RecyclingSupplierBuilder&lt;T&gt; unfair() {
-<span class="nc" id="L67">        this.fair = false;</span>
-<span class="nc" id="L68">        return this;</span>
+<span class="nc" id="L68">        this.fair = false;</span>
+<span class="nc" id="L69">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withInitialSize(final int pinitialSize) {
-<span class="nc" id="L72">        this.initialSize = pinitialSize;</span>
-<span class="nc" id="L73">        return this;</span>
+<span class="nc" id="L73">        this.initialSize = pinitialSize;</span>
+<span class="nc" id="L74">        return this;</span>
     }
-    
+
 
     public RecyclingSupplierBuilder&lt;T&gt; withMaintenance(final ScheduledExecutorService pexec,
             final long pmaintenanceIntervalMillis, final boolean pcollectBorrowed) {
-<span class="fc" id="L79">        this.maintenanceExecutor = pexec;</span>
-<span class="fc" id="L80">        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;</span>
-<span class="fc" id="L81">        this.collectBorrowed = pcollectBorrowed;</span>
-<span class="fc" id="L82">        return this;</span>
+<span class="fc" id="L80">        this.maintenanceExecutor = pexec;</span>
+<span class="fc" id="L81">        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;</span>
+<span class="fc" id="L82">        this.collectBorrowed = pcollectBorrowed;</span>
+<span class="fc" id="L83">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withGetHook(final Handler&lt;T, ? extends Exception&gt; phook) {
-<span class="nc" id="L86">        this.borrowHook = phook;</span>
-<span class="nc" id="L87">        return this;</span>
+<span class="nc" id="L87">        this.borrowHook = phook;</span>
+<span class="nc" id="L88">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withRecycleHook(final Handler&lt;T, ? extends Exception&gt; phook) {
-<span class="nc" id="L91">        this.returnHook = phook;</span>
-<span class="nc" id="L92">        return this;</span>
+<span class="nc" id="L92">        this.returnHook = phook;</span>
+<span class="nc" id="L93">        return this;</span>
     }
 
     public RecyclingSupplier&lt;T&gt; build() throws ObjectCreationException {
-<span class="fc" id="L96">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
+<span class="fc" id="L97">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
                 new ScalableObjectPool&lt;&gt;(initialSize, maxSize, factory, fair);
         final RecyclingSupplier&lt;T&gt; pool;
-<span class="pc bpc" id="L99" title="2 of 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
-<span class="nc" id="L100">            pool = new ObjectPoolWrapper&lt;&gt;(underlyingPool, borrowHook, returnHook);</span>
+<span class="pc bpc" id="L100" title="2 of 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
+<span class="nc" id="L101">            pool = new ObjectPoolWrapper&lt;&gt;(underlyingPool, borrowHook, returnHook);</span>
         } else {
-<span class="fc" id="L102">            pool = underlyingPool;</span>
+<span class="fc" id="L103">            pool = underlyingPool;</span>
         }
-<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
-<span class="fc" id="L105">            maintenanceExecutor.scheduleWithFixedDelay(new AbstractRunnableImpl&lt;&gt;(underlyingPool, collectBorrowed),</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
+<span class="fc" id="L106">            maintenanceExecutor.scheduleWithFixedDelay(new MaintenanceRunner&lt;&gt;(underlyingPool, collectBorrowed),</span>
                     maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
-<span class="fc" id="L108">        return pool;</span>
+<span class="fc" id="L109">        return pool;</span>
     }
 
-     static final class AbstractRunnableImpl&lt;T&gt; extends AbstractRunnable {
+    private static final class MaintenanceRunner&lt;T&gt; extends AbstractRunnable {
 
         private final ScalableObjectPool&lt;T&gt; underlyingPool;
         private final boolean collectBorrowed;
 
-        AbstractRunnableImpl(final ScalableObjectPool&lt;T&gt; underlyingPool, final boolean collectBorrowed) {
-<span class="fc" id="L117">            super(true);</span>
-<span class="fc" id="L118">            this.underlyingPool = underlyingPool;</span>
-<span class="fc" id="L119">            this.collectBorrowed = collectBorrowed;</span>
-<span class="fc" id="L120">        }</span>
+        MaintenanceRunner(final ScalableObjectPool&lt;T&gt; underlyingPool, final boolean collectBorrowed) {
+<span class="fc" id="L118">            super(true);</span>
+<span class="fc" id="L119">            this.underlyingPool = underlyingPool;</span>
+<span class="fc" id="L120">            this.collectBorrowed = collectBorrowed;</span>
+<span class="fc" id="L121">        }</span>
 
         @Override
         public void doRun() throws Exception {
-<span class="pc bpc" id="L124" title="1 of 2 branches missed.">                if (collectBorrowed) {</span>
-<span class="fc" id="L125">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">                if (collectBorrowed) {</span>
+<span class="fc" id="L126">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
                 }
-<span class="fc" id="L127">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L128">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
                     @Override
                     public boolean handle(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
-<span class="fc" id="L130">                        object.validateObjectIfNotBorrowed();</span>
-<span class="fc" id="L131">                        return true;</span>
+<span class="fc" id="L131">                        object.validateObjectIfNotBorrowed();</span>
+<span class="fc" id="L132">                        return true;</span>
                     }
                 });
-           
-<span class="fc" id="L135">        }</span>
+
+<span class="fc" id="L136">        }</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L140">        return &quot;RecyclingSupplierBuilder{&quot; + &quot;maxSize=&quot; + maxSize + &quot;, factory=&quot; + factory + &quot;, fair=&quot;</span>
+<span class="nc" id="L141">        return &quot;RecyclingSupplierBuilder{&quot; + &quot;maxSize=&quot; + maxSize + &quot;, factory=&quot; + factory + &quot;, fair=&quot;</span>
                 + fair + &quot;, maintenanceExecutor=&quot; + maintenanceExecutor + &quot;, maintenanceIntervalMillis=&quot;
                 + maintenanceIntervalMillis + &quot;, borrowHook=&quot; + borrowHook + &quot;, returnHook=&quot; + returnHook
                 + &quot;, initialSize=&quot; + initialSize + &quot;, collectBorrowed=&quot; + collectBorrowed + '}';

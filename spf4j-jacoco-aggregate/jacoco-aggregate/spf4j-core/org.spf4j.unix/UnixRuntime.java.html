@@ -43,34 +43,43 @@ public final class UnixRuntime {
 <span class="nc" id="L43">  private UnixRuntime() {</span>
 <span class="nc" id="L44">  }</span>
 
+  /**
+   * Restart current process with same arguments except -Dspf4j.restart which is added/updated.
+   * @throws IOException
+   */
   public static void restart() throws IOException {
-<span class="nc bnc" id="L47" title="All 2 branches missed.">    if (haveJnaPlatformClib()) {</span>
-<span class="nc" id="L48">      JVMArguments current = JVMArguments.current();</span>
-<span class="nc" id="L49">      String existing = current.removeSystemProperty(&quot;spf4j.restart&quot;);</span>
-      int count;
-<span class="nc bnc" id="L51" title="All 2 branches missed.">      if (existing == null) {</span>
-<span class="nc" id="L52">        count = 1;</span>
-      } else {
-<span class="nc" id="L54">        count = Integer.parseInt(existing) + 1;</span>
-      }
-<span class="nc" id="L56">      current.setSystemProperty(&quot;spf4j.restart&quot;, Integer.toString(count));</span>
+<span class="nc" id="L51">     restart(JVMArguments.current());</span>
+<span class="nc" id="L52">  }</span>
+
+
+  /**
+   * Restart current process.
+   * This will issue a &quot;exec&quot; system call after closing all existing open files.
+   * @param newArguments new process arguments. spf4j has a system property: spf4j.restart that will automatically add
+   * or update to indicate a process was restarted and how many times.
+   * @throws IOException
+   */
+  public static void restart(final JVMArguments newArguments) throws IOException {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (haveJnaPlatformClib()) {</span>
+<span class="nc" id="L64">      newArguments.createOrUpdateSystemProperty(&quot;spf4j.restart&quot;,</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">              (old) -&gt; old == null ? &quot;1&quot; :  Integer.toString(Integer.parseInt(old) + 1));</span>
       // close all files upon exec, except stdin, stdout, and stderr
-<span class="nc" id="L58">      int sz = CLibrary.INSTANCE.getdtablesize();</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">      for (int i = 3; i &lt; sz; i++) {</span>
-<span class="nc" id="L60">        int flags = CLibrary.INSTANCE.fcntl(i, CLibrary.F_GETFD);</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (flags &lt; 0) {</span>
-<span class="nc" id="L62">          continue;</span>
+<span class="nc" id="L67">      int sz = CLibrary.INSTANCE.getdtablesize();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">      for (int i = 3; i &lt; sz; i++) {</span>
+<span class="nc" id="L69">        int flags = CLibrary.INSTANCE.fcntl(i, CLibrary.F_GETFD);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (flags &lt; 0) {</span>
+<span class="nc" id="L71">          continue;</span>
         }
-<span class="nc" id="L64">        CLibrary.INSTANCE.fcntl(i, CLibrary.F_SETFD, flags | CLibrary.FD_CLOEXEC);</span>
+<span class="nc" id="L73">        CLibrary.INSTANCE.fcntl(i, CLibrary.F_SETFD, flags | CLibrary.FD_CLOEXEC);</span>
       }
 
       // exec to self
-<span class="nc" id="L68">      String exe = current.getExecutable();</span>
-<span class="nc" id="L69">      CLibrary.INSTANCE.execvp(exe, current.toStringArray());</span>
-<span class="nc" id="L70">      throw new IOException(&quot;Failed to exec '&quot; + exe + &quot;' &quot; + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
+<span class="nc" id="L77">      String exe = newArguments.getExecutable();</span>
+<span class="nc" id="L78">      CLibrary.INSTANCE.execvp(exe, newArguments.toStringArray());</span>
+<span class="nc" id="L79">      throw new IOException(&quot;Failed to exec '&quot; + exe + &quot;' &quot; + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
 
     } else {
-<span class="nc" id="L73">      throw new UnsupportedOperationException();</span>
+<span class="nc" id="L82">      throw new UnsupportedOperationException();</span>
     }
   }
 

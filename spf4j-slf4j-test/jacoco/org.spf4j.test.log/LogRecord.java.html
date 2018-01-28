@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogRecord.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.test.log</a> &gt; <span class="el_source">LogRecord.java</span></div><h1>LogRecord.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.test.log;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.spf4j.base.Arrays;
+import org.spf4j.base.Slf4jMessageFormatter;
+import org.spf4j.io.ObjectAppenderSupplier;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+@ThreadSafe
+public final class LogRecord {
+
+
+  private final Thread thread;
+  private final Logger logger;
+  private final Level level;
+  private final long timeStamp;
+  private final Marker marker;
+  private final String format;
+  private final Object[] arguments;
+  private Set&lt;Object&gt; attachments;
+  private int startExtra;
+  private String message;
+
+  @SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;)
+  public LogRecord(final Logger logger, final Level level,
+          final String format, final Object... arguments) {
+<span class="nc" id="L56">    this(logger, level, null, format, arguments);</span>
+<span class="nc" id="L57">  }</span>
+
+  @SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;)
+  public LogRecord(final Logger logger, final Level level,
+<span class="fc" id="L61">          @Nullable final Marker marker, final String format, final Object... arguments) {</span>
+<span class="fc" id="L62">    this.logger = logger;</span>
+<span class="fc" id="L63">    this.level = level;</span>
+<span class="fc" id="L64">    this.timeStamp = System.currentTimeMillis();</span>
+<span class="fc" id="L65">    this.marker = marker;</span>
+<span class="fc" id="L66">    this.format = format;</span>
+<span class="fc" id="L67">    this.arguments = arguments;</span>
+<span class="fc" id="L68">    this.thread = Thread.currentThread();</span>
+<span class="fc" id="L69">    this.attachments = Collections.EMPTY_SET;</span>
+<span class="fc" id="L70">    this.startExtra = arguments.length;</span>
+<span class="fc" id="L71">    this.message = null;</span>
+<span class="fc" id="L72">  }</span>
+
+  public Logger getLogger() {
+<span class="fc" id="L75">    return logger;</span>
+  }
+
+  public Level getLevel() {
+<span class="fc" id="L79">    return level;</span>
+  }
+
+  public long getTimeStamp() {
+<span class="fc" id="L83">    return timeStamp;</span>
+  }
+
+  @Nullable
+  public Marker getMarker() {
+<span class="fc" id="L88">    return marker;</span>
+  }
+
+  public String getFormat() {
+<span class="fc" id="L92">    return format;</span>
+  }
+
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;) // risk I take...
+  public Object[] getArguments() {
+<span class="fc" id="L97">    return arguments;</span>
+  }
+
+  public Thread getThread() {
+<span class="fc" id="L101">    return thread;</span>
+  }
+
+  public synchronized String getMessage() {
+<span class="nc" id="L105">    materializeMessage();</span>
+<span class="nc" id="L106">    return message;</span>
+  }
+
+  public synchronized void materializeMessage() {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    if (message == null) {</span>
+<span class="nc" id="L111">      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);</span>
+      try {
+<span class="nc" id="L113">        this.startExtra = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, sb, format,</span>
+                ObjectAppenderSupplier.TO_STRINGER, arguments);
+<span class="nc" id="L115">      } catch (IOException ex) {</span>
+<span class="nc" id="L116">        throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L117">      }</span>
+<span class="nc" id="L118">      message = sb.toString();</span>
+    }
+<span class="nc" id="L120">  }</span>
+
+  @Nonnull
+  public synchronized Object[] getExtraArguments() {
+<span class="nc" id="L124">    materializeMessage();</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (startExtra &lt; arguments.length) {</span>
+<span class="nc" id="L126">      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
+    } else {
+<span class="nc" id="L128">      return Arrays.EMPTY_OBJ_ARRAY;</span>
+    }
+  }
+
+  @Nullable
+  public synchronized Throwable getFirstExtraThrowable() {
+<span class="nc" id="L134">    materializeMessage();</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    for (int i = startExtra; i &lt; arguments.length; i++) {</span>
+<span class="nc" id="L136">      Object argument = arguments[i];</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">      if (argument instanceof Throwable) {</span>
+<span class="nc" id="L138">        return (Throwable) argument;</span>
+      }
+    }
+<span class="nc" id="L141">    return null;</span>
+  }
+
+  public synchronized void attach(final Object obj) {
+<span class="fc bfc" id="L145" title="All 2 branches covered.">    if (attachments.isEmpty()) {</span>
+<span class="fc" id="L146">      attachments = new HashSet&lt;&gt;(2);</span>
+    }
+<span class="fc" id="L148">    attachments.add(obj);</span>
+<span class="fc" id="L149">  }</span>
+
+  public synchronized boolean hasAttachment(final Object obj) {
+<span class="fc" id="L152">    return attachments.contains(obj);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L157">    return &quot;LogRecord{ thread=&quot; + thread + &quot;, logger=&quot; + logger + &quot;, level=&quot;</span>
+            + level + &quot;, timeStamp=&quot; + timeStamp + &quot;, marker=&quot; + marker + &quot;, format=&quot;
+<span class="nc" id="L159">            + format + &quot;, arguments=&quot; + java.util.Arrays.toString(arguments) + '}';</span>
+  }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

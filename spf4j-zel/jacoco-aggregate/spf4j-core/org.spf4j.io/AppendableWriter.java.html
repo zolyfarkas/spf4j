@@ -31,8 +31,6 @@
  */
 package org.spf4j.io;
 
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
@@ -44,116 +42,114 @@ import java.nio.CharBuffer;
  * this is a faster version of guava: CharStreams.asWriter
  * @author zoly
  */
-@CleanupObligation
 public final class AppendableWriter extends Writer {
 
   private final Appendable appendable;
-  
+
   private final boolean flushable;
-  
+
   private boolean closed;
 
-<span class="nc" id="L56">  public AppendableWriter(final Appendable appendable) {</span>
-<span class="nc" id="L57">    this.appendable = appendable;</span>
-<span class="nc" id="L58">    this.flushable = appendable instanceof Flushable;</span>
-<span class="nc" id="L59">    this.closed = false;</span>
-<span class="nc" id="L60">  }</span>
+<span class="nc" id="L53">  public AppendableWriter(final Appendable appendable) {</span>
+<span class="nc" id="L54">    this.appendable = appendable;</span>
+<span class="nc" id="L55">    this.flushable = appendable instanceof Flushable;</span>
+<span class="nc" id="L56">    this.closed = false;</span>
+<span class="nc" id="L57">  }</span>
 
   @Override
   public void write(final char[] cbuf, final int off, final int len) throws IOException {
-<span class="nc" id="L64">    checkNotClosed();</span>
+<span class="nc" id="L61">    checkNotClosed();</span>
     /* Guava claims:
     It turns out that creating a new String is usually as fast,
     or faster than wrapping cbuf in a light-weight CharSequence.
-    
+
     Since I am suspicious of claims that do not make much sense and most developers write rubbish benchmarks
     (Linus I start to be like you more and more),
     I wrote a JMH benchmark, and the results are as expected the opposite:
-    
+
     Benchmark                                          Mode  Cnt      Score     Error  Units
     AppendableWriterBenchmark.guavaAppendable         thrpt   10  10731.940 ± 427.258  ops/s
     AppendableWriterBenchmark.spf4jAppendable         thrpt   10  17613.093 ± 344.769  ops/s
-     
+
      Using a light weight wrapper is more than 50% faster!
-    
+
      See AppendableWriterBenchmark for more detail...
-    
+
     */
-<span class="nc" id="L82">    appendable.append(CharBuffer.wrap(cbuf), off, off + len);</span>
-<span class="nc" id="L83">  }</span>
+<span class="nc" id="L79">    appendable.append(CharBuffer.wrap(cbuf), off, off + len);</span>
+<span class="nc" id="L80">  }</span>
 
   @Override
   public void write(final int c) throws IOException {
-<span class="nc" id="L87">    checkNotClosed();</span>
-<span class="nc" id="L88">    appendable.append((char) c);</span>
-<span class="nc" id="L89">  }</span>
+<span class="nc" id="L84">    checkNotClosed();</span>
+<span class="nc" id="L85">    appendable.append((char) c);</span>
+<span class="nc" id="L86">  }</span>
 
   @Override
   public Writer append(final char c) throws IOException {
-<span class="nc" id="L93">    checkNotClosed();</span>
-<span class="nc" id="L94">    appendable.append(c);</span>
-<span class="nc" id="L95">    return this;</span>
+<span class="nc" id="L90">    checkNotClosed();</span>
+<span class="nc" id="L91">    appendable.append(c);</span>
+<span class="nc" id="L92">    return this;</span>
   }
 
   @Override
   public Writer append(final CharSequence csq, final int start, final int end) throws IOException {
-<span class="nc" id="L100">    checkNotClosed();</span>
-<span class="nc" id="L101">    appendable.append(csq, start, end);</span>
-<span class="nc" id="L102">    return this;</span>
+<span class="nc" id="L97">    checkNotClosed();</span>
+<span class="nc" id="L98">    appendable.append(csq, start, end);</span>
+<span class="nc" id="L99">    return this;</span>
   }
 
   @Override
   public Writer append(final CharSequence csq) throws IOException {
-<span class="nc" id="L107">    checkNotClosed();</span>
-<span class="nc" id="L108">    appendable.append(csq);</span>
-<span class="nc" id="L109">    return this;</span>
+<span class="nc" id="L104">    checkNotClosed();</span>
+<span class="nc" id="L105">    appendable.append(csq);</span>
+<span class="nc" id="L106">    return this;</span>
   }
 
   @Override
   public void write(final String str, final int off, final int len) throws IOException {
-<span class="nc" id="L114">    checkNotClosed();</span>
-<span class="nc" id="L115">    appendable.append(str, off, off + len);</span>
-<span class="nc" id="L116">  }</span>
+<span class="nc" id="L111">    checkNotClosed();</span>
+<span class="nc" id="L112">    appendable.append(str, off, off + len);</span>
+<span class="nc" id="L113">  }</span>
 
   @Override
   public void write(final String str) throws IOException {
-<span class="nc" id="L120">    appendable.append(str);</span>
-<span class="nc" id="L121">  }</span>
+<span class="nc" id="L117">    appendable.append(str);</span>
+<span class="nc" id="L118">  }</span>
 
   @Override
   public void write(final char[] cbuf) throws IOException {
-<span class="nc" id="L125">    appendable.append(CharBuffer.wrap(cbuf));</span>
-<span class="nc" id="L126">  }</span>
+<span class="nc" id="L122">    appendable.append(CharBuffer.wrap(cbuf));</span>
+<span class="nc" id="L123">  }</span>
 
   @Override
   public void flush() throws IOException {
-<span class="nc" id="L130">    checkNotClosed();</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">    if (flushable) {</span>
-<span class="nc" id="L132">      ((Flushable) appendable).flush();</span>
+<span class="nc" id="L127">    checkNotClosed();</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (flushable) {</span>
+<span class="nc" id="L129">      ((Flushable) appendable).flush();</span>
     }
-<span class="nc" id="L134">  }</span>
+<span class="nc" id="L131">  }</span>
 
   private void checkNotClosed() throws IOException {
-<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (closed) {</span>
-<span class="nc" id="L138">      throw new IOException(&quot;Cannot write to closed writer &quot; + this);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    if (closed) {</span>
+<span class="nc" id="L135">      throw new IOException(&quot;Cannot write to closed writer &quot; + this);</span>
     }
-<span class="nc" id="L140">  }</span>
-  
+<span class="nc" id="L137">  }</span>
+
   @Override
-  @DischargesObligation
   public void close() throws IOException {
-<span class="nc bnc" id="L145" title="All 2 branches missed.">    if (!closed) {</span>
-<span class="nc" id="L146">      flush();</span>
-<span class="nc bnc" id="L147" title="All 2 branches missed.">      if (appendable instanceof Closeable) {</span>
-<span class="nc" id="L148">        ((Closeable) appendable).close();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    if (!closed) {</span>
+<span class="nc" id="L142">      flush();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (appendable instanceof Closeable) {</span>
+<span class="nc" id="L144">        ((Closeable) appendable).close();</span>
       }
-<span class="nc" id="L150">      closed = true;</span>
+<span class="nc" id="L146">      closed = true;</span>
     }
-<span class="nc" id="L152">  }</span>
+<span class="nc" id="L148">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L156">    return &quot;AppendableWriter{&quot; + &quot;appendable=&quot; + appendable + &quot;, flushable=&quot; + flushable + &quot;, closed=&quot; + closed + '}';</span>
+<span class="nc" id="L152">    return &quot;AppendableWriter{&quot; + &quot;appendable=&quot; + appendable + &quot;, flushable=&quot; + flushable + &quot;, closed=&quot; + closed + '}';</span>
   }
 
 }

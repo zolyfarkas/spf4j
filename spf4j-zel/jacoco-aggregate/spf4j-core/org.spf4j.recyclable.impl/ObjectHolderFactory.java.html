@@ -36,54 +36,51 @@ import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import java.util.LinkedList;
 import java.util.Queue;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class ObjectHolderFactory&lt;T&gt; implements RecyclingSupplier.Factory&lt;ObjectHolder&lt;T&gt;&gt; {
 
     private final Queue&lt;ObjectHolder&lt;T&gt;&gt; objects;
     private final RecyclingSupplier.Factory&lt;T&gt; factory;
 
     public ObjectHolderFactory(final int precreateNumber, final RecyclingSupplier.Factory&lt;T&gt; factory)
-<span class="fc" id="L50">            throws ObjectCreationException {</span>
-<span class="fc" id="L51">        objects = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L52">        this.factory = factory;</span>
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        for (int i = 0; i &lt; precreateNumber; i++) {</span>
-<span class="nc" id="L54">            objects.add(new ObjectHolder&lt;&gt;(factory, false));</span>
+<span class="fc" id="L52">            throws ObjectCreationException {</span>
+<span class="fc" id="L53">        objects = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L54">        this.factory = factory;</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        for (int i = 0; i &lt; precreateNumber; i++) {</span>
+<span class="nc" id="L56">            objects.add(new ObjectHolder&lt;&gt;(factory, false));</span>
         }
-<span class="fc" id="L56">    }</span>
-
-<span class="nc" id="L58">    public ObjectHolderFactory(final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
-<span class="nc" id="L59">        objects = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L60">        this.factory = factory;</span>
-<span class="nc" id="L61">    }</span>
+<span class="fc" id="L58">    }</span>
 
     @Override
     public ObjectHolder&lt;T&gt; create() throws ObjectCreationException {
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (objects.isEmpty()) {</span>
-<span class="fc" id="L66">            return new ObjectHolder&lt;&gt;(factory);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (objects.isEmpty()) {</span>
+<span class="fc" id="L63">            return new ObjectHolder&lt;&gt;(factory);</span>
         } else {
-<span class="nc" id="L68">            return objects.remove();</span>
+<span class="nc" id="L65">            return objects.remove();</span>
         }
     }
 
     @Override
     public void dispose(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (!object.disposeIfNotBorrowed()) {</span>
-<span class="nc" id="L75">            throw new IllegalArgumentException(&quot;Object from holder is borrowed &quot; + object);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (!object.disposeIfNotBorrowed()) {</span>
+<span class="nc" id="L72">            throw new IllegalArgumentException(&quot;Object from holder is borrowed &quot; + object);</span>
         }
-<span class="fc" id="L77">    }</span>
+<span class="fc" id="L74">    }</span>
 
     @Override
     public boolean validate(final ObjectHolder&lt;T&gt; object, final Exception e) {
-<span class="nc" id="L81">        return true;</span>
+<span class="nc" id="L78">        return true;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L86">        return &quot;ObjectHolderFactory{&quot; + &quot;objects=&quot; + objects + &quot;, factory=&quot; + factory + '}';</span>
+<span class="fc" id="L83">        return &quot;ObjectHolderFactory{&quot; + &quot;objects=&quot; + objects + &quot;, factory=&quot; + factory + '}';</span>
     }
 
 

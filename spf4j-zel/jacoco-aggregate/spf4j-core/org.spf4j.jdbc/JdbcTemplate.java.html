@@ -32,6 +32,7 @@
 package org.spf4j.jdbc;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -52,17 +53,25 @@ import org.spf4j.base.JavaUtils;
 @Beta
 public final class JdbcTemplate {
 
+  /**
+   * certain JDBC drivers multiply timeout to transform in milis or nanos without validating overflow.
+   * This value needs to be low enough to account for this case.
+   */
+<span class="fc" id="L60">  private static final int MAX_JDBC_TIMEOUTSECONDS =</span>
+<span class="fc" id="L61">          Integer.getInteger(&quot;spf4j.jdbc.maxdbcTimeoutSeconds&quot;, 3600 * 24);</span>
+
+
   private final DataSource dataSource;
 
-<span class="fc" id="L57">  public JdbcTemplate(final DataSource dataSource) {</span>
-<span class="fc" id="L58">    this.dataSource = dataSource;</span>
-<span class="fc" id="L59">  }</span>
+<span class="fc" id="L66">  public JdbcTemplate(final DataSource dataSource) {</span>
+<span class="fc" id="L67">    this.dataSource = dataSource;</span>
+<span class="fc" id="L68">  }</span>
 
   public static void checkJdbcObjectName(final CharSequence name) {
-<span class="pc bpc" id="L62" title="2 of 4 branches missed.">    if (!JavaUtils.isJavaIdentifier(name) || name.length() &gt; 30) {</span>
-<span class="nc" id="L63">      throw new IllegalArgumentException(&quot;Invalid database Object identifier &quot; + name);</span>
+<span class="pc bpc" id="L71" title="2 of 4 branches missed.">    if (!JavaUtils.isJavaIdentifier(name) || name.length() &gt; 30) {</span>
+<span class="nc" id="L72">      throw new IllegalArgumentException(&quot;Invalid database Object identifier &quot; + name);</span>
     }
-<span class="fc" id="L65">  }</span>
+<span class="fc" id="L74">  }</span>
 
 
   @SuppressFBWarnings(&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;)
@@ -70,36 +79,36 @@ public final class JdbcTemplate {
           final long timeout, final TimeUnit tu)
           throws SQLException, InterruptedException {
     try {
-<span class="fc" id="L73">      return CallablesNano.executeWithRetry(</span>
-<span class="fc" id="L74">              new CallablesNano.NanoTimeoutCallable&lt;R, SQLException&gt;(tu.toNanos(timeout)) {</span>
+<span class="fc" id="L82">      return CallablesNano.executeWithRetry(</span>
+<span class="fc" id="L83">              new CallablesNano.NanoTimeoutCallable&lt;R, SQLException&gt;(tu.toNanos(timeout)) {</span>
 
                 @Override
                 // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
                 @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
                 public R call(final long deadlineNanos)
                         throws SQLException {
-<span class="fc" id="L81">                  try (Connection conn = dataSource.getConnection()) {</span>
-<span class="fc" id="L82">                    boolean autocomit = conn.getAutoCommit();</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">                    if (autocomit) {</span>
-<span class="fc" id="L84">                      conn.setAutoCommit(false);</span>
+<span class="fc" id="L90">                  try (Connection conn = dataSource.getConnection()) {</span>
+<span class="fc" id="L91">                    boolean autocomit = conn.getAutoCommit();</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">                    if (autocomit) {</span>
+<span class="fc" id="L93">                      conn.setAutoCommit(false);</span>
                     }
                     try {
-<span class="fc" id="L87">                      R result = handler.handle(conn, deadlineNanos);</span>
-<span class="fc" id="L88">                      conn.commit();</span>
-<span class="fc" id="L89">                      return result;</span>
-<span class="fc" id="L90">                    } catch (SQLException | RuntimeException ex) {</span>
-<span class="fc" id="L91">                      conn.rollback();</span>
-<span class="fc" id="L92">                      throw ex;</span>
+<span class="fc" id="L96">                      R result = handler.handle(conn, deadlineNanos);</span>
+<span class="fc" id="L97">                      conn.commit();</span>
+<span class="fc" id="L98">                      return result;</span>
+<span class="fc" id="L99">                    } catch (SQLException | RuntimeException ex) {</span>
+<span class="fc" id="L100">                      conn.rollback();</span>
+<span class="fc" id="L101">                      throw ex;</span>
                     } finally {
-<span class="pc bpc" id="L94" title="2 of 4 branches missed.">                      if (autocomit) {</span>
-<span class="fc" id="L95">                        conn.setAutoCommit(true);</span>
+<span class="pc bpc" id="L103" title="2 of 4 branches missed.">                      if (autocomit) {</span>
+<span class="fc" id="L104">                        conn.setAutoCommit(true);</span>
                       }
-                    }
-<span class="pc bpc" id="L98" title="4 of 8 branches missed.">                  }</span>
+<span class="fc" id="L106">                    }</span>
+<span class="pc bpc" id="L107" title="4 of 8 branches missed.">                  }</span>
                 }
               }, 2, 1000, SQLException.class);
-<span class="nc" id="L101">    } catch (TimeoutException ex) {</span>
-<span class="nc" id="L102">      throw new SQLTimeoutException(ex);</span>
+<span class="nc" id="L110">    } catch (TimeoutException ex) {</span>
+<span class="nc" id="L111">      throw new SQLTimeoutException(ex);</span>
     }
 
   }
@@ -108,39 +117,56 @@ public final class JdbcTemplate {
   public &lt;R&gt; R transactOnConnectionNonInterrupt(final HandlerNano&lt;Connection, R, SQLException&gt; handler,
           final long timeout, final TimeUnit tu)
           throws SQLException {
-<span class="fc" id="L111">      return CallablesNanoNonInterrupt.executeWithRetry(</span>
-<span class="fc" id="L112">              new CallablesNano.NanoTimeoutCallable&lt;R, SQLException&gt;(tu.toNanos(timeout)) {</span>
+<span class="fc" id="L120">      return CallablesNanoNonInterrupt.executeWithRetry(</span>
+<span class="fc" id="L121">              new CallablesNano.NanoTimeoutCallable&lt;R, SQLException&gt;(tu.toNanos(timeout)) {</span>
 
         @Override
         // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
         @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
         public R call(final long deadlineNanos)
                 throws SQLException {
-<span class="fc" id="L119">          try (Connection conn = dataSource.getConnection()) {</span>
-<span class="fc" id="L120">            boolean autocomit = conn.getAutoCommit();</span>
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">            if (autocomit) {</span>
-<span class="fc" id="L122">              conn.setAutoCommit(false);</span>
+<span class="fc" id="L128">          try (Connection conn = dataSource.getConnection()) {</span>
+<span class="fc" id="L129">            boolean autocomit = conn.getAutoCommit();</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">            if (autocomit) {</span>
+<span class="fc" id="L131">              conn.setAutoCommit(false);</span>
             }
             try {
-<span class="fc" id="L125">              R result = handler.handle(conn, deadlineNanos);</span>
-<span class="fc" id="L126">              conn.commit();</span>
-<span class="fc" id="L127">              return result;</span>
-<span class="fc" id="L128">            } catch (SQLException | RuntimeException ex) {</span>
-<span class="fc" id="L129">              conn.rollback();</span>
-<span class="fc" id="L130">              throw ex;</span>
+<span class="fc" id="L134">              R result = handler.handle(conn, deadlineNanos);</span>
+<span class="fc" id="L135">              conn.commit();</span>
+<span class="fc" id="L136">              return result;</span>
+<span class="fc" id="L137">            } catch (SQLException | RuntimeException ex) {</span>
+<span class="fc" id="L138">              conn.rollback();</span>
+<span class="fc" id="L139">              throw ex;</span>
             } finally {
-<span class="pc bpc" id="L132" title="2 of 4 branches missed.">              if (autocomit) {</span>
-<span class="fc" id="L133">                conn.setAutoCommit(true);</span>
+<span class="pc bpc" id="L141" title="2 of 4 branches missed.">              if (autocomit) {</span>
+<span class="fc" id="L142">                conn.setAutoCommit(true);</span>
               }
-            }
-<span class="pc bpc" id="L136" title="4 of 8 branches missed.">          }</span>
+<span class="fc" id="L144">            }</span>
+<span class="pc bpc" id="L145" title="4 of 8 branches missed.">          }</span>
         }
       }, 2, 1000, SQLException.class);
   }
 
+
+  /**
+   * @param deadlineNanos the deadline relative to the same as System.nanoTime()
+   * @return
+   */
+  public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) {
+<span class="fc" id="L156">    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime());</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">    if (toSeconds &lt; 0L) {</span>
+<span class="nc" id="L158">      throw new UncheckedTimeoutException(&quot;deadline exceeded by &quot; + (-toSeconds) + &quot; seconds&quot;);</span>
+    }
+<span class="fc bfc" id="L160" title="All 2 branches covered.">    if (toSeconds &gt; MAX_JDBC_TIMEOUTSECONDS) {</span>
+<span class="fc" id="L161">      return MAX_JDBC_TIMEOUTSECONDS;</span>
+    } else {
+<span class="fc" id="L163">     return (int) toSeconds;</span>
+    }
+  }
+
   @Override
   public String toString() {
-<span class="nc" id="L143">    return &quot;JdbcTemplate{&quot; + &quot;dataSource=&quot; + dataSource + '}';</span>
+<span class="nc" id="L169">    return &quot;JdbcTemplate{&quot; + &quot;dataSource=&quot; + dataSource + '}';</span>
   }
 
 }

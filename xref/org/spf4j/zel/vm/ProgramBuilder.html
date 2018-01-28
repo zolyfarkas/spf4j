@@ -39,16 +39,16 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.zel.vm;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Function;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Interner;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Interners;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.Collections;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.atomic.AtomicInteger;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Interner;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Interners;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.Collections;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.atomic.AtomicInteger;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.function.Function;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Pair;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.CALLA;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.zel.instr.Instruction;
@@ -64,7 +64,7 @@
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> DEFAULT_SIZE = 16;
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> AtomicInteger COUNTER = <strong class="jxr_keyword">new</strong> AtomicInteger();
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a>[] instructions;
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;Location&gt; debugInfo;
@@ -278,7 +278,7 @@
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/vm/ProgramBuilder.html">HasDeterministicFunc</a> <strong class="jxr_keyword">implements</strong> Function&lt;Object, Boolean&gt; {
 <a class="jxr_linenumber" name="L271" href="#L271">271</a> 
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>         @Override
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>         @SuppressFBWarnings(<span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>)
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         @SuppressFBWarnings({ <span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>, <span class="jxr_string">"NP_BOOLEAN_RETURN_NULL"</span> })
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">public</strong> Boolean apply(<strong class="jxr_keyword">final</strong> Object input) {
 <a class="jxr_linenumber" name="L275" href="#L275">275</a>             <strong class="jxr_keyword">if</strong> (input instanceof Program) {
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>                 <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> prog = (Program) input;
@@ -294,32 +294,33 @@
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/zel/vm/ProgramBuilder.html">HasAsyncFunc</a> <strong class="jxr_keyword">implements</strong> Function&lt;Object, Boolean&gt; {
 <a class="jxr_linenumber" name="L287" href="#L287">287</a> 
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>         @Override
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>         @SuppressFBWarnings({ <span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>, <span class="jxr_string">"ITC_INHERITANCE_TYPE_CHECKING"</span> })
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>         <strong class="jxr_keyword">public</strong> Boolean apply(<strong class="jxr_keyword">final</strong> Object input) {
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>             <strong class="jxr_keyword">if</strong> (input instanceof Program) {
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> prog = (Program) input;
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>                 <strong class="jxr_keyword">if</strong> (prog.getExecType() == Program.ExecutionType.ASYNC) {
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>                     <strong class="jxr_keyword">return</strong> Boolean.TRUE;
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 }
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (input instanceof CALLA) {
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>                 <strong class="jxr_keyword">return</strong> Boolean.TRUE;
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>             }
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>         }
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>     }
-<a class="jxr_linenumber" name="L302" href="#L302">302</a> 
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>     @Override
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>     <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ProgramBuilder{"</span> + <span class="jxr_string">"instructions="</span> + Arrays.toString(instructions) + <span class="jxr_string">", debugInfo="</span> + debugInfo
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 + <span class="jxr_string">", instrNumber="</span> + instrNumber + <span class="jxr_string">", type="</span> + type + <span class="jxr_string">", execType="</span> + execType
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>                 + <span class="jxr_string">", stringInterner="</span> + stringInterner + <span class="jxr_string">", staticMemBuilder="</span> + staticMemBuilder + '}';
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>     }
-<a class="jxr_linenumber" name="L309" href="#L309">309</a> 
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         @SuppressFBWarnings({ <span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>,
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>           <span class="jxr_string">"ITC_INHERITANCE_TYPE_CHECKING"</span>, <span class="jxr_string">"NP_BOOLEAN_RETURN_NULL"</span> })
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>         <strong class="jxr_keyword">public</strong> Boolean apply(<strong class="jxr_keyword">final</strong> Object input) {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>             <strong class="jxr_keyword">if</strong> (input instanceof Program) {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>                 <a href="../../../../org/spf4j/zel/vm/Program.html">Program</a> prog = (Program) input;
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 <strong class="jxr_keyword">if</strong> (prog.getExecType() == Program.ExecutionType.ASYNC) {
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>                     <strong class="jxr_keyword">return</strong> Boolean.TRUE;
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>                 }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (input instanceof CALLA) {
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>                 <strong class="jxr_keyword">return</strong> Boolean.TRUE;
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>             }
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         }
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     }
+<a class="jxr_linenumber" name="L303" href="#L303">303</a> 
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     @Override
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ProgramBuilder{"</span> + <span class="jxr_string">"instructions="</span> + Arrays.toString(instructions) + <span class="jxr_string">", debugInfo="</span> + debugInfo
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>                 + <span class="jxr_string">", instrNumber="</span> + instrNumber + <span class="jxr_string">", type="</span> + type + <span class="jxr_string">", execType="</span> + execType
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>                 + <span class="jxr_string">", stringInterner="</span> + stringInterner + <span class="jxr_string">", staticMemBuilder="</span> + staticMemBuilder + '}';
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     }
 <a class="jxr_linenumber" name="L310" href="#L310">310</a> 
 <a class="jxr_linenumber" name="L311" href="#L311">311</a> 
-<a class="jxr_linenumber" name="L312" href="#L312">312</a> }
+<a class="jxr_linenumber" name="L312" href="#L312">312</a> 
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

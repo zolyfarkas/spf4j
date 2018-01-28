@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Arrays.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Arrays.java</span></div><h1>Arrays.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import com.google.common.annotations.Beta;
+import com.google.common.annotations.GwtCompatible;
+import com.google.common.collect.ObjectArrays;
+
+/**
+ * Array utilities.
+ *
+ * @author zoly
+ */
+@GwtCompatible
+public final class Arrays {
+
+<span class="fc" id="L46">  public static final Object[] EMPTY_OBJ_ARRAY = new Object[]{};</span>
+
+<span class="fc" id="L48">  public static final String[] EMPTY_STRING_ARRAY = new String[]{};</span>
+
+<span class="fc" id="L50">  public static final byte[] EMPTY_BYTE_ARRAY = new byte[]{};</span>
+
+<span class="fc" id="L52">  public static final long[] EMPTY_LONG_ARRAY = new long[]{};</span>
+
+<span class="fc" id="L54">  public static final int[] EMPTY_INT_ARRAY = new int[]{};</span>
+
+  private static final int ARR_CPY_THR = 128;
+
+<span class="nc" id="L58">  private Arrays() {</span>
+<span class="nc" id="L59">  }</span>
+
+  public static double[] getColumnAsDoubles(final long[][] data, final int columnNumber) {
+<span class="nc" id="L62">    double[] result = new double[data.length];</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="nc" id="L64">      result[i] = data[i][columnNumber];</span>
+    }
+<span class="nc" id="L66">    return result;</span>
+  }
+
+  public static double[] getColumn(final double[][] data, final int columnNumber) {
+<span class="nc" id="L70">    double[] result = new double[data.length];</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="nc" id="L72">      result[i] = data[i][columnNumber];</span>
+    }
+<span class="nc" id="L74">    return result;</span>
+  }
+
+  public static double[] toDoubleArray(final long... larr) {
+<span class="nc" id="L78">    double[] result = new double[larr.length];</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">    for (int i = 0; i &lt; larr.length; i++) {</span>
+<span class="nc" id="L80">      result[i] = larr[i];</span>
+    }
+<span class="nc" id="L82">    return result;</span>
+  }
+
+  public static Object[] toObjectArray(final long... larr) {
+<span class="nc" id="L86">    Object[] result = new Object[larr.length];</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    for (int i = 0; i &lt; larr.length; i++) {</span>
+<span class="nc" id="L88">      result[i] = larr[i];</span>
+    }
+<span class="nc" id="L90">    return result;</span>
+  }
+
+  public static double[] divide(final double[] arr1, final double[] arr2) {
+<span class="nc" id="L94">    double[] result = new double[arr1.length];</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="nc" id="L96">      result[i] = arr1[i] / arr2[i];</span>
+    }
+<span class="nc" id="L98">    return result;</span>
+  }
+
+  public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting) {
+<span class="fc" id="L102">    return deepEquals(a1, a2, starting, a1.length);</span>
+  }
+
+  public static boolean deepEquals(final Object[] a1, final Object[] a2, final int starting, final int ending) {
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (a1 == a2) {</span>
+<span class="nc" id="L107">      return true;</span>
+    }
+<span class="pc bpc" id="L109" title="2 of 4 branches missed.">    if (a1 == null || a2 == null) {</span>
+<span class="nc" id="L110">      return false;</span>
+    }
+<span class="fc bfc" id="L112" title="All 2 branches covered.">    for (int i = starting; i &lt; ending; i++) {</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">      if (!java.util.Objects.deepEquals(a1[i], a2[i])) {</span>
+<span class="fc" id="L114">        return false;</span>
+      }
+    }
+<span class="fc" id="L117">    return true;</span>
+  }
+
+  public static int search(final char[] array, final char c) {
+<span class="fc bfc" id="L121" title="All 2 branches covered.">    for (int i = 0; i &lt; array.length; i++) {</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">      if (array[i] == c) {</span>
+<span class="fc" id="L123">        return i;</span>
+      }
+    }
+<span class="fc" id="L126">    return -1;</span>
+  }
+
+  public static &lt;T&gt; T[] moveOfRange(final T[] original, final int from, final int to) {
+<span class="nc" id="L130">    int newLength = to - from;</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">    if (newLength &lt; 0) {</span>
+<span class="nc" id="L132">      throw new IllegalArgumentException(from + &quot; &gt; &quot; + to);</span>
+    }
+<span class="nc" id="L134">    T[] copy = ObjectArrays.newArray(original, newLength);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    for (int i = from, j = 0; i &lt; to; i++, j++) {</span>
+<span class="nc" id="L136">      copy[j] = original[i];</span>
+<span class="nc" id="L137">      original[i] = null;</span>
+    }
+<span class="nc" id="L139">    return copy;</span>
+  }
+
+  public static &lt;T&gt; T[] concat(final T[]... arrays) {
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">    if (arrays.length &lt; 2) {</span>
+<span class="nc" id="L144">      throw new IllegalArgumentException(&quot;You should concatenate at least 2 arrays: &quot;</span>
+<span class="nc" id="L145">              + java.util.Arrays.deepToString(arrays));</span>
+    }
+<span class="fc" id="L147">    int newLength = 0;</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">    for (T[] arr : arrays) {</span>
+<span class="fc" id="L149">      newLength += arr.length;</span>
+    }
+<span class="fc" id="L151">    T[] result = ObjectArrays.newArray(arrays[0], newLength);</span>
+<span class="fc" id="L152">    int destIdx = 0;</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">    for (T[] arr : arrays) {</span>
+<span class="fc" id="L154">      System.arraycopy(arr, 0, result, destIdx, arr.length);</span>
+<span class="fc" id="L155">      destIdx += arr.length;</span>
+    }
+<span class="fc" id="L157">    return result;</span>
+  }
+
+  public static &lt;T&gt; int indexOf(final T[] array, final T content) {
+<span class="fc" id="L161">    int result = -1;</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">    for (int i = 0; i &lt; array.length; i++) {</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">      if (array[i].equals(content)) {</span>
+<span class="fc" id="L164">        return i;</span>
+      }
+    }
+<span class="nc" id="L167">    return result;</span>
+  }
+
+  /**
+   * implementation which significantly faster for large arrays (&gt; 500).
+   */
+  @Beta
+  public static void fill(final byte[] array, final int startIdx, final int endIdx, final byte value) {
+<span class="nc" id="L175">    int len = endIdx - startIdx;</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc bnc" id="L177" title="All 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="nc" id="L178">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+      }
+<span class="nc bnc" id="L180" title="All 2 branches missed.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="nc" id="L182">          array[i] = value;</span>
+        }
+      } else {
+<span class="nc" id="L185">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="nc" id="L187">          array[i] = value;</span>
+        }
+<span class="nc" id="L189">        array[startIdx] = value;</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="nc" id="L191">          int lmi = len - i;</span>
+<span class="nc" id="L192">          int from = startIdx + i;</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">          if (lmi &lt; i) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="nc" id="L195">              int xe = from + lmi;</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
+<span class="nc" id="L197">                array[j] = value;</span>
+              }
+<span class="nc" id="L199">            } else {</span>
+<span class="nc" id="L200">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+            }
+          } else {
+<span class="nc" id="L203">            System.arraycopy(array, startIdx, array, from, i);</span>
+          }
+        }
+<span class="nc" id="L206">      }</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="nc" id="L208">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+    }
+<span class="nc" id="L210">  }</span>
+
+
+  /**
+   * implementation which is significantly faster for large arrays (&gt; 500).
+   * Bechmark results:
+   * Benchmark                                      Mode Cnt Score            Error           Units
+   * ArraysBenchmark.testSpf4jFillSmall(10)         thrpt 10 1048892782.375   ± 29976629.818  ops/s
+   * ArraysBenchmark.testjdkFillSmall(10)           thrpt 10 1046330835.509   ± 47577260.717  ops/s
+   * ArraysBenchmark.testSpf4jFillMedium(100)       thrpt 10 123724912.161    ± 4049077.779   ops/s
+   * ArraysBenchmark.testjdkFillMedium(100)         thrpt 10 124143139.498    ± 2044760.427   ops/s
+   * ArraysBenchmark.testSpf4jFillLarge(1000)       thrpt 10 20335282.192     ± 592359.181    ops/s
+   * ArraysBenchmark.testjdkFillLarge(1000)         thrpt 10 12661975.522     ± 170457.046    ops/s
+   * ArraysBenchmark.testSpf4jFillVeryLarge(10000)  thrpt 10 2767351.098      ± 74871.147     ops/s
+   * ArraysBenchmark.testjdkFillVeryLarge(10000     thrpt 10 1045099.669      ± 30044.505     ops/s
+   *
+   */
+  @Beta
+  public static &lt;T&gt; void fill(final T[] array, final int startIdx, final int endIdx, final T value) {
+<span class="fc" id="L229">    int len = endIdx - startIdx;</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">    if (len &gt; 0) {</span>
+<span class="pc bpc" id="L231" title="2 of 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="nc" id="L232">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+      }
+<span class="fc bfc" id="L234" title="All 2 branches covered.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="fc" id="L236">          array[i] = value;</span>
+        }
+      } else {
+<span class="fc" id="L239">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="fc" id="L241">          array[i] = value;</span>
+        }
+<span class="fc" id="L243">        array[startIdx] = value;</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="fc" id="L245">          int lmi = len - i;</span>
+<span class="fc" id="L246">          int from = startIdx + i;</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">          if (lmi &lt; i) {</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="nc" id="L249">              int xe = from + lmi;</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
+<span class="nc" id="L251">                array[j] = value;</span>
+              }
+<span class="nc" id="L253">            } else {</span>
+<span class="fc" id="L254">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+            }
+          } else {
+<span class="fc" id="L257">            System.arraycopy(array, startIdx, array, from, i);</span>
+          }
+        }
+<span class="fc" id="L260">      }</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="fc" id="L262">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+    }
+<span class="fc" id="L264">  }</span>
+
+  @Beta
+  public static void fill(final char[] array, final int startIdx, final int endIdx, final char value) {
+<span class="nc" id="L268">    int len = endIdx - startIdx;</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc bnc" id="L270" title="All 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="nc" id="L271">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+      }
+<span class="nc bnc" id="L273" title="All 2 branches missed.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="nc" id="L275">          array[i] = value;</span>
+        }
+      } else {
+<span class="nc" id="L278">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="nc" id="L280">          array[i] = value;</span>
+        }
+<span class="nc" id="L282">        array[startIdx] = value;</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="nc" id="L284">          int lmi = len - i;</span>
+<span class="nc" id="L285">          int from = startIdx + i;</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">          if (lmi &lt; i) {</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="nc" id="L288">              int xe = from + lmi;</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
+<span class="nc" id="L290">                array[j] = value;</span>
+              }
+<span class="nc" id="L292">            } else {</span>
+<span class="nc" id="L293">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+            }
+          } else {
+<span class="nc" id="L296">            System.arraycopy(array, startIdx, array, from, i);</span>
+          }
+        }
+<span class="nc" id="L299">      }</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="nc" id="L301">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+    }
+<span class="nc" id="L303">  }</span>
+
+  @Beta
+  public static void fill(final int[] array, final int startIdx, final int endIdx, final int value) {
+<span class="nc" id="L307">    int len = endIdx - startIdx;</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc bnc" id="L309" title="All 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="nc" id="L310">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+      }
+<span class="nc bnc" id="L312" title="All 2 branches missed.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="nc" id="L314">          array[i] = value;</span>
+        }
+      } else {
+<span class="nc" id="L317">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="nc" id="L319">          array[i] = value;</span>
+        }
+<span class="nc" id="L321">        array[startIdx] = value;</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="nc" id="L323">          int lmi = len - i;</span>
+<span class="nc" id="L324">          int from = startIdx + i;</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">          if (lmi &lt; i) {</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="nc" id="L327">              int xe = from + lmi;</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
+<span class="nc" id="L329">                array[j] = value;</span>
+              }
+<span class="nc" id="L331">            } else {</span>
+<span class="nc" id="L332">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+            }
+          } else {
+<span class="nc" id="L335">            System.arraycopy(array, startIdx, array, from, i);</span>
+          }
+        }
+<span class="nc" id="L338">      }</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="nc" id="L340">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+    }
+<span class="nc" id="L342">  }</span>
+
+  @Beta
+  public static void fill(final long[] array, final int startIdx, final int endIdx, final long value) {
+<span class="nc" id="L346">    int len = endIdx - startIdx;</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc bnc" id="L348" title="All 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="nc" id="L349">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+      }
+<span class="nc bnc" id="L351" title="All 2 branches missed.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="nc" id="L353">          array[i] = value;</span>
+        }
+      } else {
+<span class="nc" id="L356">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="nc" id="L358">          array[i] = value;</span>
+        }
+<span class="nc" id="L360">        array[startIdx] = value;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="nc" id="L362">          int lmi = len - i;</span>
+<span class="nc" id="L363">          int from = startIdx + i;</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">          if (lmi &lt; i) {</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="nc" id="L366">              int xe = from + lmi;</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
+<span class="nc" id="L368">                array[j] = value;</span>
+              }
+<span class="nc" id="L370">            } else {</span>
+<span class="nc" id="L371">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+            }
+          } else {
+<span class="nc" id="L374">            System.arraycopy(array, startIdx, array, from, i);</span>
+          }
+        }
+<span class="nc" id="L377">      }</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="nc" id="L379">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+    }
+<span class="nc" id="L381">  }</span>
+
+  @Beta
+  public static void fill(final double[] array, final int startIdx, final int endIdx, final double value) {
+<span class="nc" id="L385">    int len = endIdx - startIdx;</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc bnc" id="L387" title="All 4 branches missed.">      if (endIdx &gt; array.length || startIdx &lt; 0) {</span>
+<span class="nc" id="L388">        throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+      }
+<span class="nc bnc" id="L390" title="All 2 branches missed.">      if (len &lt;= ARR_CPY_THR) {</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        for (int i = startIdx; i &lt; endIdx; i++) {</span>
+<span class="nc" id="L392">          array[i] = value;</span>
+        }
+      } else {
+<span class="nc" id="L395">        int fillEnd = startIdx + ARR_CPY_THR;</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        for (int i = startIdx; i &lt; fillEnd; i++) {</span>
+<span class="nc" id="L397">          array[i] = value;</span>
+        }
+<span class="nc" id="L399">        array[startIdx] = value;</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">        for (int i = ARR_CPY_THR; i &lt; len; i += i) {</span>
+<span class="nc" id="L401">          int lmi = len - i;</span>
+<span class="nc" id="L402">          int from = startIdx + i;</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">          if (lmi &lt; i) {</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">            if (lmi &lt; ARR_CPY_THR) {</span>
+<span class="nc" id="L405">              int xe = from + lmi;</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">              for (int j = from; j &lt; xe; j++) {</span>
+<span class="nc" id="L407">                array[j] = value;</span>
+              }
+<span class="nc" id="L409">            } else {</span>
+<span class="nc" id="L410">              System.arraycopy(array, startIdx, array, from, lmi);</span>
+            }
+          } else {
+<span class="nc" id="L413">            System.arraycopy(array, startIdx, array, from, i);</span>
+          }
+        }
+<span class="nc" id="L416">      }</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">    } else if (len &lt; 0) {</span>
+<span class="nc" id="L418">      throw new IllegalArgumentException(&quot;Illegal range from &quot; + startIdx + &quot; to &quot; + endIdx);</span>
+    }
+<span class="nc" id="L420">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

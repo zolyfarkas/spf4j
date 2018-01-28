@@ -107,11 +107,12 @@ public interface TypeMap&lt;H&gt; extends ByTypeSupplier&lt;H, RuntimeException&
    * @param type
    * @param object
    */
-  default void safePut(final Type type, final H object) {
+  default TypeMap&lt;H&gt; safePut(final Type type, final H object) {
 <span class="pc bpc" id="L111" title="1 of 2 branches missed.">    if (!putIfNotPresent(type, object)) {</span>
 <span class="nc" id="L112">      throw new IllegalArgumentException(&quot;Cannot put &quot; + type + &quot;, &quot; + object + &quot; exiting mapping present&quot;);</span>
     }
-<span class="fc" id="L114">  }</span>
+<span class="fc" id="L114">    return this;</span>
+  }
 
   /**
    * remove type association.

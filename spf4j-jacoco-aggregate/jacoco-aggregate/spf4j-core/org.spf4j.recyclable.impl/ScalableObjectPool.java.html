@@ -36,6 +36,7 @@ import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Scanable;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -50,53 +51,54 @@ final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  
     private final ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt; localPool;
 
 
-    ScalableObjectPool(final int initialSize, final int maxSize, final RecyclingSupplier.Factory&lt;T&gt; factory,
-<span class="fc" id="L54">            final boolean fair) throws ObjectCreationException {</span>
-<span class="fc" id="L55">        globalPool = new SimpleSmartObjectPool&lt;&gt;(initialSize, maxSize,</span>
+    ScalableObjectPool(final int initialSize, final int maxSize,
+            @Nonnull final RecyclingSupplier.Factory&lt;T&gt; factory,
+<span class="fc" id="L56">            final boolean fair) throws ObjectCreationException {</span>
+<span class="fc" id="L57">        globalPool = new SimpleSmartObjectPool&lt;&gt;(initialSize, maxSize,</span>
                 new ObjectHolderFactory&lt;&gt;(initialSize, factory), fair);
-<span class="fc" id="L57">        localPool = new ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L59">        localPool = new ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt;() {</span>
                     @Override
                     protected LocalObjectPool&lt;T&gt; initialValue() {
-<span class="fc" id="L60">                        return new LocalObjectPool&lt;&gt;(globalPool);</span>
+<span class="fc" id="L62">                        return new LocalObjectPool&lt;&gt;(globalPool);</span>
                     }
         };
-<span class="fc" id="L63">    }</span>
+<span class="fc" id="L65">    }</span>
 
 
 
     @Override
     public T get() throws ObjectCreationException, InterruptedException, TimeoutException {
-<span class="fc" id="L69">        return localPool.get().get();</span>
+<span class="fc" id="L71">        return localPool.get().get();</span>
     }
 
     @Override
     public void recycle(final T object, final Exception e) {
-<span class="fc" id="L74">        localPool.get().recycle(object, e);</span>
-<span class="fc" id="L75">    }</span>
+<span class="fc" id="L76">        localPool.get().recycle(object, e);</span>
+<span class="fc" id="L77">    }</span>
 
     @Override
     public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
-<span class="fc" id="L79">       return globalPool.tryDispose(timeoutMillis);</span>
+<span class="fc" id="L81">       return globalPool.tryDispose(timeoutMillis);</span>
     }
 
     @Override
     public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
-<span class="fc" id="L84">        return globalPool.scan(handler);</span>
+<span class="fc" id="L86">        return globalPool.scan(handler);</span>
     }
 
     public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
-<span class="fc" id="L88">        globalPool.requestReturnFromBorrowersIfNotInUse();</span>
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L90">        globalPool.requestReturnFromBorrowersIfNotInUse();</span>
+<span class="fc" id="L91">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L93">        return &quot;ScalableObjectPool{&quot; + &quot;globalPool=&quot; + globalPool + '}';</span>
+<span class="fc" id="L95">        return &quot;ScalableObjectPool{&quot; + &quot;globalPool=&quot; + globalPool + '}';</span>
     }
 
     @Override
     public void recycle(final T object) {
-<span class="nc" id="L98">        recycle(object, null);</span>
-<span class="nc" id="L99">    }</span>
+<span class="nc" id="L100">        recycle(object, null);</span>
+<span class="nc" id="L101">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

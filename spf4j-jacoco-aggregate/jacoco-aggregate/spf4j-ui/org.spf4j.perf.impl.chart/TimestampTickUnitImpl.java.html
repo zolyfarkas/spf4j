@@ -32,8 +32,9 @@
 package org.spf4j.perf.impl.chart;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import org.jfree.chart.axis.NumberTickUnit;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * This class although implements Serializable is not implemented correctly to serialize. Since I do not intend to
@@ -51,51 +52,51 @@ class TimestampTickUnitImpl extends NumberTickUnit {
 
   TimestampTickUnitImpl(final double size,
           final long[] timestamps, final long stepMillis, final DateTimeFormatter formatter) {
-<span class="nc" id="L54">    super(size);</span>
-<span class="nc" id="L55">    this.timestamps = timestamps;</span>
-<span class="nc" id="L56">    this.formatter = formatter;</span>
-<span class="nc" id="L57">    this.stepMillis = stepMillis;</span>
-<span class="nc" id="L58">  }</span>
+<span class="nc" id="L55">    super(size);</span>
+<span class="nc" id="L56">    this.timestamps = timestamps;</span>
+<span class="nc" id="L57">    this.formatter = formatter;</span>
+<span class="nc" id="L58">    this.stepMillis = stepMillis;</span>
+<span class="nc" id="L59">  }</span>
 
   @Override
   public String valueToString(final double value) {
-<span class="nc" id="L62">    int ival = (int) Math.round(value);</span>
+<span class="nc" id="L63">    int ival = (int) Math.round(value);</span>
     long val;
-<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (ival &gt;= timestamps.length) {</span>
-<span class="nc" id="L65">      val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">    } else if (ival &lt; 0) {</span>
-<span class="nc" id="L67">      val = timestamps[0] + ival * stepMillis;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    if (ival &gt;= timestamps.length) {</span>
+<span class="nc" id="L66">      val = timestamps[timestamps.length - 1] + stepMillis * (ival - timestamps.length + 1);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    } else if (ival &lt; 0) {</span>
+<span class="nc" id="L68">      val = timestamps[0] + ival * stepMillis;</span>
     } else {
-<span class="nc" id="L69">      val = timestamps[ival];</span>
+<span class="nc" id="L70">      val = timestamps[ival];</span>
     }
-<span class="nc" id="L71">    return formatter.print(val);</span>
+<span class="nc" id="L72">    return formatter.format(Instant.ofEpochMilli(val));</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc" id="L76">    int hash = 7;</span>
-<span class="nc" id="L77">    hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);</span>
-<span class="nc" id="L78">    hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis &gt;&gt;&gt; 32));</span>
-<span class="nc bnc" id="L79" title="All 2 branches missed.">    return 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);</span>
+<span class="nc" id="L77">    int hash = 7;</span>
+<span class="nc" id="L78">    hash = 89 * hash + java.util.Arrays.hashCode(this.timestamps);</span>
+<span class="nc" id="L79">    hash = 89 * hash + (int) (this.stepMillis ^ (this.stepMillis &gt;&gt;&gt; 32));</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    return 89 * hash + (this.formatter != null ? this.formatter.hashCode() : 0);</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L84" title="All 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L85">      return false;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L86">      return false;</span>
     }
-<span class="nc bnc" id="L87" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L88">      return false;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L89">      return false;</span>
     }
-<span class="nc" id="L90">    final TimestampTickUnitImpl other = (TimestampTickUnitImpl) obj;</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">    if (!java.util.Arrays.equals(this.timestamps, other.timestamps)) {</span>
-<span class="nc" id="L92">      return false;</span>
+<span class="nc" id="L91">    final TimestampTickUnitImpl other = (TimestampTickUnitImpl) obj;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (!java.util.Arrays.equals(this.timestamps, other.timestamps)) {</span>
+<span class="nc" id="L93">      return false;</span>
     }
-<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (this.stepMillis != other.stepMillis) {</span>
-<span class="nc" id="L95">      return false;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    if (this.stepMillis != other.stepMillis) {</span>
+<span class="nc" id="L96">      return false;</span>
     }
-<span class="nc bnc" id="L97" title="All 4 branches missed.">    return !(this.formatter != other.formatter</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">            &amp;&amp; (this.formatter == null || !this.formatter.equals(other.formatter)));</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">    return !(this.formatter != other.formatter</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            &amp;&amp; (this.formatter == null || !this.formatter.equals(other.formatter)));</span>
   }
 
 }

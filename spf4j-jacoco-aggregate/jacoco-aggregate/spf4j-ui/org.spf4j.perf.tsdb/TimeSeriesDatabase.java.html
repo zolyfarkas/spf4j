@@ -54,6 +54,8 @@ import java.lang.management.ManagementFactory;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,8 +65,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
@@ -599,7 +599,7 @@ public final class TimeSeriesDatabase implements Closeable {
   public void writeCsvTable(final String tableName, final File output) throws IOException {
 <span class="nc" id="L600">    TSTable table = getTSTable(tableName);</span>
 <span class="nc" id="L601">    TimeSeries data = readAll(tableName);</span>
-<span class="nc" id="L602">    DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
+<span class="nc" id="L602">    DateTimeFormatter formatter = org.spf4j.base.Runtime.TS_FORMAT;</span>
 <span class="nc" id="L603">    try (Writer writer = new BufferedWriter(new OutputStreamWriter(</span>
 <span class="nc" id="L604">            Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {</span>
 <span class="nc" id="L605">      Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
@@ -611,7 +611,7 @@ public final class TimeSeriesDatabase implements Closeable {
 <span class="nc" id="L611">      long[] timestamps = data.getTimeStamps();</span>
 <span class="nc" id="L612">      long[][] values = data.getValues();</span>
 <span class="nc bnc" id="L613" title="All 2 branches missed.">      for (int i = 0; i &lt; timestamps.length; i++) {</span>
-<span class="nc" id="L614">        Csv.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
+<span class="nc" id="L614">        Csv.writeCsvElement(formatter.format(Instant.ofEpochMilli(timestamps[i])), writer);</span>
 <span class="nc bnc" id="L615" title="All 2 branches missed.">        for (long val : values[i]) {</span>
 <span class="nc" id="L616">          writer.append(',');</span>
 <span class="nc" id="L617">          Csv.writeCsvElement(Long.toString(val), writer);</span>
@@ -622,7 +622,7 @@ public final class TimeSeriesDatabase implements Closeable {
 <span class="nc" id="L622">  }</span>
 
   public void writeCsvTables(final List&lt;String&gt; tableNames, final File output) throws IOException {
-<span class="nc" id="L625">    DateTimeFormatter formatter = ISODateTimeFormat.dateTime();</span>
+<span class="nc" id="L625">    DateTimeFormatter formatter = org.spf4j.base.Runtime.TS_FORMAT;</span>
 <span class="nc" id="L626">    try (Writer writer = new BufferedWriter(new OutputStreamWriter(</span>
 <span class="nc" id="L627">            Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {</span>
 <span class="nc" id="L628">      String firstTable = tableNames.get(0);</span>
@@ -643,7 +643,7 @@ public final class TimeSeriesDatabase implements Closeable {
 <span class="nc bnc" id="L643" title="All 2 branches missed.">        for (int i = 0; i &lt; timestamps.length; i++) {</span>
 <span class="nc" id="L644">          Csv.writeCsvElement(tableName, writer);</span>
 <span class="nc" id="L645">          writer.append(',');</span>
-<span class="nc" id="L646">          Csv.writeCsvElement(formatter.print(timestamps[i]), writer);</span>
+<span class="nc" id="L646">          Csv.writeCsvElement(formatter.format(Instant.ofEpochMilli(timestamps[i])), writer);</span>
 <span class="nc bnc" id="L647" title="All 2 branches missed.">          for (long val : values[i]) {</span>
 <span class="nc" id="L648">            writer.append(',');</span>
 <span class="nc" id="L649">            Csv.writeCsvElement(Long.toString(val), writer);</span>
@@ -780,73 +780,74 @@ public final class TimeSeriesDatabase implements Closeable {
     }
   }
 
+  @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   private static Multimap&lt;String, TSTable&gt; getCounters(final Collection&lt;TSTable&gt; columnInfos) {
-<span class="nc" id="L784">    Multimap&lt;String, TSTable&gt; result = HashMultimap.create();</span>
-<span class="nc bnc" id="L785" title="All 2 branches missed.">    for (TSTable info : columnInfos) {</span>
-<span class="nc bnc" id="L786" title="All 2 branches missed.">      if (isCounterOnly(info)) {</span>
-<span class="nc" id="L787">        String groupName = info.getTableName();</span>
-<span class="nc bnc" id="L788" title="All 2 branches missed.">        if (groupName.startsWith(&quot;(&quot;)) {</span>
-<span class="nc" id="L789">          int cidx = groupName.indexOf(',');</span>
-<span class="nc bnc" id="L790" title="All 2 branches missed.">          if (cidx &gt; 0) {</span>
-<span class="nc" id="L791">            groupName = groupName.substring(1, cidx);</span>
+<span class="nc" id="L785">    Multimap&lt;String, TSTable&gt; result = HashMultimap.create();</span>
+<span class="nc bnc" id="L786" title="All 2 branches missed.">    for (TSTable info : columnInfos) {</span>
+<span class="nc bnc" id="L787" title="All 2 branches missed.">      if (isCounterOnly(info)) {</span>
+<span class="nc" id="L788">        String groupName = info.getTableName();</span>
+<span class="nc bnc" id="L789" title="All 2 branches missed.">        if (groupName.startsWith(&quot;(&quot;)) {</span>
+<span class="nc" id="L790">          int cidx = groupName.indexOf(',');</span>
+<span class="nc bnc" id="L791" title="All 2 branches missed.">          if (cidx &gt; 0) {</span>
+<span class="nc" id="L792">            groupName = groupName.substring(1, cidx);</span>
           }
         }
-<span class="nc" id="L794">        result.put(groupName, info);</span>
+<span class="nc" id="L795">        result.put(groupName, info);</span>
       }
-<span class="nc" id="L796">    }</span>
-<span class="nc" id="L797">    return result;</span>
+<span class="nc" id="L797">    }</span>
+<span class="nc" id="L798">    return result;</span>
   }
 
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
   public static boolean isCounterOnly(final TSTable info) {
-<span class="nc" id="L802">    String[] columns = info.getColumnNames();</span>
-<span class="nc bnc" id="L803" title="All 4 branches missed.">    return columns.length == 2 &amp;&amp; &quot;count&quot;.equals(columns[0])</span>
-<span class="nc bnc" id="L804" title="All 2 branches missed.">            &amp;&amp; &quot;total&quot;.equals(columns[1]);</span>
+<span class="nc" id="L803">    String[] columns = info.getColumnNames();</span>
+<span class="nc bnc" id="L804" title="All 4 branches missed.">    return columns.length == 2 &amp;&amp; &quot;count&quot;.equals(columns[0])</span>
+<span class="nc bnc" id="L805" title="All 2 branches missed.">            &amp;&amp; &quot;total&quot;.equals(columns[1]);</span>
   }
 
   public static boolean canGenerateMinMaxAvgCount(final TSTable info) {
-<span class="nc bnc" id="L808" title="All 2 branches missed.">    return ((info.getColumnIndex(&quot;min&quot;) &gt;= 0)</span>
-<span class="nc bnc" id="L809" title="All 2 branches missed.">            &amp;&amp; (info.getColumnIndex(&quot;max&quot;) &gt;= 0)</span>
-<span class="nc bnc" id="L810" title="All 2 branches missed.">            &amp;&amp; (info.getColumnIndex(&quot;total&quot;) &gt;= 0)</span>
-<span class="nc bnc" id="L811" title="All 2 branches missed.">            &amp;&amp; (info.getColumnIndex(&quot;count&quot;) &gt;= 0));</span>
+<span class="nc bnc" id="L809" title="All 2 branches missed.">    return ((info.getColumnIndex(&quot;min&quot;) &gt;= 0)</span>
+<span class="nc bnc" id="L810" title="All 2 branches missed.">            &amp;&amp; (info.getColumnIndex(&quot;max&quot;) &gt;= 0)</span>
+<span class="nc bnc" id="L811" title="All 2 branches missed.">            &amp;&amp; (info.getColumnIndex(&quot;total&quot;) &gt;= 0)</span>
+<span class="nc bnc" id="L812" title="All 2 branches missed.">            &amp;&amp; (info.getColumnIndex(&quot;count&quot;) &gt;= 0));</span>
   }
 
   public static boolean canGenerateCount(final TSTable info) {
-<span class="nc bnc" id="L815" title="All 2 branches missed.">    return ((info.getColumnIndex(&quot;count&quot;) &gt;= 0));</span>
+<span class="nc bnc" id="L816" title="All 2 branches missed.">    return ((info.getColumnIndex(&quot;count&quot;) &gt;= 0));</span>
   }
 
   public static boolean canGenerateHeatChart(final TSTable info) {
-<span class="nc bnc" id="L819" title="All 2 branches missed.">    for (String mname : info.getColumnNames()) {</span>
-<span class="nc bnc" id="L820" title="All 4 branches missed.">      if (mname.startsWith(&quot;Q&quot;) &amp;&amp; mname.contains(&quot;_&quot;)) {</span>
-<span class="nc" id="L821">        return true;</span>
+<span class="nc bnc" id="L820" title="All 2 branches missed.">    for (String mname : info.getColumnNames()) {</span>
+<span class="nc bnc" id="L821" title="All 4 branches missed.">      if (mname.startsWith(&quot;Q&quot;) &amp;&amp; mname.contains(&quot;_&quot;)) {</span>
+<span class="nc" id="L822">        return true;</span>
       }
     }
-<span class="nc" id="L824">    return false;</span>
+<span class="nc" id="L825">    return false;</span>
   }
 
   private String generateMinMaxAvgCountChart(
           final TSTable info, final TimeSeries data,
           final int width, final int height) throws IOException {
-<span class="nc" id="L830">    long[][] vals = data.getValues();</span>
-<span class="nc" id="L831">    double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;min&quot;));</span>
-<span class="nc" id="L832">    double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;max&quot;));</span>
-<span class="nc" id="L833">    double[] total = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;total&quot;));</span>
-<span class="nc" id="L834">    double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;count&quot;));</span>
-<span class="nc bnc" id="L835" title="All 2 branches missed.">    for (int i = 0; i &lt; count.length; i++) {</span>
-<span class="nc bnc" id="L836" title="All 2 branches missed.">      if (count[i] == 0) {</span>
-<span class="nc" id="L837">        min[i] = 0;</span>
-<span class="nc" id="L838">        max[i] = 0;</span>
+<span class="nc" id="L831">    long[][] vals = data.getValues();</span>
+<span class="nc" id="L832">    double[] min = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;min&quot;));</span>
+<span class="nc" id="L833">    double[] max = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;max&quot;));</span>
+<span class="nc" id="L834">    double[] total = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;total&quot;));</span>
+<span class="nc" id="L835">    double[] count = Arrays.getColumnAsDoubles(vals, info.getColumnIndex(&quot;count&quot;));</span>
+<span class="nc bnc" id="L836" title="All 2 branches missed.">    for (int i = 0; i &lt; count.length; i++) {</span>
+<span class="nc bnc" id="L837" title="All 2 branches missed.">      if (count[i] == 0) {</span>
+<span class="nc" id="L838">        min[i] = 0;</span>
+<span class="nc" id="L839">        max[i] = 0;</span>
       }
     }
-<span class="nc" id="L841">    long[] timestamps = data.getTimeStamps();</span>
-<span class="nc" id="L842">    BufferedImage combined = Charts.createMinMaxAvgCountImg(&quot;Measurements for &quot;</span>
-<span class="nc" id="L843">            + info.getTableName() + &quot; generated by spf4j&quot;,</span>
-<span class="nc" id="L844">            timestamps, min, max, total, count, new String(info.getTableMetaData(), Charsets.UTF_8), width, height);</span>
-<span class="nc" id="L845">    File dbFile = new File(this.getDBFilePath());</span>
-<span class="nc" id="L846">    File graphicFile = File.createTempFile(dbFile.getName() + '_' + fixName(info.getTableName()), &quot;.mmac.png&quot;,</span>
-<span class="nc" id="L847">            dbFile.getParentFile());</span>
-<span class="nc" id="L848">    ImageIO.write(combined, &quot;png&quot;, graphicFile);</span>
-<span class="nc" id="L849">    return graphicFile.getPath();</span>
+<span class="nc" id="L842">    long[] timestamps = data.getTimeStamps();</span>
+<span class="nc" id="L843">    BufferedImage combined = Charts.createMinMaxAvgCountImg(&quot;Measurements for &quot;</span>
+<span class="nc" id="L844">            + info.getTableName() + &quot; generated by spf4j&quot;,</span>
+<span class="nc" id="L845">            timestamps, min, max, total, count, new String(info.getTableMetaData(), Charsets.UTF_8), width, height);</span>
+<span class="nc" id="L846">    File dbFile = new File(this.getDBFilePath());</span>
+<span class="nc" id="L847">    File graphicFile = File.createTempFile(dbFile.getName() + '_' + fixName(info.getTableName()), &quot;.mmac.png&quot;,</span>
+<span class="nc" id="L848">            dbFile.getParentFile());</span>
+<span class="nc" id="L849">    ImageIO.write(combined, &quot;png&quot;, graphicFile);</span>
+<span class="nc" id="L850">    return graphicFile.getPath();</span>
   }
 
   private String generateCountChart(
@@ -855,44 +856,44 @@ public final class TimeSeriesDatabase implements Closeable {
           final String uom1, final String uom2,
           final double[][] measurements, final double[][] measurements2,
           final int width, final int height) throws IOException {
-<span class="nc" id="L858">    BufferedImage combined = Charts.generateCountTotalChart(</span>
+<span class="nc" id="L859">    BufferedImage combined = Charts.generateCountTotalChart(</span>
             groupName, timestamps, measurementNames, uom1, measurements, width, height,
             measurementNames2, uom2, measurements2);
-<span class="nc" id="L861">    File dbFile = new File(this.getDBFilePath());</span>
-<span class="nc" id="L862">    File graphicFile = File.createTempFile(dbFile.getName() + '_' + fixName(groupName), &quot;.count.png&quot;,</span>
-<span class="nc" id="L863">            dbFile.getParentFile());</span>
-<span class="nc" id="L864">    ImageIO.write(combined, &quot;png&quot;, graphicFile);</span>
-<span class="nc" id="L865">    return graphicFile.getPath();</span>
+<span class="nc" id="L862">    File dbFile = new File(this.getDBFilePath());</span>
+<span class="nc" id="L863">    File graphicFile = File.createTempFile(dbFile.getName() + '_' + fixName(groupName), &quot;.count.png&quot;,</span>
+<span class="nc" id="L864">            dbFile.getParentFile());</span>
+<span class="nc" id="L865">    ImageIO.write(combined, &quot;png&quot;, graphicFile);</span>
+<span class="nc" id="L866">    return graphicFile.getPath();</span>
   }
 
   private String generateHeatChart(final TSTable info, final TimeSeries data,
           final int width, final int height) throws IOException {
-<span class="nc" id="L870">    JFreeChart chart = TimeSeriesDatabase.createHeatJFreeChart(data, info);</span>
-<span class="nc" id="L871">    BufferedImage img = chart.createBufferedImage(width, height);</span>
-<span class="nc" id="L872">    File dbFile = new File(this.getDBFilePath());</span>
-<span class="nc" id="L873">    File graphicFile = File.createTempFile(dbFile.getName() + '_' + fixName(info.getTableName()), &quot;.dist.png&quot;,</span>
-<span class="nc" id="L874">            dbFile.getParentFile());</span>
-<span class="nc" id="L875">    ImageIO.write(img, &quot;png&quot;, graphicFile);</span>
-<span class="nc" id="L876">    return graphicFile.getAbsolutePath();</span>
+<span class="nc" id="L871">    JFreeChart chart = TimeSeriesDatabase.createHeatJFreeChart(data, info);</span>
+<span class="nc" id="L872">    BufferedImage img = chart.createBufferedImage(width, height);</span>
+<span class="nc" id="L873">    File dbFile = new File(this.getDBFilePath());</span>
+<span class="nc" id="L874">    File graphicFile = File.createTempFile(dbFile.getName() + '_' + fixName(info.getTableName()), &quot;.dist.png&quot;,</span>
+<span class="nc" id="L875">            dbFile.getParentFile());</span>
+<span class="nc" id="L876">    ImageIO.write(img, &quot;png&quot;, graphicFile);</span>
+<span class="nc" id="L877">    return graphicFile.getAbsolutePath();</span>
   }
 
   private static String fixName(final String name) {
-<span class="nc" id="L880">    final int length = name.length();</span>
-<span class="nc" id="L881">    StringBuilder result = new StringBuilder(length);</span>
-<span class="nc bnc" id="L882" title="All 2 branches missed.">    for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L883">      char c = name.charAt(i);</span>
-<span class="nc bnc" id="L884" title="All 2 branches missed.">      if (Character.isJavaIdentifierPart(c)) {</span>
-<span class="nc" id="L885">        result.append(c);</span>
+<span class="nc" id="L881">    final int length = name.length();</span>
+<span class="nc" id="L882">    StringBuilder result = new StringBuilder(length);</span>
+<span class="nc bnc" id="L883" title="All 2 branches missed.">    for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L884">      char c = name.charAt(i);</span>
+<span class="nc bnc" id="L885" title="All 2 branches missed.">      if (Character.isJavaIdentifierPart(c)) {</span>
+<span class="nc" id="L886">        result.append(c);</span>
       }
     }
-<span class="nc" id="L888">    return result.toString();</span>
+<span class="nc" id="L889">    return result.toString();</span>
   }
 
   @JmxExport(description = &quot;generate charts for all measurements&quot;)
   public List&lt;String&gt; generateCharts(final int width, final int height) throws IOException {
-<span class="nc" id="L893">    long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();</span>
-<span class="nc" id="L894">    long endTime = System.currentTimeMillis();</span>
-<span class="nc" id="L895">    return generateCharts(startTime, endTime, width, height);</span>
+<span class="nc" id="L894">    long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();</span>
+<span class="nc" id="L895">    long endTime = System.currentTimeMillis();</span>
+<span class="nc" id="L896">    return generateCharts(startTime, endTime, width, height);</span>
   }
 
 }

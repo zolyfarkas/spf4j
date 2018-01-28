@@ -91,7 +91,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="fc" id="L91">            return object;</span>
         } finally {
 <span class="fc" id="L93">            lock.unlock();</span>
-        }
+<span class="fc" id="L94">        }</span>
     }
 
     @Override
@@ -101,7 +101,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="fc" id="L101">            ObjectHolder holder = borrowedObjects.remove(object);</span>
 <span class="fc bfc" id="L102" title="All 2 branches covered.">            if (holder == null) {</span>
                 // not borrowed from here.
-<span class="fc" id="L104">                globalPool.recycle(new ObjectHolder&lt;&gt;(object), this);</span>
+<span class="fc" id="L104">                globalPool.recycle(new ObjectHolder&lt;&gt;(object, globalPool.getSample().getFactory()), this);</span>
             } else {
                 try {
 <span class="fc" id="L107">                    holder.returnObject(object, e);</span>
@@ -112,11 +112,11 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
                     } else {
 <span class="pc" id="L113">                        localObjects.add(holder);</span>
                     }
-<span class="fc" id="L115">                }</span>
+<span class="pc" id="L115">                }</span>
             }
         } finally {
 <span class="pc" id="L118">            lock.unlock();</span>
-<span class="fc" id="L119">        }</span>
+<span class="pc" id="L119">        }</span>
 <span class="fc" id="L120">    }</span>
 
     @Override
@@ -136,7 +136,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="fc" id="L136">            return true;</span>
         } finally {
 <span class="pc" id="L138">            lock.unlock();</span>
-        }
+<span class="nc" id="L139">        }</span>
     }
 
 
@@ -173,7 +173,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
                 }
             } finally {
 <span class="pc" id="L175">                lock.unlock();</span>
-            }
+<span class="nc" id="L176">            }</span>
         } else {
 <span class="fc" id="L178">            return (Either) NONE;</span>
         }
@@ -191,7 +191,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
                 }
             } finally {
 <span class="pc" id="L193">                lock.unlock();</span>
-            }
+<span class="nc" id="L194">            }</span>
         } else {
 <span class="fc" id="L196">            return null;</span>
         }
@@ -212,7 +212,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
                 }
             } finally {
 <span class="pc" id="L214">                lock.unlock();</span>
-            }
+<span class="nc" id="L215">            }</span>
         } else {
 <span class="fc" id="L217">            return null;</span>
         }
@@ -233,7 +233,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="fc" id="L233">                return null;</span>
             } finally {
 <span class="pc" id="L235">                lock.unlock();</span>
-            }
+<span class="nc" id="L236">            }</span>
         } else {
 <span class="nc" id="L238">            return null;</span>
         }
@@ -257,7 +257,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="pc bpc" id="L257" title="1 of 2 branches missed.">            return borrowedObjects.remove(object.getObj()) != null;</span>
         } finally {
 <span class="pc" id="L259">            lock.unlock();</span>
-        }
+<span class="nc" id="L260">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

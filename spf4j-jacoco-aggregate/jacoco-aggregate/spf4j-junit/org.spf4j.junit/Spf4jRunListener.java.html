@@ -39,6 +39,8 @@ import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.stackmonitor.Sampler;
 
@@ -81,70 +83,72 @@ import org.spf4j.stackmonitor.Sampler;
 @NotThreadSafe
 public final class Spf4jRunListener extends RunListener {
 
+<span class="fc" id="L86">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jRunListener.class);</span>
+
   private final Sampler sampler;
 
   private final File destinationFolder;
 
   private volatile File lastWrittenFile;
 
-<span class="fc" id="L90">  public Spf4jRunListener() {</span>
-<span class="fc" id="L91">    sampler = new Sampler(Integer.getInteger(&quot;spf4j.junit.sampleTimeMillis&quot;, 5),</span>
-<span class="fc" id="L92">          Integer.getInteger(&quot;spf4j.junit.dumpAfterMillis&quot;, Integer.MAX_VALUE),</span>
+<span class="fc" id="L94">  public Spf4jRunListener() {</span>
+<span class="fc" id="L95">    sampler = new Sampler(Integer.getInteger(&quot;spf4j.junit.sampleTimeMillis&quot;, 5),</span>
+<span class="fc" id="L96">          Integer.getInteger(&quot;spf4j.junit.dumpAfterMillis&quot;, Integer.MAX_VALUE),</span>
           new FastStackCollector(true));
 
-<span class="fc" id="L95">    destinationFolder = new File(System.getProperty(&quot;spf4j.junit.destinationFolder&quot;,</span>
+<span class="fc" id="L99">    destinationFolder = new File(System.getProperty(&quot;spf4j.junit.destinationFolder&quot;,</span>
           &quot;target/junit-ssdump&quot;));
 
-<span class="pc bpc" id="L98" title="3 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
-<span class="nc" id="L99">      throw new ExceptionInInitializerError(&quot;Unable to write to &quot; + destinationFolder);</span>
+<span class="pc bpc" id="L102" title="3 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
+<span class="nc" id="L103">      throw new ExceptionInInitializerError(&quot;Unable to write to &quot; + destinationFolder);</span>
     }
-<span class="fc" id="L101">  }</span>
+<span class="fc" id="L105">  }</span>
 
   @Override
   public void testFailure(final Failure failure)
           throws IOException {
-<span class="nc" id="L106">    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + &quot;.ssdump2&quot;));</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (dumpToFile != null) {</span>
-<span class="nc" id="L108">      System.out.print(&quot;Profile saved to &quot; + dumpToFile);</span>
+<span class="nc" id="L110">    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + &quot;.ssdump2&quot;));</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (dumpToFile != null) {</span>
+<span class="nc" id="L112">      LOG.info(&quot;Profile saved to {}&quot;, dumpToFile);</span>
     }
-<span class="nc" id="L110">  }</span>
+<span class="nc" id="L114">  }</span>
 
   @Override
   public void testFinished(final Description description)
           throws IOException {
-<span class="fc" id="L115">    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + &quot;.ssdump2&quot;));</span>
-<span class="fc bfc" id="L116" title="All 2 branches covered.">    if (dump != null) {</span>
-<span class="fc" id="L117">      System.out.print(&quot;Profile saved to &quot; + dump);</span>
-<span class="fc" id="L118">      lastWrittenFile = dump;</span>
+<span class="fc" id="L119">    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + &quot;.ssdump2&quot;));</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">    if (dump != null) {</span>
+<span class="fc" id="L121">      LOG.info(&quot;Profile saved to {}&quot;, dump);</span>
+<span class="fc" id="L122">      lastWrittenFile = dump;</span>
     }
-<span class="fc" id="L120">  }</span>
+<span class="fc" id="L124">  }</span>
 
   @Override
   public void testRunFinished(final Result result) throws InterruptedException {
-<span class="fc" id="L124">    sampler.stop();</span>
-<span class="fc" id="L125">  }</span>
+<span class="fc" id="L128">    sampler.stop();</span>
+<span class="fc" id="L129">  }</span>
 
   @Override
   public void testRunStarted(final Description description)  {
-<span class="fc" id="L129">   sampler.start();</span>
-<span class="fc" id="L130">  }</span>
+<span class="fc" id="L133">   sampler.start();</span>
+<span class="fc" id="L134">  }</span>
 
   public Sampler getSampler() {
-<span class="nc" id="L133">    return sampler;</span>
+<span class="nc" id="L137">    return sampler;</span>
   }
 
   public File getDestinationFolder() {
-<span class="nc" id="L137">    return destinationFolder;</span>
+<span class="nc" id="L141">    return destinationFolder;</span>
   }
 
   public File getLastWrittenFile() {
-<span class="nc" id="L141">    return lastWrittenFile;</span>
+<span class="fc" id="L145">    return lastWrittenFile;</span>
   }
 
 
   @Override
   public String toString() {
-<span class="nc" id="L147">    return &quot;Spf4jRunListener{&quot; + &quot;sampler=&quot; + sampler + '}';</span>
+<span class="nc" id="L151">    return &quot;Spf4jRunListener{&quot; + &quot;sampler=&quot; + sampler + '}';</span>
   }
 
 }

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Powerof2SizedGlobalRecyclingSupplier.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.recyclable.impl</a> &gt; <span class="el_source">Powerof2SizedGlobalRecyclingSupplier.java</span></div><h1>Powerof2SizedGlobalRecyclingSupplier.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.recyclable.impl;
+
+import java.lang.ref.Reference;
+import java.util.Arrays;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import org.spf4j.base.IntMath;
+import org.spf4j.base.ReferenceType;
+import org.spf4j.recyclable.SizedRecyclingSupplier;
+
+/**
+ * recycling supplier that allows you to recycle objects.
+ * Recycling objects is dangerous business, care should be used.
+ * @author zoly
+ */
+public final class Powerof2SizedGlobalRecyclingSupplier&lt;T&gt; implements SizedRecyclingSupplier&lt;T&gt; {
+
+    private final SizedRecyclingSupplier.Factory&lt;T&gt; factory;
+
+    private final ReferenceType refType;
+
+    private final BlockingQueue&lt;Reference&lt;T&gt;&gt;[] objects;
+
+<span class="fc" id="L55">    public Powerof2SizedGlobalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
+<span class="fc" id="L56">        this.factory = factory;</span>
+<span class="fc" id="L57">        this.refType = refType;</span>
+<span class="fc" id="L58">        objects = new BlockingQueue[28];</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        for (int i = 0; i &lt; objects.length; i++) {</span>
+<span class="fc" id="L60">            objects[i] = new LinkedBlockingQueue&lt;&gt;();</span>
+        }
+<span class="fc" id="L62">    }</span>
+
+    @Override
+    public T get(final int size) {
+<span class="fc" id="L66">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L67">        BlockingQueue&lt;Reference&lt;T&gt;&gt; refs = objects[idx];</span>
+        Reference&lt;T&gt; ref;
+        do {
+<span class="fc" id="L70">            ref = refs.poll();</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            if (ref == null) {</span>
+<span class="fc" id="L72">                int actualSize = 1 &lt;&lt; idx;</span>
+<span class="fc" id="L73">                return factory.create(actualSize);</span>
+            } else {
+<span class="fc" id="L75">                T result = ref.get();</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">                if (result != null) {</span>
+<span class="fc" id="L77">                    return result;</span>
+                }
+            }
+<span class="nc" id="L80">        } while (true);</span>
+    }
+
+    @Override
+    public void recycle(final T object) {
+<span class="fc" id="L85">        int size = factory.size(object);</span>
+<span class="fc" id="L86">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L87">        BlockingQueue&lt;Reference&lt;T&gt;&gt; refs = objects[idx];</span>
+<span class="fc" id="L88">        refs.add(refType.create(object));</span>
+<span class="fc" id="L89">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L93">        return &quot;Powerof2SizedGlobalRecyclingSupplier{&quot; + &quot;factory=&quot; + factory + &quot;, refType=&quot;</span>
+<span class="nc" id="L94">                + refType + &quot;, objects=&quot; + Arrays.toString(objects) + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

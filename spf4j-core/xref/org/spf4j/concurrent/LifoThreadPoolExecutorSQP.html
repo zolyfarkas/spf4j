@@ -108,7 +108,7 @@
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxThreadCount;
 <a class="jxr_linenumber" name="L101" href="#L101">101</a> 
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>   @GuardedBy(<span class="jxr_string">"stateLock"</span>)
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">PoolState</a> state;
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state;
 <a class="jxr_linenumber" name="L104" href="#L104">104</a> 
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ReentrantLock stateLock;
 <a class="jxr_linenumber" name="L106" href="#L106">106</a> 
@@ -187,12 +187,12 @@
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>     <strong class="jxr_keyword">this</strong>.queueSizeLimit = queueSizeLimit;
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>     <strong class="jxr_keyword">this</strong>.threadQueue = <strong class="jxr_keyword">new</strong> ZArrayDequeue&lt;&gt;(Math.min(1024, maxSize));
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>     <strong class="jxr_keyword">this</strong>.threadPriority = threadPriority;
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>     state = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">PoolState</a>(coreSize, spinLockCount, <strong class="jxr_keyword">new</strong> THashSet&lt;QueuedThread&gt;(Math.min(maxSize, 2048)));
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>     state = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a>(coreSize, spinLockCount, <strong class="jxr_keyword">new</strong> THashSet&lt;QueuedThread&gt;(Math.min(maxSize, 2048)));
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>     <strong class="jxr_keyword">this</strong>.stateLock = <strong class="jxr_keyword">new</strong> ReentrantLock(false);
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>     <strong class="jxr_keyword">this</strong>.stateCondition = stateLock.newCondition();
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>     <strong class="jxr_keyword">this</strong>.daemonThreads = daemonThreads;
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; coreSize; i++) {
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>       <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> qt = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a>(poolName, threadQueue,
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>       <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> qt = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a>(poolName, threadQueue,
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>               taskQueue, maxIdleTimeMillis, <strong class="jxr_keyword">null</strong>, state, stateLock, stateCondition);
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>       qt.setDaemon(daemonThreads);
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>       qt.setPriority(threadPriority);
@@ -221,7 +221,7 @@
 <a class="jxr_linenumber" name="L213" href="#L213">213</a>         <strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>       }
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>       <strong class="jxr_keyword">do</strong> { <em class="jxr_comment">// See if we have Threads available to run the task and do so if any</em>
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>         <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> nqt = threadQueue.pollLast();
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> nqt = threadQueue.pollLast();
 <a class="jxr_linenumber" name="L217" href="#L217">217</a>         <strong class="jxr_keyword">if</strong> (nqt != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>           stateLock.unlock();
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>           <strong class="jxr_keyword">if</strong> (nqt.runNext(command)) {
@@ -236,7 +236,7 @@
 <a class="jxr_linenumber" name="L228" href="#L228">228</a>       <strong class="jxr_keyword">int</strong> tc = state.getThreadCount();
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>       <em class="jxr_comment">// was not able to submit to an existing available thread, will attempt to create a new thread.</em>
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>       <strong class="jxr_keyword">if</strong> (tc &lt; maxThreadCount) {
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> qt = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a>(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> qt = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a>(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
 <a class="jxr_linenumber" name="L232" href="#L232">232</a>                 state, stateLock, stateCondition);
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>         qt.setDaemon(daemonThreads);
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>         qt.setPriority(threadPriority);
@@ -272,7 +272,7 @@
 <a class="jxr_linenumber" name="L264" href="#L264">264</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L265" href="#L265">265</a>       <strong class="jxr_keyword">if</strong> (!state.isShutdown()) {
 <a class="jxr_linenumber" name="L266" href="#L266">266</a>         state.setShutdown(<strong class="jxr_keyword">true</strong>); <em class="jxr_comment">// set the shutdown flag, to reject new submissions.</em>
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>         <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> th;
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> th;
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>         <strong class="jxr_keyword">while</strong> ((th = threadQueue.pollLast()) != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>           th.signal(); <em class="jxr_comment">// signal all waiting threads, so thay can start going down.</em>
 <a class="jxr_linenumber" name="L270" href="#L270">270</a>         }
@@ -394,7 +394,7 @@
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>   }
 <a class="jxr_linenumber" name="L387" href="#L387">387</a> 
 <a class="jxr_linenumber" name="L388" href="#L388">388</a>   @SuppressFBWarnings(<span class="jxr_string">"NO_NOTIFY_NOT_NOTIFYALL"</span>)
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> <strong class="jxr_keyword">extends</strong> Thread {
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> <strong class="jxr_keyword">extends</strong> Thread {
 <a class="jxr_linenumber" name="L390" href="#L390">390</a> 
 <a class="jxr_linenumber" name="L391" href="#L391">391</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> AtomicInteger COUNT = <strong class="jxr_keyword">new</strong> AtomicInteger();
 <a class="jxr_linenumber" name="L392" href="#L392">392</a> 
@@ -409,7 +409,7 @@
 <a class="jxr_linenumber" name="L401" href="#L401">401</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> UnitQueuePU&lt;Runnable&gt; toRun;
 <a class="jxr_linenumber" name="L402" href="#L402">402</a> 
 <a class="jxr_linenumber" name="L403" href="#L403">403</a>     @GuardedBy(<span class="jxr_string">"poolStateLock"</span>)
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">PoolState</a> state;
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state;
 <a class="jxr_linenumber" name="L405" href="#L405">405</a> 
 <a class="jxr_linenumber" name="L406" href="#L406">406</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> lastRunNanos;
 <a class="jxr_linenumber" name="L407" href="#L407">407</a> 
@@ -421,9 +421,9 @@
 <a class="jxr_linenumber" name="L413" href="#L413">413</a> 
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">boolean</strong> running;
 <a class="jxr_linenumber" name="L415" href="#L415">415</a> 
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a>(<strong class="jxr_keyword">final</strong> String nameBase, <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue,
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a>(<strong class="jxr_keyword">final</strong> String nameBase, <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue,
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>             <strong class="jxr_keyword">final</strong> Queue&lt;Runnable&gt; taskQueue, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis,
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>             @Nullable <strong class="jxr_keyword">final</strong> Runnable runFirst, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">PoolState</a> state,
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>             @Nullable <strong class="jxr_keyword">final</strong> Runnable runFirst, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state,
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>             <strong class="jxr_keyword">final</strong> ReentrantLock submitMonitor, <strong class="jxr_keyword">final</strong> Condition submitCondition) {
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>       <strong class="jxr_keyword">super</strong>(nameBase + COUNT.getAndIncrement());
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>       <strong class="jxr_keyword">this</strong>.threadQueue = threadQueue;
@@ -603,7 +603,7 @@
 <a class="jxr_linenumber" name="L595" href="#L595">595</a> 
 <a class="jxr_linenumber" name="L596" href="#L596">596</a>   }
 <a class="jxr_linenumber" name="L597" href="#L597">597</a> 
-<a class="jxr_linenumber" name="L598" href="#L598">598</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">PoolState</a> {
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> {
 <a class="jxr_linenumber" name="L599" href="#L599">599</a> 
 <a class="jxr_linenumber" name="L600" href="#L600">600</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> shutdown;
 <a class="jxr_linenumber" name="L601" href="#L601">601</a> 
@@ -613,20 +613,20 @@
 <a class="jxr_linenumber" name="L605" href="#L605">605</a> 
 <a class="jxr_linenumber" name="L606" href="#L606">606</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads;
 <a class="jxr_linenumber" name="L607" href="#L607">607</a> 
-<a class="jxr_linenumber" name="L608" href="#L608">608</a>     <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">PoolState</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> thnr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> spinlockCount, <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads) {
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>     <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> thnr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> spinlockCount, <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads) {
 <a class="jxr_linenumber" name="L609" href="#L609">609</a>       <strong class="jxr_keyword">this</strong>.shutdown = false;
 <a class="jxr_linenumber" name="L610" href="#L610">610</a>       <strong class="jxr_keyword">this</strong>.coreThreads = thnr;
 <a class="jxr_linenumber" name="L611" href="#L611">611</a>       <strong class="jxr_keyword">this</strong>.spinlockCount = spinlockCount;
 <a class="jxr_linenumber" name="L612" href="#L612">612</a>       <strong class="jxr_keyword">this</strong>.allThreads = allThreads;
 <a class="jxr_linenumber" name="L613" href="#L613">613</a>     }
 <a class="jxr_linenumber" name="L614" href="#L614">614</a> 
-<a class="jxr_linenumber" name="L615" href="#L615">615</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
 <a class="jxr_linenumber" name="L616" href="#L616">616</a>       <strong class="jxr_keyword">if</strong> (!allThreads.add(thread)) {
 <a class="jxr_linenumber" name="L617" href="#L617">617</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Attempting to add a thread twice: "</span> + thread);
 <a class="jxr_linenumber" name="L618" href="#L618">618</a>       }
 <a class="jxr_linenumber" name="L619" href="#L619">619</a>     }
 <a class="jxr_linenumber" name="L620" href="#L620">620</a> 
-<a class="jxr_linenumber" name="L621" href="#L621">621</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> removeThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> removeThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
 <a class="jxr_linenumber" name="L622" href="#L622">622</a>       <strong class="jxr_keyword">if</strong> (!allThreads.remove(thread)) {
 <a class="jxr_linenumber" name="L623" href="#L623">623</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Removing thread failed: "</span> + thread);
 <a class="jxr_linenumber" name="L624" href="#L624">624</a>       }
@@ -700,6 +700,6 @@
 <a class="jxr_linenumber" name="L692" href="#L692">692</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

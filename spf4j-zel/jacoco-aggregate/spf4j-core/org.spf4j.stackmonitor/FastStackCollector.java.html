@@ -152,14 +152,14 @@ public final class FastStackCollector extends AbstractStackCollector {
 
   @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;) // jdk printstreams are sync I don't want interleaving.
   public static void dumpToPrintStream(final PrintStream stream) {
-<span class="fc" id="L155">    synchronized (stream) {</span>
-<span class="fc" id="L156">      Thread[] threads = getThreads();</span>
-<span class="fc" id="L157">      StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
-<span class="pc bpc" id="L158" title="1 of 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
-<span class="fc" id="L159">        StackTraceElement[] stackTrace = stackTraces[i];</span>
-<span class="pc bpc" id="L160" title="2 of 4 branches missed.">        if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L161">          Thread thread = threads[i];</span>
-<span class="fc" id="L162">          stream.println(&quot;Thread &quot; + thread.getName());</span>
+<span class="nc" id="L155">    synchronized (stream) {</span>
+<span class="nc" id="L156">      Thread[] threads = getThreads();</span>
+<span class="nc" id="L157">      StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L159">        StackTraceElement[] stackTrace = stackTraces[i];</span>
+<span class="nc bnc" id="L160" title="All 4 branches missed.">        if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L161">          Thread thread = threads[i];</span>
+<span class="nc" id="L162">          stream.println(&quot;Thread &quot; + thread.getName());</span>
           try {
 <span class="nc" id="L164">            Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);</span>
 <span class="nc" id="L165">          } catch (IOException ex) {</span>

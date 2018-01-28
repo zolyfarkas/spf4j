@@ -57,362 +57,359 @@
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.management.openmbean.CompositeData;
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.junit.Assert;
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Runtime.Jmx;
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Throwables;
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.ColumnDef;
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.TableDef;
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.Type;
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  @SuppressFBWarnings(<span class="jxr_string">"SIC_INNER_SHOULD_BE_STATIC_ANON"</span>)
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">RegistryTest</a> {
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a> <strong class="jxr_keyword">extends</strong> <a href="../../../org/spf4j/jmx/PropertySource.html">PropertySource</a> {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Runtime.Jmx;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Throwables;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.ColumnDef;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.TableDef;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.Type;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  @SuppressFBWarnings(<span class="jxr_string">"SIC_INNER_SHOULD_BE_STATIC_ANON"</span>)
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">RegistryTest</a> {
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> String stringVal;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(RegistryTest.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">double</strong> doubleVal;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">boolean</strong> booleanFlag;
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String [][] matrix = {{<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>}, {<span class="jxr_string">"c"</span>, <span class="jxr_string">"d"</span>}};
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <a href="../../../org/spf4j/jmx/TestEnum.html">TestEnum</a> enumVal = TestEnum.VAL2;
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/TestBean.html">TestBean</a> bean = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/TestBean.html">TestBean</a>(3, <span class="jxr_string">"bla"</span>);
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>          @JmxExport
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">public</strong> String [][] getMatrix() {
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              <strong class="jxr_keyword">return</strong> matrix.clone();
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>          }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a> <strong class="jxr_keyword">extends</strong> <a href="../../../org/spf4j/jmx/PropertySource.html">PropertySource</a> {
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> String stringVal;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">double</strong> doubleVal;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">boolean</strong> booleanFlag;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String[][] matrix = {{<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>}, {<span class="jxr_string">"c"</span>, <span class="jxr_string">"d"</span>}};
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <a href="../../../org/spf4j/jmx/TestEnum.html">TestEnum</a> enumVal = TestEnum.VAL2;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/TestBean.html">TestBean</a> bean = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/TestBean.html">TestBean</a>(3, <span class="jxr_string">"bla"</span>);
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>  
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>          <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String [] array = {<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>};
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>          @JmxExport
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>          <strong class="jxr_keyword">public</strong> String [] getArray() {
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>              <strong class="jxr_keyword">return</strong> array.clone();
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      @JmxExport
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">public</strong> String[][] getMatrix() {
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>        <strong class="jxr_keyword">return</strong> matrix.clone();
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      }
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String[] array = {<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>};
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>  
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>          @JmxExport
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>          <strong class="jxr_keyword">public</strong> String getStringVal() {
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">return</strong> stringVal;
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>          }
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>          @JmxExport
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>          <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getDoubleVal() {
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>              <strong class="jxr_keyword">return</strong> doubleVal;
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>         }
-<a class="jxr_linenumber" name="L101" href="#L101">101</a> 
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>         @JmxExport
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isBooleanFlag() {
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>             <strong class="jxr_keyword">return</strong> booleanFlag;
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>         }
-<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
-<a class="jxr_linenumber" name="L107" href="#L107">107</a> 
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>         @JmxExport
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">public</strong> Boolean isBooleanFlag2() {
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>             <strong class="jxr_keyword">return</strong> booleanFlag;
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>         }
-<a class="jxr_linenumber" name="L112" href="#L112">112</a> 
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>         @JmxExport
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStringVal(<strong class="jxr_keyword">final</strong> String stringVal) {
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>             <strong class="jxr_keyword">this</strong>.stringVal = stringVal;
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>         }
-<a class="jxr_linenumber" name="L117" href="#L117">117</a> 
-<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>         @JmxExport
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setBooleanFlag(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> booleanFlag) {
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>             <strong class="jxr_keyword">this</strong>.booleanFlag = booleanFlag;
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>         }
-<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDoubleVal(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> doubleVal) {
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>             <strong class="jxr_keyword">this</strong>.doubleVal = doubleVal;
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>         }
-<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>         @JmxExport
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/jmx/TestEnum.html">TestEnum</a> getEnumVal() {
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>             <strong class="jxr_keyword">return</strong> enumVal;
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>         }
-<a class="jxr_linenumber" name="L132" href="#L132">132</a> 
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>         @JmxExport
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setEnumVal(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/TestEnum.html">TestEnum</a> enumVal) {
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>             <strong class="jxr_keyword">this</strong>.enumVal = enumVal;
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>         }
-<a class="jxr_linenumber" name="L137" href="#L137">137</a> 
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>         @JmxExport
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>         <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/jmx/TestBean.html">TestBean</a> getBean() {
-<a class="jxr_linenumber" name="L140" href="#L140">140</a>             <strong class="jxr_keyword">return</strong> bean;
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>         }
-<a class="jxr_linenumber" name="L142" href="#L142">142</a> 
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>         @JmxExport
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>         @SuppressFBWarnings(<span class="jxr_string">"DMI_HARDCODED_ABSOLUTE_FILENAME"</span>)
-<a class="jxr_linenumber" name="L145" href="#L145">145</a>         <strong class="jxr_keyword">public</strong> File getFile() {
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> File(<span class="jxr_string">"/tmp"</span>);
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>         }
-<a class="jxr_linenumber" name="L148" href="#L148">148</a> 
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>         @JmxExport
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>         <strong class="jxr_keyword">public</strong> String getProperty(<strong class="jxr_keyword">final</strong> String name) {
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>             <strong class="jxr_keyword">return</strong> <span class="jxr_string">"bla"</span>;
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>         }
-<a class="jxr_linenumber" name="L153" href="#L153">153</a> 
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>         @JmxExport
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setProperty(<strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> String value) {
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>             <em class="jxr_comment">//do nothing</em>
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>         }
-<a class="jxr_linenumber" name="L158" href="#L158">158</a> 
-<a class="jxr_linenumber" name="L159" href="#L159">159</a> 
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>       @JmxExport
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>       <strong class="jxr_keyword">public</strong> ColumnDef getColumnDef() {
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>         <strong class="jxr_keyword">return</strong> ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build();
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>       }
-<a class="jxr_linenumber" name="L165" href="#L165">165</a> 
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>       @JmxExport
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>       <strong class="jxr_keyword">public</strong> TableDef getTableDef() {
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>         <strong class="jxr_keyword">return</strong> TableDef.newBuilder().setId(4).setDescription(<span class="jxr_string">"bla"</span>).setName(<span class="jxr_string">"name"</span>)
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 .setSampleTime(10)
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>                 .setColumns(Arrays.asList(ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build())).build();
-<a class="jxr_linenumber" name="L172" href="#L172">172</a> 
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>       }
-<a class="jxr_linenumber" name="L174" href="#L174">174</a> 
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>       @JmxExport
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>       <strong class="jxr_keyword">public</strong> ColumnDef getColumnDef(<strong class="jxr_keyword">final</strong> String id) {
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>         <strong class="jxr_keyword">return</strong> ColumnDef.newBuilder().setName(id).setType(Type.LONG)
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build();
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>       }
-<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>       @JmxExport
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>       <strong class="jxr_keyword">public</strong> ColumnDef echo(<strong class="jxr_keyword">final</strong> ColumnDef id) {
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <strong class="jxr_keyword">return</strong> id;
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>       }
-<a class="jxr_linenumber" name="L185" href="#L185">185</a> 
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>       @JmxExport
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>       <strong class="jxr_keyword">public</strong> List&lt;ColumnDef&gt; echoX(<strong class="jxr_keyword">final</strong> List&lt;ColumnDef&gt; id) {
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <strong class="jxr_keyword">return</strong> id;
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>       }
-<a class="jxr_linenumber" name="L190" href="#L190">190</a> 
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>       @JmxExport
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>       @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>       <strong class="jxr_keyword">public</strong> List&lt;ColumnDef&gt; getListAttr() {
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">return</strong> Arrays.asList(ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build(),
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 ColumnDef.newBuilder().setName(<span class="jxr_string">"bla2"</span>).setType(Type.LONG)
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build());
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>       }
-<a class="jxr_linenumber" name="L199" href="#L199">199</a> 
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      @JmxExport
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">public</strong> String[] getArray() {
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>        <strong class="jxr_keyword">return</strong> array.clone();
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      @JmxExport
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">public</strong> String getStringVal() {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>        <strong class="jxr_keyword">return</strong> stringVal;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      }
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     @JmxExport
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getDoubleVal() {
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>       <strong class="jxr_keyword">return</strong> doubleVal;
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> 
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     @JmxExport
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isBooleanFlag() {
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>       <strong class="jxr_keyword">return</strong> booleanFlag;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     @JmxExport
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     <strong class="jxr_keyword">public</strong> Boolean isBooleanFlag2() {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>       <strong class="jxr_keyword">return</strong> booleanFlag;
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     }
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> 
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     @JmxExport
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStringVal(<strong class="jxr_keyword">final</strong> String stringVal) {
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>       <strong class="jxr_keyword">this</strong>.stringVal = stringVal;
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>     }
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> 
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     @JmxExport
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setBooleanFlag(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> booleanFlag) {
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>       <strong class="jxr_keyword">this</strong>.booleanFlag = booleanFlag;
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     }
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDoubleVal(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> doubleVal) {
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>       <strong class="jxr_keyword">this</strong>.doubleVal = doubleVal;
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     }
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> 
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     @JmxExport
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/jmx/TestEnum.html">TestEnum</a> getEnumVal() {
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>       <strong class="jxr_keyword">return</strong> enumVal;
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     }
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     @JmxExport
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setEnumVal(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/TestEnum.html">TestEnum</a> enumVal) {
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>       <strong class="jxr_keyword">this</strong>.enumVal = enumVal;
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     }
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> 
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     @JmxExport
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>     <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/jmx/TestBean.html">TestBean</a> getBean() {
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>       <strong class="jxr_keyword">return</strong> bean;
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     }
+<a class="jxr_linenumber" name="L144" href="#L144">144</a> 
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     @JmxExport
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     @SuppressFBWarnings(<span class="jxr_string">"DMI_HARDCODED_ABSOLUTE_FILENAME"</span>)
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     <strong class="jxr_keyword">public</strong> File getFile() {
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> File(<span class="jxr_string">"/tmp"</span>);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     }
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     @JmxExport
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">public</strong> String getProperty(<strong class="jxr_keyword">final</strong> String name) {
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"bla"</span>;
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     }
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> 
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>     @JmxExport
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setProperty(<strong class="jxr_keyword">final</strong> String name, <strong class="jxr_keyword">final</strong> String value) {
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>       <em class="jxr_comment">//do nothing</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     }
+<a class="jxr_linenumber" name="L160" href="#L160">160</a> 
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>     @JmxExport
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     <strong class="jxr_keyword">public</strong> ColumnDef getColumnDef() {
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>       <strong class="jxr_keyword">return</strong> ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>               .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build();
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>     @JmxExport
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">public</strong> TableDef getTableDef() {
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>       <strong class="jxr_keyword">return</strong> TableDef.newBuilder().setId(4).setDescription(<span class="jxr_string">"bla"</span>).setName(<span class="jxr_string">"name"</span>)
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>               .setSampleTime(10)
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>               .setColumns(Arrays.asList(ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                       .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build())).build();
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     }
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> 
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     @JmxExport
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     <strong class="jxr_keyword">public</strong> ColumnDef getColumnDef(<strong class="jxr_keyword">final</strong> String id) {
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>       <strong class="jxr_keyword">return</strong> ColumnDef.newBuilder().setName(id).setType(Type.LONG)
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>               .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build();
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>     }
+<a class="jxr_linenumber" name="L181" href="#L181">181</a> 
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>     @JmxExport
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>     <strong class="jxr_keyword">public</strong> ColumnDef echo(<strong class="jxr_keyword">final</strong> ColumnDef id) {
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>       <strong class="jxr_keyword">return</strong> id;
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>     @JmxExport
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     <strong class="jxr_keyword">public</strong> List&lt;ColumnDef&gt; echoX(<strong class="jxr_keyword">final</strong> List&lt;ColumnDef&gt; id) {
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>       <strong class="jxr_keyword">return</strong> id;
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>     }
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> 
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>     @JmxExport
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <strong class="jxr_keyword">public</strong> List&lt;ColumnDef&gt; getListAttr() {
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>       <strong class="jxr_keyword">return</strong> Arrays.asList(ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>               .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build(),
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>               ColumnDef.newBuilder().setName(<span class="jxr_string">"bla2"</span>).setType(Type.LONG)
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>                       .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build());
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
 <a class="jxr_linenumber" name="L200" href="#L200">200</a> 
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>       @JmxExport
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>       @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>       <strong class="jxr_keyword">public</strong> Map&lt;String, ColumnDef&gt; getMapAttr() {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>         <strong class="jxr_keyword">return</strong> ImmutableMap.of(<span class="jxr_string">"k1"</span>, ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build(),
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>                <span class="jxr_string">"K2"</span>,
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 ColumnDef.newBuilder().setName(<span class="jxr_string">"bla2"</span>).setType(Type.LONG)
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>                 .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build());
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>       }
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     @JmxExport
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <strong class="jxr_keyword">public</strong> Map&lt;String, ColumnDef&gt; getMapAttr() {
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>       <strong class="jxr_keyword">return</strong> ImmutableMap.of(<span class="jxr_string">"k1"</span>, ColumnDef.newBuilder().setName(<span class="jxr_string">"bla"</span>).setType(Type.LONG)
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>               .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build(),
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>               <span class="jxr_string">"K2"</span>,
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>               ColumnDef.newBuilder().setName(<span class="jxr_string">"bla2"</span>).setType(Type.LONG)
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                       .setDescription(<span class="jxr_string">"bla"</span>).setUnitOfMeasurement(<span class="jxr_string">"um"</span>).build());
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>     }
 <a class="jxr_linenumber" name="L210" href="#L210">210</a> 
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>       @JmxExport
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>       <strong class="jxr_keyword">public</strong> Map&lt;String, ColumnDef&gt; echoXY(<strong class="jxr_keyword">final</strong> Map&lt;String, ColumnDef&gt; id) {
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <strong class="jxr_keyword">return</strong> id;
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>       }
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>     @JmxExport
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">public</strong> Map&lt;String, ColumnDef&gt; echoXY(<strong class="jxr_keyword">final</strong> Map&lt;String, ColumnDef&gt; id) {
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>       <strong class="jxr_keyword">return</strong> id;
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>     }
 <a class="jxr_linenumber" name="L215" href="#L215">215</a> 
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>       @JmxExport(value = <span class="jxr_string">"echo2"</span>, description = <span class="jxr_string">"bla bla bla"</span>)
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>       <strong class="jxr_keyword">public</strong> File echo(<strong class="jxr_keyword">final</strong> File id) {
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>         <strong class="jxr_keyword">return</strong> id;
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>       }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>     @JmxExport(value = <span class="jxr_string">"echo2"</span>, description = <span class="jxr_string">"bla bla bla"</span>)
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>     <strong class="jxr_keyword">public</strong> File echo(<strong class="jxr_keyword">final</strong> File id) {
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>       <strong class="jxr_keyword">return</strong> id;
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>     }
 <a class="jxr_linenumber" name="L220" href="#L220">220</a> 
-<a class="jxr_linenumber" name="L221" href="#L221">221</a> 
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>       @JmxExport
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> print(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> flag, <strong class="jxr_keyword">final</strong> String bla, <strong class="jxr_keyword">final</strong> ColumnDef id) {
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>         System.out.println(bla + nr + flag + id);
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>       }
-<a class="jxr_linenumber" name="L226" href="#L226">226</a> 
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>     }
-<a class="jxr_linenumber" name="L228" href="#L228">228</a> 
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest2</a> {
-<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">volatile</strong> String testStr;
-<a class="jxr_linenumber" name="L232" href="#L232">232</a> 
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> String stringVal;
-<a class="jxr_linenumber" name="L234" href="#L234">234</a> 
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>         @JmxExport(<span class="jxr_string">"stringVal2"</span>)
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">public</strong> String getStringVal() {
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>             <strong class="jxr_keyword">return</strong> stringVal;
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>         }
-<a class="jxr_linenumber" name="L239" href="#L239">239</a> 
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         @JmxExport(<span class="jxr_string">"stringVal2"</span>)
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStringVal(<strong class="jxr_keyword">final</strong> String stringVal) {
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>             <strong class="jxr_keyword">this</strong>.stringVal = stringVal;
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>         }
-<a class="jxr_linenumber" name="L244" href="#L244">244</a> 
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>         @JmxExport
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getTestStr() {
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>             <strong class="jxr_keyword">return</strong> testStr;
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>         }
-<a class="jxr_linenumber" name="L249" href="#L249">249</a> 
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setTestStr(<strong class="jxr_keyword">final</strong> String testStr) {
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>             JmxTest2.testStr = testStr;
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>         }
-<a class="jxr_linenumber" name="L253" href="#L253">253</a> 
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>         @JmxExport(description = <span class="jxr_string">"test operation"</span>)
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>         <strong class="jxr_keyword">public</strong> String doStuff(@JmxExport(value = <span class="jxr_string">"what"</span>, description = <span class="jxr_string">"some param"</span>) <strong class="jxr_keyword">final</strong> String what,
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>                 <strong class="jxr_keyword">final</strong> String where) {
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>             <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Doing "</span> + what + <span class="jxr_string">" "</span> + where;
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>         }
-<a class="jxr_linenumber" name="L259" href="#L259">259</a> 
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>     @JmxExport
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> print(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nr, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> flag, <strong class="jxr_keyword">final</strong> String bla, <strong class="jxr_keyword">final</strong> ColumnDef id) {
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>       LOG.info(<span class="jxr_string">"{}, {}, {}, {}"</span>, bla, nr, flag, id);
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>     }
+<a class="jxr_linenumber" name="L225" href="#L225">225</a> 
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>   }
+<a class="jxr_linenumber" name="L227" href="#L227">227</a> 
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest2</a> {
+<a class="jxr_linenumber" name="L229" href="#L229">229</a> 
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">volatile</strong> String testStr;
+<a class="jxr_linenumber" name="L231" href="#L231">231</a> 
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> String stringVal;
+<a class="jxr_linenumber" name="L233" href="#L233">233</a> 
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>     @JmxExport(<span class="jxr_string">"stringVal2"</span>)
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>     <strong class="jxr_keyword">public</strong> String getStringVal() {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>       <strong class="jxr_keyword">return</strong> stringVal;
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>     }
+<a class="jxr_linenumber" name="L238" href="#L238">238</a> 
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>     @JmxExport(<span class="jxr_string">"stringVal2"</span>)
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStringVal(<strong class="jxr_keyword">final</strong> String stringVal) {
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>       <strong class="jxr_keyword">this</strong>.stringVal = stringVal;
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>     }
+<a class="jxr_linenumber" name="L243" href="#L243">243</a> 
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>     @JmxExport
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getTestStr() {
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>       <strong class="jxr_keyword">return</strong> testStr;
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     }
+<a class="jxr_linenumber" name="L248" href="#L248">248</a> 
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setTestStr(<strong class="jxr_keyword">final</strong> String testStr) {
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>       JmxTest2.testStr = testStr;
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>     }
+<a class="jxr_linenumber" name="L252" href="#L252">252</a> 
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>     @JmxExport(description = <span class="jxr_string">"test operation"</span>)
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>     <strong class="jxr_keyword">public</strong> String doStuff(@JmxExport(value = <span class="jxr_string">"what"</span>, description = <span class="jxr_string">"some param"</span>) <strong class="jxr_keyword">final</strong> String what,
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>             <strong class="jxr_keyword">final</strong> String where) {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"Doing "</span> + what + <span class="jxr_string">" "</span> + where;
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>     }
+<a class="jxr_linenumber" name="L258" href="#L258">258</a> 
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>   }
 <a class="jxr_linenumber" name="L260" href="#L260">260</a> 
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>     }
-<a class="jxr_linenumber" name="L262" href="#L262">262</a> 
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>     @Test
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRegistry()
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>             <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, InstanceNotFoundException, MBeanException,
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>             AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>         <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a> testObj = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a>();
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>         Properties props = <strong class="jxr_keyword">new</strong> Properties();
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>         props.setProperty(<span class="jxr_string">"propKey"</span>, <span class="jxr_string">"propvalue"</span>);
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>         Registry.export(<span class="jxr_string">"caca"</span>, <span class="jxr_string">"maca"</span>, props);
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>         Registry.export(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, props, testObj);
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>         Registry.registerMBean(<span class="jxr_string">"test2"</span>, <span class="jxr_string">"TestClassic"</span>, <strong class="jxr_keyword">new</strong> org.spf4j.jmx.Test());
-<a class="jxr_linenumber" name="L273" href="#L273">273</a> 
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>         Map&lt;String, Object&gt; map = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>         map.put(<span class="jxr_string">"isCrap"</span>, Boolean.TRUE);
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>         map.put(<span class="jxr_string">"a.crap"</span>, Boolean.FALSE);
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>         map.put(<span class="jxr_string">"isNonsense"</span>, <span class="jxr_string">"bla"</span>);
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>         map.put(<span class="jxr_string">""</span>, <span class="jxr_string">"bla"</span>);
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>         Registry.export(<span class="jxr_string">"testMap"</span>, <span class="jxr_string">"map"</span>, map, testObj);
-<a class="jxr_linenumber" name="L280" href="#L280">280</a> 
-<a class="jxr_linenumber" name="L281" href="#L281">281</a> 
-<a class="jxr_linenumber" name="L282" href="#L282">282</a> <em class="jxr_comment">//        Thread.sleep(300000);</em>
-<a class="jxr_linenumber" name="L283" href="#L283">283</a> 
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>         Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>, Boolean.TRUE);
-<a class="jxr_linenumber" name="L286" href="#L286">286</a> 
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>         Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"propKey"</span>, <span class="jxr_string">"caca"</span>);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>   @Test
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRegistry()
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>           <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, InstanceNotFoundException, MBeanException,
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>           AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>     <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a> testObj = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a>();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>     Properties props = <strong class="jxr_keyword">new</strong> Properties();
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     props.setProperty(<span class="jxr_string">"propKey"</span>, <span class="jxr_string">"propvalue"</span>);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>     Registry.export(<span class="jxr_string">"caca"</span>, <span class="jxr_string">"maca"</span>, props);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     Registry.export(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, props, testObj);
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>     Registry.registerMBean(<span class="jxr_string">"test2"</span>, <span class="jxr_string">"TestClassic"</span>, <strong class="jxr_keyword">new</strong> org.spf4j.jmx.Test());
+<a class="jxr_linenumber" name="L271" href="#L271">271</a> 
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>     Map&lt;String, Object&gt; map = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>     map.put(<span class="jxr_string">"isCrap"</span>, Boolean.TRUE);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>     map.put(<span class="jxr_string">"a.crap"</span>, Boolean.FALSE);
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>     map.put(<span class="jxr_string">"isNonsense"</span>, <span class="jxr_string">"bla"</span>);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     map.put(<span class="jxr_string">""</span>, <span class="jxr_string">"bla"</span>);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     Registry.export(<span class="jxr_string">"testMap"</span>, <span class="jxr_string">"map"</span>, map, testObj);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> 
+<a class="jxr_linenumber" name="L279" href="#L279">279</a> <em class="jxr_comment">//        Thread.sleep(300000);</em>
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>     Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>, Boolean.TRUE);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> 
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>     Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"propKey"</span>, <span class="jxr_string">"caca"</span>);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a> 
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>     Object ret = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>     Assert.assertEquals(Boolean.TRUE, ret);
 <a class="jxr_linenumber" name="L289" href="#L289">289</a> 
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>         Object ret = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>);
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>         Assert.assertEquals(Boolean.TRUE, ret);
-<a class="jxr_linenumber" name="L293" href="#L293">293</a> 
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>         String prop = (String) Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"propKey"</span>);
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>         Assert.assertEquals(<span class="jxr_string">"caca"</span>, prop);
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>         Assert.assertEquals(<span class="jxr_string">"caca"</span>, props.get(<span class="jxr_string">"propKey"</span>));
-<a class="jxr_linenumber" name="L298" href="#L298">298</a> 
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>         CompositeData cd = (CompositeData) Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"columnDef"</span>);
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>         System.out.println(<span class="jxr_string">"CD="</span> + cd);
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>         Assert.assertEquals(<span class="jxr_string">"bla"</span>, cd.get(<span class="jxr_string">"name"</span>));
-<a class="jxr_linenumber" name="L303" href="#L303">303</a> 
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         CompositeData cd2 = (CompositeData) Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"getColumnDef"</span>, <span class="jxr_string">"bubu"</span>);
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         System.out.println(<span class="jxr_string">"CD2="</span> + cd2);
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>         Assert.assertEquals(<span class="jxr_string">"bubu"</span>, cd2.get(<span class="jxr_string">"name"</span>));
-<a class="jxr_linenumber" name="L308" href="#L308">308</a> 
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>         CompositeData cd3 = (CompositeData) Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"echo"</span>, cd2);
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>         System.out.println(<span class="jxr_string">"CD3="</span> + cd3);
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>         Assert.assertEquals(<span class="jxr_string">"bubu"</span>, cd3.get(<span class="jxr_string">"name"</span>));
-<a class="jxr_linenumber" name="L313" href="#L313">313</a> 
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>         Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"print"</span>, 3, Boolean.TRUE, <span class="jxr_string">"caca"</span>, cd2);
-<a class="jxr_linenumber" name="L316" href="#L316">316</a> 
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>         Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>, <span class="jxr_string">"bla bla"</span>);
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     String prop = (String) Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"propKey"</span>);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     Assert.assertEquals(<span class="jxr_string">"caca"</span>, prop);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>     Assert.assertEquals(<span class="jxr_string">"caca"</span>, props.get(<span class="jxr_string">"propKey"</span>));
+<a class="jxr_linenumber" name="L294" href="#L294">294</a> 
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>     CompositeData cd = (CompositeData) Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"columnDef"</span>);
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     LOG.debug(<span class="jxr_string">"CD={}"</span>, cd);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>     Assert.assertEquals(<span class="jxr_string">"bla"</span>, cd.get(<span class="jxr_string">"name"</span>));
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> 
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     CompositeData cd2 = (CompositeData) Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"getColumnDef"</span>, <span class="jxr_string">"bubu"</span>);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     LOG.debug(<span class="jxr_string">"CD2={}"</span>, cd2);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>     Assert.assertEquals(<span class="jxr_string">"bubu"</span>, cd2.get(<span class="jxr_string">"name"</span>));
+<a class="jxr_linenumber" name="L304" href="#L304">304</a> 
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     CompositeData cd3 = (CompositeData) Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"echo"</span>, cd2);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>     LOG.debug(<span class="jxr_string">"CD3={}"</span>, cd3);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     Assert.assertEquals(<span class="jxr_string">"bubu"</span>, cd3.get(<span class="jxr_string">"name"</span>));
+<a class="jxr_linenumber" name="L309" href="#L309">309</a> 
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"print"</span>, 3, Boolean.TRUE, <span class="jxr_string">"caca"</span>, cd2);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a> 
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>     Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>, <span class="jxr_string">"bla bla"</span>);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     Object ret2 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>     Assert.assertEquals(<span class="jxr_string">"bla bla"</span>, ret2);
 <a class="jxr_linenumber" name="L319" href="#L319">319</a> 
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>         Object ret2 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>);
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>         Assert.assertEquals(<span class="jxr_string">"bla bla"</span>, ret2);
-<a class="jxr_linenumber" name="L323" href="#L323">323</a> 
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>             Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"doubleVal"</span>, 0.0);
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>             Assert.fail();
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>         } <strong class="jxr_keyword">catch</strong> (InvalidAttributeValueException e) {
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>             Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>         }
-<a class="jxr_linenumber" name="L331" href="#L331">331</a> <em class="jxr_comment">//        Thread.sleep(1000000000);</em>
-<a class="jxr_linenumber" name="L332" href="#L332">332</a> 
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>     }
-<a class="jxr_linenumber" name="L334" href="#L334">334</a> 
-<a class="jxr_linenumber" name="L335" href="#L335">335</a> 
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>     @Test
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>     @SuppressFBWarnings(<span class="jxr_string">"UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS"</span>) <em class="jxr_comment">// callable via JMX :-)</em>
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRegistry2() <strong class="jxr_keyword">throws</strong> IOException, JMException {
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>         <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a> testObj = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a>();
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>         <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest2</a> testObj2 = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest2</a>();
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>         Registry.unregister(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>);
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>         Registry.export(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, testObj, testObj2);
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>         Registry.export(<span class="jxr_string">"test"</span>, <span class="jxr_string">"TestStatic"</span>, JmxTest2.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L344" href="#L344">344</a> 
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>         Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>, Boolean.TRUE);
-<a class="jxr_linenumber" name="L347" href="#L347">347</a> 
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>         Object ret = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>);
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>         Assert.assertEquals(Boolean.TRUE, ret);
-<a class="jxr_linenumber" name="L351" href="#L351">351</a> 
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>          <strong class="jxr_keyword">new</strong> DynamicMBeanBuilder().withJmxExportObject(<strong class="jxr_keyword">new</strong> Object() {
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>             @JmxExport(<span class="jxr_string">"customName"</span>)
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>             @SuppressFBWarnings(<span class="jxr_string">"UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS"</span>)
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>             <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getMyValue() { <strong class="jxr_keyword">return</strong> 13; }
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>         }).extend(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>       Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>               <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"doubleVal"</span>, 0.0);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>       Assert.fail();
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>     } <strong class="jxr_keyword">catch</strong> (InvalidAttributeValueException e) {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>       Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     }
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> <em class="jxr_comment">//        Thread.sleep(1000000000);</em>
+<a class="jxr_linenumber" name="L328" href="#L328">328</a> 
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>   }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a> 
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>   @Test
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>   @SuppressFBWarnings(<span class="jxr_string">"UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS"</span>) <em class="jxr_comment">// callable via JMX :-)</em>
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRegistry2() <strong class="jxr_keyword">throws</strong> IOException, JMException {
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>     <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a> testObj = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest</a>();
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>     <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest2</a> testObj2 = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/RegistryTest.html">JmxTest2</a>();
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>     Registry.unregister(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>);
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>     Registry.export(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, testObj, testObj2);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     Registry.export(<span class="jxr_string">"test"</span>, <span class="jxr_string">"TestStatic"</span>, JmxTest2.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L339" href="#L339">339</a> 
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>, Boolean.TRUE);
+<a class="jxr_linenumber" name="L342" href="#L342">342</a> 
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>     Object ret = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"booleanFlag"</span>);
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>     Assert.assertEquals(Boolean.TRUE, ret);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a> 
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>     <strong class="jxr_keyword">new</strong> DynamicMBeanBuilder().withJmxExportObject(<strong class="jxr_keyword">new</strong> Object() {
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>       @JmxExport(<span class="jxr_string">"customName"</span>)
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>       @SuppressFBWarnings(<span class="jxr_string">"UMAC_UNCALLABLE_METHOD_OF_ANONYMOUS_CLASS"</span>)
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getMyValue() {
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         <strong class="jxr_keyword">return</strong> 13;
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>       }
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>     }).extend(<span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a> 
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     Object retCustom = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"customName"</span>);
 <a class="jxr_linenumber" name="L357" href="#L357">357</a> 
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>         Object retCustom = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"customName"</span>);
-<a class="jxr_linenumber" name="L360" href="#L360">360</a> 
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>         Assert.assertEquals(Integer.valueOf(13), retCustom);
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>     Assert.assertEquals(Integer.valueOf(13), retCustom);
+<a class="jxr_linenumber" name="L359" href="#L359">359</a> 
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>     Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>, <span class="jxr_string">"bla bla"</span>);
 <a class="jxr_linenumber" name="L362" href="#L362">362</a> 
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>         Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>, <span class="jxr_string">"bla bla"</span>);
-<a class="jxr_linenumber" name="L365" href="#L365">365</a> 
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>         Object ret2 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>);
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>         Assert.assertEquals(<span class="jxr_string">"bla bla"</span>, ret2);
-<a class="jxr_linenumber" name="L369" href="#L369">369</a> 
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>             Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L372" href="#L372">372</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"doubleVal"</span>, 0.0);
-<a class="jxr_linenumber" name="L373" href="#L373">373</a>             Assert.fail();
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>         } <strong class="jxr_keyword">catch</strong> (InvalidAttributeValueException e) {
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>           Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>         }
-<a class="jxr_linenumber" name="L377" href="#L377">377</a> 
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>         testObj2.setStringVal(<span class="jxr_string">"cucu"</span>);
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>         Object ret3 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal2"</span>);
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>         Assert.assertEquals(<span class="jxr_string">"cucu"</span>, ret3);
-<a class="jxr_linenumber" name="L382" href="#L382">382</a> 
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>         JmxTest2.setTestStr(<span class="jxr_string">"bubu"</span>);
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>         Object ret4 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"testStr"</span>);
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>         Assert.assertEquals(<span class="jxr_string">"bubu"</span>, ret4);
-<a class="jxr_linenumber" name="L387" href="#L387">387</a> 
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>         Object ret5 = Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>                 <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"doStuff"</span>, <span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>);
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>         Assert.assertEquals(<span class="jxr_string">"Doing a b"</span>, ret5);
-<a class="jxr_linenumber" name="L391" href="#L391">391</a> 
-<a class="jxr_linenumber" name="L392" href="#L392">392</a>     }
-<a class="jxr_linenumber" name="L393" href="#L393">393</a> 
-<a class="jxr_linenumber" name="L394" href="#L394">394</a>     @Test
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testClassLocator() <strong class="jxr_keyword">throws</strong> IOException, InstanceNotFoundException, MBeanException, ReflectionException {
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>         Registry.export(Jmx.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>         CompositeData info = (CompositeData) Client.callOperation(
-<a class="jxr_linenumber" name="L398" href="#L398">398</a>                 <span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
-<a class="jxr_linenumber" name="L399" href="#L399">399</a>                 Jmx.<strong class="jxr_keyword">class</strong>.getPackage().getName(),
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>                 Jmx.<strong class="jxr_keyword">class</strong>.getSimpleName(), <span class="jxr_string">"getPackageInfo"</span>, Registry.<strong class="jxr_keyword">class</strong>.getName());
-<a class="jxr_linenumber" name="L401" href="#L401">401</a>         System.out.println(info);
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>         Assert.assertNotNull(info);
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>     }
-<a class="jxr_linenumber" name="L404" href="#L404">404</a> 
-<a class="jxr_linenumber" name="L405" href="#L405">405</a> }
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>     Object ret2 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal"</span>);
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>     Assert.assertEquals(<span class="jxr_string">"bla bla"</span>, ret2);
+<a class="jxr_linenumber" name="L366" href="#L366">366</a> 
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>       Client.setAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>               <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"doubleVal"</span>, 0.0);
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>       Assert.fail();
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>     } <strong class="jxr_keyword">catch</strong> (InvalidAttributeValueException e) {
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>       Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>     }
+<a class="jxr_linenumber" name="L374" href="#L374">374</a> 
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>     testObj2.setStringVal(<span class="jxr_string">"cucu"</span>);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>     Object ret3 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"stringVal2"</span>);
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     Assert.assertEquals(<span class="jxr_string">"cucu"</span>, ret3);
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>     JmxTest2.setTestStr(<span class="jxr_string">"bubu"</span>);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>     Object ret4 = Client.getAttribute(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"testStr"</span>);
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>     Assert.assertEquals(<span class="jxr_string">"bubu"</span>, ret4);
+<a class="jxr_linenumber" name="L384" href="#L384">384</a> 
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>     Object ret5 = Client.callOperation(<span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             <span class="jxr_string">"test"</span>, <span class="jxr_string">"Test"</span>, <span class="jxr_string">"doStuff"</span>, <span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>     Assert.assertEquals(<span class="jxr_string">"Doing a b"</span>, ret5);
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> 
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>   }
+<a class="jxr_linenumber" name="L390" href="#L390">390</a> 
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>   @Test
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testClassLocator() <strong class="jxr_keyword">throws</strong> IOException, InstanceNotFoundException, MBeanException, ReflectionException {
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>     Registry.export(Jmx.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>     CompositeData info = (CompositeData) Client.callOperation(
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             <span class="jxr_string">"service:jmx:rmi:///jndi/rmi://:9999/jmxrmi"</span>,
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>             Jmx.<strong class="jxr_keyword">class</strong>.getPackage().getName(),
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             Jmx.<strong class="jxr_keyword">class</strong>.getSimpleName(), <span class="jxr_string">"getPackageInfo"</span>, Registry.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>     LOG.debug(<span class="jxr_string">"Returned {}"</span>, info);
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>     Assert.assertNotNull(info);
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>   }
+<a class="jxr_linenumber" name="L401" href="#L401">401</a> 
+<a class="jxr_linenumber" name="L402" href="#L402">402</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

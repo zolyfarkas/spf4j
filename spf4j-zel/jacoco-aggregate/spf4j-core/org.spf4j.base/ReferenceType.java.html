@@ -34,37 +34,26 @@ package org.spf4j.base;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.util.function.Function;
 
 /**
  *
  * @author zoly
  */
-<span class="pc" id="L42">public enum ReferenceType {</span>
+<span class="pc" id="L43">public enum ReferenceType {</span>
 
-<span class="fc" id="L44">    WEAK(new ReferenceFactory() {</span>
-
-        @Override
-        public Reference&lt;Object&gt; create(final Object object) {
-<span class="nc" id="L48">            return new WeakReference(object);</span>
-        }
-    }),
-<span class="fc" id="L51">    SOFT(new ReferenceFactory() {</span>
-
-        @Override
-        public Reference&lt;Object&gt; create(final Object object) {
-<span class="fc" id="L55">            return new SoftReference(object);</span>
-        }
-    });
+<span class="pc" id="L45">    WEAK((object) -&gt; new WeakReference(object)),</span>
+<span class="fc" id="L46">    SOFT((object) -&gt; new SoftReference(object));</span>
 
 
-    private final ReferenceFactory factory;
+    private final Function&lt;Object, Reference&lt;Object&gt;&gt; factory;
 
-<span class="fc" id="L62">    ReferenceType(final ReferenceFactory factory) {</span>
-<span class="fc" id="L63">        this.factory = factory;</span>
-<span class="fc" id="L64">    }</span>
+<span class="fc" id="L51">    ReferenceType(final Function&lt;Object, Reference&lt;Object&gt;&gt; factory) {</span>
+<span class="fc" id="L52">        this.factory = factory;</span>
+<span class="fc" id="L53">    }</span>
 
     public &lt;T&gt; Reference&lt;T&gt; create(final T object) {
-<span class="fc" id="L67">        return factory.create(object);</span>
+<span class="fc" id="L56">        return (Reference&lt;T&gt;) factory.apply(object);</span>
     }
 
 }

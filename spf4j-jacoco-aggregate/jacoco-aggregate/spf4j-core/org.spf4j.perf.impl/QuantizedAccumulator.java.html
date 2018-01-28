@@ -32,7 +32,7 @@
 package org.spf4j.perf.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.math.IntMath;
+import com.google.common.math.LongMath;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
@@ -195,49 +195,34 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
 <span class="fc" id="L196">  }</span>
 
-  static long[] createMagnitudeLimits(final int factor, final int lowerMagnitude,
-          final int higherMagnitude) {
-<span class="fc" id="L200">    long[] magnitudes = new long[(higherMagnitude - lowerMagnitude) + 1];</span>
-
-<span class="fc" id="L202">    int idx = 0;</span>
-
-<span class="fc bfc" id="L204" title="All 2 branches covered.">    for (int m = lowerMagnitude; m &lt;= higherMagnitude; m++) {</span>
-<span class="fc bfc" id="L205" title="All 2 branches covered.">      if (m == 0) {</span>
-<span class="fc" id="L206">        magnitudes[idx++] = 0;</span>
-      } else {
-<span class="fc bfc" id="L208" title="All 2 branches covered.">        magnitudes[idx++] = (m &lt; 0 ? -1 : 1) * IntMath.pow(factor, Math.abs(m));</span>
-      }
-    }
-<span class="fc" id="L211">    return magnitudes;</span>
-  }
-
+  @VisibleForTesting
   static long[] createMagnitudeLimits2(final int factor, final int lowerMagnitude,
           final int higherMagnitude) {
-<span class="fc" id="L216">    long[] magnitudes = new long[(higherMagnitude - lowerMagnitude) + 1];</span>
-<span class="fc" id="L217">    int idx = 0;</span>
-<span class="fc bfc" id="L218" title="All 2 branches covered.">    if (lowerMagnitude &lt; 0) {  // we quantize negative values.</span>
-<span class="fc" id="L219">      int toMagnitude = Math.min(-1, higherMagnitude);</span>
-<span class="fc" id="L220">      int toValue = -IntMath.pow(factor, -toMagnitude);</span>
-<span class="fc" id="L221">      idx = toMagnitude - lowerMagnitude;</span>
-<span class="fc" id="L222">      int j = idx;</span>
-<span class="fc bfc" id="L223" title="All 2 branches covered.">      while (j &gt;= 0) {</span>
-<span class="fc" id="L224">        magnitudes[j--] = toValue;</span>
-<span class="fc" id="L225">        toValue *= factor;</span>
+<span class="fc" id="L201">    long[] magnitudes = new long[(higherMagnitude - lowerMagnitude) + 1];</span>
+<span class="fc" id="L202">    int idx = 0;</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">    if (lowerMagnitude &lt; 0) {  // we quantize negative values.</span>
+<span class="fc" id="L204">      int toMagnitude = Math.min(-1, higherMagnitude);</span>
+<span class="fc" id="L205">      long toValue = -LongMath.pow(factor, -toMagnitude);</span>
+<span class="fc" id="L206">      idx = toMagnitude - lowerMagnitude;</span>
+<span class="fc" id="L207">      int j = idx;</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">      while (j &gt;= 0) {</span>
+<span class="fc" id="L209">        magnitudes[j--] = toValue;</span>
+<span class="fc" id="L210">        toValue *= factor;</span>
       }
-<span class="fc" id="L227">      idx++;</span>
+<span class="fc" id="L212">      idx++;</span>
     }
-<span class="fc bfc" id="L229" title="All 4 branches covered.">    if (lowerMagnitude &lt;= 0 &amp;&amp; higherMagnitude &gt;= 0) {</span>
-<span class="fc" id="L230">      magnitudes[idx++] = 0;</span>
+<span class="fc bfc" id="L214" title="All 4 branches covered.">    if (lowerMagnitude &lt;= 0 &amp;&amp; higherMagnitude &gt;= 0) {</span>
+<span class="fc" id="L215">      magnitudes[idx++] = 0;</span>
     }
 
-<span class="fc" id="L233">    int fromMagnitude = Math.max(1, lowerMagnitude);</span>
-<span class="fc" id="L234">    int fromValue = IntMath.pow(factor, fromMagnitude);</span>
-<span class="fc" id="L235">    int j = idx;</span>
-<span class="fc bfc" id="L236" title="All 2 branches covered.">    while (j &lt; magnitudes.length) {</span>
-<span class="fc" id="L237">      magnitudes[j++] = fromValue;</span>
-<span class="fc" id="L238">      fromValue *= factor;</span>
+<span class="fc" id="L218">    int fromMagnitude = Math.max(1, lowerMagnitude);</span>
+<span class="fc" id="L219">    long fromValue = LongMath.pow(factor, fromMagnitude);</span>
+<span class="fc" id="L220">    int j = idx;</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">    while (j &lt; magnitudes.length) {</span>
+<span class="fc" id="L222">      magnitudes[j++] = fromValue;</span>
+<span class="fc" id="L223">      fromValue *= factor;</span>
     }
-<span class="fc" id="L240">    return magnitudes;</span>
+<span class="fc" id="L225">    return magnitudes;</span>
   }
 
   //CHECKSTYLE:OFF
@@ -245,26 +230,26 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
           final int lowerMagnitude, final int higherMagnitude,
           final long minMeasurement, final long maxMeasurement,
           final long measurementCount, final long measurementTotal,
-<span class="fc" id="L248">          final int quantasPerMagnitude, final long[] bucketLimits, final long[] quatizedMeasurements) {</span>
+<span class="fc" id="L233">          final int quantasPerMagnitude, final long[] bucketLimits, final long[] quatizedMeasurements) {</span>
     //CHECKSTYLE:ON
-<span class="pc bpc" id="L250" title="2 of 4 branches missed.">    assert (quantasPerMagnitude &lt;= factor);</span>
-<span class="pc bpc" id="L251" title="2 of 4 branches missed.">    assert (lowerMagnitude &lt; higherMagnitude);</span>
-<span class="pc bpc" id="L252" title="2 of 4 branches missed.">    assert (quantasPerMagnitude &gt; 0);</span>
-<span class="fc" id="L253">    this.factor = factor;</span>
-<span class="fc" id="L254">    this.lowerMagnitude = lowerMagnitude;</span>
-<span class="fc" id="L255">    this.higherMagnitude = higherMagnitude;</span>
-<span class="fc" id="L256">    this.minMeasurement = minMeasurement;</span>
-<span class="fc" id="L257">    this.maxMeasurement = maxMeasurement;</span>
-<span class="fc" id="L258">    this.measurementCount = measurementCount;</span>
-<span class="fc" id="L259">    this.measurementTotal = measurementTotal;</span>
-<span class="fc" id="L260">    this.quantasPerMagnitude = quantasPerMagnitude;</span>
-<span class="fc" id="L261">    this.bucketLimits = bucketLimits;</span>
-<span class="fc" id="L262">    this.quatizedMeasurements = quatizedMeasurements;</span>
-<span class="fc" id="L263">    this.info = info;</span>
-<span class="fc" id="L264">  }</span>
+<span class="pc bpc" id="L235" title="2 of 4 branches missed.">    assert (quantasPerMagnitude &lt;= factor);</span>
+<span class="pc bpc" id="L236" title="2 of 4 branches missed.">    assert (lowerMagnitude &lt; higherMagnitude);</span>
+<span class="pc bpc" id="L237" title="2 of 4 branches missed.">    assert (quantasPerMagnitude &gt; 0);</span>
+<span class="fc" id="L238">    this.factor = factor;</span>
+<span class="fc" id="L239">    this.lowerMagnitude = lowerMagnitude;</span>
+<span class="fc" id="L240">    this.higherMagnitude = higherMagnitude;</span>
+<span class="fc" id="L241">    this.minMeasurement = minMeasurement;</span>
+<span class="fc" id="L242">    this.maxMeasurement = maxMeasurement;</span>
+<span class="fc" id="L243">    this.measurementCount = measurementCount;</span>
+<span class="fc" id="L244">    this.measurementTotal = measurementTotal;</span>
+<span class="fc" id="L245">    this.quantasPerMagnitude = quantasPerMagnitude;</span>
+<span class="fc" id="L246">    this.bucketLimits = bucketLimits;</span>
+<span class="fc" id="L247">    this.quatizedMeasurements = quatizedMeasurements;</span>
+<span class="fc" id="L248">    this.info = info;</span>
+<span class="fc" id="L249">  }</span>
 
   public String getUnitOfMeasurement() {
-<span class="fc" id="L267">    return info.getMeasurementUnit(0);</span>
+<span class="fc" id="L252">    return info.getMeasurementUnit(0);</span>
   }
 
 /**
@@ -276,155 +261,155 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
  */
   @VisibleForTesting
   static int findBucket(final long[] bucketLimits, final long value) {
-<span class="fc" id="L279">    int idx = Arrays.binarySearch(bucketLimits, value);</span>
-<span class="fc bfc" id="L280" title="All 2 branches covered.">    if (idx &gt;= 0) {</span>
-<span class="fc" id="L281">      return idx + 1;</span>
+<span class="fc" id="L264">    int idx = Arrays.binarySearch(bucketLimits, value);</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">    if (idx &gt;= 0) {</span>
+<span class="fc" id="L266">      return idx + 1;</span>
     } else {
-<span class="fc" id="L283">      return -(idx + 1);</span>
+<span class="fc" id="L268">      return -(idx + 1);</span>
     }
   }
 
 
   @Override
   public synchronized void record(final long measurement) {
-<span class="fc" id="L290">    measurementCount++;</span>
-<span class="fc" id="L291">    measurementTotal += measurement;  // TODO: check for overflow</span>
-<span class="fc bfc" id="L292" title="All 2 branches covered.">    if (measurement &lt; minMeasurement) {</span>
-<span class="fc" id="L293">      minMeasurement = measurement;</span>
+<span class="fc" id="L275">    measurementCount++;</span>
+<span class="fc" id="L276">    measurementTotal += measurement;  // TODO: check for overflow</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">    if (measurement &lt; minMeasurement) {</span>
+<span class="fc" id="L278">      minMeasurement = measurement;</span>
     }
-<span class="fc bfc" id="L295" title="All 2 branches covered.">    if (measurement &gt; maxMeasurement) {</span>
-<span class="fc" id="L296">      maxMeasurement = measurement;</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">    if (measurement &gt; maxMeasurement) {</span>
+<span class="fc" id="L281">      maxMeasurement = measurement;</span>
     }
-<span class="fc" id="L298">    quatizedMeasurements[findBucket(bucketLimits, measurement)]++;</span>
-<span class="fc" id="L299">  }</span>
+<span class="fc" id="L283">    quatizedMeasurements[findBucket(bucketLimits, measurement)]++;</span>
+<span class="fc" id="L284">  }</span>
 
   @Override
   @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
   public synchronized long[] get() {
-<span class="pc bpc" id="L304" title="1 of 2 branches missed.">    if (measurementCount == 0) {</span>
-<span class="nc" id="L305">      return null;</span>
+<span class="pc bpc" id="L289" title="1 of 2 branches missed.">    if (measurementCount == 0) {</span>
+<span class="nc" id="L290">      return null;</span>
     } else {
-<span class="fc" id="L307">      long[] result = new long[info.getNumberOfMeasurements()];</span>
-<span class="fc" id="L308">      int i = 0;</span>
-<span class="fc" id="L309">      result[i++] = this.measurementTotal;</span>
-<span class="fc" id="L310">      result[i++] = this.measurementCount;</span>
+<span class="fc" id="L292">      long[] result = new long[info.getNumberOfMeasurements()];</span>
+<span class="fc" id="L293">      int i = 0;</span>
+<span class="fc" id="L294">      result[i++] = this.measurementTotal;</span>
+<span class="fc" id="L295">      result[i++] = this.measurementCount;</span>
 
-<span class="fc" id="L312">      result[i++] = this.minMeasurement;</span>
-<span class="fc" id="L313">      result[i++] = this.maxMeasurement;</span>
+<span class="fc" id="L297">      result[i++] = this.minMeasurement;</span>
+<span class="fc" id="L298">      result[i++] = this.maxMeasurement;</span>
 
-<span class="fc bfc" id="L315" title="All 2 branches covered.">      for (int j = 0; j &lt; this.quatizedMeasurements.length; j++) {</span>
-<span class="fc" id="L316">        result[i++] = this.quatizedMeasurements[j];</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">      for (int j = 0; j &lt; this.quatizedMeasurements.length; j++) {</span>
+<span class="fc" id="L301">        result[i++] = this.quatizedMeasurements[j];</span>
       }
-<span class="fc" id="L318">      return result;</span>
+<span class="fc" id="L303">      return result;</span>
     }
   }
 
   @Override
   public MeasurementsInfo getInfo() {
-<span class="fc" id="L324">    return info;</span>
+<span class="fc" id="L309">    return info;</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
   public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
 
-<span class="nc bnc" id="L331" title="All 2 branches missed.">    if (mSource instanceof QuantizedAccumulator) {</span>
-<span class="nc" id="L332">      QuantizedAccumulator other = (QuantizedAccumulator) mSource;</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">    if (mSource instanceof QuantizedAccumulator) {</span>
+<span class="nc" id="L317">      QuantizedAccumulator other = (QuantizedAccumulator) mSource;</span>
       long[] quantizedM;
       long minMeasurementM;
       long maxMeasurementM;
       long measurementCountM;
       long measurementTotalM;
-<span class="nc" id="L338">      synchronized (this) {</span>
-<span class="nc" id="L339">        quantizedM = quatizedMeasurements.clone();</span>
-<span class="nc" id="L340">        minMeasurementM = this.minMeasurement;</span>
-<span class="nc" id="L341">        maxMeasurementM = this.maxMeasurement;</span>
-<span class="nc" id="L342">        measurementCountM = this.measurementCount;</span>
-<span class="nc" id="L343">        measurementTotalM = this.measurementTotal;</span>
-<span class="nc" id="L344">      }</span>
-<span class="nc" id="L345">      QuantizedAccumulator otherClone = other.createClone();</span>
-<span class="nc" id="L346">      final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();</span>
-<span class="nc bnc" id="L347" title="All 2 branches missed.">      for (int i = 0; i &lt; quantizedM.length; i++) {</span>
+<span class="nc" id="L323">      synchronized (this) {</span>
+<span class="nc" id="L324">        quantizedM = quatizedMeasurements.clone();</span>
+<span class="nc" id="L325">        minMeasurementM = this.minMeasurement;</span>
+<span class="nc" id="L326">        maxMeasurementM = this.maxMeasurement;</span>
+<span class="nc" id="L327">        measurementCountM = this.measurementCount;</span>
+<span class="nc" id="L328">        measurementTotalM = this.measurementTotal;</span>
+<span class="nc" id="L329">      }</span>
+<span class="nc" id="L330">      QuantizedAccumulator otherClone = other.createClone();</span>
+<span class="nc" id="L331">      final long[] lQuatizedMeas = otherClone.getQuatizedMeasurements();</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">      for (int i = 0; i &lt; quantizedM.length; i++) {</span>
 
-<span class="nc" id="L349">        quantizedM[i] += lQuatizedMeas[i];</span>
+<span class="nc" id="L334">        quantizedM[i] += lQuatizedMeas[i];</span>
       }
-<span class="nc" id="L351">      return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,</span>
-<span class="nc" id="L352">              Math.min(minMeasurementM, otherClone.getMinMeasurement()),</span>
-<span class="nc" id="L353">              Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),</span>
-<span class="nc" id="L354">              measurementCountM + otherClone.getMeasurementCount(),</span>
-<span class="nc" id="L355">              measurementTotalM + otherClone.getMeasurementTotal(),</span>
+<span class="nc" id="L336">      return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,</span>
+<span class="nc" id="L337">              Math.min(minMeasurementM, otherClone.getMinMeasurement()),</span>
+<span class="nc" id="L338">              Math.max(maxMeasurementM, otherClone.getMaxMeasurement()),</span>
+<span class="nc" id="L339">              measurementCountM + otherClone.getMeasurementCount(),</span>
+<span class="nc" id="L340">              measurementTotalM + otherClone.getMeasurementTotal(),</span>
               quantasPerMagnitude, bucketLimits, quantizedM);
     } else {
-<span class="nc" id="L358">      throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+<span class="nc" id="L343">      throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
     }
 
   }
 
   @Override
   public synchronized QuantizedAccumulator createClone() {
-<span class="fc" id="L365">    return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,</span>
+<span class="fc" id="L350">    return new QuantizedAccumulator(info, factor, lowerMagnitude, higherMagnitude,</span>
             minMeasurement, maxMeasurement, measurementCount, measurementTotal,
-<span class="fc" id="L367">            quantasPerMagnitude, bucketLimits, quatizedMeasurements.clone());</span>
+<span class="fc" id="L352">            quantasPerMagnitude, bucketLimits, quatizedMeasurements.clone());</span>
   }
 
   @Override
   public synchronized QuantizedAccumulator reset() {
-<span class="pc bpc" id="L372" title="1 of 2 branches missed.">    if (measurementCount == 0) {</span>
-<span class="nc" id="L373">      return null;</span>
+<span class="pc bpc" id="L357" title="1 of 2 branches missed.">    if (measurementCount == 0) {</span>
+<span class="nc" id="L358">      return null;</span>
     } else {
-<span class="fc" id="L375">      QuantizedAccumulator result = createClone();</span>
-<span class="fc" id="L376">      this.minMeasurement = Long.MAX_VALUE;</span>
-<span class="fc" id="L377">      this.maxMeasurement = Long.MIN_VALUE;</span>
-<span class="fc" id="L378">      this.measurementCount = 0;</span>
-<span class="fc" id="L379">      this.measurementTotal = 0;</span>
-<span class="fc" id="L380">      Arrays.fill(this.quatizedMeasurements, 0L);</span>
-<span class="fc" id="L381">      return result;</span>
+<span class="fc" id="L360">      QuantizedAccumulator result = createClone();</span>
+<span class="fc" id="L361">      this.minMeasurement = Long.MAX_VALUE;</span>
+<span class="fc" id="L362">      this.maxMeasurement = Long.MIN_VALUE;</span>
+<span class="fc" id="L363">      this.measurementCount = 0;</span>
+<span class="fc" id="L364">      this.measurementTotal = 0;</span>
+<span class="fc" id="L365">      Arrays.fill(this.quatizedMeasurements, 0L);</span>
+<span class="fc" id="L366">      return result;</span>
     }
   }
 
   @Override
   public synchronized String toString() {
-<span class="fc" id="L387">    return &quot;QuantizedRecorder{&quot; + &quot;info=&quot; + info + &quot;, minMeasurement=&quot; + minMeasurement + &quot;, maxMeasurement=&quot;</span>
+<span class="fc" id="L372">    return &quot;QuantizedRecorder{&quot; + &quot;info=&quot; + info + &quot;, minMeasurement=&quot; + minMeasurement + &quot;, maxMeasurement=&quot;</span>
             + maxMeasurement + &quot;, measurementCount=&quot; + measurementCount + &quot;, measurementTotal=&quot;
             + measurementTotal + &quot;, quantasPerMagnitude=&quot; + quantasPerMagnitude + &quot;, magnitudes=&quot;
-<span class="fc" id="L390">            + Arrays.toString(bucketLimits) + &quot;, quatizedMeasurements=&quot;</span>
-<span class="fc" id="L391">            + Arrays.toString(quatizedMeasurements) + '}';</span>
+<span class="fc" id="L375">            + Arrays.toString(bucketLimits) + &quot;, quatizedMeasurements=&quot;</span>
+<span class="fc" id="L376">            + Arrays.toString(quatizedMeasurements) + '}';</span>
   }
 
   public synchronized long getMaxMeasurement() {
-<span class="fc" id="L395">    return maxMeasurement;</span>
+<span class="fc" id="L380">    return maxMeasurement;</span>
   }
 
   public synchronized long getMeasurementCount() {
-<span class="nc" id="L399">    return measurementCount;</span>
+<span class="nc" id="L384">    return measurementCount;</span>
   }
 
   public synchronized long getMeasurementTotal() {
-<span class="nc" id="L403">    return measurementTotal;</span>
+<span class="nc" id="L388">    return measurementTotal;</span>
   }
 
   public synchronized long getMinMeasurement() {
-<span class="fc" id="L407">    return minMeasurement;</span>
+<span class="fc" id="L392">    return minMeasurement;</span>
   }
 
   public synchronized long[] getQuatizedMeasurements() {
-<span class="nc" id="L411">    return quatizedMeasurements.clone();</span>
+<span class="nc" id="L396">    return quatizedMeasurements.clone();</span>
   }
 
   @Override
   public synchronized MeasurementAccumulator createLike(final Object entity) {
-<span class="fc" id="L416">    return new QuantizedAccumulator(entity, info.getDescription(), getUnitOfMeasurement(),</span>
+<span class="fc" id="L401">    return new QuantizedAccumulator(entity, info.getDescription(), getUnitOfMeasurement(),</span>
             this.factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
   }
 
   @Override
   @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
   public long[] getThenReset() {
-<span class="fc" id="L423">    final QuantizedAccumulator vals = reset();</span>
-<span class="pc bpc" id="L424" title="1 of 2 branches missed.">    if (vals == null) {</span>
-<span class="nc" id="L425">      return null;</span>
+<span class="fc" id="L408">    final QuantizedAccumulator vals = reset();</span>
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">    if (vals == null) {</span>
+<span class="nc" id="L410">      return null;</span>
     } else {
-<span class="fc" id="L427">      return vals.get();</span>
+<span class="fc" id="L412">      return vals.get();</span>
     }
   }
 }

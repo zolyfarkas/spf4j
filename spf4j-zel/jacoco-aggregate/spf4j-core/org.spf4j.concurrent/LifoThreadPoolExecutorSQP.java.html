@@ -271,7 +271,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       }
     } finally {
 <span class="pc" id="L273">      stateLock.unlock();</span>
-<span class="fc" id="L274">    }</span>
+<span class="pc" id="L274">    }</span>
 <span class="fc" id="L275">  }</span>
 
   @Override
@@ -295,7 +295,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       }
     } finally {
 <span class="pc" id="L297">      stateLock.unlock();</span>
-<span class="fc" id="L298">    }</span>
+<span class="pc" id="L298">    }</span>
 <span class="fc bfc" id="L299" title="All 2 branches covered.">    return threadCount == 0;</span>
   }
 
@@ -308,7 +308,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="fc" id="L308">      return new ArrayList&lt;&gt;(taskQueue);</span>
     } finally {
 <span class="pc" id="L310">      stateLock.unlock();</span>
-    }
+<span class="nc" id="L311">    }</span>
   }
 
   @Override
@@ -319,7 +319,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="nc" id="L319">      return state.isShutdown();</span>
     } finally {
 <span class="nc" id="L321">      stateLock.unlock();</span>
-    }
+<span class="nc" id="L322">    }</span>
   }
 
   @JmxExport
@@ -336,18 +336,18 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="nc bnc" id="L336" title="All 4 branches missed.">      return state.isShutdown() &amp;&amp; state.getThreadCount() == 0;</span>
     } finally {
 <span class="nc" id="L338">      stateLock.unlock();</span>
-    }
+<span class="nc" id="L339">    }</span>
   }
 
   @JmxExport
   @Override
   public int getThreadCount() {
-<span class="nc" id="L345">    stateLock.lock();</span>
+<span class="fc" id="L345">    stateLock.lock();</span>
     try {
-<span class="nc" id="L347">      return state.getThreadCount();</span>
+<span class="fc" id="L347">      return state.getThreadCount();</span>
     } finally {
-<span class="nc" id="L349">      stateLock.unlock();</span>
-    }
+<span class="pc" id="L349">      stateLock.unlock();</span>
+<span class="nc" id="L350">    }</span>
   }
 
   @JmxExport
@@ -371,7 +371,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="nc" id="L371">      return taskQueue.size();</span>
     } finally {
 <span class="nc" id="L373">      stateLock.unlock();</span>
-    }
+<span class="nc" id="L374">    }</span>
   }
 
   @JmxExport
@@ -489,7 +489,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
           }
         } finally {
 <span class="pc" id="L491">          poolStateLock.unlock();</span>
-<span class="fc" id="L492">        }</span>
+<span class="pc" id="L492">        }</span>
 <span class="pc bpc" id="L493" title="2 of 4 branches missed.">      } while (shouldRun &amp;&amp; !state.isShutdown());</span>
 <span class="fc" id="L494">    }</span>
 
@@ -558,7 +558,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             }
 <span class="pc" id="L559">          }</span>
         }
-      }
+<span class="fc" id="L561">      }</span>
 
 <span class="fc" id="L563">    }</span>
 
@@ -569,7 +569,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 <span class="fc" id="L569">        threadQueue.delete(ptr, this);</span>
       } finally {
 <span class="pc" id="L571">        poolStateLock.unlock();</span>
-<span class="fc" id="L572">      }</span>
+<span class="pc" id="L572">      }</span>
 <span class="fc" id="L573">    }</span>
 
     public void run(final Runnable runnable) {
@@ -584,12 +584,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     public String toString() {
       StackTraceElement[] stackTrace;
       try {
-<span class="nc" id="L587">        stackTrace = this.getStackTrace();</span>
+<span class="fc" id="L587">        stackTrace = this.getStackTrace();</span>
 <span class="nc" id="L588">      } catch (RuntimeException ex) {</span>
 <span class="nc" id="L589">        stackTrace = StackTrace.EMPTY_STACK_TRACE;</span>
-<span class="nc" id="L590">      }</span>
-<span class="nc" id="L591">      return &quot;QueuedThread{name = &quot; + getName() + &quot;, running=&quot; + running + &quot;, lastRunNanos=&quot;</span>
-<span class="nc" id="L592">              + lastRunNanos + &quot;, stack =&quot; + Arrays.toString(stackTrace)</span>
+<span class="fc" id="L590">      }</span>
+<span class="fc" id="L591">      return &quot;QueuedThread{name = &quot; + getName() + &quot;, running=&quot; + running + &quot;, lastRunNanos=&quot;</span>
+<span class="fc" id="L592">              + lastRunNanos + &quot;, stack =&quot; + Arrays.toString(stackTrace)</span>
               + &quot;, toRun = &quot; + toRun + '}';
     }
 

@@ -50,7 +50,7 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
  * @author zoly
  */
 @Beta
-public final class PooledDataSource implements DataSource {
+public final class PooledDataSource implements DataSource, AutoCloseable {
 
     private final RecyclingSupplier&lt;Connection&gt; pool;
 
@@ -127,6 +127,11 @@ public final class PooledDataSource implements DataSource {
     public String toString() {
 <span class="nc" id="L128">        return &quot;PooledDataSource{&quot; + &quot;pool=&quot; + pool + '}';</span>
     }
+
+  @Override
+  public void close() throws Exception {
+<span class="nc" id="L133">    pool.dispose();</span>
+<span class="nc" id="L134">  }</span>
 
 
 }

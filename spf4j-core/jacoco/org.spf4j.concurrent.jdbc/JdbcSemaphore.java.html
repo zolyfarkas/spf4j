@@ -33,8 +33,6 @@ package org.spf4j.concurrent.jdbc;
 
 import org.spf4j.concurrent.Semaphore;
 import com.google.common.annotations.Beta;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,6 +42,8 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
@@ -86,9 +86,12 @@ import org.spf4j.jmx.Registry;
 @Beta
 public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
-<span class="fc" id="L89">  private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);</span>
+<span class="fc" id="L89">  private static final int CLEANUP_TIMEOUT_SECONDS =</span>
+<span class="fc" id="L90">          Integer.getInteger(&quot;spf4j.jdbc.semaphore.cleanupTimeoutSeconds&quot;, 0);</span>
 
-<span class="fc" id="L91">  private static final Interner&lt;String&gt; INTERNER = Interners.newStrongInterner();</span>
+<span class="fc" id="L92">  private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);</span>
+
+<span class="fc" id="L94">  private static final ConcurrentMap&lt;String, Object&gt; SYNC_OBJS = new ConcurrentHashMap&lt;&gt;();</span>
 
   private final JdbcTemplate jdbc;
 
@@ -126,6 +129,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private final String semName;
 
+  private final Object syncObj;
+
   private final JdbcHeartBeat heartBeat;
 
   private volatile boolean isHealthy;
@@ -145,8 +150,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName, final int nrPermits)
           throws InterruptedException, SQLException {
-<span class="fc" id="L148">    this(dataSource, semaphoreName, nrPermits, false);</span>
-<span class="fc" id="L149">  }</span>
+<span class="fc" id="L153">    this(dataSource, semaphoreName, nrPermits, false);</span>
+<span class="fc" id="L154">  }</span>
 
   /**
    * create a JDBC Semaphore. create one instance / process.
@@ -159,473 +164,477 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
    */
   public JdbcSemaphore(final DataSource dataSource, final String semaphoreName,
           final int nrPermits, final boolean strict) throws InterruptedException, SQLException {
-<span class="fc" id="L162">    this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits,</span>
-<span class="fc" id="L163">            Integer.getInteger(&quot;spf4j.jdbc.semaphore.jdbcTimeoutSeconds&quot;, 10), strict);</span>
-<span class="fc" id="L164">  }</span>
+<span class="fc" id="L167">    this(dataSource, SemaphoreTablesDesc.DEFAULT, semaphoreName, nrPermits,</span>
+<span class="fc" id="L168">            Integer.getInteger(&quot;spf4j.jdbc.semaphore.jdbcTimeoutSeconds&quot;, 10), strict);</span>
+<span class="fc" id="L169">  }</span>
 
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
           final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
           final boolean strictReservations) throws InterruptedException, SQLException {
-<span class="fc" id="L169">    this(dataSource, semTableDesc, semaphoreName, nrPermits, jdbcTimeoutSeconds, strictReservations,</span>
-<span class="fc" id="L170">            Integer.getInteger(&quot;spf4j.jdbc.semaphore.defaultMaxPollIntervalMillis&quot;, 1000));</span>
-<span class="fc" id="L171">  }</span>
+<span class="fc" id="L174">    this(dataSource, semTableDesc, semaphoreName, nrPermits, jdbcTimeoutSeconds, strictReservations,</span>
+<span class="fc" id="L175">            Integer.getInteger(&quot;spf4j.jdbc.semaphore.defaultMaxPollIntervalMillis&quot;, 1000));</span>
+<span class="fc" id="L176">  }</span>
 
 
   @SuppressFBWarnings({&quot;CBX_CUSTOM_BUILT_XML&quot;, &quot;STT_TOSTRING_STORED_IN_FIELD&quot;}) // no sql builder (yet)
   public JdbcSemaphore(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
           final String semaphoreName, final int nrPermits, final int jdbcTimeoutSeconds,
-<span class="fc" id="L177">          final boolean strictReservations, final int acquirePollMillis) throws InterruptedException, SQLException {</span>
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    if (nrPermits &lt; 0) {</span>
-<span class="nc" id="L179">      throw new IllegalArgumentException(&quot;Permits must be positive and not &quot; + nrPermits);</span>
+<span class="fc" id="L182">          final boolean strictReservations, final int acquirePollMillis) throws InterruptedException, SQLException {</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">    if (nrPermits &lt; 0) {</span>
+<span class="nc" id="L184">      throw new IllegalArgumentException(&quot;Permits must be positive and not &quot; + nrPermits);</span>
     }
-<span class="fc" id="L181">    this.acquirePollMillis = acquirePollMillis;</span>
-<span class="fc" id="L182">    this.semName = INTERNER.intern(semaphoreName);</span>
-<span class="fc" id="L183">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
-<span class="fc" id="L184">    this.jdbc = new JdbcTemplate(dataSource);</span>
-<span class="fc" id="L185">    this.isHealthy = true;</span>
-<span class="fc" id="L186">    this.ownedReservations = 0;</span>
-<span class="fc" id="L187">    this.failureHook = new JdbcHeartBeat.LifecycleHook() {</span>
+<span class="fc" id="L186">    this.acquirePollMillis = acquirePollMillis;</span>
+<span class="fc" id="L187">    this.semName = semaphoreName;</span>
+<span class="fc" id="L188">    this.syncObj = SYNC_OBJS.computeIfAbsent(semaphoreName, (key) -&gt; new Object());</span>
+<span class="fc" id="L189">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
+<span class="fc" id="L190">    this.jdbc = new JdbcTemplate(dataSource);</span>
+<span class="fc" id="L191">    this.isHealthy = true;</span>
+<span class="fc" id="L192">    this.ownedReservations = 0;</span>
+<span class="fc" id="L193">    this.failureHook = new JdbcHeartBeat.LifecycleHook() {</span>
       @Override
       public void onError(final Error error) {
-<span class="nc" id="L190">        heartBeatFailure = error;</span>
-<span class="nc" id="L191">        isHealthy = false;</span>
-<span class="nc" id="L192">      }</span>
+<span class="nc" id="L196">        heartBeatFailure = error;</span>
+<span class="nc" id="L197">        isHealthy = false;</span>
+<span class="nc" id="L198">      }</span>
 
       @Override
       public void onClose() {
-<span class="fc" id="L196">          close();</span>
-<span class="fc" id="L197">      }</span>
+<span class="fc" id="L202">          close();</span>
+<span class="fc" id="L203">      }</span>
     };
-<span class="fc" id="L199">    this.heartBeat = JdbcHeartBeat.getHeartBeatAndSubscribe(dataSource,</span>
-<span class="fc" id="L200">            semTableDesc.getHeartBeatTableDesc(), failureHook);</span>
-<span class="fc" id="L201">    final String semaphoreTableName = semTableDesc.getSemaphoreTableName();</span>
-<span class="fc" id="L202">    String availablePermitsColumn = semTableDesc.getAvailablePermitsColumn();</span>
-<span class="fc" id="L203">    String lastModifiedByColumn = semTableDesc.getLastModifiedByColumn();</span>
-<span class="fc" id="L204">    String lastModifiedAtColumn = semTableDesc.getLastModifiedAtColumn();</span>
-<span class="fc" id="L205">    String ownerColumn = semTableDesc.getOwnerColumn();</span>
-<span class="fc" id="L206">    String semaphoreNameColumn = semTableDesc.getSemNameColumn();</span>
-<span class="fc" id="L207">    String totalPermitsColumn = semTableDesc.getTotalPermitsColumn();</span>
-<span class="fc" id="L208">    String ownerPermitsColumn = semTableDesc.getOwnerPermitsColumn();</span>
-<span class="fc" id="L209">    String permitsByOwnerTableName = semTableDesc.getPermitsByOwnerTableName();</span>
-<span class="fc" id="L210">    HeartBeatTableDesc hbTableDesc = heartBeat.getHbTableDesc();</span>
-<span class="fc" id="L211">    String heartBeatTableName = hbTableDesc.getTableName();</span>
-<span class="fc" id="L212">    String heartBeatOwnerColumn = hbTableDesc.getOwnerColumn();</span>
-<span class="fc" id="L213">    String currentTimeMillisFunc = hbTableDesc.getDbType().getCurrTSSqlFn();</span>
+<span class="fc" id="L205">    this.heartBeat = JdbcHeartBeat.getHeartBeatAndSubscribe(dataSource,</span>
+<span class="fc" id="L206">            semTableDesc.getHeartBeatTableDesc(), failureHook);</span>
+<span class="fc" id="L207">    final String semaphoreTableName = semTableDesc.getSemaphoreTableName();</span>
+<span class="fc" id="L208">    String availablePermitsColumn = semTableDesc.getAvailablePermitsColumn();</span>
+<span class="fc" id="L209">    String lastModifiedByColumn = semTableDesc.getLastModifiedByColumn();</span>
+<span class="fc" id="L210">    String lastModifiedAtColumn = semTableDesc.getLastModifiedAtColumn();</span>
+<span class="fc" id="L211">    String ownerColumn = semTableDesc.getOwnerColumn();</span>
+<span class="fc" id="L212">    String semaphoreNameColumn = semTableDesc.getSemNameColumn();</span>
+<span class="fc" id="L213">    String totalPermitsColumn = semTableDesc.getTotalPermitsColumn();</span>
+<span class="fc" id="L214">    String ownerPermitsColumn = semTableDesc.getOwnerPermitsColumn();</span>
+<span class="fc" id="L215">    String permitsByOwnerTableName = semTableDesc.getPermitsByOwnerTableName();</span>
+<span class="fc" id="L216">    HeartBeatTableDesc hbTableDesc = heartBeat.getHbTableDesc();</span>
+<span class="fc" id="L217">    String heartBeatTableName = hbTableDesc.getTableName();</span>
+<span class="fc" id="L218">    String heartBeatOwnerColumn = hbTableDesc.getOwnerColumn();</span>
+<span class="fc" id="L219">    String currentTimeMillisFunc = hbTableDesc.getDbType().getCurrTSSqlFn();</span>
 
-<span class="fc" id="L215">    this.reducePermitsSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
+<span class="fc" id="L221">    this.reducePermitsSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
             + totalPermitsColumn + &quot; = &quot; + totalPermitsColumn + &quot; - ?, &quot;
             + availablePermitsColumn + &quot; = &quot; + availablePermitsColumn + &quot; - ? , &quot;
             + lastModifiedByColumn + &quot; = ?, &quot; + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + semaphoreNameColumn + &quot; = ? AND &quot;
             + totalPermitsColumn + &quot; &gt;= ?&quot;;
 
-<span class="fc" id="L222">    this.increasePermitsSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
+<span class="fc" id="L228">    this.increasePermitsSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
             + totalPermitsColumn + &quot; = &quot; + totalPermitsColumn + &quot; + ?, &quot;
             + availablePermitsColumn + &quot; = &quot; + availablePermitsColumn + &quot; + ?, &quot;
             + lastModifiedByColumn + &quot; = ?, &quot; + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + semaphoreNameColumn + &quot; = ? &quot;;
 
-<span class="fc" id="L228">    this.updatePermitsSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
+<span class="fc" id="L234">    this.updatePermitsSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
             + totalPermitsColumn + &quot; =  ?, &quot;
             + availablePermitsColumn + &quot; =  &quot; + availablePermitsColumn + &quot; + ? - &quot; + totalPermitsColumn + ','
             + lastModifiedByColumn + &quot; = ?, &quot; + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + semaphoreNameColumn + &quot; = ?&quot;;
 
-<span class="fc" id="L234">    this.acquireSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
+<span class="fc" id="L240">    this.acquireSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
             + availablePermitsColumn + &quot; = &quot; + availablePermitsColumn + &quot; - ?, &quot;
             + lastModifiedByColumn + &quot; = ?, &quot; + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + semaphoreNameColumn + &quot; = ? AND &quot;
             + availablePermitsColumn + &quot; &gt;= ?&quot;;
-<span class="fc" id="L239">    this.acquireByOwnerSql = &quot;UPDATE &quot; + permitsByOwnerTableName</span>
+<span class="fc" id="L245">    this.acquireByOwnerSql = &quot;UPDATE &quot; + permitsByOwnerTableName</span>
             + &quot; SET &quot; + ownerPermitsColumn + &quot; = &quot; + ownerPermitsColumn + &quot; + ?, &quot;
             + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + ownerColumn + &quot; = ? AND &quot; + semaphoreNameColumn + &quot; = ?&quot;;
 
-<span class="fc" id="L244">    this.releaseSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
+<span class="fc" id="L250">    this.releaseSql = &quot;UPDATE &quot; + semaphoreTableName + &quot; SET &quot;</span>
             + availablePermitsColumn + &quot; = CASE WHEN &quot;
             + availablePermitsColumn + &quot; + ? &gt; &quot; + totalPermitsColumn
             + &quot; THEN &quot; + totalPermitsColumn + &quot; ELSE &quot; + availablePermitsColumn + &quot; + ? END, &quot;
             + lastModifiedByColumn + &quot; = ?, &quot; + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + semaphoreNameColumn + &quot; = ?&quot;;
 
-<span class="fc" id="L251">    this.releaseByOwnerSql = &quot;UPDATE &quot; + permitsByOwnerTableName</span>
+<span class="fc" id="L257">    this.releaseByOwnerSql = &quot;UPDATE &quot; + permitsByOwnerTableName</span>
             + &quot; SET &quot; + ownerPermitsColumn + &quot; = &quot; + ownerPermitsColumn
             + &quot; - ?, &quot; + lastModifiedAtColumn + &quot; = &quot; + currentTimeMillisFunc + &quot; WHERE &quot;
             + ownerColumn + &quot; = ? AND &quot; + semaphoreNameColumn + &quot; = ? and &quot; + ownerPermitsColumn + &quot; &gt;= ?&quot;;
 
-<span class="fc" id="L256">    this.permitsSql = &quot;SELECT &quot; + availablePermitsColumn + ',' + totalPermitsColumn</span>
+<span class="fc" id="L262">    this.permitsSql = &quot;SELECT &quot; + availablePermitsColumn + ',' + totalPermitsColumn</span>
             + &quot; FROM &quot; + semaphoreTableName
             + &quot; WHERE &quot; + semaphoreNameColumn + &quot; = ?&quot;;
 
-<span class="fc" id="L260">    this.totalPermitsSql = &quot;SELECT &quot; + totalPermitsColumn + &quot; FROM &quot; + semaphoreTableName</span>
-<span class="fc" id="L261">            + &quot; WHERE &quot; + semTableDesc.getSemNameColumn() + &quot; = ?&quot;;</span>
+<span class="fc" id="L266">    this.totalPermitsSql = &quot;SELECT &quot; + totalPermitsColumn + &quot; FROM &quot; + semaphoreTableName</span>
+<span class="fc" id="L267">            + &quot; WHERE &quot; + semTableDesc.getSemNameColumn() + &quot; = ?&quot;;</span>
 
-<span class="fc" id="L263">    this.ownedPermitsSql = &quot;SELECT &quot; + ownerPermitsColumn + &quot; FROM &quot;</span>
+<span class="fc" id="L269">    this.ownedPermitsSql = &quot;SELECT &quot; + ownerPermitsColumn + &quot; FROM &quot;</span>
             + permitsByOwnerTableName + &quot; WHERE &quot;
             + ownerColumn + &quot; = ? AND &quot; + semaphoreNameColumn + &quot; = ?&quot;;
 
-<span class="fc" id="L267">    this.deleteDeadOwnerRecordsSql = &quot;DELETE FROM &quot; + permitsByOwnerTableName + &quot; RO &quot;</span>
+<span class="fc" id="L273">    this.deleteDeadOwnerRecordsSql = &quot;DELETE FROM &quot; + permitsByOwnerTableName + &quot; RO &quot;</span>
             + &quot;WHERE RO.&quot; + semaphoreNameColumn + &quot; = ? AND &quot; + ownerPermitsColumn + &quot; = 0 AND &quot;
             + &quot;NOT EXISTS (select H.&quot; + heartBeatOwnerColumn + &quot; from &quot; + heartBeatTableName
             + &quot; H where H.&quot; + heartBeatOwnerColumn + &quot; = RO.&quot; + ownerColumn + ')';
 
-<span class="fc" id="L272">    this.getDeadOwnerPermitsSql = &quot;SELECT &quot; + ownerColumn + &quot;, &quot; + ownerPermitsColumn</span>
+<span class="fc" id="L278">    this.getDeadOwnerPermitsSql = &quot;SELECT &quot; + ownerColumn + &quot;, &quot; + ownerPermitsColumn</span>
             + &quot; FROM &quot; + permitsByOwnerTableName + &quot; RO &quot;
             + &quot;WHERE RO.&quot; + semaphoreNameColumn + &quot; = ? AND  &quot; + ownerPermitsColumn + &quot; &gt; 0 AND &quot;
             + &quot;NOT EXISTS (select H.&quot; + heartBeatOwnerColumn + &quot; from &quot; + heartBeatTableName
             + &quot; H where H.&quot; + heartBeatOwnerColumn + &quot; = RO.&quot; + ownerColumn
             + &quot;) ORDER BY &quot; + ownerColumn + ',' + ownerPermitsColumn;
 
-<span class="fc" id="L279">    this.deleteDeadOwerRecordSql = &quot;DELETE FROM &quot; + permitsByOwnerTableName + &quot; WHERE &quot;</span>
+<span class="fc" id="L285">    this.deleteDeadOwerRecordSql = &quot;DELETE FROM &quot; + permitsByOwnerTableName + &quot; WHERE &quot;</span>
             + ownerColumn + &quot; = ? AND &quot; + semaphoreNameColumn + &quot; = ? AND &quot;
             + ownerPermitsColumn + &quot; = ?&quot;;
 
-<span class="fc" id="L283">    this.insertLockRowSql = &quot;insert into &quot; + semaphoreTableName</span>
+<span class="fc" id="L289">    this.insertLockRowSql = &quot;insert into &quot; + semaphoreTableName</span>
                     + &quot; (&quot; + semaphoreNameColumn + ',' + availablePermitsColumn + ',' + totalPermitsColumn
                     + ',' + lastModifiedByColumn + ',' + lastModifiedAtColumn + &quot;) VALUES (?, ?, ?, ?, &quot;
                     + currentTimeMillisFunc + ')';
 
-<span class="fc" id="L288">    this.insertPermitsByOwnerSql = &quot;insert into &quot; + permitsByOwnerTableName</span>
+<span class="fc" id="L294">    this.insertPermitsByOwnerSql = &quot;insert into &quot; + permitsByOwnerTableName</span>
               + &quot; (&quot; + semaphoreNameColumn + ',' + ownerColumn + ',' + ownerPermitsColumn + ','
               + lastModifiedAtColumn + &quot;) VALUES (?, ?, ?, &quot; + currentTimeMillisFunc + &quot;)&quot;;
 
 
     try {
-<span class="fc" id="L294">      createLockRowIfNotPresent(strictReservations, nrPermits);</span>
-<span class="nc" id="L295">    } catch (SQLIntegrityConstraintViolationException ex) {</span>
+<span class="fc" id="L300">      createLockRowIfNotPresent(strictReservations, nrPermits);</span>
+<span class="nc" id="L301">    } catch (SQLIntegrityConstraintViolationException ex) {</span>
       try {
         // RACE condition while creating the row, will retry to validate if everything is OK.
-<span class="nc" id="L298">        createLockRowIfNotPresent(strictReservations, nrPermits);</span>
-<span class="nc" id="L299">      } catch (SQLException ex1) {</span>
-<span class="nc" id="L300">        ex1.addSuppressed(ex);</span>
-<span class="nc" id="L301">        throw ex1;</span>
-<span class="nc" id="L302">      }</span>
-<span class="fc" id="L303">    }</span>
-<span class="fc" id="L304">    createOwnerRow();</span>
-<span class="fc" id="L305">  }</span>
+<span class="nc" id="L304">        createLockRowIfNotPresent(strictReservations, nrPermits);</span>
+<span class="nc" id="L305">      } catch (SQLException ex1) {</span>
+<span class="nc" id="L306">        ex1.addSuppressed(ex);</span>
+<span class="nc" id="L307">        throw ex1;</span>
+<span class="nc" id="L308">      }</span>
+<span class="fc" id="L309">    }</span>
+<span class="fc" id="L310">    createOwnerRow();</span>
+<span class="fc" id="L311">  }</span>
 
   public void registerJmx() {
-<span class="fc" id="L308">    Registry.export(JdbcSemaphore.class.getName(), semName, this);</span>
-<span class="fc" id="L309">  }</span>
+<span class="fc" id="L314">    Registry.export(JdbcSemaphore.class.getName(), semName, this);</span>
+<span class="fc" id="L315">  }</span>
 
   public void unregisterJmx() {
-<span class="fc" id="L312">    Registry.unregister(JdbcSemaphore.class.getName(), semName);</span>
-<span class="fc" id="L313">  }</span>
+<span class="fc" id="L318">    Registry.unregister(JdbcSemaphore.class.getName(), semName);</span>
+<span class="fc" id="L319">  }</span>
 
   private void validate() {
-<span class="pc bpc" id="L316" title="1 of 2 branches missed.">    if (!isHealthy) {</span>
-<span class="nc" id="L317">      throw new IllegalStateException(&quot;Heartbeats failed! semaphore broken &quot; + this, heartBeatFailure);</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">    if (!isHealthy) {</span>
+<span class="nc" id="L323">      throw new IllegalStateException(&quot;Heartbeats failed! semaphore broken &quot; + this, heartBeatFailure);</span>
     }
-<span class="fc" id="L319">  }</span>
+<span class="fc" id="L325">  }</span>
 
   private void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
-<span class="fc" id="L323">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L324">    try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {</span>
-<span class="fc" id="L325">        stmt.setNString(1, semName);</span>
-<span class="fc" id="L326">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="pc" id="L327">        try (ResultSet rs = stmt.executeQuery()) {</span>
-<span class="fc bfc" id="L328" title="All 2 branches covered.">          if (!rs.next()) {</span>
-<span class="pc" id="L329">            try (PreparedStatement insert = conn.prepareStatement(insertLockRowSql)) {</span>
-<span class="fc" id="L330">              insert.setNString(1, semName);</span>
-<span class="fc" id="L331">              insert.setInt(2, nrPermits);</span>
-<span class="fc" id="L332">              insert.setInt(3, nrPermits);</span>
-<span class="fc" id="L333">              insert.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L334">              insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L335">              insert.executeUpdate();</span>
-<span class="pc bpc" id="L336" title="6 of 8 branches missed.">            }</span>
-<span class="fc bfc" id="L337" title="All 2 branches covered.">          } else if (strictReservations) { // there is a record already. for now blow up if different nr reservations.</span>
-<span class="fc" id="L338">            int existingMaxReservations = rs.getInt(2);</span>
-<span class="pc bpc" id="L339" title="1 of 2 branches missed.">            if (existingMaxReservations != nrPermits) {</span>
-<span class="nc" id="L340">              throw new IllegalArgumentException(&quot;Semaphore &quot; + semName + &quot; max reservations count different &quot;</span>
+<span class="fc" id="L329">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="pc" id="L330">    try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {</span>
+<span class="fc" id="L331">        stmt.setNString(1, semName);</span>
+<span class="fc" id="L332">        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="pc" id="L333">        try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">          if (!rs.next()) {</span>
+<span class="pc" id="L335">            try (PreparedStatement insert = conn.prepareStatement(insertLockRowSql)) {</span>
+<span class="fc" id="L336">              insert.setNString(1, semName);</span>
+<span class="fc" id="L337">              insert.setInt(2, nrPermits);</span>
+<span class="fc" id="L338">              insert.setInt(3, nrPermits);</span>
+<span class="fc" id="L339">              insert.setNString(4, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L340">              insert.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="fc" id="L341">              insert.executeUpdate();</span>
+<span class="pc bpc" id="L342" title="6 of 8 branches missed.">            }</span>
+<span class="fc bfc" id="L343" title="All 2 branches covered.">          } else if (strictReservations) { // there is a record already. for now blow up if different nr reservations.</span>
+<span class="fc" id="L344">            int existingMaxReservations = rs.getInt(2);</span>
+<span class="pc bpc" id="L345" title="1 of 2 branches missed.">            if (existingMaxReservations != nrPermits) {</span>
+<span class="nc" id="L346">              throw new IllegalArgumentException(&quot;Semaphore &quot; + semName + &quot; max reservations count different &quot;</span>
                       + existingMaxReservations + &quot; != &quot; + nrPermits + &quot; use different semaphore&quot;);
             }
-<span class="pc bpc" id="L343" title="1 of 2 branches missed.">            if (rs.next()) {</span>
-<span class="nc" id="L344">              throw new IllegalStateException(&quot;Cannot have mutiple semaphores with the same name &quot; + semName);</span>
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="nc" id="L350">              throw new IllegalStateException(&quot;Cannot have mutiple semaphores with the same name &quot; + semName);</span>
             }
-<span class="pc bpc" id="L346" title="1 of 2 branches missed.">          } else if (rs.next()) {</span>
-<span class="nc" id="L347">            throw new IllegalStateException(&quot;Cannot have mutiple semaphores with the same name &quot; + semName);</span>
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">          } else if (rs.next()) {</span>
+<span class="nc" id="L353">            throw new IllegalStateException(&quot;Cannot have mutiple semaphores with the same name &quot; + semName);</span>
           }
-<span class="pc bpc" id="L349" title="6 of 8 branches missed.">        }</span>
-<span class="pc bpc" id="L350" title="6 of 8 branches missed.">      }</span>
-<span class="fc" id="L351">      return null;</span>
+<span class="pc bpc" id="L355" title="6 of 8 branches missed.">        }</span>
+<span class="pc bpc" id="L356" title="6 of 8 branches missed.">      }</span>
+<span class="fc" id="L357">      return null;</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L353">  }</span>
+<span class="fc" id="L359">  }</span>
 
   private void createOwnerRow()
           throws SQLException, InterruptedException {
 
-<span class="fc" id="L358">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="fc" id="L364">    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
 
-<span class="fc" id="L360">      try (PreparedStatement insert = conn.prepareStatement(insertPermitsByOwnerSql)) {</span>
-<span class="fc" id="L361">        insert.setNString(1, this.semName);</span>
-<span class="fc" id="L362">        insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L363">        insert.setInt(3, 0);</span>
-<span class="fc" id="L364">        insert.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="fc" id="L365">        insert.executeUpdate();</span>
-<span class="pc bpc" id="L366" title="4 of 8 branches missed.">      }</span>
-<span class="fc" id="L367">      return null;</span>
+<span class="fc" id="L366">      try (PreparedStatement insert = conn.prepareStatement(insertPermitsByOwnerSql)) {</span>
+<span class="fc" id="L367">        insert.setNString(1, this.semName);</span>
+<span class="fc" id="L368">        insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L369">        insert.setInt(3, 0);</span>
+<span class="fc" id="L370">        insert.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="fc" id="L371">        insert.executeUpdate();</span>
+<span class="pc bpc" id="L372" title="4 of 8 branches missed.">      }</span>
+<span class="fc" id="L373">      return null;</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L369">  }</span>
-
-  public static int nanosToSeconds(final long nanos, final int maxTimeoutSeconds) {
-<span class="fc" id="L372">    long seconds = TimeUnit.NANOSECONDS.toSeconds(nanos);</span>
-<span class="fc bfc" id="L373" title="All 2 branches covered.">    if (seconds &gt; maxTimeoutSeconds) {</span>
-<span class="fc" id="L374">      return maxTimeoutSeconds;</span>
-    } else {
-<span class="fc" id="L376">      return (int) seconds;</span>
-    }
-  }
-
+<span class="fc" id="L375">  }</span>
 
   @SuppressFBWarnings(&quot;UW_UNCOND_WAIT&quot;)
   @CheckReturnValue
   @Override
   public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
           throws InterruptedException {
-<span class="pc bpc" id="L386" title="1 of 2 branches missed.">    if (nrPermits &lt; 1) {</span>
-<span class="nc" id="L387">      throw new IllegalArgumentException(&quot;You should try to acquire something! not &quot; + nrPermits);</span>
+<span class="pc bpc" id="L382" title="1 of 2 branches missed.">    if (nrPermits &lt; 1) {</span>
+<span class="nc" id="L383">      throw new IllegalArgumentException(&quot;You should try to acquire something! not &quot; + nrPermits);</span>
     }
-<span class="pc bpc" id="L389" title="1 of 2 branches missed.">    if (timeout &lt;= 0) {</span>
-<span class="nc" id="L390">      throw new IllegalArgumentException(&quot;Illegal timeout, please reasonable values, and not: &quot; + timeout);</span>
+<span class="pc bpc" id="L385" title="1 of 2 branches missed.">    if (timeout &lt;= 0) {</span>
+<span class="nc" id="L386">      throw new IllegalArgumentException(&quot;Illegal timeout, please reasonable values, and not: &quot; + timeout);</span>
     }
-<span class="fc" id="L392">    synchronized (semName) {</span>
-<span class="fc" id="L393">      long toNanos = unit.toNanos(timeout);</span>
+<span class="fc" id="L388">    synchronized (syncObj) {</span>
+<span class="fc" id="L389">      long toNanos = unit.toNanos(timeout);</span>
       long deadlineNanos;
-<span class="pc bpc" id="L395" title="1 of 2 branches missed.">      if (toNanos &lt; 0) {</span>
-<span class="nc" id="L396">        deadlineNanos = Long.MAX_VALUE;</span>
+<span class="pc bpc" id="L391" title="1 of 2 branches missed.">      if (toNanos &lt; 0) {</span>
+<span class="nc" id="L392">        deadlineNanos = Long.MAX_VALUE;</span>
       } else {
-<span class="fc" id="L398">        deadlineNanos = System.nanoTime() + toNanos;</span>
-<span class="fc bfc" id="L399" title="All 2 branches covered.">        if (deadlineNanos &lt; 0) { //Overflow</span>
-<span class="fc" id="L400">          deadlineNanos = Long.MAX_VALUE;</span>
+<span class="fc" id="L394">        deadlineNanos = System.nanoTime() + toNanos;</span>
+<span class="fc bfc" id="L395" title="All 2 branches covered.">        if (deadlineNanos &lt; 0) { //Overflow</span>
+<span class="fc" id="L396">          deadlineNanos = Long.MAX_VALUE;</span>
         }
       }
-<span class="fc" id="L403">      boolean acquired = false;</span>
-<span class="fc" id="L404">      final MutableHolder&lt;Boolean&gt; beat = MutableHolder.of(Boolean.FALSE);</span>
+<span class="fc" id="L399">      boolean acquired = false;</span>
+<span class="fc" id="L400">      final MutableHolder&lt;Boolean&gt; beat = MutableHolder.of(Boolean.FALSE);</span>
       do {
-<span class="fc" id="L406">        validate();</span>
+<span class="fc" id="L402">        validate();</span>
         try {
-<span class="fc" id="L408">          acquired = jdbc.transactOnConnection(new HandlerNano&lt;Connection, Boolean, SQLException&gt;() {</span>
+<span class="fc" id="L404">          acquired = jdbc.transactOnConnection(new HandlerNano&lt;Connection, Boolean, SQLException&gt;() {</span>
             @Override
             public Boolean handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L411">              try (PreparedStatement stmt = conn.prepareStatement(acquireSql)) {</span>
-<span class="fc" id="L412">                stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L413">                stmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L414">                stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L415">                stmt.setNString(3, semName);</span>
-<span class="fc" id="L416">                stmt.setInt(4, nrPermits);</span>
-<span class="fc" id="L417">                int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc" id="L407">              try (PreparedStatement stmt = conn.prepareStatement(acquireSql)) {</span>
+<span class="fc" id="L408">                stmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+<span class="fc" id="L409">                        jdbcTimeoutSeconds));</span>
+<span class="fc" id="L410">                stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L411">                stmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L412">                stmt.setNString(3, semName);</span>
+<span class="fc" id="L413">                stmt.setInt(4, nrPermits);</span>
+<span class="fc" id="L414">                int rowsUpdated = stmt.executeUpdate();</span>
                 Boolean acquired;
-<span class="fc bfc" id="L419" title="All 2 branches covered.">                if (rowsUpdated == 1) {</span>
-<span class="pc" id="L420">                  try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {</span>
-<span class="fc" id="L421">                    ostmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L422">                    ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L423">                    ostmt.setNString(3, semName);</span>
-<span class="fc" id="L424">                    ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L425">                    int nrUpdated = ostmt.executeUpdate();</span>
-<span class="pc bpc" id="L426" title="1 of 2 branches missed.">                    if (nrUpdated != 1) {</span>
-<span class="nc" id="L427">                      throw new IllegalStateException(&quot;Updated &quot; + nrUpdated + &quot; is incorrect for &quot; + ostmt);</span>
+<span class="fc bfc" id="L416" title="All 2 branches covered.">                if (rowsUpdated == 1) {</span>
+<span class="pc" id="L417">                  try (PreparedStatement ostmt = conn.prepareStatement(acquireByOwnerSql)) {</span>
+<span class="fc" id="L418">                    ostmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L419">                    ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L420">                    ostmt.setNString(3, semName);</span>
+<span class="fc" id="L421">                    ostmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+<span class="fc" id="L422">                            jdbcTimeoutSeconds));</span>
+<span class="fc" id="L423">                    int nrUpdated = ostmt.executeUpdate();</span>
+<span class="pc bpc" id="L424" title="1 of 2 branches missed.">                    if (nrUpdated != 1) {</span>
+<span class="nc" id="L425">                      throw new IllegalStateException(&quot;Updated &quot; + nrUpdated + &quot; is incorrect for &quot; + ostmt);</span>
                     }
-<span class="pc bpc" id="L429" title="6 of 8 branches missed.">                  }</span>
-<span class="fc" id="L430">                  acquired = Boolean.TRUE;</span>
+<span class="pc bpc" id="L427" title="6 of 8 branches missed.">                  }</span>
+<span class="fc" id="L428">                  acquired = Boolean.TRUE;</span>
                 } else {
-<span class="pc bpc" id="L432" title="1 of 2 branches missed.">                  if (rowsUpdated &gt; 1) {</span>
-<span class="nc" id="L433">                    throw new IllegalStateException(&quot;Too many rows updated! when trying to acquire &quot; + nrPermits);</span>
+<span class="pc bpc" id="L430" title="1 of 2 branches missed.">                  if (rowsUpdated &gt; 1) {</span>
+<span class="nc" id="L431">                    throw new IllegalStateException(&quot;Too many rows updated! when trying to acquire &quot; + nrPermits);</span>
                   }
-<span class="fc" id="L435">                  acquired = Boolean.FALSE;</span>
+<span class="fc" id="L433">                  acquired = Boolean.FALSE;</span>
                 }
-<span class="pc bpc" id="L437" title="1 of 2 branches missed.">                if (deadlineNanos - System.nanoTime() &gt; heartBeat.getBeatDurationNanos()) {</span>
+<span class="pc bpc" id="L435" title="1 of 2 branches missed.">                if (deadlineNanos - System.nanoTime() &gt; heartBeat.getBeatDurationNanos()) {</span>
                   // do a heartbeat if have time, and if it makes sense.
-<span class="fc" id="L439">                  beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));</span>
+<span class="fc" id="L437">                  beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));</span>
                 }
-<span class="fc" id="L441">                return acquired;</span>
-<span class="pc bpc" id="L442" title="6 of 8 branches missed.">              }</span>
+<span class="fc" id="L439">                return acquired;</span>
+<span class="pc bpc" id="L440" title="6 of 8 branches missed.">              }</span>
             }
           }, timeout, unit);
-<span class="nc" id="L445">        } catch (SQLException ex) {</span>
-<span class="nc" id="L446">          throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L447">        }</span>
-<span class="fc bfc" id="L448" title="All 2 branches covered.">        if (beat.getValue()) { // we did a heartbeat as part of the acquisition.</span>
-<span class="fc" id="L449">          heartBeat.updateLastRun(System.currentTimeMillis());</span>
+<span class="nc" id="L443">        } catch (SQLException ex) {</span>
+<span class="nc" id="L444">          throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L445">        }</span>
+<span class="fc bfc" id="L446" title="All 2 branches covered.">        if (beat.getValue()) { // we did a heartbeat as part of the acquisition.</span>
+<span class="fc" id="L447">          heartBeat.updateLastRun(System.currentTimeMillis());</span>
         }
-<span class="fc bfc" id="L451" title="All 2 branches covered.">        if (!acquired) {</span>
-<span class="fc" id="L452">          Future&lt;Integer&gt; fut = DefaultExecutor.INSTANCE.submit(new Callable&lt;Integer&gt;() {</span>
-            @Override
-            public Integer call() throws Exception {
-<span class="fc" id="L455">              return removeDeadHeartBeatAndNotOwnerRows(60);</span>
-            }
-          });
+<span class="fc bfc" id="L449" title="All 2 branches covered.">        if (!acquired) {</span>
+<span class="fc" id="L450">          long secondsLeft = JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos);</span>
+<span class="pc bpc" id="L451" title="1 of 2 branches missed.">          if (secondsLeft &lt; CLEANUP_TIMEOUT_SECONDS) {</span>
+<span class="nc" id="L452">            Future&lt;Integer&gt; fut = DefaultExecutor.INSTANCE.submit(new Callable&lt;Integer&gt;() {</span>
+              @Override
+              public Integer call() throws Exception {
+<span class="nc" id="L455">                return removeDeadHeartBeatAndNotOwnerRows(CLEANUP_TIMEOUT_SECONDS);</span>
+              }
+            });
+            try {
+<span class="nc" id="L459">              fut.get(secondsLeft, TimeUnit.SECONDS);</span>
+<span class="nc" id="L460">            } catch (TimeoutException ex) {</span>
+              //removing dead entries did not finish in time, but continues in the background.
+<span class="nc" id="L462">              break;</span>
+<span class="nc" id="L463">            } catch (ExecutionException ex) {</span>
+<span class="nc" id="L464">              throw new LockRuntimeException(ex);</span>
+<span class="nc" id="L465">            }</span>
+<span class="nc" id="L466">          } else {</span>
+            try {
+<span class="fc" id="L468">              removeDeadHeartBeatAndNotOwnerRows(secondsLeft);</span>
+<span class="nc" id="L469">            } catch (SQLException ex) {</span>
+<span class="nc" id="L470">              throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L471">            }</span>
+          }
           try {
-<span class="fc" id="L459">            fut.get(deadlineNanos - System.nanoTime(), TimeUnit.NANOSECONDS);</span>
-<span class="fc" id="L460">          } catch (TimeoutException ex) {</span>
-            //removing dead entries did not finish in time, but continues in the background.
-<span class="fc" id="L462">            break;</span>
-<span class="nc" id="L463">          } catch (ExecutionException ex) {</span>
-<span class="nc" id="L464">            throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L465">          }</span>
-          try {
-<span class="pc bpc" id="L467" title="1 of 2 branches missed.">            if (releaseDeadOwnerPermits(nrPermits) &lt;= 0) { //wait of we did not find anything dead to release.</span>
-<span class="fc" id="L468">              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),</span>
-<span class="fc" id="L469">                      ThreadLocalRandom.current().nextInt(acquirePollMillis));</span>
-<span class="pc bpc" id="L470" title="1 of 2 branches missed.">              if (wtimeMilis &gt; 0) {</span>
-<span class="fc" id="L471">                semName.wait(wtimeMilis);</span>
+<span class="pc bpc" id="L474" title="1 of 2 branches missed.">            if (releaseDeadOwnerPermits(nrPermits) &lt;= 0) { //wait of we did not find anything dead to release.</span>
+<span class="fc" id="L475">              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),</span>
+<span class="fc" id="L476">                      ThreadLocalRandom.current().nextLong(acquirePollMillis));</span>
+<span class="fc bfc" id="L477" title="All 2 branches covered.">              if (wtimeMilis &gt; 0) {</span>
+<span class="fc" id="L478">                syncObj.wait(wtimeMilis);</span>
               } else {
-<span class="nc" id="L473">                break;</span>
+<span class="fc" id="L480">                break;</span>
               }
             }
-<span class="nc" id="L476">          } catch (SQLException ex) {</span>
-<span class="nc" id="L477">            throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L478">          }</span>
+<span class="nc" id="L483">          } catch (SQLException ex) {</span>
+<span class="nc" id="L484">            throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L485">          }</span>
 
         }
-<span class="fc bfc" id="L481" title="All 4 branches covered.">      } while (!acquired &amp;&amp; deadlineNanos &gt; System.nanoTime());</span>
-<span class="fc bfc" id="L482" title="All 2 branches covered.">      if (acquired) {</span>
-<span class="fc" id="L483">        ownedReservations += nrPermits;</span>
+<span class="fc bfc" id="L488" title="All 4 branches covered.">      } while (!acquired &amp;&amp; deadlineNanos &gt; System.nanoTime());</span>
+<span class="fc bfc" id="L489" title="All 2 branches covered.">      if (acquired) {</span>
+<span class="fc" id="L490">        ownedReservations += nrPermits;</span>
       }
 
-<span class="fc" id="L486">      return acquired;</span>
-<span class="nc" id="L487">    }</span>
+<span class="fc" id="L493">      return acquired;</span>
+<span class="nc" id="L494">    }</span>
   }
 
 
   @Override
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
   public void release(final int nrReservations) {
-<span class="fc" id="L494">    synchronized (semName) {</span>
+<span class="fc" id="L501">    synchronized (syncObj) {</span>
       try {
-<span class="fc" id="L496">        jdbc.transactOnConnectionNonInterrupt(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L503">        jdbc.transactOnConnectionNonInterrupt(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
           @Override
           public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L499">            releaseReservations(conn, deadlineNanos, nrReservations);</span>
-<span class="fc" id="L500">            try (PreparedStatement ostmt = conn.prepareStatement(releaseByOwnerSql)) {</span>
-<span class="fc" id="L501">              ostmt.setInt(1, nrReservations);</span>
-<span class="fc" id="L502">              ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L503">              ostmt.setNString(3, semName);</span>
-<span class="fc" id="L504">              ostmt.setInt(4, nrReservations);</span>
-<span class="fc" id="L505">              ostmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L506">              int nrUpdated = ostmt.executeUpdate();</span>
-<span class="fc bfc" id="L507" title="All 2 branches covered.">              if (nrUpdated != 1) {</span>
-<span class="fc" id="L508">                throw new IllegalStateException(&quot;Trying to release more than you own! &quot; + ostmt);</span>
+<span class="fc" id="L506">            releaseReservations(conn, deadlineNanos, nrReservations);</span>
+<span class="fc" id="L507">            try (PreparedStatement ostmt = conn.prepareStatement(releaseByOwnerSql)) {</span>
+<span class="fc" id="L508">              ostmt.setInt(1, nrReservations);</span>
+<span class="fc" id="L509">              ostmt.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L510">              ostmt.setNString(3, semName);</span>
+<span class="fc" id="L511">              ostmt.setInt(4, nrReservations);</span>
+<span class="fc" id="L512">              ostmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+<span class="fc" id="L513">                      jdbcTimeoutSeconds));</span>
+<span class="fc" id="L514">              int nrUpdated = ostmt.executeUpdate();</span>
+<span class="fc bfc" id="L515" title="All 2 branches covered.">              if (nrUpdated != 1) {</span>
+<span class="fc" id="L516">                throw new IllegalStateException(&quot;Trying to release more than you own! &quot; + ostmt);</span>
               }
-<span class="pc bpc" id="L510" title="4 of 8 branches missed.">            }</span>
-<span class="fc" id="L511">            return null;</span>
+<span class="pc bpc" id="L518" title="4 of 8 branches missed.">            }</span>
+<span class="fc" id="L519">            return null;</span>
           }
         }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="nc" id="L514">      } catch (SQLException ex) {</span>
-<span class="nc" id="L515">        throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L516">      }</span>
-<span class="fc" id="L517">      ownedReservations -= nrReservations;</span>
-<span class="pc bpc" id="L518" title="1 of 2 branches missed.">      if (ownedReservations &lt; 0) {</span>
-<span class="nc" id="L519">        throw new IllegalStateException(&quot;Should not be trying to release more than you acquired!&quot; + nrReservations);</span>
+<span class="nc" id="L522">      } catch (SQLException ex) {</span>
+<span class="nc" id="L523">        throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L524">      }</span>
+<span class="fc" id="L525">      ownedReservations -= nrReservations;</span>
+<span class="pc bpc" id="L526" title="1 of 2 branches missed.">      if (ownedReservations &lt; 0) {</span>
+<span class="nc" id="L527">        throw new IllegalStateException(&quot;Should not be trying to release more than you acquired!&quot; + nrReservations);</span>
       }
-<span class="fc" id="L521">      semName.notifyAll();</span>
-<span class="fc" id="L522">    }</span>
-<span class="fc" id="L523">  }</span>
+<span class="fc" id="L529">      syncObj.notifyAll();</span>
+<span class="fc" id="L530">    }</span>
+<span class="fc" id="L531">  }</span>
 
   public void releaseAll() {
-<span class="fc" id="L526">    synchronized (semName) {</span>
-<span class="fc" id="L527">      release(ownedReservations);</span>
-<span class="pc" id="L528">    }</span>
-<span class="fc" id="L529">  }</span>
+<span class="fc" id="L534">    synchronized (syncObj) {</span>
+<span class="fc" id="L535">      release(ownedReservations);</span>
+<span class="pc" id="L536">    }</span>
+<span class="fc" id="L537">  }</span>
 
   private void releaseReservations(final Connection conn, final long deadlineNanos, final int nrReservations)
           throws SQLException {
-<span class="pc" id="L533">    try (PreparedStatement stmt = conn.prepareStatement(releaseSql)) {</span>
-<span class="fc" id="L534">      stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L535">      stmt.setInt(1, nrReservations);</span>
-<span class="fc" id="L536">      stmt.setInt(2, nrReservations);</span>
-<span class="fc" id="L537">      stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L538">      stmt.setNString(4, semName);</span>
-<span class="fc" id="L539">      stmt.executeUpdate(); // Since a release might or might not update a row.</span>
-<span class="pc bpc" id="L540" title="6 of 8 branches missed.">    }</span>
-<span class="fc" id="L541">  }</span>
+<span class="pc" id="L541">    try (PreparedStatement stmt = conn.prepareStatement(releaseSql)) {</span>
+<span class="fc" id="L542">      stmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+              jdbcTimeoutSeconds));
+<span class="fc" id="L544">      stmt.setInt(1, nrReservations);</span>
+<span class="fc" id="L545">      stmt.setInt(2, nrReservations);</span>
+<span class="fc" id="L546">      stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L547">      stmt.setNString(4, semName);</span>
+<span class="fc" id="L548">      stmt.executeUpdate(); // Since a release might or might not update a row.</span>
+<span class="pc bpc" id="L549" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L550">  }</span>
 
   @JmxExport(description = &quot;Get the available semaphore permits&quot;)
   public int availablePermits() throws SQLException, InterruptedException {
-<span class="fc" id="L545">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L546">      try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {</span>
-<span class="fc" id="L547">        stmt.setNString(1, semName);</span>
-<span class="fc" id="L548">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="pc" id="L549">        try (ResultSet rs = stmt.executeQuery()) {</span>
-<span class="pc bpc" id="L550" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
-<span class="nc" id="L551">            throw new IllegalStateException();</span>
+<span class="fc" id="L554">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="pc" id="L555">      try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {</span>
+<span class="fc" id="L556">        stmt.setNString(1, semName);</span>
+<span class="fc" id="L557">        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="pc" id="L558">        try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L559" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
+<span class="nc" id="L560">            throw new IllegalStateException();</span>
           } else {
-<span class="fc" id="L553">            int result = rs.getInt(1);</span>
-<span class="pc bpc" id="L554" title="1 of 2 branches missed.">            if (rs.next()) {</span>
-<span class="nc" id="L555">              throw new IllegalStateException();</span>
+<span class="fc" id="L562">            int result = rs.getInt(1);</span>
+<span class="pc bpc" id="L563" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="nc" id="L564">              throw new IllegalStateException();</span>
             }
-<span class="fc" id="L557">            return result;</span>
+<span class="fc" id="L566">            return result;</span>
           }
-<span class="pc bpc" id="L559" title="6 of 8 branches missed.">        }</span>
-<span class="pc bpc" id="L560" title="6 of 8 branches missed.">      }</span>
+<span class="pc bpc" id="L568" title="6 of 8 branches missed.">        }</span>
+<span class="pc bpc" id="L569" title="6 of 8 branches missed.">      }</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
   @JmxExport(description = &quot;get the number of permits owned by this process&quot;)
   public int permitsOwned() throws SQLException, InterruptedException {
-<span class="fc" id="L566">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L567">      try (PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {</span>
-<span class="fc" id="L568">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L569">        stmt.setNString(2, semName);</span>
-<span class="fc" id="L570">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="pc" id="L571">        try (ResultSet rs = stmt.executeQuery()) {</span>
-<span class="pc bpc" id="L572" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
-<span class="nc" id="L573">            throw new IllegalStateException();</span>
+<span class="fc" id="L575">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="pc" id="L576">      try (PreparedStatement stmt = conn.prepareStatement(ownedPermitsSql)) {</span>
+<span class="fc" id="L577">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L578">        stmt.setNString(2, semName);</span>
+<span class="fc" id="L579">        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="pc" id="L580">        try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L581" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
+<span class="nc" id="L582">            throw new IllegalStateException();</span>
           } else {
-<span class="fc" id="L575">            int result = rs.getInt(1);</span>
-<span class="pc bpc" id="L576" title="1 of 2 branches missed.">            if (rs.next()) {</span>
-<span class="nc" id="L577">              throw new IllegalStateException();</span>
+<span class="fc" id="L584">            int result = rs.getInt(1);</span>
+<span class="pc bpc" id="L585" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="nc" id="L586">              throw new IllegalStateException();</span>
             }
-<span class="fc" id="L579">            return result;</span>
+<span class="fc" id="L588">            return result;</span>
           }
-<span class="pc bpc" id="L581" title="6 of 8 branches missed.">        }</span>
-<span class="pc bpc" id="L582" title="6 of 8 branches missed.">      }</span>
+<span class="pc bpc" id="L590" title="6 of 8 branches missed.">        }</span>
+<span class="pc bpc" id="L591" title="6 of 8 branches missed.">      }</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
   @JmxExport(description = &quot;Get the total permits this semaphore can hand out&quot;)
   public int totalPermits() throws SQLException, InterruptedException {
-<span class="fc" id="L588">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L589">      try (PreparedStatement stmt = conn.prepareStatement(totalPermitsSql)) {</span>
-<span class="fc" id="L590">        stmt.setNString(1, semName);</span>
-<span class="fc" id="L591">        stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="pc" id="L592">        try (ResultSet rs = stmt.executeQuery()) {</span>
-<span class="pc bpc" id="L593" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
-<span class="nc" id="L594">            throw new IllegalStateException();</span>
+<span class="fc" id="L597">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="pc" id="L598">      try (PreparedStatement stmt = conn.prepareStatement(totalPermitsSql)) {</span>
+<span class="fc" id="L599">        stmt.setNString(1, semName);</span>
+<span class="fc" id="L600">        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="pc" id="L601">        try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="pc bpc" id="L602" title="1 of 2 branches missed.">          if (!rs.next()) {</span>
+<span class="nc" id="L603">            throw new IllegalStateException();</span>
           } else {
-<span class="fc" id="L596">            return rs.getInt(1);</span>
+<span class="fc" id="L605">            return rs.getInt(1);</span>
           }
-<span class="pc bpc" id="L598" title="6 of 8 branches missed.">        }</span>
-<span class="pc bpc" id="L599" title="6 of 8 branches missed.">      }</span>
+<span class="pc bpc" id="L607" title="6 of 8 branches missed.">        }</span>
+<span class="pc bpc" id="L608" title="6 of 8 branches missed.">      }</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
   @JmxExport(description = &quot;get a list of all dead owners which hold permits&quot;)
   public List&lt;OwnerPermits&gt; getDeadOwnerPermits(final int wishPermits) throws SQLException, InterruptedException {
-<span class="nc" id="L605">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="nc" id="L606">      return getDeadOwnerPermits(conn, deadlineNanos, wishPermits);</span>
+<span class="nc" id="L614">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="nc" id="L615">      return getDeadOwnerPermits(conn, deadlineNanos, wishPermits);</span>
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
   List&lt;OwnerPermits&gt; getDeadOwnerPermits(final Connection conn, final long deadlineNanos, final int wishPermits)
           throws SQLException {
-<span class="fc" id="L612">    List&lt;OwnerPermits&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="pc" id="L613">    try (PreparedStatement stmt = conn.prepareStatement(getDeadOwnerPermitsSql)) {</span>
-<span class="fc" id="L614">      stmt.setNString(1, semName);</span>
-<span class="fc" id="L615">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="pc" id="L616">      try (ResultSet rs = stmt.executeQuery()) {</span>
-<span class="fc" id="L617">        int nrPermits = 0;</span>
-<span class="pc bpc" id="L618" title="1 of 2 branches missed.">        while (rs.next()) {</span>
-<span class="nc" id="L619">          OwnerPermits ownerPermit = new OwnerPermits(rs.getNString(1), rs.getInt(2));</span>
-<span class="nc" id="L620">          result.add(ownerPermit);</span>
-<span class="nc" id="L621">          nrPermits += ownerPermit.getNrPermits();</span>
-<span class="nc bnc" id="L622" title="All 2 branches missed.">          if (nrPermits &gt;= wishPermits) {</span>
-<span class="nc" id="L623">            break;</span>
+<span class="fc" id="L621">    List&lt;OwnerPermits&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="pc" id="L622">    try (PreparedStatement stmt = conn.prepareStatement(getDeadOwnerPermitsSql)) {</span>
+<span class="fc" id="L623">      stmt.setNString(1, semName);</span>
+<span class="fc" id="L624">      stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="pc" id="L625">      try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="fc" id="L626">        int nrPermits = 0;</span>
+<span class="pc bpc" id="L627" title="1 of 2 branches missed.">        while (rs.next()) {</span>
+<span class="nc" id="L628">          OwnerPermits ownerPermit = new OwnerPermits(rs.getNString(1), rs.getInt(2));</span>
+<span class="nc" id="L629">          result.add(ownerPermit);</span>
+<span class="nc" id="L630">          nrPermits += ownerPermit.getNrPermits();</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">          if (nrPermits &gt;= wishPermits) {</span>
+<span class="nc" id="L632">            break;</span>
           }
-<span class="nc" id="L625">        }</span>
-<span class="pc bpc" id="L626" title="6 of 8 branches missed.">      }</span>
-<span class="pc bpc" id="L627" title="6 of 8 branches missed.">    }</span>
-<span class="fc" id="L628">    return result;</span>
+<span class="nc" id="L634">        }</span>
+<span class="pc bpc" id="L635" title="6 of 8 branches missed.">      }</span>
+<span class="pc bpc" id="L636" title="6 of 8 branches missed.">    }</span>
+<span class="fc" id="L637">    return result;</span>
   }
 
   /**
@@ -641,143 +650,146 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   public int releaseDeadOwnerPermits(@JmxExport(value = &quot;wishPermits&quot;,
           description = &quot;how many we whish to release&quot;) final int wishPermits)
           throws InterruptedException, SQLException {
-<span class="fc" id="L644">      return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="fc" id="L645">        List&lt;OwnerPermits&gt; deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);</span>
-<span class="fc" id="L646">        int released = 0;</span>
-<span class="pc bpc" id="L647" title="1 of 2 branches missed.">        for (OwnerPermits permit : deadOwnerPermits) {</span>
-<span class="nc" id="L648">          try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {</span>
-<span class="nc" id="L649">            String owner = permit.getOwner();</span>
-<span class="nc" id="L650">            stmt.setNString(1, owner);</span>
-<span class="nc" id="L651">            stmt.setNString(2, semName);</span>
-<span class="nc" id="L652">            int nrPermits = permit.getNrPermits();</span>
-<span class="nc" id="L653">            stmt.setInt(3, nrPermits);</span>
-<span class="nc" id="L654">            stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="nc bnc" id="L655" title="All 2 branches missed.">            if (stmt.executeUpdate() == 1) { // I can release! if not somebody else is doing it.</span>
-<span class="nc" id="L656">              released += nrPermits;</span>
-<span class="nc" id="L657">              releaseReservations(conn, deadlineNanos, nrPermits);</span>
-<span class="nc" id="L658">              LOG.warn(&quot;Released {} reservations from dead owner {}&quot;, nrPermits, owner);</span>
+<span class="fc" id="L653">      return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
+<span class="fc" id="L654">        List&lt;OwnerPermits&gt; deadOwnerPermits = getDeadOwnerPermits(conn, deadlineNanos, wishPermits);</span>
+<span class="fc" id="L655">        int released = 0;</span>
+<span class="pc bpc" id="L656" title="1 of 2 branches missed.">        for (OwnerPermits permit : deadOwnerPermits) {</span>
+<span class="nc" id="L657">          try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwerRecordSql)) {</span>
+<span class="nc" id="L658">            String owner = permit.getOwner();</span>
+<span class="nc" id="L659">            stmt.setNString(1, owner);</span>
+<span class="nc" id="L660">            stmt.setNString(2, semName);</span>
+<span class="nc" id="L661">            int nrPermits = permit.getNrPermits();</span>
+<span class="nc" id="L662">            stmt.setInt(3, nrPermits);</span>
+<span class="nc" id="L663">            stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">            if (stmt.executeUpdate() == 1) { // I can release! if not somebody else is doing it.</span>
+<span class="nc" id="L665">              released += nrPermits;</span>
+<span class="nc" id="L666">              releaseReservations(conn, deadlineNanos, nrPermits);</span>
+<span class="nc" id="L667">              LOG.warn(&quot;Released {} reservations from dead owner {}&quot;, nrPermits, owner);</span>
             }
-<span class="nc bnc" id="L660" title="All 8 branches missed.">          }</span>
-<span class="nc" id="L661">        }</span>
-<span class="fc" id="L662">        return released;</span>
+<span class="nc bnc" id="L669" title="All 8 branches missed.">          }</span>
+<span class="nc" id="L670">        }</span>
+<span class="fc" id="L671">        return released;</span>
       }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
   @JmxExport(description = &quot;Change the total available permits to the provided number&quot;)
   public void updatePermits(final int nrPermits) throws SQLException, InterruptedException {
-<span class="pc bpc" id="L668" title="1 of 2 branches missed.">    if (nrPermits &lt; 0) {</span>
-<span class="nc" id="L669">      throw new IllegalArgumentException(&quot;Permits must be positive and not &quot; + nrPermits);</span>
+<span class="pc bpc" id="L677" title="1 of 2 branches missed.">    if (nrPermits &lt; 0) {</span>
+<span class="nc" id="L678">      throw new IllegalArgumentException(&quot;Permits must be positive and not &quot; + nrPermits);</span>
     }
-<span class="fc" id="L671">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L680">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L674">        try (PreparedStatement stmt = conn.prepareStatement(updatePermitsSql)) {</span>
-<span class="fc" id="L675">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L676">          stmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L677">          stmt.setInt(2, nrPermits);</span>
-<span class="fc" id="L678">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L679">          stmt.setNString(4, semName);</span>
-<span class="fc" id="L680">          int rowsUpdated = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L681" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
-<span class="nc" id="L682">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
+<span class="pc" id="L683">        try (PreparedStatement stmt = conn.prepareStatement(updatePermitsSql)) {</span>
+<span class="fc" id="L684">          stmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+<span class="fc" id="L685">                  jdbcTimeoutSeconds));</span>
+<span class="fc" id="L686">          stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L687">          stmt.setInt(2, nrPermits);</span>
+<span class="fc" id="L688">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L689">          stmt.setNString(4, semName);</span>
+<span class="fc" id="L690">          int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L691" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
+<span class="nc" id="L692">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
           }
-<span class="pc bpc" id="L684" title="6 of 8 branches missed.">        }</span>
-<span class="fc" id="L685">        return null;</span>
+<span class="pc bpc" id="L694" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L695">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L688">  }</span>
+<span class="fc" id="L698">  }</span>
 
   @JmxExport(description = &quot;Reduce the total available permits by the provided number&quot;)
   public void reducePermits(final int nrPermits) throws SQLException, InterruptedException {
-<span class="fc" id="L692">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L702">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L695">        try (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {</span>
-<span class="fc" id="L696">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L697">          stmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L698">          stmt.setInt(2, nrPermits);</span>
-<span class="fc" id="L699">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L700">          stmt.setNString(4, semName);</span>
-<span class="fc" id="L701">          stmt.setInt(5, nrPermits);</span>
-<span class="fc" id="L702">          int rowsUpdated = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L703" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
-<span class="nc" id="L704">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
+<span class="pc" id="L705">        try (PreparedStatement stmt = conn.prepareStatement(reducePermitsSql)) {</span>
+<span class="fc" id="L706">          stmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+<span class="fc" id="L707">                  jdbcTimeoutSeconds));</span>
+<span class="fc" id="L708">          stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L709">          stmt.setInt(2, nrPermits);</span>
+<span class="fc" id="L710">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L711">          stmt.setNString(4, semName);</span>
+<span class="fc" id="L712">          stmt.setInt(5, nrPermits);</span>
+<span class="fc" id="L713">          int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L714" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
+<span class="nc" id="L715">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
           }
-<span class="pc bpc" id="L706" title="6 of 8 branches missed.">        }</span>
-<span class="fc" id="L707">        return null;</span>
+<span class="pc bpc" id="L717" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L718">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L710">  }</span>
+<span class="fc" id="L721">  }</span>
 
   @JmxExport(description = &quot;Increase the total available permits by the provided number&quot;)
   public void increasePermits(final int nrPermits) throws SQLException, InterruptedException {
-<span class="fc" id="L714">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
+<span class="fc" id="L725">    jdbc.transactOnConnection(new HandlerNano&lt;Connection, Void, SQLException&gt;() {</span>
       @Override
       public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L717">        try (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {</span>
-<span class="fc" id="L718">          stmt.setQueryTimeout(nanosToSeconds(deadlineNanos - System.nanoTime(), jdbcTimeoutSeconds));</span>
-<span class="fc" id="L719">          stmt.setInt(1, nrPermits);</span>
-<span class="fc" id="L720">          stmt.setInt(2, nrPermits);</span>
-<span class="fc" id="L721">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="fc" id="L722">          stmt.setNString(4, semName);</span>
-<span class="fc" id="L723">          int rowsUpdated = stmt.executeUpdate();</span>
-<span class="pc bpc" id="L724" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
-<span class="nc" id="L725">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
+<span class="pc" id="L728">        try (PreparedStatement stmt = conn.prepareStatement(increasePermitsSql)) {</span>
+<span class="fc" id="L729">          stmt.setQueryTimeout(Math.min(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos),</span>
+<span class="fc" id="L730">                  jdbcTimeoutSeconds));</span>
+<span class="fc" id="L731">          stmt.setInt(1, nrPermits);</span>
+<span class="fc" id="L732">          stmt.setInt(2, nrPermits);</span>
+<span class="fc" id="L733">          stmt.setNString(3, org.spf4j.base.Runtime.PROCESS_ID);</span>
+<span class="fc" id="L734">          stmt.setNString(4, semName);</span>
+<span class="fc" id="L735">          int rowsUpdated = stmt.executeUpdate();</span>
+<span class="pc bpc" id="L736" title="1 of 2 branches missed.">          if (rowsUpdated != 1) {</span>
+<span class="nc" id="L737">            throw new IllegalArgumentException(&quot;Cannot reduce nr total permits by &quot; + nrPermits);</span>
           }
-<span class="pc bpc" id="L727" title="6 of 8 branches missed.">        }</span>
-<span class="fc" id="L728">        return null;</span>
+<span class="pc bpc" id="L739" title="6 of 8 branches missed.">        }</span>
+<span class="fc" id="L740">        return null;</span>
       }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-<span class="fc" id="L731">  }</span>
+<span class="fc" id="L743">  }</span>
 
-  public int removeDeadHeartBeatAndNotOwnerRows(final int timeoutSeconds) throws SQLException, InterruptedException {
-<span class="fc" id="L734">    return jdbc.transactOnConnection(new HandlerNano&lt;Connection, Integer, SQLException&gt;() {</span>
+  public int removeDeadHeartBeatAndNotOwnerRows(final long timeoutSeconds) throws SQLException, InterruptedException {
+<span class="fc" id="L746">    return jdbc.transactOnConnection(new HandlerNano&lt;Connection, Integer, SQLException&gt;() {</span>
       @Override
       public Integer handle(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L737">        return removeDeadHeartBeatAndNotOwnerRows(conn, deadlineNanos);</span>
+<span class="fc" id="L749">        return removeDeadHeartBeatAndNotOwnerRows(conn, deadlineNanos);</span>
       }
     }, timeoutSeconds, TimeUnit.SECONDS);
   }
 
-  int removeDeadHeartBeatAndNotOwnerRows(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="fc" id="L743">    int removedDeadHeartBeatRows = this.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);</span>
-<span class="pc bpc" id="L744" title="1 of 2 branches missed.">    if (removedDeadHeartBeatRows &gt; 0) {</span>
-<span class="nc" id="L745">      return removeDeadNotOwnedRowsOnly(conn, deadlineNanos);</span>
+  private int removeDeadHeartBeatAndNotOwnerRows(final Connection conn, final long deadlineNanos) throws SQLException {
+<span class="fc" id="L755">    int removedDeadHeartBeatRows = this.heartBeat.removeDeadHeartBeatRows(conn, deadlineNanos);</span>
+<span class="pc bpc" id="L756" title="1 of 2 branches missed.">    if (removedDeadHeartBeatRows &gt; 0) {</span>
+<span class="nc" id="L757">      return removeDeadNotOwnedRowsOnly(conn, deadlineNanos);</span>
     } else {
-<span class="fc" id="L747">      return 0;</span>
+<span class="fc" id="L759">      return 0;</span>
     }
   }
 
-  int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="nc" id="L752">    try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {</span>
-<span class="nc" id="L753">      stmt.setNString(1, semName);</span>
-<span class="nc" id="L754">      stmt.setQueryTimeout((int) TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime()));</span>
-<span class="nc" id="L755">      return stmt.executeUpdate();</span>
-<span class="nc bnc" id="L756" title="All 8 branches missed.">    }</span>
+  private int removeDeadNotOwnedRowsOnly(final Connection conn, final long deadlineNanos) throws SQLException {
+<span class="nc" id="L764">    try (PreparedStatement stmt = conn.prepareStatement(deleteDeadOwnerRecordsSql)) {</span>
+<span class="nc" id="L765">      stmt.setNString(1, semName);</span>
+<span class="nc" id="L766">      stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
+<span class="nc" id="L767">      return stmt.executeUpdate();</span>
+<span class="nc bnc" id="L768" title="All 8 branches missed.">    }</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L761">    return &quot;JdbcSemaphore{&quot; + &quot;jdbc=&quot; + jdbc</span>
+<span class="nc" id="L773">    return &quot;JdbcSemaphore{&quot; + &quot;jdbc=&quot; + jdbc</span>
             + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + &quot;, semName=&quot; + semName + '}';
   }
 
   @Override
   public void close() {
-<span class="fc" id="L767">    releaseAll();</span>
-<span class="fc" id="L768">    unregisterJmx();</span>
-<span class="fc" id="L769">    this.heartBeat.removeLifecycleHook(failureHook);</span>
-<span class="fc" id="L770">    isHealthy = false;</span>
-<span class="fc" id="L771">  }</span>
+<span class="fc" id="L779">    releaseAll();</span>
+<span class="fc" id="L780">    unregisterJmx();</span>
+<span class="fc" id="L781">    this.heartBeat.removeLifecycleHook(failureHook);</span>
+<span class="fc" id="L782">    isHealthy = false;</span>
+<span class="fc" id="L783">  }</span>
 
   @JmxExport
   public int getJdbcTimeoutSeconds() {
-<span class="nc" id="L775">    return jdbcTimeoutSeconds;</span>
+<span class="nc" id="L787">    return jdbcTimeoutSeconds;</span>
   }
 
   @JmxExport
   public boolean isIsHealthy() {
-<span class="nc" id="L780">    return isHealthy;</span>
+<span class="nc" id="L792">    return isHealthy;</span>
   }
 
 

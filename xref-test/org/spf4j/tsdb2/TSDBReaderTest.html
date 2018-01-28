@@ -52,97 +52,102 @@
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeoutException;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.junit.Assert;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Either;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.ColumnDef;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.DataBlock;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.TableDef;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/tsdb2/TSDBReaderTest.html">TSDBReaderTest</a> {
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> TableDef tableDef = TableDef.newBuilder()
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>            .setName(<span class="jxr_string">"test"</span>)
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>            .setDescription(<span class="jxr_string">"test"</span>)
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>            .setSampleTime(0)
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>            .setColumns(Arrays.asList(
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>                    ColumnDef.newBuilder().setName(<span class="jxr_string">"a"</span>).setDescription(<span class="jxr_string">"atest"</span>).setUnitOfMeasurement(<span class="jxr_string">"ms"</span>).build(),
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>                    ColumnDef.newBuilder().setName(<span class="jxr_string">"b"</span>).setDescription(<span class="jxr_string">"btest"</span>).setUnitOfMeasurement(<span class="jxr_string">"ms"</span>).build(),
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>                    ColumnDef.newBuilder().setName(<span class="jxr_string">"c"</span>).setDescription(<span class="jxr_string">"ctest"</span>).setUnitOfMeasurement(<span class="jxr_string">"ms"</span>).build()))
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>            .build();
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>    @Test
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>    @SuppressFBWarnings({ <span class="jxr_string">"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"</span>, <span class="jxr_string">"RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE"</span>,
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>                          <span class="jxr_string">"NP_LOAD_OF_KNOWN_NULL_VALUE"</span>, <span class="jxr_string">"CLI_CONSTANT_LIST_INDEX"</span>})
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>    <em class="jxr_comment">// try with resources trips up findbugs sometimes.</em>
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTsdb() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>      File TEST_FILE = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">".tsdb2"</span>);
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">long</strong> tableId;
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">try</strong> (TSDBWriter writer = <strong class="jxr_keyword">new</strong> TSDBWriter(TEST_FILE, 4, <span class="jxr_string">"test"</span>, false)) {
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>      }
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">try</strong> (TSDBWriter writer = <strong class="jxr_keyword">new</strong> TSDBWriter(TEST_FILE, 4, <span class="jxr_string">"test"</span>, false)) {
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>        tableId = writer.writeTableDef(tableDef);
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>        <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> time = System.currentTimeMillis();
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>        writer.writeDataRow(tableId, time, 0, 1, 2);
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>        writer.writeDataRow(tableId, time + 10, 1, 1, 2);
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>        writer.writeDataRow(tableId, time + 20, 2, 1, 2);
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>        writer.writeDataRow(tableId, time + 30, 3, 1, 2);
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>        writer.writeDataRow(tableId, time + 40, 4, 1, 2);
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>      }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">try</strong> (TSDBReader reader = <strong class="jxr_keyword">new</strong> TSDBReader(TEST_FILE, 1024)) {
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>        Either&lt;TableDef, DataBlock&gt; read;
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>        <strong class="jxr_keyword">while</strong> ((read = reader.read()) != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>          System.out.println(read);
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>        }
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>      }
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>  
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>      ListMultimap&lt;String, TableDef&gt; allTables = TSDBQuery.getAllTables(TEST_FILE);
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>      Assert.assertEquals(1, allTables.size());
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>      Assert.assertTrue(allTables.containsKey(tableDef.name));
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>      TimeSeries timeSeries = TSDBQuery.getTimeSeries(TEST_FILE, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">long</strong>[]{tableId}, 0, Long.MAX_VALUE);
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>      Assert.assertEquals(2L, timeSeries.getValues()[2][0]);
-<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>   }
-<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>   @Test
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTailing() <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     File TEST_FILE = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">".tsdb2"</span>);
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <strong class="jxr_keyword">try</strong> (TSDBWriter writer = <strong class="jxr_keyword">new</strong> TSDBWriter(TEST_FILE, 4, <span class="jxr_string">"test"</span>, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>             TSDBReader reader = <strong class="jxr_keyword">new</strong> TSDBReader(TEST_FILE, 1024)) {
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>       writer.flush();
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>       <strong class="jxr_keyword">final</strong> BlockingQueue&lt;Either&lt;TableDef, DataBlock&gt;&gt; queue = <strong class="jxr_keyword">new</strong> ArrayBlockingQueue&lt;&gt;(100);
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>       Future&lt;Void&gt; bgWatch = reader.bgWatch((Either&lt;TableDef, DataBlock&gt; object, <strong class="jxr_keyword">long</strong> deadline) -&gt; {
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>         queue.put(object);
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>       }, TSDBReader.EventSensitivity.HIGH);
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>       <strong class="jxr_keyword">long</strong> tableId = writer.writeTableDef(tableDef);
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>       writer.flush();
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> time = System.currentTimeMillis();
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>       writer.writeDataRow(tableId, time, 0, 1, 2);
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>       writer.writeDataRow(tableId, time + 10, 1, 1, 2);
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>       writer.flush();
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>       Either&lt;TableDef, DataBlock&gt; td = queue.take();
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>       Assert.assertEquals(tableDef, td.getLeft());
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>       Either&lt;TableDef, DataBlock&gt; take = queue.take();
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>       Assert.assertEquals(2, take.getRight().getValues().size());
-<a class="jxr_linenumber" name="L123" href="#L123">123</a>       writer.writeDataRow(tableId, time + 20, 2, 1, 2);
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>       writer.writeDataRow(tableId, time + 30, 3, 1, 2);
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>       writer.writeDataRow(tableId, time + 40, 4, 1, 2);
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>       writer.flush();
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>       Assert.assertEquals(3, queue.take().getRight().getValues().size());
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>       reader.stopWatching();
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>       bgWatch.get(10000, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L130" href="#L130">130</a> 
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>     }
-<a class="jxr_linenumber" name="L132" href="#L132">132</a> 
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>   }
-<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
-<a class="jxr_linenumber" name="L135" href="#L135">135</a> }
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Either;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.ColumnDef;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.DataBlock;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.TableDef;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/tsdb2/TSDBReaderTest.html">TSDBReaderTest</a> {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(TSDBReaderTest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> TableDef tableDef = TableDef.newBuilder()
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>            .setName(<span class="jxr_string">"test"</span>)
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>            .setDescription(<span class="jxr_string">"test"</span>)
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>            .setSampleTime(0)
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>            .setColumns(Arrays.asList(
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>                    ColumnDef.newBuilder().setName(<span class="jxr_string">"a"</span>).setDescription(<span class="jxr_string">"atest"</span>).setUnitOfMeasurement(<span class="jxr_string">"ms"</span>).build(),
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>                    ColumnDef.newBuilder().setName(<span class="jxr_string">"b"</span>).setDescription(<span class="jxr_string">"btest"</span>).setUnitOfMeasurement(<span class="jxr_string">"ms"</span>).build(),
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>                    ColumnDef.newBuilder().setName(<span class="jxr_string">"c"</span>).setDescription(<span class="jxr_string">"ctest"</span>).setUnitOfMeasurement(<span class="jxr_string">"ms"</span>).build()))
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>            .build();
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>    @Test
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>    @SuppressFBWarnings({<span class="jxr_string">"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"</span>, <span class="jxr_string">"RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE"</span>,
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <span class="jxr_string">"NP_LOAD_OF_KNOWN_NULL_VALUE"</span>, <span class="jxr_string">"CLI_CONSTANT_LIST_INDEX"</span>})
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>    <em class="jxr_comment">// try with resources trips up findbugs sometimes.</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>    @SuppressWarnings(<span class="jxr_string">"checkstyle:EmptyBlock"</span>)
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTsdb() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      File testFile = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">".tsdb2"</span>);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">long</strong> tableId;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">try</strong> (TSDBWriter writer = <strong class="jxr_keyword">new</strong> TSDBWriter(testFile, 4, <span class="jxr_string">"test"</span>, false)) {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">try</strong> (TSDBWriter writer = <strong class="jxr_keyword">new</strong> TSDBWriter(testFile, 4, <span class="jxr_string">"test"</span>, false)) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>        tableId = writer.writeTableDef(tableDef);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>        <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> time = System.currentTimeMillis();
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>        writer.writeDataRow(tableId, time, 0, 1, 2);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>        writer.writeDataRow(tableId, time + 10, 1, 1, 2);
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>        writer.writeDataRow(tableId, time + 20, 2, 1, 2);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>        writer.writeDataRow(tableId, time + 30, 3, 1, 2);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>        writer.writeDataRow(tableId, time + 40, 4, 1, 2);
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      }
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">try</strong> (TSDBReader reader = <strong class="jxr_keyword">new</strong> TSDBReader(testFile, 1024)) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>        Either&lt;TableDef, DataBlock&gt; read;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>        <strong class="jxr_keyword">while</strong> ((read = reader.read()) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          LOG.debug(<span class="jxr_string">"TSDB block: {}"</span>, read);
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>        }
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      }
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     ListMultimap&lt;String, TableDef&gt; allTables = TSDBQuery.getAllTables(testFile);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     Assert.assertEquals(1, allTables.size());
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Assert.assertTrue(allTables.containsKey(tableDef.name));
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     TimeSeries timeSeries = TSDBQuery.getTimeSeries(testFile, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">long</strong>[]{tableId}, 0, Long.MAX_VALUE);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     Assert.assertEquals(2L, timeSeries.getValues()[2][0]);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> 
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>   }
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> 
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>   @Test
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTailing() <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     File testFile = File.createTempFile(<span class="jxr_string">"test"</span>, <span class="jxr_string">".tsdb2"</span>);
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">try</strong> (TSDBWriter writer = <strong class="jxr_keyword">new</strong> TSDBWriter(testFile, 4, <span class="jxr_string">"test"</span>, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>             TSDBReader reader = <strong class="jxr_keyword">new</strong> TSDBReader(testFile, 1024)) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>       writer.flush();
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>       <strong class="jxr_keyword">final</strong> BlockingQueue&lt;Either&lt;TableDef, DataBlock&gt;&gt; queue = <strong class="jxr_keyword">new</strong> ArrayBlockingQueue&lt;&gt;(100);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>       Future&lt;Void&gt; bgWatch = reader.bgWatch((Either&lt;TableDef, DataBlock&gt; object, <strong class="jxr_keyword">long</strong> deadline) -&gt; {
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         queue.put(object);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>       }, TSDBReader.EventSensitivity.HIGH);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>       <strong class="jxr_keyword">long</strong> tableId = writer.writeTableDef(tableDef);
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>       writer.flush();
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> time = System.currentTimeMillis();
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>       writer.writeDataRow(tableId, time, 0, 1, 2);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>       writer.writeDataRow(tableId, time + 10, 1, 1, 2);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>       writer.flush();
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>       Either&lt;TableDef, DataBlock&gt; td = queue.take();
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>       Assert.assertEquals(tableDef, td.getLeft());
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>       Either&lt;TableDef, DataBlock&gt; take = queue.take();
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>       Assert.assertEquals(2, take.getRight().getValues().size());
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>       writer.writeDataRow(tableId, time + 20, 2, 1, 2);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>       writer.writeDataRow(tableId, time + 30, 3, 1, 2);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>       writer.writeDataRow(tableId, time + 40, 4, 1, 2);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>       writer.flush();
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>       Assert.assertEquals(3, queue.take().getRight().getValues().size());
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>       reader.stopWatching();
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>       bgWatch.get(10000, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> 
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     }
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> 
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>   }
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> 
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

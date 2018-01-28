@@ -85,7 +85,7 @@ public final class FastStackCollector extends AbstractStackCollector {
                                                         final boolean collectForMain,
                                                         final String[] xtraIgnoredThreads) {
 <span class="fc" id="L87">    final Set&lt;String&gt; ignoredThreads = new THashSet&lt;&gt;(Arrays.asList(IGNORED_THREADS));</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (!collectForMain) {</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    if (!collectForMain) {</span>
 <span class="fc" id="L89">      ignoredThreads.add(&quot;main&quot;);</span>
     }
 <span class="fc" id="L91">    ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));</span>
@@ -152,14 +152,14 @@ public final class FastStackCollector extends AbstractStackCollector {
 
   @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;) // jdk printstreams are sync I don't want interleaving.
   public static void dumpToPrintStream(final PrintStream stream) {
-<span class="fc" id="L155">    synchronized (stream) {</span>
-<span class="fc" id="L156">      Thread[] threads = getThreads();</span>
-<span class="fc" id="L157">      StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
-<span class="pc bpc" id="L158" title="1 of 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
-<span class="fc" id="L159">        StackTraceElement[] stackTrace = stackTraces[i];</span>
-<span class="pc bpc" id="L160" title="2 of 4 branches missed.">        if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L161">          Thread thread = threads[i];</span>
-<span class="fc" id="L162">          stream.println(&quot;Thread &quot; + thread.getName());</span>
+<span class="nc" id="L155">    synchronized (stream) {</span>
+<span class="nc" id="L156">      Thread[] threads = getThreads();</span>
+<span class="nc" id="L157">      StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L159">        StackTraceElement[] stackTrace = stackTraces[i];</span>
+<span class="nc bnc" id="L160" title="All 4 branches missed.">        if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L161">          Thread thread = threads[i];</span>
+<span class="nc" id="L162">          stream.println(&quot;Thread &quot; + thread.getName());</span>
           try {
 <span class="nc" id="L164">            Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);</span>
 <span class="nc" id="L165">          } catch (IOException ex) {</span>
@@ -189,7 +189,7 @@ public final class FastStackCollector extends AbstractStackCollector {
 <span class="fc" id="L189">    StackTraceElement[][] stackDump = getStackTraces(requestFor);</span>
 <span class="fc bfc" id="L190" title="All 2 branches covered.">    for (int i = 0; i &lt; j; i++) {</span>
 <span class="fc" id="L191">      StackTraceElement[] stackTrace = stackDump[i];</span>
-<span class="pc bpc" id="L192" title="1 of 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="fc bfc" id="L192" title="All 4 branches covered.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
 <span class="fc" id="L193">        addSample(stackTrace);</span>
       } else {
 <span class="fc" id="L195">        addSample(new StackTraceElement[]{</span>

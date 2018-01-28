@@ -34,6 +34,7 @@ package org.spf4j.reflect;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import com.google.common.reflect.TypeToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,80 +54,83 @@ public final class GraphTypeMap&lt;H&gt; implements TypeMap&lt;H&gt; {
   private final Map&lt;TypeToken, H&gt; handlers;
 
   public GraphTypeMap() {
-<span class="fc" id="L56">    this(16);</span>
-<span class="fc" id="L57">  }</span>
+<span class="fc" id="L57">    this(16);</span>
+<span class="fc" id="L58">  }</span>
 
-<span class="fc" id="L59">  public GraphTypeMap(final int expectedSize) {</span>
-<span class="fc" id="L60">    typeGraph = GraphBuilder.directed().allowsSelfLoops(false)</span>
-<span class="fc" id="L61">            .expectedNodeCount(expectedSize).build();</span>
-<span class="fc" id="L62">    handlers = new HashMap&lt;&gt;(expectedSize);</span>
-<span class="fc" id="L63">  }</span>
+<span class="fc" id="L60">  public GraphTypeMap(final int expectedSize) {</span>
+<span class="fc" id="L61">    typeGraph = GraphBuilder.directed().allowsSelfLoops(false)</span>
+<span class="fc" id="L62">            .expectedNodeCount(expectedSize).build();</span>
+<span class="fc" id="L63">    handlers = new HashMap&lt;&gt;(expectedSize);</span>
+<span class="fc" id="L64">  }</span>
 
   @Override
   public Set&lt;H&gt; getAll(final Type t) {
-<span class="fc" id="L67">    Set&lt;H&gt; result = new HashSet&lt;&gt;(1);</span>
-<span class="fc" id="L68">    TypeToken tt = TypeToken.of(t);</span>
-<span class="fc" id="L69">    MutableGraph&lt;TypeToken&gt; traverseGraph = Graphs.clone(typeGraph);</span>
-<span class="fc" id="L70">    Set&lt;TypeToken&gt; nodes = traverseGraph.nodes();</span>
-<span class="fc" id="L71">    List&lt;TypeToken&gt; nodesToRemove = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L68">    Set&lt;H&gt; result = new HashSet&lt;&gt;(1);</span>
+<span class="fc" id="L69">    TypeToken tt = TypeToken.of(t);</span>
+<span class="fc" id="L70">    MutableGraph&lt;TypeToken&gt; traverseGraph = Graphs.clone(typeGraph);</span>
+<span class="fc" id="L71">    Set&lt;TypeToken&gt; nodes = traverseGraph.nodes();</span>
+<span class="fc" id="L72">    List&lt;TypeToken&gt; nodesToRemove = new ArrayList&lt;&gt;();</span>
     do {
-<span class="fc bfc" id="L73" title="All 2 branches covered.">      for (TypeToken token : nodes) {</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (traverseGraph.inDegree(token) == 0) {</span>
-<span class="fc" id="L75">          nodesToRemove.add(token);</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">          if (tt.isSubtypeOf(token)) {</span>
-<span class="fc" id="L77">            result.add(handlers.get(token));</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">      for (TypeToken token : nodes) {</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (traverseGraph.inDegree(token) == 0) {</span>
+<span class="fc" id="L76">          nodesToRemove.add(token);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">          if (tt.isSubtypeOf(token)) {</span>
+<span class="fc" id="L78">            result.add(handlers.get(token));</span>
           }
         }
-<span class="fc" id="L80">      }</span>
-<span class="fc bfc" id="L81" title="All 2 branches covered.">      for (TypeToken token : nodesToRemove) {</span>
-<span class="fc" id="L82">        traverseGraph.removeNode(token);</span>
-<span class="fc" id="L83">      }</span>
-<span class="fc" id="L84">      nodesToRemove.clear();</span>
-<span class="fc" id="L85">      nodes = traverseGraph.nodes();</span>
-<span class="fc bfc" id="L86" title="All 4 branches covered.">    } while (result.isEmpty() &amp;&amp; !nodes.isEmpty());</span>
-<span class="fc" id="L87">    return result;</span>
+<span class="fc" id="L81">      }</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">      for (TypeToken token : nodesToRemove) {</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (!traverseGraph.removeNode(token)) {</span>
+<span class="nc" id="L84">          throw new IllegalStateException(&quot;Cannot remove &quot; + token + &quot; from &quot; + traverseGraph);</span>
+        }
+<span class="fc" id="L86">      }</span>
+<span class="fc" id="L87">      nodesToRemove.clear();</span>
+<span class="fc" id="L88">      nodes = traverseGraph.nodes();</span>
+<span class="fc bfc" id="L89" title="All 4 branches covered.">    } while (result.isEmpty() &amp;&amp; !nodes.isEmpty());</span>
+<span class="fc" id="L90">    return result;</span>
   }
 
 
   @Override
+  @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public boolean putIfNotPresent(final Type type, final H appender) {
-<span class="fc" id="L93">    TypeToken&lt;?&gt; nType = TypeToken.of(type);</span>
-<span class="fc bfc" id="L94" title="All 2 branches covered.">    if (typeGraph.addNode(nType)) {</span>
-<span class="fc" id="L95">      handlers.put(nType, appender);</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">      for (TypeToken t : typeGraph.nodes()) {</span>
-<span class="fc bfc" id="L97" title="All 2 branches covered.">        if (!nType.equals(t)) {</span>
-<span class="fc bfc" id="L98" title="All 2 branches covered.">          if (nType.isSubtypeOf(t)) {</span>
-<span class="fc" id="L99">            typeGraph.putEdge(nType, t);</span>
-<span class="fc bfc" id="L100" title="All 2 branches covered.">          } else if (t.isSubtypeOf(nType)) {</span>
-<span class="fc" id="L101">            typeGraph.putEdge(t, nType);</span>
+<span class="fc" id="L97">    TypeToken&lt;?&gt; nType = TypeToken.of(type);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">    if (typeGraph.addNode(nType)) {</span>
+<span class="fc" id="L99">      handlers.put(nType, appender);</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">      for (TypeToken t : typeGraph.nodes()) {</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (!nType.equals(t)) {</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">          if (nType.isSubtypeOf(t)) {</span>
+<span class="fc" id="L103">            typeGraph.putEdge(nType, t);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">          } else if (t.isSubtypeOf(nType)) {</span>
+<span class="fc" id="L105">            typeGraph.putEdge(t, nType);</span>
           }
         }
-<span class="fc" id="L104">      }</span>
-<span class="fc" id="L105">      return true;</span>
+<span class="fc" id="L108">      }</span>
+<span class="fc" id="L109">      return true;</span>
     } else {
-<span class="fc" id="L107">      return false;</span>
+<span class="fc" id="L111">      return false;</span>
     }
   }
 
   @Override
   public boolean remove(final Type type) {
-<span class="fc" id="L113">    TypeToken&lt;?&gt; tt = TypeToken.of(type);</span>
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    if (typeGraph.removeNode(tt)) {</span>
-<span class="fc" id="L115">      handlers.remove(tt);</span>
-<span class="fc" id="L116">      return true;</span>
+<span class="fc" id="L117">    TypeToken&lt;?&gt; tt = TypeToken.of(type);</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    if (typeGraph.removeNode(tt)) {</span>
+<span class="fc" id="L119">      handlers.remove(tt);</span>
+<span class="fc" id="L120">      return true;</span>
     } else {
-<span class="nc" id="L118">      return false;</span>
+<span class="nc" id="L122">      return false;</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L124">    return &quot;GraphTypeMap{&quot; + &quot;typeGraph=&quot; + typeGraph + &quot;, handlers=&quot; + handlers + '}';</span>
+<span class="fc" id="L128">    return &quot;GraphTypeMap{&quot; + &quot;typeGraph=&quot; + typeGraph + &quot;, handlers=&quot; + handlers + '}';</span>
   }
 
   @Override
   public H getExact(final Type t) {
-<span class="fc" id="L129">    return handlers.get(TypeToken.of(t));</span>
+<span class="fc" id="L133">    return handlers.get(TypeToken.of(t));</span>
   }
 
 }

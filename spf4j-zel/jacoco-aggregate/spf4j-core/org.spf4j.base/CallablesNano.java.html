@@ -40,7 +40,7 @@ import org.spf4j.base.Callables.AdvancedRetryPredicate;
 import static org.spf4j.base.Callables.DEFAULT_EXCEPTION_RETRY;
 import org.spf4j.base.Callables.FibonacciBackoffRetryPredicate;
 import org.spf4j.base.Callables.TimeoutCallable;
-import org.spf4j.base.Callables.TimeoutDelayPredicate2DelayPredicate;
+import org.spf4j.base.Callables.TimeoutRetryPredicate2RetryPredicate;
 import org.spf4j.base.Callables.TimeoutRetryPredicate;
 
 /**
@@ -98,7 +98,7 @@ public final class CallablesNano {
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
 <span class="fc" id="L100">    final long deadline = what.getDeadline();</span>
-<span class="fc" id="L101">    return Callables.executeWithRetry(what, new TimeoutDelayPredicate2DelayPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+<span class="fc" id="L101">    return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
             new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
                     maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
 <span class="fc" id="L104">                    () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>

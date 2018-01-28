@@ -65,96 +65,107 @@ public abstract class RestartableServiceImpl implements RestartableService {
 <span class="nc" id="L65">        Registry.export(RestartableService.class.getName(), getServiceName(), this);</span>
 <span class="nc" id="L66">    }</span>
 
-    @Override
-    @SuppressFBWarnings(&quot;SF_SWITCH_FALLTHROUGH&quot;) // this is on purpose.
     @JmxExport
+    public final void jmxStart() {
+<span class="nc" id="L70">      startAsync().awaitRunning();</span>
+<span class="nc" id="L71">    }</span>
+
+    @Override
+    @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
     public final synchronized Service startAsync() {
-<span class="fc" id="L72">        final Service svc = guavaService;</span>
-<span class="fc" id="L73">        final State state = svc.state();</span>
-<span class="pc bpc" id="L74" title="2 of 4 branches missed.">        switch (state) {</span>
+<span class="fc" id="L76">        final Service svc = guavaService;</span>
+<span class="fc" id="L77">        final State state = svc.state();</span>
+<span class="pc bpc" id="L78" title="2 of 4 branches missed.">        switch (state) {</span>
             case NEW:
-<span class="fc" id="L76">                svc.startAsync();</span>
-<span class="fc" id="L77">                break;</span>
+<span class="fc" id="L80">                svc.startAsync();</span>
+<span class="fc" id="L81">                break;</span>
             case FAILED:
-<span class="nc" id="L79">                LOG.warn(&quot;Restarting a failed service&quot;, svc.failureCause());</span>
-<span class="nc" id="L80">                restart();</span>
-<span class="nc" id="L81">                break;</span>
+<span class="nc" id="L83">                LOG.warn(&quot;Restarting a failed service&quot;, svc.failureCause());</span>
+<span class="nc" id="L84">                restart();</span>
+<span class="nc" id="L85">                break;</span>
             case TERMINATED:
-<span class="fc" id="L83">                restart();</span>
-<span class="fc" id="L84">                break;</span>
+<span class="fc" id="L87">                LOG.info(&quot;Restarting a terminated service&quot;);</span>
+<span class="fc" id="L88">                restart();</span>
+<span class="fc" id="L89">                break;</span>
             default:
-<span class="nc" id="L86">                throw new IllegalStateException(&quot;Service is in invalid state &quot; + state);</span>
+<span class="nc" id="L91">                throw new IllegalStateException(&quot;Service is in invalid state &quot; + state);</span>
         }
-<span class="fc" id="L88">        return this;</span>
+<span class="fc" id="L93">        return this;</span>
     }
 
+    @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
     private void restart() {
-<span class="fc" id="L92">        Service newSvc = supplier.get();</span>
-<span class="fc" id="L93">        guavaService = newSvc;</span>
-<span class="fc" id="L94">        newSvc.startAsync();</span>
-<span class="fc" id="L95">    }</span>
+<span class="fc" id="L98">        Service newSvc = supplier.get();</span>
+<span class="fc" id="L99">        guavaService = newSvc;</span>
+<span class="fc" id="L100">        newSvc.startAsync();</span>
+<span class="fc" id="L101">    }</span>
 
     @Override
     @JmxExport
     public final boolean isRunning() {
-<span class="fc" id="L100">        return guavaService.isRunning();</span>
+<span class="fc" id="L106">        return guavaService.isRunning();</span>
     }
 
     @Override
     @JmxExport
     public final State state() {
-<span class="nc" id="L106">        return guavaService.state();</span>
+<span class="nc" id="L112">        return guavaService.state();</span>
     }
 
-    @Override
     @JmxExport
+    public final void jmxStop() {
+<span class="nc" id="L117">      stopAsync().awaitTerminated();</span>
+<span class="nc" id="L118">    }</span>
+
+    @Override
+    @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
     public final Service stopAsync() {
-<span class="fc" id="L112">        guavaService.stopAsync();</span>
-<span class="fc" id="L113">        return this;</span>
+<span class="fc" id="L123">        guavaService.stopAsync();</span>
+<span class="fc" id="L124">        return this;</span>
     }
 
     @Override
     @JmxExport
     public final void awaitRunning() {
-<span class="fc" id="L119">        guavaService.awaitRunning();</span>
-<span class="fc" id="L120">    }</span>
+<span class="fc" id="L130">        guavaService.awaitRunning();</span>
+<span class="fc" id="L131">    }</span>
 
     @Override
     public final void awaitRunning(final long timeout, final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L124">        guavaService.awaitRunning(timeout, unit);</span>
-<span class="fc" id="L125">    }</span>
-
-    @Override
-    @JmxExport
-    public final void awaitTerminated() {
-<span class="nc" id="L130">        guavaService.awaitTerminated();</span>
-<span class="nc" id="L131">    }</span>
-
-    @Override
-    public final void awaitTerminated(final long timeout, final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L135">        guavaService.awaitTerminated(timeout, unit);</span>
+<span class="fc" id="L135">        guavaService.awaitRunning(timeout, unit);</span>
 <span class="fc" id="L136">    }</span>
 
     @Override
     @JmxExport
+    public final void awaitTerminated() {
+<span class="nc" id="L141">        guavaService.awaitTerminated();</span>
+<span class="nc" id="L142">    }</span>
+
+    @Override
+    public final void awaitTerminated(final long timeout, final TimeUnit unit) throws TimeoutException {
+<span class="fc" id="L146">        guavaService.awaitTerminated(timeout, unit);</span>
+<span class="fc" id="L147">    }</span>
+
+    @Override
+    @JmxExport
     public final Throwable failureCause() {
-<span class="nc" id="L141">        return guavaService.failureCause();</span>
+<span class="nc" id="L152">        return guavaService.failureCause();</span>
     }
 
     @Override
     public final void addListener(final Listener listener, final Executor executor) {
-<span class="nc" id="L146">        guavaService.addListener(listener, executor);</span>
-<span class="nc" id="L147">    }</span>
+<span class="nc" id="L157">        guavaService.addListener(listener, executor);</span>
+<span class="nc" id="L158">    }</span>
 
     @Override
     public final void close() {
-<span class="fc" id="L151">        guavaService.stopAsync().awaitTerminated();</span>
-<span class="fc" id="L152">        Registry.unregister(RestartableService.class.getName(), getServiceName());</span>
-<span class="fc" id="L153">    }</span>
+<span class="fc" id="L162">        guavaService.stopAsync().awaitTerminated();</span>
+<span class="fc" id="L163">        Registry.unregister(RestartableService.class.getName(), getServiceName());</span>
+<span class="fc" id="L164">    }</span>
 
     @Override
     public final String toString() {
-<span class="nc" id="L157">        return getServiceName();</span>
+<span class="nc" id="L168">        return getServiceName();</span>
     }
 
 }

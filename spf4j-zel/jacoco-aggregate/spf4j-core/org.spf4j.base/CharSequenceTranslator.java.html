@@ -53,51 +53,53 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Locale;
+import javax.annotation.Nullable;
 
 
-<span class="fc" id="L58">public abstract class CharSequenceTranslator {</span>
+<span class="fc" id="L59">public abstract class CharSequenceTranslator {</span>
 
 
     public abstract int translate(CharSequence input, int index, Writer out) throws IOException;
 
 
-    public final String translate(final CharSequence input) {
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (input == null) {</span>
-<span class="nc" id="L66">            return null;</span>
+    @Nullable
+    public final String translate(@Nullable final CharSequence input) {
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L68">            return null;</span>
         }
         try {
-<span class="fc" id="L69">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
-<span class="fc" id="L70">            translate(input, writer);</span>
-<span class="fc" id="L71">            return writer.toString();</span>
-<span class="nc" id="L72">        } catch (final IOException ioe) {</span>
+<span class="fc" id="L71">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
+<span class="fc" id="L72">            translate(input, writer);</span>
+<span class="fc" id="L73">            return writer.toString();</span>
+<span class="nc" id="L74">        } catch (final IOException ioe) {</span>
             // this should never ever happen while writing to a StringWriter
-<span class="nc" id="L74">            throw new UncheckedIOException(ioe);</span>
+<span class="nc" id="L76">            throw new UncheckedIOException(ioe);</span>
         }
     }
 
 
     public final void translate(final CharSequence input, final Writer out) throws IOException {
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (out == null) {</span>
-<span class="nc" id="L81">            throw new IllegalArgumentException(&quot;The Writer must not be null when translating &quot; + input);</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (out == null) {</span>
+<span class="nc" id="L83">            throw new IllegalArgumentException(&quot;The Writer must not be null when translating &quot; + input);</span>
         }
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (input == null) {</span>
-<span class="nc" id="L84">            return;</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L86">            return;</span>
         }
-<span class="fc" id="L86">        int pos = 0;</span>
-<span class="fc" id="L87">        final int len = input.length();</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        while (pos &lt; len) {</span>
-<span class="fc" id="L89">            final int consumed = translate(input, pos, out);</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">            if (consumed == 0) {</span>
-<span class="fc" id="L91">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
-<span class="fc" id="L92">                out.write(c);</span>
-<span class="fc" id="L93">                pos += c.length;</span>
-<span class="fc" id="L94">                continue;</span>
+<span class="fc" id="L88">        int pos = 0;</span>
+<span class="fc" id="L89">        final int len = input.length();</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        while (pos &lt; len) {</span>
+<span class="fc" id="L91">            final int consumed = translate(input, pos, out);</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">            if (consumed == 0) {</span>
+<span class="fc" id="L93">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
+<span class="fc" id="L94">                out.write(c);</span>
+<span class="fc" id="L95">                pos += c.length;</span>
+<span class="fc" id="L96">                continue;</span>
             }
-<span class="fc bfc" id="L96" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
-<span class="fc" id="L97">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
+<span class="fc" id="L99">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
             }
-<span class="fc" id="L99">        }</span>
-<span class="fc" id="L100">    }</span>
+<span class="fc" id="L101">        }</span>
+<span class="fc" id="L102">    }</span>
 
     /**
      * &lt;p&gt;Returns an upper case hexadecimal &lt;code&gt;String&lt;/code&gt; for the given
@@ -107,7 +109,7 @@ import java.util.Locale;
      * @return An upper case hexadecimal &lt;code&gt;String&lt;/code&gt;
      */
     public static String hex(final int codepoint) {
-<span class="nc" id="L110">        return Integer.toHexString(codepoint).toUpperCase(Locale.ENGLISH);</span>
+<span class="nc" id="L112">        return Integer.toHexString(codepoint).toUpperCase(Locale.ENGLISH);</span>
     }
 
 }

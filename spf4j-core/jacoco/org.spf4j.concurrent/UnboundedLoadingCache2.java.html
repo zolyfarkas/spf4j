@@ -36,6 +36,7 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,143 +61,145 @@ public final class UnboundedLoadingCache2&lt;K, V&gt; implements LoadingCache&lt
     private final  Function&lt;K, V&gt; computer;
 
     public UnboundedLoadingCache2(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {
-<span class="nc" id="L63">        this(initialSize, 8, loader);</span>
-<span class="nc" id="L64">    }</span>
+<span class="nc" id="L64">        this(initialSize, 8, loader);</span>
+<span class="nc" id="L65">    }</span>
 
 
-<span class="nc" id="L67">    public UnboundedLoadingCache2(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
-<span class="nc" id="L68">        this.map = new ConcurrentHashMap&lt;&gt;(</span>
+<span class="nc" id="L68">    public UnboundedLoadingCache2(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="nc" id="L69">        this.map = new ConcurrentHashMap&lt;&gt;(</span>
                 initialSize, 0.75f, concurrency);
-<span class="nc" id="L70">        this.loader = loader;</span>
-<span class="nc" id="L71">        this.computer = new Function&lt;K, V&gt;() {</span>
+<span class="nc" id="L71">        this.loader = loader;</span>
+<span class="nc" id="L72">        this.computer = new Function&lt;K, V&gt;() {</span>
           @Override
           public V apply(final K t) {
             try {
-<span class="nc" id="L75">              return loader.load(t);</span>
-<span class="nc" id="L76">            } catch (Exception ex) {</span>
-<span class="nc" id="L77">              throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L76">              return loader.load(t);</span>
+<span class="nc" id="L77">            } catch (Exception ex) {</span>
+<span class="nc" id="L78">              throw new UncheckedExecutionException(ex);</span>
             }
           }
         };
-<span class="nc" id="L81">    }</span>
+<span class="nc" id="L82">    }</span>
 
 
     @Override
     public V get(final K key) {
-<span class="nc" id="L86">        return map.computeIfAbsent(key, computer);</span>
+<span class="nc" id="L87">        return map.computeIfAbsent(key, computer);</span>
     }
 
     @Override
     public V getUnchecked(final K key) {
-<span class="nc" id="L91">      return get(key);</span>
+<span class="nc" id="L92">      return get(key);</span>
     }
 
     @Override
+    @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
     public ImmutableMap&lt;K, V&gt; getAll(final Iterable&lt;? extends K&gt; keys) {
-<span class="nc" id="L96">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        for (K key : keys) {</span>
-<span class="nc" id="L98">            builder.put(key, get(key));</span>
-<span class="nc" id="L99">        }</span>
-<span class="nc" id="L100">        return builder.build();</span>
+<span class="nc" id="L98">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        for (K key : keys) {</span>
+<span class="nc" id="L100">            builder.put(key, get(key));</span>
+<span class="nc" id="L101">        }</span>
+<span class="nc" id="L102">        return builder.build();</span>
     }
 
     @Override
     public V apply(final K key) {
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (key == null) {</span>
-<span class="nc" id="L106">            throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (key == null) {</span>
+<span class="nc" id="L108">            throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
         } else {
-<span class="nc" id="L108">            return getUnchecked(key);</span>
+<span class="nc" id="L110">            return getUnchecked(key);</span>
         }
     }
 
     @Override
     public void refresh(final K key) {
-<span class="nc" id="L114">        getUnchecked(key);</span>
-<span class="nc" id="L115">    }</span>
+<span class="nc" id="L116">        getUnchecked(key);</span>
+<span class="nc" id="L117">    }</span>
 
     @Override
     public ConcurrentMap&lt;K, V&gt; asMap() {
-<span class="nc" id="L119">        return map;</span>
+<span class="nc" id="L121">        return map;</span>
     }
 
     @Override
     public V getIfPresent(final Object key) {
-<span class="nc" id="L124">        return map.get(key);</span>
+<span class="nc" id="L126">        return map.get(key);</span>
     }
 
     @Override
     public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) {
-<span class="nc" id="L129">        return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
+<span class="nc" id="L131">        return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
           @Override
           public V apply(final K t) {
             try {
-<span class="nc" id="L133">              return valueLoader.call();</span>
-<span class="nc" id="L134">            } catch (Exception ex) {</span>
-<span class="nc" id="L135">              throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L135">              return valueLoader.call();</span>
+<span class="nc" id="L136">            } catch (Exception ex) {</span>
+<span class="nc" id="L137">              throw new UncheckedExecutionException(ex);</span>
             }
           }
         });
     }
 
     @Override
+    @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
     public ImmutableMap&lt;K, V&gt; getAllPresent(final Iterable&lt;?&gt; keys) {
-<span class="nc" id="L143">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L145">            V val = getIfPresent(key);</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">            if (val != null) {</span>
-<span class="nc" id="L147">                builder.put(key, val);</span>
+<span class="nc" id="L146">        ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L148">            V val = getIfPresent(key);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if (val != null) {</span>
+<span class="nc" id="L150">                builder.put(key, val);</span>
             }
-<span class="nc" id="L149">        }</span>
-<span class="nc" id="L150">        return builder.build();</span>
+<span class="nc" id="L152">        }</span>
+<span class="nc" id="L153">        return builder.build();</span>
     }
 
     @Override
     public void put(final K key, final V value) {
-<span class="nc" id="L155">        map.put(key, value);</span>
-<span class="nc" id="L156">    }</span>
+<span class="nc" id="L158">        map.put(key, value);</span>
+<span class="nc" id="L159">    }</span>
 
     @Override
     public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
-<span class="nc" id="L161">            put(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L162">        }</span>
-<span class="nc" id="L163">    }</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L164">            put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L165">        }</span>
+<span class="nc" id="L166">    }</span>
 
     @Override
     public void invalidate(final Object key) {
-<span class="nc" id="L167">        map.remove(key);</span>
-<span class="nc" id="L168">    }</span>
+<span class="nc" id="L170">        map.remove(key);</span>
+<span class="nc" id="L171">    }</span>
 
     @Override
     public void invalidateAll(final Iterable&lt;?&gt; keys) {
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L173">            invalidate(key);</span>
-<span class="nc" id="L174">        }</span>
-<span class="nc" id="L175">    }</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L176">            invalidate(key);</span>
+<span class="nc" id="L177">        }</span>
+<span class="nc" id="L178">    }</span>
 
     @Override
     public void invalidateAll() {
-<span class="nc" id="L179">        map.clear();</span>
-<span class="nc" id="L180">    }</span>
+<span class="nc" id="L182">        map.clear();</span>
+<span class="nc" id="L183">    }</span>
 
     @Override
     public long size() {
-<span class="nc" id="L184">        return map.size();</span>
+<span class="nc" id="L187">        return map.size();</span>
     }
 
     @Override
     public CacheStats stats() {
-<span class="nc" id="L189">        throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
+<span class="nc" id="L192">        throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
     }
 
     @Override
     public void cleanUp() {
-<span class="nc" id="L194">        map.clear();</span>
-<span class="nc" id="L195">    }</span>
+<span class="nc" id="L197">        map.clear();</span>
+<span class="nc" id="L198">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L199">        return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
+<span class="nc" id="L202">        return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
     }
 
 }

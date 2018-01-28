@@ -146,8 +146,8 @@ public final class Futures {
   @CheckReturnValue
   @Nonnull
   public static Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAll(final long timeoutMillis, final Iterable&lt;Future&gt; futures)  {
-<span class="nc" id="L149">    long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
-<span class="nc" id="L150">    return getAllWithDeadlineNanos(deadlineNanos, futures);</span>
+<span class="fc" id="L149">    long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
+<span class="fc" id="L150">    return getAllWithDeadlineNanos(deadlineNanos, futures);</span>
   }
 
 
@@ -155,20 +155,20 @@ public final class Futures {
   @Nonnull
   public static Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAllWithDeadlineNanos(final long deadlineNanos,
           final Iterable&lt;Future&gt; futures) {
-<span class="nc" id="L158">    Exception exception = null;</span>
+<span class="fc" id="L158">    Exception exception = null;</span>
     Map&lt;Future, Object&gt; results;
-<span class="nc bnc" id="L160" title="All 2 branches missed.">    if (futures instanceof Collection) {</span>
-<span class="nc" id="L161">      results = new HashMap&lt;&gt;(((Collection) futures).size());</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">    if (futures instanceof Collection) {</span>
+<span class="fc" id="L161">      results = new HashMap&lt;&gt;(((Collection) futures).size());</span>
     } else {
 <span class="nc" id="L163">      results = new HashMap&lt;&gt;();</span>
     }
-<span class="nc" id="L165">    Iterator&lt;Future&gt; iterator = futures.iterator();</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">    while (iterator.hasNext()) {</span>
-<span class="nc" id="L167">      Future future = iterator.next();</span>
+<span class="fc" id="L165">    Iterator&lt;Future&gt; iterator = futures.iterator();</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">    while (iterator.hasNext()) {</span>
+<span class="fc" id="L167">      Future future = iterator.next();</span>
       try {
-<span class="nc" id="L169">        final long toNanos = deadlineNanos - System.nanoTime();</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (toNanos &gt; 0) {</span>
-<span class="nc" id="L171">          results.put(future, future.get(toNanos, TimeUnit.NANOSECONDS));</span>
+<span class="fc" id="L169">        final long toNanos = deadlineNanos - System.nanoTime();</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">        if (toNanos &gt; 0) {</span>
+<span class="fc" id="L171">          results.put(future, future.get(toNanos, TimeUnit.NANOSECONDS));</span>
         } else {
 <span class="nc" id="L173">          throw new TimeoutException(&quot;Timed out when about to run &quot; + future);</span>
         }
@@ -189,9 +189,9 @@ public final class Futures {
         } else {
 <span class="nc" id="L190">          exception = Throwables.suppress(exception, ex);</span>
         }
-<span class="nc" id="L192">      }</span>
-<span class="nc" id="L193">    }</span>
-<span class="nc" id="L194">    return Pair.of(results, exception);</span>
+<span class="fc" id="L192">      }</span>
+<span class="fc" id="L193">    }</span>
+<span class="fc" id="L194">    return Pair.of(results, exception);</span>
   }
 
 

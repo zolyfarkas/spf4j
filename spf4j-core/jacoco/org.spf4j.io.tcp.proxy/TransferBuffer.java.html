@@ -78,25 +78,25 @@ public final class TransferBuffer {
 <span class="fc" id="L78">  }</span>
 
   public synchronized int read(final SocketChannel channel) {
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">    if (lastOperation == Operation.WRITE) {</span>
-<span class="nc" id="L82">      buffer.compact();</span>
-<span class="nc" id="L83">      lastOperation = Operation.READ;</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">    if (lastOperation == Operation.WRITE) {</span>
+<span class="fc" id="L82">      buffer.compact();</span>
+<span class="fc" id="L83">      lastOperation = Operation.READ;</span>
     }
     int nrRead;
 <span class="fc" id="L86">    IOException oex = null;</span>
     try {
 <span class="fc" id="L88">      nrRead = channel.read(buffer);</span>
-<span class="pc bpc" id="L89" title="1 of 4 branches missed.">      if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
+<span class="fc bfc" id="L89" title="All 4 branches covered.">      if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
 <span class="fc" id="L90">        nrRead = incomingSniffer.received(buffer, nrRead);</span>
       }
-<span class="nc" id="L92">    } catch (IOException ex) {</span>
-<span class="nc" id="L93">      oex = ex;</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">      if (incomingSniffer == null) {</span>
-<span class="nc" id="L95">        readException = ex;</span>
+<span class="fc" id="L92">    } catch (IOException ex) {</span>
+<span class="fc" id="L93">      oex = ex;</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">      if (incomingSniffer == null) {</span>
+<span class="fc" id="L95">        readException = ex;</span>
       } else {
 <span class="nc" id="L97">        readException = incomingSniffer.received(ex);</span>
       }
-<span class="nc bnc" id="L99" title="All 2 branches missed.">      if (readException != null) {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">      if (readException != null) {</span>
 <span class="nc" id="L100">        LOG.debug(&quot;Exception while reading from {}&quot;, channel, ex);</span>
 <span class="nc" id="L101">        nrRead = -1;</span>
       } else {
@@ -114,8 +114,8 @@ public final class TransferBuffer {
 <span class="fc" id="L114">      isEof = true;</span>
       try {
 <span class="fc" id="L116">        channel.socket().shutdownInput(); // ? is this really necessary?</span>
-<span class="nc" id="L117">      } catch (IOException ex) {</span>
-<span class="nc" id="L118">        throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L117">      } catch (IOException ex) {</span>
+<span class="fc" id="L118">        throw new UncheckedIOException(ex);</span>
 <span class="fc" id="L119">      }</span>
 <span class="pc bpc" id="L120" title="2 of 4 branches missed.">    } else if (oex == null &amp;&amp; buffer.hasRemaining()) {</span>
 <span class="fc" id="L121">      isRoomInBufferHook.run();</span>
@@ -140,20 +140,20 @@ public final class TransferBuffer {
 <span class="nc" id="L140">      } catch (IOException ex1) {</span>
 <span class="nc" id="L141">        ex.addSuppressed(ex1);</span>
 <span class="fc" id="L142">      }</span>
-<span class="fc" id="L143">      LOG.debug(&quot;Exception while writing to {}&quot;, channel, ex);</span>
-<span class="fc" id="L144">      writeException = ex;</span>
-<span class="fc" id="L145">      nrWritten = 0;</span>
+<span class="nc" id="L143">      LOG.debug(&quot;Exception while writing to {}&quot;, channel, ex);</span>
+<span class="nc" id="L144">      writeException = ex;</span>
+<span class="nc" id="L145">      nrWritten = 0;</span>
 <span class="fc" id="L146">    }</span>
 <span class="fc" id="L147">    final boolean hasRemaining = buffer.hasRemaining();</span>
 <span class="pc bpc" id="L148" title="1 of 2 branches missed.">    if (!hasRemaining) {</span>
 <span class="fc bfc" id="L149" title="All 2 branches covered.">      if (isEof) {</span>
         try {
 <span class="fc" id="L151">          channel.socket().shutdownOutput();</span>
-<span class="fc" id="L152">        } catch (ClosedChannelException closed) {</span>
+<span class="nc" id="L152">        } catch (ClosedChannelException closed) {</span>
           //channel is closed already
 <span class="nc" id="L154">        } catch (IOException ex) {</span>
 <span class="nc" id="L155">          throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L156">        }</span>
+<span class="pc" id="L156">        }</span>
 <span class="fc" id="L157">        return nrWritten;</span>
 <span class="pc bpc" id="L158" title="1 of 2 branches missed.">      } else if (readException != null) {</span>
         try {

@@ -153,7 +153,7 @@
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> saveMeasurements(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> tableId,
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeStampMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong>... measurements) <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>       Template.doOnSupplied(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/spf4j/perf/impl/ms/graphite/GraphiteUdpStore.html">HandlerImpl</a>(measurements, Id2Info.getInfo(tableId), timeStampMillis),
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>       Template.doOnSupplied(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/spf4j/perf/impl/ms/graphite/GraphiteTcpStore.html">HandlerImpl</a>(measurements, Id2Info.getInfo(tableId), timeStampMillis),
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>               socketWriterSupplier, 3, 1000, 60000, IOException.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>     } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>       Thread.currentThread().interrupt();
@@ -177,13 +177,13 @@
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>     }
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>   }
 <a class="jxr_linenumber" name="L171" href="#L171">171</a> 
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/spf4j/perf/impl/ms/graphite/GraphiteUdpStore.html">HandlerImpl</a> <strong class="jxr_keyword">implements</strong> Handler&lt;Writer, IOException&gt; {
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/spf4j/perf/impl/ms/graphite/GraphiteTcpStore.html">HandlerImpl</a> <strong class="jxr_keyword">implements</strong> Handler&lt;Writer, IOException&gt; {
 <a class="jxr_linenumber" name="L173" href="#L173">173</a> 
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong>[] measurements;
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/spf4j/perf/MeasurementsInfo.html">MeasurementsInfo</a> measurementInfo;
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeStampMillis;
 <a class="jxr_linenumber" name="L177" href="#L177">177</a> 
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <a href="../../../../../../org/spf4j/perf/impl/ms/graphite/GraphiteUdpStore.html">HandlerImpl</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong>[] measurements, <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/spf4j/perf/MeasurementsInfo.html">MeasurementsInfo</a> measurementInfo,
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <a href="../../../../../../org/spf4j/perf/impl/ms/graphite/GraphiteTcpStore.html">HandlerImpl</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong>[] measurements, <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/spf4j/perf/MeasurementsInfo.html">MeasurementsInfo</a> measurementInfo,
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeStampMillis) {
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>       <strong class="jxr_keyword">this</strong>.measurements = measurements;
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>       <strong class="jxr_keyword">this</strong>.measurementInfo = measurementInfo;
@@ -208,6 +208,6 @@
 <a class="jxr_linenumber" name="L200" href="#L200">200</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

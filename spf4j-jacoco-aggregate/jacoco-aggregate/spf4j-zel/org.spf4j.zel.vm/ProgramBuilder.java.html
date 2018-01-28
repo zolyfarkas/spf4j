@@ -31,7 +31,6 @@
  */
 package org.spf4j.zel.vm;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -41,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.CALLA;
 import org.spf4j.zel.instr.Instruction;
@@ -56,7 +56,7 @@ public final class ProgramBuilder {
     private static final int DEFAULT_SIZE = 16;
 
 <span class="fc" id="L58">    private static final AtomicInteger COUNTER = new AtomicInteger();</span>
-    
+
     private Instruction[] instructions;
 
     private final List&lt;Location&gt; debugInfo;
@@ -270,7 +270,7 @@ public final class ProgramBuilder {
 <span class="fc" id="L270">    private static final class HasDeterministicFunc implements Function&lt;Object, Boolean&gt; {</span>
 
         @Override
-        @SuppressFBWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
+        @SuppressFBWarnings({ &quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;, &quot;NP_BOOLEAN_RETURN_NULL&quot; })
         public Boolean apply(final Object input) {
 <span class="fc bfc" id="L275" title="All 2 branches covered.">            if (input instanceof Program) {</span>
 <span class="fc" id="L276">                Program prog = (Program) input;</span>
@@ -286,23 +286,24 @@ public final class ProgramBuilder {
 <span class="fc" id="L286">    private static final class HasAsyncFunc implements Function&lt;Object, Boolean&gt; {</span>
 
         @Override
-        @SuppressFBWarnings({ &quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot; })
+        @SuppressFBWarnings({ &quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;,
+          &quot;ITC_INHERITANCE_TYPE_CHECKING&quot;, &quot;NP_BOOLEAN_RETURN_NULL&quot; })
         public Boolean apply(final Object input) {
-<span class="fc bfc" id="L291" title="All 2 branches covered.">            if (input instanceof Program) {</span>
-<span class="fc" id="L292">                Program prog = (Program) input;</span>
-<span class="fc bfc" id="L293" title="All 2 branches covered.">                if (prog.getExecType() == Program.ExecutionType.ASYNC) {</span>
-<span class="fc" id="L294">                    return Boolean.TRUE;</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">            if (input instanceof Program) {</span>
+<span class="fc" id="L293">                Program prog = (Program) input;</span>
+<span class="fc bfc" id="L294" title="All 2 branches covered.">                if (prog.getExecType() == Program.ExecutionType.ASYNC) {</span>
+<span class="fc" id="L295">                    return Boolean.TRUE;</span>
                 }
-<span class="fc bfc" id="L296" title="All 2 branches covered.">            } else if (input instanceof CALLA) {</span>
-<span class="fc" id="L297">                return Boolean.TRUE;</span>
+<span class="fc bfc" id="L297" title="All 2 branches covered.">            } else if (input instanceof CALLA) {</span>
+<span class="fc" id="L298">                return Boolean.TRUE;</span>
             }
-<span class="fc" id="L299">            return null;</span>
+<span class="fc" id="L300">            return null;</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L305">        return &quot;ProgramBuilder{&quot; + &quot;instructions=&quot; + Arrays.toString(instructions) + &quot;, debugInfo=&quot; + debugInfo</span>
+<span class="nc" id="L306">        return &quot;ProgramBuilder{&quot; + &quot;instructions=&quot; + Arrays.toString(instructions) + &quot;, debugInfo=&quot; + debugInfo</span>
                 + &quot;, instrNumber=&quot; + instrNumber + &quot;, type=&quot; + type + &quot;, execType=&quot; + execType
                 + &quot;, stringInterner=&quot; + stringInterner + &quot;, staticMemBuilder=&quot; + staticMemBuilder + '}';
     }

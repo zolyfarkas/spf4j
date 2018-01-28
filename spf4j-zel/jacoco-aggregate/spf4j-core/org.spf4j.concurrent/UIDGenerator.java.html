@@ -37,7 +37,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +52,7 @@ import org.spf4j.base.Strings;
 @ParametersAreNonnullByDefault
 public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
 
-<span class="fc" id="L56">  private static final Logger LOG = LoggerFactory.getLogger(UIDGenerator.class);</span>
+<span class="fc" id="L55">  private static final Logger LOG = LoggerFactory.getLogger(UIDGenerator.class);</span>
 
   private final Sequence sequence;
 
@@ -62,20 +61,20 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
   private final int maxSize;
 
   public UIDGenerator(final Sequence sequence) {
-<span class="nc" id="L65">    this(sequence, 0);</span>
-<span class="nc" id="L66">  }</span>
+<span class="nc" id="L64">    this(sequence, 0);</span>
+<span class="nc" id="L65">  }</span>
 
   public UIDGenerator(final Sequence sequence, final String prefix) {
-<span class="nc" id="L69">    this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);</span>
-<span class="nc" id="L70">  }</span>
+<span class="nc" id="L68">    this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);</span>
+<span class="nc" id="L69">  }</span>
 
   public UIDGenerator(final Sequence sequence, final long customEpoch) {
-<span class="fc" id="L73">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
-<span class="fc" id="L74">  }</span>
+<span class="fc" id="L72">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
+<span class="fc" id="L73">  }</span>
 
   public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
-<span class="nc" id="L77">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);</span>
-<span class="nc" id="L78">  }</span>
+<span class="nc" id="L76">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);</span>
+<span class="nc" id="L77">  }</span>
 
   /**
    * Construct a UID Generator
@@ -84,60 +83,78 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
    * @param baseEncoding - if null MAC address based ID will not be included.
    */
   @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
-  public UIDGenerator(final Sequence sequence, @Nullable final BaseEncoding baseEncoding,
-<span class="fc" id="L88">          final long customEpoch, final char separator, final String prefix) {</span>
-<span class="fc" id="L89">    this.sequence = sequence;</span>
-<span class="fc" id="L90">    StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
-<span class="fc" id="L91">    sb.append(prefix);</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (baseEncoding != null) {</span>
-      byte[] intfMac;
-      try {
-<span class="fc" id="L95">        Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
-<span class="pc bpc" id="L96" title="2 of 4 branches missed.">        if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
-          do {
-<span class="fc" id="L98">            intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
-<span class="pc bpc" id="L99" title="2 of 6 branches missed.">          } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">          if (intfMac == null) {</span>
-<span class="nc" id="L101">            LOG.info(&quot;Unable to get interface MAC address for ID generation&quot;);</span>
-<span class="nc" id="L102">            intfMac = new byte[]{0};</span>
-          }
-        } else {
-<span class="nc" id="L105">          LOG.info(&quot;Unable to get interface MAC address for ID generation&quot;);</span>
-<span class="nc" id="L106">          intfMac = new byte[]{0};</span>
+  public UIDGenerator(final Sequence sequence, final BaseEncoding baseEncoding,
+<span class="fc" id="L87">          final long customEpoch, final char separator, final String prefix) {</span>
+<span class="fc" id="L88">    this.sequence = sequence;</span>
+<span class="fc" id="L89">    StringBuilder sb = generateIdBase(prefix, baseEncoding, separator, customEpoch);</span>
+<span class="fc" id="L90">    base = sb;</span>
+<span class="fc" id="L91">    maxSize = base.length() + 16;</span>
+<span class="fc" id="L92">  }</span>
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final char separator) {
+<span class="nc" id="L96">    return generateIdBase(prefix, BaseEncoding.base64Url(), separator, 1509741164184L);</span>
+  }
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final char separator,
+          final long customEpoch) {
+<span class="nc" id="L102">    return generateIdBase(prefix, BaseEncoding.base64Url(), separator, customEpoch);</span>
+  }
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final BaseEncoding baseEncoding, final char separator,
+          final long customEpoch) {
+<span class="fc" id="L108">    StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
+<span class="fc" id="L109">    sb.append(prefix);</span>
+
+    byte[] intfMac;
+    try {
+<span class="fc" id="L113">      Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
+<span class="pc bpc" id="L114" title="2 of 4 branches missed.">      if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
+        do {
+<span class="fc" id="L116">          intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
+<span class="pc bpc" id="L117" title="2 of 6 branches missed.">        } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if (intfMac == null) {</span>
+<span class="nc" id="L119">          LOG.info(&quot;Unable to get interface MAC address for ID generation&quot;);</span>
+<span class="nc" id="L120">          intfMac = new byte[]{0};</span>
         }
-<span class="nc" id="L108">      } catch (SocketException ex) {</span>
-<span class="nc" id="L109">        LOG.info(&quot;Unable to get interface MAC address for ID generation&quot;, ex);</span>
-<span class="nc" id="L110">        intfMac = new byte[]{0};</span>
-<span class="fc" id="L111">      }</span>
-<span class="fc" id="L112">      sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
-    }
-<span class="fc" id="L114">    Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
-<span class="fc" id="L115">    sb.append(separator);</span>
-<span class="fc" id="L116">    Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
-<span class="fc" id="L117">    sb.append(separator);</span>
-<span class="fc" id="L118">    base = sb;</span>
-<span class="fc" id="L119">    maxSize = base.length() + 16;</span>
-<span class="fc" id="L120">  }</span>
+      } else {
+<span class="nc" id="L123">        LOG.info(&quot;Unable to get interface MAC address for ID generation&quot;);</span>
+<span class="nc" id="L124">        intfMac = new byte[]{0};</span>
+      }
+<span class="nc" id="L126">    } catch (SocketException ex) {</span>
+<span class="nc" id="L127">      LOG.info(&quot;Unable to get interface MAC address for ID generation&quot;, ex);</span>
+<span class="nc" id="L128">      intfMac = new byte[]{0};</span>
+<span class="fc" id="L129">    }</span>
+<span class="fc" id="L130">    sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
+
+<span class="fc" id="L132">    Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
+<span class="fc" id="L133">    sb.append(separator);</span>
+<span class="fc" id="L134">    Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
+<span class="fc" id="L135">    sb.append(separator);</span>
+<span class="fc" id="L136">    return sb;</span>
+  }
 
   public int getMaxSize() {
-<span class="nc" id="L123">    return maxSize;</span>
+<span class="nc" id="L140">    return maxSize;</span>
   }
 
   public CharSequence next() {
-<span class="fc" id="L127">    StringBuilder result = new StringBuilder(maxSize);</span>
-<span class="fc" id="L128">    result.append(base);</span>
-<span class="fc" id="L129">    Strings.appendUnsignedString(result, sequence.next(), 5);</span>
-<span class="fc" id="L130">    return result;</span>
+<span class="fc" id="L144">    StringBuilder result = new StringBuilder(maxSize);</span>
+<span class="fc" id="L145">    result.append(base);</span>
+<span class="fc" id="L146">    Strings.appendUnsignedString(result, sequence.next(), 5);</span>
+<span class="fc" id="L147">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L135">    return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
+<span class="nc" id="L152">    return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
   }
 
   @Override
   public CharSequence get() {
-<span class="nc" id="L140">    return next();</span>
+<span class="nc" id="L157">    return next();</span>
   }
 
 }

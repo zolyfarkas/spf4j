@@ -55,46 +55,44 @@
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  @Threads(value = 4)
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">EncodingBenchmark</a> {
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>  
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      @State(Scope.Benchmark)
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> {
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String testString =
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>              <span class="jxr_string">"dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&amp;*($%^&amp;*()(*&amp;^%$#@!&gt;::&gt;&lt;&gt;?{PLKJHGFDEWSDFGh"</span>
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>              + <span class="jxr_string">"dfhgsjhdgfjadghfkjasdklghkjdshgkadhskgjhslfdhgkjadhgjkhalkjdshgfkjadshkfgjalhdskjg"</span>
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>              + <span class="jxr_string">"kdfjhgakjdshglsdhfgkahdlghjadfjklghkjlsdfhgksdlfhlgkhjsdkfljhgkdjsfhsgkjsdfhklgj"</span>;
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> byte [] testBytes;
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>        {
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          testBytes = testString.getBytes(StandardCharsets.UTF_8);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>        }
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>    @State(Scope.Benchmark)
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String testString
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              = <span class="jxr_string">"dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&amp;*($%^&amp;*()(*&amp;^%$#@!&gt;::&gt;&lt;&gt;?{PLKJHGFDEWSDFGh"</span>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              + <span class="jxr_string">"dfhgsjhdgfjadghfkjasdklghkjdshgkadhskgjhslfdhgkjadhgjkhalkjdshgfkjadshkfgjalhdskjg"</span>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              + <span class="jxr_string">"kdfjhgakjdshglsdhfgkahdlghjadfjklghkjlsdfhgksdlfhlgkhjsdkfljhgkdjsfhsgkjsdfhklgj"</span>;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> byte[] testBytes;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>        testBytes = testString.getBytes(StandardCharsets.UTF_8);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>    }
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      @Benchmark
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> byte [] stringEncode(<strong class="jxr_keyword">final</strong> TestData testData) <strong class="jxr_keyword">throws</strong> UnsupportedEncodingException {
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">return</strong> testData.testString.getBytes(<span class="jxr_string">"UTF-8"</span>);
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>      }
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>    @Benchmark
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> byte[] stringEncode(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> testData) <strong class="jxr_keyword">throws</strong> UnsupportedEncodingException {
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">return</strong> testData.testString.getBytes(<span class="jxr_string">"UTF-8"</span>);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>    }
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>  
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      @Benchmark
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> byte [] fastStringEncode(<strong class="jxr_keyword">final</strong> TestData testData) {
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>          <strong class="jxr_keyword">return</strong> Strings.toUtf8(testData.testString);
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>      }
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>    @Benchmark
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> byte[] fastStringEncode(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> testData) {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">return</strong> Strings.toUtf8(testData.testString);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>    }
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>  
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>      @Benchmark
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> String stringDecode(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> testData) <strong class="jxr_keyword">throws</strong> UnsupportedEncodingException {
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(testData.testBytes, <span class="jxr_string">"UTF8"</span>);
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>      }
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>    @Benchmark
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> String stringDecode(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> testData) <strong class="jxr_keyword">throws</strong> UnsupportedEncodingException {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(testData.testBytes, <span class="jxr_string">"UTF8"</span>);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>    }
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>  
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>      @Benchmark
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> String fastStringDecode(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> testData) {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">return</strong> Strings.fromUtf8(testData.testBytes);
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>    @Benchmark
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> String fastStringDecode(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/EncodingBenchmark.html">TestData</a> testData) {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">return</strong> Strings.fromUtf8(testData.testBytes);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>    }
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>  }
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

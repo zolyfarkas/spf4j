@@ -31,13 +31,13 @@
  */
 package org.spf4j.io;
 
-import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
@@ -138,8 +138,8 @@ public final class ByteArrayBuilder extends OutputStream {
         // overflow-conscious code
 <span class="fc" id="L139">        int oldCapacity = buf.length;</span>
 <span class="fc" id="L140">        int newCapacity = oldCapacity &lt;&lt; 1;</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (newCapacity - minCapacity &lt; 0) {</span>
-<span class="nc" id="L142">            newCapacity = minCapacity;</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (newCapacity - minCapacity &lt; 0) {</span>
+<span class="fc" id="L142">            newCapacity = minCapacity;</span>
         }
 <span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (newCapacity - MAX_ARRAY_SIZE &gt; 0) {</span>
 <span class="nc" id="L145">            newCapacity = hugeCapacity(minCapacity);</span>
@@ -261,7 +261,7 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized String toString() {
-<span class="nc" id="L264">        return toString(Charsets.UTF_8);</span>
+<span class="nc" id="L264">        return toString(StandardCharsets.UTF_8);</span>
     }
 
 

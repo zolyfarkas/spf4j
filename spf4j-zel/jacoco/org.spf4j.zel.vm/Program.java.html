@@ -31,8 +31,6 @@
  */
 package org.spf4j.zel.vm;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -40,6 +38,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,6 +47,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -407,13 +407,13 @@ public final class Program implements Serializable {
   }
 
   /**
-   * *
+   *
    * This allows to run ZEL in an interactive mode
    *
    * @param args
    */
+  @SuppressWarnings(&quot;checkstyle:regexp&quot;)
   public static void main(final String[] args) throws IOException, InterruptedException {
-<span class="nc" id="L416">    LOGGER.info(&quot;ZEL Shell&quot;);</span>
 <span class="nc" id="L417">    System.out.println(&quot;ZEL Shell&quot;);</span>
 <span class="nc" id="L418">    Map&lt;String, Integer&gt; localSymTable = Collections.emptyMap();</span>
 <span class="nc" id="L419">    Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; gmemPair = ZEL_GLOBAL_FUNC.build();</span>
@@ -421,7 +421,7 @@ public final class Program implements Serializable {
 <span class="nc" id="L421">    Object[] mem = new Object[]{};</span>
 <span class="nc" id="L422">    Object[] gmem = gmemPair.getFirst();</span>
 <span class="nc" id="L423">    ResultCache resCache = new SimpleResultCache();</span>
-<span class="nc" id="L424">    InputStreamReader inp = new InputStreamReader(System.in, Charsets.UTF_8);</span>
+<span class="nc" id="L424">    InputStreamReader inp = new InputStreamReader(System.in, StandardCharsets.UTF_8);</span>
 <span class="nc" id="L425">    BufferedReader br = new BufferedReader(inp);</span>
 <span class="nc" id="L426">    org.spf4j.base.Runtime.queueHookAtBeginning(new Runnable() {</span>
       @Override
@@ -534,7 +534,7 @@ public final class Program implements Serializable {
 <span class="nc" id="L534">    }</span>
 
     @Override
-    @SuppressFBWarnings(&quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;)
+    @SuppressFBWarnings({ &quot;TBP_TRISTATE_BOOLEAN_PATTERN&quot;, &quot;NP_BOOLEAN_RETURN_NULL&quot; })
     public Boolean apply(@Nonnull final Object input) {
 <span class="nc bnc" id="L539" title="All 2 branches missed.">      if (input.getClass() == instr) {</span>
 <span class="nc" id="L540">        return Boolean.TRUE;</span>

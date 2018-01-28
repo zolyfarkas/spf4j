@@ -69,7 +69,7 @@
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      supplier.replace(Object.<strong class="jxr_keyword">class</strong>, (x) -&gt; objectAppender);
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      supplier.register(ConfigurableAppenderSupplierTest.<strong class="jxr_keyword">class</strong>, testObjAppender);
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      supplier.register(CharSequence.<strong class="jxr_keyword">class</strong>, testObjAppender2);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      supplier.replace(CharSequence.<strong class="jxr_keyword">class</strong>, x -&gt; testObjAppender2);
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>      Assert.assertEquals(testObjAppender, supplier.get(ConfigurableAppenderSupplierTest.<strong class="jxr_keyword">class</strong>));
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>      Assert.assertEquals(objectAppender, supplier.get(Object.<strong class="jxr_keyword">class</strong>));
@@ -91,7 +91,7 @@
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>    @Test
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRegistration() <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>      ConfigurableAppenderSupplier appSupplier = <strong class="jxr_keyword">new</strong> ConfigurableAppenderSupplier(false,
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              ConfigurableAppenderSupplier.NO_FILTER, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/ConfigurableAppenderSupplierTest.html">TestAppender</a>());
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              x -&gt; false, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/ConfigurableAppenderSupplierTest.html">TestAppender</a>());
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>      StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder();
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>      appSupplier.get(String.<strong class="jxr_keyword">class</strong>).append(<span class="jxr_string">"bla"</span>, builder);
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>      Assert.assertEquals(<span class="jxr_string">"blaXX"</span>, builder.toString());
@@ -100,6 +100,6 @@
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

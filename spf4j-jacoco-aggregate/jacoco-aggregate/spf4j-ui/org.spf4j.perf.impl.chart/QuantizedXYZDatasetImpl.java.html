@@ -32,6 +32,8 @@
 package org.spf4j.perf.impl.chart;
 
 import java.io.Serializable;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,8 +43,6 @@ import org.jfree.data.DomainOrder;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.XYZDataset;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.spf4j.base.Arrays;
 import org.spf4j.base.ComparablePair;
 import org.spf4j.perf.impl.Quanta;
@@ -200,63 +200,66 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 <span class="nc bnc" id="L200" title="All 2 branches missed.">    if (data.length == 0) {</span>
 <span class="nc" id="L201">      return tux;</span>
     }
-
-<span class="nc" id="L204">    final DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();</span>
-<span class="nc" id="L205">    final DateTimeFormatter shortFormat = ISODateTimeFormat.dateHour();</span>
-<span class="nc" id="L206">    final DateTimeFormatter mediumFormat = ISODateTimeFormat.dateHourMinute();</span>
-<span class="nc" id="L207">    final long[] timestamps = new long[data[0].length];</span>
-<span class="nc" id="L208">    long time = startTimeMillis;</span>
-<span class="nc bnc" id="L209" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
-<span class="nc" id="L210">      timestamps[i] = time;</span>
-<span class="nc" id="L211">      time += stepMillis;</span>
+<span class="nc" id="L203">    ZoneId systemDefault = ZoneId.systemDefault();</span>
+<span class="nc" id="L204">    final DateTimeFormatter formatter = DateTimeFormatter</span>
+<span class="nc" id="L205">          .ofPattern(&quot;yyyyMMdd'T'HH:mm:ss&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L206">    final DateTimeFormatter shortFormat = DateTimeFormatter</span>
+<span class="nc" id="L207">          .ofPattern(&quot;yyyyMMdd'T'HH&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L208">    final DateTimeFormatter mediumFormat = DateTimeFormatter</span>
+<span class="nc" id="L209">          .ofPattern(&quot;yyyyMMdd'T'HH:mm&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L210">    final long[] timestamps = new long[data[0].length];</span>
+<span class="nc" id="L211">    long time = startTimeMillis;</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
+<span class="nc" id="L213">      timestamps[i] = time;</span>
+<span class="nc" id="L214">      time += stepMillis;</span>
     }
-<span class="nc" id="L213">    tux.add(new TimestampTickUnitImpl(1, timestamps, stepMillis, formatter)); // base</span>
-<span class="nc" id="L214">    long nr = 5000L / stepMillis;</span>
-<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L216">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
+<span class="nc" id="L216">    tux.add(new TimestampTickUnitImpl(1, timestamps, stepMillis, formatter)); // base</span>
+<span class="nc" id="L217">    long nr = 5000L / stepMillis;</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L219">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
     }
 
-<span class="nc" id="L219">    nr = 15000L / stepMillis;</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L221">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
+<span class="nc" id="L222">    nr = 15000L / stepMillis;</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L224">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
     }
     // minute
-<span class="nc" id="L224">    nr = 60000L / stepMillis;</span>
-<span class="nc bnc" id="L225" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L226">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
+<span class="nc" id="L227">    nr = 60000L / stepMillis;</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L229">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
     }
     // 15 minute
-<span class="nc" id="L229">    nr = 900000L / stepMillis;</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L231">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
+<span class="nc" id="L232">    nr = 900000L / stepMillis;</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L234">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
     }
     // hour
-<span class="nc" id="L234">    nr = 3600000L / stepMillis;</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L236">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
+<span class="nc" id="L237">    nr = 3600000L / stepMillis;</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L239">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
     }
     // 6 hour
-<span class="nc" id="L239">    nr = 21600000L / stepMillis;</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L241">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
+<span class="nc" id="L242">    nr = 21600000L / stepMillis;</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L244">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
     }
 
-<span class="nc" id="L244">    return tux;</span>
+<span class="nc" id="L247">    return tux;</span>
   }
 
   public TickUnits createYTickUnits() {
-<span class="nc" id="L248">    TickUnits tu = new TickUnits();</span>
-<span class="nc" id="L249">    final List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; lquantas = this.getQuantas();</span>
-<span class="nc" id="L250">    tu.add(new QuantizedNumberTickUnit(1, lquantas));</span>
-<span class="nc" id="L251">    return tu;</span>
+<span class="nc" id="L251">    TickUnits tu = new TickUnits();</span>
+<span class="nc" id="L252">    final List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; lquantas = this.getQuantas();</span>
+<span class="nc" id="L253">    tu.add(new QuantizedNumberTickUnit(1, lquantas));</span>
+<span class="nc" id="L254">    return tu;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L256">    return &quot;QuantizedXYZDatasetImpl{&quot; + &quot;x=&quot; + java.util.Arrays.toString(x)</span>
-<span class="nc" id="L257">            + &quot;, y=&quot; + java.util.Arrays.toString(y) + &quot;, z=&quot; + java.util.Arrays.toString(z)</span>
+<span class="nc" id="L259">    return &quot;QuantizedXYZDatasetImpl{&quot; + &quot;x=&quot; + java.util.Arrays.toString(x)</span>
+<span class="nc" id="L260">            + &quot;, y=&quot; + java.util.Arrays.toString(y) + &quot;, z=&quot; + java.util.Arrays.toString(z)</span>
             + &quot;, minValue=&quot; + minValue + &quot;, maxValue=&quot; + maxValue + &quot;, quantas=&quot; + quantas
-<span class="nc" id="L259">            + &quot;, data=&quot; + java.util.Arrays.toString(data)</span>
+<span class="nc" id="L262">            + &quot;, data=&quot; + java.util.Arrays.toString(data)</span>
             + &quot;, startTimeMillis=&quot; + startTimeMillis + &quot;, stepMillis=&quot; + stepMillis + '}';
   }
 

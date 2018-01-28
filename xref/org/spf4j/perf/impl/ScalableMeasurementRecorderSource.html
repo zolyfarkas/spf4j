@@ -90,7 +90,7 @@
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> TObjectLongMap&lt;MeasurementsInfo&gt; tableIds;
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorderSource.html">Persister</a> persister;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorder.html">Persister</a> persister;
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Runnable shutdownHook;
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>    <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorderSource.html">ScalableMeasurementRecorderSource</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/MeasurementAccumulator.html">MeasurementAccumulator</a> processor,
@@ -113,7 +113,7 @@
 <a class="jxr_linenumber" name="L105" href="#L105">105</a> 
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>     };
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>     tableIds = <strong class="jxr_keyword">new</strong> TObjectLongHashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>     persister = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorderSource.html">Persister</a>(database, sampleTimeMillis, processor);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     persister = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorder.html">Persister</a>(database, sampleTimeMillis, processor);
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>     samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>     shutdownHook = closeOnShutdown();
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>   }
@@ -308,7 +308,7 @@
 <a class="jxr_linenumber" name="L300" href="#L300">300</a>     getEntitiesMeasurementsAndReset();
 <a class="jxr_linenumber" name="L301" href="#L301">301</a>   }
 <a class="jxr_linenumber" name="L302" href="#L302">302</a> 
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorderSource.html">Persister</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a> {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorder.html">Persister</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a> {
 <a class="jxr_linenumber" name="L304" href="#L304">304</a> 
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/MeasurementStore.html">MeasurementStore</a> database;
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis;
@@ -316,7 +316,7 @@
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">long</strong> lastRun = 0;
 <a class="jxr_linenumber" name="L309" href="#L309">309</a> 
 <a class="jxr_linenumber" name="L310" href="#L310">310</a> 
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>     <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorderSource.html">Persister</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/MeasurementStore.html">MeasurementStore</a> database, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis,
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     <a href="../../../../org/spf4j/perf/impl/ScalableMeasurementRecorder.html">Persister</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/MeasurementStore.html">MeasurementStore</a> database, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis,
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/perf/MeasurementAccumulator.html">MeasurementAccumulator</a> processor) {
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>       <strong class="jxr_keyword">super</strong>(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>       <strong class="jxr_keyword">this</strong>.database = database;
@@ -367,6 +367,6 @@
 <a class="jxr_linenumber" name="L359" href="#L359">359</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

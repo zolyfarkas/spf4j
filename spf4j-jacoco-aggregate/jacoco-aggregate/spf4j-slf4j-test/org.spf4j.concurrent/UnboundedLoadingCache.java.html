@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UnboundedLoadingCache.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UnboundedLoadingCache.java</span></div><h1>UnboundedLoadingCache.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.concurrent;
+
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.MemorizedCallable;
+
+/**
+ *
+ * custom build high performance implementation for a unbounded guava cache: UnboundedLoadingCache is implemented with
+ * JDK concurrent map UnboundedLoadingCache2 is using the JDK 1.8 computing map functionality, but benchmarks show worse
+ * performance.
+ *
+ * Benchmark Mode Cnt Score Error Units CacheBenchmark.guavaCache thrpt 15 29011674.275 ± 710672.413 ops/s
+ * CacheBenchmark.spf4j2Cache thrpt 15 30567248.015 ± 807965.535 ops/s CacheBenchmark.spf4jCache thrpt 15 37961593.882 ±
+ * 1136244.254 ops/s CacheBenchmark.spf4jRacyCache thrpt 15 37553655.751 ± 855349.501 ops/s
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;K, V&gt; {
+
+  private final ConcurrentMap&lt;K, Callable&lt;? extends V&gt;&gt; map;
+
+  private final CacheLoader&lt;K, V&gt; loader;
+
+  public UnboundedLoadingCache(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {
+<span class="fc" id="L73">    this(initialSize, 8, loader);</span>
+<span class="fc" id="L74">  }</span>
+
+<span class="fc" id="L76">  public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="fc" id="L77">    this.map = new ConcurrentHashMap&lt;&gt;(</span>
+            initialSize, 0.75f, concurrency);
+<span class="fc" id="L79">    this.loader = loader;</span>
+<span class="fc" id="L80">  }</span>
+
+  /**
+   * Will use a ConcurrentSkipListMap to store the underlying data.
+   * @param comparator
+   * @param loader
+   */
+<span class="nc" id="L87">  public UnboundedLoadingCache(final Comparator&lt;? super K&gt; comparator, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="nc" id="L88">    this.map = new ConcurrentSkipListMap&lt;&gt;(comparator);</span>
+<span class="nc" id="L89">    this.loader = loader;</span>
+<span class="nc" id="L90">  }</span>
+
+
+  @Override
+  public V get(final K key) throws ExecutionException {
+<span class="fc" id="L95">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (existingValHolder == null) {</span>
+<span class="fc" id="L97">      Callable&lt;? extends V&gt; newHolder = new MemorizedCallable(new Callable&lt;V&gt;() {</span>
+        @Override
+        public V call() throws Exception {
+<span class="fc" id="L100">          return loader.load(key);</span>
+        }
+      });
+<span class="fc" id="L103">      existingValHolder = map.putIfAbsent(key, newHolder);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">      if (existingValHolder == null) {</span>
+<span class="fc" id="L105">        existingValHolder = newHolder;</span>
+      }
+    }
+    try {
+<span class="fc" id="L109">      return existingValHolder.call();</span>
+<span class="fc" id="L110">    } catch (Exception ex) {</span>
+<span class="fc" id="L111">      throw new ExecutionException(ex);</span>
+    }
+
+  }
+
+  @Override
+  public V getUnchecked(final K key) {
+    try {
+<span class="fc" id="L119">      return get(key);</span>
+<span class="nc" id="L120">    } catch (ExecutionException ex) {</span>
+<span class="nc" id="L121">      throw new UncheckedExecutionException(ex);</span>
+    }
+  }
+
+  @Override
+  @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
+  public ImmutableMap&lt;K, V&gt; getAll(final Iterable&lt;? extends K&gt; keys) throws ExecutionException {
+<span class="nc" id="L128">    ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">    for (K key : keys) {</span>
+<span class="nc" id="L130">      builder.put(key, get(key));</span>
+<span class="nc" id="L131">    }</span>
+<span class="nc" id="L132">    return builder.build();</span>
+  }
+
+  @Override
+  public V apply(final K key) {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (key == null) {</span>
+<span class="nc" id="L138">      throw new IllegalArgumentException(&quot;key cannot be null for &quot; + this);</span>
+    } else {
+<span class="nc" id="L140">      return getUnchecked(key);</span>
+    }
+  }
+
+  @Override
+  public void refresh(final K key) {
+<span class="nc" id="L146">    getUnchecked(key);</span>
+<span class="nc" id="L147">  }</span>
+
+  @Override
+  public ConcurrentMap&lt;K, V&gt; asMap() {
+<span class="nc" id="L151">    return new MapView();</span>
+  }
+
+  @Override
+  @Nullable
+  public V getIfPresent(final Object key) {
+<span class="nc" id="L157">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    if (existingValHolder != null) {</span>
+      try {
+<span class="nc" id="L160">        return existingValHolder.call();</span>
+<span class="nc" id="L161">      } catch (Exception ex) {</span>
+<span class="nc" id="L162">        throw new UncheckedExecutionException(ex);</span>
+      }
+    } else {
+<span class="nc" id="L165">      return null;</span>
+    }
+  }
+
+  @Override
+  public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) throws ExecutionException {
+<span class="nc" id="L171">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (existingValHolder == null) {</span>
+<span class="nc" id="L173">      Callable&lt;? extends V&gt; newHolder = new MemorizedCallable(valueLoader);</span>
+<span class="nc" id="L174">      existingValHolder = map.putIfAbsent(key, newHolder);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">      if (existingValHolder == null) {</span>
+<span class="nc" id="L176">        existingValHolder = newHolder;</span>
+      }
+    }
+    try {
+<span class="nc" id="L180">      return existingValHolder.call();</span>
+<span class="nc" id="L181">    } catch (Exception ex) {</span>
+<span class="nc" id="L182">      throw new ExecutionException(ex);</span>
+    }
+  }
+
+  @Override
+  @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
+  public ImmutableMap&lt;K, V&gt; getAllPresent(final Iterable&lt;?&gt; keys) {
+<span class="nc" id="L189">    ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L191">      V val = getIfPresent(key);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">      if (val != null) {</span>
+<span class="nc" id="L193">        builder.put(key, val);</span>
+      }
+<span class="nc" id="L195">    }</span>
+<span class="nc" id="L196">    return builder.build();</span>
+  }
+
+  @Override
+  public void put(final K key, final V value) {
+<span class="nc" id="L201">    map.put(key, (Callable&lt;V&gt;) () -&gt; value);</span>
+<span class="nc" id="L202">  }</span>
+
+  @Override
+  public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
+<span class="nc bnc" id="L206" title="All 2 branches missed.">    for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L207">      put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L208">    }</span>
+<span class="nc" id="L209">  }</span>
+
+  @Override
+  public void invalidate(final Object key) {
+<span class="nc" id="L213">    map.remove(key);</span>
+<span class="nc" id="L214">  }</span>
+
+  @Override
+  public void invalidateAll(final Iterable&lt;?&gt; keys) {
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L219">      invalidate(key);</span>
+<span class="nc" id="L220">    }</span>
+<span class="nc" id="L221">  }</span>
+
+  @Override
+  public void invalidateAll() {
+<span class="fc" id="L225">    map.clear();</span>
+<span class="fc" id="L226">  }</span>
+
+  @Override
+  public long size() {
+<span class="nc" id="L230">    return map.size();</span>
+  }
+
+  @Override
+  public CacheStats stats() {
+<span class="nc" id="L235">    throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
+  }
+
+  @Override
+  @SuppressFBWarnings(&quot;NM_CONFUSING&quot;)
+  public void cleanUp() {
+<span class="nc" id="L241">    map.clear();</span>
+<span class="nc" id="L242">  }</span>
+
+  public Set&lt;K&gt; getKeysLoaded() {
+<span class="nc" id="L245">    return map.keySet();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="fc" id="L250">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
+  }
+
+<span class="nc" id="L253">  private class MapView implements ConcurrentMap&lt;K, V&gt; {</span>
+
+    @Override
+    public V putIfAbsent(final K key, final V value) {
+<span class="nc" id="L257">      Callable&lt;? extends V&gt; result = map.putIfAbsent(key, () -&gt; value);</span>
+      try {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        return result == null ? null : result.call();</span>
+<span class="nc" id="L260">      } catch (Exception ex) {</span>
+<span class="nc" id="L261">        throw new UncheckedExecutionException(ex);</span>
+      }
+    }
+
+    @Override
+    public boolean remove(final Object key, final Object value) {
+<span class="nc" id="L267">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public boolean replace(final K key, final V oldValue, final V newValue) {
+<span class="nc" id="L272">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public V replace(final K key, final V value) {
+<span class="nc" id="L277">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public int size() {
+<span class="nc" id="L282">      return map.size();</span>
+    }
+
+    @Override
+    public boolean isEmpty() {
+<span class="nc" id="L287">      return map.isEmpty();</span>
+    }
+
+    @Override
+    public boolean containsKey(final Object key) {
+<span class="nc" id="L292">      return map.containsKey(key);</span>
+    }
+
+    @Override
+    public boolean containsValue(final Object value) {
+<span class="nc" id="L297">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public V get(final Object key) {
+<span class="nc" id="L302">      Callable&lt;? extends V&gt; result = map.get(key);</span>
+      try {
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        return result == null ? null : result.call();</span>
+<span class="nc" id="L305">      } catch (Exception ex) {</span>
+<span class="nc" id="L306">        throw new UncheckedExecutionException(ex);</span>
+      }
+    }
+
+    @Override
+    public V put(final K key, final V value) {
+<span class="nc" id="L312">      Callable&lt;? extends V&gt; result = map.put(key, () -&gt; value);</span>
+      try {
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        return result == null ? null : result.call();</span>
+<span class="nc" id="L315">      } catch (Exception ex) {</span>
+<span class="nc" id="L316">        throw new UncheckedExecutionException(ex);</span>
+      }
+    }
+
+    @Override
+    public V remove(final Object key) {
+<span class="nc" id="L322">      Callable&lt;? extends V&gt; result = map.remove(key);</span>
+      try {
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        return result == null ? null : result.call();</span>
+<span class="nc" id="L325">      } catch (Exception ex) {</span>
+<span class="nc" id="L326">        throw new UncheckedExecutionException(ex);</span>
+      }
+    }
+
+    @Override
+    public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
+<span class="nc bnc" id="L332" title="All 2 branches missed.">      for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L333">        map.put(entry.getKey(), () -&gt; entry.getValue());</span>
+<span class="nc" id="L334">      }</span>
+<span class="nc" id="L335">    }</span>
+
+    @Override
+    public void clear() {
+<span class="nc" id="L339">      map.clear();</span>
+<span class="nc" id="L340">    }</span>
+
+    @Override
+    public Set&lt;K&gt; keySet() {
+<span class="nc" id="L344">      return map.keySet();</span>
+    }
+
+    @Override
+    public Collection&lt;V&gt; values() {
+<span class="nc" id="L349">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet() {
+<span class="nc" id="L354">      throw new UnsupportedOperationException();</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

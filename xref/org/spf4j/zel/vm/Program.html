@@ -39,23 +39,23 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.zel.vm;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Function;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Strings;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Throwables;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.io.BufferedReader;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.io.InputStreamReader;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.io.Serializable;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.Collections;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Strings;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Throwables;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.io.BufferedReader;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.io.InputStreamReader;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.io.Serializable;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.Collections;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> java.util.function.Function;
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> javax.annotation.CheckReturnValue;
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nonnegative;
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nonnull;
@@ -359,7 +359,7 @@
 <a class="jxr_linenumber" name="L351" href="#L351">351</a>           <strong class="jxr_keyword">final</strong> Object... args)
 <a class="jxr_linenumber" name="L352" href="#L352">352</a>           <strong class="jxr_keyword">throws</strong> ExecutionException, InterruptedException {
 <a class="jxr_linenumber" name="L353" href="#L353">353</a>     Object[] localMem = allocMem(args);
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>     <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> ectx = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a>(<strong class="jxr_keyword">this</strong>, globalMem, localMem, io, execService);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a> ectx = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a>(<strong class="jxr_keyword">this</strong>, globalMem, localMem, io, execService);
 <a class="jxr_linenumber" name="L355" href="#L355">355</a>     <strong class="jxr_keyword">return</strong> execute(ectx);
 <a class="jxr_linenumber" name="L356" href="#L356">356</a>   }
 <a class="jxr_linenumber" name="L357" href="#L357">357</a> 
@@ -381,12 +381,12 @@
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>           <strong class="jxr_keyword">final</strong> Object... args)
 <a class="jxr_linenumber" name="L374" href="#L374">374</a>           <strong class="jxr_keyword">throws</strong> ExecutionException, InterruptedException {
 <a class="jxr_linenumber" name="L375" href="#L375">375</a>     Object[] localMem = allocMem(args);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>     <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> ectx = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a>(<strong class="jxr_keyword">this</strong>, globalMem, localMem,
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>     <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a> ectx = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a>(<strong class="jxr_keyword">this</strong>, globalMem, localMem,
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>             resultCache, io, execService);
 <a class="jxr_linenumber" name="L378" href="#L378">378</a>     <strong class="jxr_keyword">return</strong> Pair.of(execute(ectx), ectx);
 <a class="jxr_linenumber" name="L379" href="#L379">379</a>   }
 <a class="jxr_linenumber" name="L380" href="#L380">380</a> 
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object executeSync(@Nonnull <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> ectx) <strong class="jxr_keyword">throws</strong>
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object executeSync(@Nonnull <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a> ectx) <strong class="jxr_keyword">throws</strong>
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>           ExecutionException, InterruptedException {
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>       <strong class="jxr_keyword">return</strong> ectx.call();
@@ -395,7 +395,7 @@
 <a class="jxr_linenumber" name="L387" href="#L387">387</a>     }
 <a class="jxr_linenumber" name="L388" href="#L388">388</a>   }
 <a class="jxr_linenumber" name="L389" href="#L389">389</a> 
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object execute(@Nonnull <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> ectx)
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Object execute(@Nonnull <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a> ectx)
 <a class="jxr_linenumber" name="L391" href="#L391">391</a>           <strong class="jxr_keyword">throws</strong> ExecutionException, InterruptedException {
 <a class="jxr_linenumber" name="L392" href="#L392">392</a>     Object result = ectx.executeSyncOrAsync();
 <a class="jxr_linenumber" name="L393" href="#L393">393</a>     <strong class="jxr_keyword">if</strong> (result instanceof Future) {
@@ -415,13 +415,13 @@
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>   }
 <a class="jxr_linenumber" name="L408" href="#L408">408</a> 
 <a class="jxr_linenumber" name="L409" href="#L409">409</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L410" href="#L410">410</a> <em class="jxr_javadoccomment">   * *</em>
+<a class="jxr_linenumber" name="L410" href="#L410">410</a> <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L411" href="#L411">411</a> <em class="jxr_javadoccomment">   * This allows to run ZEL in an interactive mode</em>
 <a class="jxr_linenumber" name="L412" href="#L412">412</a> <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L413" href="#L413">413</a> <em class="jxr_javadoccomment">   * @param args</em>
 <a class="jxr_linenumber" name="L414" href="#L414">414</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) <strong class="jxr_keyword">throws</strong> IOException, InterruptedException {
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>     LOGGER.info(<span class="jxr_string">"ZEL Shell"</span>);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) <strong class="jxr_keyword">throws</strong> IOException, InterruptedException {
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>     System.out.println(<span class="jxr_string">"ZEL Shell"</span>);
 <a class="jxr_linenumber" name="L418" href="#L418">418</a>     Map&lt;String, Integer&gt; localSymTable = Collections.emptyMap();
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>     Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; gmemPair = ZEL_GLOBAL_FUNC.build();
@@ -429,7 +429,7 @@
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>     Object[] mem = <strong class="jxr_keyword">new</strong> Object[]{};
 <a class="jxr_linenumber" name="L422" href="#L422">422</a>     Object[] gmem = gmemPair.getFirst();
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>     <a href="../../../../org/spf4j/zel/vm/ResultCache.html">ResultCache</a> resCache = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/SimpleResultCache.html">SimpleResultCache</a>();
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>     InputStreamReader inp = <strong class="jxr_keyword">new</strong> InputStreamReader(System.in, Charsets.UTF_8);
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>     InputStreamReader inp = <strong class="jxr_keyword">new</strong> InputStreamReader(System.in, StandardCharsets.UTF_8);
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>     BufferedReader br = <strong class="jxr_keyword">new</strong> BufferedReader(inp);
 <a class="jxr_linenumber" name="L426" href="#L426">426</a>     org.spf4j.base.Runtime.queueHookAtBeginning(<strong class="jxr_keyword">new</strong> Runnable() {
 <a class="jxr_linenumber" name="L427" href="#L427">427</a>       @Override
@@ -458,7 +458,7 @@
 <a class="jxr_linenumber" name="L450" href="#L450">450</a>             System.out.println(<span class="jxr_string">"type&gt;"</span> +  (result == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"none"</span> : result.getClass()));
 <a class="jxr_linenumber" name="L451" href="#L451">451</a>             System.out.println(<span class="jxr_string">"executed in&gt;"</span> + elapsed + <span class="jxr_string">" ns"</span>);
 <a class="jxr_linenumber" name="L452" href="#L452">452</a> 
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ExecutionContext.html">ExecutionContext</a> execCtx = res.getSecond();
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/base/ExecutionContext.html">ExecutionContext</a> execCtx = res.getSecond();
 <a class="jxr_linenumber" name="L454" href="#L454">454</a>             mem = execCtx.getMem();
 <a class="jxr_linenumber" name="L455" href="#L455">455</a>             resCache = execCtx.getResultCache();
 <a class="jxr_linenumber" name="L456" href="#L456">456</a>           } <strong class="jxr_keyword">catch</strong> (CompileException ex) {
@@ -542,7 +542,7 @@
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>     }
 <a class="jxr_linenumber" name="L535" href="#L535">535</a> 
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>     @Override
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>     @SuppressFBWarnings(<span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>)
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>     @SuppressFBWarnings({ <span class="jxr_string">"TBP_TRISTATE_BOOLEAN_PATTERN"</span>, <span class="jxr_string">"NP_BOOLEAN_RETURN_NULL"</span> })
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>     <strong class="jxr_keyword">public</strong> Boolean apply(@Nonnull <strong class="jxr_keyword">final</strong> Object input) {
 <a class="jxr_linenumber" name="L539" href="#L539">539</a>       <strong class="jxr_keyword">if</strong> (input.getClass() == instr) {
 <a class="jxr_linenumber" name="L540" href="#L540">540</a>         <strong class="jxr_keyword">return</strong> Boolean.TRUE;
@@ -554,6 +554,6 @@
 <a class="jxr_linenumber" name="L546" href="#L546">546</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2017 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>
