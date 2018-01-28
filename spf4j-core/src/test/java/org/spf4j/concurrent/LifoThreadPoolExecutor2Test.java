@@ -92,11 +92,11 @@ public class LifoThreadPoolExecutor2Test {
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING"})
   public static void testPoolThreadDynamics(final ExecutorService executor)
           throws InterruptedException, IOException, ExecutionException {
-    testMaxParallel(executor, 4);
+    testMaxParallel(executor, 4, 3, TimeUnit.SECONDS);
     if (executor instanceof LifoThreadPoolExecutorSQP) {
       LifoThreadPoolExecutorSQP le = (LifoThreadPoolExecutorSQP) executor;
       Assert.assertEquals(4, le.getThreadCount());
-      testMaxParallel(executor, 2);
+      testMaxParallel(executor, 2, 3, TimeUnit.SECONDS);
       Assert.assertEquals(2, le.getThreadCount());
     } else if (executor instanceof ThreadPoolExecutor) {
       ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
@@ -109,7 +109,7 @@ public class LifoThreadPoolExecutor2Test {
         //do nothing
       }
       Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool is at max
-      testMaxParallel(executor, 2);
+      testMaxParallel(executor, 2, 3, TimeUnit.SECONDS);
       Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool sucks.
     } else {
       throw new IllegalStateException("Unsupported " + executor);
@@ -119,12 +119,12 @@ public class LifoThreadPoolExecutor2Test {
     Assert.assertTrue(awaitTermination);
   }
 
-  public static void testMaxParallel(final ExecutorService executor, final int maxParallel)
+  public static void testMaxParallel(final ExecutorService executor, final int maxParallel,
+          final long time, final TimeUnit unit)
           throws InterruptedException {
     final LongAdder adder = new LongAdder();
     final LongAdder exNr = new LongAdder();
     int nrExCaught = 0;
-    final int testCount = 1000;
     long rejected = 0;
     final Runnable runnable = new Runnable() {
       @Override
@@ -145,7 +145,9 @@ public class LifoThreadPoolExecutor2Test {
     };
     long start = System.currentTimeMillis();
     List<Future<?>> futures = new ArrayList<>(maxParallel);
-    for (int i = 0; i < testCount; i++) {
+    long deadlineNanos = System.nanoTime() + unit.toNanos(time);
+    int i = 0;
+    for (; deadlineNanos - System.nanoTime() > 0; i++) {
       futures.add(executor.submit(runnable));
       if (i % maxParallel == 0) {
         nrExCaught += consume(futures);
@@ -155,7 +157,7 @@ public class LifoThreadPoolExecutor2Test {
     LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
             (System.currentTimeMillis() - start));
     LOG.debug("Threads: {}", FastStackCollector.getThreads());
-    Assert.assertEquals(testCount, adder.sum());
+    Assert.assertEquals(i, adder.sum());
     Assert.assertEquals(nrExCaught, exNr.sum());
   }
 
