@@ -23,6 +23,7 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import javax.annotation.Nullable;
@@ -43,7 +44,9 @@ public final class LogPrinter implements LogHandler {
 
   static final String PRINTED = "PRINTED";
 
-  private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_INSTANT;
+  private static final DateTimeFormatter FMT =
+          TestUtils.isExecutedFromIDE() ? DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneId.systemDefault())
+          : DateTimeFormatter.ISO_INSTANT;
 
   private static final ThreadLocal<Buffer> TL_BUFFER = new ThreadLocal<Buffer>() {
     @Override
