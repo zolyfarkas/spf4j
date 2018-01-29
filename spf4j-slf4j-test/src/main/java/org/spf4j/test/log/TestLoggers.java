@@ -75,16 +75,6 @@ public final class TestLoggers implements ILoggerFactory {
     return INSTANCE;
   }
 
-  private static Level minRootLevel(final LogConfig config) {
-    for (Level l : Level.values()) {
-      List<LogHandler> logHandlers = config.getLogHandlers("", l);
-      if (!logHandlers.isEmpty()) {
-        return l;
-      }
-    }
-    return Level.ERROR;
-  }
-
   private TestLoggers() {
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
