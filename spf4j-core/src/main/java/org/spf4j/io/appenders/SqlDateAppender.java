@@ -32,6 +32,7 @@
 package org.spf4j.io.appenders;
 
 import java.sql.Date;
+import org.spf4j.base.DateTimeFormats;
 import org.spf4j.io.ObjectAppender;
 
 /**
@@ -40,9 +41,9 @@ import org.spf4j.io.ObjectAppender;
  */
 public final class SqlDateAppender implements ObjectAppender<Date> {
 
-    @Override
-    public void append(final Date date, final Appendable appendTo) {
-        org.spf4j.base.Runtime.DT_FORMAT.formatTo(date.toLocalDate(), appendTo);
-    }
+  @Override
+  public void append(final Date date, final Appendable appendTo) {
+    DateTimeFormats.DT_FORMAT.formatTo(date.toLocalDate(), appendTo);
+  }
 
 }

@@ -25,6 +25,11 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 import java.util.Iterator;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,7 +50,16 @@ public final class LogPrinter implements LogHandler {
   static final String PRINTED = "PRINTED";
 
   private static final DateTimeFormatter FMT =
-          TestUtils.isExecutedFromIDE() ? DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneId.systemDefault())
+          TestUtils.isExecutedFromIDE() ? new DateTimeFormatterBuilder()
+                .appendValue(HOUR_OF_DAY, 2)
+                .appendLiteral(':')
+                .appendValue(MINUTE_OF_HOUR, 2)
+                .optionalStart()
+                .appendLiteral(':')
+                .appendValue(SECOND_OF_MINUTE, 2)
+                .optionalStart()
+                .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+                .toFormatter().withZone(ZoneId.systemDefault())
           : DateTimeFormatter.ISO_INSTANT;
 
   private static final ThreadLocal<Buffer> TL_BUFFER = new ThreadLocal<Buffer>() {
@@ -182,12 +196,7 @@ public final class LogPrinter implements LogHandler {
     wr.append(' ');
     String level = record.getLevel().toString();
     wr.append(level);
-    int ll = level.length();
-    if (ll < 6) {
-      for (int i = 0, l = 6 - ll; i < l; i++) {
-        wr.append(' ');
-      }
-    }
+    wr.append(' ');
     Marker marker = record.getMarker();
     if (marker != null) {
       printMarker(marker, wr, wrapper);

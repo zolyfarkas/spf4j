@@ -56,9 +56,6 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.base.Reflections.PackageInfo;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -102,8 +99,7 @@ public final class Throwables {
       try {
         suppressedField = Throwable.class.getDeclaredField("suppressedExceptions");
       } catch (NoSuchFieldException | SecurityException ex) {
-        Lazy.LOG.info("No access to suppressed Exceptions", ex);
-        return null;
+        throw new ExceptionInInitializerError(ex);
       }
       suppressedField.setAccessible(true);
       return suppressedField;
@@ -156,12 +152,6 @@ public final class Throwables {
 
   private Throwables() {
   }
-
-  static final class Lazy {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Throwables.Lazy.class);
-  }
-
 
   /**
    * figure out if a Exception is retry-able or not.
@@ -282,29 +272,48 @@ public final class Throwables {
     return chain(t, newRootCause, MAX_THROWABLE_CHAIN);
   }
 
+  public static final class TrimmedException extends Exception {
+
+    public TrimmedException(final String message) {
+      super(message);
+    }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+      return this;
+    }
+  }
+
+
   public static <T extends Throwable> T chain(final T t, final Throwable newRootCause, final int maxChained) {
     int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
     if (chainedExNr >= maxChained) {
-      Lazy.LOG.warn("Trimming exception", newRootCause);
-      return t;
+      T res = clone0(t);
+      res.addSuppressed(new TrimmedException("Max chained excetions exceeded " + maxChained));
+      return res;
     }
     List<Throwable> newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);
     int newChainIdx = 0;
     final int size = newRootCauseChain.size();
     if (chainedExNr + size > maxChained) {
       newChainIdx = size - (maxChained - chainedExNr);
-      Lazy.LOG.warn("Trimming exception at {} ", newChainIdx, newRootCause);
+      t.addSuppressed(new TrimmedException("Trimming exception at " + newChainIdx));
     }
+    T result = clone0(t);
+    chain0(result, newRootCauseChain.get(newChainIdx));
+    return result;
+
+  }
+
+  private static <T extends Throwable> T clone0(final T t) {
     T result;
     try {
       result = Objects.clone(t);
     } catch (RuntimeException ex) {
       result = t;
-      Lazy.LOG.info("Unable to clone exception {}", t, ex);
+      t.addSuppressed(new TrimmedException("Unable to clone exception " + t));
     }
-    chain0(result, newRootCauseChain.get(newChainIdx));
     return result;
-
   }
 
   public static void trimCausalChain(final Throwable t, final int maxSize) {
@@ -339,7 +348,6 @@ public final class Throwables {
     } catch (RuntimeException ex) {
       t.addSuppressed(ex);
       clone = t;
-      Lazy.LOG.debug("Unable to clone exception, will mutate instead", t);
     }
     clone.addSuppressed(suppressed);
     while (getNrRecursiveSuppressedExceptions(clone) > maxSuppressed) {
@@ -428,8 +436,8 @@ public final class Throwables {
       to.append("[^]");
       return;
     }
-    PackageInfo pInfo = Reflections.getPackageInfo(currClassName);
-    if (abbreviatedTraceElement && prevClassName != null && pInfo.equals(Reflections.getPackageInfo(prevClassName))) {
+    PackageInfo pInfo = PackageInfo.getPackageInfo(currClassName);
+    if (abbreviatedTraceElement && prevClassName != null && pInfo.equals(PackageInfo.getPackageInfo(prevClassName))) {
       to.append("[^]");
       return;
     }

@@ -32,6 +32,7 @@
 package org.spf4j.io.appenders;
 
 import java.util.Date;
+import org.spf4j.base.DateTimeFormats;
 import org.spf4j.io.ObjectAppender;
 
 /**
@@ -40,9 +41,9 @@ import org.spf4j.io.ObjectAppender;
  */
 public final class DateAppender implements ObjectAppender<Date> {
 
-    @Override
-    public void append(final Date date, final Appendable appendTo) {
-        org.spf4j.base.Runtime.TS_FORMAT.formatTo(date.toInstant(), appendTo);
-    }
+  @Override
+  public void append(final Date date, final Appendable appendTo) {
+    DateTimeFormats.TS_FORMAT.formatTo(date.toInstant(), appendTo);
+  }
 
 }

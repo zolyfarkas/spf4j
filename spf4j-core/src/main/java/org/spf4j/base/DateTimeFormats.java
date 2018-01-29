@@ -29,21 +29,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.base;
 
-import java.time.Instant;
-import org.spf4j.base.DateTimeFormats;
-import org.spf4j.io.ObjectAppender;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
- *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public final class InstantAppender implements ObjectAppender<Instant> {
+public final class DateTimeFormats {
 
-  @Override
-  public void append(final Instant object, final Appendable appendTo) {
-    DateTimeFormats.TS_FORMAT.formatTo(object, appendTo);
-  }
+  private DateTimeFormats() { }
+
+  public static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();
+
+  public static final DateTimeFormatter TS_FORMAT = DateTimeFormatter
+          .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZone(DEFAULT_ZONE);
+
+  public static final DateTimeFormatter DT_FORMAT = DateTimeFormatter
+          .ofPattern("yyyy-MM-dd").withZone(DEFAULT_ZONE);
 
 }

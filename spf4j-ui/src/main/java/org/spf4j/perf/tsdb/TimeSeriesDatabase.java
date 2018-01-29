@@ -66,6 +66,7 @@ import java.util.concurrent.ConcurrentMap;
 import javax.imageio.ImageIO;
 import org.jfree.chart.JFreeChart;
 import org.spf4j.base.Arrays;
+import org.spf4j.base.DateTimeFormats;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.impl.chart.Charts;
@@ -599,7 +600,7 @@ public final class TimeSeriesDatabase implements Closeable {
   public void writeCsvTable(final String tableName, final File output) throws IOException {
     TSTable table = getTSTable(tableName);
     TimeSeries data = readAll(tableName);
-    DateTimeFormatter formatter = org.spf4j.base.Runtime.TS_FORMAT;
+    DateTimeFormatter formatter = DateTimeFormats.TS_FORMAT;
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
       Csv.writeCsvElement("timestamp", writer);
@@ -622,7 +623,7 @@ public final class TimeSeriesDatabase implements Closeable {
   }
 
   public void writeCsvTables(final List<String> tableNames, final File output) throws IOException {
-    DateTimeFormatter formatter = org.spf4j.base.Runtime.TS_FORMAT;
+    DateTimeFormatter formatter = DateTimeFormats.TS_FORMAT;
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
       String firstTable = tableNames.get(0);

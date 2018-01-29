@@ -83,7 +83,7 @@ public class Slf4jMessageFormatterTest {
     StringBuilder sb = new StringBuilder();
     final long currentTimeMillis = System.currentTimeMillis();
     Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, new java.sql.Date(currentTimeMillis));
-    Assert.assertEquals("bla bla " + org.spf4j.base.Runtime.DT_FORMAT.format(Instant.now()), sb.toString());
+    Assert.assertEquals("bla bla " + DateTimeFormats.DT_FORMAT.format(Instant.now()), sb.toString());
     sb.setLength(0);
     AMethod method = AMethod.newBuilder().setName("m1").setDeclaringClass("c1").build();
     int written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method);

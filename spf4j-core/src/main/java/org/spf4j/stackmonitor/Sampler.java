@@ -50,6 +50,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
+import org.spf4j.base.DateTimeFormats;
 import org.spf4j.base.IntMath;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jmx.JmxExport;
@@ -237,8 +238,8 @@ public final class Sampler {
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
     String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
-            + org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(lastDumpTime)) + '_'
-            + org.spf4j.base.Runtime.TS_FORMAT.format(Instant.now()) + ".ssdump2");
+            + DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(lastDumpTime)) + '_'
+            + DateTimeFormats.TS_FORMAT.format(Instant.now()) + ".ssdump2");
     File file = new File(fileName);
     return dumpToFile(file);
   }

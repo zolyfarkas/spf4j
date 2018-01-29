@@ -31,16 +31,13 @@
  */
 package org.spf4j.base;
 
-import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.beans.ConstructorProperties;
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -54,7 +51,6 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.security.AccessController;
-import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,8 +69,6 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
 public final class Reflections {
 
   private static final Logger LOG = LoggerFactory.getLogger(Reflections.class);
-
-  private static final PackageInfo NONE = new PackageInfo(null, null);
 
   private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
 
@@ -516,22 +510,6 @@ public final class Reflections {
 
 
   /**
-   * Useful to get the jar URL where a particular class is located.
-   *
-   * @param clasz
-   * @return
-   */
-  @Nullable
-  public static URL getJarSourceUrl(final Class<?> clasz) {
-    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();
-    if (codeSource == null) {
-      return null;
-    } else {
-      return codeSource.getLocation();
-    }
-  }
-
-  /**
    * Get the manifest of a jar file.
    *
    * @param jarUrl
@@ -545,102 +523,6 @@ public final class Reflections {
       return jis.getManifest();
     }
   }
-
-  public static final class PackageInfo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    private final String url;
-    private final String version;
-
-    @ConstructorProperties({"url", "version"})
-    public PackageInfo(@Nullable final String url, @Nullable final String version) {
-      this.url = url;
-      this.version = version;
-    }
-
-    @Nullable
-    public String getUrl() {
-      return url;
-    }
-
-    @Nullable
-    public String getVersion() {
-      return version;
-    }
-
-    @Override
-    @SuppressFBWarnings("DMI_BLOCKING_METHODS_ON_URL")
-    public int hashCode() {
-      if (url != null) {
-        return url.hashCode();
-      } else {
-        return 0;
-      }
-    }
-
-    public boolean hasInfo() {
-      return url != null || version != null;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() != obj.getClass()) {
-        return false;
-      }
-      final PackageInfo other = (PackageInfo) obj;
-      if (!java.util.Objects.equals(this.url, other.url)) {
-        return false;
-      }
-      return java.util.Objects.equals(this.version, other.version);
-    }
-
-    @Override
-    public String toString() {
-      return "PackageInfo{" + "url=" + url + ", version=" + version + '}';
-    }
-
-  }
-
-  @Nonnull
-  public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
-    Class<?> aClass;
-    try {
-      aClass = Class.forName(className);
-    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.
-      return NONE;
-    }
-    return getPackageInfoDirect(aClass);
-  }
-
-  @Nonnull
-  public static PackageInfo getPackageInfoDirect(@Nonnull final Class<?> aClass) {
-    URL jarSourceUrl = Reflections.getJarSourceUrl(aClass);
-    final Package aPackage = aClass.getPackage();
-    if (aPackage == null) {
-      return NONE;
-    }
-    String version = aPackage.getImplementationVersion();
-    return new PackageInfo(jarSourceUrl == null ? "" : jarSourceUrl.toString(), version);
-  }
-
-  @Nonnull
-  public static PackageInfo getPackageInfo(@Nonnull final String className) {
-    return CACHE.getUnchecked(className);
-  }
-
-  private static final LoadingCache<String, PackageInfo> CACHE = CacheBuilder.newBuilder()
-          .weakKeys().weakValues().build(new CacheLoader<String, PackageInfo>() {
-
-            @Override
-            public PackageInfo load(final String key) {
-              return getPackageInfoDirect(key);
-            }
-          });
-
 
   /**
    * create a proxy instance that will proxy interface methods to static methods on the target class.

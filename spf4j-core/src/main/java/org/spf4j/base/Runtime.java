@@ -43,8 +43,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -77,14 +75,6 @@ import org.spf4j.unix.UnixRuntime;
  * @author zoly
  */
 public final class Runtime {
-
-  public static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();
-
-  public static final DateTimeFormatter TS_FORMAT = DateTimeFormatter
-          .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZone(DEFAULT_ZONE);
-
-  public static final DateTimeFormatter DT_FORMAT = DateTimeFormatter
-          .ofPattern("yyyy-MM-dd").withZone(DEFAULT_ZONE);
 
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
   public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
@@ -589,8 +579,8 @@ public final class Runtime {
   public static final class Jmx {
 
     @JmxExport
-    public static Reflections.PackageInfo getPackageInfo(@JmxExport("className") final String className) {
-      return Reflections.getPackageInfo(className);
+    public static PackageInfo getPackageInfo(@JmxExport("className") final String className) {
+      return PackageInfo.getPackageInfo(className);
     }
 
     @JmxExport

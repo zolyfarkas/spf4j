@@ -41,8 +41,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 
@@ -53,8 +51,6 @@ import org.spf4j.reflect.GraphTypeMap;
 @Beta
 @ParametersAreNonnullByDefault
 public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplier {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ConfigurableAppenderSupplier.class);
 
 
   private final CachingTypeMapWrapper<ObjectAppender> appenderMap;
@@ -76,7 +72,8 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
         Class<?> appenderType = getAppenderType(appender);
         if (!except.test(appenderType)) {
           if (!register((Class) appenderType, (ObjectAppender) appender)) {
-            LOG.warn("Attempting to register duplicate appender({}) for {} ", appender, appenderType);
+            throw new IllegalArgumentException("Attempting to register duplicate appender(" + appender + ") for "
+                    + appenderType);
           }
         }
       }

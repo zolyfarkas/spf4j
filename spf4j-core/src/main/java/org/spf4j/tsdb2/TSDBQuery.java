@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.spf4j.base.DateTimeFormats;
 import org.spf4j.base.Either;
 import org.spf4j.base.Strings;
 import org.spf4j.io.Csv;
@@ -255,7 +256,7 @@ public final class TSDBQuery {
     long[] timestamps = data.getTimeStamps();
     long[][] values = data.getValues();
     for (int i = 0; i < timestamps.length; i++) {
-      Csv.writeCsvElement(org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);
+      Csv.writeCsvElement(DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);
       for (long val : values[i]) {
         writer.append(',');
         Csv.writeCsvElement(Long.toString(val), writer);
@@ -290,7 +291,7 @@ public final class TSDBQuery {
         for (int i = 0; i < timestamps.length; i++) {
           Csv.writeCsvElement(tEntry.getKey(), writer);
           writer.append(',');
-          Csv.writeCsvElement(org.spf4j.base.Runtime.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);
+          Csv.writeCsvElement(DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);
           for (long val : values[i]) {
             writer.append(',');
             Csv.writeCsvElement(Long.toString(val), writer);
