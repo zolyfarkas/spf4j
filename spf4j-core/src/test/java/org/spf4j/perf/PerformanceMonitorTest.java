@@ -74,6 +74,6 @@ public final class PerformanceMonitorTest {
 
     });
     Assert.assertEquals("test", result);
-    expect.assertSeen();
+    expect.assertObservation();
   }
 }
