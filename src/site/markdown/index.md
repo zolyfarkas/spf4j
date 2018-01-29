@@ -6,7 +6,7 @@
 
  The spf4j library is a collection of utilities and components to monitor, troubleshoot and fix performance issues.
  This library also contains useful general purpose utilities and components that are currently not available in 
- high quality form in other OS libraries (Retry utils, object pool...)
+ high quality form in other OS libraries (Retry utils, object pool, [test logging backend](http://www.spf4j.org/spf4j-slf4j-test/index.html) ...)
  This library also contains ZEL, a simple expression language that can be easily used in any java application.
  Zel is easy to extend to your needs and also has some cool features like async functions, memorization...
  You can learn more by checking out the [spf4j-zel](http://www.spf4j.org/spf4j-zel/index.html) module.
