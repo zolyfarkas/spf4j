@@ -75,7 +75,6 @@ public final class TestLoggers implements ILoggerFactory {
     return INSTANCE;
   }
 
-
   private TestLoggers() {
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
