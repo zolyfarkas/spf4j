@@ -23,8 +23,8 @@ final class DefaultAsserter implements LogHandler {
   public static final String ASSERTED = "ASSERTED";
 
   @Override
-  public boolean handles(final Level level) {
-    return level == Level.ERROR;
+  public Handling handles(final Level level) {
+    return level == Level.ERROR ? Handling.HANDLE_CONSUME : Handling.NONE;
   }
 
   @Override

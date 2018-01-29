@@ -43,9 +43,9 @@ public class TestLoggerFactoryTest {
       logTests();
       logMarkerTests();
       LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-              LogMatchers.hasFormat(Matchers.equalTo("Booo")));
+              LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
-      expect.assertSeen();
+      expect.assertObservation();
     }
   }
 
@@ -71,13 +71,13 @@ public class TestLoggerFactoryTest {
     LOG.warn("Hello logger {} {} {}", 1, 2, 3);
     LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR, 4,
-            LogMatchers.hasFormat(Matchers.containsString("Hello logger")));
+            LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")));
     LOG.error("Hello logger", new RuntimeException());
     LOG.error("Hello logger");
     LOG.error("Hello logger {}", 1);
     LOG.error("Hello logger {} {} {}", 1, 2, 3);
     LOG.error("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-    expect.assertSeen();
+    expect.assertObservation();
   }
 
   public static void logMarkerTests() {
@@ -108,14 +108,14 @@ public class TestLoggerFactoryTest {
     LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR, 4,
             Matchers.allOf(
-              LogMatchers.hasFormat(Matchers.containsString("Hello logger")),
-              LogMatchers.hasMarker(Matchers.equalTo(marker))));
+              LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")),
+              LogMatchers.hasMarker(marker)));
     LOG.error(marker, "Hello logger", new RuntimeException());
     LOG.error(marker, "Hello logger");
     LOG.error(marker, "Hello logger {}", 1);
     LOG.error(marker, "Hello logger {} {} {}", 1, 2, 3);
     LOG.error(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-    expect.assertSeen();
+    expect.assertObservation();
   }
 
   @Test
@@ -140,38 +140,52 @@ public class TestLoggerFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testLogging2() {
-    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-            LogMatchers.hasFormat(Matchers.equalTo("Booo")));
+    LogAssert expect = TestLoggers.config().dontExpect("org.spf4j.test", Level.ERROR,
+            LogMatchers.hasFormat("Booo"));
     LOG.error("Booo", new RuntimeException());
-    expect.assertNotSeen();
+    expect.assertObservation();
   }
 
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLoggingJul() {
     LogAssert expect = TestLoggers.config().expect("my.test", Level.DEBUG,
-            LogMatchers.hasFormat(Matchers.equalTo("Bla Bla")),
-            LogMatchers.hasFormat(Matchers.equalTo("Boo Boo param")));
+            LogMatchers.hasFormat("Bla Bla"),
+            LogMatchers.hasFormat("Boo Boo param"));
     java.util.logging.Logger logger = java.util.logging.Logger.getLogger("my.test");
     logger.info("Bla Bla");
     logger.log(java.util.logging.Level.FINE, "Boo Boo {0}", "param");
-    expect.assertSeen();
+    expect.assertObservation();
   }
 
+
+  @Test
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  public void testIgnore() {
+    TestLoggers config = TestLoggers.config();
+    try (HandlerRegistration ir = config.ignore("org.spf4j.test", Level.DEBUG, Level.ERROR)) {
+      LogAssert assrt = config.expect("", Level.TRACE, LogMatchers.hasFormat("trace"));
+      LogAssert assrt2 = config.dontExpect("", Level.DEBUG, LogMatchers.hasFormat("Bla bla"));
+      LOG.debug("Bla bla");
+      LOG.trace("trace");
+      assrt.assertObservation();
+      assrt2.assertObservation();
+    }
+  }
 
   @Test(expected = AssertionError.class)
   public void testLogging3() {
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-            LogMatchers.hasFormat(Matchers.equalTo("Booo")));
-    expect.assertSeen();
+            LogMatchers.hasFormat("Booo"));
+    expect.assertObservation();
   }
 
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLogging33() {
-    LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-            LogMatchers.hasFormat(Matchers.equalTo("Booo")));
-    expect.assertNotSeen();
+    LogAssert expect = TestLoggers.config().dontExpect("org.spf4j.test", Level.ERROR,
+            LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
+    expect.assertObservation();
   }
 
   @Ignore

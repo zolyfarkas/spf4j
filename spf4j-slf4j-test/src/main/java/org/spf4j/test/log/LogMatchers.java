@@ -27,31 +27,43 @@ public final class LogMatchers {
 
   private LogMatchers() { }
 
-  public static Matcher<LogRecord> hasFormat(final Matcher<String> tMatcher) {
+  public static Matcher<LogRecord> hasMatchingFormat(final Matcher<String> tMatcher) {
     return Matchers.hasProperty("format", tMatcher);
   }
 
-  public static Matcher<LogRecord> hasMarker(final Matcher<Marker> tMatcher) {
+  public static Matcher<LogRecord> hasFormat(final String format) {
+    return Matchers.hasProperty("format", Matchers.equalTo(format));
+  }
+
+  public static Matcher<LogRecord> hasMatchingMarker(final Matcher<Marker> tMatcher) {
     return Matchers.hasProperty("marker", tMatcher);
   }
 
-  public static Matcher<LogRecord> hasMessage(final Matcher<String> tMatcher) {
+  public static Matcher<LogRecord> hasMarker(final Marker marker) {
+    return Matchers.hasProperty("marker", Matchers.equalTo(marker));
+  }
+
+  public static Matcher<LogRecord> hasMatchingMessage(final Matcher<String> tMatcher) {
     return Matchers.hasProperty("message", tMatcher);
+  }
+
+  public static Matcher<LogRecord> hasMessage(final String message) {
+    return Matchers.hasProperty("message", Matchers.equalTo(message));
   }
 
   public static Matcher<LogRecord> hasLevel(final Level level) {
     return Matchers.hasProperty("level", Matchers.equalTo(level));
   }
 
-  public static Matcher<LogRecord> hasArguments(final Matcher<Object[]> matcher) {
+  public static Matcher<LogRecord> hasMatchingArguments(final Matcher<Object[]> matcher) {
      return Matchers.hasProperty("arguments", matcher);
   }
 
-  public static Matcher<LogRecord> hasExtraArguments(final Matcher<Object[]> matcher) {
+  public static Matcher<LogRecord> hasMatchingExtraArguments(final Matcher<Object[]> matcher) {
      return Matchers.hasProperty("extraArguments", matcher);
   }
 
-  public static Matcher<LogRecord> hasExtraThrowable(final Matcher<Throwable> matcher) {
+  public static Matcher<LogRecord> hasMatchingExtraThrowable(final Matcher<Throwable> matcher) {
      return Matchers.hasProperty("firstExtraThrowable", matcher);
   }
 

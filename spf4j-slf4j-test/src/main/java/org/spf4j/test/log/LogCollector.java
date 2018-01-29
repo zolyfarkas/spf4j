@@ -41,8 +41,8 @@ public abstract class LogCollector implements  LogHandler, LogCollectionHandler 
   }
 
   @Override
-  public final boolean handles(final Level level) {
-    return level.ordinal() >= minLevelToCollect.ordinal();
+  public final Handling handles(final Level level) {
+    return level.ordinal() >= minLevelToCollect.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;
   }
 
   @Override

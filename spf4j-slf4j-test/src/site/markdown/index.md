@@ -52,12 +52,12 @@ with tons of debug info dumped to output all the time. But making it available w
         ..
       }
 
- Assert Logging behavior:
+ Assert that you expect message to be logged:
 
       LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
                 LogMatchers.hasFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
-      expect.assertSeen(); // whithout assert the unit test fails when logging an error.
+      expect.assertObservation(); // whithout assert the unit test fails when logging an error.
 
  Assert uncaught exceptions:
 

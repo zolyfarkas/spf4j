@@ -33,21 +33,24 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private int at;
 
-  LogMatchingHandler(final Level minLevel, final Matcher<LogRecord>... matchers) {
+  private final boolean assertSeen;
+
+  LogMatchingHandler(final boolean assertSeen, final Level minLevel, final Matcher<LogRecord>... matchers) {
     if (matchers.length < 1) {
       throw new IllegalArgumentException("You need to provide at least a matcher " + Arrays.toString(matchers));
     }
     this.matchers = matchers;
     this.at = 0;
     this.minLevel = minLevel;
+    this.assertSeen = assertSeen;
   }
 
   abstract void unregister();
 
 
   @Override
-  public boolean handles(final Level level) {
-    return level.ordinal() >= minLevel.ordinal();
+  public Handling handles(final Level level) {
+    return level.ordinal() >= minLevel.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;
   }
 
   @Override
@@ -60,11 +63,20 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     return record;
   }
 
+  @Override
+  public void assertObservation() {
+    if (assertSeen) {
+      assertSeen();
+    } else {
+      assertNotSeen();
+    }
+  }
+
+
   /**
    * Assert that a sequence of leg messages has been seen.
    */
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  @Override
   public void assertSeen() {
     unregister();
     if (at < matchers.length) {
@@ -82,7 +94,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   /**
    * Assert that a sequence of messages has not been seen.
    */
-  @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void assertNotSeen() {
     unregister();

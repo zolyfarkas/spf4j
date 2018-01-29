@@ -106,8 +106,8 @@ public final class LogPrinter implements LogHandler {
    * {@inheritDoc}
    */
   @Override
-  public boolean handles(final Level level) {
-    return level.ordinal() >= minLogged.ordinal();
+  public Handling handles(final Level level) {
+    return level.ordinal() >= minLogged.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;
   }
 
   /**

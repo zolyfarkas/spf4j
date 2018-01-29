@@ -15,20 +15,37 @@
  */
 package org.spf4j.test.log;
 
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import edu.umd.cs.findbugs.annotations.DischargesObligation;
-
 /**
- *
  * @author Zoltan Farkas
  */
-@CleanupObligation
-public interface LogAssert {
+final class ConsumeAllLogs implements LogHandler {
 
-  /**
-   * Assert that a sequence of messages has not been seen.
-   */
-  @DischargesObligation
-  void assertObservation();
+  private final Level from;
+
+  private final Level to;
+
+  ConsumeAllLogs(final Level from, final Level to) {
+    this.from = from;
+    this.to = to;
+  }
+
+
+
+  @Override
+  public Handling handles(final Level level) {
+    int ordinal = level.ordinal();
+    return  (from.ordinal() <= ordinal && to.ordinal() >= ordinal)
+            ?  Handling.HANDLE_CONSUME : Handling.NONE;
+  }
+
+  @Override
+  public LogRecord handle(final LogRecord record) {
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return "ConsumeAllLogs{" + "from=" + from + ", to=" + to + '}';
+  }
 
 }

@@ -40,13 +40,9 @@ import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
 public final class TestLoggers implements ILoggerFactory {
 
   private static final Map<Level, java.util.logging.Level> LEV_MAP = new EnumMap<>(Level.class);
+
   /**
-   * FINEST  -> TRACE
-   * FINER   -> DEBUG
-   * FINE    -> DEBUG
-   * INFO    -> INFO
-   * WARNING -> WARN
-   * SEVERE  -> ERROR
+   * FINEST -> TRACE FINER -> DEBUG FINE -> DEBUG INFO -> INFO WARNING -> WARN SEVERE -> ERROR
    */
   static {
     LEV_MAP.put(Level.TRACE, java.util.logging.Level.FINEST);
@@ -56,7 +52,7 @@ public final class TestLoggers implements ILoggerFactory {
     LEV_MAP.put(Level.ERROR, java.util.logging.Level.SEVERE);
   }
 
- private static final TestLoggers INSTANCE = new TestLoggers();
+  private static final TestLoggers INSTANCE = new TestLoggers();
 
   private final ConcurrentMap<String, Logger> loggerMap;
 
@@ -125,10 +121,28 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   /**
+   * all logs from category and spcified levels will be ignored... (unless there are more specific handlers)
+   */
+  @CheckReturnValue
+  public HandlerRegistration ignore(final String category, final Level from, final Level to) {
+    ConsumeAllLogs consumeAllLogs = new ConsumeAllLogs(from, to);
+    synchronized (sync) {
+      config = config.add(category, consumeAllLogs);
+      resetJulConfig();
+    }
+    return () -> {
+      synchronized (sync) {
+        config = config.remove(category, consumeAllLogs);
+        resetJulConfig();
+      }
+    };
+  }
+
+  /**
    * Create an log expectation that can be asserted like:
    *
    * LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR, Matchers.hasProperty("format",
-   * Matchers.equalTo("Booo"))); LOG.error("Booo", new RuntimeException()); expect.assertSeen();
+   * Matchers.equalTo("Booo"))); LOG.error("Booo", new RuntimeException()); expect.assertObservation();
    *
    *
    * @param category the category under which we should expect theese messages.
@@ -139,7 +153,19 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
-    LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel, matchers) {
+    return logAssert(true, minimumLogLevel, category, matchers);
+  }
+
+  @CheckReturnValue
+  public LogAssert dontExpect(final String category, final Level minimumLogLevel,
+          final Matcher<LogRecord>... matchers) {
+    return logAssert(false, minimumLogLevel, category, matchers);
+  }
+
+
+  private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
+          final String category, final Matcher<LogRecord>... matchers) {
+    LogMatchingHandler handler = new LogMatchingHandler(assertSeen, minimumLogLevel, matchers) {
 
       private boolean isClosed = false;
 

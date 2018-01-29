@@ -26,12 +26,14 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface LogHandler {
 
+  enum Handling { HANDLE_PASS, HANDLE_CONSUME, NONE }
+
   /**
    * find out if this handler should be used for the given log level.
    * @param level the log level.
    * @return true if this handler should be invoked for this level, false otherwise.
    */
-  boolean handles(Level level);
+  Handling handles(Level level);
 
   /**
    * Handler handling method

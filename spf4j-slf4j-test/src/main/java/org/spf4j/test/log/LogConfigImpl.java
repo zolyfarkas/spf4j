@@ -104,7 +104,9 @@ final class LogConfigImpl implements LogConfig {
     for (Map.Entry<String, List<LogHandler>> entry : logHandlers.tailMap(category).entrySet()) {
       String key = entry.getKey();
       if (category.startsWith(key)) {
-        addAll(level, entry.getValue(), res);
+        if (addAll(level, entry.getValue(), res)) {
+          return res;
+        }
       } else if (key.charAt(0) != category.charAt(0)) {
         break;
       }
@@ -113,12 +115,25 @@ final class LogConfigImpl implements LogConfig {
     return res;
   }
 
-  private static void addAll(final Level level, final List<LogHandler> from, final List<LogHandler> to) {
+  private static boolean addAll(final Level level, final List<LogHandler> from, final List<LogHandler> to) {
     for (LogHandler handler : from) {
-      if (handler.handles(level)) {
-        to.add(handler);
+      LogHandler.Handling handling = handler.handles(level);
+      switch (handling) {
+        case HANDLE_CONSUME:
+          if (!(handler instanceof ConsumeAllLogs)) {
+            to.add(handler);
+          }
+          return true;
+        case HANDLE_PASS:
+          to.add(handler);
+          break;
+        case NONE:
+          break;
+        default:
+          throw new UnsupportedOperationException("Not known " + handling);
       }
     }
+    return false;
   }
 
   Level minRootLevel() {
