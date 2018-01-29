@@ -62,7 +62,8 @@ public final class PerformanceMonitorAspect {
         }
     });
 
-    @Around(value = "execution(@org.spf4j.annotations.PerformanceMonitor * *(..)) && @annotation(annot)",
+    @Around(value = "execution(@org.spf4j.annotations.PerformanceMonitor * *(..))"
+            + " && @annotation(org.spf4j.annotations.PerformanceMonitor annot)",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {

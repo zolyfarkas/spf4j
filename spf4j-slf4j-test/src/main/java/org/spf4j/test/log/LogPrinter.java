@@ -69,6 +69,8 @@ public final class LogPrinter implements LogHandler {
     }
   };
 
+  private static final ObjectAppenderSupplier TO_STRINGER = ObjectAppenderSupplier.TO_STRINGER;
+
   private final Level minLogged;
 
   private static final class Buffer {
@@ -208,7 +210,7 @@ public final class LogPrinter implements LogHandler {
     wr.append("\" \"");
     Object[] arguments = record.getArguments();
     int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getFormat(),
-            ObjectAppenderSupplier.TO_STRINGER, arguments);
+            TO_STRINGER, arguments);
     wr.append("\" ");
     Throwable t = null;
     if (i < arguments.length) {
@@ -248,7 +250,7 @@ public final class LogPrinter implements LogHandler {
       wr.append("null");
     } else {
       wr.append('"');
-      ObjectAppenderSupplier.TO_STRINGER.apply(obj.getClass()).append(obj, wrapper);
+      TO_STRINGER.apply(obj.getClass()).append(obj, wrapper);
       wr.append('"');
     }
   }
