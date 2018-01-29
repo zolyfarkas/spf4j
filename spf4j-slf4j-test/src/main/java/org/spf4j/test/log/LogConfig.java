@@ -16,10 +16,12 @@
 package org.spf4j.test.log;
 
 import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public interface LogConfig {
 
   List<LogHandler> getLogHandlers(String category, Level level);

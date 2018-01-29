@@ -1,4 +1,4 @@
-# spf4j-slf4j-test the module that allows to better take advantage of Logging in your unit tests.
+# spf4j-slf4j-test the module that allows you to leverage logging in unit tests.
 
 ## 1. Overview
 
@@ -13,12 +13,12 @@
  *  Make debug logs available on unit test failure. This helps performance a lot by not requiring you to run your unit tests
 with tons of debug info dumped to output all the time. But making it available when you actually need it (Unit test failure)
  *  Easily change logging configuration via API.
- *  Handle uncaught exceptions from other threads and fail tests.
- *  No configurable format, It is the best format so everybody should be using it. If anything is missing it will be enhanced.
+ *  Uncaught exceptions from other threads will fail your tests. You can assert them if they are expected.
+ *  No configurable format, It is the best format so everybody should be using it. Format will be evolved as needed.
 
 ## 2. How to use it.
 
- Add to your pom.xml dependency section:
+ Add to your pom.xml dependency section (make sure it is ahead of other slf4j backends you might have in your classpath):
 
     <dependency>
       <groupId>org.spf4j</groupId>
@@ -27,7 +27,7 @@ with tons of debug info dumped to output all the time. But making it available w
       <version>LATEST</version>
     </dependency>
 
- Register the junit runListener in your surefire plugin config
+ Register the junit runListener in your surefire plugin config:
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -55,7 +55,7 @@ with tons of debug info dumped to output all the time. But making it available w
  Assert Logging behavior:
 
       LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-                Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+                LogMatchers.hasFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertSeen(); // whithout assert the unit test fails when logging an error.
 

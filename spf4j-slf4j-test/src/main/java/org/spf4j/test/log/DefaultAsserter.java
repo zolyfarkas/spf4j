@@ -32,7 +32,7 @@ final class DefaultAsserter implements LogHandler {
     if (!record.hasAttachment(ASSERTED)) {
       throw new AssertionError("Most test should not log errors, if a error scenario is validated,"
               + " please assert this behavior using TestLoggers.expect, received:\n" + record,
-              record.getFirstExtraThrowable());
+              record.getExtraThrowable());
     }
     return record;
   }

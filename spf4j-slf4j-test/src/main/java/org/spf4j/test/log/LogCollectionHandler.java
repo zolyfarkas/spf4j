@@ -18,11 +18,10 @@ package org.spf4j.test.log;
 import java.util.function.Consumer;
 
 /**
- *
  * @author Zoltan Farkas
  */
 public interface LogCollectionHandler extends HandlerRegistration {
 
-  void forEach(Consumer<LogRecord> consumer);
+  int forEach(Consumer<LogRecord> consumer);
 
 }

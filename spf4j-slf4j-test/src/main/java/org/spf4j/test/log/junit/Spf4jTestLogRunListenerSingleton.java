@@ -19,6 +19,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -29,6 +30,7 @@ import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogCollectionHandler;
 import org.spf4j.test.log.LogPrinter;
+import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 
@@ -98,13 +100,24 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   public void dumpDebugInfo(final LogCollectionHandler handler, final Description description,
           final Throwable failure) {
     handler.close();
-    LOG.info("Test {} failed", description, failure);
-    LOG.info("Dumping last {} unprinted logs for {}", maxDebugLogsCollected, description);
     final String annotation = description.toString() + ' ';
-    handler.forEach((record) -> {
-      LogPrinter.printToStderr(record, annotation);
+    int nr = handler.forEach(new Consumer<LogRecord>() {
+
+      private boolean first = true;
+
+      @Override
+      public void accept(final LogRecord record) {
+        if (first) {
+          LOG.info("Test {} failed", description, failure);
+          LOG.info("Dumping last {} unprinted logs for {}", maxDebugLogsCollected, description);
+          first = false;
+        }
+        LogPrinter.printToStderr(record, annotation);
+      }
     });
-    LOG.info("End dump for {}", description);
+    if (nr > 0) {
+      LOG.info("End dump for {}", description);
+    }
   }
 
   @Override

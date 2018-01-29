@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,12 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
 /**
  * @author Zoltan Farkas
  */
 @Immutable
+@ParametersAreNonnullByDefault
 final class LogConfigImpl implements LogConfig {
 
   private static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
@@ -40,22 +43,21 @@ final class LogConfigImpl implements LogConfig {
     }
   };
 
-  private final List<LogHandler> rootHandler;
+  private final ImmutableList<LogHandler> rootHandler;
 
   private final SortedMap<String, List<LogHandler>> logHandlers;
 
-  LogConfigImpl(final List<LogHandler> rootHandler, final Map<String, List<LogHandler>> catHandlers) {
+  LogConfigImpl(final ImmutableList<LogHandler> rootHandler, final Map<String, List<LogHandler>> catHandlers) {
     this.rootHandler = rootHandler;
     logHandlers = new TreeMap<>(REV_STR_COMPARATOR);
     logHandlers.putAll(catHandlers);
   }
 
   LogConfigImpl add(final String category, final LogHandler handler) {
-    List<LogHandler> rh;
+    ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
-    if (category == null || category.isEmpty()) {
-      rh = new ArrayList<>(rootHandler);
-      rh.add(handler);
+    if (category.isEmpty()) {
+      rh = ImmutableList.<LogHandler>builder().addAll(rootHandler).add(handler).build();
       ch = logHandlers;
     } else {
       rh = rootHandler;
@@ -72,11 +74,10 @@ final class LogConfigImpl implements LogConfig {
 
 
   LogConfigImpl remove(final String category, final LogHandler handler) {
-    List<LogHandler> rh;
+    ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
-    if (category == null || category.isEmpty()) {
-      rh = new ArrayList<>(rootHandler);
-      rh.remove(handler);
+    if (category.isEmpty()) {
+      rh = rootHandler.stream().filter((h) ->  h != handler).collect(ImmutableList.toImmutableList());
       ch = logHandlers;
     } else {
       rh = rootHandler;
@@ -94,16 +95,17 @@ final class LogConfigImpl implements LogConfig {
 
   @Override
   public List<LogHandler> getLogHandlers(final String category, final Level level) {
+    if (category.isEmpty() || logHandlers.isEmpty()) {
+      return rootHandler;
+    }
     ArrayList<LogHandler> res = HNDLRS.get();
     res.clear();
-    if (!logHandlers.isEmpty()) {
-      for (Map.Entry<String, List<LogHandler>> entry : logHandlers.tailMap(category).entrySet()) {
-        String key = entry.getKey();
-        if (category.startsWith(key)) {
-          addAll(level, entry.getValue(), res);
-        } else if (key.charAt(0) != category.charAt(0)) {
-          break;
-        }
+    for (Map.Entry<String, List<LogHandler>> entry : logHandlers.tailMap(category).entrySet()) {
+      String key = entry.getKey();
+      if (category.startsWith(key)) {
+        addAll(level, entry.getValue(), res);
+      } else if (key.charAt(0) != category.charAt(0)) {
+        break;
       }
     }
     addAll(level, rootHandler, res);
@@ -116,6 +118,16 @@ final class LogConfigImpl implements LogConfig {
         to.add(handler);
       }
     }
+  }
+
+  Level minRootLevel() {
+    for (Level l : Level.values()) {
+      List<LogHandler> rlh = getLogHandlers("", l);
+      if (!rlh.isEmpty()) {
+        return l;
+      }
+    }
+    return Level.ERROR;
   }
 
   @Override

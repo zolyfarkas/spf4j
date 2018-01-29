@@ -69,9 +69,10 @@ public abstract class LogCollector implements  LogHandler, LogCollectionHandler 
   }
 
   @Override
-  public final void forEach(final Consumer<LogRecord> consumer) {
+  public final int forEach(final Consumer<LogRecord> consumer) {
     synchronized (records) {
       records.stream().forEach(consumer);
+      return records.size();
     }
   }
 
@@ -80,7 +81,5 @@ public abstract class LogCollector implements  LogHandler, LogCollectionHandler 
     return "DebugLogCollector{" + "minLevelToCollect=" + minLevelToCollect + ", maxLogsToCollect="
             + maxLogsToCollect + '}';
   }
-
-
 
 }

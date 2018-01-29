@@ -130,7 +130,7 @@ public final class LogRecord {
   }
 
   @Nullable
-  public synchronized Throwable getFirstExtraThrowable() {
+  public synchronized Throwable getExtraThrowable() {
     materializeMessage();
     for (int i = startExtra; i < arguments.length; i++) {
       Object argument = arguments[i];

@@ -16,9 +16,11 @@
 package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -37,7 +39,24 @@ import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class TestLoggers implements ILoggerFactory {
 
-  private static final TestLoggers INSTANCE = new TestLoggers();
+  private static final Map<Level, java.util.logging.Level> LEV_MAP = new EnumMap<>(Level.class);
+  /**
+   * FINEST  -> TRACE
+   * FINER   -> DEBUG
+   * FINE    -> DEBUG
+   * INFO    -> INFO
+   * WARNING -> WARN
+   * SEVERE  -> ERROR
+   */
+  static {
+    LEV_MAP.put(Level.TRACE, java.util.logging.Level.FINEST);
+    LEV_MAP.put(Level.DEBUG, java.util.logging.Level.FINER);
+    LEV_MAP.put(Level.INFO, java.util.logging.Level.INFO);
+    LEV_MAP.put(Level.WARN, java.util.logging.Level.WARNING);
+    LEV_MAP.put(Level.ERROR, java.util.logging.Level.SEVERE);
+  }
+
+ private static final TestLoggers INSTANCE = new TestLoggers();
 
   private final ConcurrentMap<String, Logger> loggerMap;
 
@@ -50,26 +69,34 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julGlobal;
 
+  private final java.util.logging.Logger julRoot;
+
   public static TestLoggers config() {
     return INSTANCE;
   }
+
 
   private TestLoggers() {
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
-    julGlobal = java.util.logging.Logger.getLogger("global");
-    julGlobal.setLevel(java.util.logging.Level.parse(
-            System.getProperty("spf4j.testLog.julRedirectLevel", "FINEST")));
-
     loggerMap = new ConcurrentHashMap<String, Logger>();
     Level rootPrintLevel = TestUtils.isExecutedFromIDE()
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
             : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
-    config = new LogConfigImpl(Arrays.asList(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
+    config = new LogConfigImpl(ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
             Collections.EMPTY_MAP);
+    julGlobal = java.util.logging.Logger.getGlobal();
+    julRoot = java.util.logging.Logger.getLogger("");
+    resetJulConfig();
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
     sync = new Object();
+  }
+
+  private void resetJulConfig() {
+    java.util.logging.Level julLevel = LEV_MAP.get(config.minRootLevel());
+    julGlobal.setLevel(julLevel);
+    julRoot.setLevel(julLevel);
   }
 
   public LogConfig getConfig() {
@@ -88,10 +115,12 @@ public final class TestLoggers implements ILoggerFactory {
     LogPrinter logPrinter = new LogPrinter(level);
     synchronized (sync) {
       config = config.add(category, logPrinter);
+      resetJulConfig();
     }
     return () -> {
       synchronized (sync) {
         config = config.remove(category, logPrinter);
+        resetJulConfig();
       }
     };
   }
@@ -121,6 +150,7 @@ public final class TestLoggers implements ILoggerFactory {
           if (!isClosed) {
             config = config.remove(category, this);
             isClosed = true;
+            resetJulConfig();
           }
         }
       }
@@ -128,6 +158,7 @@ public final class TestLoggers implements ILoggerFactory {
     };
     synchronized (sync) {
       config = config.add(category, handler);
+      resetJulConfig();
     }
     return handler;
   }
@@ -177,12 +208,14 @@ public final class TestLoggers implements ILoggerFactory {
           if (!isClosed) {
             config = config.remove("", this);
             isClosed = true;
+            resetJulConfig();
           }
         }
       }
     };
     synchronized (sync) {
       config = config.add("", handler);
+      resetJulConfig();
     }
     return handler;
   }

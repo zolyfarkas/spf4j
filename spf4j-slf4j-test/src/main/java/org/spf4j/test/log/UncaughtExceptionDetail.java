@@ -15,6 +15,9 @@
  */
 package org.spf4j.test.log;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+
 /**
  * @author Zoltan Farkas
  */
@@ -41,7 +44,12 @@ public final class UncaughtExceptionDetail {
     return "UncaughtException{" + "thread=" + thread + ", throwable=" + throwable + '}';
   }
 
+  public static Matcher<UncaughtExceptionDetail> hasThrowable(final Matcher<Throwable> tMatcher) {
+    return Matchers.hasProperty("throwable", tMatcher);
+  }
 
-
+  public static Matcher<UncaughtExceptionDetail> hasThread(final Matcher<Thread> tMatcher) {
+    return Matchers.hasProperty("thread", tMatcher);
+  }
 
 }
