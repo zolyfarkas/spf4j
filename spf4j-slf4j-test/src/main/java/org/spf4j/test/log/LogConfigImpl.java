@@ -95,11 +95,12 @@ final class LogConfigImpl implements LogConfig {
 
   @Override
   public List<LogHandler> getLogHandlers(final String category, final Level level) {
-    if (category.isEmpty() || logHandlers.isEmpty()) {
-      return rootHandler;
-    }
     ArrayList<LogHandler> res = HNDLRS.get();
     res.clear();
+    if (category.isEmpty() || logHandlers.isEmpty()) {
+      addAll(level, rootHandler, res);
+      return res;
+    }
     for (Map.Entry<String, List<LogHandler>> entry : logHandlers.tailMap(category).entrySet()) {
       String key = entry.getKey();
       if (category.startsWith(key)) {
