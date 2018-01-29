@@ -43,7 +43,7 @@ public class TestLoggerFactoryTest {
       logTests();
       logMarkerTests();
       LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-              Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+              LogMatchers.hasFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertSeen();
     }
@@ -71,7 +71,7 @@ public class TestLoggerFactoryTest {
     LOG.warn("Hello logger {} {} {}", 1, 2, 3);
     LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR, 4,
-            Matchers.hasProperty("format", Matchers.containsString("Hello logger")));
+            LogMatchers.hasFormat(Matchers.containsString("Hello logger")));
     LOG.error("Hello logger", new RuntimeException());
     LOG.error("Hello logger");
     LOG.error("Hello logger {}", 1);
@@ -108,8 +108,8 @@ public class TestLoggerFactoryTest {
     LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR, 4,
             Matchers.allOf(
-              Matchers.hasProperty("format", Matchers.containsString("Hello logger")),
-              Matchers.hasProperty("marker", Matchers.equalTo(marker))));
+              LogMatchers.hasFormat(Matchers.containsString("Hello logger")),
+              LogMatchers.hasMarker(Matchers.equalTo(marker))));
     LOG.error(marker, "Hello logger", new RuntimeException());
     LOG.error(marker, "Hello logger");
     LOG.error(marker, "Hello logger {}", 1);
@@ -141,15 +141,28 @@ public class TestLoggerFactoryTest {
   @Test(expected = AssertionError.class)
   public void testLogging2() {
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-            Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+            LogMatchers.hasFormat(Matchers.equalTo("Booo")));
     LOG.error("Booo", new RuntimeException());
     expect.assertNotSeen();
   }
 
+  @Test
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  public void testLoggingJul() {
+    LogAssert expect = TestLoggers.config().expect("my.test", Level.DEBUG,
+            LogMatchers.hasFormat(Matchers.equalTo("Bla Bla")),
+            LogMatchers.hasFormat(Matchers.equalTo("Boo Boo param")));
+    java.util.logging.Logger logger = java.util.logging.Logger.getLogger("my.test");
+    logger.info("Bla Bla");
+    logger.log(java.util.logging.Level.FINE, "Boo Boo {0}", "param");
+    expect.assertSeen();
+  }
+
+
   @Test(expected = AssertionError.class)
   public void testLogging3() {
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-            Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+            LogMatchers.hasFormat(Matchers.equalTo("Booo")));
     expect.assertSeen();
   }
 
@@ -157,7 +170,7 @@ public class TestLoggerFactoryTest {
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLogging33() {
     LogAssert expect = TestLoggers.config().expect("org.spf4j.test", Level.ERROR,
-            Matchers.hasProperty("format", Matchers.equalTo("Booo")));
+            LogMatchers.hasFormat(Matchers.equalTo("Booo")));
     expect.assertNotSeen();
   }
 
@@ -181,7 +194,7 @@ public class TestLoggerFactoryTest {
     TestLoggers config = TestLoggers.config();
     AsyncObservationAssert obs = config
             .expectUncaughtException(
-                    Matchers.hasProperty("throwable", Matchers.equalTo(ex)));
+                    UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(ex)));
     thread.start();
     obs.assertObservation(5, TimeUnit.SECONDS);
   }
@@ -192,7 +205,7 @@ public class TestLoggerFactoryTest {
     TestLoggers config = TestLoggers.config();
     AsyncObservationAssert obs = config
             .expectUncaughtException(
-                    Matchers.hasProperty("throwable", Matchers.equalTo(new IllegalStateException())));
+                    UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(new IllegalStateException())));
     try {
       obs.assertObservation(5, TimeUnit.SECONDS);
       Assert.fail();

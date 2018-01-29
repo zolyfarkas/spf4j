@@ -19,6 +19,9 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -37,7 +40,24 @@ import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class TestLoggers implements ILoggerFactory {
 
-  private static final TestLoggers INSTANCE = new TestLoggers();
+  private static final Map<Level, java.util.logging.Level> LEV_MAP = new EnumMap<>(Level.class);
+  /**
+   * FINEST  -> TRACE
+   * FINER   -> DEBUG
+   * FINE    -> DEBUG
+   * INFO    -> INFO
+   * WARNING -> WARN
+   * SEVERE  -> ERROR
+   */
+  static {
+    LEV_MAP.put(Level.TRACE, java.util.logging.Level.FINEST);
+    LEV_MAP.put(Level.DEBUG, java.util.logging.Level.FINER);
+    LEV_MAP.put(Level.INFO, java.util.logging.Level.INFO);
+    LEV_MAP.put(Level.WARN, java.util.logging.Level.WARNING);
+    LEV_MAP.put(Level.ERROR, java.util.logging.Level.SEVERE);
+  }
+
+ private static final TestLoggers INSTANCE = new TestLoggers();
 
   private final ConcurrentMap<String, Logger> loggerMap;
 
@@ -50,24 +70,38 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julGlobal;
 
+  private final java.util.logging.Logger julRoot;
+
   public static TestLoggers config() {
     return INSTANCE;
+  }
+
+  private static Level minRootLevel(final LogConfig config) {
+    for (Level l : Level.values()) {
+      List<LogHandler> logHandlers = config.getLogHandlers("", l);
+      if (!logHandlers.isEmpty()) {
+        return l;
+      }
+    }
+    return Level.ERROR;
   }
 
   private TestLoggers() {
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
-    julGlobal = java.util.logging.Logger.getLogger("global");
-    julGlobal.setLevel(java.util.logging.Level.parse(
-            System.getProperty("spf4j.testLog.julRedirectLevel", "FINEST")));
-
     loggerMap = new ConcurrentHashMap<String, Logger>();
     Level rootPrintLevel = TestUtils.isExecutedFromIDE()
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
             : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
     config = new LogConfigImpl(Arrays.asList(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
             Collections.EMPTY_MAP);
+    julGlobal = java.util.logging.Logger.getGlobal();
+    julRoot = java.util.logging.Logger.getLogger("");
+    java.util.logging.Level julLevel = LEV_MAP.get(minRootLevel(config));
+    julGlobal.setLevel(julLevel);
+    julRoot.setLevel(julLevel);
+
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
     sync = new Object();
   }
