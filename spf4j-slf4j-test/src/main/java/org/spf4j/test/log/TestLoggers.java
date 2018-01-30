@@ -59,7 +59,7 @@ public final class TestLoggers implements ILoggerFactory {
   private final Object sync;
 
   @GuardedBy("sync")
-  private volatile LogConfigImpl config;
+  private volatile LogConfig config;
 
   private final Function<String, Logger> computer;
 
@@ -79,8 +79,9 @@ public final class TestLoggers implements ILoggerFactory {
     Level rootPrintLevel = TestUtils.isExecutedFromIDE()
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
             : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
-    config = new LogConfigImpl(ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
-            Collections.EMPTY_MAP);
+    config = new CachedLogConfig(new LogConfigImpl(
+            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
+            Collections.EMPTY_MAP));
     julGlobal = java.util.logging.Logger.getGlobal();
     julRoot = java.util.logging.Logger.getLogger("");
     resetJulConfig();

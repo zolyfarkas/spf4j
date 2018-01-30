@@ -45,7 +45,8 @@ final class LogConfigImpl implements LogConfig {
     logHandlers.putAll(catHandlers);
   }
 
-  LogConfigImpl add(final String category, final LogHandler handler) {
+  @Override
+  public LogConfigImpl add(final String category, final LogHandler handler) {
     ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category.isEmpty()) {
@@ -65,7 +66,8 @@ final class LogConfigImpl implements LogConfig {
   }
 
 
-  LogConfigImpl remove(final String category, final LogHandler handler) {
+  @Override
+  public LogConfigImpl remove(final String category, final LogHandler handler) {
     ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category.isEmpty()) {
@@ -126,16 +128,6 @@ final class LogConfigImpl implements LogConfig {
       }
     }
     return false;
-  }
-
-  Level minRootLevel() {
-    for (Level l : Level.values()) {
-      List<LogHandler> rlh = getLogHandlers("", l);
-      if (!rlh.isEmpty()) {
-        return l;
-      }
-    }
-    return Level.ERROR;
   }
 
   @Override

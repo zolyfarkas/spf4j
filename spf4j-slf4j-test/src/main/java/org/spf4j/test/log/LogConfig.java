@@ -26,4 +26,19 @@ public interface LogConfig {
 
   List<LogHandler> getLogHandlers(String category, Level level);
 
+  LogConfig add(String category, LogHandler handler);
+
+  LogConfig remove(String category, LogHandler handler);
+
+  default Level minRootLevel() {
+    for (Level l : Level.values()) {
+      List<LogHandler> rlh = getLogHandlers("", l);
+      if (!rlh.isEmpty()) {
+        return l;
+      }
+    }
+    return Level.ERROR;
+  }
+
+
 }
