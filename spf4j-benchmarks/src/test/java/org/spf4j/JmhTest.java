@@ -40,7 +40,6 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
 import org.spf4j.stackmonitor.Spf4jJmhProfiler;
 
 /**
@@ -61,11 +60,11 @@ public final class JmhTest {
     final String profile = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
-            //.include(".*Crc.*")
+            .include(".*TestLogger.*")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
-            .addProfiler(JmhFlightRecorderProfiler.class)
+//            .addProfiler(JmhFlightRecorderProfiler.class)
             .addProfiler(Spf4jJmhProfiler.class)
             //                .addProfiler(GCProfiler.class)
             //"-XX:+PrintCompilation", "-XX:+UseG1GC", "-XX:MinTLABSize=1m", "-XX:MaxInlineLevel=12"
