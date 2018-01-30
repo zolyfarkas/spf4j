@@ -31,7 +31,7 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class TestLoggerBenchmark {
 
-  private static final LogConfigImpl cfg = new LogConfigImpl(
+  private static final LogConfigImpl CFG = new LogConfigImpl(
           ImmutableList.of(new LogPrinter(Level.INFO), new DefaultAsserter(),
                   new LogCollector(Level.DEBUG, 100, false) {
             @Override
@@ -39,16 +39,16 @@ public class TestLoggerBenchmark {
             }
           }), Collections.EMPTY_MAP);
 
-  private static final LogConfig cached = new CachedLogConfig(cfg);
+  private static final LogConfig CACHED_CFG = new CachedLogConfig(CFG);
 
   @Benchmark
   public final int testSimple() {
-    return cfg.getLogHandlers("org.spf4j", Level.DEBUG).size();
+    return CFG.getLogHandlers("org.spf4j", Level.DEBUG).size();
   }
 
   @Benchmark
   public final int testCachedSimple() {
-    return cached.getLogHandlers("org.spf4j", Level.DEBUG).size();
+    return CACHED_CFG.getLogHandlers("org.spf4j", Level.DEBUG).size();
   }
 
 }
