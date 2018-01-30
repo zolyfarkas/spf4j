@@ -31,16 +31,15 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class TestLoggerBenchmark {
 
+  private static final LogConfigImpl cfg = new LogConfigImpl(
+          ImmutableList.of(new LogPrinter(Level.INFO), new DefaultAsserter(),
+                  new LogCollector(Level.DEBUG, 100, false) {
+            @Override
+            public void close() {
+            }
+          }), Collections.EMPTY_MAP);
 
-private static final LogConfigImpl cfg = new LogConfigImpl(
-        ImmutableList.of(new LogPrinter(Level.INFO), new DefaultAsserter(), new LogCollector(Level.DEBUG, 100, false) {
-          @Override
-          public void close() {
-          }
-        }),Collections.EMPTY_MAP);
-
-
-private static final LogConfig cached = new CachedLogConfig(cfg);
+  private static final LogConfig cached = new CachedLogConfig(cfg);
 
   @Benchmark
   public final int testSimple() {
