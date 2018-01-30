@@ -84,7 +84,6 @@ public final class Runtime {
   public static final String USER_DIR = System.getProperty("user.dir");
   public static final String USER_HOME = System.getProperty("user.home");
   public static final String JAVA_HOME = System.getProperty("java.home");
-  private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
 
   /**
    * Unix PID identifying your process in the OC image it is running.
@@ -92,16 +91,17 @@ public final class Runtime {
   public static final int PID;
   public static final String OS_NAME;
   public static final String PROCESS_NAME;
-
   /**
    * a unique ID for this JVM process.
    * PID@HOSTNAME:HEXNR
    */
   public static final String PROCESS_ID;
   public static final int NR_PROCESSORS;
+  public static final Version JAVA_PLATFORM;
+
+  private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
-  public static final Version JAVA_PLATFORM;
   private static final List<Class<?>> PRELOADED = new ArrayList<>(2);
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
@@ -272,6 +272,7 @@ public final class Runtime {
   public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
     try {
       if (t != null) {
+        error(OS_NAME, t);
         Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first
         Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT); //getting more curageous :-)
         Lazy.LOGGER.error("Error, going down with exit code {}", exitCode, t); //Now we are pushing it...
