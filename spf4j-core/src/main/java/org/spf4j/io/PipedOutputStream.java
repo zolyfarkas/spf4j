@@ -51,8 +51,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 /**
  * Equivalent to Java piped input/output stream.
  *
- * This implementation supports timeouts, timeout are specified by setting the org.spf4j.base.runtime.DEADLINE thread
- * local.
+ * This implementation supports timeouts, timeout are specified by setting in the ExecutionContext
  *
  * Implementation supports multiple readers and writers.
  *
@@ -63,8 +62,8 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  * @author zoly
  */
 @ThreadSafe
-//CHECKSTYLE IGNORE InnerAssignment FOR NEXT 2000 LINES
 @CleanupObligation
+@SuppressWarnings("checkstyle:InnerAssignment")
 public final class PipedOutputStream extends OutputStream {
 
   private byte[] buffer;
@@ -96,6 +95,9 @@ public final class PipedOutputStream extends OutputStream {
     this(null, bufferSize, bufferProvider);
   }
 
+  /**
+   * @deprecated use constructor that takes globalDeadlineNanos.
+   */
   @Deprecated
   public PipedOutputStream(final int bufferSize,
           final SizedRecyclingSupplier<byte[]> bufferProvider, @Nullable final Long globalDeadlineMillis) {
