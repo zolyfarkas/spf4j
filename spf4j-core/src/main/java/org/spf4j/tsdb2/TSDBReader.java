@@ -127,7 +127,7 @@ public final  class TSDBReader implements Closeable {
           if (CORUPTION_LENIENT) {
             return null;
           } else {
-            throw new IOException("Error reading tsdb file " + this, ex);
+            throw new IOException("Error reading tsdb file at " + position + ", this= " + this, ex);
           }
         }
         if (result instanceof TableDef) {
