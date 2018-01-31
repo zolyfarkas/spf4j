@@ -54,7 +54,7 @@ public class ExecutionContextTest {
       Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
       Assert.assertThat(unitsToDeadline, Matchers.greaterThanOrEqualTo(9L));
       Future<?> submit = DefaultExecutor.INSTANCE.submit(() -> {
-        try (ExecutionContext subCtx = ec.subCtx()) {
+        try (ExecutionContext subCtx = ExecutionContexts.start(ec)) {
           long utd = ExecutionContexts.current().getUnitsToDeadline(TimeUnit.SECONDS);
           Assert.assertThat(utd, Matchers.lessThanOrEqualTo(10L));
           Assert.assertThat(utd, Matchers.greaterThanOrEqualTo(9L));

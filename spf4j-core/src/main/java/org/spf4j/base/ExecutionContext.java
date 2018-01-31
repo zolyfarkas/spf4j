@@ -32,16 +32,21 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  *
  * @author Zoltan Farkas
  */
+@CleanupObligation
+@ParametersAreNonnullByDefault
 public interface ExecutionContext extends AutoCloseable {
 
+  @DischargesObligation
   void close();
 
   long getDeadlineNanos();
@@ -52,22 +57,27 @@ public interface ExecutionContext extends AutoCloseable {
      return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
   }
 
+
+  /**
+   * Method to get baggage.
+   * @param <T> type of baggage.
+   * @param clasz class of baggage.
+   * @return the baggage
+   */
   @Nullable
   @Beta
-  <T> T get(@Nonnull Class<T> clasz);
+  <T> T get(Class<T> clasz);
 
+
+  /**
+   * Method to put baggage.
+   * @param <T> type of baggage.
+   * @param data the baggage.
+   * @return existing baggage if there.
+   */
   @Nullable
   @Beta
-  <T> T put(@Nonnull T data);
+  <T> T put(T data);
 
-  default ExecutionContext subCtx() {
-    return subCtx(getDeadlineNanos());
-  }
-
-  default ExecutionContext subCtx(final long timeout, final TimeUnit tu) {
-    return subCtx(TimeSource.getDeadlineNanos(timeout, tu));
-  }
-
-  ExecutionContext subCtx(long pdeadlineNanos);
 
 }

@@ -32,7 +32,6 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
 import java.util.Map;
@@ -43,12 +42,7 @@ import javax.annotation.Nullable;
  *
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-final class BasicExecutionContext implements ExecutionContext {
-  /**
-   * The previous context on Thread.
-   */
-  private final ExecutionContext tParent;
+abstract class BasicExecutionContext implements ExecutionContext {
 
   private final ExecutionContext parent;
 
@@ -58,7 +52,7 @@ final class BasicExecutionContext implements ExecutionContext {
 
 
   @SuppressWarnings("unchecked")
-  BasicExecutionContext(@Nullable final ExecutionContext parent, @Nullable final ExecutionContext tParent,
+  BasicExecutionContext(@Nullable final ExecutionContext parent,
           final long deadlineNanos) {
     if (parent != null) {
       long parentDeadline = parent.getDeadlineNanos();
@@ -70,7 +64,6 @@ final class BasicExecutionContext implements ExecutionContext {
     } else {
       this.deadlineNanos = deadlineNanos;
     }
-    this.tParent = tParent;
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
   }
@@ -79,15 +72,6 @@ final class BasicExecutionContext implements ExecutionContext {
   public long getDeadlineNanos() {
     return deadlineNanos;
   }
-
-  @Override
-  public ExecutionContext subCtx(final long pdeadlineNanos) {
-    ExecutionContext xCtx = ExecutionContexts.current();
-    ExecutionContext ctx = new BasicExecutionContext(this, xCtx, pdeadlineNanos);
-    ExecutionContexts.setCurrent(ctx);
-    return ctx;
-  }
-
 
   @Nullable
   @Beta
@@ -121,13 +105,8 @@ final class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public void close()  {
-    ExecutionContexts.setCurrent(this.tParent);
-  }
-
-  @Override
   public String toString() {
-    return "BasicExecutionContext{" + "tParent=" + tParent + ", parent=" + parent
+    return "BasicExecutionContext{ parent=" + parent
             + ", deadlineNanos=" + deadlineNanos + ", baggage=" + baggage + '}';
   }
 

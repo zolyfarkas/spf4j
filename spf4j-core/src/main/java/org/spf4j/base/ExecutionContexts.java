@@ -62,11 +62,29 @@ public final class ExecutionContexts {
    */
   public static ExecutionContext start(final long deadlineNanos) {
     ExecutionContext xCtx = EXEC_CTX.get();
-    ExecutionContext ctx = new BasicExecutionContext(xCtx, xCtx, deadlineNanos);
+    ExecutionContext ctx = new BasicExecutionContext(xCtx, deadlineNanos) {
+        @Override
+        public void close()  {
+          ExecutionContexts.setCurrent(xCtx);
+        }
+    };
     EXEC_CTX.set(ctx);
     return ctx;
   }
 
+  public static ExecutionContext start(final ExecutionContext parent, final long deadlineNanos) {
+    ExecutionContext xCtx = EXEC_CTX.get();
+    ExecutionContext ctx = new BasicExecutionContext(parent, deadlineNanos) {
+        @Override
+        public void close()  {
+          ExecutionContexts.setCurrent(xCtx);
+        }
+    };
+    EXEC_CTX.set(ctx);
+    return ctx;
+  }
+
+  
   /**
    * start a execution context.
    * @param timeout
@@ -76,6 +94,15 @@ public final class ExecutionContexts {
   public static ExecutionContext start(final long timeout, final TimeUnit tu) {
     return start(TimeSource.getDeadlineNanos(timeout, tu));
   }
+
+  public static ExecutionContext start(final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+    return start(parent, TimeSource.getDeadlineNanos(timeout, tu));
+  }
+
+  public static ExecutionContext start(final ExecutionContext parent) {
+    return start(parent, parent.getDeadlineNanos());
+  }
+
 
   public static long getContextDeadlineNanos() {
     ExecutionContext ec = ExecutionContexts.current();
