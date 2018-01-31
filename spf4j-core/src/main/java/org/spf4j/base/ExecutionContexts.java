@@ -33,12 +33,14 @@ package org.spf4j.base;
 
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * @author Zoltan Farkas
  */
 @ThreadSafe
+@ParametersAreNonnullByDefault
 public final class ExecutionContexts {
 
   private ExecutionContexts() { }
@@ -61,30 +63,9 @@ public final class ExecutionContexts {
    * @return the execution context.
    */
   public static ExecutionContext start(final long deadlineNanos) {
-    ExecutionContext xCtx = EXEC_CTX.get();
-    ExecutionContext ctx = new BasicExecutionContext(xCtx, deadlineNanos) {
-        @Override
-        public void close()  {
-          ExecutionContexts.setCurrent(xCtx);
-        }
-    };
-    EXEC_CTX.set(ctx);
-    return ctx;
+    return start(null, deadlineNanos);
   }
 
-  public static ExecutionContext start(final ExecutionContext parent, final long deadlineNanos) {
-    ExecutionContext xCtx = EXEC_CTX.get();
-    ExecutionContext ctx = new BasicExecutionContext(parent, deadlineNanos) {
-        @Override
-        public void close()  {
-          ExecutionContexts.setCurrent(xCtx);
-        }
-    };
-    EXEC_CTX.set(ctx);
-    return ctx;
-  }
-
-  
   /**
    * start a execution context.
    * @param timeout
@@ -95,12 +76,24 @@ public final class ExecutionContexts {
     return start(TimeSource.getDeadlineNanos(timeout, tu));
   }
 
-  public static ExecutionContext start(final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+  public static ExecutionContext start(@Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
     return start(parent, TimeSource.getDeadlineNanos(timeout, tu));
   }
 
-  public static ExecutionContext start(final ExecutionContext parent) {
-    return start(parent, parent.getDeadlineNanos());
+  public static ExecutionContext start(@Nullable final ExecutionContext parent) {
+    return start(parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + Long.MAX_VALUE);
+  }
+
+  public static ExecutionContext start(@Nullable final ExecutionContext parent, final long deadlineNanos) {
+    ExecutionContext xCtx = EXEC_CTX.get();
+    ExecutionContext ctx = new BasicExecutionContext(parent == null ? xCtx : parent, deadlineNanos) {
+        @Override
+        public void close()  {
+          ExecutionContexts.setCurrent(xCtx);
+        }
+    };
+    EXEC_CTX.set(ctx);
+    return ctx;
   }
 
 
