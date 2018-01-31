@@ -76,6 +76,25 @@ public class ExecutionContextTest {
       start.put("BAGAGE");
       Assert.assertEquals("BAGAGE", start.get(String.class));
     }
+
+
   }
+
+
+  @Test
+  public void testExecutionContext3() {
+
+    try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
+      long secs = (Runtime.getDeadline() - System.currentTimeMillis()) / 1000;
+      Assert.assertTrue("secs = " + secs,  secs >= 9);
+      Assert.assertTrue("secs = " + secs, secs <= 10);
+      start.put("BAGAGE");
+      Assert.assertEquals("BAGAGE", start.get(String.class));
+    }
+
+
+  }
+
+
 
 }
