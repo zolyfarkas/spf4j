@@ -31,53 +31,16 @@
  */
 package org.spf4j.base;
 
-import com.google.common.annotations.Beta;
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import edu.umd.cs.findbugs.annotations.DischargesObligation;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
-@CleanupObligation
 @ParametersAreNonnullByDefault
-public interface ExecutionContext extends AutoCloseable {
+public interface ExecutionContextFactory<T extends ExecutionContext> {
 
-  @DischargesObligation
-  void close();
-
-  long getDeadlineNanos();
-
-  ExecutionContext getParent();
-
-  default long getUnitsToDeadline(final TimeUnit unit) {
-     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
-  }
-
-
-  /**
-   * Method to get baggage.
-   * if current context does not have baggage, the parent context is queried.
-   * @param <T> type of baggage.
-   * @param clasz class of baggage.
-   * @return the baggage
-   */
-  @Nullable
-  @Beta
-  <T> T get(Class<T> clasz);
-
-
-  /**
-   * Method to put baggage.
-   * @param <T> type of baggage.
-   * @param data the baggage.
-   * @return existing baggage if there.
-   */
-  @Nullable
-  @Beta
-  <T> T put(T data);
-
+   T start(String name, @Nullable ExecutionContext parent,
+           long deadlineNanos, Runnable onClose);
 
 }

@@ -43,10 +43,39 @@ import javax.annotation.concurrent.ThreadSafe;
 @ParametersAreNonnullByDefault
 public final class ExecutionContexts {
 
-  private ExecutionContexts() { }
+  private ExecutionContexts() {
+  }
 
   private static final ThreadLocal<ExecutionContext> EXEC_CTX = new ThreadLocal<ExecutionContext>();
 
+  private static final ExecutionContextFactory<ExecutionContext> CTX_FACTORY = initFactory();
+
+  private static ExecutionContextFactory<ExecutionContext> initFactory() {
+
+    String factoryClass = System.getProperty("spf4j.execContentFactoryClass");
+    if (factoryClass == null) {
+
+      return new ExecutionContextFactory<ExecutionContext>() {
+
+        @Override
+        public ExecutionContext start(final String name, final ExecutionContext parent,
+                 final long deadlineNanos, final Runnable onClose) {
+          return new BasicExecutionContext(name, parent, deadlineNanos) {
+            @Override
+            public void close() {
+              onClose.run();
+            }
+          };
+        }
+      };
+    } else {
+      try {
+        return ((Class<ExecutionContextFactory<ExecutionContext>>) Class.forName(factoryClass)).newInstance();
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    }
+  }
 
   @Nullable
   public static ExecutionContext current() {
@@ -59,6 +88,7 @@ public final class ExecutionContexts {
 
   /**
    * start a execution context.
+   *
    * @param deadlineNanos the deadline for this context. (System.nanotime)
    * @return the execution context.
    */
@@ -68,6 +98,7 @@ public final class ExecutionContexts {
 
   /**
    * start a execution context.
+   *
    * @param timeout
    * @param tu
    * @return
@@ -85,17 +116,17 @@ public final class ExecutionContexts {
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long deadlineNanos) {
-    ExecutionContext xCtx = EXEC_CTX.get();
-    ExecutionContext ctx = new BasicExecutionContext(parent == null ? xCtx : parent, deadlineNanos) {
-        @Override
-        public void close()  {
-          ExecutionContexts.setCurrent(xCtx);
-        }
-    };
-    EXEC_CTX.set(ctx);
-    return ctx;
+    return start("anon", parent, deadlineNanos);
   }
 
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent, final long deadlineNanos) {
+    ExecutionContext xCtx = EXEC_CTX.get();
+    ExecutionContext nCtx = CTX_FACTORY.start(name, parent == null ? xCtx : parent,
+            deadlineNanos, () -> ExecutionContexts.setCurrent(xCtx));
+    EXEC_CTX.set(nCtx);
+    return nCtx;
+  }
 
   public static long getContextDeadlineNanos() {
     ExecutionContext ec = ExecutionContexts.current();
@@ -117,6 +148,5 @@ public final class ExecutionContexts {
   public static long getNanosToDeadline() {
     return getContextDeadlineNanos() - TimeSource.nanoTime();
   }
-
 
 }

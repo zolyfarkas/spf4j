@@ -39,10 +39,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- *
+ * The simplest execution context possible.
  * @author Zoltan Farkas
  */
-abstract class BasicExecutionContext implements ExecutionContext {
+public abstract class BasicExecutionContext implements ExecutionContext {
+
+  private final String name;
 
   private final ExecutionContext parent;
 
@@ -52,8 +54,9 @@ abstract class BasicExecutionContext implements ExecutionContext {
 
 
   @SuppressWarnings("unchecked")
-  BasicExecutionContext(@Nullable final ExecutionContext parent,
+  public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
           final long deadlineNanos) {
+    this.name = name;
     if (parent != null) {
       long parentDeadline = parent.getDeadlineNanos();
       if (parentDeadline < deadlineNanos) {
@@ -68,15 +71,19 @@ abstract class BasicExecutionContext implements ExecutionContext {
     this.baggage = Collections.EMPTY_MAP;
   }
 
+  public final  String getName() {
+    return name;
+  }
+
   @Override
-  public long getDeadlineNanos() {
+  public final long getDeadlineNanos() {
     return deadlineNanos;
   }
 
   @Nullable
   @Beta
   @Override
-  public synchronized <T> T put(@Nonnull final T data) {
+  public final synchronized <T> T put(@Nonnull final T data) {
     if (baggage.isEmpty()) {
       baggage = new THashMap<>(2);
     }
@@ -86,7 +93,7 @@ abstract class BasicExecutionContext implements ExecutionContext {
   @Nullable
   @Beta
   @Override
-  public synchronized <T> T get(@Nonnull final Class<T> clasz) {
+  public final synchronized <T> T get(@Nonnull final Class<T> clasz) {
     T res = (T) baggage.get(clasz);
     if (res == null) {
       if (parent != null) {
@@ -100,14 +107,18 @@ abstract class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public ExecutionContext getParent() {
+  public final ExecutionContext getParent() {
     return parent;
   }
 
+  /**
+   * Overwrite as needed for debug string.
+   */
   @Override
   public String toString() {
-    return "BasicExecutionContext{ parent=" + parent
-            + ", deadlineNanos=" + deadlineNanos + ", baggage=" + baggage + '}';
+    return "BasicExecutionContext{" + "name=" + name + ", parent="
+            + parent + ", deadlineNanos=" + deadlineNanos + ", baggage=" + baggage + '}';
   }
+
 
 }
