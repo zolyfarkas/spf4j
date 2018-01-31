@@ -58,9 +58,18 @@ final class BasicExecutionContext implements ExecutionContext {
 
 
   @SuppressWarnings("unchecked")
-  BasicExecutionContext(final ExecutionContext parent, final ExecutionContext tParent,
+  BasicExecutionContext(@Nullable final ExecutionContext parent, @Nullable final ExecutionContext tParent,
           final long deadlineNanos) {
-    this.deadlineNanos = deadlineNanos;
+    if (parent != null) {
+      long parentDeadline = parent.getDeadlineNanos();
+      if (parentDeadline < deadlineNanos) {
+        this.deadlineNanos = parentDeadline;
+      } else {
+        this.deadlineNanos = deadlineNanos;
+      }
+    } else {
+      this.deadlineNanos = deadlineNanos;
+    }
     this.tParent = tParent;
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
