@@ -93,7 +93,7 @@ public final class ExecutionContexts {
    * @return the execution context.
    */
   public static ExecutionContext start(final long deadlineNanos) {
-    return start(null, deadlineNanos);
+    return start("anon", null, deadlineNanos);
   }
 
   /**
@@ -117,6 +117,15 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long deadlineNanos) {
     return start("anon", parent, deadlineNanos);
+  }
+
+  public static ExecutionContext start(final String name, final long deadlineNanos) {
+    return start(name, null, deadlineNanos);
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent) {
+    return start(name, parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + Long.MAX_VALUE);
   }
 
   public static ExecutionContext start(final String name,
