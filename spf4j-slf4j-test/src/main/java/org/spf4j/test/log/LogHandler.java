@@ -26,12 +26,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface LogHandler {
 
-  enum Handling { HANDLE_PASS, HANDLE_CONSUME, NONE }
+  enum Handling {
+    /* Will handle this message, and potentially pass it downstream */
+    HANDLE_PASS,
+    /** Will handle this message, and will consume it. */
+    HANDLE_CONSUME,
+    /** Not handling these massages */
+    NONE }
 
   /**
    * find out if this handler should be used for the given log level.
    * @param level the log level.
-   * @return true if this handler should be invoked for this level, false otherwise.
+   * @return Handling enum that, specifies what this handler does with these messages.
    */
   Handling handles(Level level);
 
@@ -39,7 +45,7 @@ public interface LogHandler {
    * Handler handling method
    * @param record the log record.
    * @return return the log message potentially with an attachment,
-   * or null if the handler chains should be interrupted.
+   * or null if the handler does not want to pass the message downstream.
    */
   @Nullable
   LogRecord handle(LogRecord record);

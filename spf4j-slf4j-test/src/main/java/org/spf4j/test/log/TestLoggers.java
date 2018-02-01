@@ -108,35 +108,36 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public HandlerRegistration print(final String category, final Level level) {
-    LogPrinter logPrinter = new LogPrinter(level);
+      return intercept(category, new LogPrinter(level));
+  }
+
+  /**
+   * Ability to intercept log messages logged under a category
+   * @param category
+   * @param handler
+   * @return
+   */
+  @CheckReturnValue
+  public HandlerRegistration intercept(final String category, final LogHandler handler) {
     synchronized (sync) {
-      config = config.add(category, logPrinter);
+      config = config.add(category, handler);
       resetJulConfig();
     }
     return () -> {
       synchronized (sync) {
-        config = config.remove(category, logPrinter);
+        config = config.remove(category, handler);
         resetJulConfig();
       }
     };
   }
+
 
   /**
    * all logs from category and spcified levels will be ignored... (unless there are more specific handlers)
    */
   @CheckReturnValue
   public HandlerRegistration ignore(final String category, final Level from, final Level to) {
-    ConsumeAllLogs consumeAllLogs = new ConsumeAllLogs(from, to);
-    synchronized (sync) {
-      config = config.add(category, consumeAllLogs);
-      resetJulConfig();
-    }
-    return () -> {
-      synchronized (sync) {
-        config = config.remove(category, consumeAllLogs);
-        resetJulConfig();
-      }
-    };
+    return intercept(category, new ConsumeAllLogs(from, to));
   }
 
   /**
@@ -223,7 +224,8 @@ public final class TestLoggers implements ILoggerFactory {
     return asserter;
   }
 
-  public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs, final boolean collectPrinted) {
+  public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs,
+          final boolean collectPrinted) {
     LogCollector handler = new LogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {
 
       private boolean isClosed = false;
