@@ -67,7 +67,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julRoot;
 
-  public static TestLoggers config() {
+  public static TestLoggers system() {
     return INSTANCE;
   }
 
@@ -131,6 +131,17 @@ public final class TestLoggers implements ILoggerFactory {
     };
   }
 
+
+  /**
+   * Convenience method for functional use.
+   * @param category
+   * @param handler
+   * @return
+   */
+  @CheckReturnValue
+  public HandlerRegistration interceptAllLevels(final String category, final AllLevelsLogHandler handler) {
+    return intercept(category, handler);
+  }
 
   /**
    * all logs from category and spcified levels will be ignored... (unless there are more specific handlers)

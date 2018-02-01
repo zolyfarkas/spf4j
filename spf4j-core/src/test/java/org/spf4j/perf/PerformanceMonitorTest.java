@@ -53,7 +53,7 @@ public final class PerformanceMonitorTest {
 
   @Test
   public void testSomeMethod() throws Exception {
-    LogAssert expect = TestLoggers.config().expect("org.spf4j.perf.PerformanceMonitor",
+    LogAssert expect = TestLoggers.system().expect("org.spf4j.perf.PerformanceMonitor",
             Level.ERROR, Matchers.hasProperty("format",
               Matchers.equalTo("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}")));
     String result = PerformanceMonitor.callAndMonitor(

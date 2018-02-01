@@ -171,7 +171,7 @@ public class LifoThreadPoolExecutorTest {
       }
     };
     long start = System.currentTimeMillis();
-    AsyncObservationAssert obs = TestLoggers.config().expectUncaughtException(Matchers.hasProperty("throwable",
+    AsyncObservationAssert obs = TestLoggers.system().expectUncaughtException(Matchers.hasProperty("throwable",
             Matchers.any(IllegalStateException.class)));
     executor.execute(new Runnable() {
 
