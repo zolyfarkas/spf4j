@@ -37,11 +37,13 @@ import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The simplest execution context possible.
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public abstract class BasicExecutionContext implements ExecutionContext {
 
   private final String name;
