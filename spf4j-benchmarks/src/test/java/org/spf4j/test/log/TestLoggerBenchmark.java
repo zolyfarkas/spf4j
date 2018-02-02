@@ -15,13 +15,13 @@
  */
 package org.spf4j.test.log;
 
-import com.google.common.collect.ImmutableList;
-import java.util.Collections;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Zoltan Farkas
@@ -31,24 +31,17 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 8)
 public class TestLoggerBenchmark {
 
-  private static final LogConfigImpl CFG = new LogConfigImpl(
-          ImmutableList.of(new LogPrinter(Level.INFO), new DefaultAsserter(),
-                  new LogCollector(Level.DEBUG, 100, false) {
-            @Override
-            public void close() {
-            }
-          }), Collections.EMPTY_MAP);
+  @State(Scope.Benchmark)
+  public static class Lazy {
 
-  private static final LogConfig CACHED_CFG = new CachedLogConfig(CFG);
+    private final Logger log = LoggerFactory.getLogger("test.log");
 
-  @Benchmark
-  public final boolean testSimple() {
-    return CFG.getLogConsumer("org.spf4j", Level.DEBUG) == null;
   }
 
   @Benchmark
-  public final boolean testCachedSimple() {
-    return CACHED_CFG.getLogConsumer("org.spf4j", Level.DEBUG) == null;
+  public final boolean testDefaultImpl(final Lazy lazy) {
+    lazy.log.debug("Some message with some arg {}", "arg");
+    return lazy.log.isTraceEnabled();
   }
 
 }

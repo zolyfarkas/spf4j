@@ -27,9 +27,9 @@ import sun.misc.Contended;
 //CHECKSTYLE:ON
 
 /**
- *
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public final class TestLogger implements Logger {
 
   private final String name;
