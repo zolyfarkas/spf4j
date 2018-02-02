@@ -15,9 +15,16 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Supplier;
+import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+//CHECKSTYLE:OFF
+import sun.misc.Contended;
+//CHECKSTYLE:ON
 
 /**
  *
@@ -27,11 +34,70 @@ public final class TestLogger implements Logger {
 
   private final String name;
 
-  private final Supplier<LogConfig> configSource;
+  private final Supplier<LogConfig> cfgSource;
+
+  private final Map<Level, Supplier<LogConsumer>> consumers;
+
+
+  private static final class LogConfigConsumer {
+
+    private static final LogConfigConsumer NULL = new LogConfigConsumer(null, null);
+
+    private final LogConfig cfg;
+
+    private final LogConsumer consumer;
+
+    LogConfigConsumer(final LogConfig cfg, final LogConsumer consumer) {
+      this.cfg = cfg;
+      this.consumer = consumer;
+    }
+
+  }
+
+  @ThreadSafe
+  private final class ConsumerSupplier implements Supplier<LogConsumer> {
+
+    private final Level level;
+
+    @Contended
+    private volatile LogConfigConsumer cfgConsumer;
+
+    ConsumerSupplier(final Level level) {
+      this.level = level;
+      this.cfgConsumer = LogConfigConsumer.NULL;
+    }
+
+    @Override
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") //its a private class
+    public LogConsumer get() {
+      LogConfig nCfg = cfgSource.get();
+      LogConfigConsumer curCfgConsumer = cfgConsumer;
+      if (nCfg == curCfgConsumer.cfg) {
+        return curCfgConsumer.consumer;
+      } else {
+        synchronized (this) {
+          nCfg = cfgSource.get();
+          curCfgConsumer = cfgConsumer;
+          if (nCfg == curCfgConsumer.cfg) {
+            return curCfgConsumer.consumer;
+          } else {
+            LogConsumer nCons = nCfg.getLogConsumer(name, level);
+            cfgConsumer = new LogConfigConsumer(nCfg, nCons);
+            return nCons;
+          }
+        }
+      }
+    }
+
+  }
 
   public TestLogger(final String name, final Supplier<LogConfig> configSource) {
     this.name = name;
-    this.configSource = configSource;
+    this.cfgSource = configSource;
+    this.consumers = new EnumMap<>(Level.class);
+    for (Level level : Level.values()) {
+      consumers.put(level, new ConsumerSupplier(level));
+    }
   }
 
   @Override
@@ -40,15 +106,15 @@ public final class TestLogger implements Logger {
   }
 
   public void log(final Level level, final Marker marker, final String msg, final Object... args) {
-    LogConsumer logHandlers = configSource.get().getLogConsumer(name, level);
-    if (logHandlers != null) {
-      logHandlers.accept(new LogRecord(this, level, marker, msg, args));
+    LogConsumer consumer = consumers.get(level).get();
+    if (consumer != null) {
+      consumer.accept(new LogRecord(this, level, marker, msg, args));
     }
   }
 
   @Override
   public boolean isTraceEnabled() {
-    return configSource.get().getLogConsumer(name, Level.TRACE) != null;
+    return consumers.get(Level.TRACE).get() != null;
   }
 
   @Override
@@ -109,7 +175,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isDebugEnabled() {
-    return configSource.get().getLogConsumer(name, Level.DEBUG) != null;
+    return  consumers.get(Level.DEBUG).get() != null;
   }
 
   @Override
@@ -169,7 +235,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isInfoEnabled() {
-    return configSource.get().getLogConsumer(name, Level.INFO) != null;
+    return consumers.get(Level.INFO).get() != null;
   }
 
   @Override
@@ -229,7 +295,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isWarnEnabled() {
-    return configSource.get().getLogConsumer(name, Level.WARN) != null;
+    return consumers.get(Level.WARN).get() != null;
   }
 
   @Override
@@ -289,7 +355,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isErrorEnabled() {
-    return configSource.get().getLogConsumer(name, Level.ERROR) != null;
+    return consumers.get(Level.ERROR).get() != null;
   }
 
   @Override

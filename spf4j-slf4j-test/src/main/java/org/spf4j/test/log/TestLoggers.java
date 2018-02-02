@@ -32,6 +32,9 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
+//CHECKSTYLE:OFF
+import sun.misc.Contended;
+//CHECKSTYLE:ON
 
 /**
  * @author Zoltan Farkas
@@ -58,35 +61,38 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final Object sync;
 
-  @GuardedBy("sync")
-  private volatile LogConfig config;
-
   private final Function<String, Logger> computer;
 
   private final java.util.logging.Logger julGlobal;
 
   private final java.util.logging.Logger julRoot;
 
+  @GuardedBy("sync")
+  @Contended
+  private volatile LogConfig config;
+
   public static TestLoggers sys() {
     return INSTANCE;
   }
 
+  @SuppressWarnings("checkstyle:regexp")
   private TestLoggers() {
-    LogManager.getLogManager().reset();
-    SLF4JBridgeHandler.removeHandlersForRootLogger();
-    SLF4JBridgeHandler.install();
+    sync = new Object();
     loggerMap = new ConcurrentHashMap<String, Logger>();
     Level rootPrintLevel = TestUtils.isExecutedFromIDE()
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
             : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
-    config = new CachedLogConfig(new LogConfigImpl(
+
+    computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
+    config = new LogConfigImpl(
             ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
-            Collections.EMPTY_MAP));
+            Collections.EMPTY_MAP);
+    LogManager.getLogManager().reset();
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
     julGlobal = java.util.logging.Logger.getGlobal();
     julRoot = java.util.logging.Logger.getLogger("");
     resetJulConfig();
-    computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
-    sync = new Object();
   }
 
   private void resetJulConfig() {
