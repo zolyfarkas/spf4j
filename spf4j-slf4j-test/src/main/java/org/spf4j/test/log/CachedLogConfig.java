@@ -18,6 +18,8 @@ package org.spf4j.test.log;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -31,7 +33,7 @@ public final class CachedLogConfig implements LogConfig {
 
   private static final LogConsumer NULL_CONSUMER = (LogRecord record) -> { };
 
-  private final LoadingCache<Level, LoadingCache<String, LogConsumer>> cache;
+  private final Map<Level, LoadingCache<String, LogConsumer>> cache;
 
   private final ConcurrentMap<LogConsumer, LogConsumer> interner;
 
@@ -41,10 +43,9 @@ public final class CachedLogConfig implements LogConfig {
   public CachedLogConfig(final LogConfig wrapped) {
     this.wrapped = wrapped;
     interner = new ConcurrentHashMap<>();
-    cache = new UnboundedLoadingCache<>(6, new CacheLoader<Level, LoadingCache<String, LogConsumer>>() {
-    @Override
-    public LoadingCache<String, LogConsumer> load(final Level level) {
-      return new UnboundedLoadingCache<>(32,
+    cache = new EnumMap<>(Level.class);
+    for (Level level : Level.values()) {
+      cache.put(level, new UnboundedLoadingCache<>(16,
               new CacheLoader<String, LogConsumer>() {
         @Override
         public LogConsumer load(final String cat) {
@@ -55,14 +56,13 @@ public final class CachedLogConfig implements LogConfig {
             return interner.computeIfAbsent(logHandlers, Function.identity());
           }
         }
-      });
+      }));
     }
-  });
   }
 
   @Override
   public LogConsumer getLogConsumer(final String category, final Level level) {
-    LogConsumer cons = cache.getUnchecked(level).getUnchecked(category);
+    LogConsumer cons = cache.get(level).getUnchecked(category);
     return (cons == NULL_CONSUMER) ? null : cons;
   }
 
