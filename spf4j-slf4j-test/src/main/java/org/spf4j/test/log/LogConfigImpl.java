@@ -88,25 +88,25 @@ final class LogConfigImpl implements LogConfig {
   }
 
   @Override
-  public List<LogHandler> getLogHandlers(final String category, final Level level) {
+  public LogConsumer getLogConsumer(final String category, final Level level) {
     ArrayList<LogHandler> res = new ArrayList<>(2);
     res.clear();
     if (category.isEmpty() || logHandlers.isEmpty()) {
       addAll(level, rootHandler, res);
-      return res;
+      return CompositeLogHandler.from(res);
     }
     for (Map.Entry<String, List<LogHandler>> entry : logHandlers.tailMap(category).entrySet()) {
       String key = entry.getKey();
       if (category.startsWith(key)) {
         if (addAll(level, entry.getValue(), res)) {
-          return res;
+          return CompositeLogHandler.from(res);
         }
       } else if (key.charAt(0) != category.charAt(0)) {
         break;
       }
     }
     addAll(level, rootHandler, res);
-    return res;
+    return CompositeLogHandler.from(res);
   }
 
   private static boolean addAll(final Level level, final List<LogHandler> from, final List<LogHandler> to) {

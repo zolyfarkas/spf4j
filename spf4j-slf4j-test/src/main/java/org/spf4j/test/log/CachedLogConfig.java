@@ -18,7 +18,6 @@ package org.spf4j.test.log;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -30,9 +29,11 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
  */
 public final class CachedLogConfig implements LogConfig {
 
-  private final LoadingCache<Level, LoadingCache<String, List<LogHandler>>> cache;
+  private static final LogConsumer NULL_CONSUMER = (LogRecord record) -> { };
 
-  private final ConcurrentMap<List<LogHandler>, List<LogHandler>> interner;
+  private final LoadingCache<Level, LoadingCache<String, LogConsumer>> cache;
+
+  private final ConcurrentMap<LogConsumer, LogConsumer> interner;
 
   private final LogConfig wrapped;
 
@@ -40,15 +41,19 @@ public final class CachedLogConfig implements LogConfig {
   public CachedLogConfig(final LogConfig wrapped) {
     this.wrapped = wrapped;
     interner = new ConcurrentHashMap<>();
-    cache = new UnboundedLoadingCache<>(6, new CacheLoader<Level, LoadingCache<String, List<LogHandler>>>() {
+    cache = new UnboundedLoadingCache<>(6, new CacheLoader<Level, LoadingCache<String, LogConsumer>>() {
     @Override
-    public LoadingCache<String, List<LogHandler>> load(final Level level) {
+    public LoadingCache<String, LogConsumer> load(final Level level) {
       return new UnboundedLoadingCache<>(32,
-              new CacheLoader<String, List<LogHandler>>() {
+              new CacheLoader<String, LogConsumer>() {
         @Override
-        public List<LogHandler> load(final String cat) {
-          List<LogHandler> logHandlers = wrapped.getLogHandlers(cat, level);
-          return interner.computeIfAbsent(logHandlers, Function.identity());
+        public LogConsumer load(final String cat) {
+          LogConsumer logHandlers = wrapped.getLogConsumer(cat, level);
+          if (logHandlers == null) {
+            return NULL_CONSUMER;
+          } else {
+            return interner.computeIfAbsent(logHandlers, Function.identity());
+          }
         }
       });
     }
@@ -56,8 +61,9 @@ public final class CachedLogConfig implements LogConfig {
   }
 
   @Override
-  public List<LogHandler> getLogHandlers(final String category, final Level level) {
-    return cache.getUnchecked(level).getUnchecked(category);
+  public LogConsumer getLogConsumer(final String category, final Level level) {
+    LogConsumer cons = cache.getUnchecked(level).getUnchecked(category);
+    return (cons == NULL_CONSUMER) ? null : cons;
   }
 
   @Override

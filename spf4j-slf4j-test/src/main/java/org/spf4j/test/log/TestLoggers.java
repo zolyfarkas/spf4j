@@ -67,7 +67,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julRoot;
 
-  public static TestLoggers system() {
+  public static TestLoggers sys() {
     return INSTANCE;
   }
 

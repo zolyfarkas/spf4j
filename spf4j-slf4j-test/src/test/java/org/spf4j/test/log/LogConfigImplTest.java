@@ -37,20 +37,20 @@ public class LogConfigImplTest {
     LogPrinter h5 = new LogPrinter(Level.DEBUG);
     LogConfigImpl cfg = new LogConfigImpl(ImmutableList.of(h1), ImmutableMap.of("a.b", Arrays.asList(h2),
             "a.c", Arrays.asList(h3), "c.d", Arrays.asList(h4)));
-    List<LogHandler> handlers = cfg.getLogHandlers("a", Level.DEBUG);
-    Assert.assertTrue(handlers.isEmpty());
-    handlers = cfg.getLogHandlers("a", Level.INFO);
+    LogConsumer handler = cfg.getLogConsumer("a", Level.DEBUG);
+    Assert.assertNull(handler);
+    List<LogHandler> handlers = ((CompositeLogHandler) cfg.getLogConsumer("a", Level.INFO)).logHandlers;
     Assert.assertSame(h1, handlers.get(0));
-    handlers = cfg.getLogHandlers("a.b", Level.INFO);
+    handlers = ((CompositeLogHandler) cfg.getLogConsumer("a.b", Level.INFO)).logHandlers;
     Assert.assertSame(h2, handlers.get(0));
     Assert.assertSame(h1, handlers.get(1));
     cfg = cfg.add("a", h5);
-    handlers = cfg.getLogHandlers("a.b", Level.INFO);
+    handlers = ((CompositeLogHandler) cfg.getLogConsumer("a.b", Level.INFO)).logHandlers;
     Assert.assertSame(h2, handlers.get(0));
     Assert.assertSame(h5, handlers.get(1));
     Assert.assertSame(h1, handlers.get(2));
     cfg = cfg.remove("a", h5);
-    handlers = cfg.getLogHandlers("a.b", Level.INFO);
+    handlers = ((CompositeLogHandler) cfg.getLogConsumer("a.b", Level.INFO)).logHandlers;
     Assert.assertSame(h2, handlers.get(0));
     Assert.assertSame(h1, handlers.get(1));
   }

@@ -39,10 +39,10 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT"})
   public void testLogging() {
-    try (HandlerRegistration printer = TestLoggers.system().print("org.spf4j.test", Level.TRACE)) {
+    try (HandlerRegistration printer = TestLoggers.sys().print("org.spf4j.test", Level.TRACE)) {
       logTests();
       logMarkerTests();
-      LogAssert expect = TestLoggers.system().expect("org.spf4j.test", Level.ERROR,
+      LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR,
               LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertObservation();
@@ -70,7 +70,7 @@ public class TestLoggerFactoryTest {
     LOG.warn("Hello logger {}", 1);
     LOG.warn("Hello logger {} {} {}", 1, 2, 3);
     LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-    LogAssert expect = TestLoggers.system().expect("org.spf4j.test", Level.ERROR, 4,
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR, 4,
             LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")));
     LOG.error("Hello logger", new RuntimeException());
     LOG.error("Hello logger");
@@ -106,7 +106,7 @@ public class TestLoggerFactoryTest {
     LOG.warn(marker, "Hello logger {}", 1);
     LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3);
     LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
-    LogAssert expect = TestLoggers.system().expect("org.spf4j.test", Level.ERROR, 4,
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR, 4,
             Matchers.allOf(
               LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")),
               LogMatchers.hasMarker(marker)));
@@ -121,7 +121,7 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("LO_TOSTRING_PARAMETER") // this is on purpose configs change over time.
   public void testIsEnabled() {
-    LOG.debug("Log Config: {}", TestLoggers.system().toString());
+    LOG.debug("Log Config: {}", TestLoggers.sys().toString());
     Marker marker = MarkerFactory.getMarker("TEST");
     Assert.assertFalse(LOG.isTraceEnabled());
     Assert.assertFalse(LOG.isTraceEnabled(marker));
@@ -140,7 +140,7 @@ public class TestLoggerFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testLogging2() {
-    LogAssert expect = TestLoggers.system().dontExpect("org.spf4j.test", Level.ERROR,
+    LogAssert expect = TestLoggers.sys().dontExpect("org.spf4j.test", Level.ERROR,
             LogMatchers.hasFormat("Booo"));
     LOG.error("Booo", new RuntimeException());
     expect.assertObservation();
@@ -149,7 +149,7 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLoggingJul() {
-    LogAssert expect = TestLoggers.system().expect("my.test", Level.DEBUG,
+    LogAssert expect = TestLoggers.sys().expect("my.test", Level.DEBUG,
             LogMatchers.hasFormat("Bla Bla"),
             LogMatchers.hasFormat("Boo Boo param"));
     java.util.logging.Logger logger = java.util.logging.Logger.getLogger("my.test");
@@ -162,7 +162,7 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testIgnore() {
-    TestLoggers config = TestLoggers.system();
+    TestLoggers config = TestLoggers.sys();
     try (HandlerRegistration ir = config.ignore("org.spf4j.test", Level.DEBUG, Level.ERROR)) {
       LogAssert assrt = config.expect("", Level.TRACE, LogMatchers.hasFormat("trace"));
       LogAssert assrt2 = config.dontExpect("", Level.DEBUG, LogMatchers.hasFormat("Bla bla"));
@@ -175,7 +175,7 @@ public class TestLoggerFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testLogging3() {
-    LogAssert expect = TestLoggers.system().expect("org.spf4j.test", Level.ERROR,
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR,
             LogMatchers.hasFormat("Booo"));
     expect.assertObservation();
   }
@@ -183,7 +183,7 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLogging33() {
-    LogAssert expect = TestLoggers.system().dontExpect("org.spf4j.test", Level.ERROR,
+    LogAssert expect = TestLoggers.sys().dontExpect("org.spf4j.test", Level.ERROR,
             LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
     expect.assertObservation();
   }
@@ -205,7 +205,7 @@ public class TestLoggerFactoryTest {
     Thread thread = new Thread(() -> {
       throw ex;
     });
-    TestLoggers config = TestLoggers.system();
+    TestLoggers config = TestLoggers.sys();
     AsyncObservationAssert obs = config
             .expectUncaughtException(
                     UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(ex)));
@@ -216,7 +216,7 @@ public class TestLoggerFactoryTest {
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @Test
   public void testUncaught2() throws InterruptedException {
-    TestLoggers config = TestLoggers.system();
+    TestLoggers config = TestLoggers.sys();
     AsyncObservationAssert obs = config
             .expectUncaughtException(
                     UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(new IllegalStateException())));
@@ -230,7 +230,7 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testLogging5() {
-    LogCollectionHandler collect = TestLoggers.system().collect(Level.DEBUG, 10, true);
+    LogCollectionHandler collect = TestLoggers.sys().collect(Level.DEBUG, 10, true);
     LOG.debug("log {}", 1);
     LOG.debug("log {} {}", 1, 2);
     LOG.debug("log {} {} {}", 1, 2, 3);

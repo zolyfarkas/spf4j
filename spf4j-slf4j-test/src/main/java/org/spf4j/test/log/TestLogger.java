@@ -15,7 +15,6 @@
  */
 package org.spf4j.test.log;
 
-import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -41,21 +40,15 @@ public final class TestLogger implements Logger {
   }
 
   public void log(final Level level, final Marker marker, final String msg, final Object... args) {
-    List<LogHandler> logHandlers = configSource.get().getLogHandlers(name, level);
-    if (!logHandlers.isEmpty()) {
-      LogRecord logRecord = new LogRecord(this, level, marker, msg, args);
-      for (LogHandler handler : logHandlers) {
-        logRecord = handler.handle(logRecord);
-        if (logRecord == null) {
-          break;
-        }
-      }
+    LogConsumer logHandlers = configSource.get().getLogConsumer(name, level);
+    if (logHandlers != null) {
+      logHandlers.accept(new LogRecord(this, level, marker, msg, args));
     }
   }
 
   @Override
   public boolean isTraceEnabled() {
-    return !configSource.get().getLogHandlers(name, Level.TRACE).isEmpty();
+    return configSource.get().getLogConsumer(name, Level.TRACE) != null;
   }
 
   @Override
@@ -116,7 +109,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isDebugEnabled() {
-    return !configSource.get().getLogHandlers(name, Level.DEBUG).isEmpty();
+    return configSource.get().getLogConsumer(name, Level.DEBUG) != null;
   }
 
   @Override
@@ -176,7 +169,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isInfoEnabled() {
-    return !configSource.get().getLogHandlers(name, Level.INFO).isEmpty();
+    return configSource.get().getLogConsumer(name, Level.INFO) != null;
   }
 
   @Override
@@ -236,7 +229,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isWarnEnabled() {
-    return !configSource.get().getLogHandlers(name, Level.WARN).isEmpty();
+    return configSource.get().getLogConsumer(name, Level.WARN) != null;
   }
 
   @Override
@@ -296,7 +289,7 @@ public final class TestLogger implements Logger {
 
   @Override
   public boolean isErrorEnabled() {
-    return !configSource.get().getLogHandlers(name, Level.ERROR).isEmpty();
+    return configSource.get().getLogConsumer(name, Level.ERROR) != null;
   }
 
   @Override

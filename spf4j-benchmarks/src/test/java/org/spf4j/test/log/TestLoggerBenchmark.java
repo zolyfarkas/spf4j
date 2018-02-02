@@ -42,13 +42,13 @@ public class TestLoggerBenchmark {
   private static final LogConfig CACHED_CFG = new CachedLogConfig(CFG);
 
   @Benchmark
-  public final int testSimple() {
-    return CFG.getLogHandlers("org.spf4j", Level.DEBUG).size();
+  public final boolean testSimple() {
+    return CFG.getLogConsumer("org.spf4j", Level.DEBUG) == null;
   }
 
   @Benchmark
-  public final int testCachedSimple() {
-    return CACHED_CFG.getLogHandlers("org.spf4j", Level.DEBUG).size();
+  public final boolean testCachedSimple() {
+    return CACHED_CFG.getLogConsumer("org.spf4j", Level.DEBUG) == null;
   }
 
 }

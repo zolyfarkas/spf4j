@@ -143,7 +143,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public void testStarted(final Description description) throws Exception {
-    collections.put(description, TestLoggers.system().collect(minLogLevel, maxDebugLogsCollected, collectPrinted));
+    collections.put(description, TestLoggers.sys().collect(minLogLevel, maxDebugLogsCollected, collectPrinted));
     super.testStarted(description);
   }
 

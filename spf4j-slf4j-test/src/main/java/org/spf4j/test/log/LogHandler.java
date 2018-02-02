@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ParametersAreNonnullByDefault
 @ThreadSafe
-public interface LogHandler {
+public interface LogHandler  {
 
   enum Handling {
     /* Will handle this message, and potentially pass it downstream */

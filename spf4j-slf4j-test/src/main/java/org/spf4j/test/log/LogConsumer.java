@@ -15,30 +15,12 @@
  */
 package org.spf4j.test.log;
 
-import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public interface LogConfig {
-
-  @Nullable
-  LogConsumer getLogConsumer(String category, Level level);
-
-  LogConfig add(String category, LogHandler handler);
-
-  LogConfig remove(String category, LogHandler handler);
-
-  default Level minRootLevel() {
-    for (Level l : Level.values()) {
-      if (getLogConsumer("", l) != null) {
-        return l;
-      }
-    }
-    return Level.ERROR;
-  }
-
-
+public interface LogConsumer extends Consumer<LogRecord> {
 }

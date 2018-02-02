@@ -59,7 +59,7 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
     private final ILoggerFactory loggerFactory;
 
     private StaticLoggerBinder() {
-        loggerFactory = TestLoggers.system();
+        loggerFactory = TestLoggers.sys();
     }
 
     public ILoggerFactory getLoggerFactory() {
