@@ -35,7 +35,7 @@ final class CompositeLogHandler implements LogConsumer {
     this.logHandlers = logHandlers;
   }
 
-  public static LogConsumer from(final List<LogHandler> logHandlers) {
+  static LogConsumer from(final List<LogHandler> logHandlers) {
     if (logHandlers.isEmpty()) {
       return null;
     } else {
@@ -83,8 +83,5 @@ final class CompositeLogHandler implements LogConsumer {
   public String toString() {
     return "CompositeLogHandler{" + "logHandlers=" + logHandlers + '}';
   }
-
-
-
 
 }
