@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.WillNotClose;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -92,12 +93,14 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     Description description = failure.getDescription();
     LogCollection<ArrayDeque<LogRecord>> handler = collections.get(description);
     if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
-      dumpDebugInfo(handler, description);
+      try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
+        dumpDebugInfo(h, description);
+      }
     }
   }
 
-  public void dumpDebugInfo(final LogCollection<ArrayDeque<LogRecord>> handler, final Description description) {
-    handler.close();
+  public void dumpDebugInfo(@WillNotClose final LogCollection<ArrayDeque<LogRecord>> handler,
+          final Description description) {
     synchronized (System.out) { // do not interleave other stuff.
       boolean first = true;
       ArrayDeque<LogRecord> logs = handler.get();
@@ -118,12 +121,13 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   @Override
   public synchronized void testFinished(final Description description) {
     LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
-    handler.close();
-    handleUncaughtExceptions(description, handler);
+    try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
+      handleUncaughtExceptions(description, h);
+    }
   }
 
   public void handleUncaughtExceptions(final Description description,
-          final LogCollection<ArrayDeque<LogRecord>> handler) {
+          @WillNotClose final LogCollection<ArrayDeque<LogRecord>> handler) {
     List<UncaughtExceptionDetail> exceptions = uncaughtExceptionHandler.getUncaughtExceptions();
     if (!exceptions.isEmpty()) {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
