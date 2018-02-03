@@ -78,7 +78,7 @@ public class XCollectorsTest {
   public void testFiltering() {
     ArrayDeque<Integer> collect = java.util.Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 0).stream()
             .collect(XCollectors.filtering((n) -> n <= 5, XCollectors.last(3, -1)));
-    Assert.assertThat(collect, Matchers.contains(-1, 4, 5));
+    Assert.assertThat(collect, Matchers.contains(-1, 5, 0));
     Assert.assertEquals(3, collect.size());
   }
 
