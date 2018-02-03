@@ -32,6 +32,12 @@
 package org.spf4j.base;
 
 import java.util.ArrayDeque;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 /**
@@ -39,9 +45,10 @@ import java.util.stream.Collector;
  */
 public final class XCollectors {
 
-  private XCollectors() { }
+  private XCollectors() {
+  }
 
-  public static <T> Collector<T, ?, ArrayDeque> last(final int limit) {
+  public static <T> Collector<T, ?, ArrayDeque<T>> last(final int limit) {
     return Collector.of(
             ArrayDeque<T>::new,
             (l, e) -> {
@@ -56,7 +63,7 @@ public final class XCollectors {
     );
   }
 
-  public static <T> Collector<T, ?, ArrayDeque> last(final int limit, final T addIfLimited) {
+  public static <T> Collector<T, ?, ArrayDeque<T>> last(final int limit, final T addIfLimited) {
     return Collector.of(
             ArrayDeque<T>::new,
             (l, e) -> {
@@ -71,6 +78,81 @@ public final class XCollectors {
               throw new UnsupportedOperationException("Limiting collectors do not support combining");
             }
     );
+  }
+
+  /**
+   * THis is a backport from JDK9.
+   */
+  public static <T, A, R>
+          Collector<T, ?, R> filtering(final Predicate<? super T> predicate,
+                  final Collector<? super T, A, R> downstream) {
+    BiConsumer<A, ? super T> downstreamAccumulator = downstream.accumulator();
+    return new CollectorImpl<>(downstream.supplier(),
+            (r, t) -> {
+              if (predicate.test(t)) {
+                downstreamAccumulator.accept(r, t);
+              }
+            },
+            downstream.combiner(), downstream.finisher(),
+            downstream.characteristics());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <I, R> Function<I, R> castingIdentity() {
+    return i -> (R) i;
+  }
+
+  static final class CollectorImpl<T, A, R> implements Collector<T, A, R> {
+
+    private final Supplier<A> supplier;
+    private final BiConsumer<A, T> accumulator;
+    private final BinaryOperator<A> combiner;
+    private final Function<A, R> finisher;
+    private final Set<Characteristics> characteristics;
+
+    CollectorImpl(final Supplier<A> supplier,
+            final BiConsumer<A, T> accumulator,
+            final BinaryOperator<A> combiner,
+            final Function<A, R> finisher,
+            final Set<Characteristics> characteristics) {
+      this.supplier = supplier;
+      this.accumulator = accumulator;
+      this.combiner = combiner;
+      this.finisher = finisher;
+      this.characteristics = characteristics;
+    }
+
+    CollectorImpl(final Supplier<A> supplier,
+            final BiConsumer<A, T> accumulator,
+            final BinaryOperator<A> combiner,
+            final Set<Characteristics> characteristics) {
+      this(supplier, accumulator, combiner, castingIdentity(), characteristics);
+    }
+
+    @Override
+    public BiConsumer<A, T> accumulator() {
+      return accumulator;
+    }
+
+    @Override
+    public Supplier<A> supplier() {
+      return supplier;
+    }
+
+    @Override
+    public BinaryOperator<A> combiner() {
+      return combiner;
+    }
+
+    @Override
+    public Function<A, R> finisher() {
+      return finisher;
+    }
+
+    @Override
+    public Set<Characteristics> characteristics() {
+      return characteristics;
+    }
   }
 
 }
