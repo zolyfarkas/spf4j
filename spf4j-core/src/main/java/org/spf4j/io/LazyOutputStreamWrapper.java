@@ -48,14 +48,17 @@ public final class LazyOutputStreamWrapper extends OutputStream {
 
   private final Supplier<OutputStream> osSuplier;
 
+  private final Object sync;
+
   public LazyOutputStreamWrapper(final Supplier<OutputStream> osSuplier) {
     this.osSuplier = osSuplier;
+    this.sync = new Object();
   }
 
   private OutputStream getWrapped() {
     OutputStream os = wrapped;
     if (os == null) {
-      synchronized (osSuplier) {
+      synchronized (sync) {
         os = wrapped;
         if (os == null) {
           os = osSuplier.get();
