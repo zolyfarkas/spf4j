@@ -64,7 +64,11 @@ public final class LogMatchers {
   }
 
   public static Matcher<LogRecord> hasMatchingExtraThrowable(final Matcher<Throwable> matcher) {
-     return Matchers.hasProperty("firstExtraThrowable", matcher);
+     return Matchers.hasProperty("extraThrowable", matcher);
+  }
+
+  public static Matcher<LogRecord> hasMatchingExtraThrowableChain(final Matcher<Iterable<Throwable>> matcher) {
+     return Matchers.hasProperty("extraThrowableChain", matcher);
   }
 
 }

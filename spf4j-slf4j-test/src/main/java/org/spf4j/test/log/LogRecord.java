@@ -15,11 +15,13 @@
  */
 package org.spf4j.test.log;
 
+import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -132,13 +134,27 @@ public final class LogRecord {
   @Nullable
   public synchronized Throwable getExtraThrowable() {
     materializeMessage();
+    Throwable result = null;
     for (int i = startExtra; i < arguments.length; i++) {
       Object argument = arguments[i];
       if (argument instanceof Throwable) {
-        return (Throwable) argument;
+        if (result == null) {
+          result = (Throwable) argument;
+        } else {
+          result.addSuppressed((Throwable) argument);
+        }
       }
     }
-    return null;
+    return result;
+  }
+
+  @Nonnull
+  public List<Throwable> getExtraThrowableChain() {
+    Throwable extraThrowable = getExtraThrowable();
+    if (extraThrowable == null) {
+      return Collections.EMPTY_LIST;
+    }
+    return Throwables.getCausalChain(extraThrowable);
   }
 
   public synchronized void attach(final Object obj) {

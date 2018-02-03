@@ -18,6 +18,7 @@ package org.spf4j.test.log;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -25,12 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.logging.LogManager;
+import java.util.stream.Collector;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.concurrent.GuardedBy;
 import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.spf4j.base.XCollectors;
 import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
 //CHECKSTYLE:OFF
 import sun.misc.Contended;
@@ -114,11 +117,12 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public HandlerRegistration print(final String category, final Level level) {
-      return intercept(category, new LogPrinter(level));
+    return intercept(category, new LogPrinter(level));
   }
 
   /**
    * Ability to intercept log messages logged under a category
+   *
    * @param category
    * @param handler
    * @return
@@ -137,9 +141,42 @@ public final class TestLoggers implements ILoggerFactory {
     };
   }
 
+  @CheckReturnValue
+  public <T> LogCollection<T> collect(final String category, final Level fromLevel,
+          final boolean passThrough,
+          final Collector<LogRecord, ?, T> collector) {
+    return collect(category, fromLevel, Level.ERROR, passThrough, collector);
+  }
+
+  @CheckReturnValue
+  public <T> LogCollection<T> collect(final String category, final Level fromLevel, final Level toLevel,
+          final boolean passThrough,
+          final Collector<LogRecord, ?, T> collector) {
+    LogCollectorHandler handler = new LogCollectorHandler(fromLevel, toLevel, passThrough, collector) {
+
+      private boolean isClosed = false;
+
+      @Override
+      public void close() {
+        synchronized (sync) {
+          if (!isClosed) {
+            config = config.remove(category, this);
+            resetJulConfig();
+            isClosed = true;
+          }
+        }
+      }
+    };
+    synchronized (sync) {
+      config = config.add(category, handler);
+      resetJulConfig();
+    }
+    return handler;
+  }
 
   /**
    * Convenience method for functional use.
+   *
    * @param category
    * @param handler
    * @return
@@ -180,7 +217,6 @@ public final class TestLoggers implements ILoggerFactory {
           final Matcher<LogRecord>... matchers) {
     return logAssert(false, minimumLogLevel, category, matchers);
   }
-
 
   private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category, final Matcher<LogRecord>... matchers) {
@@ -241,28 +277,29 @@ public final class TestLoggers implements ILoggerFactory {
     return asserter;
   }
 
-  public LogCollectionHandler collect(final Level minimumLogLevel, final int maxNrLogs,
+  public LogCollection<ArrayDeque<LogRecord>> collect(final Level minimumLogLevel, final int maxNrLogs,
           final boolean collectPrinted) {
-    LogCollector handler = new LogCollector(minimumLogLevel, maxNrLogs, collectPrinted) {
+    return collect("", minimumLogLevel, maxNrLogs, collectPrinted);
+  }
 
-      private boolean isClosed = false;
-
-      @Override
-      public void close() {
-        synchronized (sync) {
-          if (!isClosed) {
-            config = config.remove("", this);
-            isClosed = true;
-            resetJulConfig();
-          }
-        }
-      }
-    };
-    synchronized (sync) {
-      config = config.add("", handler);
-      resetJulConfig();
+  public LogCollection<ArrayDeque<LogRecord>> collect(final String category, final Level minimumLogLevel,
+          final int maxNrLogs,
+          final boolean collectPrinted) {
+    if (!collectPrinted) {
+      return collect(category,
+            minimumLogLevel,
+            true,
+            XCollectors.filtering(
+                    (l) -> !l.hasAttachment("PRINTED"),
+                    XCollectors.last(maxNrLogs,
+                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs))));
+    } else {
+      return collect(category,
+            minimumLogLevel,
+            true,
+            (Collector<LogRecord, ?, ArrayDeque<LogRecord>>) XCollectors.last(maxNrLogs,
+                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs)));
     }
-    return handler;
   }
 
   /**

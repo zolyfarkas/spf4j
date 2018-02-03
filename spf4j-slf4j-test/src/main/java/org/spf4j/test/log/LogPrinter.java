@@ -19,6 +19,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
@@ -153,13 +154,13 @@ public final class LogPrinter implements LogHandler {
     return record;
   }
 
-  public static void printToStderr(final LogRecord record, final String annotate) {
+  public static void printTo(final PrintStream stream, final LogRecord record, final String annotate) {
     Buffer buff = TL_BUFFER.get();
     buff.clear();
     try {
       print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);
-      System.err.write(buff.getBytes(), 0, buff.size());
-      System.err.flush();
+      stream.write(buff.getBytes(), 0, buff.size());
+      stream.flush();
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }

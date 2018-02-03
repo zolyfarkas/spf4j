@@ -72,10 +72,59 @@ with tons of debug info dumped to output all the time. But making it available w
       });
       obs.assertObservation(5, TimeUnit.SECONDS);
 
+ Collect LogRecords:
+
+    try (LogCollection<Long> c = TestLoggers.sys().collect("org.spf4j.test", Level.INFO, true, Collectors.counting())) {
+      LOG.info("m1");
+      LOG.info("m2");
+      Assert.assertEquals(2L, (long) c.get());
+    }
+
+ Debug detail on demand. For example if you have spf4j.testLog.rootPrintLevel=DEBUG and you want everything
+ above trace available if a unit test fails, you can either set globaly spf4j.test.log.collectMinLevel=TRACE or you can
+ control this at test level like:
+
+      @Test
+      @CollectTrobleshootingLogs(minLevel = Level.TRACE)
+      public void testLogging4() {
+        LOG.trace("lala");
+        LOG.debug("log {}", 1);
+        LOG.debug("log {} {}", 1, 2);
+        LOG.debug("log {} {} {}", 1, 2, 3);
+        LOG.debug("log {} {} {}", 1, 2, 3, 4);
+        Assert.fail("booo");
+      }
+
+ Will result in the following output:
+
+      Running org.spf4j.test.log.TestLoggerFactoryTest
+      09:23:32.691 DEBUG o.s.t.l.TestLoggerFactoryTest "main" "log 1"
+      09:23:32.731 DEBUG o.s.t.l.TestLoggerFactoryTest "main" "log 1 2"
+      09:23:32.731 DEBUG o.s.t.l.TestLoggerFactoryTest "main" "log 1 2 3"
+      09:23:32.731 DEBUG o.s.t.l.TestLoggerFactoryTest "main" "log 1 2 3" ["4"]
+      09:23:32.759 INFO o.s.t.l.j.Spf4jTestLogRunListenerSingleton "main" "Dumping last 100 unprinted logs for testLogging4(org.spf4j.test.log.TestLoggerFactoryTest)"
+      09:23:32.691 TRACE o.s.t.l.TestLoggerFactoryTest "main" "lala"
+      09:23:32.759 INFO o.s.t.l.j.Spf4jTestLogRunListenerSingleton "main" "End dump for testLogging4(org.spf4j.test.log.TestLoggerFactoryTest)"
+      testLogging4(org.spf4j.test.log.TestLoggerFactoryTest)  Time elapsed: 0.054 s  <<< FAILURE!
+      java.lang.AssertionError: booo
+              at org.junit.Assert.fail(Assert.java:88)
+              at org.spf4j.test.log.TestLoggerFactoryTest.testLogging4(TestLoggerFactoryTest.java:200)
+              at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+              at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+
+
  Global configuration system properties with the defaults:
 
+      # default root log level when tests executed from IDE. see TestUtils.class for more info.
       spf4j.testLog.rootPrintLevelIDE = DEBUG
+      # default root log level.
       spf4j.testLog.rootPrintLevel = INFO
+      # default log level collected for availability when a unit test fails.
+      spf4j.test.log.collectMinLevel = DEBUG
+      # maximum number of logs to collect for availability in case of a failure. (by default only unprinted logs are collected)
+      spf4j.test.log.collectmaxLogs = 100
+      # collect printed logs.
+      spf4j.test.log.collectPrintedLogs
 
 
  The log format is:

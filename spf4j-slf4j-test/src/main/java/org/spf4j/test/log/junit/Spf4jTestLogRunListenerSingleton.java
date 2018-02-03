@@ -16,19 +16,20 @@
 package org.spf4j.test.log.junit;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.test.log.CollectTrobleshootingLogs;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.test.log.Level;
-import org.spf4j.test.log.LogCollectionHandler;
+import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
@@ -49,7 +50,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final int maxDebugLogsCollected;
 
-  private final Map<Description, LogCollectionHandler> collections;
+  private final Map<Description, LogCollection<ArrayDeque<LogRecord>>> collections;
 
   private final boolean collectPrinted;
 
@@ -71,8 +72,6 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     return INSTANCE;
   }
 
-
-
   @Override
   public void testRunFinished(final Result result) {
     List<UncaughtExceptionDetail> exceptions = uncaughtExceptionHandler.getUncaughtExceptions();
@@ -91,43 +90,40 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   @Override
   public void testFailure(final Failure failure) {
     Description description = failure.getDescription();
-    LogCollectionHandler handler = collections.get(description);
+    LogCollection<ArrayDeque<LogRecord>> handler = collections.get(description);
     if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
-      dumpDebugInfo(handler, description, failure.getException());
+      dumpDebugInfo(handler, description);
     }
   }
 
-  public void dumpDebugInfo(final LogCollectionHandler handler, final Description description,
-          final Throwable failure) {
+  public void dumpDebugInfo(final LogCollection<ArrayDeque<LogRecord>> handler, final Description description) {
     handler.close();
-    final String annotation = description.toString() + ' ';
-    int nr = handler.forEach(new Consumer<LogRecord>() {
-
-      private boolean first = true;
-
-      @Override
-      public void accept(final LogRecord record) {
-        if (first) {
-          LOG.info("Test {} failed", description, failure);
-          LOG.info("Dumping last {} unprinted logs for {}", maxDebugLogsCollected, description);
-          first = false;
+    synchronized (System.out) { // do not interleave other stuff.
+      boolean first = true;
+      ArrayDeque<LogRecord> logs = handler.get();
+      if (!logs.isEmpty()) {
+        for (LogRecord record : logs) {
+          if (first) {
+            LOG.info("Dumping last {} unprinted logs for {}", maxDebugLogsCollected, description);
+            first = false;
+          }
+          LogPrinter.printTo(System.out, record, "");
         }
-        LogPrinter.printToStderr(record, annotation);
+        LOG.info("End dump for {}", description);
       }
-    });
-    if (nr > 0) {
-      LOG.info("End dump for {}", description);
     }
+
   }
 
   @Override
   public synchronized void testFinished(final Description description) {
-    LogCollectionHandler handler = collections.remove(description);
+    LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
     handler.close();
     handleUncaughtExceptions(description, handler);
   }
 
-  public void handleUncaughtExceptions(final Description description, final LogCollectionHandler handler) {
+  public void handleUncaughtExceptions(final Description description,
+          final LogCollection<ArrayDeque<LogRecord>> handler) {
     List<UncaughtExceptionDetail> exceptions = uncaughtExceptionHandler.getUncaughtExceptions();
     if (!exceptions.isEmpty()) {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
@@ -136,14 +132,18 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
         LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
         assertionError.addSuppressed(throwable);
       }
-      dumpDebugInfo(handler, description, null);
+      dumpDebugInfo(handler, description);
       throw assertionError;
     }
   }
 
   @Override
   public void testStarted(final Description description) throws Exception {
-    collections.put(description, TestLoggers.sys().collect(minLogLevel, maxDebugLogsCollected, collectPrinted));
+    CollectTrobleshootingLogs annotation = description.getAnnotation(CollectTrobleshootingLogs.class);
+    Level mll = annotation == null ? minLogLevel : annotation.minLevel();
+    boolean clp = annotation == null ? collectPrinted : annotation.collectPrinted();
+    String categoryString = annotation == null ? "" : annotation.category();
+    collections.put(description, TestLoggers.sys().collect(categoryString, mll, maxDebugLogsCollected, clp));
     super.testStarted(description);
   }
 

@@ -16,8 +16,9 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
@@ -161,6 +162,7 @@ public class TestLoggerFactoryTest {
 
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  @CollectTrobleshootingLogs(minLevel = Level.TRACE)
   public void testIgnore() {
     TestLoggers config = TestLoggers.sys();
     try (HandlerRegistration ir = config.ignore("org.spf4j.test", Level.DEBUG, Level.ERROR)) {
@@ -170,6 +172,19 @@ public class TestLoggerFactoryTest {
       LOG.trace("trace");
       assrt.assertObservation();
       assrt2.assertObservation();
+    }
+  }
+
+
+  @Test
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  @CollectTrobleshootingLogs(minLevel = Level.TRACE)
+  public void testCollect() {
+    TestLoggers config = TestLoggers.sys();
+    try (LogCollection<Long> c = config.collect("org.spf4j.test", Level.INFO, true, Collectors.counting())) {
+      LOG.info("m1");
+      LOG.info("m2");
+      Assert.assertEquals(2L, (long) c.get());
     }
   }
 
@@ -188,9 +203,14 @@ public class TestLoggerFactoryTest {
     expect.assertObservation();
   }
 
-  @Ignore
+
+
+
+ @Ignore
   @Test
+  @CollectTrobleshootingLogs(minLevel = Level.TRACE, collectPrinted = true)
   public void testLogging4() {
+    LOG.trace("lala");
     LOG.debug("log {}", 1);
     LOG.debug("log {} {}", 1, 2);
     LOG.debug("log {} {} {}", 1, 2, 3);
@@ -230,16 +250,12 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testLogging5() {
-    LogCollectionHandler collect = TestLoggers.sys().collect(Level.DEBUG, 10, true);
+    LogCollection<ArrayDeque<LogRecord>> collect = TestLoggers.sys().collect(Level.DEBUG, 10, true);
     LOG.debug("log {}", 1);
     LOG.debug("log {} {}", 1, 2);
     LOG.debug("log {} {} {}", 1, 2, 3);
     LOG.debug("log {} {} {}", 1, 2, 3, 4);
-    AtomicInteger count = new AtomicInteger();
-    collect.forEach((r) -> {
-      count.incrementAndGet();
-    });
-    Assert.assertEquals(4, count.get());
+    Assert.assertEquals(4, collect.get().size());
   }
 
 }
