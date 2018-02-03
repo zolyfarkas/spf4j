@@ -42,6 +42,8 @@ with tons of debug info dumped to output all the time. But making it available w
         </configuration>
       </plugin>
 
+ Or if your IDE is not smart enough to pick the run listeners up from your pom.xml, you can use the Spf4jTestLogJUnitRunner with @RunWith
+
 ### Examples:
 
  Change LOG print config for a log category:
