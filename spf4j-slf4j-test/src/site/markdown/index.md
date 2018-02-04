@@ -49,7 +49,7 @@ with tons of debug info dumped to output all the time. But making it available w
  Assert that you expect message to be logged:
 
       LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR,
-                LogMatchers.hasFormat(Matchers.equalTo("Booo")));
+                LogMatchers.hasFormat("Booo"));
       LOG.error("Booo", new RuntimeException());
       expect.assertObservation(); // whithout assert the unit test fails when logging an error.
 
