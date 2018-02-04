@@ -16,6 +16,8 @@
 package org.spf4j.test.log;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -26,62 +28,65 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 final class CompositeLogHandler implements LogConsumer {
 
-<span class="fc" id="L29">  private int hash = 0;</span>
+<span class="fc" id="L31">  private static final Interner&lt;CompositeLogHandler&gt; INTERNER =</span>
+<span class="fc" id="L32">          Interners.newBuilder().concurrencyLevel(8).weak().build();</span>
+
+<span class="fc" id="L34">  private int hash = 0;</span>
 
   @VisibleForTesting
   final List&lt;LogHandler&gt; logHandlers;
 
-<span class="fc" id="L34">  private CompositeLogHandler(final List&lt;LogHandler&gt; logHandlers) {</span>
-<span class="fc" id="L35">    this.logHandlers = logHandlers;</span>
-<span class="fc" id="L36">  }</span>
+<span class="fc" id="L39">  private CompositeLogHandler(final List&lt;LogHandler&gt; logHandlers) {</span>
+<span class="fc" id="L40">    this.logHandlers = logHandlers;</span>
+<span class="fc" id="L41">  }</span>
 
   static LogConsumer from(final List&lt;LogHandler&gt; logHandlers) {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">    if (logHandlers.isEmpty()) {</span>
-<span class="fc" id="L40">      return null;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">    if (logHandlers.isEmpty()) {</span>
+<span class="fc" id="L45">      return null;</span>
     } else {
-<span class="fc" id="L42">      return new CompositeLogHandler(logHandlers);</span>
+<span class="fc" id="L47">      return INTERNER.intern(new CompositeLogHandler(logHandlers));</span>
     }
   }
 
   @Override
   public void accept(final LogRecord record) {
-<span class="fc" id="L48">    LogRecord logRecord = record;</span>
-<span class="fc bfc" id="L49" title="All 2 branches covered.">    for (LogHandler handler : logHandlers) {</span>
-<span class="fc" id="L50">      logRecord = handler.handle(logRecord);</span>
-<span class="pc bpc" id="L51" title="1 of 2 branches missed.">      if (logRecord == null) {</span>
-<span class="nc" id="L52">        break;</span>
+<span class="fc" id="L53">    LogRecord logRecord = record;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">    for (LogHandler handler : logHandlers) {</span>
+<span class="fc" id="L55">      logRecord = handler.handle(logRecord);</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">      if (logRecord == null) {</span>
+<span class="nc" id="L57">        break;</span>
       }
-<span class="fc" id="L54">    }</span>
-<span class="fc" id="L55">  }</span>
+<span class="fc" id="L59">    }</span>
+<span class="fc" id="L60">  }</span>
 
   @Override
   public int hashCode() {
-<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (hash == 0) {</span>
-<span class="nc" id="L60">      hash = Objects.hashCode(this.logHandlers);</span>
-<span class="nc" id="L61">      return hash;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (hash == 0) {</span>
+<span class="fc" id="L65">      hash = Objects.hashCode(this.logHandlers);</span>
+<span class="fc" id="L66">      return hash;</span>
     } else {
-<span class="nc" id="L63">      return hash;</span>
+<span class="fc" id="L68">      return hash;</span>
     }
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L69" title="All 2 branches missed.">    if (this == obj) {</span>
-<span class="nc" id="L70">      return true;</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L75">      return true;</span>
     }
-<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L73">      return false;</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L78">      return false;</span>
     }
-<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L76">      return false;</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L81">      return false;</span>
     }
-<span class="nc" id="L78">    final CompositeLogHandler other = (CompositeLogHandler) obj;</span>
-<span class="nc" id="L79">    return Objects.equals(this.logHandlers, other.logHandlers);</span>
+<span class="fc" id="L83">    final CompositeLogHandler other = (CompositeLogHandler) obj;</span>
+<span class="fc" id="L84">    return Objects.equals(this.logHandlers, other.logHandlers);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L84">    return &quot;CompositeLogHandler{&quot; + &quot;logHandlers=&quot; + logHandlers + '}';</span>
+<span class="nc" id="L89">    return &quot;CompositeLogHandler{&quot; + &quot;logHandlers=&quot; + logHandlers + '}';</span>
   }
 
 }
