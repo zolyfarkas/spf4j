@@ -91,6 +91,9 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
           TimeoutException, ObjectCreationException {
     lock.lock();
     try {
+      if (maxSize <=0) {
+        throw new IllegalStateException("Pool closed, or sized improperly");
+      }
       // trying to be fair here, if others are already waiting, we will not get one.
       if (availableObjects.size() - waitingForReturn > 0) {
         Iterator<T> it = availableObjects.iterator();
@@ -107,10 +110,6 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         }
         return object;
       } else {
-        if (borrowedObjects.isEmpty() && availableObjects.isEmpty()) {
-          throw new IllegalStateException(
-                  "Pool is probably closing down or is missconfigured with size 0 " + this);
-        }
         while (borrowedObjects.isEmpty()) {
           available.await(1, TimeUnit.MILLISECONDS);
           long millisToDeadline = ExecutionContexts.getMillisRelativeToDeadline();

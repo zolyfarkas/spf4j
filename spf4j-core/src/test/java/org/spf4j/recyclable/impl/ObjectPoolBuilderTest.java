@@ -91,7 +91,7 @@ public final class ObjectPoolBuilderTest {
     pool.dispose();
   }
 
-  @Test(expected = TimeoutException.class)
+  @Test(expected = IllegalStateException.class)
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testBuildDisposeTimeout()
           throws ObjectCreationException, ObjectBorrowException,
