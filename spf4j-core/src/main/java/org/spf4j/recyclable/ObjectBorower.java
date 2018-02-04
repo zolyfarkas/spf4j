@@ -48,7 +48,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
     /**
      * Non Blocking method.
      *
-     * @return null if request was not made, the object if available, or REQUEST_MADE if request could be made to return
+     * @return Ether object or REQUEST_MADE if was able to notify borrower to return an object, or NONE if not.
      * Object.
      */
     @Nonnull
@@ -86,7 +86,6 @@ public interface ObjectBorower<T> extends Scanable<T> {
      * return true is indeed object was from here, false otherwise.
      * @param object
      */
-
     boolean nevermind(T object);
 
 

@@ -31,13 +31,16 @@
  */
 package org.spf4j.recyclable;
 
+import com.google.common.annotations.Beta;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *
  * @author zoly
  */
+@ThreadSafe
 @ParametersAreNonnullByDefault
 public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
 
@@ -49,6 +52,7 @@ public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
      * @throws TimeoutException
      * @throws ObjectCreationException
      */
+    @Nonnull
     T get(ObjectBorower borower) throws InterruptedException,
             TimeoutException, ObjectCreationException;
 
@@ -63,6 +67,8 @@ public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
     /**
      * @return the object sample.
      */
+    @Nonnull
+    @Beta
     T getSample();
 
 }
