@@ -20,9 +20,6 @@ import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 /**
@@ -35,14 +32,11 @@ public final class CachedLogConfig implements LogConfig {
 
   private final Map<Level, LoadingCache<String, LogConsumer>> cache;
 
-  private final ConcurrentMap<LogConsumer, LogConsumer> interner;
-
   private final LogConfig wrapped;
 
   @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
   public CachedLogConfig(final LogConfig wrapped) {
     this.wrapped = wrapped;
-    interner = new ConcurrentHashMap<>();
     cache = new EnumMap<>(Level.class);
     for (Level level : Level.values()) {
       cache.put(level, new UnboundedLoadingCache<>(16,
@@ -53,7 +47,7 @@ public final class CachedLogConfig implements LogConfig {
           if (logHandlers == null) {
             return NULL_CONSUMER;
           } else {
-            return interner.computeIfAbsent(logHandlers, Function.identity());
+            return logHandlers;
           }
         }
       }));

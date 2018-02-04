@@ -16,6 +16,8 @@
 package org.spf4j.test.log;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,6 +27,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 final class CompositeLogHandler implements LogConsumer {
+
+  private static final Interner<CompositeLogHandler> INTERNER =
+          Interners.newBuilder().concurrencyLevel(8).weak().build();
 
   private int hash = 0;
 
@@ -39,7 +44,7 @@ final class CompositeLogHandler implements LogConsumer {
     if (logHandlers.isEmpty()) {
       return null;
     } else {
-      return new CompositeLogHandler(logHandlers);
+      return INTERNER.intern(new CompositeLogHandler(logHandlers));
     }
   }
 
