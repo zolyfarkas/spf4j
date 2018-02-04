@@ -147,7 +147,7 @@ public final class PipedOutputStream extends OutputStream {
 
   public long getNanoDeadline() {
     if (globalDeadlineNanos == null) {
-      return ExecutionContexts.getNanosToDeadline();
+      return ExecutionContexts.getContextDeadlineNanos();
     } else {
       return globalDeadlineNanos;
     }
