@@ -86,8 +86,21 @@ public final class PipedOutputStream extends OutputStream {
     this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);
   }
 
+  /**
+   * @deprecated use constructor that takes globalDeadlineNanos.
+   */
+  @Deprecated
   public PipedOutputStream(final int bufferSize, final long globalDeadlineMillis) {
     this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW, globalDeadlineMillis);
+  }
+
+  /**
+   * Create a PipedOutputStream with a global deadline relative to System.nanoTime().
+   * @param globalDeadlineNanos deadline relative to System.nanoTime().
+   * @param bufferSize the buffer size.
+   */
+  public PipedOutputStream(final long globalDeadlineNanos, final int bufferSize) {
+    this(globalDeadlineNanos, bufferSize, ArraySuppliers.Bytes.JAVA_NEW);
   }
 
   public PipedOutputStream(final int bufferSize,
@@ -101,22 +114,16 @@ public final class PipedOutputStream extends OutputStream {
   @Deprecated
   public PipedOutputStream(final int bufferSize,
           final SizedRecyclingSupplier<byte[]> bufferProvider, @Nullable final Long globalDeadlineMillis) {
-    if (bufferSize < 2) {
-      throw new IllegalArgumentException("Illegal buffer size " + bufferSize);
-    }
-    this.bufferProvider = bufferProvider;
-    buffer = bufferProvider.get(bufferSize);
-    startIdx = 0;
-    endIdx = 0;
-    readerPerceivedEndIdx = 0;
-    writerClosed = false;
-    nrReadStreams = 0;
-    this.globalDeadlineNanos = globalDeadlineMillis != null
-            ? Timing.getCurrentTiming().fromEpochMillisToNanoTime(globalDeadlineMillis)
-            : null;
+    this(globalDeadlineMillis == null ? null
+            : Timing.getCurrentTiming().fromEpochMillisToNanoTime(globalDeadlineMillis), bufferSize, bufferProvider);
   }
 
-
+  /**
+   * Create a PipedOutputStream.
+   * @param globalDeadlineNanos the deadline relative to System.nanoTime().
+   * @param bufferSize the buffer size in bytes.
+   * @param bufferProvider a buffer provider. (to allow more efficient recycling)
+   */
   public PipedOutputStream(@Nullable final Long globalDeadlineNanos, final int bufferSize,
           final SizedRecyclingSupplier<byte[]> bufferProvider) {
     if (bufferSize < 2) {

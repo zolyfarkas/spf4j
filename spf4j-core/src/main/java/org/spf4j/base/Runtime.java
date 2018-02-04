@@ -52,7 +52,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -468,33 +467,25 @@ public final class Runtime {
   }
 
   /**
-   * @deprecated see ExecutionContext.
+   * @return returns the deadline as millis since epoch.
+   * @deprecated see ExecutionContexts.
    */
   @Deprecated
   public static long getDeadline() {
-    ExecutionContext ec = ExecutionContexts.current();
-    if (ec == null) {
-      return System.currentTimeMillis() + Timing.MAX_MS_SPAN;
-    } else {
-      return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ec.getDeadlineNanos());
-    }
+    return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ExecutionContexts.getContextDeadlineNanos());
   }
 
   /**
-   * @deprecated see ExecutionContext.
+   * @return milliseconds until deadline.
+   * @deprecated see ExecutionContexts.
    */
   @Deprecated
   public static long millisToDeadline() throws TimeoutException {
-    ExecutionContext ec = ExecutionContexts.current();
-    if (ec == null) {
-      return Timing.MAX_MS_SPAN;
-    } else {
-      long ms = TimeUnit.NANOSECONDS.toMillis(ec.getDeadlineNanos() - System.nanoTime());
-      if (ms < 0) {
-        throw new TimeoutException("Deadline exceeded by " + (-ms));
-      }
-      return ms;
+    long millisToDeadline = ExecutionContexts.getMillisToDeadline();
+    if (millisToDeadline <= 0) {
+      throw new TimeoutException("Deadlined exceeded with " + (-millisToDeadline) + " ms");
     }
+    return millisToDeadline;
   }
 
   /**

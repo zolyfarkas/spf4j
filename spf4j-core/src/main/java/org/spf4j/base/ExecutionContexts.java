@@ -43,6 +43,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ParametersAreNonnullByDefault
 public final class ExecutionContexts {
 
+  public static final long DEFAULT_TIMEOUT_NANOS =
+          Long.getLong("spf4j.execContext.defaultTimeoutNanos", TimeUnit.HOURS.toNanos(8));
+
   private ExecutionContexts() {
   }
 
@@ -112,7 +115,7 @@ public final class ExecutionContexts {
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent) {
-    return start(parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + Long.MAX_VALUE);
+    return start(parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS);
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long deadlineNanos) {
@@ -125,7 +128,8 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent) {
-    return start(name, parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + Long.MAX_VALUE);
+    return start(name, parent, parent != null ? parent.getDeadlineNanos()
+            : TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS);
   }
 
   public static ExecutionContext start(final String name,
@@ -140,7 +144,7 @@ public final class ExecutionContexts {
   public static long getContextDeadlineNanos() {
     ExecutionContext ec = ExecutionContexts.current();
     if (ec == null) {
-      return TimeSource.nanoTime() + Long.MAX_VALUE;
+      return TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS;
     } else {
       return ec.getDeadlineNanos();
     }
