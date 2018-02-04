@@ -46,24 +46,16 @@ with tons of debug info dumped to output all the time. But making it available w
 
 ### Examples:
 
- Change LOG print config for a log category:
-
-      try (HandlerRegistration printer = TestLoggers.config().print("my.log.package", Level.TRACE)) {
-        ...
-        LOG.error("Booo", new RuntimeException());
-        ..
-      }
-
  Assert that you expect message to be logged:
 
-      LogAssert expect = TestLoggers.system().expect("org.spf4j.test", Level.ERROR,
+      LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR,
                 LogMatchers.hasFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertObservation(); // whithout assert the unit test fails when logging an error.
 
  Assert uncaught exceptions:
 
-      AsyncObservationAssert obs = TestLoggers.system().expectUncaughtException(Matchers.hasProperty("throwable",
+      AsyncObservationAssert obs = TestLoggers.sys().expectUncaughtException(Matchers.hasProperty("throwable",
               Matchers.any(IllegalStateException.class)));
       executor.execute(new Runnable() {
 
@@ -81,6 +73,14 @@ with tons of debug info dumped to output all the time. But making it available w
       LOG.info("m2");
       Assert.assertEquals(2L, (long) c.get());
     }
+
+ Change LOG print config for a log category:
+
+      try (HandlerRegistration printer = TestLoggers.sys().print("my.log.package", Level.TRACE)) {
+        ...
+        LOG.error("Booo", new RuntimeException());
+        ..
+      }
 
  Debug detail on demand. For example if you have spf4j.testLog.rootPrintLevel=DEBUG and you want everything
  above trace available if a unit test fails, you can either set globaly spf4j.test.log.collectMinLevel=TRACE or you can
@@ -132,14 +132,14 @@ with tons of debug info dumped to output all the time. But making it available w
  The log format is:
 
       [ISO UTC Timestaamp] [LOG Level] [Markers(jsonstr/json obj)]? [LOGGER] [THREAD(jsonstr)] [MESSAGE(json str)] [Extra Objects(array<jsonstr>)]?
-      [StackTrace] ?
+      [StackTrace]?
 
  sample log messages:
 
       2018-01-25T19:55:06.080Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger"
       2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1"
       2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3"
-      2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3"
+      2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3" ["4"]
       java.lang.RuntimeException
               at o.s.t.l.TestLoggerFactoryTest.logMarkerTests(TestLoggerFactoryTest.java:116)[test-classes/]
               at ^.testLogging(^:43)[^]
