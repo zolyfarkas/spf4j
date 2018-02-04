@@ -32,6 +32,7 @@
 package org.spf4j.recyclable;
 
 import java.util.concurrent.TimeoutException;
+import org.spf4j.base.ExecutionContexts;
 
 /**
  *
@@ -41,7 +42,7 @@ public interface Disposable extends AutoCloseable {
 
   default void dispose() throws ObjectDisposeException, InterruptedException {
       try {
-        dispose(Long.MAX_VALUE);
+        dispose(ExecutionContexts.getMillisToDeadline());
       } catch (TimeoutException ex) {
         throw new ObjectDisposeException(ex);
       }
