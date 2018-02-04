@@ -32,8 +32,11 @@
 package org.spf4j.base;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Signed;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -150,16 +153,46 @@ public final class ExecutionContexts {
     }
   }
 
-  public static long getSecondsToDeadline() {
+  @Signed
+  public static long getSecondsRelativeToDeadline() {
     return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - TimeSource.nanoTime());
   }
 
-  public static long getMillisToDeadline() {
+  @Nonnegative
+  public static long getSecondsToDeadline() throws TimeoutException {
+    long secondsRelativeToDeadline = getSecondsRelativeToDeadline();
+    if (secondsRelativeToDeadline <= 0) {
+      throw new TimeoutException("Deadline exceeded by " + (-secondsRelativeToDeadline) + " secs");
+    }
+    return secondsRelativeToDeadline;
+  }
+
+  @Nonnegative
+  public static long getMillisToDeadline() throws TimeoutException {
+    long millisRelativeToDeadline = getMillisRelativeToDeadline();
+    if (millisRelativeToDeadline <= 0) {
+      throw new TimeoutException("Deadline exceeded by " + (-millisRelativeToDeadline) + " ms");
+    }
+    return millisRelativeToDeadline;
+  }
+
+  @Signed
+  public static long getMillisRelativeToDeadline() {
     return TimeUnit.NANOSECONDS.toMillis(getContextDeadlineNanos() - TimeSource.nanoTime());
   }
 
-  public static long getNanosToDeadline() {
+  @Signed
+  public static long getNanosRelativeToDeadline() {
     return getContextDeadlineNanos() - TimeSource.nanoTime();
+  }
+
+  @Nonnegative
+  public static long getNanosToDeadline() throws TimeoutException {
+    long nanosRelativeToDeadline = getNanosRelativeToDeadline();
+    if (nanosRelativeToDeadline <= 0) {
+      throw new TimeoutException("Deadline exceeded by " + (-nanosRelativeToDeadline) + " nanos");
+    }
+    return nanosRelativeToDeadline;
   }
 
 }

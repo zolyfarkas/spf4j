@@ -481,11 +481,7 @@ public final class Runtime {
    */
   @Deprecated
   public static long millisToDeadline() throws TimeoutException {
-    long millisToDeadline = ExecutionContexts.getMillisToDeadline();
-    if (millisToDeadline <= 0) {
-      throw new TimeoutException("Deadlined exceeded with " + (-millisToDeadline) + " ms");
-    }
-    return millisToDeadline;
+    return ExecutionContexts.getMillisToDeadline();
   }
 
   /**
