@@ -3,13 +3,16 @@
  *
  * This is an opinionated logging backend implementation with the following features:
  *
- * 1) Readable and parseable output.
- * 2) High Performance. (Your builds should not be slow due to your logging)
- * 3) Ability to assert Logging behavior.
- * 4) Fail unit tests that log an Error by default (if respective Error logs are not asserted against).
- * 5) Make debug logs available on unit test failure. This helps 2) a lot by not requiring you to run your unit tests
- * with tons of debug info dumped to output. But making it available when you actually need it (Unit test failure)
- * 6) Easily change logging configuration via API.
+ *  - Readable and parse-able output.
+ *  - Fast. (logging is no reason to have slow builds)
+ *  - Ability to assert Logging behavior.
+ *  - Fail unit tests that log an Error by default (if respective Error logs are not asserted against).
+ *  - Make debug logs available on unit test failure. This helps performance a lot by not requiring you to run your
+ *    unit tests with tons of debug info dumped to output all the time. But making it available when you actually need
+ *    it (Unit test failure)
+ *  - Easily change logging configuration via API.
+ *  - Uncaught exceptions from other threads will fail your tests. You can assert them if they are expected.
+ *  - No configurable format, It is the best format so everybody should be using it. Format will be evolved as needed.
  *
  *
  */

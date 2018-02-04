@@ -333,7 +333,7 @@ public final class TestLoggers implements ILoggerFactory {
             minimumLogLevel,
             true,
             XCollectors.filtering(
-                    (l) -> !l.hasAttachment("PRINTED"),
+                    (l) -> !l.hasAttachment(LogPrinter.PRINTED),
                     XCollectors.last(maxNrLogs,
                     new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs))));
     } else {
@@ -359,7 +359,7 @@ public final class TestLoggers implements ILoggerFactory {
   public java.util.logging.Logger getJulRoot() {
     return julRoot;
   }
-  
+
   @Override
   public String toString() {
     return "TestLoggers{ config=" + config + ", loggerMap=" + loggerMap + '}';
