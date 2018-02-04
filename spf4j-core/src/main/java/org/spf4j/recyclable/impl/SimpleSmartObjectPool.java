@@ -47,6 +47,7 @@ import org.spf4j.base.Either;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.TimeSource;
 import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectBorower.Action;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -55,7 +56,6 @@ import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.SmartRecyclingSupplier;
 
 /**
- *
  * @author zoly
  */
 final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
@@ -72,6 +72,9 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
   SimpleSmartObjectPool(final int initialSize, final int maxSize,
           final RecyclingSupplier.Factory<T> factory, final boolean fair)
           throws ObjectCreationException {
+    if (maxSize < 1) {
+      throw new IllegalArgumentException("Invalid pool size: " + maxSize);
+    }
     this.maxSize = maxSize;
     this.factory = factory;
     this.lock = new ReentrantLock(fair);
@@ -91,11 +94,12 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
           TimeoutException, ObjectCreationException {
     lock.lock();
     try {
-      if (maxSize <=0) {
-        throw new IllegalStateException("Pool closed, or sized improperly");
+      if (maxSize <= 0) {
+        throw new IllegalStateException("Pool closed, noting available for " + borower);
       }
+      int nrAvailable = availableObjects.size();
       // trying to be fair here, if others are already waiting, we will not get one.
-      if (availableObjects.size() - waitingForReturn > 0) {
+      if (nrAvailable - waitingForReturn > 0) {
         Iterator<T> it = availableObjects.iterator();
         T object = it.next();
         it.remove();
@@ -103,20 +107,13 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
           throw new IllegalStateException("Cannot borrow " + object + ", " + borrowedObjects);
         }
         return object;
-      } else if (borrowedObjects.size() < maxSize) {
+      } else if (borrowedObjects.size()  + nrAvailable < maxSize) {
         T object = factory.create();
         if (!borrowedObjects.put(borower, object)) {
           throw new IllegalStateException("Cannot borrow " + object + ", " + borrowedObjects);
         }
         return object;
       } else {
-        while (borrowedObjects.isEmpty()) {
-          available.await(1, TimeUnit.MILLISECONDS);
-          long millisToDeadline = ExecutionContexts.getMillisRelativeToDeadline();
-          if (millisToDeadline < 0) {
-            throw new TimeoutException("Object wait timeout expired by " + (-millisToDeadline));
-          }
-        }
         // try to reclaim object from borrowers
         for (ObjectBorower<T> b : borrowedObjects.keySet()) {
           if (borower != b) {
@@ -230,7 +227,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
   @Override
   public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
     factory.dispose(sample);
-    long deadline = System.currentTimeMillis() + timeoutMillis;
+    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
     lock.lock();
     try {
       maxSize = 0;
@@ -254,11 +251,11 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
       }
       ObjectDisposeException exception = disposeReturnedObjects(null);
       while (!borrowedObjects.isEmpty()) {
-        long waitTime = deadline - System.currentTimeMillis();
-        if (waitTime <= 0) {
+        long waitTimeNanos = deadlineNanos - TimeSource.nanoTime();
+        if (waitTimeNanos <= 0) {
           return false;
         }
-        if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
+        if (!available.await(waitTimeNanos, TimeUnit.NANOSECONDS)) {
           return false;
         }
         exception = disposeReturnedObjects(exception);
@@ -298,7 +295,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     return result;
   }
 
-  @edu.umd.cs.findbugs.annotations.SuppressWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
+  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_HAS_CHECKED")
   @Override
   public boolean scan(final ScanHandler<T> handler) throws Exception {
     lock.lock();
@@ -378,7 +375,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
     lock.lock();
     try {
       return "SimpleSmartObjectPool{" + "maxSize=" + maxSize + ", borrowedObjects="
-              + borrowedObjects + ", returnedObjects=" + availableObjects
+              + borrowedObjects + ", availableObjects=" + availableObjects
               + ", factory=" + factory + '}';
     } finally {
       lock.unlock();
