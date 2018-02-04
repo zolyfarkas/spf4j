@@ -47,8 +47,8 @@ import java.util.Set;
  */
 public final class Traversals {
 
-<span class="nc" id="L50">    private Traversals() {</span>
-<span class="nc" id="L51">    }</span>
+    private Traversals() {
+    }
 
     public interface TraversalCallback&lt;V, E&gt; {
 
@@ -57,46 +57,46 @@ public final class Traversals {
 
     public static &lt;V, E&gt; void traverse(final Graph&lt;V, E&gt; graph, final V startNode,
             final TraversalCallback&lt;V, E&gt; handler, final boolean isBreadth) {
-<span class="fc" id="L60">        Set&lt;V&gt; traversedNodes = new HashSet&lt;V&gt;(graph.getVertices().size());</span>
-<span class="fc" id="L61">        Deque&lt;V&gt; traversalQueue = new ArrayDeque&lt;V&gt;();</span>
-<span class="fc" id="L62">        traversalQueue.add(startNode);</span>
-<span class="fc" id="L63">        boolean done = false;</span>
+<span class="nc" id="L60">        Set&lt;V&gt; traversedNodes = new HashSet&lt;V&gt;(graph.getVertices().size());</span>
+<span class="nc" id="L61">        Deque&lt;V&gt; traversalQueue = new ArrayDeque&lt;V&gt;();</span>
+<span class="nc" id="L62">        traversalQueue.add(startNode);</span>
+<span class="nc" id="L63">        boolean done = false;</span>
         do {
-<span class="fc" id="L65">            boolean first = true;</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">            while (!traversalQueue.isEmpty()) {</span>
+<span class="nc" id="L65">            boolean first = true;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            while (!traversalQueue.isEmpty()) {</span>
                 V node;
-<span class="pc bpc" id="L68" title="1 of 2 branches missed.">                if (isBreadth) {</span>
-<span class="fc" id="L69">                    node = traversalQueue.removeFirst();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                if (isBreadth) {</span>
+<span class="nc" id="L69">                    node = traversalQueue.removeFirst();</span>
                 } else {
 <span class="nc" id="L71">                    node = traversalQueue.removeLast();</span>
                 }
-<span class="fc" id="L73">                VertexEdges&lt;V, E&gt; edges = graph.getEdges(node);</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">                if (traversedNodes.contains(node)) {</span>
-<span class="fc" id="L75">                    continue;</span>
+<span class="nc" id="L73">                VertexEdges&lt;V, E&gt; edges = graph.getEdges(node);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                if (traversedNodes.contains(node)) {</span>
+<span class="nc" id="L75">                    continue;</span>
                 }
-<span class="fc" id="L77">                Map&lt;E, V&gt; incomming = edges.getIncomming();</span>
-<span class="fc" id="L78">                boolean hasIncomingBeenTraversed = true;</span>
-<span class="fc bfc" id="L79" title="All 2 branches covered.">                for (V val : incomming.values()) {</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">                    if (!traversedNodes.contains(val)) {</span>
-<span class="fc" id="L81">                        hasIncomingBeenTraversed = false;</span>
-<span class="fc" id="L82">                        break;</span>
+<span class="nc" id="L77">                Map&lt;E, V&gt; incomming = edges.getIncomming();</span>
+<span class="nc" id="L78">                boolean hasIncomingBeenTraversed = true;</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                for (V val : incomming.values()) {</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                    if (!traversedNodes.contains(val)) {</span>
+<span class="nc" id="L81">                        hasIncomingBeenTraversed = false;</span>
+<span class="nc" id="L82">                        break;</span>
                     }
-<span class="fc" id="L84">                }</span>
-<span class="fc bfc" id="L85" title="All 4 branches covered.">                if (!first &amp;&amp; !hasIncomingBeenTraversed) {</span>
-<span class="fc" id="L86">                    continue;</span>
+<span class="nc" id="L84">                }</span>
+<span class="nc bnc" id="L85" title="All 4 branches missed.">                if (!first &amp;&amp; !hasIncomingBeenTraversed) {</span>
+<span class="nc" id="L86">                    continue;</span>
                 }
-<span class="fc" id="L88">                handler.handle(node, incomming);</span>
-<span class="fc" id="L89">                traversedNodes.add(node);</span>
-<span class="fc" id="L90">                first = false;</span>
-<span class="fc" id="L91">                Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">                for (V next : outgoing.values()) {</span>
-<span class="fc" id="L93">                    traversalQueue.add(next);</span>
-<span class="fc" id="L94">                }</span>
-<span class="fc" id="L95">            }</span>
+<span class="nc" id="L88">                handler.handle(node, incomming);</span>
+<span class="nc" id="L89">                traversedNodes.add(node);</span>
+<span class="nc" id="L90">                first = false;</span>
+<span class="nc" id="L91">                Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                for (V next : outgoing.values()) {</span>
+<span class="nc" id="L93">                    traversalQueue.add(next);</span>
+<span class="nc" id="L94">                }</span>
+<span class="nc" id="L95">            }</span>
 
-<span class="fc" id="L97">            Set&lt;V&gt; leftNodes = Sets.difference(graph.getVertices(), traversedNodes);</span>
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            if (leftNodes.isEmpty()) {</span>
-<span class="fc" id="L99">                done = true;</span>
+<span class="nc" id="L97">            Set&lt;V&gt; leftNodes = Sets.difference(graph.getVertices(), traversedNodes);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (leftNodes.isEmpty()) {</span>
+<span class="nc" id="L99">                done = true;</span>
             } else {
 <span class="nc" id="L101">                boolean added = false;</span>
 <span class="nc bnc" id="L102" title="All 2 branches missed.">                for (V node : leftNodes) {</span>
@@ -113,8 +113,8 @@ public final class Traversals {
                     }
 <span class="nc" id="L114">                }</span>
             }
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        } while (!done);</span>
-<span class="fc" id="L117">    }</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        } while (!done);</span>
+<span class="nc" id="L117">    }</span>
 
 
     public static final class VertexHolder&lt;V&gt; implements Comparable&lt;VertexHolder&lt;V&gt;&gt; {
@@ -247,4 +247,4 @@ public final class Traversals {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

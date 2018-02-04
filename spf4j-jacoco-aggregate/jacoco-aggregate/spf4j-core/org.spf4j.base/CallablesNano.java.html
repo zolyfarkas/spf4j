@@ -53,14 +53,14 @@ import org.spf4j.base.Callables.TimeoutRetryPredicate;
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class CallablesNano {
 
-<span class="nc" id="L56">  private CallablesNano() {</span>
-<span class="nc" id="L57">  }</span>
+  private CallablesNano() {
+  }
 
   public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
           final int nrImmediateRetries,
           final long maxRetryWaitNanos, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L63">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+<span class="nc" id="L63">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
             (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
   }
@@ -97,23 +97,23 @@ public final class CallablesNano {
           final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L100">    final long deadline = what.getDeadline();</span>
-<span class="fc" id="L101">    return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+<span class="nc" id="L100">    final long deadline = what.getDeadline();</span>
+<span class="nc" id="L101">    return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
             new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
                     maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
-<span class="fc" id="L104">                    () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
+<span class="nc" id="L104">                    () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
   }
 
   public static long toDeadlineNanos(final long timeoutNanos) {
-<span class="fc" id="L108">    long nanoTime = System.nanoTime();</span>
-<span class="fc" id="L109">    return Callables.overflowSafeAdd(nanoTime, timeoutNanos);</span>
+<span class="nc" id="L108">    long nanoTime = System.nanoTime();</span>
+<span class="nc" id="L109">    return Callables.overflowSafeAdd(nanoTime, timeoutNanos);</span>
   }
 
   public abstract static class NanoTimeoutCallable&lt;T, EX extends Exception&gt; extends TimeoutCallable&lt;T, EX&gt; {
 
     public NanoTimeoutCallable(final long timeoutNanos) {
-<span class="fc" id="L115">      super(toDeadlineNanos(timeoutNanos));</span>
-<span class="fc" id="L116">    }</span>
+<span class="nc" id="L115">      super(toDeadlineNanos(timeoutNanos));</span>
+<span class="nc" id="L116">    }</span>
 
     /**
      * @param deadline System.nanoTime deadline.
@@ -143,12 +143,12 @@ public final class CallablesNano {
     @Override
     Callables.RetryDecision&lt;R&gt; getDecision(T value, long deadlineNanos, Callable&lt;R&gt; what);
 
-<span class="fc" id="L146">    TimeoutNanoRetryPredicate NORETRY_FOR_RESULT = new TimeoutNanoRetryPredicate&lt;Object, Object&gt;() {</span>
+<span class="nc" id="L146">    TimeoutNanoRetryPredicate NORETRY_FOR_RESULT = new TimeoutNanoRetryPredicate&lt;Object, Object&gt;() {</span>
 
       @Override
       public Callables.RetryDecision&lt;Object&gt; getDecision(final Object value,
               final long deadline, final Callable&lt;Object&gt; what) {
-<span class="fc" id="L151">        return Callables.RetryDecision.abort();</span>
+<span class="nc" id="L151">        return Callables.RetryDecision.abort();</span>
       }
 
     };
@@ -156,4 +156,4 @@ public final class CallablesNano {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

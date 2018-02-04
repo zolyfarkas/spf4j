@@ -46,9 +46,9 @@ import org.spf4j.zel.instr.Instruction;
 @SuppressFBWarnings(&quot;FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY&quot;)
 public final class ZelFrame implements Serializable {
 
-<span class="fc" id="L49">  private static final ConcurrentMap&lt;String, CharSequence&gt; SOURCES = new ConcurrentHashMap();</span>
+<span class="nc" id="L49">  private static final ConcurrentMap&lt;String, CharSequence&gt; SOURCES = new ConcurrentHashMap();</span>
 
-<span class="fc" id="L51">  private static final AtomicInteger IDX = new AtomicInteger();</span>
+<span class="nc" id="L51">  private static final AtomicInteger IDX = new AtomicInteger();</span>
   private static final long serialVersionUID = 1L;
 
   private final String programName;
@@ -58,51 +58,51 @@ public final class ZelFrame implements Serializable {
   private final int index;
 
   public static String newSource(final String sourceDetail) {
-<span class="fc" id="L61">    String id = &quot;zel_&quot; + IDX.getAndIncrement();</span>
-<span class="fc" id="L62">    SOURCES.put(id, CharSequences.toLineNumbered(0, sourceDetail));</span>
-<span class="fc" id="L63">    return id;</span>
+<span class="nc" id="L61">    String id = &quot;zel_&quot; + IDX.getAndIncrement();</span>
+<span class="nc" id="L62">    SOURCES.put(id, CharSequences.toLineNumbered(0, sourceDetail));</span>
+<span class="nc" id="L63">    return id;</span>
   }
 
   public static void annotate(final String id, final Program program) {
-<span class="fc" id="L67">    CharSequence source = SOURCES.get(id);</span>
-<span class="fc" id="L68">    String[] lines = source.toString().split(&quot;\n&quot;);</span>
-<span class="fc" id="L69">    StringBuilder[] annotations = new StringBuilder[lines.length];</span>
-<span class="fc" id="L70">    Instruction[] instructions = program.getInstructions();</span>
-<span class="fc" id="L71">    ParsingContext.Location[] debug = program.getDebug();</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">    for (int i = 0; i &lt; instructions.length; i++) {</span>
-<span class="fc" id="L73">      ParsingContext.Location loc = debug[i];</span>
-<span class="fc" id="L74">      int lineNr = loc.getRow();</span>
-<span class="fc" id="L75">      StringBuilder existing = annotations[lineNr];</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">      if (existing == null) {</span>
-<span class="fc" id="L77">        existing = new StringBuilder();</span>
-<span class="fc" id="L78">        existing.append(&quot; /* &quot;).append(instructions[i]);</span>
-<span class="fc" id="L79">        annotations[lineNr] = existing;</span>
+<span class="nc" id="L67">    CharSequence source = SOURCES.get(id);</span>
+<span class="nc" id="L68">    String[] lines = source.toString().split(&quot;\n&quot;);</span>
+<span class="nc" id="L69">    StringBuilder[] annotations = new StringBuilder[lines.length];</span>
+<span class="nc" id="L70">    Instruction[] instructions = program.getInstructions();</span>
+<span class="nc" id="L71">    ParsingContext.Location[] debug = program.getDebug();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    for (int i = 0; i &lt; instructions.length; i++) {</span>
+<span class="nc" id="L73">      ParsingContext.Location loc = debug[i];</span>
+<span class="nc" id="L74">      int lineNr = loc.getRow();</span>
+<span class="nc" id="L75">      StringBuilder existing = annotations[lineNr];</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">      if (existing == null) {</span>
+<span class="nc" id="L77">        existing = new StringBuilder();</span>
+<span class="nc" id="L78">        existing.append(&quot; /* &quot;).append(instructions[i]);</span>
+<span class="nc" id="L79">        annotations[lineNr] = existing;</span>
       } else {
-<span class="fc" id="L81">        existing.append(';').append(instructions[i]);</span>
+<span class="nc" id="L81">        existing.append(';').append(instructions[i]);</span>
       }
     }
-<span class="fc" id="L84">    StringBuilder result = new StringBuilder(source.length() * 2);</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">    for (int i = 0; i &lt; lines.length; i++) {</span>
-<span class="fc" id="L86">      result.append(lines[i]);</span>
-<span class="fc" id="L87">      StringBuilder annotation = annotations[i];</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">      if (annotation != null) {</span>
-<span class="fc" id="L89">        result.append(annotation).append(&quot; */\n&quot;);</span>
+<span class="nc" id="L84">    StringBuilder result = new StringBuilder(source.length() * 2);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    for (int i = 0; i &lt; lines.length; i++) {</span>
+<span class="nc" id="L86">      result.append(lines[i]);</span>
+<span class="nc" id="L87">      StringBuilder annotation = annotations[i];</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (annotation != null) {</span>
+<span class="nc" id="L89">        result.append(annotation).append(&quot; */\n&quot;);</span>
       } else {
-<span class="fc" id="L91">        result.append('\n');</span>
+<span class="nc" id="L91">        result.append('\n');</span>
       }
     }
-<span class="fc" id="L94">    SOURCES.put(id, result);</span>
-<span class="fc" id="L95">  }</span>
+<span class="nc" id="L94">    SOURCES.put(id, result);</span>
+<span class="nc" id="L95">  }</span>
 
   public static CharSequence getDetail(final String id) {
 <span class="nc" id="L98">    return SOURCES.get(id);</span>
   }
 
-<span class="fc" id="L101">  public ZelFrame(final String programName, final String source, final int index) {</span>
-<span class="fc" id="L102">    this.programName = programName;</span>
-<span class="fc" id="L103">    this.index = index;</span>
-<span class="fc" id="L104">    this.source = source;</span>
-<span class="fc" id="L105">  }</span>
+<span class="nc" id="L101">  public ZelFrame(final String programName, final String source, final int index) {</span>
+<span class="nc" id="L102">    this.programName = programName;</span>
+<span class="nc" id="L103">    this.index = index;</span>
+<span class="nc" id="L104">    this.source = source;</span>
+<span class="nc" id="L105">  }</span>
 
   @Override
   public String toString() {
@@ -122,4 +122,4 @@ public final class ZelFrame implements Serializable {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

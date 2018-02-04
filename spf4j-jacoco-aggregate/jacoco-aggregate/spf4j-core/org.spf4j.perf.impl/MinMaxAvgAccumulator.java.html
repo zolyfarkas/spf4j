@@ -42,7 +42,7 @@ import org.spf4j.perf.MeasurementsInfo;
 public final class MinMaxAvgAccumulator
     extends AbstractMeasurementAccumulator {
 
-<span class="fc" id="L45">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;, &quot;min&quot;, &quot;max&quot;};</span>
+<span class="nc" id="L45">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;, &quot;min&quot;, &quot;max&quot;};</span>
 
     private long counter;
     private long total;
@@ -51,60 +51,60 @@ public final class MinMaxAvgAccumulator
     private final MeasurementsInfo info;
 
     private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
-<span class="fc" id="L54">            final long counter, final long total, final long min, final long max) {</span>
-<span class="fc" id="L55">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+<span class="nc" id="L54">            final long counter, final long total, final long min, final long max) {</span>
+<span class="nc" id="L55">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
                 MEASUREMENTS, new String[] {&quot;count&quot;, unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
-<span class="fc" id="L57">        this.counter = counter;</span>
-<span class="fc" id="L58">        this.total = total;</span>
-<span class="fc" id="L59">        this.min = min;</span>
-<span class="fc" id="L60">        this.max = max;</span>
-<span class="fc" id="L61">    }</span>
+<span class="nc" id="L57">        this.counter = counter;</span>
+<span class="nc" id="L58">        this.total = total;</span>
+<span class="nc" id="L59">        this.min = min;</span>
+<span class="nc" id="L60">        this.max = max;</span>
+<span class="nc" id="L61">    }</span>
 
     public MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
-<span class="fc" id="L64">        this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);</span>
-<span class="fc" id="L65">    }</span>
+<span class="nc" id="L64">        this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);</span>
+<span class="nc" id="L65">    }</span>
 
 
     public String getUnitOfMeasurement() {
-<span class="fc" id="L69">        return info.getMeasurementUnit(1);</span>
+<span class="nc" id="L69">        return info.getMeasurementUnit(1);</span>
     }
 
 
     @Override
     public synchronized void record(final long measurement) {
-<span class="fc" id="L75">        total += measurement;</span>
-<span class="fc" id="L76">        counter++;</span>
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (measurement &lt; min) {</span>
-<span class="fc" id="L78">            min = measurement;</span>
+<span class="nc" id="L75">        total += measurement;</span>
+<span class="nc" id="L76">        counter++;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (measurement &lt; min) {</span>
+<span class="nc" id="L78">            min = measurement;</span>
         }
-<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (measurement &gt; max) {</span>
-<span class="fc" id="L81">            max = measurement;</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (measurement &gt; max) {</span>
+<span class="nc" id="L81">            max = measurement;</span>
         }
-<span class="fc" id="L83">    }</span>
+<span class="nc" id="L83">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
     public synchronized long[] get() {
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (counter == 0) {</span>
 <span class="nc" id="L89">            return null;</span>
         } else {
-<span class="fc" id="L91">            return new long[] {counter, total, min, max};</span>
+<span class="nc" id="L91">            return new long[] {counter, total, min, max};</span>
         }
     }
 
     @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
     @Override
     public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (mSource instanceof MinMaxAvgAccumulator) {</span>
-<span class="fc" id="L99">            MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;</span>
-<span class="fc" id="L100">            long[] measurements = other.get();</span>
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">            if (measurements != null) {</span>
-<span class="fc" id="L102">                synchronized (this) {</span>
-<span class="fc" id="L103">                return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
-<span class="fc" id="L104">                    getUnitOfMeasurement(),</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (mSource instanceof MinMaxAvgAccumulator) {</span>
+<span class="nc" id="L99">            MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;</span>
+<span class="nc" id="L100">            long[] measurements = other.get();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (measurements != null) {</span>
+<span class="nc" id="L102">                synchronized (this) {</span>
+<span class="nc" id="L103">                return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+<span class="nc" id="L104">                    getUnitOfMeasurement(),</span>
                     counter + measurements[0], total + measurements[1],
-<span class="fc" id="L106">                    Math.min(min, measurements[2]), Math.max(max, measurements[3]));</span>
-<span class="nc" id="L107">                }</span>
+<span class="nc" id="L106">                    Math.min(min, measurements[2]), Math.max(max, measurements[3]));</span>
+                }
             } else {
 <span class="nc" id="L109">                return this.createClone();</span>
             }
@@ -115,8 +115,8 @@ public final class MinMaxAvgAccumulator
 
     @Override
     public synchronized MinMaxAvgAccumulator createClone() {
-<span class="fc" id="L118">        return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(),</span>
-<span class="fc" id="L119">                this.info.getDescription(), getUnitOfMeasurement(), counter, total, min, max);</span>
+<span class="nc" id="L118">        return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(),</span>
+<span class="nc" id="L119">                this.info.getDescription(), getUnitOfMeasurement(), counter, total, min, max);</span>
     }
 
     @Override
@@ -126,20 +126,20 @@ public final class MinMaxAvgAccumulator
 
     @Override
     public MeasurementsInfo getInfo() {
-<span class="fc" id="L129">        return info;</span>
+<span class="nc" id="L129">        return info;</span>
     }
 
     @Override
     public synchronized MinMaxAvgAccumulator reset() {
-<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (counter == 0) {</span>
-<span class="fc" id="L135">            return null;</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc" id="L135">            return null;</span>
         } else {
-<span class="fc" id="L137">            MinMaxAvgAccumulator result = createClone();</span>
-<span class="fc" id="L138">            counter = 0;</span>
-<span class="fc" id="L139">            total = 0;</span>
-<span class="fc" id="L140">            min = Long.MAX_VALUE;</span>
-<span class="fc" id="L141">            max = Long.MIN_VALUE;</span>
-<span class="fc" id="L142">            return result;</span>
+<span class="nc" id="L137">            MinMaxAvgAccumulator result = createClone();</span>
+<span class="nc" id="L138">            counter = 0;</span>
+<span class="nc" id="L139">            total = 0;</span>
+<span class="nc" id="L140">            min = Long.MAX_VALUE;</span>
+<span class="nc" id="L141">            max = Long.MIN_VALUE;</span>
+<span class="nc" id="L142">            return result;</span>
         }
     }
 
@@ -161,4 +161,4 @@ public final class MinMaxAvgAccumulator
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

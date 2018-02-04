@@ -76,7 +76,7 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
   public boolean putIfNotPresent(final Type type, final H appender) {
 <span class="fc" id="L77">    synchronized (syncObj) {</span>
 <span class="fc" id="L78">      return wrapped.putIfNotPresent(type, appender);</span>
-<span class="nc" id="L79">    }</span>
+    }
   }
 
   @Override
@@ -97,7 +97,7 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
   public H getExact(final Type t) {
 <span class="nc" id="L98">    synchronized (wrapped) {</span>
 <span class="nc" id="L99">      return wrapped.getExact(t);</span>
-<span class="nc" id="L100">    }</span>
+    }
   }
 
   public void replace(final Type t, final Function&lt;H, H&gt; f) {
@@ -109,7 +109,7 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
         }
       }
 <span class="fc" id="L111">      wrapped.safePut(t, f.apply(exact));</span>
-<span class="pc" id="L112">     }</span>
+<span class="fc" id="L112">     }</span>
 <span class="fc" id="L113">    cache.invalidateAll(); // a bit lazy :-)</span>
 <span class="fc" id="L114">  }</span>
 
@@ -123,7 +123,7 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
     public Set&lt;H&gt; load(final Type key) throws Exception {
 <span class="fc" id="L124">      synchronized (wrapped) {</span>
 <span class="fc" id="L125">        return wrapped.getAll(key);</span>
-<span class="nc" id="L126">      }</span>
+      }
     }
   }
 
@@ -132,10 +132,10 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
     String wts;
 <span class="fc" id="L133">    synchronized (wrapped) {</span>
 <span class="fc" id="L134">      wts = wrapped.toString();</span>
-<span class="pc" id="L135">    }</span>
+<span class="fc" id="L135">    }</span>
 <span class="fc" id="L136">    return &quot;CachingTypeMapWrapper{&quot; + &quot;cache=&quot; + cache + &quot;, wrapped=&quot; + wts + '}';</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

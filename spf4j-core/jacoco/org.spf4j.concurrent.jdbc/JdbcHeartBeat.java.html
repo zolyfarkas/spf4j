@@ -133,7 +133,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc" id="L133">        weClosed = true;</span>
 <span class="fc" id="L134">        isClosed = true;</span>
       }
-<span class="pc" id="L136">    }</span>
+<span class="fc" id="L136">    }</span>
 <span class="fc bfc" id="L137" title="All 2 branches covered.">    if (weClosed) {</span>
 <span class="fc" id="L138">        unregisterJmx();</span>
 <span class="fc" id="L139">        ScheduledFuture&lt;?&gt; running = scheduledHearbeat;</span>
@@ -219,12 +219,12 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private void createHeartbeatRow() throws InterruptedException, SQLException {
 <span class="fc" id="L220">      jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
 
-<span class="pc" id="L222">        try (PreparedStatement insert = conn.prepareStatement(insertHeartbeatSql)) {</span>
+<span class="fc" id="L222">        try (PreparedStatement insert = conn.prepareStatement(insertHeartbeatSql)) {</span>
 <span class="fc" id="L223">          insert.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
 <span class="fc" id="L224">          insert.setLong(2, this.intervalMillis);</span>
 <span class="fc" id="L225">          insert.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
 <span class="fc" id="L226">          insert.executeUpdate();</span>
-<span class="pc bpc" id="L227" title="6 of 8 branches missed.">        }</span>
+        }
 <span class="fc" id="L228">        return null;</span>
       }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
 
@@ -240,16 +240,16 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   int removeDeadHeartBeatRows(final Connection conn, final long deadlineNanos) throws SQLException {
-<span class="pc" id="L243">    try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {</span>
+<span class="fc" id="L243">    try (PreparedStatement stmt = conn.prepareStatement(deleteSql)) {</span>
 <span class="fc" id="L244">      stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
 <span class="fc" id="L245">      return stmt.executeUpdate();</span>
-<span class="pc bpc" id="L246" title="6 of 8 branches missed.">    }</span>
+    }
   }
 
   private void removeHeartBeatRow(final int timeoutSeconds)
           throws SQLException {
 <span class="fc" id="L251">    jdbc.transactOnConnectionNonInterrupt((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L252">      try (PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {</span>
+<span class="fc" id="L252">      try (PreparedStatement stmt = conn.prepareStatement(deleteHeartBeatSql)) {</span>
 <span class="fc" id="L253">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
 <span class="fc" id="L254">        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
 <span class="fc" id="L255">        int nrDeleted = stmt.executeUpdate();</span>
@@ -257,7 +257,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="nc" id="L257">          throw new IllegalStateException(&quot;Heartbeat rows deleted: &quot; + nrDeleted</span>
                   + &quot; for &quot; + org.spf4j.base.Runtime.PROCESS_ID);
         }
-<span class="pc bpc" id="L260" title="6 of 8 branches missed.">      }</span>
+      }
 <span class="fc" id="L261">      return null;</span>
     }, timeoutSeconds, TimeUnit.SECONDS);
 <span class="fc" id="L263">  }</span>
@@ -309,7 +309,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc" id="L309">                scheduledHearbeat = null;</span>
 <span class="fc" id="L310">                scheduleHeartbeat();</span>
               }
-<span class="pc" id="L312">            }</span>
+<span class="fc" id="L312">            }</span>
 <span class="fc" id="L313">          }</span>
 
           @Override
@@ -323,7 +323,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc" id="L323">          }</span>
         }, DefaultExecutor.INSTANCE);
       }
-<span class="pc" id="L326">    }</span>
+<span class="fc" id="L326">    }</span>
 <span class="fc" id="L327">  }</span>
 
   @JmxExport
@@ -340,8 +340,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="pc bpc" id="L340" title="1 of 2 branches missed.">      if (isClosed) {</span>
 <span class="nc" id="L341">        throw new HeartBeatError(&quot;Heartbeater is closed &quot; + this);</span>
       }
-<span class="pc" id="L343">    }</span>
-<span class="pc" id="L344">    try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {</span>
+<span class="fc" id="L343">    }</span>
+<span class="fc" id="L344">    try (PreparedStatement stmt = conn.prepareStatement(updateHeartbeatSql)) {</span>
 <span class="fc" id="L345">      stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
 <span class="fc" id="L346">      stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
 <span class="fc" id="L347">      int rowsUpdated = stmt.executeUpdate();</span>
@@ -350,7 +350,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
                 + org.spf4j.base.Runtime.PROCESS_ID + &quot;sql : &quot; + updateHeartbeatSql + &quot; rows : &quot; + rowsUpdated);
       }
 <span class="fc" id="L352">      LOG.debug(&quot;Heart Beat for {}&quot;, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="pc bpc" id="L353" title="6 of 8 branches missed.">    } catch (SQLException ex) {</span>
+<span class="nc" id="L353">    } catch (SQLException ex) {</span>
 <span class="nc" id="L354">      throw new HeartBeatError(ex);</span>
 <span class="fc" id="L355">    }</span>
 <span class="fc" id="L356">  }</span>
@@ -373,10 +373,10 @@ public final class JdbcHeartBeat implements AutoCloseable {
   @JmxExport(description = &quot;The last run time recorded in the DB by this process&quot;)
   public long getLastRunDB() throws SQLException, InterruptedException {
 <span class="fc" id="L375">    return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -&gt; {</span>
-<span class="pc" id="L376">      try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {</span>
+<span class="fc" id="L376">      try (PreparedStatement stmt = conn.prepareStatement(selectLastRunSql)) {</span>
 <span class="fc" id="L377">        stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));</span>
 <span class="fc" id="L378">        stmt.setNString(1, org.spf4j.base.Runtime.PROCESS_ID);</span>
-<span class="pc" id="L379">        try (ResultSet rs = stmt.executeQuery()) {</span>
+<span class="fc" id="L379">        try (ResultSet rs = stmt.executeQuery()) {</span>
 <span class="pc bpc" id="L380" title="1 of 2 branches missed.">          if (rs.next()) {</span>
 <span class="fc" id="L381">            long result = rs.getLong(1);</span>
 <span class="pc bpc" id="L382" title="1 of 2 branches missed.">            if (rs.next()) {</span>
@@ -386,8 +386,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
           } else {
 <span class="nc" id="L387">            return 0L;</span>
           }
-<span class="pc bpc" id="L389" title="10 of 12 branches missed.">        }</span>
-<span class="pc bpc" id="L390" title="10 of 12 branches missed.">      }</span>
+        }
+      }
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
@@ -443,7 +443,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
           public void onClose() {
 <span class="fc" id="L444">            synchronized (HEARTBEATS) {</span>
 <span class="fc" id="L445">              HEARTBEATS.remove(dataSource);</span>
-<span class="pc" id="L446">            }</span>
+<span class="fc" id="L446">            }</span>
 <span class="fc" id="L447">          }</span>
         });
 <span class="fc" id="L449">        final JdbcHeartBeat fbeat = beat;</span>
@@ -452,19 +452,19 @@ public final class JdbcHeartBeat implements AutoCloseable {
           public void run() {
 <span class="fc" id="L453">            synchronized (HEARTBEATS) {</span>
 <span class="fc" id="L454">              isShuttingdown = true;</span>
-<span class="pc" id="L455">            }</span>
+<span class="fc" id="L455">            }</span>
             try {
 <span class="fc" id="L457">              fbeat.close();</span>
 <span class="fc" id="L458">            } catch (SQLException | HeartBeatError ex) {</span>
               // logging in shutdownhooks is not reliable.
-<span class="fc" id="L460">              org.spf4j.base.Runtime.error(&quot;WARN: Could not clean heartbeat record,&quot;</span>
+<span class="nc" id="L460">              org.spf4j.base.Runtime.error(&quot;WARN: Could not clean heartbeat record,&quot;</span>
                       + &quot; this error can be ignored since it is a best effort attempt, detail:&quot;, ex);
 <span class="fc" id="L462">            }</span>
 <span class="fc" id="L463">          }</span>
         });
 <span class="fc" id="L465">        HEARTBEATS.put(dataSource, beat);</span>
       }
-<span class="pc" id="L467">    }</span>
+<span class="fc" id="L467">    }</span>
 <span class="fc bfc" id="L468" title="All 2 branches covered.">    if (hook != null) {</span>
 <span class="fc" id="L469">      beat.addLyfecycleHook(hook);</span>
     }
@@ -479,7 +479,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="nc" id="L479">       throw new RuntimeException(e);</span>
      }
 <span class="fc" id="L481">     HEARTBEATS.clear();</span>
-<span class="pc" id="L482">   }</span>
+<span class="fc" id="L482">   }</span>
 <span class="fc" id="L483">  }</span>
 
 
@@ -540,4 +540,4 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

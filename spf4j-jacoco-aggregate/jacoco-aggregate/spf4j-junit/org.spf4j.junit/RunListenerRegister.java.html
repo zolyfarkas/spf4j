@@ -47,50 +47,50 @@ public final class RunListenerRegister extends RunListener {
 
   private final CopyOnWriteArrayList&lt;RunListener&gt; listeners;
 
-<span class="fc" id="L50">  public RunListenerRegister() {</span>
-<span class="fc" id="L51">    listeners = new CopyOnWriteArrayList&lt;&gt;();</span>
-<span class="fc" id="L52">    synchronized (RunListenerRegister.class) {</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">      if (listenerRegister == null) {</span>
-<span class="fc" id="L54">        listenerRegister = this;</span>
+<span class="nc" id="L50">  public RunListenerRegister() {</span>
+<span class="nc" id="L51">    listeners = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="nc" id="L52">    synchronized (RunListenerRegister.class) {</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">      if (listenerRegister == null) {</span>
+<span class="nc" id="L54">        listenerRegister = this;</span>
       } else {
-<span class="fc" id="L56">        throw new ExceptionInInitializerError(&quot;Attempting to instantiate second RunListenerRegister instance: &quot;</span>
+<span class="nc" id="L56">        throw new ExceptionInInitializerError(&quot;Attempting to instantiate second RunListenerRegister instance: &quot;</span>
                 + this + &quot;, existing: &quot; + listenerRegister);
       }
-<span class="fc" id="L59">    }</span>
-<span class="fc" id="L60">  }</span>
+<span class="nc" id="L59">    }</span>
+<span class="nc" id="L60">  }</span>
 
   public static boolean tryAddRunListener(final RunListener listener, final boolean first) {
-<span class="fc" id="L63">    synchronized (RunListenerRegister.class) {</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">      if (listenerRegister != null) {</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (first) {</span>
-<span class="fc" id="L66">          listenerRegister.listeners.add(0, listener);</span>
+<span class="nc" id="L63">    synchronized (RunListenerRegister.class) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (listenerRegister != null) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (first) {</span>
+<span class="nc" id="L66">          listenerRegister.listeners.add(0, listener);</span>
         } else {
 <span class="nc" id="L68">          listenerRegister.listeners.add(listener);</span>
         }
-<span class="fc" id="L70">        return true;</span>
+<span class="nc" id="L70">        return true;</span>
       } else {
 <span class="nc" id="L72">        return false;</span>
       }
-<span class="nc" id="L74">    }</span>
+    }
   }
 
   public static void addRunListener(final RunListener listener, final boolean first) {
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (!tryAddRunListener(listener, first)) {</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (!tryAddRunListener(listener, first)) {</span>
 <span class="nc" id="L79">      throw new IllegalStateException(&quot;Cannot register &quot; + listener</span>
                 + &quot; please start junit with org.spf4j.junit.RunListenerRegister run listener,&quot;
                 + &quot;for more detail see http://maven.apache.org/surefire/maven-surefire-plugin/examples/junit.html&quot;);
     }
-<span class="fc" id="L83">  }</span>
+<span class="nc" id="L83">  }</span>
 
 
   public static boolean removeRunListener(final RunListener listener) {
-<span class="fc" id="L87">    synchronized (RunListenerRegister.class) {</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">      if (listenerRegister != null) {</span>
-<span class="fc" id="L89">        return listenerRegister.listeners.remove(listener);</span>
+<span class="nc" id="L87">    synchronized (RunListenerRegister.class) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (listenerRegister != null) {</span>
+<span class="nc" id="L89">        return listenerRegister.listeners.remove(listener);</span>
       } else {
 <span class="nc" id="L91">        return false;</span>
       }
-<span class="nc" id="L93">    }</span>
+    }
   }
 
   @Override
@@ -144,8 +144,8 @@ public final class RunListenerRegister extends RunListener {
 
   @Override
   public String toString() {
-<span class="fc" id="L147">    return &quot;RunListenerRegister{&quot; + &quot;listeners=&quot; + listeners + '}';</span>
+<span class="nc" id="L147">    return &quot;RunListenerRegister{&quot; + &quot;listeners=&quot; + listeners + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -33,77 +33,88 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private int at;
 
-<span class="fc" id="L36">  LogMatchingHandler(final Level minLevel, final Matcher&lt;LogRecord&gt;... matchers) {</span>
-<span class="pc bpc" id="L37" title="1 of 2 branches missed.">    if (matchers.length &lt; 1) {</span>
-<span class="nc" id="L38">      throw new IllegalArgumentException(&quot;You need to provide at least a matcher &quot; + Arrays.toString(matchers));</span>
+  private final boolean assertSeen;
+
+<span class="fc" id="L38">  LogMatchingHandler(final boolean assertSeen, final Level minLevel, final Matcher&lt;LogRecord&gt;... matchers) {</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">    if (matchers.length &lt; 1) {</span>
+<span class="nc" id="L40">      throw new IllegalArgumentException(&quot;You need to provide at least a matcher &quot; + Arrays.toString(matchers));</span>
     }
-<span class="fc" id="L40">    this.matchers = matchers;</span>
-<span class="fc" id="L41">    this.at = 0;</span>
-<span class="fc" id="L42">    this.minLevel = minLevel;</span>
-<span class="fc" id="L43">  }</span>
+<span class="fc" id="L42">    this.matchers = matchers;</span>
+<span class="fc" id="L43">    this.at = 0;</span>
+<span class="fc" id="L44">    this.minLevel = minLevel;</span>
+<span class="fc" id="L45">    this.assertSeen = assertSeen;</span>
+<span class="fc" id="L46">  }</span>
 
   abstract void unregister();
 
 
   @Override
-  public boolean handles(final Level level) {
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    return level.ordinal() &gt;= minLevel.ordinal();</span>
+  public Handling handles(final Level level) {
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    return level.ordinal() &gt;= minLevel.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;)
   public LogRecord handle(final LogRecord record) {
-<span class="pc bpc" id="L56" title="1 of 4 branches missed.">    if (at &lt; matchers.length &amp;&amp; matchers[at].matches(record)) {</span>
-<span class="fc" id="L57">      at++;</span>
+<span class="pc bpc" id="L59" title="1 of 4 branches missed.">    if (at &lt; matchers.length &amp;&amp; matchers[at].matches(record)) {</span>
+<span class="fc" id="L60">      at++;</span>
     }
-<span class="fc" id="L59">    record.attach(DefaultAsserter.ASSERTED);</span>
-<span class="fc" id="L60">    return record;</span>
+<span class="fc" id="L62">    record.attach(DefaultAsserter.ASSERTED);</span>
+<span class="fc" id="L63">    return record;</span>
   }
+
+  @Override
+  public void assertObservation() {
+<span class="fc bfc" id="L68" title="All 2 branches covered.">    if (assertSeen) {</span>
+<span class="fc" id="L69">      assertSeen();</span>
+    } else {
+<span class="fc" id="L71">      assertNotSeen();</span>
+    }
+<span class="fc" id="L73">  }</span>
+
 
   /**
    * Assert that a sequence of leg messages has been seen.
    */
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
-  @Override
   public void assertSeen() {
-<span class="fc" id="L69">    unregister();</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">    if (at &lt; matchers.length) {</span>
-<span class="fc" id="L71">      Description description = new StringDescription();</span>
-<span class="fc" id="L72">      description.appendText(&quot;Expected:\n&quot;);</span>
-<span class="fc" id="L73">      matchers[0].describeTo(description);</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">      for (int i = 1; i &lt; matchers.length; i++) {</span>
-<span class="nc" id="L75">        description.appendText(&quot;\n&quot;);</span>
-<span class="nc" id="L76">        matchers[i].describeTo(description);</span>
+<span class="fc" id="L81">    unregister();</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">    if (at &lt; matchers.length) {</span>
+<span class="fc" id="L83">      Description description = new StringDescription();</span>
+<span class="fc" id="L84">      description.appendText(&quot;Expected:\n&quot;);</span>
+<span class="fc" id="L85">      matchers[0].describeTo(description);</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">      for (int i = 1; i &lt; matchers.length; i++) {</span>
+<span class="nc" id="L87">        description.appendText(&quot;\n&quot;);</span>
+<span class="nc" id="L88">        matchers[i].describeTo(description);</span>
       }
-<span class="fc" id="L78">      throw new AssertionError(description.toString());</span>
+<span class="fc" id="L90">      throw new AssertionError(description.toString());</span>
     }
-<span class="fc" id="L80">  }</span>
+<span class="fc" id="L92">  }</span>
 
   /**
    * Assert that a sequence of messages has not been seen.
    */
-  @Override
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
   public void assertNotSeen() {
-<span class="fc" id="L88">    unregister();</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">    if (at &gt;= matchers.length) {</span>
-<span class="fc" id="L90">      Description description = new StringDescription();</span>
-<span class="fc" id="L91">      description.appendText(&quot;Not expected:\n&quot;);</span>
-<span class="fc" id="L92">      matchers[0].describeTo(description);</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">      for (int i = 1; i &lt; matchers.length; i++) {</span>
-<span class="nc" id="L94">        description.appendText(&quot;\n&quot;);</span>
-<span class="nc" id="L95">        matchers[i].describeTo(description);</span>
+<span class="fc" id="L99">    unregister();</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">    if (at &gt;= matchers.length) {</span>
+<span class="fc" id="L101">      Description description = new StringDescription();</span>
+<span class="fc" id="L102">      description.appendText(&quot;Not expected:\n&quot;);</span>
+<span class="fc" id="L103">      matchers[0].describeTo(description);</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">      for (int i = 1; i &lt; matchers.length; i++) {</span>
+<span class="nc" id="L105">        description.appendText(&quot;\n&quot;);</span>
+<span class="nc" id="L106">        matchers[i].describeTo(description);</span>
       }
-<span class="fc" id="L97">      throw new AssertionError(description.toString());</span>
+<span class="fc" id="L108">      throw new AssertionError(description.toString());</span>
     }
-<span class="fc" id="L99">  }</span>
+<span class="fc" id="L110">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L103">    return &quot;LogMatchingHandler{&quot; + &quot;minLevel=&quot; + minLevel + &quot;, matchers=&quot; + Arrays.toString(matchers)</span>
+<span class="nc" id="L114">    return &quot;LogMatchingHandler{&quot; + &quot;minLevel=&quot; + minLevel + &quot;, matchers=&quot; + Arrays.toString(matchers)</span>
             + &quot;, at=&quot; + at + '}';
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -50,20 +50,20 @@ public final class JdbcLock implements Lock, AutoCloseable {
   private final int jdbcTimeoutSeconds;
 
   public JdbcLock(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
-<span class="fc" id="L53">          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {</span>
-<span class="fc" id="L54">    this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);</span>
-<span class="fc" id="L55">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
-<span class="fc" id="L56">    this.semaphore.registerJmx();</span>
-<span class="fc" id="L57">  }</span>
+<span class="nc" id="L53">          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {</span>
+<span class="nc" id="L54">    this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);</span>
+<span class="nc" id="L55">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
+<span class="nc" id="L56">    this.semaphore.registerJmx();</span>
+<span class="nc" id="L57">  }</span>
 
   @Override
   public void lock() {
     try {
-<span class="fc" id="L62">      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L62">      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);</span>
 <span class="nc" id="L63">    } catch (InterruptedException | TimeoutException ex) {</span>
 <span class="nc" id="L64">      throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L65">    }</span>
-<span class="fc" id="L66">  }</span>
+<span class="nc" id="L65">    }</span>
+<span class="nc" id="L66">  }</span>
 
   @Override
   public void lockInterruptibly() throws InterruptedException {
@@ -77,7 +77,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
   @Override
   public boolean tryLock() {
     try {
-<span class="fc" id="L80">      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);</span>
+<span class="nc" id="L80">      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);</span>
 <span class="nc" id="L81">    } catch (InterruptedException ex) {</span>
 <span class="nc" id="L82">      throw new LockRuntimeException(ex);</span>
     }
@@ -90,8 +90,8 @@ public final class JdbcLock implements Lock, AutoCloseable {
 
   @Override
   public void unlock() {
-<span class="fc" id="L93">    semaphore.release();</span>
-<span class="fc" id="L94">  }</span>
+<span class="nc" id="L93">    semaphore.release();</span>
+<span class="nc" id="L94">  }</span>
 
   @Override
   public Condition newCondition() {
@@ -111,4 +111,4 @@ public final class JdbcLock implements Lock, AutoCloseable {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

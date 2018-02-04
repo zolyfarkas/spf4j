@@ -63,8 +63,8 @@ public final class SntpClient {
 <span class="fc" id="L63">  private static final int DEFAULT_SOCKET_TIMEOUT_MILLIS =</span>
 <span class="fc" id="L64">          Integer.getInteger(&quot;spf4j.sntpClient.defaultSocketTimeoutMillis&quot;, 5000); // 5 seconds</span>
 
-<span class="nc" id="L66">  private SntpClient() {</span>
-<span class="nc" id="L67">  }</span>
+  private SntpClient() {
+  }
 
   public static Timing requestTimeHA(final int timeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
@@ -111,7 +111,7 @@ public final class SntpClient {
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;) // false positive
   public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
 
-<span class="pc" id="L114">    try (DatagramSocket socket = new DatagramSocket()) {</span>
+<span class="fc" id="L114">    try (DatagramSocket socket = new DatagramSocket()) {</span>
 <span class="fc" id="L115">      socket.setSoTimeout(timeoutMillis);</span>
 <span class="fc" id="L116">      InetAddress address = InetAddress.getByName(host);</span>
 <span class="fc" id="L117">      byte[] buffer = new byte[NTP_PACKET_SIZE];</span>
@@ -149,7 +149,7 @@ public final class SntpClient {
       //             = (2 * skew)/2 = skew
 <span class="fc" id="L150">      long clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime)) / 2;</span>
 <span class="fc" id="L151">      return new Timing(responseTime + clockOffset, responseTicks, roundTripTime);</span>
-<span class="pc bpc" id="L152" title="6 of 8 branches missed.">    }</span>
+    }
   }
 
   /**
@@ -205,4 +205,4 @@ public final class SntpClient {
 <span class="fc" id="L205">    buffer[offset] = (byte) (ThreadLocalRandom.current().nextInt() % 256);</span>
 <span class="fc" id="L206">  }</span>
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

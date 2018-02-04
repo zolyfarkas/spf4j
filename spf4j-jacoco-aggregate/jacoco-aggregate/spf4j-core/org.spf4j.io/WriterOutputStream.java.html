@@ -113,9 +113,9 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * @since 2.1
      */
     public WriterOutputStream(final Writer writer, final CharsetDecoder decoder, final int bufferSize) {
-<span class="fc" id="L116">        super(writer, decoder, bufferSize);</span>
-<span class="fc" id="L117">        this.writer = writer;</span>
-<span class="fc" id="L118">    }</span>
+<span class="nc" id="L116">        super(writer, decoder, bufferSize);</span>
+<span class="nc" id="L117">        this.writer = writer;</span>
+<span class="nc" id="L118">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream}.
@@ -125,13 +125,13 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * @param bufferSize the size of the output buffer in number of characters
      */
     public WriterOutputStream(final Writer writer, final Charset charset, final int bufferSize) {
-<span class="fc" id="L128">        this(writer,</span>
-<span class="fc" id="L129">             charset.newDecoder()</span>
-<span class="fc" id="L130">                    .onMalformedInput(CodingErrorAction.REPLACE)</span>
-<span class="fc" id="L131">                    .onUnmappableCharacter(CodingErrorAction.REPLACE)</span>
-<span class="fc" id="L132">                    .replaceWith(&quot;?&quot;),</span>
+<span class="nc" id="L128">        this(writer,</span>
+<span class="nc" id="L129">             charset.newDecoder()</span>
+<span class="nc" id="L130">                    .onMalformedInput(CodingErrorAction.REPLACE)</span>
+<span class="nc" id="L131">                    .onUnmappableCharacter(CodingErrorAction.REPLACE)</span>
+<span class="nc" id="L132">                    .replaceWith(&quot;?&quot;),</span>
              bufferSize);
-<span class="fc" id="L134">    }</span>
+<span class="nc" id="L134">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
@@ -153,8 +153,8 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * @param bufferSize the size of the output buffer in number of characters
      */
     public WriterOutputStream(final Writer writer, final String charsetName, final int bufferSize) {
-<span class="fc" id="L156">        this(writer, Charset.forName(charsetName), bufferSize);</span>
-<span class="fc" id="L157">    }</span>
+<span class="nc" id="L156">        this(writer, Charset.forName(charsetName), bufferSize);</span>
+<span class="nc" id="L157">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
@@ -165,8 +165,8 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * @param charsetName the name of the charset encoding
      */
     public WriterOutputStream(final Writer writer, final String charsetName) {
-<span class="fc" id="L168">        this(writer, charsetName, DEFAULT_BUFFER_SIZE);</span>
-<span class="fc" id="L169">    }</span>
+<span class="nc" id="L168">        this(writer, charsetName, DEFAULT_BUFFER_SIZE);</span>
+<span class="nc" id="L169">    }</span>
 
 
 
@@ -178,9 +178,9 @@ public final class WriterOutputStream extends AppendableOutputStream {
      */
     @Override
     public void flush() throws IOException {
-<span class="fc" id="L181">        super.flush();</span>
-<span class="fc" id="L182">        writer.flush();</span>
-<span class="fc" id="L183">    }</span>
+<span class="nc" id="L181">        super.flush();</span>
+<span class="nc" id="L182">        writer.flush();</span>
+<span class="nc" id="L183">    }</span>
 
     /**
      * Close the stream. Any remaining content accumulated in the output buffer
@@ -191,9 +191,9 @@ public final class WriterOutputStream extends AppendableOutputStream {
     @Override
     @DischargesObligation
     public void close() throws IOException {
-<span class="fc" id="L194">        super.close();</span>
-<span class="fc" id="L195">        writer.close();</span>
-<span class="fc" id="L196">    }</span>
+<span class="nc" id="L194">        super.close();</span>
+<span class="nc" id="L195">        writer.close();</span>
+<span class="nc" id="L196">    }</span>
 
 
     /**
@@ -203,11 +203,11 @@ public final class WriterOutputStream extends AppendableOutputStream {
      */
     @Override
     protected void flushOutput() throws IOException {
-<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (decoderOut.position() &gt; 0) {</span>
-<span class="fc" id="L207">            writer.write(decoderOut.array(), 0, decoderOut.position());</span>
-<span class="fc" id="L208">            decoderOut.rewind();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (decoderOut.position() &gt; 0) {</span>
+<span class="nc" id="L207">            writer.write(decoderOut.array(), 0, decoderOut.position());</span>
+<span class="nc" id="L208">            decoderOut.rewind();</span>
         }
-<span class="fc" id="L210">    }</span>
+<span class="nc" id="L210">    }</span>
 
     @Override
     public String toString() {
@@ -215,4 +215,4 @@ public final class WriterOutputStream extends AppendableOutputStream {
     }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

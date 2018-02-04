@@ -52,25 +52,25 @@ public final class CpuUsageSampler {
   private static ScheduledFuture&lt;?&gt; samplingFuture;
 
   static {
-<span class="fc" id="L55">    Registry.export(CpuUsageSampler.class);</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (OperatingSystem.getSunJdkOSMBean() != null) {</span>
-<span class="fc" id="L57">      org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+<span class="nc" id="L55">    Registry.export(CpuUsageSampler.class);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (OperatingSystem.getSunJdkOSMBean() != null) {</span>
+<span class="nc" id="L57">      org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
         @Override
         public void doRun() {
-<span class="fc" id="L60">          stop();</span>
-<span class="fc" id="L61">        }</span>
+<span class="nc" id="L60">          stop();</span>
+<span class="nc" id="L61">        }</span>
       });
     }
-<span class="fc" id="L64">  }</span>
+<span class="nc" id="L64">  }</span>
 
-<span class="nc" id="L66">  private CpuUsageSampler() {</span>
-<span class="nc" id="L67">  }</span>
+  private CpuUsageSampler() {
+  }
 
 
   public static long getProcessCpuTimeNanos() {
-<span class="fc" id="L71">    com.sun.management.OperatingSystemMXBean sunJdkOSMBean = OperatingSystem.getSunJdkOSMBean();</span>
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    if (sunJdkOSMBean != null) {</span>
-<span class="fc" id="L73">      return sunJdkOSMBean.getProcessCpuTime();</span>
+<span class="nc" id="L71">    com.sun.management.OperatingSystemMXBean sunJdkOSMBean = OperatingSystem.getSunJdkOSMBean();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (sunJdkOSMBean != null) {</span>
+<span class="nc" id="L73">      return sunJdkOSMBean.getProcessCpuTime();</span>
     } else {
 <span class="nc" id="L75">      return -1;</span>
     }
@@ -99,11 +99,11 @@ public final class CpuUsageSampler {
 
   @JmxExport
   public static synchronized void stop() {
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (samplingFuture != null) {</span>
 <span class="nc" id="L103">      samplingFuture.cancel(false);</span>
 <span class="nc" id="L104">      samplingFuture = null;</span>
     }
-<span class="fc" id="L106">  }</span>
+<span class="nc" id="L106">  }</span>
 
   @JmxExport
   public static synchronized boolean isStarted() {
@@ -111,4 +111,4 @@ public final class CpuUsageSampler {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

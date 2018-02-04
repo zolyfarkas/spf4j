@@ -43,49 +43,49 @@ public final class DEREF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L46">    public static final Instruction INSTANCE = new DEREF();</span>
+<span class="nc" id="L46">    public static final Instruction INSTANCE = new DEREF();</span>
 
-<span class="fc" id="L48">    private DEREF() {</span>
-<span class="fc" id="L49">    }</span>
+    private DEREF() {
+    }
 
     @Override
     public int execute(final ExecutionContext context)
             throws ExecutionException, SuspendedException {
-<span class="fc" id="L54">       final Object[] vals = context.tuple();</span>
-<span class="fc" id="L55">       context.popSyncStackVals(vals);</span>
-<span class="fc" id="L56">       pushDeref(vals[0], vals[1], context);</span>
-<span class="fc" id="L57">       return 1;</span>
+<span class="nc" id="L54">       final Object[] vals = context.tuple();</span>
+<span class="nc" id="L55">       context.popSyncStackVals(vals);</span>
+<span class="nc" id="L56">       pushDeref(vals[0], vals[1], context);</span>
+<span class="nc" id="L57">       return 1;</span>
     }
 
     static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (relativeTo instanceof Map) {</span>
-<span class="fc" id="L62">            context.push(((Map) relativeTo).get(ref));</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        } else if (relativeTo instanceof Object[]) {</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">            if (&quot;length&quot;.equals(ref)) {</span>
-<span class="fc" id="L65">                context.push(((Object[]) relativeTo).length);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (relativeTo instanceof Map) {</span>
+<span class="nc" id="L62">            context.push(((Map) relativeTo).get(ref));</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        } else if (relativeTo instanceof Object[]) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L65">                context.push(((Object[]) relativeTo).length);</span>
             } else {
-<span class="fc" id="L67">                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="nc" id="L67">                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);</span>
             }
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        } else if (relativeTo instanceof int[]) {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        } else if (relativeTo instanceof int[]) {</span>
 <span class="nc" id="L70">            context.push(((int[]) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        } else if (relativeTo instanceof byte[]) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        } else if (relativeTo instanceof byte[]) {</span>
 <span class="nc" id="L72">            context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        } else if (relativeTo instanceof char[]) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        } else if (relativeTo instanceof char[]) {</span>
 <span class="nc" id="L74">            context.push(((char[]) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        } else if (relativeTo instanceof long[]) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        } else if (relativeTo instanceof long[]) {</span>
 <span class="nc" id="L76">            context.push(((long[]) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        } else if (relativeTo instanceof short[]) {</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        } else if (relativeTo instanceof short[]) {</span>
 <span class="nc" id="L78">            context.push(((short[]) relativeTo)[((Number) ref).intValue()]);</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        } else if (relativeTo instanceof List) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        } else if (relativeTo instanceof List) {</span>
 <span class="nc" id="L80">            context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
         } else {
-<span class="fc" id="L82">            context.push(new JavaMethodCall(relativeTo, (String) ref));</span>
+<span class="nc" id="L82">            context.push(new JavaMethodCall(relativeTo, (String) ref));</span>
         }
-<span class="fc" id="L84">    }</span>
+<span class="nc" id="L84">    }</span>
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L88">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L88">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

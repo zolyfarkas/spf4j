@@ -39,10 +39,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 public final class IntMath {
 
-<span class="nc" id="L42">    private IntMath() { }</span>
+    private IntMath() { }
 
     public static int closestPowerOf2(final int number) {
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        return number == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(number - 1);</span>
     }
 
     public static int closestPowerOf2Number(final int number) {
@@ -60,18 +60,18 @@ public final class IntMath {
         // XorShift128 PRNG with a 2^32-1 period.
         private int x;
 
-<span class="fc" id="L63">        public XorShift32() {</span>
-<span class="fc" id="L64">          x = (int) System.currentTimeMillis();</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">          while (x == 0) {</span>
+<span class="nc" id="L63">        public XorShift32() {</span>
+<span class="nc" id="L64">          x = (int) System.currentTimeMillis();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">          while (x == 0) {</span>
 <span class="nc" id="L66">            x = (int) System.currentTimeMillis();</span>
           }
-<span class="fc" id="L68">        }</span>
+<span class="nc" id="L68">        }</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L72">            x ^= (x &lt;&lt; 6);</span>
-<span class="fc" id="L73">            x ^= (x &gt;&gt;&gt; 21);</span>
-<span class="fc" id="L74">            return x ^ (x &lt;&lt; 7);</span>
+<span class="nc" id="L72">            x ^= (x &lt;&lt; 6);</span>
+<span class="nc" id="L73">            x ^= (x &gt;&gt;&gt; 21);</span>
+<span class="nc" id="L74">            return x ^ (x &lt;&lt; 7);</span>
         }
     }
 
@@ -98,7 +98,7 @@ public final class IntMath {
 <span class="nc" id="L98">        return rnd.get().nextInt();</span>
       }
 
-<span class="nc" id="L101">      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {</span>
+      private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {
 
         @Override
         protected XorShift32 initialValue() {
@@ -109,22 +109,22 @@ public final class IntMath {
 
 
     @NotThreadSafe
-<span class="fc" id="L112">    public static final class XorShift128 implements IntSequence {</span>
+<span class="nc" id="L112">    public static final class XorShift128 implements IntSequence {</span>
         // XorShift128 PRNG with a 2^128-1 period.
-<span class="fc" id="L114">        private int x = System.identityHashCode(this);</span>
-<span class="fc" id="L115">        private int y = -938745813;</span>
-<span class="fc" id="L116">        private int z = 452465366;</span>
-<span class="fc" id="L117">        private int w = 1343246171;</span>
+<span class="nc" id="L114">        private int x = System.identityHashCode(this);</span>
+<span class="nc" id="L115">        private int y = -938745813;</span>
+<span class="nc" id="L116">        private int z = 452465366;</span>
+<span class="nc" id="L117">        private int w = 1343246171;</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L121">            int t = x ^ (x &lt;&lt; 15);</span>
-<span class="fc" id="L122">            x = y; y = z; z = w;</span>
-<span class="fc" id="L123">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
-<span class="fc" id="L124">            return w;</span>
+<span class="nc" id="L121">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="nc" id="L122">            x = y; y = z; z = w;</span>
+<span class="nc" id="L123">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="nc" id="L124">            return w;</span>
         }
     }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -70,14 +70,14 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
   private final CacheLoader&lt;K, V&gt; loader;
 
   public UnboundedLoadingCache(final int initialSize, final CacheLoader&lt;K, V&gt; loader) {
-<span class="fc" id="L73">    this(initialSize, 8, loader);</span>
-<span class="fc" id="L74">  }</span>
+<span class="nc" id="L73">    this(initialSize, 8, loader);</span>
+<span class="nc" id="L74">  }</span>
 
-<span class="fc" id="L76">  public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
-<span class="fc" id="L77">    this.map = new ConcurrentHashMap&lt;&gt;(</span>
+<span class="nc" id="L76">  public UnboundedLoadingCache(final int initialSize, final int concurrency, final CacheLoader&lt;K, V&gt; loader) {</span>
+<span class="nc" id="L77">    this.map = new ConcurrentHashMap&lt;&gt;(</span>
             initialSize, 0.75f, concurrency);
-<span class="fc" id="L79">    this.loader = loader;</span>
-<span class="fc" id="L80">  }</span>
+<span class="nc" id="L79">    this.loader = loader;</span>
+<span class="nc" id="L80">  }</span>
 
   /**
    * Will use a ConcurrentSkipListMap to store the underlying data.
@@ -92,23 +92,23 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
   @Override
   public V get(final K key) throws ExecutionException {
-<span class="fc" id="L95">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (existingValHolder == null) {</span>
-<span class="fc" id="L97">      Callable&lt;? extends V&gt; newHolder = new MemorizedCallable(new Callable&lt;V&gt;() {</span>
+<span class="nc" id="L95">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (existingValHolder == null) {</span>
+<span class="nc" id="L97">      Callable&lt;? extends V&gt; newHolder = new MemorizedCallable(new Callable&lt;V&gt;() {</span>
         @Override
         public V call() throws Exception {
-<span class="fc" id="L100">          return loader.load(key);</span>
+<span class="nc" id="L100">          return loader.load(key);</span>
         }
       });
-<span class="fc" id="L103">      existingValHolder = map.putIfAbsent(key, newHolder);</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">      if (existingValHolder == null) {</span>
-<span class="fc" id="L105">        existingValHolder = newHolder;</span>
+<span class="nc" id="L103">      existingValHolder = map.putIfAbsent(key, newHolder);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">      if (existingValHolder == null) {</span>
+<span class="nc" id="L105">        existingValHolder = newHolder;</span>
       }
     }
     try {
-<span class="fc" id="L109">      return existingValHolder.call();</span>
-<span class="fc" id="L110">    } catch (Exception ex) {</span>
-<span class="fc" id="L111">      throw new ExecutionException(ex);</span>
+<span class="nc" id="L109">      return existingValHolder.call();</span>
+<span class="nc" id="L110">    } catch (Exception ex) {</span>
+<span class="nc" id="L111">      throw new ExecutionException(ex);</span>
     }
 
   }
@@ -116,7 +116,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
   @Override
   public V getUnchecked(final K key) {
     try {
-<span class="fc" id="L119">      return get(key);</span>
+<span class="nc" id="L119">      return get(key);</span>
 <span class="nc" id="L120">    } catch (ExecutionException ex) {</span>
 <span class="nc" id="L121">      throw new UncheckedExecutionException(ex);</span>
     }
@@ -222,8 +222,8 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
   @Override
   public void invalidateAll() {
-<span class="fc" id="L225">    map.clear();</span>
-<span class="fc" id="L226">  }</span>
+<span class="nc" id="L225">    map.clear();</span>
+<span class="nc" id="L226">  }</span>
 
   @Override
   public long size() {
@@ -247,7 +247,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
   @Override
   public String toString() {
-<span class="fc" id="L250">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
+<span class="nc" id="L250">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
   }
 
 <span class="nc" id="L253">  private class MapView implements ConcurrentMap&lt;K, V&gt; {</span>
@@ -356,4 +356,4 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

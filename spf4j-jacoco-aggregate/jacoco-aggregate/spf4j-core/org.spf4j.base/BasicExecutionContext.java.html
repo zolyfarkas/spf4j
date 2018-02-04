@@ -32,23 +32,21 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- *
+ * The simplest execution context possible.
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings(&quot;FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY&quot;)
-final class BasicExecutionContext implements ExecutionContext {
-  /**
-   * The previous context on Thread.
-   */
-  private final ExecutionContext tParent;
+@ThreadSafe
+public abstract class BasicExecutionContext implements ExecutionContext {
+
+  private final String name;
 
   private final ExecutionContext parent;
 
@@ -58,69 +56,72 @@ final class BasicExecutionContext implements ExecutionContext {
 
 
   @SuppressWarnings(&quot;unchecked&quot;)
-  BasicExecutionContext(final ExecutionContext parent, final ExecutionContext tParent,
-<span class="fc" id="L62">          final long deadlineNanos) {</span>
-<span class="fc" id="L63">    this.deadlineNanos = deadlineNanos;</span>
-<span class="fc" id="L64">    this.tParent = tParent;</span>
-<span class="fc" id="L65">    this.parent = parent;</span>
-<span class="fc" id="L66">    this.baggage = Collections.EMPTY_MAP;</span>
-<span class="fc" id="L67">  }</span>
-
-  @Override
-  public long getDeadlineNanos() {
-<span class="fc" id="L71">    return deadlineNanos;</span>
-  }
-
-  @Override
-  public ExecutionContext subCtx(final long pdeadlineNanos) {
-<span class="fc" id="L76">    ExecutionContext xCtx = ExecutionContexts.current();</span>
-<span class="fc" id="L77">    ExecutionContext ctx = new BasicExecutionContext(this, xCtx, pdeadlineNanos);</span>
-<span class="fc" id="L78">    ExecutionContexts.setCurrent(ctx);</span>
-<span class="fc" id="L79">    return ctx;</span>
-  }
-
-
-  @Nullable
-  @Beta
-  @Override
-  public synchronized &lt;T&gt; T put(@Nonnull final T data) {
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">    if (baggage.isEmpty()) {</span>
-<span class="fc" id="L88">      baggage = new THashMap&lt;&gt;(2);</span>
-    }
-<span class="fc" id="L90">    return (T) baggage.put(data.getClass(), data);</span>
-  }
-
-  @Nullable
-  @Beta
-  @Override
-  public synchronized &lt;T&gt; T get(@Nonnull final Class&lt;T&gt; clasz) {
-<span class="fc" id="L97">    T res = (T) baggage.get(clasz);</span>
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">    if (res == null) {</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L100">        return parent.get(clasz);</span>
+  public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
+<span class="nc" id="L60">          final long deadlineNanos) {</span>
+<span class="nc" id="L61">    this.name = name;</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (parent != null) {</span>
+<span class="nc" id="L63">      long parentDeadline = parent.getDeadlineNanos();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
+<span class="nc" id="L65">        this.deadlineNanos = parentDeadline;</span>
       } else {
-<span class="nc" id="L102">        return null;</span>
+<span class="nc" id="L67">        this.deadlineNanos = deadlineNanos;</span>
+      }
+<span class="nc" id="L69">    } else {</span>
+<span class="nc" id="L70">      this.deadlineNanos = deadlineNanos;</span>
+    }
+<span class="nc" id="L72">    this.parent = parent;</span>
+<span class="nc" id="L73">    this.baggage = Collections.EMPTY_MAP;</span>
+<span class="nc" id="L74">  }</span>
+
+  public final  String getName() {
+<span class="nc" id="L77">    return name;</span>
+  }
+
+  @Override
+  public final long getDeadlineNanos() {
+<span class="nc" id="L82">    return deadlineNanos;</span>
+  }
+
+  @Nullable
+  @Beta
+  @Override
+  public final synchronized &lt;T&gt; T put(@Nonnull final T data) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (baggage.isEmpty()) {</span>
+<span class="nc" id="L90">      baggage = new THashMap&lt;&gt;(2);</span>
+    }
+<span class="nc" id="L92">    return (T) baggage.put(data.getClass(), data);</span>
+  }
+
+  @Nullable
+  @Beta
+  @Override
+  public final synchronized &lt;T&gt; T get(@Nonnull final Class&lt;T&gt; clasz) {
+<span class="nc" id="L99">    T res = (T) baggage.get(clasz);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (res == null) {</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">      if (parent != null) {</span>
+<span class="nc" id="L102">        return parent.get(clasz);</span>
+      } else {
+<span class="nc" id="L104">        return null;</span>
       }
     } else {
-<span class="fc" id="L105">      return res;</span>
+<span class="nc" id="L107">      return res;</span>
     }
   }
 
   @Override
-  public ExecutionContext getParent() {
-<span class="fc" id="L111">    return parent;</span>
+  public final ExecutionContext getParent() {
+<span class="nc" id="L113">    return parent;</span>
   }
 
-  @Override
-  public void close()  {
-<span class="fc" id="L116">    ExecutionContexts.setCurrent(this.tParent);</span>
-<span class="fc" id="L117">  }</span>
-
+  /**
+   * Overwrite as needed for debug string.
+   */
   @Override
   public String toString() {
-<span class="nc" id="L121">    return &quot;BasicExecutionContext{&quot; + &quot;tParent=&quot; + tParent + &quot;, parent=&quot; + parent</span>
-            + &quot;, deadlineNanos=&quot; + deadlineNanos + &quot;, baggage=&quot; + baggage + '}';
+<span class="nc" id="L121">    return &quot;BasicExecutionContext{&quot; + &quot;name=&quot; + name + &quot;, parent=&quot;</span>
+            + parent + &quot;, deadlineNanos=&quot; + deadlineNanos + &quot;, baggage=&quot; + baggage + '}';
   }
 
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

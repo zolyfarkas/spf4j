@@ -29,7 +29,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
 
   private static final long SETUP_SECONDS = 10;
 
-<span class="fc" id="L32">  private static final Logger LOG = LoggerFactory.getLogger(UncaughtExceptionAsserter.class);</span>
+<span class="nc" id="L32">  private static final Logger LOG = LoggerFactory.getLogger(UncaughtExceptionAsserter.class);</span>
 
   private final Matcher&lt;UncaughtExceptionDetail&gt; matcher;
 
@@ -46,70 +46,70 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
   private volatile Throwable exception;
   private volatile boolean finished;
 
-<span class="fc" id="L49">  UncaughtExceptionAsserter(final Matcher&lt;UncaughtExceptionDetail&gt; matcher) {</span>
-<span class="fc" id="L50">    this.matcher = matcher;</span>
-<span class="fc" id="L51">    this.exception = null;</span>
-<span class="fc" id="L52">    this.finished = false;</span>
-<span class="fc" id="L53">    receiveQueue = new SynchronousQueue&lt;&gt;();</span>
-<span class="fc" id="L54">    replyQueue = new SynchronousQueue&lt;&gt;();</span>
-<span class="fc" id="L55">    deadlineNanos = System.nanoTime() + TimeUnit.HOURS.toNanos(1);</span>
-<span class="fc" id="L56">    this.isReading = new CountDownLatch(1);</span>
-<span class="fc" id="L57">    thread = new Thread(this);</span>
-<span class="fc" id="L58">    thread.start();</span>
-<span class="fc" id="L59">  }</span>
+<span class="nc" id="L49">  UncaughtExceptionAsserter(final Matcher&lt;UncaughtExceptionDetail&gt; matcher) {</span>
+<span class="nc" id="L50">    this.matcher = matcher;</span>
+<span class="nc" id="L51">    this.exception = null;</span>
+<span class="nc" id="L52">    this.finished = false;</span>
+<span class="nc" id="L53">    receiveQueue = new SynchronousQueue&lt;&gt;();</span>
+<span class="nc" id="L54">    replyQueue = new SynchronousQueue&lt;&gt;();</span>
+<span class="nc" id="L55">    deadlineNanos = System.nanoTime() + TimeUnit.HOURS.toNanos(1);</span>
+<span class="nc" id="L56">    this.isReading = new CountDownLatch(1);</span>
+<span class="nc" id="L57">    thread = new Thread(this);</span>
+<span class="nc" id="L58">    thread.start();</span>
+<span class="nc" id="L59">  }</span>
 
   public void waitUntilReading() {
     try {
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">      if (!isReading.await(1, TimeUnit.MINUTES)) {</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">      if (!isReading.await(1, TimeUnit.MINUTES)) {</span>
 <span class="nc" id="L64">        throw new IllegalStateException(&quot;Somethig is wrong with &quot; + this);</span>
       }
 <span class="nc" id="L66">    } catch (InterruptedException ex) {</span>
 <span class="nc" id="L67">      throw new AssertionError(&quot;Tests interrupted&quot;, ex);</span>
-<span class="fc" id="L68">    }</span>
-<span class="fc" id="L69">    LOG.debug(&quot;{} is ready&quot;, this);</span>
-<span class="fc" id="L70">  }</span>
+<span class="nc" id="L68">    }</span>
+<span class="nc" id="L69">    LOG.debug(&quot;{} is ready&quot;, this);</span>
+<span class="nc" id="L70">  }</span>
 
   abstract void unregister();
 
   @Override
   public void assertObservation(final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="fc" id="L76">    setDeadlineNanos(System.nanoTime() + unit.toNanos(timeout));</span>
-<span class="fc" id="L77">    thread.join(unit.toMillis(timeout * 2));</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (!finished) {</span>
+<span class="nc" id="L76">    setDeadlineNanos(System.nanoTime() + unit.toNanos(timeout));</span>
+<span class="nc" id="L77">    thread.join(unit.toMillis(timeout * 2));</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (!finished) {</span>
 <span class="nc" id="L79">      throw new AssertionError(&quot;Assertion thread still running, this = &quot; + this);</span>
     }
-<span class="fc" id="L81">    Throwable ex = exception;</span>
-<span class="fc bfc" id="L82" title="All 2 branches covered.">    if (ex instanceof AssertionError) {</span>
-<span class="fc" id="L83">      throw  (AssertionError) ex;</span>
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    } else if (ex != null) {</span>
+<span class="nc" id="L81">    Throwable ex = exception;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    if (ex instanceof AssertionError) {</span>
+<span class="nc" id="L83">      throw  (AssertionError) ex;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    } else if (ex != null) {</span>
 <span class="nc" id="L85">      throw new AssertionError(ex);</span>
     }
-<span class="fc" id="L87">  }</span>
+<span class="nc" id="L87">  }</span>
 
   @Override
   public void run() {
     try {
-<span class="fc" id="L92">      assertSeen();</span>
-<span class="fc" id="L93">    } catch (Throwable error) {</span>
-<span class="fc" id="L94">      exception = error;</span>
+<span class="nc" id="L92">      assertSeen();</span>
+<span class="nc" id="L93">    } catch (Throwable error) {</span>
+<span class="nc" id="L94">      exception = error;</span>
     } finally {
-<span class="pc" id="L96">      unregister();</span>
-<span class="pc" id="L97">    }</span>
-<span class="fc" id="L98">    finished = true;</span>
-<span class="fc" id="L99">  }</span>
+<span class="nc" id="L96">      unregister();</span>
+    }
+<span class="nc" id="L98">    finished = true;</span>
+<span class="nc" id="L99">  }</span>
 
   public long getDeadlineNanos() {
-<span class="fc" id="L102">    synchronized (thread) {</span>
-<span class="fc" id="L103">      return deadlineNanos;</span>
-<span class="nc" id="L104">    }</span>
+<span class="nc" id="L102">    synchronized (thread) {</span>
+<span class="nc" id="L103">      return deadlineNanos;</span>
+    }
   }
 
   public void setDeadlineNanos(final long deadlineNanos) {
-<span class="fc" id="L108">    synchronized (thread) {</span>
-<span class="fc" id="L109">      this.deadlineNanos = deadlineNanos;</span>
-<span class="pc" id="L110">    }</span>
-<span class="fc" id="L111">    thread.interrupt();</span>
-<span class="fc" id="L112">  }</span>
+<span class="nc" id="L108">    synchronized (thread) {</span>
+<span class="nc" id="L109">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L110">    }</span>
+<span class="nc" id="L111">    thread.interrupt();</span>
+<span class="nc" id="L112">  }</span>
 
 
 //  private void assertNotSeen() throws InterruptedException {
@@ -141,50 +141,50 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
 //  }
 
   private void assertSeen() throws InterruptedException {
-<span class="fc" id="L144">    isReading.countDown();</span>
+<span class="nc" id="L144">    isReading.countDown();</span>
     long timeout;
-<span class="fc bfc" id="L146" title="All 2 branches covered.">    while ((timeout = getDeadlineNanos() - System.nanoTime()) &gt; 0) {</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    while ((timeout = getDeadlineNanos() - System.nanoTime()) &gt; 0) {</span>
       UncaughtExceptionDetail ucx;
       try {
-<span class="fc" id="L149">        ucx = receiveQueue.poll(timeout, TimeUnit.NANOSECONDS);</span>
-<span class="fc" id="L150">      } catch (InterruptedException ex) {</span>
-<span class="fc" id="L151">        ucx = null;</span>
-<span class="fc" id="L152">      }</span>
-<span class="fc bfc" id="L153" title="All 2 branches covered.">      if (ucx != null) {</span>
-<span class="fc" id="L154">        LOG.debug(&quot;{} received {}&quot;, this, ucx);</span>
-<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if (matcher.matches(ucx)) {</span>
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {</span>
+<span class="nc" id="L149">        ucx = receiveQueue.poll(timeout, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L150">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L151">        ucx = null;</span>
+<span class="nc" id="L152">      }</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">      if (ucx != null) {</span>
+<span class="nc" id="L154">        LOG.debug(&quot;{} received {}&quot;, this, ucx);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (matcher.matches(ucx)) {</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {</span>
 <span class="nc" id="L157">            throw new IllegalStateException(&quot;Other side dissapeared for &quot; + this);</span>
           }
-<span class="fc" id="L159">          return;</span>
+<span class="nc" id="L159">          return;</span>
         } else {
 <span class="nc bnc" id="L161" title="All 2 branches missed.">          if (!replyQueue.offer(Boolean.FALSE, SETUP_SECONDS, TimeUnit.SECONDS)) {</span>
 <span class="nc" id="L162">            throw new IllegalStateException(&quot;Other side dissapeared for &quot; + this);</span>
           }
         }
       }
-<span class="fc" id="L166">    }</span>
-<span class="fc" id="L167">    throw new AssertionError(&quot;Did not observe: &quot; + matcher);</span>
+<span class="nc" id="L166">    }</span>
+<span class="nc" id="L167">    throw new AssertionError(&quot;Did not observe: &quot; + matcher);</span>
   }
 
   @Override
   public boolean offer(final UncaughtExceptionDetail exDetail) {
     boolean offer;
     try {
-<span class="fc" id="L174">      offer = receiveQueue.offer(exDetail, SETUP_SECONDS, TimeUnit.SECONDS);</span>
+<span class="nc" id="L174">      offer = receiveQueue.offer(exDetail, SETUP_SECONDS, TimeUnit.SECONDS);</span>
 <span class="nc" id="L175">    } catch (InterruptedException ex) {</span>
 <span class="nc" id="L176">      Thread.currentThread().interrupt();</span>
 <span class="nc" id="L177">      offer = false;</span>
-<span class="fc" id="L178">    }</span>
-<span class="pc bpc" id="L179" title="1 of 2 branches missed.">    if (offer) {</span>
-<span class="fc" id="L180">      LOG.debug(&quot;Sent {} to {}&quot;, exDetail, this);</span>
+<span class="nc" id="L178">    }</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">    if (offer) {</span>
+<span class="nc" id="L180">      LOG.debug(&quot;Sent {} to {}&quot;, exDetail, this);</span>
       try {
-<span class="fc" id="L182">        Boolean consumed = replyQueue.poll(SETUP_SECONDS, TimeUnit.SECONDS);</span>
-<span class="fc" id="L183">        LOG.debug(&quot;Reply with {} from {}&quot;, consumed, this);</span>
-<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (consumed == null) {</span>
+<span class="nc" id="L182">        Boolean consumed = replyQueue.poll(SETUP_SECONDS, TimeUnit.SECONDS);</span>
+<span class="nc" id="L183">        LOG.debug(&quot;Reply with {} from {}&quot;, consumed, this);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (consumed == null) {</span>
 <span class="nc" id="L185">          throw new IllegalStateException(&quot;Illegal state &quot; + this);</span>
         }
-<span class="fc" id="L187">        return consumed;</span>
+<span class="nc" id="L187">        return consumed;</span>
 <span class="nc" id="L188">      } catch (InterruptedException ex) {</span>
 <span class="nc" id="L189">        Thread.currentThread().interrupt();</span>
 <span class="nc" id="L190">        return false;</span>
@@ -197,8 +197,8 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
 
   @Override
   public String toString() {
-<span class="fc" id="L200">    return &quot;UncaughtExceptionAsserter{&quot; + &quot;matcher=&quot; + matcher + '}';</span>
+<span class="nc" id="L200">    return &quot;UncaughtExceptionAsserter{&quot; + &quot;matcher=&quot; + matcher + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

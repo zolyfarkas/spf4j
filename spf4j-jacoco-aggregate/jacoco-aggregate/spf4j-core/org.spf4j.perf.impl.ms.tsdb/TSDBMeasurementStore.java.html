@@ -56,50 +56,50 @@ public final class TSDBMeasurementStore
 
   private final TSDBWriter database;
 
-<span class="fc" id="L59">  public TSDBMeasurementStore(final File databaseFile) throws IOException {</span>
-<span class="fc" id="L60">    this.database = new TSDBWriter(databaseFile, 1024, &quot;&quot;, false);</span>
-<span class="fc" id="L61">  }</span>
+<span class="nc" id="L59">  public TSDBMeasurementStore(final File databaseFile) throws IOException {</span>
+<span class="nc" id="L60">    this.database = new TSDBWriter(databaseFile, 1024, &quot;&quot;, false);</span>
+<span class="nc" id="L61">  }</span>
 
   @Override
   public long alocateMeasurements(final MeasurementsInfo measurement,
           final int sampleTimeMillis) throws IOException {
-<span class="fc" id="L66">    TableDef td = TableDef.newBuilder()</span>
-<span class="fc" id="L67">            .setName(measurement.getMeasuredEntity().toString())</span>
-<span class="fc" id="L68">            .setSampleTime(sampleTimeMillis)</span>
-<span class="fc" id="L69">            .setId(-1).build();</span>
-<span class="fc" id="L70">    int numberOfMeasurements = measurement.getNumberOfMeasurements();</span>
-<span class="fc" id="L71">    List&lt;ColumnDef&gt; columns = new ArrayList&lt;&gt;(numberOfMeasurements);</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">    for (int i = 0; i &lt; numberOfMeasurements; i++) {</span>
-<span class="fc" id="L73">      String mname = measurement.getMeasurementName(i);</span>
-<span class="fc" id="L74">      String unit = measurement.getMeasurementUnit(i);</span>
-<span class="fc" id="L75">      ColumnDef cd = new ColumnDef();</span>
-<span class="fc" id="L76">      cd.name = mname;</span>
-<span class="fc" id="L77">      cd.unitOfMeasurement = unit;</span>
-<span class="fc" id="L78">      cd.type = Type.LONG;</span>
-<span class="fc" id="L79">      cd.description = &quot;&quot;;</span>
-<span class="fc" id="L80">      columns.add(cd);</span>
+<span class="nc" id="L66">    TableDef td = TableDef.newBuilder()</span>
+<span class="nc" id="L67">            .setName(measurement.getMeasuredEntity().toString())</span>
+<span class="nc" id="L68">            .setSampleTime(sampleTimeMillis)</span>
+<span class="nc" id="L69">            .setId(-1).build();</span>
+<span class="nc" id="L70">    int numberOfMeasurements = measurement.getNumberOfMeasurements();</span>
+<span class="nc" id="L71">    List&lt;ColumnDef&gt; columns = new ArrayList&lt;&gt;(numberOfMeasurements);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    for (int i = 0; i &lt; numberOfMeasurements; i++) {</span>
+<span class="nc" id="L73">      String mname = measurement.getMeasurementName(i);</span>
+<span class="nc" id="L74">      String unit = measurement.getMeasurementUnit(i);</span>
+<span class="nc" id="L75">      ColumnDef cd = new ColumnDef();</span>
+<span class="nc" id="L76">      cd.name = mname;</span>
+<span class="nc" id="L77">      cd.unitOfMeasurement = unit;</span>
+<span class="nc" id="L78">      cd.type = Type.LONG;</span>
+<span class="nc" id="L79">      cd.description = &quot;&quot;;</span>
+<span class="nc" id="L80">      columns.add(cd);</span>
     }
-<span class="fc" id="L82">    td.columns = columns;</span>
-<span class="fc" id="L83">    return database.writeTableDef(td);</span>
+<span class="nc" id="L82">    td.columns = columns;</span>
+<span class="nc" id="L83">    return database.writeTableDef(td);</span>
   }
 
   @Override
   public void saveMeasurements(final long tableId,
           final long timeStampMillis, final long... measurements)
           throws IOException {
-<span class="fc" id="L90">    database.writeDataRow(tableId, timeStampMillis, measurements);</span>
-<span class="fc" id="L91">  }</span>
+<span class="nc" id="L90">    database.writeDataRow(tableId, timeStampMillis, measurements);</span>
+<span class="nc" id="L91">  }</span>
 
   @Override
   public void close() throws IOException {
-<span class="fc" id="L95">    database.close();</span>
-<span class="fc" id="L96">  }</span>
+<span class="nc" id="L95">    database.close();</span>
+<span class="nc" id="L96">  }</span>
 
   @JmxExport(description = &quot;flush out buffers&quot;)
   @Override
   public void flush() throws IOException {
-<span class="fc" id="L101">    database.flush();</span>
-<span class="fc" id="L102">  }</span>
+<span class="nc" id="L101">    database.flush();</span>
+<span class="nc" id="L102">  }</span>
 
   @JmxExport(description = &quot;list all tables&quot;)
   public String[] getTables() throws IOException {
@@ -116,12 +116,12 @@ public final class TSDBMeasurementStore
 
   @Override
   public String toString() {
-<span class="fc" id="L119">    return &quot;TSDBMeasurementStore{&quot; + &quot;database=&quot; + database + '}';</span>
+<span class="nc" id="L119">    return &quot;TSDBMeasurementStore{&quot; + &quot;database=&quot; + database + '}';</span>
   }
 
   public TSDBWriter getDBWriter() {
-<span class="fc" id="L123">    return database;</span>
+<span class="nc" id="L123">    return database;</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

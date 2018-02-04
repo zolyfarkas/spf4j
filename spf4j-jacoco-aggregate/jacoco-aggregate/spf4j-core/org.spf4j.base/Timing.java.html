@@ -43,44 +43,44 @@ import org.spf4j.concurrent.DefaultScheduler;
 @Beta
 public final class Timing {
 
-<span class="fc" id="L46">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
+<span class="nc" id="L46">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
 
-<span class="fc" id="L48">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
+<span class="nc" id="L48">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
 
   private static volatile Timing latestTiming;
 
   private static final ScheduledFuture UPDATER;
 
   static {
-<span class="fc" id="L55">    latestTiming = new Timing();</span>
-<span class="pc" id="L56">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -&gt; latestTiming = new Timing(),</span>
+<span class="nc" id="L55">    latestTiming = new Timing();</span>
+<span class="nc" id="L56">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -&gt; latestTiming = new Timing(),</span>
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
-<span class="fc" id="L58">  }</span>
+<span class="nc" id="L58">  }</span>
 
   private final long nanoTimeRef;
   private final long currentTimeMillisRef;
 
-<span class="fc" id="L63">  private Timing() {</span>
-<span class="fc" id="L64">    nanoTimeRef = System.nanoTime();</span>
-<span class="fc" id="L65">    currentTimeMillisRef = System.currentTimeMillis();</span>
-<span class="fc" id="L66">  }</span>
+<span class="nc" id="L63">  private Timing() {</span>
+<span class="nc" id="L64">    nanoTimeRef = System.nanoTime();</span>
+<span class="nc" id="L65">    currentTimeMillisRef = System.currentTimeMillis();</span>
+<span class="nc" id="L66">  }</span>
 
   public long fromNanoTimeToEpochMillis(final long nanoTime) {
-<span class="fc" id="L69">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
+<span class="nc" id="L69">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
   }
 
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
-<span class="fc" id="L74">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
-<span class="fc" id="L76">      return System.nanoTime() + Long.MAX_VALUE;</span>
+<span class="nc" id="L74">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
+<span class="nc" id="L76">      return System.nanoTime() + Long.MAX_VALUE;</span>
 //      throw new IllegalArgumentException(&quot;Epoch time millis cannot be converted to nanotime &quot; + epochTimeMillis);
     }
-<span class="fc" id="L79">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
+<span class="nc" id="L79">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
   }
 
   public static Timing getCurrentTiming() {
-<span class="fc" id="L83">    return latestTiming;</span>
+<span class="nc" id="L83">    return latestTiming;</span>
   }
 
 
@@ -95,4 +95,4 @@ public final class Timing {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

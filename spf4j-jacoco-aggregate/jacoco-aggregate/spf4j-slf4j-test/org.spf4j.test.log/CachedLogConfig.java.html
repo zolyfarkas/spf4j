@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CachedLogConfig.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.test.log</a> &gt; <span class="el_source">CachedLogConfig.java</span></div><h1>CachedLogConfig.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.test.log;
+
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import org.spf4j.concurrent.UnboundedLoadingCache;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class CachedLogConfig implements LogConfig {
+
+<span class="nc" id="L34">  private static final LogConsumer NULL_CONSUMER = (LogRecord record) -&gt; { };</span>
+
+  private final Map&lt;Level, LoadingCache&lt;String, LogConsumer&gt;&gt; cache;
+
+  private final ConcurrentMap&lt;LogConsumer, LogConsumer&gt; interner;
+
+  private final LogConfig wrapped;
+
+  @SuppressFBWarnings(&quot;SIC_INNER_SHOULD_BE_STATIC_ANON&quot;)
+<span class="nc" id="L43">  public CachedLogConfig(final LogConfig wrapped) {</span>
+<span class="nc" id="L44">    this.wrapped = wrapped;</span>
+<span class="nc" id="L45">    interner = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L46">    cache = new EnumMap&lt;&gt;(Level.class);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    for (Level level : Level.values()) {</span>
+<span class="nc" id="L48">      cache.put(level, new UnboundedLoadingCache&lt;&gt;(16,</span>
+<span class="nc" id="L49">              new CacheLoader&lt;String, LogConsumer&gt;() {</span>
+        @Override
+        public LogConsumer load(final String cat) {
+<span class="nc" id="L52">          LogConsumer logHandlers = wrapped.getLogConsumer(cat, level);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">          if (logHandlers == null) {</span>
+<span class="nc" id="L54">            return NULL_CONSUMER;</span>
+          } else {
+<span class="nc" id="L56">            return interner.computeIfAbsent(logHandlers, Function.identity());</span>
+          }
+        }
+      }));
+    }
+<span class="nc" id="L61">  }</span>
+
+  @Override
+  public LogConsumer getLogConsumer(final String category, final Level level) {
+<span class="nc" id="L65">    LogConsumer cons = cache.get(level).getUnchecked(category);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">    return (cons == NULL_CONSUMER) ? null : cons;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L71">    return &quot;CachedLogConfig{&quot; + &quot;cache=&quot; + cache + '}';</span>
+  }
+
+  @Override
+  public CachedLogConfig add(final String category, final LogHandler handler) {
+<span class="nc" id="L76">    return new CachedLogConfig(wrapped.add(category, handler));</span>
+  }
+
+  @Override
+  public CachedLogConfig remove(final String category, final LogHandler handler) {
+<span class="nc" id="L81">    return new CachedLogConfig(wrapped.remove(category, handler));</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

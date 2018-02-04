@@ -47,44 +47,44 @@ public final class REF extends Instruction {
 
     private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L50">    public static final Instruction INSTANCE = new REF();</span>
+<span class="nc" id="L50">    public static final Instruction INSTANCE = new REF();</span>
 
-<span class="fc" id="L52">    private REF() {</span>
-<span class="fc" id="L53">    }</span>
+    private REF() {
+    }
 
     @Override
     public int execute(final ExecutionContext context)
             throws ExecutionException, SuspendedException, InterruptedException {
-<span class="fc" id="L58">        final Object[] vals = context.tuple();</span>
-<span class="fc" id="L59">        context.popSyncStackVals(vals);</span>
-<span class="fc" id="L60">        final Object ref = vals[1];</span>
-<span class="fc" id="L61">        final Object relTo = vals[0];</span>
+<span class="nc" id="L58">        final Object[] vals = context.tuple();</span>
+<span class="nc" id="L59">        context.popSyncStackVals(vals);</span>
+<span class="nc" id="L60">        final Object ref = vals[1];</span>
+<span class="nc" id="L61">        final Object relTo = vals[0];</span>
         final Object relativeTo;
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (relTo instanceof AssignableValue) {</span>
-<span class="fc" id="L64">            Object obj = ((AssignableValue) relTo).get();</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">            if (obj == null) {</span>
-<span class="fc" id="L66">                obj = new HashMap();</span>
-<span class="fc" id="L67">                ((AssignableValue) relTo).assign(obj);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (relTo instanceof AssignableValue) {</span>
+<span class="nc" id="L64">            Object obj = ((AssignableValue) relTo).get();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (obj == null) {</span>
+<span class="nc" id="L66">                obj = new HashMap();</span>
+<span class="nc" id="L67">                ((AssignableValue) relTo).assign(obj);</span>
             }
-<span class="fc" id="L69">            relativeTo = obj;</span>
-<span class="fc" id="L70">        } else {</span>
+<span class="nc" id="L69">            relativeTo = obj;</span>
+<span class="nc" id="L70">        } else {</span>
 <span class="nc" id="L71">            relativeTo = relTo;</span>
         }
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (relativeTo instanceof Map) {</span>
-<span class="fc" id="L74">            context.push(new MapDeref(relativeTo, ref));</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (relativeTo instanceof Map) {</span>
+<span class="nc" id="L74">            context.push(new MapDeref(relativeTo, ref));</span>
 
-<span class="fc bfc" id="L76" title="All 2 branches covered.">        } else if (relativeTo instanceof Object[]) {</span>
-<span class="fc" id="L77">            context.push(new ArrayDeref(relativeTo, ref));</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        } else if (relativeTo instanceof Object[]) {</span>
+<span class="nc" id="L77">            context.push(new ArrayDeref(relativeTo, ref));</span>
 
         } else {
-<span class="fc" id="L80">            context.push(new JavaMethodDeref(relativeTo, ref));</span>
+<span class="nc" id="L80">            context.push(new JavaMethodDeref(relativeTo, ref));</span>
         }
-<span class="fc" id="L82">        return 1;</span>
+<span class="nc" id="L82">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L87">        return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L87">        return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
     private static final class MapDeref implements AssignableValue {
@@ -92,15 +92,15 @@ public final class REF extends Instruction {
         private final Object relativeTo;
         private final Object ref;
 
-<span class="fc" id="L95">        MapDeref(final Object relativeTo, final Object ref) {</span>
-<span class="fc" id="L96">            this.relativeTo = relativeTo;</span>
-<span class="fc" id="L97">            this.ref = ref;</span>
-<span class="fc" id="L98">        }</span>
+<span class="nc" id="L95">        MapDeref(final Object relativeTo, final Object ref) {</span>
+<span class="nc" id="L96">            this.relativeTo = relativeTo;</span>
+<span class="nc" id="L97">            this.ref = ref;</span>
+<span class="nc" id="L98">        }</span>
 
         @Override
         public void assign(final Object object) {
-<span class="fc" id="L102">            ((Map) relativeTo).put(ref, object);</span>
-<span class="fc" id="L103">        }</span>
+<span class="nc" id="L102">            ((Map) relativeTo).put(ref, object);</span>
+<span class="nc" id="L103">        }</span>
 
         @Override
         public Object get() {
@@ -113,19 +113,19 @@ public final class REF extends Instruction {
         private final Object relativeTo;
         private final Object ref;
 
-<span class="fc" id="L116">        ArrayDeref(final Object relativeTo, final Object ref) {</span>
-<span class="fc" id="L117">            this.relativeTo = relativeTo;</span>
-<span class="fc" id="L118">            this.ref = ref;</span>
-<span class="fc" id="L119">        }</span>
+<span class="nc" id="L116">        ArrayDeref(final Object relativeTo, final Object ref) {</span>
+<span class="nc" id="L117">            this.relativeTo = relativeTo;</span>
+<span class="nc" id="L118">            this.ref = ref;</span>
+<span class="nc" id="L119">        }</span>
 
         @Override
         public void assign(final Object object) {
-<span class="fc" id="L123">            ((Object[]) relativeTo)[((Number) ref).intValue()] = object;</span>
-<span class="fc" id="L124">        }</span>
+<span class="nc" id="L123">            ((Object[]) relativeTo)[((Number) ref).intValue()] = object;</span>
+<span class="nc" id="L124">        }</span>
 
         @Override
         public Object get() {
-<span class="fc" id="L128">            return ((Object[]) relativeTo)[((Number) ref).intValue()];</span>
+<span class="nc" id="L128">            return ((Object[]) relativeTo)[((Number) ref).intValue()];</span>
         }
     }
 
@@ -134,10 +134,10 @@ public final class REF extends Instruction {
         private final Object relativeTo;
         private final Object ref;
 
-<span class="fc" id="L137">        JavaMethodDeref(final Object relativeTo, final Object ref) {</span>
-<span class="fc" id="L138">            this.relativeTo = relativeTo;</span>
-<span class="fc" id="L139">            this.ref = ref;</span>
-<span class="fc" id="L140">        }</span>
+<span class="nc" id="L137">        JavaMethodDeref(final Object relativeTo, final Object ref) {</span>
+<span class="nc" id="L138">            this.relativeTo = relativeTo;</span>
+<span class="nc" id="L139">            this.ref = ref;</span>
+<span class="nc" id="L140">        }</span>
 
         @Override
         public void assign(final Object object) {
@@ -147,8 +147,8 @@ public final class REF extends Instruction {
 
         @Override
         public Object get() {
-<span class="fc" id="L150">            return new JavaMethodCall(relativeTo, (String) ref);</span>
+<span class="nc" id="L150">            return new JavaMethodCall(relativeTo, (String) ref);</span>
         }
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -55,15 +55,15 @@ import org.spf4j.base.CallablesNano.TimeoutNanoRetryPredicate;
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class CallablesNanoNonInterrupt {
 
-<span class="nc" id="L58">    private CallablesNanoNonInterrupt() {</span>
-<span class="nc" id="L59">    }</span>
+    private CallablesNanoNonInterrupt() {
+    }
 
 
     public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
             final int nrImmediateRetries,
             final long maxRetryWaitNanos, final Class&lt;EX&gt; exceptionClass)
             throws EX {
-<span class="fc" id="L66">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+<span class="nc" id="L66">        return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
                 (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
                 DEFAULT_EXCEPTION_RETRY, exceptionClass);
     }
@@ -98,12 +98,12 @@ public final class CallablesNanoNonInterrupt {
             final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
             final Class&lt;EX&gt; exceptionClass)
             throws EX {
-<span class="fc" id="L101">      final long deadline = what.getDeadline();</span>
+<span class="nc" id="L101">      final long deadline = what.getDeadline();</span>
       try {
-<span class="fc" id="L103">        return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+<span class="nc" id="L103">        return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
                 new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
-<span class="fc" id="L106">                        () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
+<span class="nc" id="L106">                        () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
 <span class="nc" id="L107">      } catch (InterruptedException ex) {</span>
 <span class="nc" id="L108">        throw new UncheckedExecutionException(ex);</span>
 <span class="nc" id="L109">      } catch (TimeoutException ex) {</span>
@@ -142,4 +142,4 @@ public final class CallablesNanoNonInterrupt {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

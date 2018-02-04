@@ -33,41 +33,41 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
 
   private final List&lt;UncaughtExceptionDetail&gt; uncaughtExceptions;
 
-<span class="fc" id="L36">  ExceptionAsserterUncaughtExceptionHandler(final Thread.UncaughtExceptionHandler wrapped) {</span>
-<span class="fc" id="L37">    this.wrapped = wrapped;</span>
-<span class="fc" id="L38">    this.uncaughtExceptions = new CopyOnWriteArrayList&lt;&gt;();</span>
-<span class="fc" id="L39">    this.handovers = new CopyOnWriteArrayList&lt;&gt;();</span>
-<span class="fc" id="L40">  }</span>
+<span class="nc" id="L36">  ExceptionAsserterUncaughtExceptionHandler(final Thread.UncaughtExceptionHandler wrapped) {</span>
+<span class="nc" id="L37">    this.wrapped = wrapped;</span>
+<span class="nc" id="L38">    this.uncaughtExceptions = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="nc" id="L39">    this.handovers = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="nc" id="L40">  }</span>
 
   @Override
   public void add(final UncaughtExceptionConsumer handover) {
-<span class="fc" id="L44">    handovers.add(handover);</span>
-<span class="fc" id="L45">  }</span>
+<span class="nc" id="L44">    handovers.add(handover);</span>
+<span class="nc" id="L45">  }</span>
 
   @Override
   public void remove(final UncaughtExceptionConsumer handover) {
-<span class="fc" id="L49">    handovers.remove(handover);</span>
-<span class="fc" id="L50">  }</span>
+<span class="nc" id="L49">    handovers.remove(handover);</span>
+<span class="nc" id="L50">  }</span>
 
   @Override
   public void uncaughtException(final Thread t, final Throwable e) {
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    if (wrapped != null) {</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (wrapped != null) {</span>
 <span class="nc" id="L55">      wrapped.uncaughtException(t, e);</span>
     }
-<span class="fc" id="L57">    UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);</span>
-<span class="fc" id="L58">    boolean accepted = false;</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">    for (UncaughtExceptionConsumer handover : handovers) {</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">      if (handover.offer(exDetail)) {</span>
-<span class="fc" id="L61">        accepted = true;</span>
+<span class="nc" id="L57">    UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);</span>
+<span class="nc" id="L58">    boolean accepted = false;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    for (UncaughtExceptionConsumer handover : handovers) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      if (handover.offer(exDetail)) {</span>
+<span class="nc" id="L61">        accepted = true;</span>
       }
-<span class="fc" id="L63">    }</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">    if (!accepted) {</span>
+<span class="nc" id="L63">    }</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (!accepted) {</span>
 <span class="nc" id="L65">      uncaughtExceptions.add(exDetail);</span>
     }
-<span class="fc" id="L67">  }</span>
+<span class="nc" id="L67">  }</span>
 
   public List&lt;UncaughtExceptionDetail&gt; getUncaughtExceptions() {
-<span class="fc" id="L70">    return new ArrayList&lt;&gt;(uncaughtExceptions);</span>
+<span class="nc" id="L70">    return new ArrayList&lt;&gt;(uncaughtExceptions);</span>
   }
 
   @Override
@@ -79,4 +79,4 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

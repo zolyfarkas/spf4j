@@ -15,6 +15,9 @@
  */
 package org.spf4j.test.log;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+
 /**
  * @author Zoltan Farkas
  */
@@ -23,26 +26,31 @@ public final class UncaughtExceptionDetail {
   private final Thread thread;
   private final Throwable throwable;
 
-<span class="fc" id="L26">  public UncaughtExceptionDetail(final Thread thread, final Throwable throwable) {</span>
-<span class="fc" id="L27">    this.thread = thread;</span>
-<span class="fc" id="L28">    this.throwable = throwable;</span>
-<span class="fc" id="L29">  }</span>
+<span class="fc" id="L29">  public UncaughtExceptionDetail(final Thread thread, final Throwable throwable) {</span>
+<span class="fc" id="L30">    this.thread = thread;</span>
+<span class="fc" id="L31">    this.throwable = throwable;</span>
+<span class="fc" id="L32">  }</span>
 
   public Thread getThread() {
-<span class="nc" id="L32">    return thread;</span>
+<span class="nc" id="L35">    return thread;</span>
   }
 
   public Throwable getThrowable() {
-<span class="fc" id="L36">    return throwable;</span>
+<span class="fc" id="L39">    return throwable;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L41">    return &quot;UncaughtException{&quot; + &quot;thread=&quot; + thread + &quot;, throwable=&quot; + throwable + '}';</span>
+<span class="fc" id="L44">    return &quot;UncaughtException{&quot; + &quot;thread=&quot; + thread + &quot;, throwable=&quot; + throwable + '}';</span>
   }
 
+  public static Matcher&lt;UncaughtExceptionDetail&gt; hasThrowable(final Matcher&lt;Throwable&gt; tMatcher) {
+<span class="fc" id="L48">    return Matchers.hasProperty(&quot;throwable&quot;, tMatcher);</span>
+  }
 
-
+  public static Matcher&lt;UncaughtExceptionDetail&gt; hasThread(final Matcher&lt;Thread&gt; tMatcher) {
+<span class="nc" id="L52">    return Matchers.hasProperty(&quot;thread&quot;, tMatcher);</span>
+  }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

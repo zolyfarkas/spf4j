@@ -19,12 +19,18 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 import java.util.Iterator;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,15 +51,26 @@ public final class LogPrinter implements LogHandler {
   static final String PRINTED = &quot;PRINTED&quot;;
 
   private static final DateTimeFormatter FMT =
-<span class="fc bfc" id="L48" title="All 2 branches covered.">          TestUtils.isExecutedFromIDE() ? DateTimeFormatter.ISO_LOCAL_TIME.withZone(ZoneId.systemDefault())</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">          TestUtils.isExecutedFromIDE() ? new DateTimeFormatterBuilder()</span>
+<span class="nc" id="L55">                .appendValue(HOUR_OF_DAY, 2)</span>
+<span class="nc" id="L56">                .appendLiteral(':')</span>
+<span class="nc" id="L57">                .appendValue(MINUTE_OF_HOUR, 2)</span>
+<span class="nc" id="L58">                .optionalStart()</span>
+<span class="nc" id="L59">                .appendLiteral(':')</span>
+<span class="nc" id="L60">                .appendValue(SECOND_OF_MINUTE, 2)</span>
+<span class="nc" id="L61">                .optionalStart()</span>
+<span class="nc" id="L62">                .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)</span>
+<span class="nc" id="L63">                .toFormatter().withZone(ZoneId.systemDefault())</span>
           : DateTimeFormatter.ISO_INSTANT;
 
-<span class="fc" id="L51">  private static final ThreadLocal&lt;Buffer&gt; TL_BUFFER = new ThreadLocal&lt;Buffer&gt;() {</span>
+<span class="nc" id="L66">  private static final ThreadLocal&lt;Buffer&gt; TL_BUFFER = new ThreadLocal&lt;Buffer&gt;() {</span>
     @Override
     protected Buffer initialValue() {
-<span class="fc" id="L54">      return new Buffer();</span>
+<span class="nc" id="L69">      return new Buffer();</span>
     }
   };
+
+<span class="nc" id="L73">  private static final ObjectAppenderSupplier TO_STRINGER = ObjectAppenderSupplier.TO_STRINGER;</span>
 
   private final Level minLogged;
 
@@ -65,49 +82,49 @@ public final class LogPrinter implements LogHandler {
 
     private final EscapeJsonStringAppendableWrapper writerEscaper;
 
-<span class="fc" id="L68">    Buffer() {</span>
-<span class="fc" id="L69">      bab = new ByteArrayBuilder(512, ArraySuppliers.Bytes.JAVA_NEW);</span>
-<span class="fc" id="L70">      writer = new BufferedWriter(new OutputStreamWriter(bab, Charset.defaultCharset()));</span>
-<span class="fc" id="L71">      writerEscaper = new EscapeJsonStringAppendableWrapper(writer);</span>
-<span class="fc" id="L72">    }</span>
+<span class="nc" id="L85">    Buffer() {</span>
+<span class="nc" id="L86">      bab = new ByteArrayBuilder(512, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="nc" id="L87">      writer = new BufferedWriter(new OutputStreamWriter(bab, Charset.defaultCharset()));</span>
+<span class="nc" id="L88">      writerEscaper = new EscapeJsonStringAppendableWrapper(writer);</span>
+<span class="nc" id="L89">    }</span>
 
     void clear() {
-<span class="fc" id="L75">      bab.reset();</span>
-<span class="fc" id="L76">    }</span>
+<span class="nc" id="L92">      bab.reset();</span>
+<span class="nc" id="L93">    }</span>
 
     ByteArrayBuilder getBab() {
-<span class="nc" id="L79">      return bab;</span>
+<span class="nc" id="L96">      return bab;</span>
     }
 
     Writer getWriter() {
-<span class="fc" id="L83">      return writer;</span>
+<span class="nc" id="L100">      return writer;</span>
     }
 
     EscapeJsonStringAppendableWrapper getWriterEscaper() {
-<span class="fc" id="L87">      return writerEscaper;</span>
+<span class="nc" id="L104">      return writerEscaper;</span>
     }
 
     byte[] getBytes() throws IOException {
-<span class="fc" id="L91">      writer.flush();</span>
-<span class="fc" id="L92">      return bab.getBuffer();</span>
+<span class="nc" id="L108">      writer.flush();</span>
+<span class="nc" id="L109">      return bab.getBuffer();</span>
     }
 
     int size() {
-<span class="fc" id="L96">      return bab.size();</span>
+<span class="nc" id="L113">      return bab.size();</span>
     }
 
   }
 
-<span class="fc" id="L101">  LogPrinter(final Level minLogged) {</span>
-<span class="fc" id="L102">    this.minLogged = minLogged;</span>
-<span class="fc" id="L103">  }</span>
+<span class="nc" id="L118">  LogPrinter(final Level minLogged) {</span>
+<span class="nc" id="L119">    this.minLogged = minLogged;</span>
+<span class="nc" id="L120">  }</span>
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean handles(final Level level) {
-<span class="fc bfc" id="L110" title="All 2 branches covered.">    return level.ordinal() &gt;= minLogged.ordinal();</span>
+  public Handling handles(final Level level) {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    return level.ordinal() &gt;= minLogged.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;</span>
   }
 
   /**
@@ -116,150 +133,145 @@ public final class LogPrinter implements LogHandler {
   @SuppressFBWarnings({ &quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;, &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot; })
   @Override
   public LogRecord handle(final LogRecord record) {
-<span class="fc bfc" id="L119" title="All 2 branches covered.">    if (record.hasAttachment(PRINTED)) {</span>
-<span class="fc" id="L120">      return record;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">    if (record.hasAttachment(PRINTED)) {</span>
+<span class="nc" id="L137">      return record;</span>
     }
     try {
-<span class="fc" id="L123">      Buffer buff = TL_BUFFER.get();</span>
-<span class="fc" id="L124">      buff.clear();</span>
-<span class="fc" id="L125">      print(record, buff.getWriter(), buff.getWriterEscaper(), &quot;&quot;);</span>
-<span class="fc bfc" id="L126" title="All 2 branches covered.">      if (record.getLevel() == Level.ERROR) {</span>
-<span class="fc" id="L127">        System.err.write(buff.getBytes(), 0, buff.size());</span>
-<span class="fc" id="L128">        System.err.flush();</span>
+<span class="nc" id="L140">      Buffer buff = TL_BUFFER.get();</span>
+<span class="nc" id="L141">      buff.clear();</span>
+<span class="nc" id="L142">      print(record, buff.getWriter(), buff.getWriterEscaper(), &quot;&quot;);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (record.getLevel() == Level.ERROR) {</span>
+<span class="nc" id="L144">        System.err.write(buff.getBytes(), 0, buff.size());</span>
+<span class="nc" id="L145">        System.err.flush();</span>
       } else {
-<span class="fc" id="L130">        System.out.write(buff.getBytes(), 0, buff.size());</span>
-<span class="fc" id="L131">        System.out.flush();</span>
+<span class="nc" id="L147">        System.out.write(buff.getBytes(), 0, buff.size());</span>
+<span class="nc" id="L148">        System.out.flush();</span>
       }
-<span class="nc" id="L133">    } catch (IOException ex) {</span>
-<span class="nc" id="L134">      throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L135">    }</span>
-<span class="fc" id="L136">    record.attach(PRINTED);</span>
-<span class="fc" id="L137">    return record;</span>
+<span class="nc" id="L150">    } catch (IOException ex) {</span>
+<span class="nc" id="L151">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L152">    }</span>
+<span class="nc" id="L153">    record.attach(PRINTED);</span>
+<span class="nc" id="L154">    return record;</span>
   }
 
-  public static void printToStderr(final LogRecord record, final String annotate) {
-<span class="nc" id="L141">    Buffer buff = TL_BUFFER.get();</span>
-<span class="nc" id="L142">    buff.clear();</span>
+  public static void printTo(final PrintStream stream, final LogRecord record, final String annotate) {
+<span class="nc" id="L158">    Buffer buff = TL_BUFFER.get();</span>
+<span class="nc" id="L159">    buff.clear();</span>
     try {
-<span class="nc" id="L144">      print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);</span>
-<span class="nc" id="L145">      System.err.write(buff.getBytes(), 0, buff.size());</span>
-<span class="nc" id="L146">      System.err.flush();</span>
-<span class="nc" id="L147">    } catch (IOException ex) {</span>
-<span class="nc" id="L148">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L149">    }</span>
-<span class="nc" id="L150">  }</span>
+<span class="nc" id="L161">      print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);</span>
+<span class="nc" id="L162">      stream.write(buff.getBytes(), 0, buff.size());</span>
+<span class="nc" id="L163">      stream.flush();</span>
+<span class="nc" id="L164">    } catch (IOException ex) {</span>
+<span class="nc" id="L165">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L166">    }</span>
+<span class="nc" id="L167">  }</span>
 
    static void printMarker(final Marker marker, final Appendable wr,
           final EscapeJsonStringAppendableWrapper wrapper)
           throws IOException {
-<span class="fc bfc" id="L155" title="All 2 branches covered.">      if (marker.hasReferences()) {</span>
-<span class="fc" id="L156">        wr.append('{');</span>
-<span class="fc" id="L157">        wr.append('&quot;');</span>
-<span class="fc" id="L158">        wrapper.append(marker.getName());</span>
-<span class="fc" id="L159">        wr.append(&quot;\&quot;:[&quot;);</span>
-<span class="fc" id="L160">        Iterator&lt;Marker&gt; it = marker.iterator();</span>
-<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if (it.hasNext()) {</span>
-<span class="fc" id="L162">          printMarker(it.next(), wr, wrapper);</span>
-<span class="fc bfc" id="L163" title="All 2 branches covered.">          while (it.hasNext()) {</span>
-<span class="fc" id="L164">            wr.append(',');</span>
-<span class="fc" id="L165">            printMarker(it.next(), wr, wrapper);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">      if (marker.hasReferences()) {</span>
+<span class="nc" id="L173">        wr.append('{');</span>
+<span class="nc" id="L174">        wr.append('&quot;');</span>
+<span class="nc" id="L175">        wrapper.append(marker.getName());</span>
+<span class="nc" id="L176">        wr.append(&quot;\&quot;:[&quot;);</span>
+<span class="nc" id="L177">        Iterator&lt;Marker&gt; it = marker.iterator();</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (it.hasNext()) {</span>
+<span class="nc" id="L179">          printMarker(it.next(), wr, wrapper);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">          while (it.hasNext()) {</span>
+<span class="nc" id="L181">            wr.append(',');</span>
+<span class="nc" id="L182">            printMarker(it.next(), wr, wrapper);</span>
           }
         }
-<span class="fc" id="L168">        wr.append(&quot;]}&quot;);</span>
-<span class="fc" id="L169">      } else {</span>
-<span class="fc" id="L170">        wr.append('&quot;');</span>
-<span class="fc" id="L171">        wrapper.append(marker.getName());</span>
-<span class="fc" id="L172">        wr.append('&quot;');</span>
+<span class="nc" id="L185">        wr.append(&quot;]}&quot;);</span>
+<span class="nc" id="L186">      } else {</span>
+<span class="nc" id="L187">        wr.append('&quot;');</span>
+<span class="nc" id="L188">        wrapper.append(marker.getName());</span>
+<span class="nc" id="L189">        wr.append('&quot;');</span>
       }
-<span class="fc" id="L174">   }</span>
+<span class="nc" id="L191">   }</span>
 
 
   static void print(final LogRecord record, final Appendable wr,
           final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
           throws IOException {
-<span class="fc" id="L180">    wr.append(annotate);</span>
-<span class="fc" id="L181">    FMT.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);</span>
-<span class="fc" id="L182">    wr.append(' ');</span>
-<span class="fc" id="L183">    String level = record.getLevel().toString();</span>
-<span class="fc" id="L184">    wr.append(level);</span>
-<span class="fc" id="L185">    int ll = level.length();</span>
-<span class="pc bpc" id="L186" title="1 of 2 branches missed.">    if (ll &lt; 6) {</span>
-<span class="fc bfc" id="L187" title="All 2 branches covered.">      for (int i = 0, l = 6 - ll; i &lt; l; i++) {</span>
-<span class="fc" id="L188">        wr.append(' ');</span>
-      }
+<span class="nc" id="L197">    wr.append(annotate);</span>
+<span class="nc" id="L198">    FMT.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);</span>
+<span class="nc" id="L199">    wr.append(' ');</span>
+<span class="nc" id="L200">    String level = record.getLevel().toString();</span>
+<span class="nc" id="L201">    wr.append(level);</span>
+<span class="nc" id="L202">    wr.append(' ');</span>
+<span class="nc" id="L203">    Marker marker = record.getMarker();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (marker != null) {</span>
+<span class="nc" id="L205">      printMarker(marker, wr, wrapper);</span>
+<span class="nc" id="L206">      wr.append(' ');</span>
     }
-<span class="fc" id="L191">    Marker marker = record.getMarker();</span>
-<span class="fc bfc" id="L192" title="All 2 branches covered.">    if (marker != null) {</span>
-<span class="fc" id="L193">      printMarker(marker, wr, wrapper);</span>
-<span class="fc" id="L194">      wr.append(' ');</span>
-    }
-<span class="fc" id="L196">    Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);</span>
-<span class="fc" id="L197">    wr.append(&quot; \&quot;&quot;);</span>
-<span class="fc" id="L198">    wrapper.append(record.getThread().getName());</span>
-<span class="fc" id="L199">    wr.append(&quot;\&quot; \&quot;&quot;);</span>
-<span class="fc" id="L200">    Object[] arguments = record.getArguments();</span>
-<span class="fc" id="L201">    int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getFormat(),</span>
-            ObjectAppenderSupplier.TO_STRINGER, arguments);
-<span class="fc" id="L203">    wr.append(&quot;\&quot; &quot;);</span>
-<span class="fc" id="L204">    Throwable t = null;</span>
-<span class="fc bfc" id="L205" title="All 2 branches covered.">    if (i &lt; arguments.length) {</span>
-<span class="fc" id="L206">      boolean first = true;</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">      for (; i &lt; arguments.length; i++) {</span>
-<span class="fc" id="L208">        Object arg = arguments[i];</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">        if (arg instanceof Throwable) {</span>
-<span class="pc bpc" id="L210" title="1 of 2 branches missed.">          if (t == null) {</span>
-<span class="fc" id="L211">            t = (Throwable) arg;</span>
+<span class="nc" id="L208">    Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);</span>
+<span class="nc" id="L209">    wr.append(&quot; \&quot;&quot;);</span>
+<span class="nc" id="L210">    wrapper.append(record.getThread().getName());</span>
+<span class="nc" id="L211">    wr.append(&quot;\&quot; \&quot;&quot;);</span>
+<span class="nc" id="L212">    Object[] arguments = record.getArguments();</span>
+<span class="nc" id="L213">    int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getFormat(),</span>
+            TO_STRINGER, arguments);
+<span class="nc" id="L215">    wr.append(&quot;\&quot; &quot;);</span>
+<span class="nc" id="L216">    Throwable t = null;</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">    if (i &lt; arguments.length) {</span>
+<span class="nc" id="L218">      boolean first = true;</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">      for (; i &lt; arguments.length; i++) {</span>
+<span class="nc" id="L220">        Object arg = arguments[i];</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (arg instanceof Throwable) {</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">          if (t == null) {</span>
+<span class="nc" id="L223">            t = (Throwable) arg;</span>
           } else {
-<span class="nc" id="L213">            t.addSuppressed(t); // not ideal</span>
+<span class="nc" id="L225">            t.addSuppressed(t); // not ideal</span>
           }
         } else {
-<span class="fc bfc" id="L216" title="All 2 branches covered.">          if (!first) {</span>
-<span class="fc" id="L217">            wr.append(&quot;, &quot;);</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">          if (!first) {</span>
+<span class="nc" id="L229">            wr.append(&quot;, &quot;);</span>
           } else {
-<span class="fc" id="L219">            wr.append('[');</span>
-<span class="fc" id="L220">            first = false;</span>
+<span class="nc" id="L231">            wr.append('[');</span>
+<span class="nc" id="L232">            first = false;</span>
           }
-<span class="fc" id="L222">          printObject(arg, wr, wrapper);</span>
+<span class="nc" id="L234">          printObject(arg, wr, wrapper);</span>
         }
       }
-<span class="fc bfc" id="L225" title="All 2 branches covered.">      if (!first) {</span>
-<span class="fc" id="L226">        wr.append(']');</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">      if (!first) {</span>
+<span class="nc" id="L238">        wr.append(']');</span>
       }
     }
-<span class="fc bfc" id="L229" title="All 2 branches covered.">    if (t != null) {</span>
-<span class="fc" id="L230">      wr.append('\n');</span>
-<span class="fc" id="L231">      Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">    if (t != null) {</span>
+<span class="nc" id="L242">      wr.append('\n');</span>
+<span class="nc" id="L243">      Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT);</span>
     }
-<span class="fc" id="L233">    wr.append('\n');</span>
-<span class="fc" id="L234">  }</span>
+<span class="nc" id="L245">    wr.append('\n');</span>
+<span class="nc" id="L246">  }</span>
 
   private static void printObject(@Nullable final Object obj,
           final Appendable wr, final EscapeJsonStringAppendableWrapper wrapper) throws IOException {
-<span class="pc bpc" id="L238" title="1 of 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L239">      wr.append(&quot;null&quot;);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L251">      wr.append(&quot;null&quot;);</span>
     } else {
-<span class="fc" id="L241">      wr.append('&quot;');</span>
-<span class="fc" id="L242">      ObjectAppenderSupplier.TO_STRINGER.apply(obj.getClass()).append(obj, wrapper);</span>
-<span class="fc" id="L243">      wr.append('&quot;');</span>
+<span class="nc" id="L253">      wr.append('&quot;');</span>
+<span class="nc" id="L254">      TO_STRINGER.apply(obj.getClass()).append(obj, wrapper);</span>
+<span class="nc" id="L255">      wr.append('&quot;');</span>
     }
-<span class="fc" id="L245">  }</span>
+<span class="nc" id="L257">  }</span>
 
   static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
-<span class="fc" id="L248">    String className = obj.getClass().getName();</span>
-<span class="fc" id="L249">    sbuf.append(&quot;[FAILED toString() for &quot;);</span>
-<span class="fc" id="L250">    sbuf.append(className);</span>
-<span class="fc" id="L251">    sbuf.append(&quot;]{&quot;);</span>
-<span class="fc" id="L252">    Throwables.writeTo(t, sbuf, Throwables.PackageDetail.SHORT);</span>
-<span class="fc" id="L253">    sbuf.append('}');</span>
-<span class="fc" id="L254">  }</span>
+<span class="nc" id="L260">    String className = obj.getClass().getName();</span>
+<span class="nc" id="L261">    sbuf.append(&quot;[FAILED toString() for &quot;);</span>
+<span class="nc" id="L262">    sbuf.append(className);</span>
+<span class="nc" id="L263">    sbuf.append(&quot;]{&quot;);</span>
+<span class="nc" id="L264">    Throwables.writeTo(t, sbuf, Throwables.PackageDetail.SHORT);</span>
+<span class="nc" id="L265">    sbuf.append('}');</span>
+<span class="nc" id="L266">  }</span>
 
   @Override
   public String toString() {
-<span class="fc" id="L258">    return &quot;LogPrinter{&quot; + &quot;minLogged=&quot; + minLogged + '}';</span>
+<span class="nc" id="L270">    return &quot;LogPrinter{&quot; + &quot;minLogged=&quot; + minLogged + '}';</span>
   }
 
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

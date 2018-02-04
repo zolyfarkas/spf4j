@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XCollectors.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">XCollectors.java</span></div><h1>XCollectors.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import java.util.ArrayDeque;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class XCollectors {
+
+  private XCollectors() {
+  }
+
+  public static &lt;T&gt; Collector&lt;T, ?, ArrayDeque&lt;T&gt;&gt; last(final int limit) {
+<span class="fc" id="L52">    return Collector.of(</span>
+            ArrayDeque&lt;T&gt;::new,
+            (l, e) -&gt; {
+<span class="fc bfc" id="L55" title="All 2 branches covered.">              if (l.size() &gt;= limit) {</span>
+<span class="fc" id="L56">                l.removeFirst();</span>
+              }
+<span class="fc" id="L58">              l.addLast(e);</span>
+<span class="fc" id="L59">            },</span>
+            (l1, l2) -&gt; {
+<span class="nc" id="L61">              throw new UnsupportedOperationException(&quot;Limiting collectors do not support combining&quot;);</span>
+            }
+    );
+  }
+
+  public static &lt;T&gt; Collector&lt;T, ?, ArrayDeque&lt;T&gt;&gt; last(final int limit, final T addIfLimited) {
+<span class="fc" id="L67">    return Collector.of(</span>
+            ArrayDeque&lt;T&gt;::new,
+            (l, e) -&gt; {
+<span class="fc bfc" id="L70" title="All 2 branches covered.">              if (l.size() &gt;= limit) {</span>
+<span class="fc" id="L71">                Object first = l.removeFirst();</span>
+<span class="fc" id="L72">                l.removeFirst();</span>
+<span class="fc" id="L73">                l.addFirst(addIfLimited);</span>
+              }
+<span class="fc" id="L75">              l.addLast(e);</span>
+<span class="fc" id="L76">            },</span>
+            (l1, l2) -&gt; {
+<span class="nc" id="L78">              throw new UnsupportedOperationException(&quot;Limiting collectors do not support combining&quot;);</span>
+            }
+    );
+  }
+
+  /**
+   * THis is a backport from JDK9.
+   */
+  public static &lt;T, A, R&gt;
+          Collector&lt;T, ?, R&gt; filtering(final Predicate&lt;? super T&gt; predicate,
+                  final Collector&lt;? super T, A, R&gt; downstream) {
+<span class="fc" id="L89">    BiConsumer&lt;A, ? super T&gt; downstreamAccumulator = downstream.accumulator();</span>
+<span class="fc" id="L90">    return new CollectorImpl&lt;&gt;(downstream.supplier(),</span>
+            (r, t) -&gt; {
+<span class="fc bfc" id="L92" title="All 2 branches covered.">              if (predicate.test(t)) {</span>
+<span class="fc" id="L93">                downstreamAccumulator.accept(r, t);</span>
+              }
+<span class="fc" id="L95">            },</span>
+<span class="fc" id="L96">            downstream.combiner(), downstream.finisher(),</span>
+<span class="fc" id="L97">            downstream.characteristics());</span>
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  private static &lt;I, R&gt; Function&lt;I, R&gt; castingIdentity() {
+<span class="nc" id="L102">    return i -&gt; (R) i;</span>
+  }
+
+  static final class CollectorImpl&lt;T, A, R&gt; implements Collector&lt;T, A, R&gt; {
+
+    private final Supplier&lt;A&gt; supplier;
+    private final BiConsumer&lt;A, T&gt; accumulator;
+    private final BinaryOperator&lt;A&gt; combiner;
+    private final Function&lt;A, R&gt; finisher;
+    private final Set&lt;Characteristics&gt; characteristics;
+
+    CollectorImpl(final Supplier&lt;A&gt; supplier,
+            final BiConsumer&lt;A, T&gt; accumulator,
+            final BinaryOperator&lt;A&gt; combiner,
+            final Function&lt;A, R&gt; finisher,
+<span class="fc" id="L117">            final Set&lt;Characteristics&gt; characteristics) {</span>
+<span class="fc" id="L118">      this.supplier = supplier;</span>
+<span class="fc" id="L119">      this.accumulator = accumulator;</span>
+<span class="fc" id="L120">      this.combiner = combiner;</span>
+<span class="fc" id="L121">      this.finisher = finisher;</span>
+<span class="fc" id="L122">      this.characteristics = characteristics;</span>
+<span class="fc" id="L123">    }</span>
+
+    CollectorImpl(final Supplier&lt;A&gt; supplier,
+            final BiConsumer&lt;A, T&gt; accumulator,
+            final BinaryOperator&lt;A&gt; combiner,
+            final Set&lt;Characteristics&gt; characteristics) {
+<span class="nc" id="L129">      this(supplier, accumulator, combiner, castingIdentity(), characteristics);</span>
+<span class="nc" id="L130">    }</span>
+
+    @Override
+    public BiConsumer&lt;A, T&gt; accumulator() {
+<span class="fc" id="L134">      return accumulator;</span>
+    }
+
+    @Override
+    public Supplier&lt;A&gt; supplier() {
+<span class="fc" id="L139">      return supplier;</span>
+    }
+
+    @Override
+    public BinaryOperator&lt;A&gt; combiner() {
+<span class="fc" id="L144">      return combiner;</span>
+    }
+
+    @Override
+    public Function&lt;A, R&gt; finisher() {
+<span class="fc" id="L149">      return finisher;</span>
+    }
+
+    @Override
+    public Set&lt;Characteristics&gt; characteristics() {
+<span class="fc" id="L154">      return characteristics;</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -27,9 +27,9 @@ public final class TimeSource {
   private static final LongSupplier TIMESUPP;
 
   static {
-<span class="fc" id="L30">    String cfgTimeSource = System.getProperty(&quot;spf4j.timeSource&quot;);</span>
-<span class="pc bpc" id="L31" title="1 of 2 branches missed.">    if (cfgTimeSource == null) {</span>
-<span class="fc" id="L32">      TIMESUPP = () -&gt; System.nanoTime();</span>
+<span class="nc" id="L30">    String cfgTimeSource = System.getProperty(&quot;spf4j.timeSource&quot;);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">    if (cfgTimeSource == null) {</span>
+<span class="nc" id="L32">      TIMESUPP = () -&gt; System.nanoTime();</span>
     } else {
       try {
 <span class="nc" id="L35">        TIMESUPP = (LongSupplier) Class.forName(cfgTimeSource).newInstance();</span>
@@ -38,9 +38,9 @@ public final class TimeSource {
 <span class="nc" id="L38">      }</span>
     }
 
-<span class="fc" id="L41">  }</span>
+<span class="nc" id="L41">  }</span>
 
-<span class="nc" id="L43">  private TimeSource() { }</span>
+  private TimeSource() { }
 
   /**
    * Get JVM. time source. Default implementation calls System.nanotime.
@@ -48,14 +48,14 @@ public final class TimeSource {
    * @return
    */
   public static long nanoTime() {
-<span class="fc" id="L51">    return TIMESUPP.getAsLong();</span>
+<span class="nc" id="L51">    return TIMESUPP.getAsLong();</span>
   }
 
   public static long getDeadlineNanos(final long timeout, final TimeUnit timeUnit) {
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">    if (timeout &lt; 0) {</span>
 <span class="nc" id="L56">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + &quot; &quot; + timeUnit);</span>
     }
-<span class="fc" id="L58">    return nanoTime() + timeUnit.toNanos(timeout);</span>
+<span class="nc" id="L58">    return nanoTime() + timeUnit.toNanos(timeout);</span>
   }
 
   public static long getTimeToDeadlineStrict(final long deadlineNanos, final TimeUnit timeUnit)
@@ -73,4 +73,4 @@ public final class TimeSource {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

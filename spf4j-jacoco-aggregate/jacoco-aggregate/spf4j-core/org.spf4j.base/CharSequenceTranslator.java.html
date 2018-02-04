@@ -56,7 +56,7 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 
 
-<span class="fc" id="L59">public abstract class CharSequenceTranslator {</span>
+<span class="nc" id="L59">public abstract class CharSequenceTranslator {</span>
 
 
     public abstract int translate(CharSequence input, int index, Writer out) throws IOException;
@@ -64,13 +64,13 @@ import javax.annotation.Nullable;
 
     @Nullable
     public final String translate(@Nullable final CharSequence input) {
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L68">            return null;</span>
         }
         try {
-<span class="fc" id="L71">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
-<span class="fc" id="L72">            translate(input, writer);</span>
-<span class="fc" id="L73">            return writer.toString();</span>
+<span class="nc" id="L71">            final StringWriter writer = new StringWriter(input.length() * 2);</span>
+<span class="nc" id="L72">            translate(input, writer);</span>
+<span class="nc" id="L73">            return writer.toString();</span>
 <span class="nc" id="L74">        } catch (final IOException ioe) {</span>
             // this should never ever happen while writing to a StringWriter
 <span class="nc" id="L76">            throw new UncheckedIOException(ioe);</span>
@@ -79,27 +79,27 @@ import javax.annotation.Nullable;
 
 
     public final void translate(final CharSequence input, final Writer out) throws IOException {
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (out == null) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (out == null) {</span>
 <span class="nc" id="L83">            throw new IllegalArgumentException(&quot;The Writer must not be null when translating &quot; + input);</span>
         }
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L86">            return;</span>
         }
-<span class="fc" id="L88">        int pos = 0;</span>
-<span class="fc" id="L89">        final int len = input.length();</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        while (pos &lt; len) {</span>
-<span class="fc" id="L91">            final int consumed = translate(input, pos, out);</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">            if (consumed == 0) {</span>
-<span class="fc" id="L93">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
-<span class="fc" id="L94">                out.write(c);</span>
-<span class="fc" id="L95">                pos += c.length;</span>
-<span class="fc" id="L96">                continue;</span>
+<span class="nc" id="L88">        int pos = 0;</span>
+<span class="nc" id="L89">        final int len = input.length();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        while (pos &lt; len) {</span>
+<span class="nc" id="L91">            final int consumed = translate(input, pos, out);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (consumed == 0) {</span>
+<span class="nc" id="L93">                final char[] c = Character.toChars(Character.codePointAt(input, pos));</span>
+<span class="nc" id="L94">                out.write(c);</span>
+<span class="nc" id="L95">                pos += c.length;</span>
+<span class="nc" id="L96">                continue;</span>
             }
-<span class="fc bfc" id="L98" title="All 2 branches covered.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
-<span class="fc" id="L99">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            for (int pt = 0; pt &lt; consumed; pt++) {</span>
+<span class="nc" id="L99">                pos += Character.charCount(Character.codePointAt(input, pt));</span>
             }
-<span class="fc" id="L101">        }</span>
-<span class="fc" id="L102">    }</span>
+<span class="nc" id="L101">        }</span>
+<span class="nc" id="L102">    }</span>
 
     /**
      * &lt;p&gt;Returns an upper case hexadecimal &lt;code&gt;String&lt;/code&gt; for the given
@@ -114,4 +114,4 @@ import javax.annotation.Nullable;
 
 }
 
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

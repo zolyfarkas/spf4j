@@ -127,7 +127,7 @@ public final  class TSDBReader implements Closeable {
 <span class="nc bnc" id="L127" title="All 2 branches missed.">          if (CORUPTION_LENIENT) {</span>
 <span class="nc" id="L128">            return null;</span>
           } else {
-<span class="nc" id="L130">            throw new IOException(&quot;Error reading tsdb file &quot; + this, ex);</span>
+<span class="nc" id="L130">            throw new IOException(&quot;Error reading tsdb file at &quot; + position + &quot;, this= &quot; + this, ex);</span>
           }
 <span class="fc" id="L132">        }</span>
 <span class="fc bfc" id="L133" title="All 2 branches covered.">        if (result instanceof TableDef) {</span>
@@ -144,11 +144,11 @@ public final  class TSDBReader implements Closeable {
 
     @Override
     public synchronized void close() throws IOException {
-<span class="pc" id="L147">        try (InputStream is = bis) {</span>
+<span class="fc" id="L147">        try (InputStream is = bis) {</span>
 <span class="fc bfc" id="L148" title="All 2 branches covered.">            if (raf != null) {</span>
 <span class="fc" id="L149">                raf.close();</span>
             }
-<span class="pc bpc" id="L151" title="6 of 8 branches missed.">        }</span>
+        }
 <span class="fc" id="L152">    }</span>
 
     public synchronized long getSize() {
@@ -180,7 +180,7 @@ public final  class TSDBReader implements Closeable {
     }
 
 
-<span class="pc" id="L183">    public enum EventSensitivity {</span>
+<span class="fc" id="L183">    public enum EventSensitivity {</span>
 <span class="fc" id="L184">        HIGH, MEDIUM, LOW</span>
     }
 
@@ -196,7 +196,7 @@ public final  class TSDBReader implements Closeable {
 <span class="nc" id="L196">              throw new IllegalStateException(&quot;File is already watched &quot; + file);</span>
           }
 <span class="fc" id="L198">          watch = true;</span>
-<span class="pc" id="L199">        }</span>
+<span class="fc" id="L199">        }</span>
         SensitivityWatchEventModifier sensitivity;
 <span class="pc bpc" id="L201" title="3 of 4 branches missed.">        switch (es) {</span>
             case LOW:
@@ -212,7 +212,7 @@ public final  class TSDBReader implements Closeable {
 <span class="nc" id="L212">                throw new UnsupportedOperationException(&quot;Unsupported sensitivity &quot; + es);</span>
         }
 <span class="fc" id="L214">        final Path path = file.getParentFile().toPath();</span>
-<span class="pc" id="L215">        try (WatchService watchService = path.getFileSystem().newWatchService()) {</span>
+<span class="fc" id="L215">        try (WatchService watchService = path.getFileSystem().newWatchService()) {</span>
 <span class="fc" id="L216">            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,</span>
                 StandardWatchEventKinds.OVERFLOW
             }, sensitivity);
@@ -239,9 +239,9 @@ public final  class TSDBReader implements Closeable {
 <span class="nc" id="L239">                    break;</span>
                 }
 <span class="fc bfc" id="L241" title="All 2 branches covered.">            } while (watch);</span>
-<span class="pc bpc" id="L242" title="6 of 8 branches missed.">        } finally {</span>
-<span class="pc" id="L243">            watch = false;</span>
-<span class="pc" id="L244">        }</span>
+        } finally {
+<span class="fc" id="L243">            watch = false;</span>
+        }
 <span class="fc" id="L245">    }</span>
 
     //CHECKSTYLE:OFF
@@ -260,4 +260,4 @@ public final  class TSDBReader implements Closeable {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

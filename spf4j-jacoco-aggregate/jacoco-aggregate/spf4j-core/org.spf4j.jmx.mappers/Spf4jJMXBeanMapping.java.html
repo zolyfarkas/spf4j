@@ -74,9 +74,9 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
   private static final String KEY = &quot;key&quot;;
   private static final String VALUE = &quot;value&quot;;
-<span class="fc" id="L77">  private static final String[] MAP_INDEX_NAMES = {KEY};</span>
-<span class="fc" id="L78">  private static final String[] MAP_ITEM_NAMES = {KEY, VALUE};</span>
-<span class="fc" id="L79">  private static final Type[] STR_STR_TYPES = {String.class, String.class};</span>
+<span class="nc" id="L77">  private static final String[] MAP_INDEX_NAMES = {KEY};</span>
+<span class="nc" id="L78">  private static final String[] MAP_ITEM_NAMES = {KEY, VALUE};</span>
+<span class="nc" id="L79">  private static final Type[] STR_STR_TYPES = {String.class, String.class};</span>
 
 
   private boolean isBasicType;
@@ -84,14 +84,14 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
   protected Class&lt;?&gt; mappedTypeClass;
 
   Spf4jJMXBeanMapping() {
-<span class="fc" id="L87">    this(false, null, null);</span>
-<span class="fc" id="L88">  }</span>
+<span class="nc" id="L87">    this(false, null, null);</span>
+<span class="nc" id="L88">  }</span>
 
-<span class="fc" id="L90">  Spf4jJMXBeanMapping(final boolean isBasicType, final OpenType&lt;?&gt; openType, final Class&lt;?&gt; mappedTypeClass) {</span>
-<span class="fc" id="L91">    this.isBasicType = isBasicType;</span>
-<span class="fc" id="L92">    this.openType = openType;</span>
-<span class="fc" id="L93">    this.mappedTypeClass = mappedTypeClass;</span>
-<span class="fc" id="L94">  }</span>
+<span class="nc" id="L90">  Spf4jJMXBeanMapping(final boolean isBasicType, final OpenType&lt;?&gt; openType, final Class&lt;?&gt; mappedTypeClass) {</span>
+<span class="nc" id="L91">    this.isBasicType = isBasicType;</span>
+<span class="nc" id="L92">    this.openType = openType;</span>
+<span class="nc" id="L93">    this.mappedTypeClass = mappedTypeClass;</span>
+<span class="nc" id="L94">  }</span>
 
 
   @SuppressFBWarnings(&quot;LEST_LOST_EXCEPTION_STACK_TRACE&quot;)
@@ -99,30 +99,30 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
           throws NotSerializableException {
     //falling back to MXBeanMappingFactory.DEFAULT
     try {
-<span class="fc" id="L102">      MXBeanMapping mapping = MXBeanMappingFactory.DEFAULT.mappingForType(javaType, new MXBeanMappingFactory() {</span>
+<span class="nc" id="L102">      MXBeanMapping mapping = MXBeanMappingFactory.DEFAULT.mappingForType(javaType, new MXBeanMappingFactory() {</span>
         @Override
         public MXBeanMapping mappingForType(final Type t, final MXBeanMappingFactory f) throws OpenDataException {
           JMXBeanMapping m;
           try {
-<span class="fc" id="L107">            m = mappings.get(t);</span>
+<span class="nc" id="L107">            m = mappings.get(t);</span>
 <span class="nc" id="L108">          } catch (NotSerializableException ex) {</span>
 <span class="nc" id="L109">            OpenDataException tex = new OpenDataException(t + &quot; is not seriablizable &quot;);</span>
 <span class="nc" id="L110">            tex.initCause(ex);</span>
 <span class="nc" id="L111">            throw tex;</span>
-<span class="fc" id="L112">          }</span>
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">          if (m != null) {</span>
-<span class="fc" id="L114">            return MXBeanMappings.convert(m);</span>
+<span class="nc" id="L112">          }</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">          if (m != null) {</span>
+<span class="nc" id="L114">            return MXBeanMappings.convert(m);</span>
           }
 <span class="nc" id="L116">          return MXBeanMappingFactory.DEFAULT.mappingForType(t, f);</span>
         }
       });
-<span class="fc" id="L119">     return MXBeanMappings.convert(mapping);</span>
-<span class="fc" id="L120">    } catch (OpenDataException ex) {</span>
-<span class="fc" id="L121">      NotSerializableException nsex = Throwables.first(ex, NotSerializableException.class);</span>
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">      if (nsex != null) {</span>
+<span class="nc" id="L119">     return MXBeanMappings.convert(mapping);</span>
+<span class="nc" id="L120">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L121">      NotSerializableException nsex = Throwables.first(ex, NotSerializableException.class);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">      if (nsex != null) {</span>
 <span class="nc" id="L123">        throw nsex;</span>
       } else {
-<span class="fc" id="L125">        throw new IllegalArgumentException(&quot;No type mapping for &quot; + javaType, ex);</span>
+<span class="nc" id="L125">        throw new IllegalArgumentException(&quot;No type mapping for &quot; + javaType, ex);</span>
       }
     }
   }
@@ -130,13 +130,13 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
   // Return the mapped open type
   @Override
   public OpenType&lt;?&gt; getOpenType() {
-<span class="fc" id="L133">    return openType;</span>
+<span class="nc" id="L133">    return openType;</span>
   }
 
 
   @Override
   public Class&lt;?&gt; getMappedType() {
-<span class="fc" id="L139">    return mappedTypeClass;</span>
+<span class="nc" id="L139">    return mappedTypeClass;</span>
   }
 
   /**
@@ -151,22 +151,22 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
    static class BasicMXBeanType extends Spf4jJMXBeanMapping {
 
     BasicMXBeanType(final Class&lt;?&gt; c, final OpenType&lt;?&gt; openType) {
-<span class="fc" id="L154">      super(true, openType, c);</span>
-<span class="fc" id="L155">    }</span>
+<span class="nc" id="L154">      super(true, openType, c);</span>
+<span class="nc" id="L155">    }</span>
 
     @Override
     public Type getJavaType() {
-<span class="fc" id="L159">      return getMappedType();</span>
+<span class="nc" id="L159">      return getMappedType();</span>
     }
 
     @Override
     public Object toOpenValue(final Object data) {
-<span class="fc" id="L164">      return data;</span>
+<span class="nc" id="L164">      return data;</span>
     }
 
     @Override
     public Object fromOpenValue(final Object data) {
-<span class="fc" id="L169">      return data;</span>
+<span class="nc" id="L169">      return data;</span>
     }
   }
 
@@ -182,18 +182,18 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     final Class enumClass;
 
     EnumMXBeanType(final Class&lt;?&gt; c) {
-<span class="fc" id="L185">      super(false, STRING, String.class);</span>
-<span class="fc" id="L186">      this.enumClass = c;</span>
-<span class="fc" id="L187">    }</span>
+<span class="nc" id="L185">      super(false, STRING, String.class);</span>
+<span class="nc" id="L186">      this.enumClass = c;</span>
+<span class="nc" id="L187">    }</span>
 
     @Override
     public Type getJavaType() {
-<span class="fc" id="L191">      return enumClass;</span>
+<span class="nc" id="L191">      return enumClass;</span>
     }
 
     @Override
     public Object toOpenValue(final Object data) {
-<span class="fc" id="L196">      return ((Enum) data).name();</span>
+<span class="nc" id="L196">      return ((Enum) data).name();</span>
     }
 
     @Override
@@ -201,7 +201,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
             throws InvalidObjectException {
 
       try {
-<span class="fc" id="L204">        return Enum.valueOf(enumClass, (String) data);</span>
+<span class="nc" id="L204">        return Enum.valueOf(enumClass, (String) data);</span>
 <span class="nc" id="L205">      } catch (IllegalArgumentException e) {</span>
         // missing enum constants
 <span class="nc" id="L207">        final InvalidObjectException ioe</span>
@@ -227,34 +227,34 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     protected JMXBeanMapping baseElementType;
 
     ArrayMXBeanType(final Class&lt;?&gt; c, final JMXBeanMappingSupplier mappings)
-<span class="fc" id="L230">            throws NotSerializableException {</span>
-<span class="fc" id="L231">      this.arrayClass = c;</span>
-<span class="fc" id="L232">      this.componentType = mappings.get(c.getComponentType());</span>
+<span class="nc" id="L230">            throws NotSerializableException {</span>
+<span class="nc" id="L231">      this.arrayClass = c;</span>
+<span class="nc" id="L232">      this.componentType = mappings.get(c.getComponentType());</span>
 
-<span class="fc" id="L234">      StringBuilder className = new StringBuilder();</span>
-<span class="fc" id="L235">      Class&lt;?&gt; et = c;</span>
+<span class="nc" id="L234">      StringBuilder className = new StringBuilder();</span>
+<span class="nc" id="L235">      Class&lt;?&gt; et = c;</span>
       int dim;
-<span class="fc bfc" id="L237" title="All 2 branches covered.">      for (dim = 0; et.isArray(); dim++) {</span>
-<span class="fc" id="L238">        className.append('[');</span>
-<span class="fc" id="L239">        et = et.getComponentType();</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">      for (dim = 0; et.isArray(); dim++) {</span>
+<span class="nc" id="L238">        className.append('[');</span>
+<span class="nc" id="L239">        et = et.getComponentType();</span>
       }
-<span class="fc" id="L241">      baseElementType = mappings.get(et);</span>
-<span class="fc bfc" id="L242" title="All 2 branches covered.">      if (et.isPrimitive()) {</span>
-<span class="fc" id="L243">        className = new StringBuilder(c.getName());</span>
+<span class="nc" id="L241">      baseElementType = mappings.get(et);</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">      if (et.isPrimitive()) {</span>
+<span class="nc" id="L243">        className = new StringBuilder(c.getName());</span>
       } else {
-<span class="fc" id="L245">        className.append('L').append(baseElementType.getMappedType().getTypeName()).append(';');</span>
+<span class="nc" id="L245">        className.append('L').append(baseElementType.getMappedType().getTypeName()).append(';');</span>
       }
       try {
-<span class="fc" id="L248">        mappedTypeClass = Class.forName(className.toString());</span>
+<span class="nc" id="L248">        mappedTypeClass = Class.forName(className.toString());</span>
 <span class="nc" id="L249">      } catch (ClassNotFoundException e) {</span>
 <span class="nc" id="L250">        throw new IllegalArgumentException(&quot;Cannot obtain array class &quot; + className, e);</span>
-<span class="fc" id="L251">      }</span>
+<span class="nc" id="L251">      }</span>
       try {
-<span class="fc" id="L253">        openType = new ArrayType&lt;&gt;(dim, baseElementType.getOpenType());</span>
+<span class="nc" id="L253">        openType = new ArrayType&lt;&gt;(dim, baseElementType.getOpenType());</span>
 <span class="nc" id="L254">      } catch (OpenDataException ex) {</span>
 <span class="nc" id="L255">        throw new IllegalArgumentException(&quot;Unsupported type &quot; + c, ex);</span>
-<span class="fc" id="L256">      }</span>
-<span class="fc" id="L257">    }</span>
+<span class="nc" id="L256">      }</span>
+<span class="nc" id="L257">    }</span>
 
 <span class="nc" id="L259">    protected ArrayMXBeanType() {</span>
 <span class="nc" id="L260">      arrayClass = null;</span>
@@ -268,30 +268,30 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     @Override
     @SuppressFBWarnings(&quot;URV_INHERITED_METHOD_WITH_RELATED_TYPES&quot;)
     public Object toOpenValue(final Object data) throws OpenDataException {
-<span class="fc bfc" id="L271" title="All 2 branches covered.">      if (baseElementType.isSimpleType()) {</span>
-<span class="fc" id="L272">        return data;</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">      if (baseElementType.isSimpleType()) {</span>
+<span class="nc" id="L272">        return data;</span>
       }
-<span class="fc" id="L274">      final Object[] array = (Object[]) data;</span>
-<span class="fc" id="L275">      final Object[] openArray = (Object[]) Array.newInstance(componentType.getMappedType(),</span>
+<span class="nc" id="L274">      final Object[] array = (Object[]) data;</span>
+<span class="nc" id="L275">      final Object[] openArray = (Object[]) Array.newInstance(componentType.getMappedType(),</span>
               array.length);
-<span class="fc" id="L277">      int i = 0;</span>
-<span class="fc bfc" id="L278" title="All 2 branches covered.">      for (Object o : array) {</span>
-<span class="pc bpc" id="L279" title="1 of 2 branches missed.">        if (o == null) {</span>
+<span class="nc" id="L277">      int i = 0;</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">      for (Object o : array) {</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        if (o == null) {</span>
 <span class="nc" id="L280">          openArray[i] = null;</span>
         } else {
-<span class="fc" id="L282">          openArray[i] = componentType.toOpenValue(o);</span>
+<span class="nc" id="L282">          openArray[i] = componentType.toOpenValue(o);</span>
         }
-<span class="fc" id="L284">        i++;</span>
+<span class="nc" id="L284">        i++;</span>
       }
-<span class="fc" id="L286">      return openArray;</span>
+<span class="nc" id="L286">      return openArray;</span>
     }
 
     @Override
     @SuppressFBWarnings(&quot;URV_INHERITED_METHOD_WITH_RELATED_TYPES&quot;)
     public Object fromOpenValue(final Object data)
             throws InvalidObjectException {
-<span class="pc bpc" id="L293" title="1 of 2 branches missed.">      if (baseElementType.isSimpleType()) {</span>
-<span class="fc" id="L294">        return data;</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">      if (baseElementType.isSimpleType()) {</span>
+<span class="nc" id="L294">        return data;</span>
       }
 
 <span class="nc" id="L297">      final Object[] openArray = (Object[]) data;</span>
@@ -360,39 +360,39 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
    * Data Mapping:
    *   List&lt;E&gt; &lt;-&gt; openTypeData(E)[]
    */
-<span class="pc bpc" id="L363" title="1 of 2 branches missed.">  static class ListMXBeanType extends Spf4jJMXBeanMapping {</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">  static class ListMXBeanType extends Spf4jJMXBeanMapping {</span>
 
     private final ParameterizedType javaType;
     private final JMXBeanMapping paramMapping;
     private final Class&lt;?&gt; rawType;
 
     ListMXBeanType(final ParameterizedType pt, final JMXBeanMappingSupplier mappings)
-<span class="fc" id="L370">            throws NotSerializableException {</span>
-<span class="fc" id="L371">      this.javaType = pt;</span>
-<span class="fc" id="L372">      this.rawType = (Class) pt.getRawType();</span>
-<span class="fc" id="L373">      final Type[] argTypes = pt.getActualTypeArguments();</span>
-<span class="pc bpc" id="L374" title="2 of 4 branches missed.">      assert (argTypes.length == 1);</span>
-<span class="fc" id="L375">      Type argType = argTypes[0];</span>
+<span class="nc" id="L370">            throws NotSerializableException {</span>
+<span class="nc" id="L371">      this.javaType = pt;</span>
+<span class="nc" id="L372">      this.rawType = (Class) pt.getRawType();</span>
+<span class="nc" id="L373">      final Type[] argTypes = pt.getActualTypeArguments();</span>
+<span class="nc bnc" id="L374" title="All 4 branches missed.">      assert (argTypes.length == 1);</span>
+<span class="nc" id="L375">      Type argType = argTypes[0];</span>
 
-<span class="fc" id="L377">      TypeToken&lt;?&gt; tt = TypeToken.of(argType);</span>
-<span class="fc" id="L378">      final Class&lt;?&gt; et = tt.getRawType();</span>
-<span class="pc bpc" id="L379" title="1 of 2 branches missed.">      if (et.isArray()) {</span>
+<span class="nc" id="L377">      TypeToken&lt;?&gt; tt = TypeToken.of(argType);</span>
+<span class="nc" id="L378">      final Class&lt;?&gt; et = tt.getRawType();</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">      if (et.isArray()) {</span>
 <span class="nc" id="L380">        throw new IllegalArgumentException(&quot;Element Type for &quot; + pt</span>
                 + &quot; not supported&quot;);
       }
-<span class="fc" id="L383">      paramMapping = mappings.get(argType);</span>
-<span class="fc" id="L384">      String cname = &quot;[L&quot; + paramMapping.getMappedType().getName() + &quot;;&quot;;</span>
+<span class="nc" id="L383">      paramMapping = mappings.get(argType);</span>
+<span class="nc" id="L384">      String cname = &quot;[L&quot; + paramMapping.getMappedType().getName() + &quot;;&quot;;</span>
       try {
-<span class="fc" id="L386">        mappedTypeClass = Class.forName(cname);</span>
+<span class="nc" id="L386">        mappedTypeClass = Class.forName(cname);</span>
 <span class="nc" id="L387">      } catch (ClassNotFoundException e) {</span>
 <span class="nc" id="L388">        throw new IllegalArgumentException(&quot;Array class not found &quot; + cname, e);</span>
-<span class="fc" id="L389">      }</span>
+<span class="nc" id="L389">      }</span>
       try {
-<span class="fc" id="L391">        openType = new ArrayType&lt;&gt;(1, paramMapping.getOpenType());</span>
+<span class="nc" id="L391">        openType = new ArrayType&lt;&gt;(1, paramMapping.getOpenType());</span>
 <span class="nc" id="L392">      } catch (OpenDataException ex) {</span>
 <span class="nc" id="L393">        throw new IllegalArgumentException(&quot;Invalid arg &quot; + pt, ex);</span>
-<span class="fc" id="L394">      }</span>
-<span class="fc" id="L395">    }</span>
+<span class="nc" id="L394">      }</span>
+<span class="nc" id="L395">    }</span>
 
     @Override
     public Type getJavaType() {
@@ -401,15 +401,15 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
     @Override
     public Object toOpenValue(final Object data) throws OpenDataException {
-<span class="pc bpc" id="L404" title="1 of 2 branches missed.">      if (data instanceof Collection) {</span>
-<span class="fc" id="L405">        final Collection&lt;Object&gt; list = (Collection&lt;Object&gt;) data;</span>
-<span class="fc" id="L406">        final Object[] openArray = (Object[]) Array.newInstance(paramMapping.getMappedType(),</span>
-<span class="fc" id="L407">                list.size());</span>
-<span class="fc" id="L408">        int i = 0;</span>
-<span class="fc bfc" id="L409" title="All 2 branches covered.">        for (Object o : list) {</span>
-<span class="fc" id="L410">          openArray[i++] = paramMapping.toOpenValue(o);</span>
-<span class="fc" id="L411">        }</span>
-<span class="fc" id="L412">        return openArray;</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">      if (data instanceof Collection) {</span>
+<span class="nc" id="L405">        final Collection&lt;Object&gt; list = (Collection&lt;Object&gt;) data;</span>
+<span class="nc" id="L406">        final Object[] openArray = (Object[]) Array.newInstance(paramMapping.getMappedType(),</span>
+<span class="nc" id="L407">                list.size());</span>
+<span class="nc" id="L408">        int i = 0;</span>
+<span class="nc bnc" id="L409" title="All 2 branches missed.">        for (Object o : list) {</span>
+<span class="nc" id="L410">          openArray[i++] = paramMapping.toOpenValue(o);</span>
+<span class="nc" id="L411">        }</span>
+<span class="nc" id="L412">        return openArray;</span>
       } else {
 <span class="nc" id="L414">        final Iterable&lt;Object&gt; list = (Iterable&lt;Object&gt;) data;</span>
 <span class="nc" id="L415">        List result = new ArrayList(16);</span>
@@ -426,15 +426,15 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     public Object fromOpenValue(final Object data)
             throws InvalidObjectException {
 
-<span class="fc" id="L429">      final Object[] openArray = (Object[]) data;</span>
+<span class="nc" id="L429">      final Object[] openArray = (Object[]) data;</span>
       Collection&lt;Object&gt; result;
-<span class="pc bpc" id="L431" title="1 of 2 branches missed.">      if (rawType.isInterface()) {</span>
-<span class="fc bfc" id="L432" title="All 2 branches covered.">        if (Set.class == rawType) {</span>
-<span class="fc" id="L433">          result = new HashSet&lt;&gt;(openArray.length);</span>
-<span class="pc bpc" id="L434" title="1 of 2 branches missed.">        } else if (Deque.class == rawType) {</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">      if (rawType.isInterface()) {</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (Set.class == rawType) {</span>
+<span class="nc" id="L433">          result = new HashSet&lt;&gt;(openArray.length);</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">        } else if (Deque.class == rawType) {</span>
 <span class="nc" id="L435">          result = new ArrayDeque&lt;&gt;(openArray.length);</span>
         } else {
-<span class="fc" id="L437">          result = new ArrayList&lt;&gt;(openArray.length);</span>
+<span class="nc" id="L437">          result = new ArrayList&lt;&gt;(openArray.length);</span>
         }
       } else {
         try {
@@ -445,10 +445,10 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 <span class="nc" id="L445">          throw iox;</span>
 <span class="nc" id="L446">        }</span>
       }
-<span class="fc bfc" id="L448" title="All 2 branches covered.">      for (Object o : openArray) {</span>
-<span class="fc" id="L449">        result.add(paramMapping.fromOpenValue(o));</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">      for (Object o : openArray) {</span>
+<span class="nc" id="L449">        result.add(paramMapping.fromOpenValue(o));</span>
       }
-<span class="fc" id="L451">      return result;</span>
+<span class="nc" id="L451">      return result;</span>
     }
   }
 
@@ -463,7 +463,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
    * Data Mapping:
    *   Map&lt;K,V&gt; &lt;-&gt; TabularData
    */
-<span class="pc bpc" id="L466" title="1 of 2 branches missed.">   static class MapMXBeanType extends Spf4jJMXBeanMapping {</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">   static class MapMXBeanType extends Spf4jJMXBeanMapping {</span>
 
     private final Type javaType;
     private final Class&lt;?&gt; rawType;
@@ -472,49 +472,49 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
     @SuppressFBWarnings({ &quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot; })
     MapMXBeanType(final Type pt, final JMXBeanMappingSupplier mappings)
-<span class="fc" id="L475">      throws  NotSerializableException {</span>
+<span class="nc" id="L475">      throws  NotSerializableException {</span>
       try {
-<span class="fc" id="L477">        this.javaType = pt;</span>
+<span class="nc" id="L477">        this.javaType = pt;</span>
 
         final Type[] argTypes;
-<span class="fc bfc" id="L480" title="All 2 branches covered.">        if (pt instanceof ParameterizedType) {</span>
-<span class="fc" id="L481">          argTypes = ((ParameterizedType) pt).getActualTypeArguments();</span>
-<span class="fc" id="L482">          rawType = (Class) ((ParameterizedType) pt).getRawType();</span>
-<span class="pc bpc" id="L483" title="2 of 4 branches missed.">        } else if (pt instanceof Class &amp;&amp; Properties.class.isAssignableFrom((Class) pt)) {</span>
-<span class="fc" id="L484">          argTypes = STR_STR_TYPES;</span>
-<span class="fc" id="L485">          rawType = (Class) pt;</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        if (pt instanceof ParameterizedType) {</span>
+<span class="nc" id="L481">          argTypes = ((ParameterizedType) pt).getActualTypeArguments();</span>
+<span class="nc" id="L482">          rawType = (Class) ((ParameterizedType) pt).getRawType();</span>
+<span class="nc bnc" id="L483" title="All 4 branches missed.">        } else if (pt instanceof Class &amp;&amp; Properties.class.isAssignableFrom((Class) pt)) {</span>
+<span class="nc" id="L484">          argTypes = STR_STR_TYPES;</span>
+<span class="nc" id="L485">          rawType = (Class) pt;</span>
         } else {
 <span class="nc" id="L487">          throw new IllegalArgumentException(&quot;Unsupported type &quot; + pt);</span>
         }
-<span class="pc bpc" id="L489" title="2 of 4 branches missed.">        assert (argTypes.length == 2);</span>
-<span class="fc" id="L490">        this.keyType = mappings.get(argTypes[0]);</span>
-<span class="pc bpc" id="L491" title="1 of 2 branches missed.">        if (this.keyType == null) {</span>
+<span class="nc bnc" id="L489" title="All 4 branches missed.">        assert (argTypes.length == 2);</span>
+<span class="nc" id="L490">        this.keyType = mappings.get(argTypes[0]);</span>
+<span class="nc bnc" id="L491" title="All 2 branches missed.">        if (this.keyType == null) {</span>
 <span class="nc" id="L492">          throw new IllegalArgumentException(&quot;Key of &quot; + pt + &quot; cannot be converted to open type&quot;);</span>
         }
-<span class="fc" id="L494">        this.valueType = mappings.get(argTypes[1]);</span>
-<span class="fc bfc" id="L495" title="All 2 branches covered.">        if (this.valueType == null) {</span>
-<span class="fc" id="L496">          throw new IllegalArgumentException(&quot;Value of &quot; + pt + &quot; cannot be converted to open type&quot;);</span>
+<span class="nc" id="L494">        this.valueType = mappings.get(argTypes[1]);</span>
+<span class="nc bnc" id="L495" title="All 2 branches missed.">        if (this.valueType == null) {</span>
+<span class="nc" id="L496">          throw new IllegalArgumentException(&quot;Value of &quot; + pt + &quot; cannot be converted to open type&quot;);</span>
         }
 
         // FIXME: generate typeName for generic
-<span class="fc" id="L500">        String typeName = pt.getTypeName();</span>
-<span class="fc" id="L501">        final OpenType&lt;?&gt;[] mapItemTypes = new OpenType&lt;?&gt;[]{</span>
-<span class="fc" id="L502">          keyType.getOpenType(),</span>
-<span class="fc" id="L503">          valueType.getOpenType()</span>
+<span class="nc" id="L500">        String typeName = pt.getTypeName();</span>
+<span class="nc" id="L501">        final OpenType&lt;?&gt;[] mapItemTypes = new OpenType&lt;?&gt;[]{</span>
+<span class="nc" id="L502">          keyType.getOpenType(),</span>
+<span class="nc" id="L503">          valueType.getOpenType()</span>
         };
-<span class="fc" id="L505">        final CompositeType rowType</span>
+<span class="nc" id="L505">        final CompositeType rowType</span>
                 = new CompositeType(typeName,
                         typeName,
-<span class="fc" id="L508">                        MAP_ITEM_NAMES,</span>
-<span class="fc" id="L509">                        MAP_ITEM_NAMES,</span>
+<span class="nc" id="L508">                        MAP_ITEM_NAMES,</span>
+<span class="nc" id="L509">                        MAP_ITEM_NAMES,</span>
                         mapItemTypes);
 
-<span class="fc" id="L512">        openType = new TabularType(typeName, typeName, rowType, MAP_INDEX_NAMES);</span>
-<span class="fc" id="L513">        mappedTypeClass = TabularData.class;</span>
+<span class="nc" id="L512">        openType = new TabularType(typeName, typeName, rowType, MAP_INDEX_NAMES);</span>
+<span class="nc" id="L513">        mappedTypeClass = TabularData.class;</span>
 <span class="nc" id="L514">      } catch (OpenDataException ex) {</span>
 <span class="nc" id="L515">        throw new IllegalArgumentException(&quot;Unsupported type &quot; + pt, ex);</span>
-<span class="fc" id="L516">      }</span>
-<span class="fc" id="L517">    }</span>
+<span class="nc" id="L516">      }</span>
+<span class="nc" id="L517">    }</span>
 
     @Override
     public Type getJavaType() {
@@ -523,48 +523,48 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
 
     @Override
     public Object toOpenValue(final Object data) throws OpenDataException {
-<span class="fc" id="L526">      final Map&lt;Object, Object&gt; map = (Map&lt;Object, Object&gt;) data;</span>
-<span class="fc" id="L527">      final TabularType tabularType = (TabularType) openType;</span>
-<span class="fc" id="L528">      final TabularData table = new TabularDataSupport(tabularType);</span>
-<span class="fc" id="L529">      final CompositeType rowType = tabularType.getRowType();</span>
+<span class="nc" id="L526">      final Map&lt;Object, Object&gt; map = (Map&lt;Object, Object&gt;) data;</span>
+<span class="nc" id="L527">      final TabularType tabularType = (TabularType) openType;</span>
+<span class="nc" id="L528">      final TabularData table = new TabularDataSupport(tabularType);</span>
+<span class="nc" id="L529">      final CompositeType rowType = tabularType.getRowType();</span>
 
-<span class="fc bfc" id="L531" title="All 2 branches covered.">      for (Map.Entry&lt;Object, Object&gt; entry : map.entrySet()) {</span>
-<span class="fc" id="L532">        final Object key = keyType.toOpenValue(entry.getKey());</span>
-<span class="fc" id="L533">        final Object value = valueType.toOpenValue(entry.getValue());</span>
-<span class="fc" id="L534">        final CompositeData row</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">      for (Map.Entry&lt;Object, Object&gt; entry : map.entrySet()) {</span>
+<span class="nc" id="L532">        final Object key = keyType.toOpenValue(entry.getKey());</span>
+<span class="nc" id="L533">        final Object value = valueType.toOpenValue(entry.getValue());</span>
+<span class="nc" id="L534">        final CompositeData row</span>
                 = new CompositeDataSupport(rowType,
-<span class="fc" id="L536">                        MAP_ITEM_NAMES,</span>
+<span class="nc" id="L536">                        MAP_ITEM_NAMES,</span>
                         new Object[]{key, value});
-<span class="fc" id="L538">        table.put(row);</span>
-<span class="fc" id="L539">      }</span>
-<span class="fc" id="L540">      return table;</span>
+<span class="nc" id="L538">        table.put(row);</span>
+<span class="nc" id="L539">      }</span>
+<span class="nc" id="L540">      return table;</span>
     }
 
     @Override
     public Object fromOpenValue(final Object data)
             throws InvalidObjectException {
 
-<span class="fc" id="L547">      final TabularData td = (TabularData) data;</span>
+<span class="nc" id="L547">      final TabularData td = (TabularData) data;</span>
       Map&lt;Object, Object&gt; result;
-<span class="fc bfc" id="L549" title="All 2 branches covered.">      if (rawType.isInterface()) {</span>
-<span class="fc" id="L550">        result = new HashMap&lt;&gt;(td.values().size());</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">      if (rawType.isInterface()) {</span>
+<span class="nc" id="L550">        result = new HashMap&lt;&gt;(td.values().size());</span>
       } else {
         try {
-<span class="fc" id="L553">          result = (Map) rawType.newInstance();</span>
+<span class="nc" id="L553">          result = (Map) rawType.newInstance();</span>
 <span class="nc" id="L554">        } catch (InstantiationException | IllegalAccessException ex) {</span>
 <span class="nc" id="L555">          InvalidObjectException iox = new InvalidObjectException(&quot;Cannot instantiate &quot; + rawType);</span>
 <span class="nc" id="L556">          iox.addSuppressed(ex);</span>
 <span class="nc" id="L557">          throw iox;</span>
-<span class="fc" id="L558">        }</span>
+<span class="nc" id="L558">        }</span>
       }
-<span class="fc bfc" id="L560" title="All 2 branches covered.">      for (CompositeData row : (Collection&lt;CompositeData&gt;) td.values()) {</span>
-<span class="fc" id="L561">        Object key = keyType.fromOpenValue(row.get(KEY));</span>
-<span class="fc" id="L562">        Object value = valueType.fromOpenValue(row.get(VALUE));</span>
-<span class="fc" id="L563">        result.put(key, value);</span>
-<span class="fc" id="L564">      }</span>
-<span class="fc" id="L565">      return result;</span>
+<span class="nc bnc" id="L560" title="All 2 branches missed.">      for (CompositeData row : (Collection&lt;CompositeData&gt;) td.values()) {</span>
+<span class="nc" id="L561">        Object key = keyType.fromOpenValue(row.get(KEY));</span>
+<span class="nc" id="L562">        Object value = valueType.fromOpenValue(row.get(VALUE));</span>
+<span class="nc" id="L563">        result.put(key, value);</span>
+<span class="nc" id="L564">      }</span>
+<span class="nc" id="L565">      return result;</span>
     }
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

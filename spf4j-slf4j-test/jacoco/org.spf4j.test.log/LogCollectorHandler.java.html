@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogCollectorHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.test.log</a> &gt; <span class="el_source">LogCollectorHandler.java</span></div><h1>LogCollectorHandler.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.test.log;
+
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collector;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+abstract class LogCollectorHandler&lt;A, T&gt; implements LogHandler, LogCollection&lt;T&gt; {
+
+  private final A accObj;
+  private BiConsumer&lt;A, LogRecord&gt; acc;
+  private final Level fromLevel;
+  private final Level toLevel;
+  private final boolean passThrough;
+  private final Function&lt;A, T&gt; finisher;
+
+  LogCollectorHandler(final Level fromLevel, final Level toLevel,
+          final boolean passThrough,
+<span class="fc" id="L37">          final Collector&lt;LogRecord, A, T&gt; collector) {</span>
+<span class="fc" id="L38">    accObj = collector.supplier().get();</span>
+<span class="fc" id="L39">    acc = collector.accumulator();</span>
+<span class="fc" id="L40">    finisher = collector.finisher();</span>
+<span class="fc" id="L41">    this.fromLevel = fromLevel;</span>
+<span class="fc" id="L42">    this.toLevel = toLevel;</span>
+<span class="fc" id="L43">    this.passThrough = passThrough;</span>
+<span class="fc" id="L44">  }</span>
+
+  @Override
+  public LogHandler.Handling handles(final Level level) {
+<span class="pc bpc" id="L48" title="1 of 4 branches missed.">    if (level.ordinal() &gt;= fromLevel.ordinal() &amp;&amp; level.ordinal() &lt;= toLevel.ordinal()) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">      return passThrough ? LogHandler.Handling.HANDLE_PASS : LogHandler.Handling.HANDLE_CONSUME;</span>
+    } else {
+<span class="fc" id="L51">      return LogHandler.Handling.NONE;</span>
+    }
+  }
+
+  @Override
+  public LogRecord handle(final LogRecord record) {
+<span class="fc" id="L57">    synchronized (accObj) {</span>
+<span class="fc" id="L58">      acc.accept(accObj, record);</span>
+<span class="fc" id="L59">    }</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    if (passThrough) {</span>
+<span class="fc" id="L61">      return record;</span>
+    } else {
+<span class="nc" id="L63">      return null;</span>
+    }
+  }
+
+  @Override
+  public T get() {
+<span class="fc" id="L69">    synchronized (accObj) {</span>
+<span class="fc" id="L70">      close();</span>
+<span class="fc" id="L71">      return finisher.apply(accObj);</span>
+    }
+  }
+
+  @Override
+  public String toString() {
+<span class="fc" id="L77">    return &quot;LogCollectorHandler{&quot; + &quot;accObj=&quot; + accObj + &quot;, fromLevel=&quot;</span>
+            + fromLevel + &quot;, toLevel=&quot; + toLevel + &quot;, passThrough=&quot; + passThrough + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

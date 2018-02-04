@@ -41,7 +41,7 @@ import org.spf4j.base.Either;
  * @author zoly
  */
 @ThreadSafe
-<span class="fc" id="L44">public class VMASyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
+<span class="nc" id="L44">public class VMASyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
     private volatile Either&lt;T, ? extends ExecutionException&gt; resultStore;
 
     @Override
@@ -56,12 +56,12 @@ import org.spf4j.base.Either;
 
     @Override
     public final boolean isDone() {
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        return resultStore != null;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        return resultStore != null;</span>
     }
     
     @Override
     public final Either&lt;T, ? extends ExecutionException&gt; getResultStore() {
-<span class="fc" id="L64">        return resultStore;</span>
+<span class="nc" id="L64">        return resultStore;</span>
     }
 
     @Override
@@ -79,16 +79,16 @@ import org.spf4j.base.Either;
 
     @Override
     public final void setResult(final T result) {
-<span class="fc" id="L82">        resultStore = Either.left(result);</span>
-<span class="fc" id="L83">    }</span>
+<span class="nc" id="L82">        resultStore = Either.left(result);</span>
+<span class="nc" id="L83">    }</span>
     
     @Override
     public final void setExceptionResult(final ExecutionException result) {
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (result.getCause() == ExecAbortException.INSTANCE) {</span>
 <span class="nc" id="L88">            return;</span>
         }
-<span class="fc" id="L90">        resultStore = Either.right(result);</span>
-<span class="fc" id="L91">    }</span>
+<span class="nc" id="L90">        resultStore = Either.right(result);</span>
+<span class="nc" id="L91">    }</span>
 
     @Override
     public final String toString() {
@@ -96,4 +96,4 @@ import org.spf4j.base.Either;
     }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

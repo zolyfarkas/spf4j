@@ -56,10 +56,10 @@ public final class SimpleStack&lt;T&gt;
     /**
      * construct a stack with specified size
      */
-<span class="fc" id="L59">    public SimpleStack(final int size) {</span>
-<span class="fc" id="L60">        elems = (T[]) new Object[size];</span>
-<span class="fc" id="L61">        top = 0;</span>
-<span class="fc" id="L62">    }</span>
+<span class="nc" id="L59">    public SimpleStack(final int size) {</span>
+<span class="nc" id="L60">        elems = (T[]) new Object[size];</span>
+<span class="nc" id="L61">        top = 0;</span>
+<span class="nc" id="L62">    }</span>
 
     /**
      * Construct a stack, default size is 20
@@ -75,7 +75,7 @@ public final class SimpleStack&lt;T&gt;
      */
     @Override
     public boolean isEmpty() {
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        return top == 0;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        return top == 0;</span>
     }
 
     /**
@@ -84,23 +84,23 @@ public final class SimpleStack&lt;T&gt;
      * @param o Object
      */
     public void push(final T o) {
-<span class="fc" id="L87">        int t = top + 1;</span>
-<span class="fc" id="L88">        ensureCapacity(t);</span>
-<span class="fc" id="L89">        elems[top] = o;</span>
-<span class="fc" id="L90">        top = t;</span>
-<span class="fc" id="L91">    }</span>
+<span class="nc" id="L87">        int t = top + 1;</span>
+<span class="nc" id="L88">        ensureCapacity(t);</span>
+<span class="nc" id="L89">        elems[top] = o;</span>
+<span class="nc" id="L90">        top = t;</span>
+<span class="nc" id="L91">    }</span>
 
     private void ensureCapacity(final int minCapacity) {
-<span class="fc" id="L94">        int oldCapacity = elems.length;</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (minCapacity &gt; oldCapacity) {</span>
-<span class="fc" id="L96">            int newCapacity = (oldCapacity * 3) / 2 + 1;</span>
-<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            if (newCapacity &lt; minCapacity) {</span>
+<span class="nc" id="L94">        int oldCapacity = elems.length;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (minCapacity &gt; oldCapacity) {</span>
+<span class="nc" id="L96">            int newCapacity = (oldCapacity * 3) / 2 + 1;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (newCapacity &lt; minCapacity) {</span>
 <span class="nc" id="L98">                newCapacity = minCapacity;</span>
             }
             // minCapacity is usually close to size, so this is a win:
-<span class="fc" id="L101">            elems = java.util.Arrays.copyOf(elems, newCapacity);</span>
+<span class="nc" id="L101">            elems = java.util.Arrays.copyOf(elems, newCapacity);</span>
         }
-<span class="fc" id="L103">    }</span>
+<span class="nc" id="L103">    }</span>
 
 
 
@@ -125,46 +125,46 @@ public final class SimpleStack&lt;T&gt;
      * @return Object
      */
     public T pop() {
-<span class="fc" id="L128">        final T o = elems[--top];</span>
+<span class="nc" id="L128">        final T o = elems[--top];</span>
         // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
-<span class="fc" id="L130">        elems[top] = null;</span>
-<span class="fc" id="L131">        return o;</span>
+<span class="nc" id="L130">        elems[top] = null;</span>
+<span class="nc" id="L131">        return o;</span>
     }
 
     public void remove() {
-<span class="fc" id="L135">        --top;</span>
+<span class="nc" id="L135">        --top;</span>
         // this is for the garbage collector  to avoid memory leaks if storing big objects in stack
-<span class="fc" id="L137">        elems[top] = null;</span>
-<span class="fc" id="L138">    }</span>
+<span class="nc" id="L137">        elems[top] = null;</span>
+<span class="nc" id="L138">    }</span>
 
 
     public T[] pop(final int n) {
-<span class="fc" id="L142">        int ot = top;</span>
-<span class="fc" id="L143">        top -= n;</span>
-<span class="fc" id="L144">        T[] result =  (T[]) new Object[n];</span>
-<span class="fc bfc" id="L145" title="All 2 branches covered.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
-<span class="fc" id="L146">            result[j] = elems[i];</span>
-<span class="fc" id="L147">            elems[i] = null;</span>
+<span class="nc" id="L142">        int ot = top;</span>
+<span class="nc" id="L143">        top -= n;</span>
+<span class="nc" id="L144">        T[] result =  (T[]) new Object[n];</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
+<span class="nc" id="L146">            result[j] = elems[i];</span>
+<span class="nc" id="L147">            elems[i] = null;</span>
         }
-<span class="fc" id="L149">        return result;</span>
+<span class="nc" id="L149">        return result;</span>
     }
 
     public void popTo(final T[] to, final int n) {
-<span class="fc" id="L153">        int ot = top;</span>
-<span class="fc" id="L154">        top -= n;</span>
-<span class="fc bfc" id="L155" title="All 2 branches covered.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
-<span class="fc" id="L156">            to[j] = elems[i];</span>
-<span class="fc" id="L157">            elems[i] = null;</span>
+<span class="nc" id="L153">        int ot = top;</span>
+<span class="nc" id="L154">        top -= n;</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        for (int i = top, j = 0; i &lt; ot; i++, j++) {</span>
+<span class="nc" id="L156">            to[j] = elems[i];</span>
+<span class="nc" id="L157">            elems[i] = null;</span>
         }
-<span class="fc" id="L159">    }</span>
+<span class="nc" id="L159">    }</span>
 
     public void removeFromTop(final int n) {
-<span class="fc" id="L162">        int ot = top;</span>
-<span class="fc" id="L163">        top -= n;</span>
-<span class="fc bfc" id="L164" title="All 2 branches covered.">        for (int i = top; i &lt; ot; i++) {</span>
-<span class="fc" id="L165">            elems[i] = null;</span>
+<span class="nc" id="L162">        int ot = top;</span>
+<span class="nc" id="L163">        top -= n;</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        for (int i = top; i &lt; ot; i++) {</span>
+<span class="nc" id="L165">            elems[i] = null;</span>
         }
-<span class="fc" id="L167">    }</span>
+<span class="nc" id="L167">    }</span>
 
 
     public T[] popUntil(final T until) {
@@ -185,16 +185,16 @@ public final class SimpleStack&lt;T&gt;
      * @return Object
      */
     public T peek() {
-<span class="fc" id="L188">        return elems[top - 1];</span>
+<span class="nc" id="L188">        return elems[top - 1];</span>
     }
 
     public T peekFromTop(final int n) {
-<span class="fc" id="L192">        return elems[top - 1 - n];</span>
+<span class="nc" id="L192">        return elems[top - 1 - n];</span>
     }
 
     public void replaceFromTop(final int n, final T value) {
-<span class="fc" id="L196">        elems[top - 1 - n] = value;</span>
-<span class="fc" id="L197">    }</span>
+<span class="nc" id="L196">        elems[top - 1 - n] = value;</span>
+<span class="nc" id="L197">    }</span>
 
 
 
@@ -278,7 +278,7 @@ public final class SimpleStack&lt;T&gt;
 
     @Override
     public int size() {
-<span class="fc" id="L281">        return top;</span>
+<span class="nc" id="L281">        return top;</span>
     }
 
     @Override
@@ -410,4 +410,4 @@ public final class SimpleStack&lt;T&gt;
 <span class="nc" id="L410">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

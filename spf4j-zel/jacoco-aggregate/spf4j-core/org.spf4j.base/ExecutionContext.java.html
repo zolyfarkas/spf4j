@@ -32,16 +32,20 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- *
  * @author Zoltan Farkas
  */
+@CleanupObligation
+@ParametersAreNonnullByDefault
 public interface ExecutionContext extends AutoCloseable {
 
+  @DischargesObligation
   void close();
 
   long getDeadlineNanos();
@@ -49,26 +53,32 @@ public interface ExecutionContext extends AutoCloseable {
   ExecutionContext getParent();
 
   default long getUnitsToDeadline(final TimeUnit unit) {
-<span class="fc" id="L52">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L56">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
+
+  /**
+   * Method to get baggage.
+   * if current context does not have baggage, the parent context is queried.
+   * @param &lt;T&gt; type of baggage.
+   * @param clasz class of baggage.
+   * @return the baggage
+   */
   @Nullable
   @Beta
-  &lt;T&gt; T get(@Nonnull Class&lt;T&gt; clasz);
+  &lt;T&gt; T get(Class&lt;T&gt; clasz);
 
+
+  /**
+   * Method to put baggage.
+   * @param &lt;T&gt; type of baggage.
+   * @param data the baggage.
+   * @return existing baggage if there.
+   */
   @Nullable
   @Beta
-  &lt;T&gt; T put(@Nonnull T data);
+  &lt;T&gt; T put(T data);
 
-  default ExecutionContext subCtx() {
-<span class="fc" id="L64">    return subCtx(getDeadlineNanos());</span>
-  }
-
-  default ExecutionContext subCtx(final long timeout, final TimeUnit tu) {
-<span class="nc" id="L68">    return subCtx(TimeSource.getDeadlineNanos(timeout, tu));</span>
-  }
-
-  ExecutionContext subCtx(long pdeadlineNanos);
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

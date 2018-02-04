@@ -67,46 +67,46 @@ public final class LookupTranslator extends CharSequenceTranslator {
     private final int longest;
 
 
-<span class="fc" id="L70">    public LookupTranslator(final CharSequence[]... lookup) {</span>
-<span class="fc" id="L71">        lookupMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L72">        int ashortest = Integer.MAX_VALUE;</span>
-<span class="fc" id="L73">        int alongest = 0;</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (lookup != null) {</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">            for (final CharSequence[] seq : lookup) {</span>
-<span class="fc" id="L76">                this.lookupMap.put(seq[0].toString(), seq[1]);</span>
-<span class="fc" id="L77">                final int sz = seq[0].length();</span>
-<span class="fc bfc" id="L78" title="All 2 branches covered.">                if (sz &lt; ashortest) {</span>
-<span class="fc" id="L79">                    ashortest = sz;</span>
+<span class="nc" id="L70">    public LookupTranslator(final CharSequence[]... lookup) {</span>
+<span class="nc" id="L71">        lookupMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L72">        int ashortest = Integer.MAX_VALUE;</span>
+<span class="nc" id="L73">        int alongest = 0;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (lookup != null) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (final CharSequence[] seq : lookup) {</span>
+<span class="nc" id="L76">                this.lookupMap.put(seq[0].toString(), seq[1]);</span>
+<span class="nc" id="L77">                final int sz = seq[0].length();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                if (sz &lt; ashortest) {</span>
+<span class="nc" id="L79">                    ashortest = sz;</span>
                 }
-<span class="fc bfc" id="L81" title="All 2 branches covered.">                if (sz &gt; alongest) {</span>
-<span class="fc" id="L82">                    alongest = sz;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                if (sz &gt; alongest) {</span>
+<span class="nc" id="L82">                    alongest = sz;</span>
                 }
             }
         }
-<span class="fc" id="L86">        shortest = ashortest;</span>
-<span class="fc" id="L87">        longest = alongest;</span>
-<span class="fc" id="L88">    }</span>
+<span class="nc" id="L86">        shortest = ashortest;</span>
+<span class="nc" id="L87">        longest = alongest;</span>
+<span class="nc" id="L88">    }</span>
 
     /**
      * {@inheritDoc}
      */
     @Override
     public int translate(final CharSequence input, final int index, final Writer out) throws IOException {
-<span class="fc" id="L95">        int max = longest;</span>
-<span class="fc" id="L96">        final int l = input.length();</span>
-<span class="fc bfc" id="L97" title="All 2 branches covered.">        if (index + longest &gt; l) {</span>
-<span class="fc" id="L98">            max = l - index;</span>
+<span class="nc" id="L95">        int max = longest;</span>
+<span class="nc" id="L96">        final int l = input.length();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (index + longest &gt; l) {</span>
+<span class="nc" id="L98">            max = l - index;</span>
         }
         // descend so as to get a greedy algorithm
-<span class="fc bfc" id="L101" title="All 2 branches covered.">        for (int i = max; i &gt;= shortest; i--) {</span>
-<span class="fc" id="L102">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
-<span class="fc" id="L103">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">            if (result != null) {</span>
-<span class="fc" id="L105">                out.write(result.toString());</span>
-<span class="fc" id="L106">                return i;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        for (int i = max; i &gt;= shortest; i--) {</span>
+<span class="nc" id="L102">            final CharSequence subSeq = input.subSequence(index, index + i);</span>
+<span class="nc" id="L103">            final CharSequence result = lookupMap.get(subSeq.toString());</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (result != null) {</span>
+<span class="nc" id="L105">                out.write(result.toString());</span>
+<span class="nc" id="L106">                return i;</span>
             }
         }
-<span class="fc" id="L109">        return 0;</span>
+<span class="nc" id="L109">        return 0;</span>
     }
 
     @Override
@@ -150,4 +150,4 @@ public final class LookupTranslator extends CharSequenceTranslator {
 
 }
 
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

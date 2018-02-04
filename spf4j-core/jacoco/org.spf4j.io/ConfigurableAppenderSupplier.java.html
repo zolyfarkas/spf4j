@@ -41,8 +41,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 
@@ -54,94 +52,93 @@ import org.spf4j.reflect.GraphTypeMap;
 @ParametersAreNonnullByDefault
 public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplier {
 
-<span class="fc" id="L57">  private static final Logger LOG = LoggerFactory.getLogger(ConfigurableAppenderSupplier.class);</span>
-
 
   private final CachingTypeMapWrapper&lt;ObjectAppender&gt; appenderMap;
 
   public ConfigurableAppenderSupplier() {
-<span class="fc" id="L63">    this(true, x -&gt; false);</span>
-<span class="fc" id="L64">  }</span>
+<span class="fc" id="L59">    this(true, x -&gt; false);</span>
+<span class="fc" id="L60">  }</span>
 
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public ConfigurableAppenderSupplier(final boolean registerFromServiceLoader, final Predicate&lt;Class&lt;?&gt;&gt; except,
-<span class="fc" id="L68">          final ObjectAppender&lt;?&gt;... appenders) {</span>
-<span class="fc" id="L69">    appenderMap = new CachingTypeMapWrapper&lt;&gt;(new GraphTypeMap());</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">    if (registerFromServiceLoader) {</span>
+<span class="fc" id="L64">          final ObjectAppender&lt;?&gt;... appenders) {</span>
+<span class="fc" id="L65">    appenderMap = new CachingTypeMapWrapper&lt;&gt;(new GraphTypeMap());</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">    if (registerFromServiceLoader) {</span>
       @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L72">      ServiceLoader&lt;ObjectAppender&lt;?&gt;&gt; load = (ServiceLoader) ServiceLoader.load(ObjectAppender.class);</span>
-<span class="fc" id="L73">      Iterator&lt;ObjectAppender&lt;?&gt;&gt; iterator = load.iterator();</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
-<span class="fc" id="L75">        ObjectAppender&lt;?&gt; appender = iterator.next();</span>
-<span class="fc" id="L76">        Class&lt;?&gt; appenderType = getAppenderType(appender);</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (!except.test(appenderType)) {</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">          if (!register((Class) appenderType, (ObjectAppender) appender)) {</span>
-<span class="nc" id="L79">            LOG.warn(&quot;Attempting to register duplicate appender({}) for {} &quot;, appender, appenderType);</span>
+<span class="fc" id="L68">      ServiceLoader&lt;ObjectAppender&lt;?&gt;&gt; load = (ServiceLoader) ServiceLoader.load(ObjectAppender.class);</span>
+<span class="fc" id="L69">      Iterator&lt;ObjectAppender&lt;?&gt;&gt; iterator = load.iterator();</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
+<span class="fc" id="L71">        ObjectAppender&lt;?&gt; appender = iterator.next();</span>
+<span class="fc" id="L72">        Class&lt;?&gt; appenderType = getAppenderType(appender);</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (!except.test(appenderType)) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">          if (!register((Class) appenderType, (ObjectAppender) appender)) {</span>
+<span class="nc" id="L75">            throw new IllegalArgumentException(&quot;Attempting to register duplicate appender(&quot; + appender + &quot;) for &quot;</span>
+                    + appenderType);
           }
         }
-<span class="fc" id="L82">      }</span>
+<span class="fc" id="L79">      }</span>
     }
-<span class="fc bfc" id="L84" title="All 2 branches covered.">    for (ObjectAppender&lt;?&gt; appender : appenders) {</span>
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">      if (!register(getAppenderType(appender), (ObjectAppender) appender)) {</span>
-<span class="nc" id="L86">        throw new IllegalArgumentException(&quot;Cannot register appender &quot; + appender);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">    for (ObjectAppender&lt;?&gt; appender : appenders) {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">      if (!register(getAppenderType(appender), (ObjectAppender) appender)) {</span>
+<span class="nc" id="L83">        throw new IllegalArgumentException(&quot;Cannot register appender &quot; + appender);</span>
       }
     }
-<span class="fc" id="L89">    appenderMap.putIfNotPresent(Object.class, ObjectAppender.TOSTRING_APPENDER);</span>
-<span class="fc" id="L90">  }</span>
+<span class="fc" id="L86">    appenderMap.putIfNotPresent(Object.class, ObjectAppender.TOSTRING_APPENDER);</span>
+<span class="fc" id="L87">  }</span>
 
   public static Class&lt;?&gt; getAppenderType(final ObjectAppender&lt;?&gt; appender) {
-<span class="fc" id="L93">    Type[] genericInterfaces = appender.getClass().getGenericInterfaces();</span>
-<span class="fc" id="L94">    Class&lt;?&gt; appenderType = null;</span>
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">    for (Type type : genericInterfaces) {</span>
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">      if (type instanceof ParameterizedType) {</span>
-<span class="fc" id="L97">        ParameterizedType pType = (ParameterizedType) type;</span>
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (pType.getRawType() == ObjectAppender.class) {</span>
-<span class="fc" id="L99">          appenderType = (Class) pType.getActualTypeArguments()[0];</span>
-<span class="fc" id="L100">          break;</span>
+<span class="fc" id="L90">    Type[] genericInterfaces = appender.getClass().getGenericInterfaces();</span>
+<span class="fc" id="L91">    Class&lt;?&gt; appenderType = null;</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    for (Type type : genericInterfaces) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">      if (type instanceof ParameterizedType) {</span>
+<span class="fc" id="L94">        ParameterizedType pType = (ParameterizedType) type;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (pType.getRawType() == ObjectAppender.class) {</span>
+<span class="fc" id="L96">          appenderType = (Class) pType.getActualTypeArguments()[0];</span>
+<span class="fc" id="L97">          break;</span>
         }
       }
     }
-<span class="pc bpc" id="L104" title="1 of 2 branches missed.">    if (appenderType == null) {</span>
-<span class="nc" id="L105">      throw new IllegalArgumentException(&quot;Improperly declared Appender &quot; + appender);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">    if (appenderType == null) {</span>
+<span class="nc" id="L102">      throw new IllegalArgumentException(&quot;Improperly declared Appender &quot; + appender);</span>
     }
-<span class="fc" id="L107">    return appenderType;</span>
+<span class="fc" id="L104">    return appenderType;</span>
   }
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public &lt;T&gt; int register(final Class&lt;T&gt; type, final ObjectAppender&lt;? super T&gt;... appenders) {
-<span class="fc" id="L112">    int i = 0;</span>
-<span class="fc bfc" id="L113" title="All 2 branches covered.">    for (ObjectAppender&lt;? super T&gt; appender : appenders) {</span>
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">      if (register(type, appender)) {</span>
-<span class="fc" id="L115">        i++;</span>
+<span class="fc" id="L109">    int i = 0;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    for (ObjectAppender&lt;? super T&gt; appender : appenders) {</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">      if (register(type, appender)) {</span>
+<span class="fc" id="L112">        i++;</span>
       }
     }
-<span class="fc" id="L118">    return i;</span>
+<span class="fc" id="L115">    return i;</span>
   }
 
   public &lt;T&gt; void replace(final Class&lt;T&gt; type,
           final Function&lt;ObjectAppender&lt;? super T&gt;, ObjectAppender&lt;? super T&gt;&gt; replace) {
-<span class="fc" id="L123">    appenderMap.replace(type, (Function) replace);</span>
-<span class="fc" id="L124">  }</span>
+<span class="fc" id="L120">    appenderMap.replace(type, (Function) replace);</span>
+<span class="fc" id="L121">  }</span>
 
   @SuppressWarnings(&quot;unchecked&quot;)
   @CheckReturnValue
   private &lt;T&gt; boolean register(final Class&lt;T&gt; type, final ObjectAppender&lt;? super T&gt; appender) {
-<span class="fc" id="L129">    return appenderMap.putIfNotPresent(type, appender);</span>
+<span class="fc" id="L126">    return appenderMap.putIfNotPresent(type, appender);</span>
   }
 
   public boolean unregister(final Class&lt;?&gt; type) {
-<span class="nc" id="L133">    return appenderMap.remove(type);</span>
+<span class="nc" id="L130">    return appenderMap.remove(type);</span>
   }
 
   @Override
   public ObjectAppender get(final Type type) {
-<span class="fc" id="L138">    return appenderMap.get(type);</span>
+<span class="fc" id="L135">    return appenderMap.get(type);</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L143">    return &quot;ConfigurableAppenderSupplier{&quot; + &quot;lookup=&quot; + appenderMap  + '}';</span>
+<span class="fc" id="L140">    return &quot;ConfigurableAppenderSupplier{&quot; + &quot;lookup=&quot; + appenderMap  + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

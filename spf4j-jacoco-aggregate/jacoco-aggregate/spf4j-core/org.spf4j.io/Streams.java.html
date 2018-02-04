@@ -43,8 +43,8 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 public final class Streams {
 
-<span class="nc" id="L46">    private Streams() {</span>
-<span class="nc" id="L47">    }</span>
+    private Streams() {
+    }
 
     /**
      * see copy(final InputStream is, final OutputStream os, final int buffSize) for detail.
@@ -55,7 +55,7 @@ public final class Streams {
      * @throws IOException
      */
     public static long copy(final InputStream is, final OutputStream os) throws IOException {
-<span class="fc" id="L58">        return copy(is, os, 8192);</span>
+<span class="nc" id="L58">        return copy(is, os, 8192);</span>
     }
 
     /**
@@ -71,7 +71,7 @@ public final class Streams {
      * @throws IOException
      */
     public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (buffSize &lt; 2) {</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (buffSize &lt; 2) {</span>
             int val;
 <span class="nc" id="L76">            long count = 0;</span>
 <span class="nc bnc" id="L77" title="All 2 branches missed.">            while ((val = is.read()) &gt;= 0) {</span>
@@ -80,47 +80,47 @@ public final class Streams {
             }
 <span class="nc" id="L81">            return count;</span>
         }
-<span class="fc" id="L83">        long total = 0;</span>
-<span class="fc" id="L84">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);</span>
+<span class="nc" id="L83">        long total = 0;</span>
+<span class="nc" id="L84">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);</span>
         try {
-<span class="fc" id="L86">            boolean done = false;</span>
-<span class="fc" id="L87">            long bytesCopiedSinceLastFlush = 0;</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">            while (!done) {</span>
+<span class="nc" id="L86">            boolean done = false;</span>
+<span class="nc" id="L87">            long bytesCopiedSinceLastFlush = 0;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            while (!done) {</span>
                 // non-blocking(if input is implemented correctly) read+write as long as data is available.
-<span class="fc bfc" id="L90" title="All 2 branches covered.">                while (is.available() &gt; 0) {</span>
-<span class="fc" id="L91">                    int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">                    if (nrRead &lt; 0) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                while (is.available() &gt; 0) {</span>
+<span class="nc" id="L91">                    int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                    if (nrRead &lt; 0) {</span>
 <span class="nc" id="L93">                        done = true;</span>
 <span class="nc" id="L94">                        break;</span>
                     } else {
-<span class="fc" id="L96">                        os.write(buffer, 0, nrRead);</span>
-<span class="fc" id="L97">                        total += nrRead;</span>
-<span class="fc" id="L98">                        bytesCopiedSinceLastFlush += nrRead;</span>
+<span class="nc" id="L96">                        os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L97">                        total += nrRead;</span>
+<span class="nc" id="L98">                        bytesCopiedSinceLastFlush += nrRead;</span>
                     }
-<span class="fc" id="L100">                }</span>
+<span class="nc" id="L100">                }</span>
             // there seems to be nothing available to read anymore,
                 // lets flush the os instead of blocking for another read.
-<span class="fc bfc" id="L103" title="All 2 branches covered.">                if (bytesCopiedSinceLastFlush &gt; 0) {</span>
-<span class="fc" id="L104">                    os.flush();</span>
-<span class="fc" id="L105">                    bytesCopiedSinceLastFlush = 0;</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                if (bytesCopiedSinceLastFlush &gt; 0) {</span>
+<span class="nc" id="L104">                    os.flush();</span>
+<span class="nc" id="L105">                    bytesCopiedSinceLastFlush = 0;</span>
                 }
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">                if (done) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (done) {</span>
 <span class="nc" id="L108">                    break;</span>
                 }
                 // most likely a blocking read.
-<span class="fc" id="L111">                int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">                if (nrRead &lt; 0) {</span>
-<span class="fc" id="L113">                    break;</span>
+<span class="nc" id="L111">                int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (nrRead &lt; 0) {</span>
+<span class="nc" id="L113">                    break;</span>
                 } else {
-<span class="fc" id="L115">                    os.write(buffer, 0, nrRead);</span>
-<span class="fc" id="L116">                    total += nrRead;</span>
-<span class="fc" id="L117">                    bytesCopiedSinceLastFlush += nrRead;</span>
+<span class="nc" id="L115">                    os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L116">                    total += nrRead;</span>
+<span class="nc" id="L117">                    bytesCopiedSinceLastFlush += nrRead;</span>
                 }
-<span class="fc" id="L119">            }</span>
+<span class="nc" id="L119">            }</span>
         } finally {
-<span class="pc" id="L121">            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
-<span class="pc" id="L122">        }</span>
-<span class="fc" id="L123">        return total;</span>
+<span class="nc" id="L121">            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
+        }
+<span class="nc" id="L123">        return total;</span>
     }
     
     /**
@@ -137,4 +137,4 @@ public final class Streams {
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

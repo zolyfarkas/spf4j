@@ -43,31 +43,31 @@ public final class MOVN extends Instruction {
 
     private final int nr;
 
-<span class="fc" id="L46">    public MOVN(final int nr) {</span>
-<span class="fc" id="L47">        this.nr = nr;</span>
-<span class="fc" id="L48">    }</span>
+<span class="nc" id="L46">    public MOVN(final int nr) {</span>
+<span class="nc" id="L47">        this.nr = nr;</span>
+<span class="nc" id="L48">    }</span>
 
     @Override
     public int execute(final ExecutionContext context)
             throws SuspendedException, ExecutionException, InterruptedException {
-<span class="fc" id="L53">        Object[] what = (Object[]) context.popSyncStackVal();</span>
-<span class="fc" id="L54">        Object[] tos = context.popStackVals(what.length);</span>
-<span class="fc" id="L55">        int i = 0;</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">        for (Object to : tos) {</span>
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            if (to instanceof AssignableValue) {</span>
-<span class="fc" id="L58">                AssignableValue assignTo = (AssignableValue) to;</span>
-<span class="fc" id="L59">                assignTo.assign(what[i++]);</span>
-<span class="fc" id="L60">                context.push(what);</span>
-<span class="fc" id="L61">            } else {</span>
+<span class="nc" id="L53">        Object[] what = (Object[]) context.popSyncStackVal();</span>
+<span class="nc" id="L54">        Object[] tos = context.popStackVals(what.length);</span>
+<span class="nc" id="L55">        int i = 0;</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        for (Object to : tos) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if (to instanceof AssignableValue) {</span>
+<span class="nc" id="L58">                AssignableValue assignTo = (AssignableValue) to;</span>
+<span class="nc" id="L59">                assignTo.assign(what[i++]);</span>
+<span class="nc" id="L60">                context.push(what);</span>
+<span class="nc" id="L61">            } else {</span>
 <span class="nc" id="L62">                throw new ZExecutionException(&quot;Lvalue expected insted of &quot; + to);</span>
             }
         }
-<span class="fc" id="L65">        return 1;</span>
+<span class="nc" id="L65">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L70">        return new Object[] {nr};</span>
+<span class="nc" id="L70">        return new Object[] {nr};</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

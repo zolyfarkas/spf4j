@@ -43,39 +43,39 @@ public final class LODAXF extends Instruction {
 
     private final Address fromAddr;
     
-<span class="fc" id="L46">    public LODAXF(final Address fromAddr) {</span>
-<span class="fc" id="L47">        this.fromAddr = fromAddr;</span>
-<span class="fc" id="L48">    }</span>
+<span class="nc" id="L46">    public LODAXF(final Address fromAddr) {</span>
+<span class="nc" id="L47">        this.fromAddr = fromAddr;</span>
+<span class="nc" id="L48">    }</span>
 
     @Override
     public int execute(final ExecutionContext context) {
-<span class="fc" id="L52">        context.push(new AssignableValue() {</span>
+<span class="nc" id="L52">        context.push(new AssignableValue() {</span>
 
             @Override
             public void assign(final Object object) throws ZExecutionException {
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">                if (fromAddr.getScope() == Address.Scope.LOCAL) {</span>
-<span class="fc" id="L57">                  context.localPoke(fromAddr.getAddress(), object);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                if (fromAddr.getScope() == Address.Scope.LOCAL) {</span>
+<span class="nc" id="L57">                  context.localPoke(fromAddr.getAddress(), object);</span>
                 } else {
 <span class="nc" id="L59">                    throw new ZExecutionException(&quot;Cannot assign &quot; + object + &quot;to a global refference&quot;);</span>
                 }
-<span class="fc" id="L61">            }</span>
+<span class="nc" id="L61">            }</span>
 
             @Override
             public Object get() {
-<span class="fc bfc" id="L65" title="All 2 branches covered.">                if (fromAddr.getScope() == Address.Scope.LOCAL) {</span>
-<span class="fc" id="L66">                    return context.localPeek(fromAddr.getAddress());</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                if (fromAddr.getScope() == Address.Scope.LOCAL) {</span>
+<span class="nc" id="L66">                    return context.localPeek(fromAddr.getAddress());</span>
                 } else {
-<span class="fc" id="L68">                    return context.globalPeek(fromAddr.getAddress());</span>
+<span class="nc" id="L68">                    return context.globalPeek(fromAddr.getAddress());</span>
                 }
             }
         });
-<span class="fc" id="L72">        return 1;</span>
+<span class="nc" id="L72">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L77">        return new Object[] {fromAddr};</span>
+<span class="nc" id="L77">        return new Object[] {fromAddr};</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

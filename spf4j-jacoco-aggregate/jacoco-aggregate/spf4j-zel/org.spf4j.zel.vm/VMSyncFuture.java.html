@@ -46,7 +46,7 @@ import static org.spf4j.concurrent.FutureBean.processResult;
  */
 @ThreadSafe
 @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
-<span class="fc" id="L49">public class VMSyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
+<span class="nc" id="L49">public class VMSyncFuture&lt;T&gt; implements VMFuture&lt;T&gt; {</span>
     private volatile Either&lt;T, ? extends ExecutionException&gt; resultStore;
 
     @Override
@@ -61,22 +61,22 @@ import static org.spf4j.concurrent.FutureBean.processResult;
 
     @Override
     public final boolean isDone() {
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        return resultStore != null;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        return resultStore != null;</span>
     }
     
     @Override
     public final Either&lt;T, ? extends ExecutionException&gt; getResultStore() {
-<span class="fc" id="L69">        return resultStore;</span>
+<span class="nc" id="L69">        return resultStore;</span>
     }
 
     @Override
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
     @SuppressFBWarnings({&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;, &quot;MDM_WAIT_WITHOUT_TIMEOUT&quot; })
     public final synchronized T get() throws InterruptedException, ExecutionException {
-<span class="fc bfc" id="L76" title="All 2 branches covered.">        while (resultStore == null) {</span>
-<span class="fc" id="L77">            this.wait();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        while (resultStore == null) {</span>
+<span class="nc" id="L77">            this.wait();</span>
         }
-<span class="fc" id="L79">        return processResult(resultStore);</span>
+<span class="nc" id="L79">        return processResult(resultStore);</span>
     }
 
     @Override
@@ -94,29 +94,29 @@ import static org.spf4j.concurrent.FutureBean.processResult;
 <span class="nc" id="L94">                throw new TimeoutException();</span>
             }
 <span class="nc" id="L96">            return processResult(resultStore);</span>
-<span class="nc" id="L97">        }</span>
+        }
     }
 
     @Override
     public final synchronized void setResult(final T result) {
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (resultStore != null) {</span>
 <span class="nc" id="L103">            throw new IllegalStateException(&quot;cannot set &quot; + result + &quot; result multiple times&quot;);</span>
         }
-<span class="fc" id="L105">        resultStore = Either.left(result);</span>
-<span class="fc" id="L106">        this.notifyAll();</span>
-<span class="fc" id="L107">    }</span>
+<span class="nc" id="L105">        resultStore = Either.left(result);</span>
+<span class="nc" id="L106">        this.notifyAll();</span>
+<span class="nc" id="L107">    }</span>
     
     @Override
     public final synchronized void setExceptionResult(final ExecutionException result) {
-<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (Throwables.getRootCause(result) == ExecAbortException.INSTANCE) {</span>
-<span class="fc" id="L112">            return;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (Throwables.getRootCause(result) == ExecAbortException.INSTANCE) {</span>
+<span class="nc" id="L112">            return;</span>
         }
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (resultStore != null) {</span>
 <span class="nc" id="L115">            throw new IllegalStateException(&quot;cannot set result &quot; + result + &quot; multiple times&quot;);</span>
         }
-<span class="fc" id="L117">        resultStore = Either.right(result);</span>
-<span class="fc" id="L118">        this.notifyAll();</span>
-<span class="fc" id="L119">    }</span>
+<span class="nc" id="L117">        resultStore = Either.right(result);</span>
+<span class="nc" id="L118">        this.notifyAll();</span>
+<span class="nc" id="L119">    }</span>
 
     @Override
     public final String toString() {
@@ -124,4 +124,4 @@ import static org.spf4j.concurrent.FutureBean.processResult;
     }
     
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

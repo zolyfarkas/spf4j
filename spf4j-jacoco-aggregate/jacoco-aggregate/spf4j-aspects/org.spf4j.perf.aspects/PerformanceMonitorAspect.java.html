@@ -50,47 +50,48 @@ import org.spf4j.annotations.RecorderSourceInstance;
  * @author zoly
  */
 @Aspect
-<span class="fc" id="L53">public final class PerformanceMonitorAspect {</span>
+<span class="nc" id="L53">public final class PerformanceMonitorAspect {</span>
 
-<span class="fc" id="L55">    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);</span>
-<span class="fc" id="L56">    private static final LoadingCache&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt; REC_SOURCES =</span>
+<span class="nc" id="L55">    private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitorAspect.class);</span>
+<span class="nc" id="L56">    private static final LoadingCache&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt; REC_SOURCES =</span>
             new UnboundedLoadingCache&lt;&gt;(32,
-<span class="fc" id="L58">                    new CacheLoader&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt;() {</span>
+<span class="nc" id="L58">                    new CacheLoader&lt;Class&lt;? extends RecorderSourceInstance&gt;, MeasurementRecorderSource&gt;() {</span>
         @Override
         public MeasurementRecorderSource load(final Class&lt;? extends RecorderSourceInstance&gt; key) throws Exception {
-<span class="fc" id="L61">            return (MeasurementRecorderSource) key.getField(&quot;INSTANCE&quot;).get(null);</span>
+<span class="nc" id="L61">            return (MeasurementRecorderSource) key.getField(&quot;INSTANCE&quot;).get(null);</span>
         }
     });
 
-    @Around(value = &quot;execution(@org.spf4j.annotations.PerformanceMonitor * *(..)) &amp;&amp; @annotation(annot)&quot;,
+    @Around(value = &quot;execution(@org.spf4j.annotations.PerformanceMonitor * *(..))&quot;
+            + &quot; &amp;&amp; @annotation(org.spf4j.annotations.PerformanceMonitor annot)&quot;,
             argNames = &quot;pjp,annot&quot;)
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {
-<span class="fc" id="L69">        final long start = System.currentTimeMillis();</span>
-<span class="fc" id="L70">        Object result = pjp.proceed();</span>
-<span class="fc" id="L71">        final long elapsed = System.currentTimeMillis() - start;</span>
-<span class="fc" id="L72">        MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());</span>
-<span class="fc" id="L73">        mrs.getRecorder(pjp.toLongString()).record(elapsed);</span>
-<span class="fc" id="L74">        final long warnThresholdMillis = annot.warnThresholdMillis();</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (elapsed &gt; warnThresholdMillis) {</span>
-<span class="fc" id="L76">            final long errorThresholdMillis = annot.errorThresholdMillis();</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">            if (elapsed &gt; errorThresholdMillis) {</span>
-<span class="nc" id="L78">                LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}&quot;,</span>
-<span class="nc" id="L79">                            elapsed, pjp.toShortString(), errorThresholdMillis, pjp.getArgs());</span>
+<span class="nc" id="L70">        final long start = System.currentTimeMillis();</span>
+<span class="nc" id="L71">        Object result = pjp.proceed();</span>
+<span class="nc" id="L72">        final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="nc" id="L73">        MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());</span>
+<span class="nc" id="L74">        mrs.getRecorder(pjp.toLongString()).record(elapsed);</span>
+<span class="nc" id="L75">        final long warnThresholdMillis = annot.warnThresholdMillis();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (elapsed &gt; warnThresholdMillis) {</span>
+<span class="nc" id="L77">            final long errorThresholdMillis = annot.errorThresholdMillis();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (elapsed &gt; errorThresholdMillis) {</span>
+<span class="nc" id="L79">                LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, arguments {}&quot;,</span>
+<span class="nc" id="L80">                            elapsed, pjp.toShortString(), errorThresholdMillis, pjp.getArgs());</span>
             } else {
-<span class="fc" id="L81">                LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}&quot;,</span>
-<span class="fc" id="L82">                            elapsed, pjp.toShortString(), warnThresholdMillis, pjp.getArgs());</span>
+<span class="nc" id="L82">                LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}&quot;,</span>
+<span class="nc" id="L83">                            elapsed, pjp.toShortString(), warnThresholdMillis, pjp.getArgs());</span>
             }
-<span class="fc" id="L84">        } else {</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (annot.defaultInfoLog()) {</span>
-<span class="nc" id="L86">                LOG.info(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
-<span class="nc" id="L87">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
+<span class="nc" id="L85">        } else {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (annot.defaultInfoLog()) {</span>
+<span class="nc" id="L87">                LOG.info(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
+<span class="nc" id="L88">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
             } else {
-<span class="nc" id="L89">                LOG.debug(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
-<span class="nc" id="L90">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
+<span class="nc" id="L90">                LOG.debug(&quot;Execution time {} ms for {}, arguments {}&quot;,</span>
+<span class="nc" id="L91">                        elapsed, pjp.toShortString(), pjp.getArgs());</span>
             }
         }
-<span class="fc" id="L93">        return result;</span>
+<span class="nc" id="L94">        return result;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

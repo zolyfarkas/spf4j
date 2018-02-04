@@ -141,17 +141,17 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (borower != b) {</span>
 <span class="fc" id="L142">              hasValidBorowers = true;</span>
 <span class="fc" id="L143">              Either&lt;ObjectBorower.Action, T&gt; objOrPromise = b.tryRequestReturnObject();</span>
-<span class="fc bfc" id="L144" title="All 2 branches covered.">              if (objOrPromise.isRight()) {</span>
-<span class="fc" id="L145">                T obj = objOrPromise.getRight();</span>
-<span class="pc bpc" id="L146" title="1 of 2 branches missed.">                if (!borrowedObjects.remove(b, obj)) {</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">              if (objOrPromise.isRight()) {</span>
+<span class="nc" id="L145">                T obj = objOrPromise.getRight();</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                if (!borrowedObjects.remove(b, obj)) {</span>
 <span class="nc" id="L147">                  throw new IllegalStateException(&quot;Returned Object &quot; + obj</span>
                           + &quot; hasn't been borrowed: &quot; + borrowedObjects);
                 }
 
-<span class="pc bpc" id="L151" title="1 of 2 branches missed.">                if (!borrowedObjects.put(borower, obj)) {</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                if (!borrowedObjects.put(borower, obj)) {</span>
 <span class="nc" id="L152">                  throw new IllegalStateException(&quot;Cannot boroow &quot; + obj + &quot;, &quot; + borrowedObjects);</span>
                 }
-<span class="fc" id="L154">                return obj;</span>
+<span class="nc" id="L154">                return obj;</span>
               } else {
 <span class="fc bfc" id="L156" title="All 2 branches covered.">                requestMade = objOrPromise.getLeft() == Action.REQUEST_MADE;</span>
 <span class="fc bfc" id="L157" title="All 2 branches covered.">                if (requestMade) {</span>
@@ -196,7 +196,7 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
       }
     } finally {
 <span class="fc" id="L198">      lock.unlock();</span>
-<span class="fc" id="L199">    }</span>
+    }
   }
 
   @Override
@@ -227,8 +227,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="fc" id="L227">      availableObjects.add(object);</span>
 <span class="fc" id="L228">      available.signalAll();</span>
     } finally {
-<span class="pc" id="L230">      lock.unlock();</span>
-<span class="pc" id="L231">    }</span>
+<span class="fc" id="L230">      lock.unlock();</span>
+    }
 <span class="fc" id="L232">  }</span>
 
   @Override
@@ -274,8 +274,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="nc" id="L274">    } catch (InterruptedException | RuntimeException e) {</span>
 <span class="nc" id="L275">      throw e;</span>
     } finally {
-<span class="pc" id="L277">      lock.unlock();</span>
-<span class="fc" id="L278">    }</span>
+<span class="fc" id="L277">      lock.unlock();</span>
+    }
   }
 
   @CheckReturnValue
@@ -313,9 +313,9 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="pc bpc" id="L313" title="1 of 2 branches missed.">          if (!objectBorower.scan(handler)) {</span>
 <span class="nc" id="L314">            return false;</span>
           }
-<span class="nc" id="L316">        } catch (Exception e) {</span>
-<span class="nc bnc" id="L317" title="All 2 branches missed.">          if (resEx == null) {</span>
-<span class="nc" id="L318">            resEx = e;</span>
+<span class="fc" id="L316">        } catch (Exception e) {</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">          if (resEx == null) {</span>
+<span class="fc" id="L318">            resEx = e;</span>
           } else {
 <span class="nc" id="L320">            resEx = Throwables.suppress(e, resEx);</span>
           }
@@ -350,8 +350,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
       }
 <span class="fc" id="L351">      return true;</span>
     } finally {
-<span class="pc" id="L353">      lock.unlock();</span>
-<span class="fc" id="L354">    }</span>
+<span class="fc" id="L353">      lock.unlock();</span>
+    }
   }
 
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
@@ -373,8 +373,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="fc" id="L373">        availableObjects.add(object);</span>
 <span class="fc" id="L374">      }</span>
     } finally {
-<span class="pc" id="L376">      lock.unlock();</span>
-<span class="pc" id="L377">    }</span>
+<span class="fc" id="L376">      lock.unlock();</span>
+    }
 <span class="fc" id="L378">  }</span>
 
   @Override
@@ -385,8 +385,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
               + borrowedObjects + &quot;, returnedObjects=&quot; + availableObjects
               + &quot;, factory=&quot; + factory + '}';
     } finally {
-<span class="pc" id="L388">      lock.unlock();</span>
-<span class="nc" id="L389">    }</span>
+<span class="fc" id="L388">      lock.unlock();</span>
+    }
   }
 
   @Override
@@ -394,4 +394,4 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="fc" id="L394">    return sample;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

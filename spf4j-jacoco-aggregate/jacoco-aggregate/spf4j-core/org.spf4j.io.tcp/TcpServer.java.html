@@ -66,31 +66,31 @@ import org.spf4j.ds.UpdateablePriorityQueue;
 @Beta
 public final class TcpServer extends RestartableServiceImpl {
 
-<span class="fc" id="L69">  private static final Logger LOG = LoggerFactory.getLogger(TcpServer.class);</span>
+<span class="nc" id="L69">  private static final Logger LOG = LoggerFactory.getLogger(TcpServer.class);</span>
 
   private final int serverPort;
 
     public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
           final int serverPort,
           final int acceptBacklog) {
-<span class="fc" id="L76">      this(executor, handlerFactory, serverPort, acceptBacklog, 60000);</span>
-<span class="fc" id="L77">    }</span>
+<span class="nc" id="L76">      this(executor, handlerFactory, serverPort, acceptBacklog, 60000);</span>
+<span class="nc" id="L77">    }</span>
 
   public TcpServer(final ExecutorService executor, final ClientHandler handlerFactory,
           final int serverPort,
           final int acceptBacklog, final int bindTimeoutMillis) {
-<span class="fc" id="L82">    super(new Supplier&lt;Service&gt;() {</span>
+<span class="nc" id="L82">    super(new Supplier&lt;Service&gt;() {</span>
       @Override
       public Service get() {
-<span class="fc" id="L85">        return new TcpServerGuavaService(executor, handlerFactory, serverPort, acceptBacklog, bindTimeoutMillis);</span>
+<span class="nc" id="L85">        return new TcpServerGuavaService(executor, handlerFactory, serverPort, acceptBacklog, bindTimeoutMillis);</span>
       }
     });
-<span class="fc" id="L88">    this.serverPort = serverPort;</span>
-<span class="fc" id="L89">  }</span>
+<span class="nc" id="L88">    this.serverPort = serverPort;</span>
+<span class="nc" id="L89">  }</span>
 
   @Override
   public String getServiceName() {
-<span class="fc" id="L93">    return &quot;TCP:LISTEN:&quot; + serverPort;</span>
+<span class="nc" id="L93">    return &quot;TCP:LISTEN:&quot; + serverPort;</span>
   }
 
   public static final class TcpServerGuavaService extends AbstractExecutionThreadService
@@ -115,30 +115,30 @@ public final class TcpServer extends RestartableServiceImpl {
     public TcpServerGuavaService(final ExecutorService executor, final ClientHandler handlerFactory,
             final int serverPort,
             final int acceptBacklog,
-<span class="fc" id="L118">            final int bindTimeoutMillis) {</span>
-<span class="fc" id="L119">      this.executor = executor;</span>
-<span class="fc" id="L120">      this.handlerFactory = handlerFactory;</span>
-<span class="fc" id="L121">      this.acceptBacklog = acceptBacklog;</span>
-<span class="fc" id="L122">      this.serverPort = serverPort;</span>
-<span class="fc" id="L123">      this.shouldRun = true;</span>
-<span class="fc" id="L124">      this.selector = null;</span>
-<span class="fc" id="L125">      this.bindTimeoutMillis = bindTimeoutMillis;</span>
-<span class="fc" id="L126">    }</span>
+<span class="nc" id="L118">            final int bindTimeoutMillis) {</span>
+<span class="nc" id="L119">      this.executor = executor;</span>
+<span class="nc" id="L120">      this.handlerFactory = handlerFactory;</span>
+<span class="nc" id="L121">      this.acceptBacklog = acceptBacklog;</span>
+<span class="nc" id="L122">      this.serverPort = serverPort;</span>
+<span class="nc" id="L123">      this.shouldRun = true;</span>
+<span class="nc" id="L124">      this.selector = null;</span>
+<span class="nc" id="L125">      this.bindTimeoutMillis = bindTimeoutMillis;</span>
+<span class="nc" id="L126">    }</span>
 
     @Override
     protected void startUp() throws Exception {
-<span class="fc" id="L130">      selector = Selector.open();</span>
+<span class="nc" id="L130">      selector = Selector.open();</span>
       try {
-<span class="fc" id="L132">        serverCh = Callables.executeWithRetry(</span>
-<span class="fc" id="L133">                new Callables.TimeoutCallable&lt;ServerSocketChannel, IOException&gt;(bindTimeoutMillis) {</span>
+<span class="nc" id="L132">        serverCh = Callables.executeWithRetry(</span>
+<span class="nc" id="L133">                new Callables.TimeoutCallable&lt;ServerSocketChannel, IOException&gt;(bindTimeoutMillis) {</span>
           @Override
           public ServerSocketChannel call(final long deadline)
                   throws IOException, InterruptedException, TimeoutException {
-<span class="fc" id="L137">            ServerSocketChannel sc = ServerSocketChannel.open();</span>
+<span class="nc" id="L137">            ServerSocketChannel sc = ServerSocketChannel.open();</span>
             try {
-<span class="fc" id="L139">              sc.bind(new InetSocketAddress(serverPort), acceptBacklog);</span>
-<span class="fc" id="L140">              sc.configureBlocking(false);</span>
-<span class="fc" id="L141">              return sc;</span>
+<span class="nc" id="L139">              sc.bind(new InetSocketAddress(serverPort), acceptBacklog);</span>
+<span class="nc" id="L140">              sc.configureBlocking(false);</span>
+<span class="nc" id="L141">              return sc;</span>
 <span class="nc" id="L142">            } catch (IOException | RuntimeException e) {</span>
 <span class="nc" id="L143">              sc.close();</span>
 <span class="nc" id="L144">              throw e;</span>
@@ -152,80 +152,80 @@ public final class TcpServer extends RestartableServiceImpl {
 <span class="nc" id="L152">      } catch (IOException | RuntimeException e) {</span>
 <span class="nc" id="L153">        selector.close();</span>
 <span class="nc" id="L154">        throw e;</span>
-<span class="fc" id="L155">      }</span>
-<span class="fc" id="L156">    }</span>
+<span class="nc" id="L155">      }</span>
+<span class="nc" id="L156">    }</span>
 
     @SuppressFBWarnings(&quot;AFBR_ABNORMAL_FINALLY_BLOCK_RETURN&quot;)
     @Override
     public void run() throws IOException {
-<span class="fc" id="L161">      Selector sel = selector;</span>
+<span class="nc" id="L161">      Selector sel = selector;</span>
       try {
-<span class="fc" id="L163">        BlockingQueue&lt;Runnable&gt; tasksToRunBySelector = new ArrayBlockingQueue&lt;&gt;(64);</span>
-<span class="fc" id="L164">        UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions</span>
+<span class="nc" id="L163">        BlockingQueue&lt;Runnable&gt; tasksToRunBySelector = new ArrayBlockingQueue&lt;&gt;(64);</span>
+<span class="nc" id="L164">        UpdateablePriorityQueue&lt;DeadlineAction&gt; deadlineActions</span>
                 = new UpdateablePriorityQueue&lt;&gt;(64, DeadlineAction.COMPARATOR);
-<span class="fc" id="L166">        new AcceptorSelectorEventHandler(serverCh, handlerFactory, sel, executor,</span>
+<span class="nc" id="L166">        new AcceptorSelectorEventHandler(serverCh, handlerFactory, sel, executor,</span>
                 tasksToRunBySelector, deadlineActions)
-<span class="fc" id="L168">                .initialInterestRegistration();</span>
-<span class="fc bfc" id="L169" title="All 2 branches covered.">        while (shouldRun) {</span>
-<span class="fc" id="L170">          int nrSelectors = sel.select(100);</span>
-<span class="fc bfc" id="L171" title="All 2 branches covered.">          if (nrSelectors &gt; 0) {</span>
-<span class="fc" id="L172">            Set&lt;SelectionKey&gt; selectedKeys = sel.selectedKeys();</span>
-<span class="fc" id="L173">            Iterator&lt;SelectionKey&gt; keyIterator = selectedKeys.iterator();</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">            while (keyIterator.hasNext()) {</span>
-<span class="fc" id="L175">              SelectionKey skey = keyIterator.next();</span>
-<span class="fc" id="L176">              final Object attachment = skey.attachment();</span>
-<span class="pc bpc" id="L177" title="1 of 2 branches missed.">              if (attachment instanceof SelectorEventHandler) {</span>
-<span class="fc" id="L178">                SelectorEventHandler seh = (SelectorEventHandler) attachment;</span>
+<span class="nc" id="L168">                .initialInterestRegistration();</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        while (shouldRun) {</span>
+<span class="nc" id="L170">          int nrSelectors = sel.select(100);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">          if (nrSelectors &gt; 0) {</span>
+<span class="nc" id="L172">            Set&lt;SelectionKey&gt; selectedKeys = sel.selectedKeys();</span>
+<span class="nc" id="L173">            Iterator&lt;SelectionKey&gt; keyIterator = selectedKeys.iterator();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            while (keyIterator.hasNext()) {</span>
+<span class="nc" id="L175">              SelectionKey skey = keyIterator.next();</span>
+<span class="nc" id="L176">              final Object attachment = skey.attachment();</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">              if (attachment instanceof SelectorEventHandler) {</span>
+<span class="nc" id="L178">                SelectorEventHandler seh = (SelectorEventHandler) attachment;</span>
                 try {
-<span class="fc bfc" id="L180" title="All 2 branches covered.">                  if (seh.canRunAsync()) {</span>
-<span class="fc" id="L181">                    seh.runAsync(skey);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                  if (seh.canRunAsync()) {</span>
+<span class="nc" id="L181">                    seh.runAsync(skey);</span>
                   } else {
-<span class="fc" id="L183">                    seh.run(skey);</span>
+<span class="nc" id="L183">                    seh.run(skey);</span>
                   }
 <span class="nc" id="L185">                } catch (CancelledKeyException ex) {</span>
 <span class="nc" id="L186">                  LOG.debug(&quot;Canceled key {}&quot;, skey, ex);</span>
-<span class="fc" id="L187">                }</span>
+<span class="nc" id="L187">                }</span>
               }
-<span class="fc" id="L189">              keyIterator.remove();</span>
-<span class="fc" id="L190">            }</span>
+<span class="nc" id="L189">              keyIterator.remove();</span>
+<span class="nc" id="L190">            }</span>
           }
           // process deadlineActions
-<span class="fc" id="L193">          long currentTime = System.currentTimeMillis();</span>
+<span class="nc" id="L193">          long currentTime = System.currentTimeMillis();</span>
           DeadlineAction peek;
           //CHECKSTYLE:OFF
-<span class="fc bfc" id="L196" title="All 4 branches covered.">          while ((peek = deadlineActions.peek()) != null &amp;&amp; currentTime &gt; peek.getDeadline()) {</span>
-<span class="fc" id="L197">            deadlineActions.poll().getAction().run();</span>
+<span class="nc bnc" id="L196" title="All 4 branches missed.">          while ((peek = deadlineActions.peek()) != null &amp;&amp; currentTime &gt; peek.getDeadline()) {</span>
+<span class="nc" id="L197">            deadlineActions.poll().getAction().run();</span>
           }
           //CHECKSTYLE:ON
           Runnable task;
-<span class="fc bfc" id="L201" title="All 2 branches covered.">          while ((task = tasksToRunBySelector.poll()) != null) {</span>
-<span class="fc" id="L202">            task.run();</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">          while ((task = tasksToRunBySelector.poll()) != null) {</span>
+<span class="nc" id="L202">            task.run();</span>
           }
-<span class="fc" id="L204">        }</span>
+<span class="nc" id="L204">        }</span>
       } finally {
-<span class="pc" id="L206">        IOException closeAll =</span>
-<span class="pc" id="L207">                Closeables.closeAll(Closeables.closeSelectorChannels(sel), sel, serverCh);</span>
-<span class="pc bpc" id="L208" title="3 of 4 branches missed.">        if (closeAll != null) {</span>
+<span class="nc" id="L206">        IOException closeAll =</span>
+<span class="nc" id="L207">                Closeables.closeAll(Closeables.closeSelectorChannels(sel), sel, serverCh);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (closeAll != null) {</span>
 <span class="nc" id="L209">          throw closeAll;</span>
         }
-<span class="pc" id="L211">      }</span>
-<span class="fc" id="L212">    }</span>
+      }
+<span class="nc" id="L212">    }</span>
 
     @Override
     protected Executor executor() {
-<span class="fc" id="L216">      return this.executor;</span>
+<span class="nc" id="L216">      return this.executor;</span>
     }
 
     @Override
     protected String serviceName() {
-<span class="fc" id="L221">      return &quot;TCP:LISTEN:&quot; + serverPort;</span>
+<span class="nc" id="L221">      return &quot;TCP:LISTEN:&quot; + serverPort;</span>
     }
 
     @Override
     protected void triggerShutdown() {
-<span class="fc" id="L226">      shouldRun = false;</span>
-<span class="fc" id="L227">      selector.wakeup();</span>
-<span class="fc" id="L228">    }</span>
+<span class="nc" id="L226">      shouldRun = false;</span>
+<span class="nc" id="L227">      selector.wakeup();</span>
+<span class="nc" id="L228">    }</span>
 
     @Override
     public synchronized void close() throws IOException {
@@ -241,4 +241,4 @@ public final class TcpServer extends RestartableServiceImpl {
     }
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

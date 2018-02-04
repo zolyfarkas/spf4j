@@ -67,8 +67,8 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @ParametersAreNonnullByDefault
 public final class Compress {
 
-<span class="nc" id="L70">  private Compress() {</span>
-<span class="nc" id="L71">  }</span>
+  private Compress() {
+  }
 
   /**
    * Zip a file or folder.
@@ -108,28 +108,28 @@ public final class Compress {
       } else {
 <span class="fc" id="L109">        relativePath = fileOrFolderToCompress.getParent();</span>
       }
-<span class="pc" id="L111">      try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));</span>
+<span class="fc" id="L111">      try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));</span>
 <span class="fc" id="L112">              ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {</span>
 <span class="fc" id="L113">          Files.walk(fileOrFolderToCompress).forEach((path) -&gt; {</span>
 <span class="fc bfc" id="L114" title="All 2 branches covered.">            if (Files.isDirectory(path)) {</span>
 <span class="fc" id="L115">              return;</span>
             }
 <span class="fc" id="L117">            String fileName = relativePath.relativize(path).toString();</span>
-<span class="pc" id="L118">            try (InputStream in = new BufferedInputStream(Files.newInputStream(path),</span>
+<span class="fc" id="L118">            try (InputStream in = new BufferedInputStream(Files.newInputStream(path),</span>
                     8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
 <span class="fc" id="L120">              ZipEntry ze = new ZipEntry(fileName);</span>
 <span class="fc" id="L121">              zos.putNextEntry(ze);</span>
 <span class="fc" id="L122">              Streams.copy(in, zos);</span>
-<span class="pc bpc" id="L123" title="6 of 8 branches missed.">            } catch (IOException ex) {</span>
+<span class="nc" id="L123">            } catch (IOException ex) {</span>
 <span class="nc" id="L124">              throw new UncheckedIOException(&quot;Error compressing &quot; + path, ex);</span>
 <span class="fc" id="L125">            }</span>
 <span class="fc" id="L126">          });</span>
-<span class="pc bpc" id="L127" title="12 of 16 branches missed.">      }</span>
+      }
 <span class="fc" id="L128">      Files.move(tmpFile, destFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-<span class="pc" id="L131">      Files.deleteIfExists(tmpFile);</span>
-<span class="pc" id="L132">    }</span>
+<span class="fc" id="L131">      Files.deleteIfExists(tmpFile);</span>
+    }
 <span class="fc" id="L133">  }</span>
 
   /**
@@ -146,16 +146,16 @@ public final class Compress {
     }
 <span class="fc" id="L147">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
     try {
-<span class="pc" id="L149">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source),</span>
+<span class="fc" id="L149">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source),</span>
               8192, ArraySuppliers.Bytes.TL_SUPPLIER);
 <span class="fc" id="L151">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
 <span class="fc" id="L152">        Streams.copy(in, os);</span>
-<span class="pc bpc" id="L153" title="12 of 16 branches missed.">      }</span>
+      }
 <span class="fc" id="L154">      Files.move(tmpFile, destinationFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-<span class="pc" id="L157">      Files.deleteIfExists(tmpFile);</span>
-<span class="pc" id="L158">    }</span>
+<span class="fc" id="L157">      Files.deleteIfExists(tmpFile);</span>
+    }
 <span class="fc" id="L159">  }</span>
 
 
@@ -191,7 +191,7 @@ public final class Compress {
     }
 <span class="fc" id="L192">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L193">    URI zipUri = URI.create(&quot;jar:&quot; + zipFile.toUri().toURL());</span>
-<span class="pc" id="L194">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
+<span class="fc" id="L194">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
 <span class="fc bfc" id="L195" title="All 2 branches covered.">      for (Path root : zipFs.getRootDirectories()) {</span>
 <span class="fc" id="L196">        Path dest =  destinationDirectory.resolve(root.toString().substring(1));</span>
 <span class="fc" id="L197">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
@@ -214,7 +214,7 @@ public final class Compress {
           }
         });
 <span class="fc" id="L216">      }</span>
-<span class="pc bpc" id="L217" title="6 of 8 branches missed.">    } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L217">    } catch (IOException | RuntimeException ex) {</span>
 <span class="nc bnc" id="L218" title="All 2 branches missed.">      for (Path path : response) {</span>
         try {
 <span class="nc" id="L220">          Files.delete(path);</span>
@@ -228,4 +228,4 @@ public final class Compress {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
