@@ -123,9 +123,9 @@ public final class TestLoggers implements ILoggerFactory {
   /**
    * Ability to intercept log messages logged under a category
    *
-   * @param category
-   * @param handler
-   * @return
+   * @param category the logger category name (a.b.c)
+   * @param handler the log handler to register.
+   * @return a registration handle, that you can use to unregister.
    */
   @CheckReturnValue
   public HandlerRegistration intercept(final String category, final LogHandler handler) {
@@ -141,6 +141,15 @@ public final class TestLoggers implements ILoggerFactory {
     };
   }
 
+  /**
+   * Collect a bunch of logs.
+   * @param <T> the type of object to collect into.
+   * @param category the log category (a.b.c)
+   * @param fromLevel from level to collect.
+   * @param passThrough pass the logs to lower category handlers or not.
+   * @param collector the collector to collect the logs.
+   * @return collected logs.
+   */
   @CheckReturnValue
   public <T> LogCollection<T> collect(final String category, final Level fromLevel,
           final boolean passThrough,
@@ -148,6 +157,16 @@ public final class TestLoggers implements ILoggerFactory {
     return collect(category, fromLevel, Level.ERROR, passThrough, collector);
   }
 
+  /**
+   * Collect a bunch of logs.
+   * @param <T> the type of object to collect into.
+   * @param category the log category (a.b.c)
+   * @param fromLevel from level to collect.
+   * @param toLevel to level to collect.
+   * @param passThrough pass the logs to lower category handlers or not.
+   * @param collector the collector to collect the logs.
+   * @return collected logs.
+   */
   @CheckReturnValue
   public <T> LogCollection<T> collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
@@ -177,9 +196,9 @@ public final class TestLoggers implements ILoggerFactory {
   /**
    * Convenience method for functional use.
    *
-   * @param category
-   * @param handler
-   * @return
+   * @param category the log category.
+   * @param handler a functional handler.
+   * @return a registration handle to allow you to undo the registration.
    */
   @CheckReturnValue
   public HandlerRegistration interceptAllLevels(final String category, final AllLevelsLogHandler handler) {
@@ -187,7 +206,11 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   /**
-   * all logs from category and spcified levels will be ignored... (unless there are more specific handlers)
+   * all logs from category and specified levels will be ignored... (unless there are more specific handlers)
+   * @param category the log category.
+   * @param from from log level.
+   * @param to to log level.
+   * @return a registration handle to allow you to undo this filtering.
    */
   @CheckReturnValue
   public HandlerRegistration ignore(final String category, final Level from, final Level to) {
@@ -196,15 +219,16 @@ public final class TestLoggers implements ILoggerFactory {
 
   /**
    * Create an log expectation that can be asserted like:
-   *
+   * <code>
    * LogAssert expect = TestLoggers.expect("org.spf4j.test", Level.ERROR, Matchers.hasProperty("format",
-   * Matchers.equalTo("Booo"))); LOG.error("Booo", new RuntimeException()); expect.assertObservation();
-   *
-   *
-   * @param category the category under which we should expect theese messages.
+   * Matchers.equalTo("Booo")));
+   * LOG.error("Booo", new RuntimeException());
+   * expect.assertObservation();
+   * </code>
+   * @param category the category under which we should expect these messages.
    * @param minimumLogLevel minimum log level of expected log messages
    * @param matchers a succession of LogMessages with each matching a Matcher is expected.
-   * @return
+   * @return an assertion handle.
    */
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
@@ -212,6 +236,13 @@ public final class TestLoggers implements ILoggerFactory {
     return logAssert(true, minimumLogLevel, category, matchers);
   }
 
+  /**
+   * the opposite of expect.
+   * @param category the category under which we should expect these messages.
+   * @param minimumLogLevel minimum log level of expected log messages
+   * @param matchers a succession of LogMessages with each matching a Matcher is NOT expected.
+   * @return an assertion handle.
+   */
   @CheckReturnValue
   public LogAssert dontExpect(final String category, final Level minimumLogLevel,
           final Matcher<LogRecord>... matchers) {
@@ -246,11 +277,11 @@ public final class TestLoggers implements ILoggerFactory {
   /**
    * Ability to assert is you expect a sequence of logs to be repeated.
    *
-   * @param category
-   * @param minimumLogLevel
-   * @param nrTimes
-   * @param matchers
-   * @return
+   * @param category the log category (a.b.c)
+   * @param minimumLogLevel the minimum log level of expected messages.
+   * @param nrTimes number of time the sequence should appear.
+   * @param matchers the sequence of matchers.
+   * @return the assertion handle.
    */
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final Matcher<LogRecord>... matchers) {
@@ -263,6 +294,11 @@ public final class TestLoggers implements ILoggerFactory {
     return expect(category, minimumLogLevel, newMatchers);
   }
 
+  /**
+   * Assert uncaught exceptions. (from threads)
+   * @param matcher the exception matcher.
+   * @return the assertion handle.
+   */
   @Beta
   public AsyncObservationAssert expectUncaughtException(final Matcher<UncaughtExceptionDetail> matcher) {
     ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
@@ -277,12 +313,19 @@ public final class TestLoggers implements ILoggerFactory {
     return asserter;
   }
 
+  /**
+   * Collect up to a number of log messages.
+   * @param minimumLogLevel the minimum log level of the messages.
+   * @param maxNrLogs the max number of messages to collect.
+   * @param collectPrinted collect messages that have been printed or not.
+   * @return the collection of messages.
+   */
   public LogCollection<ArrayDeque<LogRecord>> collect(final Level minimumLogLevel, final int maxNrLogs,
           final boolean collectPrinted) {
     return collect("", minimumLogLevel, maxNrLogs, collectPrinted);
   }
 
-  public LogCollection<ArrayDeque<LogRecord>> collect(final String category, final Level minimumLogLevel,
+  private LogCollection<ArrayDeque<LogRecord>> collect(final String category, final Level minimumLogLevel,
           final int maxNrLogs,
           final boolean collectPrinted) {
     if (!collectPrinted) {
@@ -313,6 +356,10 @@ public final class TestLoggers implements ILoggerFactory {
     return julGlobal;
   }
 
+  public java.util.logging.Logger getJulRoot() {
+    return julRoot;
+  }
+  
   @Override
   public String toString() {
     return "TestLoggers{ config=" + config + ", loggerMap=" + loggerMap + '}';

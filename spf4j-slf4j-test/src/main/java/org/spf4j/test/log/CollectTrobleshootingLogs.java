@@ -29,5 +29,4 @@ import java.lang.annotation.Target;
 public @interface CollectTrobleshootingLogs {
   Level minLevel() default Level.DEBUG;
   boolean collectPrinted() default false;
-  String category() default "";
 }

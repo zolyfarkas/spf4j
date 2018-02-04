@@ -20,14 +20,16 @@ import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author Zoltan Farkas
  */
 @Beta
 public interface AsyncObservationAssert {
 
   /**
-   * Assert that a sequence of messages has not been seen.
+   * Assert the something happens. (messages get logged or not)
+   * @param timeout will wait up to this this amount of time for the observation to become available.
+   * @param unit the unit of time.
+   * @throws java.lang.InterruptedException thi soperation is interruptible.
    */
   @DischargesObligation
   void assertObservation(long timeout, TimeUnit unit) throws InterruptedException;

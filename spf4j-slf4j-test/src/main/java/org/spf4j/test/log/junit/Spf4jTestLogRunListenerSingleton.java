@@ -146,8 +146,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     CollectTrobleshootingLogs annotation = description.getAnnotation(CollectTrobleshootingLogs.class);
     Level mll = annotation == null ? minLogLevel : annotation.minLevel();
     boolean clp = annotation == null ? collectPrinted : annotation.collectPrinted();
-    String categoryString = annotation == null ? "" : annotation.category();
-    collections.put(description, TestLoggers.sys().collect(categoryString, mll, maxDebugLogsCollected, clp));
+    collections.put(description, TestLoggers.sys().collect(mll, maxDebugLogsCollected, clp));
     super.testStarted(description);
   }
 
