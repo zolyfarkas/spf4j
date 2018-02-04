@@ -34,7 +34,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.spf4j.base.XCollectors;
-import org.spf4j.test.log.junit.Spf4jTestLogRunListenerSingleton;
+import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
 //CHECKSTYLE:OFF
 import sun.misc.Contended;
 //CHECKSTYLE:ON

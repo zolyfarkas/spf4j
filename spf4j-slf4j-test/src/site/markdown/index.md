@@ -36,7 +36,7 @@ with tons of debug info dumped to output all the time. But making it available w
           <properties>
             <property>
               <name>listener</name>
-              <value>org.spf4j.test.log.junit.DetailOnFailureRunListener</value> <!-- comma separate multiple listeners -->
+              <value>org.spf4j.test.log.junit4.DetailOnFailureRunListener</value> <!-- comma separate multiple listeners -->
             </property>
           </properties>
         </configuration>
