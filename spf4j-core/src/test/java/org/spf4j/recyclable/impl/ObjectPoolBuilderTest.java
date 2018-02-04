@@ -47,6 +47,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
@@ -90,9 +91,9 @@ public final class ObjectPoolBuilderTest {
     pool.dispose();
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = TimeoutException.class)
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testBuildSimple()
+  public void testBuildDisposeTimeout()
           throws ObjectCreationException, ObjectBorrowException,
           InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException {
     RecyclingSupplier<ExpensiveTestObject> pool
@@ -101,7 +102,7 @@ public final class ObjectPoolBuilderTest {
     pool.get();
     pool.get();
     LOG.debug("pool = {}", pool);
-    try (ExecutionContext start = ExecutionContexts.start(System.currentTimeMillis() + 1000)) {
+    try (ExecutionContext start = ExecutionContexts.start(1, TimeUnit.SECONDS)) {
       pool.dispose();
       pool.get();
       LOG.debug("pool = {}", pool);
