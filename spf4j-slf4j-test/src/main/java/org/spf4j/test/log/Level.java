@@ -19,4 +19,4 @@ package org.spf4j.test.log;
  *
  * @author Zoltan Farkas
  */
-public enum Level { TRACE, DEBUG, INFO, WARN, ERROR }
+public enum Level { TRACE, DEBUG, INFO, WARN, ERROR, OFF }
