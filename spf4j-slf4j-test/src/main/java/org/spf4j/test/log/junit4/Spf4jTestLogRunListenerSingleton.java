@@ -17,6 +17,7 @@ package org.spf4j.test.log.junit4;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,16 +95,15 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     LogCollection<ArrayDeque<LogRecord>> handler = collections.get(description);
     if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
       try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
-        dumpDebugInfo(h, description);
+        dumpDebugInfo(h.get(), description);
       }
     }
   }
 
-  public void dumpDebugInfo(@WillNotClose final LogCollection<ArrayDeque<LogRecord>> handler,
+  private void dumpDebugInfo(final Collection<LogRecord> logs,
           final Description description) {
     synchronized (System.out) { // do not interleave other stuff.
       boolean first = true;
-      ArrayDeque<LogRecord> logs = handler.get();
       if (!logs.isEmpty()) {
         for (LogRecord record : logs) {
           if (first) {
@@ -122,12 +122,12 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   public synchronized void testFinished(final Description description) {
     LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
     try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
-      handleUncaughtExceptions(description, h);
+      handleUncaughtExceptions(description, h.get());
     }
   }
 
-  public void handleUncaughtExceptions(final Description description,
-          @WillNotClose final LogCollection<ArrayDeque<LogRecord>> handler) {
+  private void handleUncaughtExceptions(final Description description,
+          @WillNotClose final Collection<LogRecord> logs) {
     List<UncaughtExceptionDetail> exceptions = uncaughtExceptionHandler.getUncaughtExceptions();
     if (!exceptions.isEmpty()) {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
@@ -136,7 +136,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
         LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
         assertionError.addSuppressed(throwable);
       }
-      dumpDebugInfo(handler, description);
+      dumpDebugInfo(logs, description);
       throw assertionError;
     }
   }
