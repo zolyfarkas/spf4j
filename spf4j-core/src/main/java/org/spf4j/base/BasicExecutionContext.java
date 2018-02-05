@@ -119,7 +119,8 @@ public abstract class BasicExecutionContext implements ExecutionContext {
   @Override
   public String toString() {
     return "BasicExecutionContext{" + "name=" + name + ", parent="
-            + parent + ", deadlineNanos=" + deadlineNanos + ", baggage=" + baggage + '}';
+            + parent + ", deadline=" + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)
+            + ", baggage=" + baggage + '}';
   }
 
 

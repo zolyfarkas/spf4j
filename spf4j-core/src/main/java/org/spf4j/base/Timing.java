@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -69,6 +70,9 @@ public final class Timing {
     return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);
   }
 
+  public Instant fromNanoTimeToInstant(final long nanoTime) {
+    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));
+  }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
     long msSinceLast = epochTimeMillis - currentTimeMillisRef;
