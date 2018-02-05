@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,14 +49,14 @@ import org.spf4j.concurrent.DefaultExecutor;
 public class ExecutionContextTest {
 
   @Test
-  public void testExecutionContext() throws InterruptedException, ExecutionException {
+  public void testExecutionContext() throws InterruptedException, ExecutionException, TimeoutException {
     try (ExecutionContext ec = ExecutionContexts.start(TimeSource.getDeadlineNanos(10, TimeUnit.SECONDS))) {
       long unitsToDeadline = ExecutionContexts.current().getUnitsToDeadline(TimeUnit.SECONDS);
       Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
       Assert.assertThat(unitsToDeadline, Matchers.greaterThanOrEqualTo(9L));
       Future<?> submit = DefaultExecutor.INSTANCE.submit(() -> {
         try (ExecutionContext subCtx = ExecutionContexts.start(ec)) {
-          long utd = ExecutionContexts.current().getUnitsToDeadline(TimeUnit.SECONDS);
+          long utd = ExecutionContexts.current().getUncheckedUnitsToDeadline(TimeUnit.SECONDS);
           Assert.assertThat(utd, Matchers.lessThanOrEqualTo(10L));
           Assert.assertThat(utd, Matchers.greaterThanOrEqualTo(9L));
           Assert.assertEquals(ec, subCtx.getParent());
@@ -68,7 +69,7 @@ public class ExecutionContextTest {
   }
 
   @Test
-  public void testExecutionContext2() {
+  public void testExecutionContext2() throws TimeoutException {
     try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
       long secs = start.getUnitsToDeadline(TimeUnit.SECONDS);
       Assert.assertTrue(secs >= 9);

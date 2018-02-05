@@ -32,11 +32,15 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Signed;
 
 /**
  * @author Zoltan Farkas
@@ -52,10 +56,28 @@ public interface ExecutionContext extends AutoCloseable {
 
   ExecutionContext getParent();
 
-  default long getUnitsToDeadline(final TimeUnit unit) {
-     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
+  @Nonnegative
+  default long getUnitsToDeadline(final TimeUnit unit) throws TimeoutException {
+     long result = getUnitsRelativeToDeadline(unit);
+     if (result <= 0) {
+       throw new TimeoutException("Deadline exceeded by " + (-result) + ' ' + unit);
+     }
+     return result;
   }
 
+  @Nonnegative
+  default long getUncheckedUnitsToDeadline(final TimeUnit unit) {
+     long result = getUnitsRelativeToDeadline(unit);
+     if (result <= 0) {
+       throw new UncheckedTimeoutException("Deadline exceeded by " + (-result) + ' ' + unit);
+     }
+     return result;
+  }
+
+  @Signed
+  default long getUnitsRelativeToDeadline(final TimeUnit unit)  {
+     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
+  }
 
   /**
    * Method to get baggage.
