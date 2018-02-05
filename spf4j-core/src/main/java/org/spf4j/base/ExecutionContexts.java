@@ -67,9 +67,15 @@ public final class ExecutionContexts {
         public ExecutionContext start(final String name, final ExecutionContext parent,
                  final long deadlineNanos, final Runnable onClose) {
           return new BasicExecutionContext(name, parent, deadlineNanos) {
+
+            private boolean isClosed = false;
+
             @Override
             public void close() {
-              onClose.run();
+              if (!isClosed) {
+                onClose.run();
+                isClosed = true;
+              }
             }
           };
         }
