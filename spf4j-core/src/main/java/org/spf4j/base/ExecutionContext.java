@@ -83,7 +83,8 @@ public interface ExecutionContext extends AutoCloseable {
    * Method to get baggage.
    * if current context does not have baggage, the parent context is queried.
    * @param <T> type of baggage.
-   * @param clasz class of baggage.
+   * @param key key of baggage.
+   * @param clasz class of baggage value.
    * @return the baggage
    */
   @Nullable
@@ -97,7 +98,7 @@ public interface ExecutionContext extends AutoCloseable {
    * Method to get baggage.
    * if current context does not have baggage, the parent context is queried.
    * @param <T> type of baggage.
-   * @param clasz class of baggage.
+   * @param key key of baggage.
    * @return the baggage
    */
   @Nullable
@@ -108,6 +109,7 @@ public interface ExecutionContext extends AutoCloseable {
   /**
    * Method to put baggage.
    * @param <T> type of baggage.
+   * @param key the key of baggage.
    * @param data the baggage.
    * @return existing baggage if there.
    */
@@ -119,6 +121,7 @@ public interface ExecutionContext extends AutoCloseable {
   /**
    * Method to put baggage to the root context.
    * @param <T> type of baggage.
+   * @param key the key of baggage.
    * @param data the baggage.
    * @return existing baggage if there.
    */
