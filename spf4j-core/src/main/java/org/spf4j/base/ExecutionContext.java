@@ -88,7 +88,21 @@ public interface ExecutionContext extends AutoCloseable {
    */
   @Nullable
   @Beta
-  <T> T get(Class<T> clasz);
+  default <T> T get(Object key, Class<T> clasz) {
+    return (T) get(key);
+  }
+
+
+  /**
+   * Method to get baggage.
+   * if current context does not have baggage, the parent context is queried.
+   * @param <T> type of baggage.
+   * @param clasz class of baggage.
+   * @return the baggage
+   */
+  @Nullable
+  @Beta
+  Object get(Object key);
 
 
   /**
@@ -99,7 +113,24 @@ public interface ExecutionContext extends AutoCloseable {
    */
   @Nullable
   @Beta
-  <T> T put(T data);
+  <T> T put(Object key, T data);
 
+
+  /**
+   * Method to put baggage to the root context.
+   * @param <T> type of baggage.
+   * @param data the baggage.
+   * @return existing baggage if there.
+   */
+  @Nullable
+  @Beta
+  default <T> T putToRoot(final Object key, final T data) {
+    ExecutionContext curr = this;
+    ExecutionContext parent;
+    while ((parent = curr.getParent()) != null) {
+      curr = parent;
+    }
+    return curr.put(key, data);
+  }
 
 }

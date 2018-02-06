@@ -52,7 +52,7 @@ public abstract class BasicExecutionContext implements ExecutionContext {
 
   private final long deadlineNanos;
 
-  private Map<Class, Object> baggage;
+  private Map<Object, Object> baggage;
 
 
   @SuppressWarnings("unchecked")
@@ -85,21 +85,21 @@ public abstract class BasicExecutionContext implements ExecutionContext {
   @Nullable
   @Beta
   @Override
-  public final synchronized <T> T put(@Nonnull final T data) {
+  public final synchronized <T> T put(@Nonnull final Object key, @Nonnull final T data) {
     if (baggage.isEmpty()) {
       baggage = new THashMap<>(2);
     }
-    return (T) baggage.put(data.getClass(), data);
+    return (T) baggage.put(key, data);
   }
 
   @Nullable
   @Beta
   @Override
-  public final synchronized <T> T get(@Nonnull final Class<T> clasz) {
-    T res = (T) baggage.get(clasz);
+  public final synchronized Object get(@Nonnull final Object key) {
+    Object res = baggage.get(key);
     if (res == null) {
       if (parent != null) {
-        return parent.get(clasz);
+        return parent.get(key);
       } else {
         return null;
       }

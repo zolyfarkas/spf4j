@@ -74,8 +74,8 @@ public class ExecutionContextTest {
       long secs = start.getUnitsToDeadline(TimeUnit.SECONDS);
       Assert.assertTrue(secs >= 9);
       Assert.assertTrue(secs <= 10);
-      start.put("BAGAGE");
-      Assert.assertEquals("BAGAGE", start.get(String.class));
+      start.put("KEY", "BAGAGE");
+      Assert.assertEquals("BAGAGE", start.get("KEY", String.class));
     }
 
 
@@ -89,8 +89,8 @@ public class ExecutionContextTest {
       long secs = (Runtime.getDeadline() - System.currentTimeMillis()) / 1000;
       Assert.assertTrue("secs = " + secs,  secs >= 9);
       Assert.assertTrue("secs = " + secs, secs <= 10);
-      start.put("BAGAGE");
-      Assert.assertEquals("BAGAGE", start.get(String.class));
+      start.put("KEY", "BAGAGE");
+      Assert.assertEquals("BAGAGE", start.get("KEY", String.class));
     }
 
 
