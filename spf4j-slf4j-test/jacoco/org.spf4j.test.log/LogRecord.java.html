@@ -109,23 +109,23 @@ public final class LogRecord {
   }
 
   public synchronized void materializeMessage() {
-<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (message == null) {</span>
-<span class="nc" id="L113">      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">    if (message == null) {</span>
+<span class="fc" id="L113">      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);</span>
       try {
-<span class="nc" id="L115">        this.startExtra = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, sb, format,</span>
+<span class="fc" id="L115">        this.startExtra = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, sb, format,</span>
                 ObjectAppenderSupplier.TO_STRINGER, arguments);
 <span class="nc" id="L117">      } catch (IOException ex) {</span>
 <span class="nc" id="L118">        throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L119">      }</span>
-<span class="nc" id="L120">      message = sb.toString();</span>
+<span class="fc" id="L119">      }</span>
+<span class="fc" id="L120">      message = sb.toString();</span>
     }
-<span class="nc" id="L122">  }</span>
+<span class="fc" id="L122">  }</span>
 
   @Nonnull
   public synchronized Object[] getExtraArguments() {
-<span class="nc" id="L126">    materializeMessage();</span>
-<span class="nc bnc" id="L127" title="All 2 branches missed.">    if (startExtra &lt; arguments.length) {</span>
-<span class="nc" id="L128">      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
+<span class="fc" id="L126">    materializeMessage();</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">    if (startExtra &lt; arguments.length) {</span>
+<span class="fc" id="L128">      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
     } else {
 <span class="nc" id="L130">      return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
