@@ -37,6 +37,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import javax.sql.DataSource;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.concurrent.LockRuntimeException;
 
 /**
@@ -59,7 +60,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
   @Override
   public void lock() {
     try {
-      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      semaphore.acquire(ExecutionContexts.getMillisToDeadline(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | TimeoutException ex) {
       throw new LockRuntimeException(ex);
     }
@@ -68,7 +69,7 @@ public final class JdbcLock implements Lock, AutoCloseable {
   @Override
   public void lockInterruptibly() throws InterruptedException {
     try {
-      semaphore.acquire(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+      semaphore.acquire(ExecutionContexts.getMillisToDeadline(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException ex) {
       throw new LockRuntimeException(ex);
     }
