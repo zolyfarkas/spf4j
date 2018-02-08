@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 
@@ -49,6 +50,7 @@ import org.spf4j.reflect.GraphTypeMap;
  * @author zoly
  */
 @Beta
+@ThreadSafe
 @ParametersAreNonnullByDefault
 public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplier {
 

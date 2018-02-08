@@ -33,6 +33,7 @@ package org.spf4j.io;
 
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
+import javax.activation.MimeType;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -42,8 +43,26 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public interface ObjectAppender<T> {
 
+  /**
+   * the MimeType of the format used to write the Object.
+   * @return
+   */
+  default MimeType getAppendedType() {
+    return MimeTypes.PLAIN_TEXT;
+  }
+
+  /**
+   * Write an Object to a char stream.
+   * @param object
+   * @param appendTo
+   * @throws IOException
+   */
   void append(T object, Appendable appendTo) throws IOException;
 
+
+  /**
+   * A simple Object appender that invokes the toString method of the object and writes the object out.
+   */
   ObjectAppender<Object> TOSTRING_APPENDER = new ObjectAppender<Object>() {
     @Override
     public void append(final Object object, final Appendable appendTo) throws IOException {

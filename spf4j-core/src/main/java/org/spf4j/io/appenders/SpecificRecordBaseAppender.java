@@ -32,20 +32,27 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
+import javax.activation.MimeType;
 import org.apache.avro.specific.SpecificRecordBase;
+import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 
 /**
- *
+ * This is to disambiguate the choice between SpecificRecord and genericRecord.
  * @author zoly
  */
 public final class SpecificRecordBaseAppender implements ObjectAppender<SpecificRecordBase> {
-  
+
   private static final SpecificRecordAppender SA = new SpecificRecordAppender();
+
+  @Override
+  public MimeType getAppendedType() {
+    return MimeTypes.APPLICATION_JSON;
+  }
 
   @Override
   public void append(final SpecificRecordBase object, final Appendable appendTo) throws IOException {
     SA.append(object, appendTo);
   }
-  
+
 }
