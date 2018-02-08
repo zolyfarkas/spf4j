@@ -79,6 +79,22 @@ public interface ExecutionContext extends AutoCloseable {
      return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
   }
 
+  @Nonnegative
+  default long getMillisToDeadline() throws TimeoutException {
+    return getTimeToDeadline(TimeUnit.MILLISECONDS);
+  }
+
+  @Nonnegative
+  default int getSecondsToDeadline() throws TimeoutException {
+    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);
+    if (secondsToDeadline > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
+    } else {
+      return (int) secondsToDeadline;
+    }
+  }
+
+
   /**
    * Method to get baggage.
    * if current context does not have baggage, the parent context is queried.

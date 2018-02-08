@@ -173,4 +173,19 @@ public final class ExecutionContexts {
     return timeRelativeToDeadline;
   }
 
+  @Nonnegative
+  public static long getMillisToDeadline() throws TimeoutException {
+    return getTimeToDeadline(TimeUnit.MILLISECONDS);
+  }
+
+  @Nonnegative
+  public static int getSecondsToDeadline() throws TimeoutException {
+    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);
+    if (secondsToDeadline > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
+    } else {
+      return (int) secondsToDeadline;
+    }
+  }
+
 }
