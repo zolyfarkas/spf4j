@@ -20,6 +20,8 @@ with tons of debug info dumped to output all the time. But making it available w
 
 ## 2. How to use it.
 
+### Pom changes:
+
  Add to your pom.xml dependency section (make sure it is ahead of other slf4j backends you might have in your classpath):
 
     <dependency>
