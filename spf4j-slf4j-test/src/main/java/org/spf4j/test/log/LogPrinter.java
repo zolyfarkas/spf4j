@@ -32,6 +32,7 @@ import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 import java.util.Iterator;
+import javax.activation.MimeType;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Marker;
@@ -39,7 +40,8 @@ import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Slf4jMessageFormatter;
 import org.spf4j.base.Throwables;
 import org.spf4j.io.ByteArrayBuilder;
-import org.spf4j.io.ObjectAppenderSupplier;
+import org.spf4j.io.ConfigurableAppenderSupplier;
+import org.spf4j.io.ObjectAppender;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
@@ -70,7 +72,7 @@ public final class LogPrinter implements LogHandler {
     }
   };
 
-  private static final ObjectAppenderSupplier TO_STRINGER = ObjectAppenderSupplier.TO_STRINGER;
+  private static final ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 
   private final Level minLogged;
 
@@ -113,6 +115,10 @@ public final class LogPrinter implements LogHandler {
       return bab.size();
     }
 
+  }
+
+  public static ConfigurableAppenderSupplier getAppenderSupplier() {
+    return TO_STRINGER;
   }
 
   LogPrinter(final Level minLogged) {
@@ -250,9 +256,15 @@ public final class LogPrinter implements LogHandler {
     if (obj == null) {
       wr.append("null");
     } else {
-      wr.append('"');
-      TO_STRINGER.apply(obj.getClass()).append(obj, wrapper);
-      wr.append('"');
+      ObjectAppender ostrApp = TO_STRINGER.apply(obj.getClass());
+      MimeType type = ostrApp.getAppendedType();
+      if ("json".equalsIgnoreCase(type.getSubType())) {
+        ostrApp.append(obj, wr);
+      } else {
+        wr.append('"');
+        ostrApp.append(obj, wrapper);
+        wr.append('"');
+      }
     }
   }
 

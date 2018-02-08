@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.spf4j.io.MimeTypes;
 
 /**
  *
@@ -109,8 +110,8 @@ public class TestLoggerFactoryTest {
     LOG.warn(marker, "Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
     LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR, 4,
             Matchers.allOf(
-              LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")),
-              LogMatchers.hasMarker(marker)));
+                    LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")),
+                    LogMatchers.hasMarker(marker)));
     LOG.error(marker, "Hello logger", new RuntimeException());
     LOG.error(marker, "Hello logger");
     LOG.error(marker, "Hello logger {}", 1);
@@ -159,7 +160,6 @@ public class TestLoggerFactoryTest {
     expect.assertObservation();
   }
 
-
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @CollectTrobleshootingLogs(minLevel = Level.TRACE)
@@ -175,7 +175,6 @@ public class TestLoggerFactoryTest {
     }
   }
 
-
   @Test
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @CollectTrobleshootingLogs(minLevel = Level.TRACE)
@@ -186,6 +185,20 @@ public class TestLoggerFactoryTest {
       LOG.info("m2");
       Assert.assertEquals(2L, (long) c.get());
     }
+  }
+
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  @Test
+  public void testLogJson() {
+    LogAssert expect = TestLoggers.sys().expect("", Level.INFO,
+            Matchers.allOf(LogMatchers.hasFormat("Json Payload"),
+                    LogMatchers.hasMatchingExtraArguments(Matchers.arrayContaining(this))));
+    LogPrinter.getAppenderSupplier().register(TestLoggerFactoryTest.class,
+            MimeTypes.APPLICATION_JSON, (o, a) -> {
+              a.append("{\"a\" : \"b\"}");
+            });
+    LOG.info("Json Payload", this);
+    expect.assertObservation();
   }
 
   @Test(expected = AssertionError.class)
@@ -203,10 +216,7 @@ public class TestLoggerFactoryTest {
     expect.assertObservation();
   }
 
-
-
-
- @Ignore
+  @Ignore
   @Test
   @CollectTrobleshootingLogs(minLevel = Level.TRACE, collectPrinted = true)
   public void testLogging4() {

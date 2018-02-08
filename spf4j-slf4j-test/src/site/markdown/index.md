@@ -15,6 +15,8 @@ with tons of debug info dumped to output all the time. But making it available w
  *  Easily change logging configuration via API.
  *  Uncaught exceptions from other threads will fail your tests. You can assert them if they are expected.
  *  No configurable format, It is the best format so everybody should be using it. Format will be evolved as needed.
+ *  Ability to log other object payload additionally to the log message.
+ *  Type level String image customization. (if unhappy with default toString, or performance optimization is desired)
 
 ## 2. How to use it.
 
@@ -46,14 +48,14 @@ with tons of debug info dumped to output all the time. But making it available w
 
 ### Examples:
 
- Assert that you expect message to be logged:
+#### Assert that you expect message to be logged:
 
       LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR,
                 LogMatchers.hasFormat("Booo"));
       LOG.error("Booo", new RuntimeException());
       expect.assertObservation(); // whithout assert the unit test fails when logging an error.
 
- Assert uncaught exceptions:
+#### Assert uncaught exceptions:
 
       AsyncObservationAssert obs = TestLoggers.sys().expectUncaughtException(Matchers.hasProperty("throwable",
               Matchers.any(IllegalStateException.class)));
@@ -66,7 +68,7 @@ with tons of debug info dumped to output all the time. But making it available w
       });
       obs.assertObservation(5, TimeUnit.SECONDS);
 
- Collect LogRecords:
+#### Collect LogRecords:
 
     try (LogCollection<Long> c = TestLoggers.sys().collect("org.spf4j.test", Level.INFO, true, Collectors.counting())) {
       LOG.info("m1");
@@ -74,7 +76,7 @@ with tons of debug info dumped to output all the time. But making it available w
       Assert.assertEquals(2L, (long) c.get());
     }
 
- Change LOG print config for a log category:
+#### Change LOG print config for a log category:
 
       try (HandlerRegistration printer = TestLoggers.sys().print("my.log.package", Level.TRACE)) {
         ...
@@ -82,7 +84,29 @@ with tons of debug info dumped to output all the time. But making it available w
         ..
       }
 
- Debug detail on demand. For example if you have spf4j.testLog.rootPrintLevel=DEBUG and you want everything
+#### Log Additional objects:
+
+      LOG.debug("log {} {} {}", 1, 2, 3, /* extra object */ 4);
+
+ will be logged as:
+
+      09:23:32.731 DEBUG o.s.t.l.TestLoggerFactoryTest "main" "log 1 2 3" ["4"]
+
+
+#### Customize String image that is logged:
+
+       LogPrinter.getAppenderSupplier().register(TestLoggerFactoryTest.class,
+            MimeTypes.APPLICATION_JSON, (o, a) -> {a.append("{\"a\" : \"b\"}");});
+       LOG.info("Json Payload", this);
+
+ will be logged like:
+
+       12:13:00.656 INFO o.s.t.l.TestLoggerFactoryTest "main" "Json Payload" [{"a" : "b"}]
+
+
+#### Debug detail on demand.
+
+ For example if you have spf4j.testLog.rootPrintLevel=DEBUG and you want everything
  above trace available if a unit test fails, you can either set globaly spf4j.test.log.collectMinLevel=TRACE or you can
  control this at test level like:
 
@@ -115,7 +139,7 @@ with tons of debug info dumped to output all the time. But making it available w
               at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 
 
- Global configuration system properties with the defaults:
+#### Available global configuration system properties with the defaults:
 
       # default root log level when tests executed from IDE. see TestUtils.class for more info.
       spf4j.testLog.rootPrintLevelIDE = DEBUG
@@ -129,9 +153,9 @@ with tons of debug info dumped to output all the time. But making it available w
       spf4j.test.log.collectPrintedLogs
 
 
- The log format is:
+#### The log format is:
 
-      [ISO UTC Timestaamp] [LOG Level] [Markers(jsonstr/json obj)]? [LOGGER] [THREAD(jsonstr)] [MESSAGE(json str)] [Extra Objects(array<jsonstr>)]?
+      [ISO UTC Timestaamp] [LOG Level] [Markers(jsonstr/json obj)]? [LOGGER] [THREAD(jsonstr)] [MESSAGE(json str)] [Extra Objects(array<json>)]?
       [StackTrace]?
 
  sample log messages:
