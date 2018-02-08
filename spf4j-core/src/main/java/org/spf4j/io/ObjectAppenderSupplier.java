@@ -49,5 +49,5 @@ public interface ObjectAppenderSupplier extends Function<Class, ObjectAppender>,
         return get(clasz);
     }
 
-    ObjectAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
+    ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 }
