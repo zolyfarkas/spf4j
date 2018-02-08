@@ -57,8 +57,8 @@ public interface ExecutionContext extends AutoCloseable {
   ExecutionContext getParent();
 
   @Nonnegative
-  default long getUnitsToDeadline(final TimeUnit unit) throws TimeoutException {
-     long result = getUnitsRelativeToDeadline(unit);
+  default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
+     long result = getTimeRelativeToDeadline(unit);
      if (result <= 0) {
        throw new TimeoutException("Deadline exceeded by " + (-result) + ' ' + unit);
      }
@@ -66,8 +66,8 @@ public interface ExecutionContext extends AutoCloseable {
   }
 
   @Nonnegative
-  default long getUncheckedUnitsToDeadline(final TimeUnit unit) {
-     long result = getUnitsRelativeToDeadline(unit);
+  default long getUncheckedTimeToDeadline(final TimeUnit unit) {
+     long result = getTimeRelativeToDeadline(unit);
      if (result <= 0) {
        throw new UncheckedTimeoutException("Deadline exceeded by " + (-result) + ' ' + unit);
      }
@@ -75,7 +75,7 @@ public interface ExecutionContext extends AutoCloseable {
   }
 
   @Signed
-  default long getUnitsRelativeToDeadline(final TimeUnit unit)  {
+  default long getTimeRelativeToDeadline(final TimeUnit unit)  {
      return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
   }
 

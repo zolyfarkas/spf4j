@@ -52,6 +52,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -481,7 +482,7 @@ public final class Runtime {
    */
   @Deprecated
   public static long millisToDeadline() throws TimeoutException {
-    return ExecutionContexts.getMillisToDeadline();
+    return ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);
   }
 
   /**

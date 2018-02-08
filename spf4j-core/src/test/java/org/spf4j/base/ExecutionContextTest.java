@@ -51,12 +51,12 @@ public class ExecutionContextTest {
   @Test
   public void testExecutionContext() throws InterruptedException, ExecutionException, TimeoutException {
     try (ExecutionContext ec = ExecutionContexts.start(TimeSource.getDeadlineNanos(10, TimeUnit.SECONDS))) {
-      long unitsToDeadline = ExecutionContexts.current().getUnitsToDeadline(TimeUnit.SECONDS);
+      long unitsToDeadline = ExecutionContexts.current().getTimeToDeadline(TimeUnit.SECONDS);
       Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
       Assert.assertThat(unitsToDeadline, Matchers.greaterThanOrEqualTo(9L));
       Future<?> submit = DefaultExecutor.INSTANCE.submit(() -> {
         try (ExecutionContext subCtx = ExecutionContexts.start(ec)) {
-          long utd = ExecutionContexts.current().getUncheckedUnitsToDeadline(TimeUnit.SECONDS);
+          long utd = ExecutionContexts.current().getUncheckedTimeToDeadline(TimeUnit.SECONDS);
           Assert.assertThat(utd, Matchers.lessThanOrEqualTo(10L));
           Assert.assertThat(utd, Matchers.greaterThanOrEqualTo(9L));
           Assert.assertEquals(ec, subCtx.getParent());
@@ -71,7 +71,7 @@ public class ExecutionContextTest {
   @Test
   public void testExecutionContext2() throws TimeoutException {
     try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
-      long secs = start.getUnitsToDeadline(TimeUnit.SECONDS);
+      long secs = start.getTimeToDeadline(TimeUnit.SECONDS);
       Assert.assertTrue(secs >= 9);
       Assert.assertTrue(secs <= 10);
       start.put("KEY", "BAGAGE");

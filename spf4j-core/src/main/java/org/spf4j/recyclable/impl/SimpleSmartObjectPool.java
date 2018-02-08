@@ -163,7 +163,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             // probably was unable to acquire the locks
             do {
               available.await(1, TimeUnit.MILLISECONDS);
-              long millisToDeadline = ExecutionContexts.getMillisRelativeToDeadline();
+              long millisToDeadline = ExecutionContexts.getTimeRelativeToDeadline(TimeUnit.MILLISECONDS);
               if (millisToDeadline < 0) {
                 throw new TimeoutException("Object wait timeout expired by " + (-millisToDeadline));
               }
@@ -172,7 +172,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         }
         waitingForReturn++;
         while (availableObjects.isEmpty()) {
-          long waitTime = ExecutionContexts.getMillisToDeadline();
+          long waitTime = ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);
           if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("Object wait timeout expired, waitTime = " + waitTime);
           }

@@ -160,45 +160,17 @@ public final class ExecutionContexts {
   }
 
   @Signed
-  public static long getSecondsRelativeToDeadline() {
-    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - TimeSource.nanoTime());
+  public static long getTimeRelativeToDeadline(final TimeUnit unit) {
+    return unit.convert(getContextDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);
   }
 
   @Nonnegative
-  public static long getSecondsToDeadline() throws TimeoutException {
-    long secondsRelativeToDeadline = getSecondsRelativeToDeadline();
-    if (secondsRelativeToDeadline <= 0) {
-      throw new TimeoutException("Deadline exceeded by " + (-secondsRelativeToDeadline) + " secs");
+  public static long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
+    long timeRelativeToDeadline = getTimeRelativeToDeadline(unit);
+    if (timeRelativeToDeadline <= 0) {
+      throw new TimeoutException("Deadline exceeded by " + (-timeRelativeToDeadline) + ' ' + unit);
     }
-    return secondsRelativeToDeadline;
-  }
-
-  @Nonnegative
-  public static long getMillisToDeadline() throws TimeoutException {
-    long millisRelativeToDeadline = getMillisRelativeToDeadline();
-    if (millisRelativeToDeadline <= 0) {
-      throw new TimeoutException("Deadline exceeded by " + (-millisRelativeToDeadline) + " ms");
-    }
-    return millisRelativeToDeadline;
-  }
-
-  @Signed
-  public static long getMillisRelativeToDeadline() {
-    return TimeUnit.NANOSECONDS.toMillis(getContextDeadlineNanos() - TimeSource.nanoTime());
-  }
-
-  @Signed
-  public static long getNanosRelativeToDeadline() {
-    return getContextDeadlineNanos() - TimeSource.nanoTime();
-  }
-
-  @Nonnegative
-  public static long getNanosToDeadline() throws TimeoutException {
-    long nanosRelativeToDeadline = getNanosRelativeToDeadline();
-    if (nanosRelativeToDeadline <= 0) {
-      throw new TimeoutException("Deadline exceeded by " + (-nanosRelativeToDeadline) + " nanos");
-    }
-    return nanosRelativeToDeadline;
+    return timeRelativeToDeadline;
   }
 
 }
