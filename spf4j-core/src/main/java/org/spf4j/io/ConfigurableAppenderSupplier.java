@@ -122,9 +122,8 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     appenderMap.replace(type, (Function) replace);
   }
 
-  @SuppressWarnings("unchecked")
   @CheckReturnValue
-  private <T> boolean register(final Class<T> type, final ObjectAppender<? super T> appender) {
+  public <T> boolean register(final Class<T> type, final ObjectAppender<? super T> appender) {
     return appenderMap.putIfNotPresent(type, appender);
   }
 
