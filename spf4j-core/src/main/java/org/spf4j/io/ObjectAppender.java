@@ -32,7 +32,9 @@
 package org.spf4j.io;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ConcurrentModificationException;
+import java.util.function.BiConsumer;
 import javax.activation.MimeType;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -41,7 +43,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <T> - type of object to append.
  */
 @ParametersAreNonnullByDefault
-public interface ObjectAppender<T> {
+@FunctionalInterface
+public interface ObjectAppender<T> extends BiConsumer<T, Appendable> {
 
   /**
    * the MimeType of the format used to write the Object.
@@ -59,6 +62,14 @@ public interface ObjectAppender<T> {
    */
   void append(T object, Appendable appendTo) throws IOException;
 
+
+  default void accept(final T object, final Appendable appendTo) {
+    try {
+      append(object, appendTo);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
 
   /**
    * A simple Object appender that invokes the toString method of the object and writes the object out.

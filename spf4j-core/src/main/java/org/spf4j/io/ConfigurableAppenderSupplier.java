@@ -33,12 +33,14 @@ package org.spf4j.io;
 
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javax.activation.MimeType;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
@@ -73,7 +75,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
         ObjectAppender<?> appender = iterator.next();
         Class<?> appenderType = getAppenderType(appender);
         if (!except.test(appenderType)) {
-          if (!register((Class) appenderType, (ObjectAppender) appender)) {
+          if (!ConfigurableAppenderSupplier.this.tryRegister((Class) appenderType, (ObjectAppender) appender)) {
             throw new IllegalArgumentException("Attempting to register duplicate appender(" + appender + ") for "
                     + appenderType);
           }
@@ -81,7 +83,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
       }
     }
     for (ObjectAppender<?> appender : appenders) {
-      if (!register(getAppenderType(appender), (ObjectAppender) appender)) {
+      if (!ConfigurableAppenderSupplier.this.tryRegister(getAppenderType(appender), (ObjectAppender) appender)) {
         throw new IllegalArgumentException("Cannot register appender " + appender);
       }
     }
@@ -110,7 +112,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   public <T> int register(final Class<T> type, final ObjectAppender<? super T>... appenders) {
     int i = 0;
     for (ObjectAppender<? super T> appender : appenders) {
-      if (register(type, appender)) {
+      if (ConfigurableAppenderSupplier.this.tryRegister(type, appender)) {
         i++;
       }
     }
@@ -122,10 +124,30 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     appenderMap.replace(type, (Function) replace);
   }
 
+  public <T> void register(final Class<T> type, final ObjectAppender<? super T> appender) {
+    if (!tryRegister(type, appender)) {
+      throw new IllegalArgumentException("Cannnot Register " + appender + " for " + type);
+    }
+  }
+
   @CheckReturnValue
-  public <T> boolean register(final Class<T> type, final ObjectAppender<? super T> appender) {
+  public <T> boolean tryRegister(final Class<T> type, final ObjectAppender<? super T> appender) {
     return appenderMap.putIfNotPresent(type, appender);
   }
+
+  public <T> void register(final Class<T> type, final MimeType contentType,
+          final ObjectAppender<? super T> appender) {
+     if (!tryRegister(type, contentType, appender)) {
+       throw new IllegalArgumentException("Cannnot Register " + appender + " for " + type);
+     }
+  }
+
+  @CheckReturnValue
+  public <T> boolean tryRegister(final Class<T> type, final MimeType contentType,
+          final ObjectAppender<? super T> appender) {
+    return appenderMap.putIfNotPresent(type, new ObjectAppenderContentTypeAdapter(appender, contentType));
+  }
+
 
   public boolean unregister(final Class<?> type) {
     return appenderMap.remove(type);
@@ -139,6 +161,27 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   @Override
   public String toString() {
     return "ConfigurableAppenderSupplier{" + "lookup=" + appenderMap  + '}';
+  }
+
+  private static final class ObjectAppenderContentTypeAdapter<T> implements ObjectAppender<T> {
+
+    private final ObjectAppender<? super T> appender;
+    private final MimeType contentType;
+
+    ObjectAppenderContentTypeAdapter(final ObjectAppender<? super T> appender, final MimeType contentType) {
+      this.appender = appender;
+      this.contentType = contentType;
+    }
+
+    @Override
+    public void append(final T object, final Appendable appendTo) throws IOException {
+      appender.append(object, appendTo);
+    }
+
+    @Override
+    public MimeType getAppendedType() {
+      return contentType;
+    }
   }
 
 }
