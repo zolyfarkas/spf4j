@@ -31,8 +31,13 @@
  */
 package org.spf4j.base;
 
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogAssert;
+import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLoggers;
 
 /**
  *
@@ -57,6 +62,8 @@ public final class StringsTest {
 
   @Test
   public void testUnsafeOps() {
+    LogAssert dontExpect = TestLoggers.sys()
+            .dontExpect(Strings.class.getName(), Level.INFO,  Matchers.any(LogRecord.class));
     String testString = "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&\u63A5\u53D7*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
     char[] chars = Strings.steal(testString);
     String otherString = Strings.wrap(chars);
@@ -65,7 +72,7 @@ public final class StringsTest {
     byte[] bytes = Strings.toUtf8(testString);
     otherString = Strings.fromUtf8(bytes);
     Assert.assertEquals(testString, otherString);
-
+    dontExpect.assertObservation();
   }
 
   @Test
