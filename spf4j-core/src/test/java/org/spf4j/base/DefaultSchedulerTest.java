@@ -64,7 +64,7 @@ public final class DefaultSchedulerTest {
         if (time % 1000 >= 100) {
           notAligned = true;
         }
-        LOG.debug("Executed {}", this);
+        LOG.debug("scheduled at {}", time);
         if (first) {
           try {
             Thread.sleep(2000);
