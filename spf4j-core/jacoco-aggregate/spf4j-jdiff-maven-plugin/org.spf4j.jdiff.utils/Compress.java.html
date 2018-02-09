@@ -132,22 +132,22 @@ public final class Compress {
    */
   @SuppressFBWarnings(&quot;AFBR_ABNORMAL_FINALLY_BLOCK_RETURN&quot;)
   public static void copyFileAtomic(final Path source, final Path destinationFile) throws IOException {
-<span class="nc" id="L135">    Path parent = destinationFile.getParent();</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">    if (parent == null) {</span>
+<span class="fc" id="L135">    Path parent = destinationFile.getParent();</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">    if (parent == null) {</span>
 <span class="nc" id="L137">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationFile + &quot; is not a file&quot;);</span>
     }
-<span class="nc" id="L139">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
+<span class="fc" id="L139">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
     try {
-<span class="nc" id="L141">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source));</span>
-<span class="nc" id="L142">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
-<span class="nc" id="L143">        copy(in, os);</span>
+<span class="fc" id="L141">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source));</span>
+<span class="fc" id="L142">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
+<span class="fc" id="L143">        copy(in, os);</span>
       }
-<span class="nc" id="L145">      Files.move(tmpFile, destinationFile,</span>
+<span class="fc" id="L145">      Files.move(tmpFile, destinationFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-<span class="nc" id="L148">      Files.deleteIfExists(tmpFile);</span>
+<span class="fc" id="L148">      Files.deleteIfExists(tmpFile);</span>
     }
-<span class="nc" id="L150">  }</span>
+<span class="fc" id="L150">  }</span>
 
 
   /**
@@ -172,37 +172,37 @@ public final class Compress {
    * @throws IOException in case extraction fails for whatever reason.
    */
   public static List&lt;Path&gt; unzip(final Path zipFile, final Path destinationDirectory) throws IOException {
-<span class="nc bnc" id="L175" title="All 2 branches missed.">    if (!Files.exists(destinationDirectory)) {</span>
-<span class="nc" id="L176">      Files.createDirectories(destinationDirectory);</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (!Files.exists(destinationDirectory)) {</span>
+<span class="fc" id="L176">      Files.createDirectories(destinationDirectory);</span>
     }
-<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (!Files.isDirectory(destinationDirectory)) {</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    if (!Files.isDirectory(destinationDirectory)) {</span>
 <span class="nc" id="L179">      throw new IllegalArgumentException(&quot;Destination &quot; + destinationDirectory + &quot; must be a directory&quot;);</span>
     }
-<span class="nc" id="L181">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L182">    URI zipUri = URI.create(&quot;jar:&quot; + zipFile.toUri().toURL());</span>
-<span class="nc" id="L183">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">      for (Path root : zipFs.getRootDirectories()) {</span>
-<span class="nc" id="L185">        Path dest =  destinationDirectory.resolve(root.toString().substring(1));</span>
-<span class="nc" id="L186">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
+<span class="fc" id="L181">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L182">    URI zipUri = URI.create(&quot;jar:&quot; + zipFile.toUri().toURL());</span>
+<span class="fc" id="L183">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">      for (Path root : zipFs.getRootDirectories()) {</span>
+<span class="fc" id="L185">        Path dest =  destinationDirectory.resolve(root.toString().substring(1));</span>
+<span class="fc" id="L186">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
           @Override
           public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                   throws IOException {
-<span class="nc" id="L190">            Path destination = dest.resolve(root.relativize(file).toString());</span>
-<span class="nc" id="L191">            copyFileAtomic(file, destination);</span>
-<span class="nc" id="L192">            response.add(destination);</span>
-<span class="nc" id="L193">            return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L190">            Path destination = dest.resolve(root.relativize(file).toString());</span>
+<span class="fc" id="L191">            copyFileAtomic(file, destination);</span>
+<span class="fc" id="L192">            response.add(destination);</span>
+<span class="fc" id="L193">            return FileVisitResult.CONTINUE;</span>
           }
 
           @Override
           public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
                   throws IOException {
-<span class="nc" id="L199">            String dirStr = dir.toString();</span>
-<span class="nc" id="L200">            Path np = dest.resolve(dirStr.substring(1));</span>
-<span class="nc" id="L201">            Files.createDirectories(np);</span>
-<span class="nc" id="L202">            return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L199">            String dirStr = dir.toString();</span>
+<span class="fc" id="L200">            Path np = dest.resolve(dirStr.substring(1));</span>
+<span class="fc" id="L201">            Files.createDirectories(np);</span>
+<span class="fc" id="L202">            return FileVisitResult.CONTINUE;</span>
           }
         });
-<span class="nc" id="L205">      }</span>
+<span class="fc" id="L205">      }</span>
 <span class="nc" id="L206">    } catch (IOException | RuntimeException ex) {</span>
 <span class="nc bnc" id="L207" title="All 2 branches missed.">      for (Path path : response) {</span>
         try {
@@ -212,12 +212,12 @@ public final class Compress {
 <span class="nc" id="L212">        }</span>
 <span class="nc" id="L213">      }</span>
 <span class="nc" id="L214">      throw ex;</span>
-<span class="nc" id="L215">    }</span>
-<span class="nc" id="L216">    return response;</span>
+<span class="fc" id="L215">    }</span>
+<span class="fc" id="L216">    return response;</span>
   }
 
    public static long copy(final InputStream is, final OutputStream os) throws IOException {
-<span class="nc" id="L220">        return copy(is, os, 8192);</span>
+<span class="fc" id="L220">        return copy(is, os, 8192);</span>
     }
 
     /**
@@ -233,7 +233,7 @@ public final class Compress {
      * @throws IOException
      */
     public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
-<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (buffSize &lt; 2) {</span>
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        if (buffSize &lt; 2) {</span>
             int val;
 <span class="nc" id="L238">            long count = 0;</span>
 <span class="nc bnc" id="L239" title="All 2 branches missed.">            while ((val = is.read()) &gt;= 0) {</span>
@@ -242,43 +242,43 @@ public final class Compress {
             }
 <span class="nc" id="L243">            return count;</span>
         }
-<span class="nc" id="L245">        long total = 0;</span>
-<span class="nc" id="L246">        byte[] buffer = new byte[buffSize];</span>
-<span class="nc" id="L247">            boolean done = false;</span>
-<span class="nc" id="L248">            long bytesCopiedSinceLastFlush = 0;</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">            while (!done) {</span>
+<span class="fc" id="L245">        long total = 0;</span>
+<span class="fc" id="L246">        byte[] buffer = new byte[buffSize];</span>
+<span class="fc" id="L247">            boolean done = false;</span>
+<span class="fc" id="L248">            long bytesCopiedSinceLastFlush = 0;</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">            while (!done) {</span>
                 // non-blocking(if input is implemented correctly) read+write as long as data is available.
-<span class="nc bnc" id="L251" title="All 2 branches missed.">                while (is.available() &gt; 0) {</span>
-<span class="nc" id="L252">                    int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">                    if (nrRead &lt; 0) {</span>
+<span class="fc bfc" id="L251" title="All 2 branches covered.">                while (is.available() &gt; 0) {</span>
+<span class="fc" id="L252">                    int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">                    if (nrRead &lt; 0) {</span>
 <span class="nc" id="L254">                        done = true;</span>
 <span class="nc" id="L255">                        break;</span>
                     } else {
-<span class="nc" id="L257">                        os.write(buffer, 0, nrRead);</span>
-<span class="nc" id="L258">                        total += nrRead;</span>
-<span class="nc" id="L259">                        bytesCopiedSinceLastFlush += nrRead;</span>
+<span class="fc" id="L257">                        os.write(buffer, 0, nrRead);</span>
+<span class="fc" id="L258">                        total += nrRead;</span>
+<span class="fc" id="L259">                        bytesCopiedSinceLastFlush += nrRead;</span>
                     }
-<span class="nc" id="L261">                }</span>
+<span class="fc" id="L261">                }</span>
             // there seems to be nothing available to read anymore,
                 // lets flush the os instead of blocking for another read.
-<span class="nc bnc" id="L264" title="All 2 branches missed.">                if (bytesCopiedSinceLastFlush &gt; 0) {</span>
-<span class="nc" id="L265">                    os.flush();</span>
-<span class="nc" id="L266">                    bytesCopiedSinceLastFlush = 0;</span>
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">                if (bytesCopiedSinceLastFlush &gt; 0) {</span>
+<span class="fc" id="L265">                    os.flush();</span>
+<span class="fc" id="L266">                    bytesCopiedSinceLastFlush = 0;</span>
                 }
-<span class="nc bnc" id="L268" title="All 2 branches missed.">                if (done) {</span>
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">                if (done) {</span>
 <span class="nc" id="L269">                    break;</span>
                 }
                 // most likely a blocking read.
-<span class="nc" id="L272">                int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="nc bnc" id="L273" title="All 2 branches missed.">                if (nrRead &lt; 0) {</span>
-<span class="nc" id="L274">                    break;</span>
+<span class="fc" id="L272">                int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">                if (nrRead &lt; 0) {</span>
+<span class="fc" id="L274">                    break;</span>
                 } else {
 <span class="nc" id="L276">                    os.write(buffer, 0, nrRead);</span>
 <span class="nc" id="L277">                    total += nrRead;</span>
 <span class="nc" id="L278">                    bytesCopiedSinceLastFlush += nrRead;</span>
                 }
 <span class="nc" id="L280">            }</span>
-<span class="nc" id="L281">        return total;</span>
+<span class="fc" id="L281">        return total;</span>
     }
 
 

@@ -59,15 +59,15 @@ public final class VMExecutor {
   /**
    * Map from Future -&gt; Suspendables suspended at this futures and their futures.
    */
-<span class="nc" id="L62">  private final ConcurrentMap&lt;VMFuture&lt;Object&gt;, List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;&gt; futToSuspMap</span>
+<span class="fc" id="L62">  private final ConcurrentMap&lt;VMFuture&lt;Object&gt;, List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt;&gt; futToSuspMap</span>
           = new ConcurrentHashMap&lt;&gt;();
 
 
 <span class="nc" id="L66">  public static class Lazy {</span>
 
-<span class="nc" id="L68">    private static final ExecutorService DEF_EXEC</span>
-<span class="nc" id="L69">            = new ForkJoinPool(Integer.getInteger(&quot;zel.pool.maxThreadNr&quot;, org.spf4j.base.Runtime.NR_PROCESSORS),</span>
-<span class="nc" id="L70">                    new DefaultForkJoinWorkerThreadFactory(), new Thread.UncaughtExceptionHandler() {</span>
+<span class="fc" id="L68">    private static final ExecutorService DEF_EXEC</span>
+<span class="fc" id="L69">            = new ForkJoinPool(Integer.getInteger(&quot;zel.pool.maxThreadNr&quot;, org.spf4j.base.Runtime.NR_PROCESSORS),</span>
+<span class="fc" id="L70">                    new DefaultForkJoinWorkerThreadFactory(), new Thread.UncaughtExceptionHandler() {</span>
 
               @Override
               public void uncaughtException(final Thread t, final Throwable e) {
@@ -76,29 +76,29 @@ public final class VMExecutor {
             }, true);
 
     static {
-<span class="nc" id="L79">      org.spf4j.base.Runtime.queueHook(0, new Runnable() {</span>
+<span class="fc" id="L79">      org.spf4j.base.Runtime.queueHook(0, new Runnable() {</span>
         @Override
         public void run() {
-<span class="nc" id="L82">          DEF_EXEC.shutdown();</span>
-<span class="nc" id="L83">        }</span>
+<span class="fc" id="L82">          DEF_EXEC.shutdown();</span>
+<span class="fc" id="L83">        }</span>
       });
     }
 
-<span class="nc" id="L87">    public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);</span>
+<span class="fc" id="L87">    public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);</span>
 
     static class ZelWorker extends ForkJoinWorkerThread {
 
       ZelWorker(final ForkJoinPool pool) {
-<span class="nc" id="L92">        super(pool);</span>
-<span class="nc" id="L93">      }</span>
+<span class="fc" id="L92">        super(pool);</span>
+<span class="fc" id="L93">      }</span>
 
     }
 
-<span class="nc" id="L97">    static class DefaultForkJoinWorkerThreadFactory</span>
+<span class="fc" id="L97">    static class DefaultForkJoinWorkerThreadFactory</span>
             implements ForkJoinPool.ForkJoinWorkerThreadFactory {
 
       public ForkJoinWorkerThread newThread(final ForkJoinPool pool) {
-<span class="nc" id="L101">        return new ZelWorker(pool);</span>
+<span class="fc" id="L101">        return new ZelWorker(pool);</span>
       }
     }
   }
@@ -113,38 +113,38 @@ public final class VMExecutor {
   }
 
   public static &lt;T&gt; Suspendable&lt;T&gt; synchronize(final Suspendable&lt;T&gt; what) {
-<span class="nc" id="L116">    return new Suspendable&lt;T&gt;() {</span>
+<span class="fc" id="L116">    return new Suspendable&lt;T&gt;() {</span>
 
-<span class="nc" id="L118">      private volatile boolean isRunning = false;</span>
+<span class="fc" id="L118">      private volatile boolean isRunning = false;</span>
 
       @Override
       public T call() throws SuspendedException, ExecutionException, InterruptedException {
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (!isRunning) {</span>
-<span class="nc" id="L123">          synchronized (this) {</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (!isRunning) {</span>
-<span class="nc" id="L125">              isRunning = true;</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (!isRunning) {</span>
+<span class="fc" id="L123">          synchronized (this) {</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            if (!isRunning) {</span>
+<span class="fc" id="L125">              isRunning = true;</span>
               try {
-<span class="nc" id="L127">                return what.call();</span>
-<span class="nc" id="L128">              } catch (SuspendedException e) {</span>
-<span class="nc" id="L129">                isRunning = false;</span>
-<span class="nc" id="L130">                throw e;</span>
+<span class="fc" id="L127">                return what.call();</span>
+<span class="fc" id="L128">              } catch (SuspendedException e) {</span>
+<span class="fc" id="L129">                isRunning = false;</span>
+<span class="fc" id="L130">                throw e;</span>
               }
             }
 <span class="nc" id="L133">          }</span>
         }
-<span class="nc" id="L135">        throw ExecAbortException.INSTANCE;</span>
+<span class="fc" id="L135">        throw ExecAbortException.INSTANCE;</span>
       }
 
       @Override
       public synchronized List&lt;VMFuture&lt;Object&gt;&gt; getSuspendedAt() {
-<span class="nc" id="L140">        return what.getSuspendedAt();</span>
+<span class="fc" id="L140">        return what.getSuspendedAt();</span>
       }
     };
   }
 
-<span class="nc" id="L145">  public VMExecutor(final Executor exec) {</span>
-<span class="nc" id="L146">    this.exec = exec;</span>
-<span class="nc" id="L147">  }</span>
+<span class="fc" id="L145">  public VMExecutor(final Executor exec) {</span>
+<span class="fc" id="L146">    this.exec = exec;</span>
+<span class="fc" id="L147">  }</span>
 
   public &lt;T&gt; Future&lt;T&gt; submitNonSuspendable(final Callable&lt;T&gt; callable) {
 <span class="nc" id="L150">    FutureTask task = new FutureTask(callable);</span>
@@ -153,9 +153,9 @@ public final class VMExecutor {
   }
 
   public &lt;T&gt; Future&lt;T&gt; submit(final Suspendable&lt;T&gt; callable) {
-<span class="nc" id="L156">    final VMFuture&lt;T&gt; resultFuture = new VMSyncFuture&lt;&gt;();</span>
-<span class="nc" id="L157">    submit(callable, resultFuture);</span>
-<span class="nc" id="L158">    return resultFuture;</span>
+<span class="fc" id="L156">    final VMFuture&lt;T&gt; resultFuture = new VMSyncFuture&lt;&gt;();</span>
+<span class="fc" id="L157">    submit(callable, resultFuture);</span>
+<span class="fc" id="L158">    return resultFuture;</span>
   }
 
   /**
@@ -166,82 +166,82 @@ public final class VMExecutor {
    * @return
    */
   public &lt;T&gt; Future&lt;T&gt; submitInternal(final Suspendable&lt;T&gt; callable) {
-<span class="nc" id="L169">    final VMFuture&lt;T&gt; resultFuture = new VMASyncFuture&lt;&gt;();</span>
-<span class="nc" id="L170">    submit(callable, resultFuture);</span>
-<span class="nc" id="L171">    return resultFuture;</span>
+<span class="fc" id="L169">    final VMFuture&lt;T&gt; resultFuture = new VMASyncFuture&lt;&gt;();</span>
+<span class="fc" id="L170">    submit(callable, resultFuture);</span>
+<span class="fc" id="L171">    return resultFuture;</span>
   }
 
   @Nullable
   public List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; resumeSuspendables(final VMFuture&lt;Object&gt; future) {
-<span class="nc" id="L176">    List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended = futToSuspMap.remove(future);</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">    if (suspended != null) {</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">      for (Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt; susp : suspended) {</span>
-<span class="nc" id="L179">        submit(susp.getFirst(), susp.getSecond());</span>
-<span class="nc" id="L180">      }</span>
+<span class="fc" id="L176">    List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended = futToSuspMap.remove(future);</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">    if (suspended != null) {</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">      for (Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt; susp : suspended) {</span>
+<span class="fc" id="L179">        submit(susp.getFirst(), susp.getSecond());</span>
+<span class="fc" id="L180">      }</span>
     }
-<span class="nc" id="L182">    return suspended;</span>
+<span class="fc" id="L182">    return suspended;</span>
   }
 
   private void addSuspendable(final VMFuture&lt;Object&gt; futureSuspendedFor,
           final Suspendable&lt;Object&gt; suspendedCallable, final VMFuture&lt;Object&gt; suspendedCallableFuture) {
 
-<span class="nc" id="L188">    List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended</span>
-<span class="nc" id="L189">            = futToSuspMap.get(futureSuspendedFor);</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">    if (suspended == null) {</span>
-<span class="nc" id="L191">      suspended = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L192">      List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
-<span class="nc" id="L193">              = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);</span>
-<span class="nc bnc" id="L194" title="All 2 branches missed.">      if (old != null) {</span>
+<span class="fc" id="L188">    List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; suspended</span>
+<span class="fc" id="L189">            = futToSuspMap.get(futureSuspendedFor);</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">    if (suspended == null) {</span>
+<span class="fc" id="L191">      suspended = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L192">      List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
+<span class="fc" id="L193">              = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">      if (old != null) {</span>
 <span class="nc" id="L195">        suspended = old;</span>
       }
     }
     do {
-<span class="nc" id="L199">      List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; newList</span>
+<span class="fc" id="L199">      List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; newList</span>
               = new LinkedList&lt;&gt;(suspended);
-<span class="nc" id="L201">      newList.add(Pair.of(suspendedCallable, suspendedCallableFuture));</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">      if (futToSuspMap.replace(futureSuspendedFor, suspended, newList)) {</span>
-<span class="nc" id="L203">        break;</span>
+<span class="fc" id="L201">      newList.add(Pair.of(suspendedCallable, suspendedCallableFuture));</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">      if (futToSuspMap.replace(futureSuspendedFor, suspended, newList)) {</span>
+<span class="fc" id="L203">        break;</span>
       } else {
-<span class="nc" id="L205">        suspended = futToSuspMap.get(futureSuspendedFor);</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (suspended == null) {</span>
-<span class="nc" id="L207">          suspended = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L208">          List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
-<span class="nc" id="L209">                  = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">          if (old != null) {</span>
+<span class="fc" id="L205">        suspended = futToSuspMap.get(futureSuspendedFor);</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">        if (suspended == null) {</span>
+<span class="fc" id="L207">          suspended = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L208">          List&lt;Pair&lt;Suspendable&lt;Object&gt;, VMFuture&lt;Object&gt;&gt;&gt; old</span>
+<span class="fc" id="L209">                  = futToSuspMap.putIfAbsent(futureSuspendedFor, suspended);</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">          if (old != null) {</span>
 <span class="nc" id="L211">            suspended = old;</span>
           }
         }
       }
-<span class="nc" id="L215">    } while (true);</span>
-<span class="nc bnc" id="L216" title="All 2 branches missed.">    if (futureSuspendedFor.isDone()) {</span>
-<span class="nc" id="L217">      resumeSuspendables(futureSuspendedFor);</span>
+<span class="fc" id="L215">    } while (true);</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">    if (futureSuspendedFor.isDone()) {</span>
+<span class="fc" id="L217">      resumeSuspendables(futureSuspendedFor);</span>
     }
-<span class="nc" id="L219">  }</span>
+<span class="fc" id="L219">  }</span>
 
   private &lt;T&gt; void submit(final Suspendable&lt;T&gt; callable, final VMFuture&lt;T&gt; future) {
-<span class="nc" id="L222">    exec.execute(new Runnable() {</span>
+<span class="fc" id="L222">    exec.execute(new Runnable() {</span>
 
       @Override
       public void run() {
         try {
-<span class="nc" id="L227">          T result = callable.call();</span>
-<span class="nc" id="L228">          future.setResult(result);</span>
-<span class="nc" id="L229">          resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
-<span class="nc" id="L230">        } catch (SuspendedException ex) {</span>
-<span class="nc bnc" id="L231" title="All 2 branches missed.">          for (VMFuture&lt;Object&gt; fut : callable.getSuspendedAt()) {</span>
-<span class="nc" id="L232">            addSuspendable(fut,</span>
+<span class="fc" id="L227">          T result = callable.call();</span>
+<span class="fc" id="L228">          future.setResult(result);</span>
+<span class="fc" id="L229">          resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
+<span class="fc" id="L230">        } catch (SuspendedException ex) {</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">          for (VMFuture&lt;Object&gt; fut : callable.getSuspendedAt()) {</span>
+<span class="fc" id="L232">            addSuspendable(fut,</span>
                     (Suspendable&lt;Object&gt;) callable, (VMFuture&lt;Object&gt;) future);
-<span class="nc" id="L234">          }</span>
-<span class="nc" id="L235">        } catch (ExecutionException e) {</span>
-<span class="nc" id="L236">          future.setExceptionResult(e);</span>
-<span class="nc" id="L237">          resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
-<span class="nc" id="L238">        } catch (RuntimeException | InterruptedException e) {</span>
-<span class="nc" id="L239">          future.setExceptionResult(new ExecutionException(e));</span>
-<span class="nc" id="L240">          resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
-<span class="nc" id="L241">        }</span>
-<span class="nc" id="L242">      }</span>
+<span class="fc" id="L234">          }</span>
+<span class="fc" id="L235">        } catch (ExecutionException e) {</span>
+<span class="fc" id="L236">          future.setExceptionResult(e);</span>
+<span class="fc" id="L237">          resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
+<span class="fc" id="L238">        } catch (RuntimeException | InterruptedException e) {</span>
+<span class="fc" id="L239">          future.setExceptionResult(new ExecutionException(e));</span>
+<span class="fc" id="L240">          resumeSuspendables((VMFuture&lt;Object&gt;) future);</span>
+<span class="fc" id="L241">        }</span>
+<span class="fc" id="L242">      }</span>
     });
-<span class="nc" id="L244">  }</span>
+<span class="fc" id="L244">  }</span>
 
   @Override
   public String toString() {

@@ -38,17 +38,17 @@ import java.io.IOException;
  * @author zoly
  */
 public final class EscapeJsonStringAppendableWrapper implements Appendable {
-  
+
   private final Appendable wrapped;
 
 <span class="fc" id="L44">  public EscapeJsonStringAppendableWrapper(final Appendable wrapped) {</span>
 <span class="fc" id="L45">    this.wrapped = wrapped;</span>
 <span class="fc" id="L46">  }</span>
-  
+
   @Override
   public Appendable append(final CharSequence csq) throws IOException {
 <span class="fc bfc" id="L50" title="All 2 branches covered.">    for (int i = 0, l = csq.length(); i &lt; l; i++) {</span>
-<span class="fc" id="L51">      Strings.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
+<span class="fc" id="L51">      AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
     }
 <span class="fc" id="L53">    return this;</span>
   }
@@ -56,14 +56,14 @@ public final class EscapeJsonStringAppendableWrapper implements Appendable {
   @Override
   public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
 <span class="fc bfc" id="L58" title="All 2 branches covered.">    for (int i = start; i &lt; end; i++) {</span>
-<span class="fc" id="L59">      Strings.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
+<span class="fc" id="L59">      AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
     }
 <span class="fc" id="L61">    return this;</span>
   }
 
   @Override
   public Appendable append(final char c) throws IOException {
-<span class="fc" id="L66">     Strings.appendJsonStringEscapedChar(c, wrapped);</span>
+<span class="fc" id="L66">     AppendableUtils.appendJsonStringEscapedChar(c, wrapped);</span>
 <span class="fc" id="L67">     return this;</span>
   }
 
@@ -71,6 +71,6 @@ public final class EscapeJsonStringAppendableWrapper implements Appendable {
   public String toString() {
 <span class="nc" id="L72">    return &quot;EscapeJsonStringAppendableWrapper{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
   }
-  
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

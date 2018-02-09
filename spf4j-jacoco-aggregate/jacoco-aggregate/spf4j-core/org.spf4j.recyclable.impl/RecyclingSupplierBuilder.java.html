@@ -57,12 +57,12 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
     private int initialSize;
     private boolean collectBorrowed;
 
-<span class="nc" id="L60">    public RecyclingSupplierBuilder(final int maxSize, @Nonnull final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
-<span class="nc" id="L61">        this.fair = true;</span>
-<span class="nc" id="L62">        this.maxSize = maxSize;</span>
-<span class="nc" id="L63">        this.factory = factory;</span>
-<span class="nc" id="L64">        this.initialSize = 0;</span>
-<span class="nc" id="L65">    }</span>
+<span class="fc" id="L60">    public RecyclingSupplierBuilder(final int maxSize, @Nonnull final RecyclingSupplier.Factory&lt;T&gt; factory) {</span>
+<span class="fc" id="L61">        this.fair = true;</span>
+<span class="fc" id="L62">        this.maxSize = maxSize;</span>
+<span class="fc" id="L63">        this.factory = factory;</span>
+<span class="fc" id="L64">        this.initialSize = 0;</span>
+<span class="fc" id="L65">    }</span>
 
     public RecyclingSupplierBuilder&lt;T&gt; unfair() {
 <span class="nc" id="L68">        this.fair = false;</span>
@@ -77,10 +77,10 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
 
     public RecyclingSupplierBuilder&lt;T&gt; withMaintenance(final ScheduledExecutorService pexec,
             final long pmaintenanceIntervalMillis, final boolean pcollectBorrowed) {
-<span class="nc" id="L80">        this.maintenanceExecutor = pexec;</span>
-<span class="nc" id="L81">        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;</span>
-<span class="nc" id="L82">        this.collectBorrowed = pcollectBorrowed;</span>
-<span class="nc" id="L83">        return this;</span>
+<span class="fc" id="L80">        this.maintenanceExecutor = pexec;</span>
+<span class="fc" id="L81">        this.maintenanceIntervalMillis = pmaintenanceIntervalMillis;</span>
+<span class="fc" id="L82">        this.collectBorrowed = pcollectBorrowed;</span>
+<span class="fc" id="L83">        return this;</span>
     }
 
     public RecyclingSupplierBuilder&lt;T&gt; withGetHook(final Handler&lt;T, ? extends Exception&gt; phook) {
@@ -94,19 +94,19 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
     }
 
     public RecyclingSupplier&lt;T&gt; build() throws ObjectCreationException {
-<span class="nc" id="L97">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
+<span class="fc" id="L97">        final ScalableObjectPool&lt;T&gt; underlyingPool =</span>
                 new ScalableObjectPool&lt;&gt;(initialSize, maxSize, factory, fair);
         final RecyclingSupplier&lt;T&gt; pool;
-<span class="nc bnc" id="L100" title="All 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
+<span class="pc bpc" id="L100" title="2 of 4 branches missed.">        if (borrowHook != null || returnHook != null) {</span>
 <span class="nc" id="L101">            pool = new ObjectPoolWrapper&lt;&gt;(underlyingPool, borrowHook, returnHook);</span>
         } else {
-<span class="nc" id="L103">            pool = underlyingPool;</span>
+<span class="fc" id="L103">            pool = underlyingPool;</span>
         }
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (maintenanceExecutor != null) {</span>
-<span class="nc" id="L106">            maintenanceExecutor.scheduleWithFixedDelay(new MaintenanceRunner&lt;&gt;(underlyingPool, collectBorrowed),</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (maintenanceExecutor != null) {</span>
+<span class="fc" id="L106">            maintenanceExecutor.scheduleWithFixedDelay(new MaintenanceRunner&lt;&gt;(underlyingPool, collectBorrowed),</span>
                     maintenanceIntervalMillis, maintenanceIntervalMillis, TimeUnit.MILLISECONDS);
         }
-<span class="nc" id="L109">        return pool;</span>
+<span class="fc" id="L109">        return pool;</span>
     }
 
     private static final class MaintenanceRunner&lt;T&gt; extends AbstractRunnable {
@@ -115,25 +115,25 @@ public final class RecyclingSupplierBuilder&lt;T&gt; {
         private final boolean collectBorrowed;
 
         MaintenanceRunner(final ScalableObjectPool&lt;T&gt; underlyingPool, final boolean collectBorrowed) {
-<span class="nc" id="L118">            super(true);</span>
-<span class="nc" id="L119">            this.underlyingPool = underlyingPool;</span>
-<span class="nc" id="L120">            this.collectBorrowed = collectBorrowed;</span>
-<span class="nc" id="L121">        }</span>
+<span class="fc" id="L118">            super(true);</span>
+<span class="fc" id="L119">            this.underlyingPool = underlyingPool;</span>
+<span class="fc" id="L120">            this.collectBorrowed = collectBorrowed;</span>
+<span class="fc" id="L121">        }</span>
 
         @Override
         public void doRun() throws Exception {
-<span class="nc bnc" id="L125" title="All 2 branches missed.">                if (collectBorrowed) {</span>
-<span class="nc" id="L126">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">                if (collectBorrowed) {</span>
+<span class="fc" id="L126">                    underlyingPool.requestReturnFromBorrowersIfNotInUse();</span>
                 }
-<span class="nc" id="L128">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L128">                underlyingPool.scan(new Scanable.ScanHandler&lt;ObjectHolder&lt;T&gt;&gt;() {</span>
                     @Override
                     public boolean handle(final ObjectHolder&lt;T&gt; object) throws ObjectDisposeException {
-<span class="nc" id="L131">                        object.validateObjectIfNotBorrowed();</span>
-<span class="nc" id="L132">                        return true;</span>
+<span class="fc" id="L131">                        object.validateObjectIfNotBorrowed();</span>
+<span class="fc" id="L132">                        return true;</span>
                     }
                 });
 
-<span class="nc" id="L136">        }</span>
+<span class="fc" id="L136">        }</span>
     }
 
     @Override

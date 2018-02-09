@@ -20,9 +20,6 @@ import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 /**
@@ -31,54 +28,51 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
  */
 public final class CachedLogConfig implements LogConfig {
 
-<span class="nc" id="L34">  private static final LogConsumer NULL_CONSUMER = (LogRecord record) -&gt; { };</span>
+<span class="nc" id="L31">  private static final LogConsumer NULL_CONSUMER = (LogRecord record) -&gt; { };</span>
 
   private final Map&lt;Level, LoadingCache&lt;String, LogConsumer&gt;&gt; cache;
-
-  private final ConcurrentMap&lt;LogConsumer, LogConsumer&gt; interner;
 
   private final LogConfig wrapped;
 
   @SuppressFBWarnings(&quot;SIC_INNER_SHOULD_BE_STATIC_ANON&quot;)
-<span class="nc" id="L43">  public CachedLogConfig(final LogConfig wrapped) {</span>
-<span class="nc" id="L44">    this.wrapped = wrapped;</span>
-<span class="nc" id="L45">    interner = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="nc" id="L46">    cache = new EnumMap&lt;&gt;(Level.class);</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">    for (Level level : Level.values()) {</span>
-<span class="nc" id="L48">      cache.put(level, new UnboundedLoadingCache&lt;&gt;(16,</span>
-<span class="nc" id="L49">              new CacheLoader&lt;String, LogConsumer&gt;() {</span>
+<span class="nc" id="L38">  public CachedLogConfig(final LogConfig wrapped) {</span>
+<span class="nc" id="L39">    this.wrapped = wrapped;</span>
+<span class="nc" id="L40">    cache = new EnumMap&lt;&gt;(Level.class);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">    for (Level level : Level.values()) {</span>
+<span class="nc" id="L42">      cache.put(level, new UnboundedLoadingCache&lt;&gt;(16,</span>
+<span class="nc" id="L43">              new CacheLoader&lt;String, LogConsumer&gt;() {</span>
         @Override
         public LogConsumer load(final String cat) {
-<span class="nc" id="L52">          LogConsumer logHandlers = wrapped.getLogConsumer(cat, level);</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">          if (logHandlers == null) {</span>
-<span class="nc" id="L54">            return NULL_CONSUMER;</span>
+<span class="nc" id="L46">          LogConsumer logHandlers = wrapped.getLogConsumer(cat, level);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">          if (logHandlers == null) {</span>
+<span class="nc" id="L48">            return NULL_CONSUMER;</span>
           } else {
-<span class="nc" id="L56">            return interner.computeIfAbsent(logHandlers, Function.identity());</span>
+<span class="nc" id="L50">            return logHandlers;</span>
           }
         }
       }));
     }
-<span class="nc" id="L61">  }</span>
+<span class="nc" id="L55">  }</span>
 
   @Override
   public LogConsumer getLogConsumer(final String category, final Level level) {
-<span class="nc" id="L65">    LogConsumer cons = cache.get(level).getUnchecked(category);</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">    return (cons == NULL_CONSUMER) ? null : cons;</span>
+<span class="nc" id="L59">    LogConsumer cons = cache.get(level).getUnchecked(category);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    return (cons == NULL_CONSUMER) ? null : cons;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L71">    return &quot;CachedLogConfig{&quot; + &quot;cache=&quot; + cache + '}';</span>
+<span class="nc" id="L65">    return &quot;CachedLogConfig{&quot; + &quot;cache=&quot; + cache + '}';</span>
   }
 
   @Override
   public CachedLogConfig add(final String category, final LogHandler handler) {
-<span class="nc" id="L76">    return new CachedLogConfig(wrapped.add(category, handler));</span>
+<span class="nc" id="L70">    return new CachedLogConfig(wrapped.add(category, handler));</span>
   }
 
   @Override
   public CachedLogConfig remove(final String category, final LogHandler handler) {
-<span class="nc" id="L81">    return new CachedLogConfig(wrapped.remove(category, handler));</span>
+<span class="nc" id="L75">    return new CachedLogConfig(wrapped.remove(category, handler));</span>
   }
 
 }

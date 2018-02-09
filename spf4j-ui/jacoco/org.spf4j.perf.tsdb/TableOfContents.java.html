@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TableOfContents.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">TableOfContents.java</span></div><h1>TableOfContents.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.tsdb;
+
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+/**
+ * @deprecated please use org.spf4j.tsdb2
+ * @author zoly
+ */
+@Deprecated
+final class TableOfContents {
+
+    private final long location;
+    private long lastTableInfo;
+    private long firstTableInfo;
+
+<span class="fc" id="L48">    TableOfContents(final long location) {</span>
+<span class="fc" id="L49">        this.location = location;</span>
+<span class="fc" id="L50">        firstTableInfo = 0;</span>
+<span class="fc" id="L51">        lastTableInfo = 0;</span>
+<span class="fc" id="L52">    }</span>
+
+    TableOfContents(final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L55">        this(raf, raf.getFilePointer());</span>
+<span class="fc" id="L56">    }</span>
+
+<span class="fc" id="L58">    TableOfContents(final RandomAccessFile raf, final long location) throws IOException {</span>
+<span class="fc" id="L59">        this.location = location;</span>
+<span class="fc" id="L60">        raf.seek(location);</span>
+<span class="fc" id="L61">        this.firstTableInfo = raf.readLong();</span>
+<span class="fc" id="L62">        this.lastTableInfo = raf.readLong();</span>
+<span class="fc" id="L63">    }</span>
+
+
+    public void writeTo(final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L67">        raf.seek(location);</span>
+<span class="fc" id="L68">        raf.writeLong(firstTableInfo);</span>
+<span class="fc" id="L69">        raf.writeLong(lastTableInfo);</span>
+<span class="fc" id="L70">    }</span>
+
+    public long getLastTableInfoPtr() {
+<span class="fc" id="L73">        return lastTableInfo;</span>
+    }
+
+    public long getFirstTableInfoPtr() {
+<span class="fc" id="L77">        return firstTableInfo;</span>
+    }
+
+    public void setLastTableInfo(final long plastColumnInfo, final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L81">        this.lastTableInfo = plastColumnInfo;</span>
+<span class="fc" id="L82">        long loc = location + 8;</span>
+<span class="fc" id="L83">        raf.seek(loc);</span>
+<span class="fc" id="L84">        raf.writeLong(lastTableInfo);</span>
+<span class="fc" id="L85">    }</span>
+
+    public void setFirstTableInfo(final long pfirstColumnInfo, final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L88">        this.firstTableInfo = pfirstColumnInfo;</span>
+<span class="fc" id="L89">        raf.seek(location);</span>
+<span class="fc" id="L90">        raf.writeLong(firstTableInfo);</span>
+<span class="fc" id="L91">    }</span>
+
+    public long getLocation() {
+<span class="fc" id="L94">        return location;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L99">        return &quot;TableOfContents{&quot; + &quot;location=&quot; + location + &quot;, lastColumnInfo=&quot; + lastTableInfo</span>
+                + &quot;, firstColumnInfo=&quot; + firstTableInfo + '}';
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

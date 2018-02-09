@@ -32,11 +32,15 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Signed;
 
 /**
  * @author Zoltan Farkas
@@ -52,8 +56,42 @@ public interface ExecutionContext extends AutoCloseable {
 
   ExecutionContext getParent();
 
-  default long getUnitsToDeadline(final TimeUnit unit) {
-<span class="fc" id="L56">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+  @Nonnegative
+  default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
+<span class="fc" id="L61">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L63">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+     }
+<span class="fc" id="L65">     return result;</span>
+  }
+
+  @Nonnegative
+  default long getUncheckedTimeToDeadline(final TimeUnit unit) {
+<span class="fc" id="L70">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L72">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+     }
+<span class="fc" id="L74">     return result;</span>
+  }
+
+  @Signed
+  default long getTimeRelativeToDeadline(final TimeUnit unit)  {
+<span class="fc" id="L79">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+  }
+
+  @Nonnegative
+  default long getMillisToDeadline() throws TimeoutException {
+<span class="nc" id="L84">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+  }
+
+  @Nonnegative
+  default int getSecondsToDeadline() throws TimeoutException {
+<span class="nc" id="L89">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L91">      return Integer.MAX_VALUE;</span>
+    } else {
+<span class="nc" id="L93">      return (int) secondsToDeadline;</span>
+    }
   }
 
 
@@ -61,24 +99,58 @@ public interface ExecutionContext extends AutoCloseable {
    * Method to get baggage.
    * if current context does not have baggage, the parent context is queried.
    * @param &lt;T&gt; type of baggage.
-   * @param clasz class of baggage.
+   * @param key key of baggage.
+   * @param clasz class of baggage value.
    * @return the baggage
    */
   @Nullable
   @Beta
-  &lt;T&gt; T get(Class&lt;T&gt; clasz);
+  default &lt;T&gt; T get(Object key, Class&lt;T&gt; clasz) {
+<span class="fc" id="L109">    return (T) get(key);</span>
+  }
+
+
+  /**
+   * Method to get baggage.
+   * if current context does not have baggage, the parent context is queried.
+   * @param &lt;T&gt; type of baggage.
+   * @param key key of baggage.
+   * @return the baggage
+   */
+  @Nullable
+  @Beta
+  Object get(Object key);
 
 
   /**
    * Method to put baggage.
    * @param &lt;T&gt; type of baggage.
+   * @param key the key of baggage.
    * @param data the baggage.
    * @return existing baggage if there.
    */
   @Nullable
   @Beta
-  &lt;T&gt; T put(T data);
+  &lt;T&gt; T put(Object key, T data);
 
+
+  /**
+   * Method to put baggage to the root context.
+   * @param &lt;T&gt; type of baggage.
+   * @param key the key of baggage.
+   * @param data the baggage.
+   * @return existing baggage if there.
+   */
+  @Nullable
+  @Beta
+  default &lt;T&gt; T putToRoot(final Object key, final T data) {
+<span class="nc" id="L147">    ExecutionContext curr = this;</span>
+    ExecutionContext parent;
+<span class="nc bnc" id="L149" title="All 2 branches missed.">    while ((parent = curr.getParent()) != null) {</span>
+<span class="nc" id="L150">      curr = parent;</span>
+    }
+<span class="nc" id="L152">    return curr.put(key, data);</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

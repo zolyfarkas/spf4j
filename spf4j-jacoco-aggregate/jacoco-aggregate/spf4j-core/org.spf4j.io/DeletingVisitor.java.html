@@ -44,23 +44,23 @@ public final class DeletingVisitor implements FileVisitor&lt;Path&gt; {
 
   private PathsIOException exception;
 
-<span class="nc" id="L47">  public DeletingVisitor() {</span>
-<span class="nc" id="L48">    rootFolder = null;</span>
-<span class="nc" id="L49">    exception = null;</span>
-<span class="nc" id="L50">  }</span>
+<span class="fc" id="L47">  public DeletingVisitor() {</span>
+<span class="fc" id="L48">    rootFolder = null;</span>
+<span class="fc" id="L49">    exception = null;</span>
+<span class="fc" id="L50">  }</span>
 
   @Override
   public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
     try {
-<span class="nc" id="L55">      Files.delete(file);</span>
+<span class="fc" id="L55">      Files.delete(file);</span>
 <span class="nc" id="L56">    } catch (IOException ex) {</span>
 <span class="nc bnc" id="L57" title="All 2 branches missed.">      if (rootFolder == null) {</span>
 <span class="nc" id="L58">        throw new PathsIOException(file, ex);</span>
       } else {
 <span class="nc" id="L60">        suppress(ex, file);</span>
       }
-<span class="nc" id="L62">    }</span>
-<span class="nc" id="L63">    return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L62">    }</span>
+<span class="fc" id="L63">    return FileVisitResult.CONTINUE;</span>
   }
 
   private void suppress(final IOException ex, final Path path) {
@@ -74,22 +74,22 @@ public final class DeletingVisitor implements FileVisitor&lt;Path&gt; {
   @Override
   public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
     try {
-<span class="nc" id="L77">      Files.delete(dir);</span>
+<span class="fc" id="L77">      Files.delete(dir);</span>
 <span class="nc" id="L78">    } catch (IOException ex) {</span>
 <span class="nc" id="L79">      suppress(ex, dir);</span>
-<span class="nc" id="L80">    }</span>
-<span class="nc bnc" id="L81" title="All 4 branches missed.">    if (exception != null &amp;&amp; dir.equals(rootFolder)) {</span>
+<span class="fc" id="L80">    }</span>
+<span class="pc bpc" id="L81" title="3 of 4 branches missed.">    if (exception != null &amp;&amp; dir.equals(rootFolder)) {</span>
 <span class="nc" id="L82">      throw exception;</span>
     }
-<span class="nc" id="L84">    return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L84">    return FileVisitResult.CONTINUE;</span>
   }
 
   @Override
   public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (rootFolder == null) {</span>
-<span class="nc" id="L90">      rootFolder = dir;</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    if (rootFolder == null) {</span>
+<span class="fc" id="L90">      rootFolder = dir;</span>
     }
-<span class="nc" id="L92">    return FileVisitResult.CONTINUE;</span>
+<span class="fc" id="L92">    return FileVisitResult.CONTINUE;</span>
   }
 
   @Override

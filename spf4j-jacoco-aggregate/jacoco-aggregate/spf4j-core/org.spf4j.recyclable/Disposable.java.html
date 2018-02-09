@@ -31,7 +31,9 @@
  */
 package org.spf4j.recyclable;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.spf4j.base.ExecutionContexts;
 
 /**
  *
@@ -41,22 +43,22 @@ public interface Disposable extends AutoCloseable {
 
   default void dispose() throws ObjectDisposeException, InterruptedException {
       try {
-<span class="nc" id="L44">        dispose(Long.MAX_VALUE);</span>
-<span class="nc" id="L45">      } catch (TimeoutException ex) {</span>
-<span class="nc" id="L46">        throw new ObjectDisposeException(ex);</span>
-<span class="nc" id="L47">      }</span>
-<span class="nc" id="L48">    }</span>
+<span class="fc" id="L46">        dispose(ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS));</span>
+<span class="nc" id="L47">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L48">        throw new ObjectDisposeException(ex);</span>
+<span class="fc" id="L49">      }</span>
+<span class="fc" id="L50">    }</span>
 
   default void dispose(long timeoutMillis) throws ObjectDisposeException, InterruptedException, TimeoutException {
-<span class="nc bnc" id="L51" title="All 2 branches missed.">    if (!tryDispose(timeoutMillis)) {</span>
-<span class="nc" id="L52">      throw new TimeoutException(&quot;Unable to dispose  &quot; + this + &quot; within &quot; + timeoutMillis + &quot; miliseconds&quot;);</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">    if (!tryDispose(timeoutMillis)) {</span>
+<span class="nc" id="L54">      throw new TimeoutException(&quot;Unable to dispose  &quot; + this + &quot; within &quot; + timeoutMillis + &quot; miliseconds&quot;);</span>
     }
-<span class="nc" id="L54">  }</span>
+<span class="fc" id="L56">  }</span>
 
   @Override
   default void close() throws ObjectDisposeException, InterruptedException {
-<span class="nc" id="L58">    dispose();</span>
-<span class="nc" id="L59">  }</span>
+<span class="nc" id="L60">    dispose();</span>
+<span class="nc" id="L61">  }</span>
 
   boolean tryDispose(long timeoutMillis) throws ObjectDisposeException, InterruptedException;
 

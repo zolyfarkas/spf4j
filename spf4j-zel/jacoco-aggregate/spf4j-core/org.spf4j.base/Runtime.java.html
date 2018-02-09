@@ -468,33 +468,21 @@ public final class Runtime {
   }
 
   /**
-   * @deprecated see ExecutionContext.
+   * @return returns the deadline as millis since epoch.
+   * @deprecated see ExecutionContexts.
    */
   @Deprecated
   public static long getDeadline() {
-<span class="fc" id="L475">    ExecutionContext ec = ExecutionContexts.current();</span>
-<span class="pc bpc" id="L476" title="1 of 2 branches missed.">    if (ec == null) {</span>
-<span class="nc" id="L477">      return System.currentTimeMillis() + Timing.MAX_MS_SPAN;</span>
-    } else {
-<span class="fc" id="L479">      return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ec.getDeadlineNanos());</span>
-    }
+<span class="fc" id="L476">    return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ExecutionContexts.getContextDeadlineNanos());</span>
   }
 
   /**
-   * @deprecated see ExecutionContext.
+   * @return milliseconds until deadline.
+   * @deprecated see ExecutionContexts.
    */
   @Deprecated
   public static long millisToDeadline() throws TimeoutException {
-<span class="nc" id="L488">    ExecutionContext ec = ExecutionContexts.current();</span>
-<span class="nc bnc" id="L489" title="All 2 branches missed.">    if (ec == null) {</span>
-<span class="nc" id="L490">      return Timing.MAX_MS_SPAN;</span>
-    } else {
-<span class="nc" id="L492">      long ms = TimeUnit.NANOSECONDS.toMillis(ec.getDeadlineNanos() - System.nanoTime());</span>
-<span class="nc bnc" id="L493" title="All 2 branches missed.">      if (ms &lt; 0) {</span>
-<span class="nc" id="L494">        throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-ms));</span>
-      }
-<span class="nc" id="L496">      return ms;</span>
-    }
+<span class="nc" id="L485">    return ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   /**
@@ -505,37 +493,37 @@ public final class Runtime {
    */
   @SuppressFBWarnings
   public static boolean gc(final long timeoutMillis) {
-<span class="fc" id="L508">    WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(new Object());</span>
-<span class="fc" id="L509">    long deadline = System.currentTimeMillis() + timeoutMillis;</span>
+<span class="fc" id="L496">    WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(new Object());</span>
+<span class="fc" id="L497">    long deadline = System.currentTimeMillis() + timeoutMillis;</span>
     do {
-<span class="fc" id="L511">      System.gc();</span>
-<span class="pc bpc" id="L512" title="3 of 4 branches missed.">    } while (ref.get() != null &amp;&amp; System.currentTimeMillis() &lt; deadline);</span>
-<span class="pc bpc" id="L513" title="1 of 2 branches missed.">    return ref.get() == null;</span>
+<span class="fc" id="L499">      System.gc();</span>
+<span class="pc bpc" id="L500" title="3 of 4 branches missed.">    } while (ref.get() != null &amp;&amp; System.currentTimeMillis() &lt; deadline);</span>
+<span class="pc bpc" id="L501" title="1 of 2 branches missed.">    return ref.get() == null;</span>
   }
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain,
           final long timeoutMillis, final String... arguments)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L519">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
-<span class="fc" id="L520">    return jrun(classWithMain, classPath, timeoutMillis, arguments);</span>
+<span class="fc" id="L507">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
+<span class="fc" id="L508">    return jrun(classWithMain, classPath, timeoutMillis, arguments);</span>
   }
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-<span class="fc" id="L525">    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());</span>
-<span class="fc" id="L526">    inputArguments.removeAllSystemPropertiesStartingWith(&quot;com.sun.management.jmxremote&quot;);</span>
-<span class="fc" id="L527">    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);</span>
+<span class="fc" id="L513">    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());</span>
+<span class="fc" id="L514">    inputArguments.removeAllSystemPropertiesStartingWith(&quot;com.sun.management.jmxremote&quot;);</span>
+<span class="fc" id="L515">    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);</span>
   }
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String[] jvmArgs,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-<span class="fc" id="L533">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
-<span class="fc" id="L534">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
+<span class="fc" id="L521">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
+<span class="fc" id="L522">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
             jvmArgs,
-<span class="fc" id="L536">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
+<span class="fc" id="L524">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
             arguments);
-<span class="fc" id="L538">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
+<span class="fc" id="L526">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
   }
 
   /**
@@ -544,13 +532,13 @@ public final class Runtime {
    */
   @Nullable
   public static Thread getMainThread() {
-<span class="fc" id="L547">    Thread[] threads = FastStackCollector.getThreads();</span>
-<span class="pc bpc" id="L548" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
-<span class="fc bfc" id="L549" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
-<span class="fc" id="L550">        return t;</span>
+<span class="fc" id="L535">    Thread[] threads = FastStackCollector.getThreads();</span>
+<span class="pc bpc" id="L536" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
+<span class="fc bfc" id="L537" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
+<span class="fc" id="L538">        return t;</span>
       }
     }
-<span class="nc" id="L553">    return null;</span>
+<span class="nc" id="L541">    return null;</span>
   }
 
   /**
@@ -558,36 +546,36 @@ public final class Runtime {
    */
   @Nullable
   public static Class&lt;?&gt; getMainClass() {
-<span class="fc" id="L561">    Thread mainThread = getMainThread();</span>
-<span class="pc bpc" id="L562" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
-<span class="nc" id="L563">      return null;</span>
+<span class="fc" id="L549">    Thread mainThread = getMainThread();</span>
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
+<span class="nc" id="L551">      return null;</span>
     }
-<span class="fc" id="L565">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
-<span class="pc bpc" id="L566" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
-<span class="nc" id="L567">      return null;</span>
+<span class="fc" id="L553">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
+<span class="pc bpc" id="L554" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
+<span class="nc" id="L555">      return null;</span>
     }
-<span class="fc" id="L569">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
+<span class="fc" id="L557">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
     try {
-<span class="fc" id="L571">      return Class.forName(className);</span>
-<span class="nc" id="L572">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L573">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
-<span class="nc" id="L574">      tex.initCause(ex);</span>
-<span class="nc" id="L575">      throw tex;</span>
+<span class="fc" id="L559">      return Class.forName(className);</span>
+<span class="nc" id="L560">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L561">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
+<span class="nc" id="L562">      tex.initCause(ex);</span>
+<span class="nc" id="L563">      throw tex;</span>
     }
   }
 
 
-<span class="nc" id="L580">  public static final class Jmx {</span>
+<span class="nc" id="L568">  public static final class Jmx {</span>
 
     @JmxExport
     public static PackageInfo getPackageInfo(@JmxExport(&quot;className&quot;) final String className) {
-<span class="fc" id="L584">      return PackageInfo.getPackageInfo(className);</span>
+<span class="fc" id="L572">      return PackageInfo.getPackageInfo(className);</span>
     }
 
     @JmxExport
     public static void restart() throws IOException {
-<span class="nc" id="L589">      UnixRuntime.restart();</span>
-<span class="nc" id="L590">    }</span>
+<span class="nc" id="L577">      UnixRuntime.restart();</span>
+<span class="nc" id="L578">    }</span>
 
   }
 

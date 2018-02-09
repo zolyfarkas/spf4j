@@ -63,26 +63,26 @@ public final class JDiffRunner {
   private final RepositorySystemSession reposSession;
 
   public JDiffRunner() {
-<span class="nc" id="L66">    this(null, null, null, Arrays.asList(MavenRepositoryUtils.getDefaultlRepository()),</span>
-<span class="nc" id="L67">            MavenRepositoryUtils.getRepositorySystem(), System.getProperty(&quot;spf4j.jdiff.javadocExec&quot;));</span>
-<span class="nc" id="L68">  }</span>
+<span class="fc" id="L66">    this(null, null, null, Arrays.asList(MavenRepositoryUtils.getDefaultlRepository()),</span>
+<span class="fc" id="L67">            MavenRepositoryUtils.getRepositorySystem(), System.getProperty(&quot;spf4j.jdiff.javadocExec&quot;));</span>
+<span class="fc" id="L68">  }</span>
 
   @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
   public JDiffRunner(final MojoExecution mojoExec, final ToolchainManager toolchainManager,
           final MavenSession session,
           final List&lt;RemoteRepository&gt; remoteRepos,
           final RepositorySystem repositorySystem,
-<span class="nc" id="L75">          final String javadocExec) {</span>
-<span class="nc" id="L76">    this.remoteRepos = remoteRepos;</span>
-<span class="nc" id="L77">    this.repositorySystem = repositorySystem;</span>
-<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (session != null) {</span>
+<span class="fc" id="L75">          final String javadocExec) {</span>
+<span class="fc" id="L76">    this.remoteRepos = remoteRepos;</span>
+<span class="fc" id="L77">    this.repositorySystem = repositorySystem;</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (session != null) {</span>
 <span class="nc" id="L79">      this.reposSession = session.getRepositorySession();</span>
     } else {
-<span class="nc" id="L81">      this.reposSession = MavenRepositoryUtils.getRepositorySystemSession(</span>
-<span class="nc" id="L82">              MavenRepositoryUtils.getRepositorySystem(),</span>
-<span class="nc" id="L83">              new File(System.getProperty(&quot;user.home&quot;), &quot;.m2/repository&quot;));</span>
+<span class="fc" id="L81">      this.reposSession = MavenRepositoryUtils.getRepositorySystemSession(</span>
+<span class="fc" id="L82">              MavenRepositoryUtils.getRepositorySystem(),</span>
+<span class="fc" id="L83">              new File(System.getProperty(&quot;user.home&quot;), &quot;.m2/repository&quot;));</span>
     }
-<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (mojoExec != null) {</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">    if (mojoExec != null) {</span>
 <span class="nc" id="L86">      StringBuilder cp = new StringBuilder(32);</span>
 <span class="nc" id="L87">      Map&lt;String, Artifact&gt; artifactMap = mojoExec.getMojoDescriptor().getPluginDescriptor().getArtifactMap();</span>
 <span class="nc" id="L88">      cp.append(artifactMap.get(&quot;jdiff:jdiff&quot;).getFile().getAbsolutePath());</span>
@@ -92,33 +92,33 @@ public final class JDiffRunner {
 <span class="nc" id="L92">      docletPath = cp.toString();</span>
 <span class="nc" id="L93">    } else {</span>
       try {
-<span class="nc" id="L95">        Set&lt;File&gt; artf1 = MavenRepositoryUtils.resolveArtifactAndDependencies(</span>
+<span class="fc" id="L95">        Set&lt;File&gt; artf1 = MavenRepositoryUtils.resolveArtifactAndDependencies(</span>
                 &quot;runtime&quot;, &quot;jdiff&quot;, &quot;jdiff&quot;, null, &quot;jar&quot;, &quot;1.0.9&quot;, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L97">        Set&lt;File&gt; artf2 = MavenRepositoryUtils.resolveArtifactAndDependencies(</span>
+<span class="fc" id="L97">        Set&lt;File&gt; artf2 = MavenRepositoryUtils.resolveArtifactAndDependencies(</span>
                 &quot;runtime&quot;, &quot;xerces&quot;, &quot;xercesImpl&quot;, null, &quot;jar&quot;, &quot;2.10.0&quot;, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L99">        artf1.addAll(artf2);</span>
-<span class="nc" id="L100">        docletPath = MavenRepositoryUtils.toPath(artf1);</span>
+<span class="fc" id="L99">        artf1.addAll(artf2);</span>
+<span class="fc" id="L100">        docletPath = MavenRepositoryUtils.toPath(artf1);</span>
 <span class="nc" id="L101">      } catch (DependencyResolutionException ex) {</span>
 <span class="nc" id="L102">        throw new UncheckedExecutionException(ex);</span>
-<span class="nc" id="L103">      }</span>
+<span class="fc" id="L103">      }</span>
     }
 
-<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (javadocExec == null) {</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">      if (toolchainManager == null) {</span>
-<span class="nc" id="L108">        String home = System.getProperty(&quot;java.home&quot;);</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (home.contains(&quot;jre&quot;)) {</span>
-<span class="nc" id="L110">          this.javadocExec = home + &quot;/../bin/javadoc&quot;;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (javadocExec == null) {</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">      if (toolchainManager == null) {</span>
+<span class="fc" id="L108">        String home = System.getProperty(&quot;java.home&quot;);</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (home.contains(&quot;jre&quot;)) {</span>
+<span class="fc" id="L110">          this.javadocExec = home + &quot;/../bin/javadoc&quot;;</span>
         } else {
 <span class="nc" id="L112">          this.javadocExec = home + &quot;/bin/javadoc&quot;;</span>
         }
-<span class="nc" id="L114">      } else {</span>
+<span class="fc" id="L114">      } else {</span>
 <span class="nc" id="L115">        this.javadocExec = toolchainManager.getToolchainFromBuildContext(&quot;jdk&quot;, session).findTool(&quot;javadoc&quot;);</span>
       }
     } else {
 <span class="nc" id="L118">      this.javadocExec = javadocExec;</span>
     }
 
-<span class="nc" id="L121">  }</span>
+<span class="fc" id="L121">  }</span>
 
   public Set&lt;String&gt; generateJDiffXML(final Collection&lt;File&gt; sources,
           final Collection&lt;File&gt; classPath,
@@ -127,29 +127,29 @@ public final class JDiffRunner {
           final Collection&lt;String&gt; includePackageNames)
           throws JavadocExecutionException, IOException {
     try {
-<span class="nc" id="L130">      Files.createDirectories(destinationFolder.toPath());</span>
-<span class="nc" id="L131">      JavadocExecutor javadoc = new JavadocExecutor(javadocExec);</span>
+<span class="fc" id="L130">      Files.createDirectories(destinationFolder.toPath());</span>
+<span class="fc" id="L131">      JavadocExecutor javadoc = new JavadocExecutor(javadocExec);</span>
 
-<span class="nc" id="L133">      javadoc.addArgumentPair(&quot;doclet&quot;, &quot;jdiff.JDiff&quot;);</span>
-<span class="nc" id="L134">      javadoc.addArgumentPair(&quot;docletpath&quot;, docletPath);</span>
-<span class="nc" id="L135">      javadoc.addArgumentPair(&quot;apiname&quot;, apiName);</span>
-<span class="nc" id="L136">      javadoc.addArgumentPair(&quot;apidir&quot;, destinationFolder.getAbsolutePath());</span>
-<span class="nc" id="L137">      javadoc.addArgumentPair(&quot;classpath&quot;, MavenRepositoryUtils.toPath(classPath));</span>
-<span class="nc" id="L138">      javadoc.addArgumentPair(&quot;sourcepath&quot;, MavenRepositoryUtils.toPath(sources));</span>
+<span class="fc" id="L133">      javadoc.addArgumentPair(&quot;doclet&quot;, &quot;jdiff.JDiff&quot;);</span>
+<span class="fc" id="L134">      javadoc.addArgumentPair(&quot;docletpath&quot;, docletPath);</span>
+<span class="fc" id="L135">      javadoc.addArgumentPair(&quot;apiname&quot;, apiName);</span>
+<span class="fc" id="L136">      javadoc.addArgumentPair(&quot;apidir&quot;, destinationFolder.getAbsolutePath());</span>
+<span class="fc" id="L137">      javadoc.addArgumentPair(&quot;classpath&quot;, MavenRepositoryUtils.toPath(classPath));</span>
+<span class="fc" id="L138">      javadoc.addArgumentPair(&quot;sourcepath&quot;, MavenRepositoryUtils.toPath(sources));</span>
 
-<span class="nc" id="L140">      Set&lt;String&gt; pckgs = new TreeSet&lt;String&gt;();</span>
+<span class="fc" id="L140">      Set&lt;String&gt; pckgs = new TreeSet&lt;String&gt;();</span>
 
-<span class="nc bnc" id="L142" title="All 4 branches missed.">      if (includePackageNames != null &amp;&amp; !includePackageNames.isEmpty()) {</span>
-<span class="nc" id="L143">        pckgs.addAll(includePackageNames);</span>
+<span class="pc bpc" id="L142" title="1 of 4 branches missed.">      if (includePackageNames != null &amp;&amp; !includePackageNames.isEmpty()) {</span>
+<span class="fc" id="L143">        pckgs.addAll(includePackageNames);</span>
       } else {
-<span class="nc" id="L145">        pckgs = JDiffUtils.getPackages(sources);</span>
+<span class="fc" id="L145">        pckgs = JDiffUtils.getPackages(sources);</span>
       }
 
-<span class="nc bnc" id="L148" title="All 2 branches missed.">      for (String pckg : pckgs) {</span>
-<span class="nc" id="L149">        javadoc.addArgument(pckg);</span>
-<span class="nc" id="L150">      }</span>
-<span class="nc" id="L151">      javadoc.execute(destinationFolder);</span>
-<span class="nc" id="L152">      return pckgs;</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">      for (String pckg : pckgs) {</span>
+<span class="fc" id="L149">        javadoc.addArgument(pckg);</span>
+<span class="fc" id="L150">      }</span>
+<span class="fc" id="L151">      javadoc.execute(destinationFolder);</span>
+<span class="fc" id="L152">      return pckgs;</span>
 <span class="nc" id="L153">    } catch (IOException e) {</span>
 <span class="nc" id="L154">      throw new JavadocExecutionException(e.getMessage(), e);</span>
     }
@@ -158,144 +158,144 @@ public final class JDiffRunner {
   public void generateReport(final File srcDir, final String oldApi, final String newApi,
           final String javadocOld, final String javadocNew, final Set&lt;String&gt; packages,
           final File destinationDir) throws JavadocExecutionException, IOException {
-<span class="nc" id="L161">    Files.createDirectories(destinationDir.toPath());</span>
+<span class="fc" id="L161">    Files.createDirectories(destinationDir.toPath());</span>
     /**
      * javadoc -doclet jdiff.JDiff -docletpath ..\..\lib\jdiff.jar -d newdocs -stats -oldapi &quot;SuperProduct 1.0&quot; -newapi
      * &quot;SuperProduct 2.0&quot; -javadocold &quot;../../olddocs/&quot; -javadocnew &quot;../../newdocs/&quot; ..\..\lib\Null.java
      */
-<span class="nc" id="L166">    JavadocExecutor javadoc = new JavadocExecutor(javadocExec);</span>
-<span class="nc" id="L167">    javadoc.addArgument(&quot;-private&quot;);</span>
-<span class="nc" id="L168">    javadoc.addArgumentPair(&quot;d&quot;, destinationDir.getAbsolutePath());</span>
-<span class="nc" id="L169">    String absolutePath = srcDir.getAbsolutePath();</span>
-<span class="nc" id="L170">    javadoc.addArgumentPair(&quot;oldapidir&quot;, absolutePath);</span>
-<span class="nc" id="L171">    javadoc.addArgumentPair(&quot;newapidir&quot;, absolutePath);</span>
-<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (javadocOld != null) {</span>
-<span class="nc" id="L173">      javadoc.addArgumentPair(&quot;javadocold&quot;, javadocOld);</span>
+<span class="fc" id="L166">    JavadocExecutor javadoc = new JavadocExecutor(javadocExec);</span>
+<span class="fc" id="L167">    javadoc.addArgument(&quot;-private&quot;);</span>
+<span class="fc" id="L168">    javadoc.addArgumentPair(&quot;d&quot;, destinationDir.getAbsolutePath());</span>
+<span class="fc" id="L169">    String absolutePath = srcDir.getAbsolutePath();</span>
+<span class="fc" id="L170">    javadoc.addArgumentPair(&quot;oldapidir&quot;, absolutePath);</span>
+<span class="fc" id="L171">    javadoc.addArgumentPair(&quot;newapidir&quot;, absolutePath);</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">    if (javadocOld != null) {</span>
+<span class="fc" id="L173">      javadoc.addArgumentPair(&quot;javadocold&quot;, javadocOld);</span>
     }
-<span class="nc bnc" id="L175" title="All 2 branches missed.">    if (javadocNew != null) {</span>
-<span class="nc" id="L176">      javadoc.addArgumentPair(&quot;javadocnew&quot;, javadocNew);</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (javadocNew != null) {</span>
+<span class="fc" id="L176">      javadoc.addArgumentPair(&quot;javadocnew&quot;, javadocNew);</span>
     }
-<span class="nc" id="L178">    javadoc.addArgumentPair(&quot;doclet&quot;, &quot;jdiff.JDiff&quot;);</span>
-<span class="nc" id="L179">    javadoc.addArgumentPair(&quot;docletpath&quot;, docletPath);</span>
-<span class="nc" id="L180">    javadoc.addArgumentPair(&quot;oldapi&quot;, oldApi);</span>
-<span class="nc" id="L181">    javadoc.addArgumentPair(&quot;newapi&quot;, newApi);</span>
-<span class="nc" id="L182">    javadoc.addArgument(&quot;-stats&quot;);</span>
-<span class="nc bnc" id="L183" title="All 2 branches missed.">    for (String pckg : packages) {</span>
-<span class="nc" id="L184">      javadoc.addArgument(pckg);</span>
-<span class="nc" id="L185">    }</span>
-<span class="nc" id="L186">    javadoc.execute(destinationDir);</span>
-<span class="nc" id="L187">  }</span>
+<span class="fc" id="L178">    javadoc.addArgumentPair(&quot;doclet&quot;, &quot;jdiff.JDiff&quot;);</span>
+<span class="fc" id="L179">    javadoc.addArgumentPair(&quot;docletpath&quot;, docletPath);</span>
+<span class="fc" id="L180">    javadoc.addArgumentPair(&quot;oldapi&quot;, oldApi);</span>
+<span class="fc" id="L181">    javadoc.addArgumentPair(&quot;newapi&quot;, newApi);</span>
+<span class="fc" id="L182">    javadoc.addArgument(&quot;-stats&quot;);</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">    for (String pckg : packages) {</span>
+<span class="fc" id="L184">      javadoc.addArgument(pckg);</span>
+<span class="fc" id="L185">    }</span>
+<span class="fc" id="L186">    javadoc.execute(destinationDir);</span>
+<span class="fc" id="L187">  }</span>
 
   public void runDiffBetweenReleases(final String groupId, final String artifactId,
           final String versionRange, final File destinationFolder, final int maxNrOFDiffs)
           throws DependencyResolutionException, VersionRangeResolutionException,
           IOException, ArtifactResolutionException, JavadocExecutionException {
-<span class="nc" id="L193">    JDiffRunner jdiff = new JDiffRunner();</span>
-<span class="nc" id="L194">    List&lt;Version&gt; rangeVersions = MavenRepositoryUtils.getVersions(</span>
+<span class="fc" id="L193">    JDiffRunner jdiff = new JDiffRunner();</span>
+<span class="fc" id="L194">    List&lt;Version&gt; rangeVersions = MavenRepositoryUtils.getVersions(</span>
             groupId, artifactId, versionRange, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L196">    int size = rangeVersions.size();</span>
-<span class="nc bnc" id="L197" title="All 2 branches missed.">    if (size &lt; 2) {</span>
+<span class="fc" id="L196">    int size = rangeVersions.size();</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    if (size &lt; 2) {</span>
 <span class="nc" id="L198">      return;</span>
     }
-<span class="nc" id="L200">    LinkedList&lt;Version&gt; versions = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L201">    versions.add(rangeVersions.get(size - 1));</span>
-<span class="nc bnc" id="L202" title="All 4 branches missed.">    for (int i = size - 2, j = 1; i &gt;= 0 &amp;&amp; j &lt; maxNrOFDiffs; i--) {</span>
-<span class="nc" id="L203">      Version ver = rangeVersions.get(i);</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">      if (ver.toString().contains(&quot;SNAPSHOT&quot;)) {</span>
-<span class="nc" id="L205">        continue;</span>
+<span class="fc" id="L200">    LinkedList&lt;Version&gt; versions = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L201">    versions.add(rangeVersions.get(size - 1));</span>
+<span class="pc bpc" id="L202" title="1 of 4 branches missed.">    for (int i = size - 2, j = 1; i &gt;= 0 &amp;&amp; j &lt; maxNrOFDiffs; i--) {</span>
+<span class="fc" id="L203">      Version ver = rangeVersions.get(i);</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">      if (ver.toString().contains(&quot;SNAPSHOT&quot;)) {</span>
+<span class="fc" id="L205">        continue;</span>
       }
-<span class="nc" id="L207">      versions.addFirst(ver);</span>
-<span class="nc" id="L208">      j++;</span>
+<span class="fc" id="L207">      versions.addFirst(ver);</span>
+<span class="fc" id="L208">      j++;</span>
     }
-<span class="nc" id="L210">    Version v = versions.get(0);</span>
-<span class="nc" id="L211">    File prevSourcesArtifact = MavenRepositoryUtils.resolveArtifact(</span>
-<span class="nc" id="L212">            groupId, artifactId, &quot;sources&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
-<span class="nc" id="L213">    File prevJavaDocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
-<span class="nc" id="L214">            groupId, artifactId, &quot;javadoc&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
-<span class="nc" id="L215">    Path tempDir = Files.createTempDirectory(&quot;jdiff&quot;);</span>
+<span class="fc" id="L210">    Version v = versions.get(0);</span>
+<span class="fc" id="L211">    File prevSourcesArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L212">            groupId, artifactId, &quot;sources&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
+<span class="fc" id="L213">    File prevJavaDocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L214">            groupId, artifactId, &quot;javadoc&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
+<span class="fc" id="L215">    Path tempDir = Files.createTempDirectory(&quot;jdiff&quot;);</span>
     try {
-<span class="nc" id="L217">      Path sourceDestination = tempDir.resolve(artifactId).resolve(v.toString()).resolve(&quot;sources&quot;);</span>
-<span class="nc" id="L218">      Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination);</span>
-<span class="nc" id="L219">      Set&lt;File&gt; deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
-<span class="nc" id="L220">              null, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
-<span class="nc" id="L221">      String prevApiName = artifactId + '-' + v;</span>
-<span class="nc" id="L222">      Set&lt;String&gt; prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),</span>
+<span class="fc" id="L217">      Path sourceDestination = tempDir.resolve(artifactId).resolve(v.toString()).resolve(&quot;sources&quot;);</span>
+<span class="fc" id="L218">      Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination);</span>
+<span class="fc" id="L219">      Set&lt;File&gt; deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
+<span class="fc" id="L220">              null, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
+<span class="fc" id="L221">      String prevApiName = artifactId + '-' + v;</span>
+<span class="fc" id="L222">      Set&lt;String&gt; prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),</span>
               deps, destinationFolder, prevApiName, null);
-<span class="nc bnc" id="L224" title="All 2 branches missed.">      for (int i = 1, l = versions.size(); i &lt; l; i++) {</span>
-<span class="nc" id="L225">        v = versions.get(i);</span>
-<span class="nc" id="L226">        File sourceArtifact = MavenRepositoryUtils.resolveArtifact(</span>
-<span class="nc" id="L227">                groupId, artifactId, &quot;sources&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
-<span class="nc" id="L228">        File javadocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
-<span class="nc" id="L229">                groupId, artifactId, &quot;javadoc&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
-<span class="nc" id="L230">        sourceDestination =  tempDir.resolve(artifactId).resolve(v.toString()).resolve(&quot;sources&quot;);</span>
-<span class="nc" id="L231">        Compress.unzip(sourceArtifact.toPath(), sourceDestination);</span>
-<span class="nc" id="L232">        deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
-<span class="nc" id="L233">                null, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
-<span class="nc" id="L234">        String apiName = artifactId + '-' + v;</span>
-<span class="nc" id="L235">        Set&lt;String&gt; packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">      for (int i = 1, l = versions.size(); i &lt; l; i++) {</span>
+<span class="fc" id="L225">        v = versions.get(i);</span>
+<span class="fc" id="L226">        File sourceArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L227">                groupId, artifactId, &quot;sources&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
+<span class="fc" id="L228">        File javadocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L229">                groupId, artifactId, &quot;javadoc&quot;, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
+<span class="fc" id="L230">        sourceDestination =  tempDir.resolve(artifactId).resolve(v.toString()).resolve(&quot;sources&quot;);</span>
+<span class="fc" id="L231">        Compress.unzip(sourceArtifact.toPath(), sourceDestination);</span>
+<span class="fc" id="L232">        deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
+<span class="fc" id="L233">                null, &quot;jar&quot;, v.toString(), remoteRepos, repositorySystem, reposSession);</span>
+<span class="fc" id="L234">        String apiName = artifactId + '-' + v;</span>
+<span class="fc" id="L235">        Set&lt;String&gt; packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,</span>
                 destinationFolder, apiName, null);
-<span class="nc" id="L237">        prevPackages.addAll(packages);</span>
-<span class="nc" id="L238">        Path reportsDestination = destinationFolder.toPath().resolve(prevApiName + '_' + apiName);</span>
-<span class="nc" id="L239">        Compress.unzip(prevJavaDocArtifact.toPath(), reportsDestination.resolve(prevApiName));</span>
-<span class="nc" id="L240">        Compress.unzip(javadocArtifact.toPath(), reportsDestination.resolve(apiName));</span>
+<span class="fc" id="L237">        prevPackages.addAll(packages);</span>
+<span class="fc" id="L238">        Path reportsDestination = destinationFolder.toPath().resolve(prevApiName + '_' + apiName);</span>
+<span class="fc" id="L239">        Compress.unzip(prevJavaDocArtifact.toPath(), reportsDestination.resolve(prevApiName));</span>
+<span class="fc" id="L240">        Compress.unzip(javadocArtifact.toPath(), reportsDestination.resolve(apiName));</span>
 
-<span class="nc" id="L242">        jdiff.generateReport(destinationFolder, prevApiName, apiName,</span>
-<span class="nc" id="L243">                &quot;../&quot; + prevApiName + '/', &quot;../&quot; + apiName + '/', prevPackages, reportsDestination.toFile());</span>
-<span class="nc" id="L244">        prevApiName = apiName;</span>
-<span class="nc" id="L245">        prevPackages = packages;</span>
-<span class="nc" id="L246">        prevJavaDocArtifact = javadocArtifact;</span>
+<span class="fc" id="L242">        jdiff.generateReport(destinationFolder, prevApiName, apiName,</span>
+<span class="fc" id="L243">                &quot;../&quot; + prevApiName + '/', &quot;../&quot; + apiName + '/', prevPackages, reportsDestination.toFile());</span>
+<span class="fc" id="L244">        prevApiName = apiName;</span>
+<span class="fc" id="L245">        prevPackages = packages;</span>
+<span class="fc" id="L246">        prevJavaDocArtifact = javadocArtifact;</span>
       }
     } finally {
-<span class="nc" id="L249">      FileUtils.deleteDirectory(tempDir.toFile());</span>
+<span class="fc" id="L249">      FileUtils.deleteDirectory(tempDir.toFile());</span>
     }
-<span class="nc" id="L251">  }</span>
+<span class="fc" id="L251">  }</span>
 
   public void runDiffBetweenReleases(final String groupId, final String artifactId,
           final String version1, final String version2, final File destinationFolder,
           final Set&lt;String&gt; includePackages)
           throws ArtifactResolutionException, DependencyResolutionException, IOException, JavadocExecutionException {
-<span class="nc" id="L257">    JDiffRunner jdiff = new JDiffRunner();</span>
-<span class="nc" id="L258">    File prevSourcesArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L257">    JDiffRunner jdiff = new JDiffRunner();</span>
+<span class="fc" id="L258">    File prevSourcesArtifact = MavenRepositoryUtils.resolveArtifact(</span>
             groupId, artifactId, &quot;sources&quot;, &quot;jar&quot;, version1, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L260">    File prevJavaDocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L260">    File prevJavaDocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
             groupId, artifactId, &quot;javadoc&quot;, &quot;jar&quot;, version1, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L262">    Path tempDir = Files.createTempDirectory(&quot;jdiff&quot;);</span>
+<span class="fc" id="L262">    Path tempDir = Files.createTempDirectory(&quot;jdiff&quot;);</span>
     try {
-<span class="nc" id="L264">      Path sourceDestination = tempDir.resolve(artifactId).resolve(version1).resolve(&quot;sources&quot;);</span>
-<span class="nc" id="L265">      Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination);</span>
-<span class="nc" id="L266">      Set&lt;File&gt; deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
+<span class="fc" id="L264">      Path sourceDestination = tempDir.resolve(artifactId).resolve(version1).resolve(&quot;sources&quot;);</span>
+<span class="fc" id="L265">      Compress.unzip(prevSourcesArtifact.toPath(), sourceDestination);</span>
+<span class="fc" id="L266">      Set&lt;File&gt; deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
               null, &quot;jar&quot;, version1, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L268">      String prevApiName = artifactId + '-' + version1;</span>
-<span class="nc" id="L269">      Set&lt;String&gt; prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),</span>
+<span class="fc" id="L268">      String prevApiName = artifactId + '-' + version1;</span>
+<span class="fc" id="L269">      Set&lt;String&gt; prevPackages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()),</span>
               deps, destinationFolder, prevApiName, includePackages);
 
-<span class="nc" id="L272">      File sourceArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L272">      File sourceArtifact = MavenRepositoryUtils.resolveArtifact(</span>
               groupId, artifactId, &quot;sources&quot;, &quot;jar&quot;, version2, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L274">      File javadocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="fc" id="L274">      File javadocArtifact = MavenRepositoryUtils.resolveArtifact(</span>
               groupId, artifactId, &quot;javadoc&quot;, &quot;jar&quot;, version2, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L276">      sourceDestination = tempDir.resolve(artifactId).resolve(version2).resolve(&quot;sources&quot;);</span>
-<span class="nc" id="L277">      Compress.unzip(sourceArtifact.toPath(), sourceDestination);</span>
-<span class="nc" id="L278">      deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
+<span class="fc" id="L276">      sourceDestination = tempDir.resolve(artifactId).resolve(version2).resolve(&quot;sources&quot;);</span>
+<span class="fc" id="L277">      Compress.unzip(sourceArtifact.toPath(), sourceDestination);</span>
+<span class="fc" id="L278">      deps = MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;, groupId, artifactId,</span>
               null, &quot;jar&quot;, version2, remoteRepos, repositorySystem, reposSession);
-<span class="nc" id="L280">      String apiName = artifactId + '-' + version2;</span>
-<span class="nc" id="L281">      Set&lt;String&gt; packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,</span>
+<span class="fc" id="L280">      String apiName = artifactId + '-' + version2;</span>
+<span class="fc" id="L281">      Set&lt;String&gt; packages = jdiff.generateJDiffXML(Arrays.asList(sourceDestination.toFile()), deps,</span>
               destinationFolder, apiName, includePackages);
-<span class="nc" id="L283">      prevPackages.addAll(packages);</span>
-<span class="nc" id="L284">      Compress.unzip(prevJavaDocArtifact.toPath(), destinationFolder.toPath().resolve(prevApiName));</span>
-<span class="nc" id="L285">      Compress.unzip(javadocArtifact.toPath(), destinationFolder.toPath().resolve(apiName));</span>
+<span class="fc" id="L283">      prevPackages.addAll(packages);</span>
+<span class="fc" id="L284">      Compress.unzip(prevJavaDocArtifact.toPath(), destinationFolder.toPath().resolve(prevApiName));</span>
+<span class="fc" id="L285">      Compress.unzip(javadocArtifact.toPath(), destinationFolder.toPath().resolve(apiName));</span>
 
-<span class="nc" id="L287">      jdiff.generateReport(destinationFolder, prevApiName, apiName,</span>
+<span class="fc" id="L287">      jdiff.generateReport(destinationFolder, prevApiName, apiName,</span>
               &quot;../&quot; + prevApiName + '/', &quot;../&quot; + apiName + '/', prevPackages, destinationFolder);
     } finally {
-<span class="nc" id="L290">      FileUtils.deleteDirectory(tempDir.toFile());</span>
+<span class="fc" id="L290">      FileUtils.deleteDirectory(tempDir.toFile());</span>
     }
-<span class="nc" id="L292">  }</span>
+<span class="fc" id="L292">  }</span>
 
   public void writeChangesIndexHtml(final File reportOutputDirectory, final String fileName) throws IOException {
-<span class="nc" id="L295">    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(</span>
-<span class="nc" id="L296">            Files.newOutputStream(reportOutputDirectory.toPath().resolve(fileName)),</span>
+<span class="fc" id="L295">    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="fc" id="L296">            Files.newOutputStream(reportOutputDirectory.toPath().resolve(fileName)),</span>
             StandardCharsets.UTF_8))) {
-<span class="nc" id="L298">      writer.append(&quot;&lt;HTML&gt;\n&quot;</span>
+<span class="fc" id="L298">      writer.append(&quot;&lt;HTML&gt;\n&quot;</span>
               + &quot;&lt;HEAD&gt;\n&quot;
               + &quot;&lt;TITLE&gt;\n&quot;
               + &quot;API Differences Reports\n&quot;
@@ -304,27 +304,27 @@ public final class JDiffRunner {
               + &quot;&lt;BODY&gt;\n&quot;
               + &quot;&lt;table summary=\&quot;Api Difference Reports\&quot;&quot;
               + &quot; width=\&quot;100%\&quot; border=\&quot;0\&quot; cellspacing=\&quot;0\&quot; cellpadding=\&quot;0\&quot;&gt;&quot;);
-<span class="nc" id="L307">      Path reportPath = reportOutputDirectory.toPath();</span>
-<span class="nc" id="L308">      Files.walk(reportPath, 2)</span>
-<span class="nc" id="L309">              .map((p) -&gt; reportPath.relativize(p))</span>
-<span class="nc bnc" id="L310" title="All 4 branches missed.">              .filter((p) -&gt; p.getNameCount() &gt; 1 &amp;&amp; p.endsWith(&quot;changes.html&quot;))</span>
-<span class="nc" id="L311">              .forEach((p) -&gt; {</span>
+<span class="fc" id="L307">      Path reportPath = reportOutputDirectory.toPath();</span>
+<span class="fc" id="L308">      Files.walk(reportPath, 2)</span>
+<span class="fc" id="L309">              .map((p) -&gt; reportPath.relativize(p))</span>
+<span class="fc bfc" id="L310" title="All 4 branches covered.">              .filter((p) -&gt; p.getNameCount() &gt; 1 &amp;&amp; p.endsWith(&quot;changes.html&quot;))</span>
+<span class="fc" id="L311">              .forEach((p) -&gt; {</span>
                 try {
-<span class="nc" id="L313">                  writer.append(&quot;  &lt;tr&gt;\n&quot;</span>
+<span class="fc" id="L313">                  writer.append(&quot;  &lt;tr&gt;\n&quot;</span>
                           + &quot;  &lt;td bgcolor=\&quot;#FFFFCC\&quot;&gt;\n&quot;
                           + &quot;    &lt;font size=\&quot;+1\&quot;&gt;&lt;a href=\&quot;&quot; + p + &quot;\&quot;&gt; &quot;
-<span class="nc" id="L316">                          + p.getName(0).toString().replace(&quot;_&quot;, &quot; to &quot;) + &quot; &lt;/a&gt;&lt;/font&gt;\n&quot;</span>
+<span class="fc" id="L316">                          + p.getName(0).toString().replace(&quot;_&quot;, &quot; to &quot;) + &quot; &lt;/a&gt;&lt;/font&gt;\n&quot;</span>
                           + &quot;  &lt;/td&gt;\n&quot;
                           + &quot;  &lt;/tr&gt;&quot;);
 <span class="nc" id="L319">                } catch (IOException ex) {</span>
 <span class="nc" id="L320">                  throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L321">                }</span>
-<span class="nc" id="L322">              });</span>
-<span class="nc" id="L323">      writer.append(&quot;&lt;/TABLE&gt;\n&quot;</span>
+<span class="fc" id="L321">                }</span>
+<span class="fc" id="L322">              });</span>
+<span class="fc" id="L323">      writer.append(&quot;&lt;/TABLE&gt;\n&quot;</span>
               + &quot;&lt;/BODY&gt;\n&quot;
               + &quot;&lt;/HTML&gt;&quot;);
     }
-<span class="nc" id="L327">  }</span>
+<span class="fc" id="L327">  }</span>
 
   @Override
   public String toString() {

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuantizedXYZDatasetImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.chart</a> &gt; <span class="el_source">QuantizedXYZDatasetImpl.java</span></div><h1>QuantizedXYZDatasetImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.impl.chart;
+
+import java.io.Serializable;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.concurrent.Immutable;
+import org.jfree.chart.axis.TickUnits;
+import org.jfree.data.DomainOrder;
+import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.general.DatasetGroup;
+import org.jfree.data.xy.XYZDataset;
+import org.spf4j.base.Arrays;
+import org.spf4j.base.ComparablePair;
+import org.spf4j.perf.impl.Quanta;
+
+@Immutable
+public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  private final double[] x;
+  private final double[] y;
+  private final double[] z;
+  private final double minValue;
+  private final double maxValue;
+  private final ArrayList&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; quantas;
+  private final double[][] data;
+  private final long startTimeMillis;
+  private final long stepMillis;
+
+  public QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
+<span class="nc" id="L66">          final long startTimeMillis, final long step) {</span>
+<span class="nc" id="L67">    this.data = pdata.clone();</span>
+<span class="nc" id="L68">    this.startTimeMillis = startTimeMillis;</span>
+<span class="nc" id="L69">    this.stepMillis = step;</span>
+<span class="nc" id="L70">    quantas = new ArrayList&lt;&gt;(dataSources.length);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    for (int i = 0; i &lt; dataSources.length; i++) {</span>
+<span class="nc" id="L72">      String ds = dataSources[i];</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">      if (ds.startsWith(&quot;Q&quot;)) {</span>
+<span class="nc" id="L74">        Quanta quanta = new Quanta(ds);</span>
+<span class="nc" id="L75">        quantas.add(ComparablePair.of(quanta, i));</span>
+      }
+    }
+<span class="nc" id="L78">    Collections.sort(quantas);</span>
+<span class="nc" id="L79">    final int nrQuantas = quantas.size();</span>
+<span class="nc" id="L80">    int seriesSize = nrQuantas * data.length;</span>
+<span class="nc" id="L81">    x = new double[seriesSize];</span>
+<span class="nc" id="L82">    y = new double[seriesSize];</span>
+<span class="nc" id="L83">    z = new double[seriesSize];</span>
+<span class="nc" id="L84">    double lMinValue = Double.POSITIVE_INFINITY;</span>
+<span class="nc" id="L85">    double lMaxValue = Double.NEGATIVE_INFINITY;</span>
+
+<span class="nc" id="L87">    int k = 0;</span>
+
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    for (int j = 0; j &lt; nrQuantas; j++) {</span>
+<span class="nc" id="L90">      ComparablePair&lt;Quanta, Integer&gt; pair = quantas.get(j);</span>
+<span class="nc" id="L91">      double[] values = Arrays.getColumn(data, pair.getSecond());</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">      for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="nc" id="L93">        x[k] = i; //timestamps[i]*1000;</span>
+<span class="nc" id="L94">        y[k] = j; //(double) pair.getFirst().getClosestToZero();</span>
+<span class="nc" id="L95">        double zval = values[i];</span>
+<span class="nc" id="L96">        z[k] = zval;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (zval &gt; lMaxValue) {</span>
+<span class="nc" id="L98">          lMaxValue = zval;</span>
+        }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (zval &lt; lMinValue) {</span>
+<span class="nc" id="L101">          lMinValue = zval;</span>
+        }
+<span class="nc" id="L103">        k++;</span>
+      }
+    }
+<span class="nc" id="L106">    this.minValue = lMinValue;</span>
+<span class="nc" id="L107">    this.maxValue = lMaxValue;</span>
+
+<span class="nc" id="L109">  }</span>
+
+  @Override
+  public Number getZ(final int series, final int item) {
+<span class="nc" id="L113">    return z[item];</span>
+  }
+
+  @Override
+  public double getZValue(final int series, final int item) {
+<span class="nc" id="L118">    return z[item];</span>
+  }
+
+  @Override
+  public DomainOrder getDomainOrder() {
+<span class="nc" id="L123">    return DomainOrder.ASCENDING;</span>
+  }
+
+  @Override
+  public int getItemCount(final int series) {
+<span class="nc" id="L128">    return x.length;</span>
+  }
+
+  @Override
+  public Number getX(final int series, final int item) {
+<span class="nc" id="L133">    return x[item];</span>
+  }
+
+  @Override
+  public double getXValue(final int series, final int item) {
+<span class="nc" id="L138">    return x[item];</span>
+  }
+
+  @Override
+  public Number getY(final int series, final int item) {
+<span class="nc" id="L143">    return y[item];</span>
+  }
+
+  @Override
+  public double getYValue(final int series, final int item) {
+<span class="nc" id="L148">    return y[item];</span>
+  }
+
+  @Override
+  public int getSeriesCount() {
+<span class="nc" id="L153">    return 1;</span>
+  }
+
+  @Override
+  public Comparable getSeriesKey(final int series) {
+<span class="nc" id="L158">    return &quot;RrdXYZDataset&quot;;</span>
+  }
+
+  @Override
+  public int indexOf(final Comparable seriesKey) {
+<span class="nc" id="L163">    return 0;</span>
+  }
+
+  @Override
+  public void addChangeListener(final DatasetChangeListener listener) {
+    // nothing
+<span class="nc" id="L169">  }</span>
+
+  @Override
+  public void removeChangeListener(final DatasetChangeListener listener) {
+    // nothing
+<span class="nc" id="L174">  }</span>
+
+  @Override
+  public DatasetGroup getGroup() {
+<span class="nc" id="L178">    return null;</span>
+  }
+
+  @Override
+  public void setGroup(final DatasetGroup group) {
+    // nothing
+<span class="nc" id="L184">  }</span>
+
+  public double getMaxValue() {
+<span class="nc" id="L187">    return maxValue;</span>
+  }
+
+  public double getMinValue() {
+<span class="nc" id="L191">    return minValue;</span>
+  }
+
+  public List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; getQuantas() {
+<span class="nc" id="L195">    return quantas;</span>
+  }
+
+  public TickUnits createXTickUnits() {
+<span class="nc" id="L199">    TickUnits tux = new TickUnits();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">    if (data.length == 0) {</span>
+<span class="nc" id="L201">      return tux;</span>
+    }
+<span class="nc" id="L203">    ZoneId systemDefault = ZoneId.systemDefault();</span>
+<span class="nc" id="L204">    final DateTimeFormatter formatter = DateTimeFormatter</span>
+<span class="nc" id="L205">          .ofPattern(&quot;yyyyMMdd'T'HH:mm:ss&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L206">    final DateTimeFormatter shortFormat = DateTimeFormatter</span>
+<span class="nc" id="L207">          .ofPattern(&quot;yyyyMMdd'T'HH&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L208">    final DateTimeFormatter mediumFormat = DateTimeFormatter</span>
+<span class="nc" id="L209">          .ofPattern(&quot;yyyyMMdd'T'HH:mm&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L210">    final long[] timestamps = new long[data[0].length];</span>
+<span class="nc" id="L211">    long time = startTimeMillis;</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
+<span class="nc" id="L213">      timestamps[i] = time;</span>
+<span class="nc" id="L214">      time += stepMillis;</span>
+    }
+<span class="nc" id="L216">    tux.add(new TimestampTickUnitImpl(1, timestamps, stepMillis, formatter)); // base</span>
+<span class="nc" id="L217">    long nr = 5000L / stepMillis;</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L219">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
+    }
+
+<span class="nc" id="L222">    nr = 15000L / stepMillis;</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L224">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
+    }
+    // minute
+<span class="nc" id="L227">    nr = 60000L / stepMillis;</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L229">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
+    }
+    // 15 minute
+<span class="nc" id="L232">    nr = 900000L / stepMillis;</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L234">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
+    }
+    // hour
+<span class="nc" id="L237">    nr = 3600000L / stepMillis;</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L239">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
+    }
+    // 6 hour
+<span class="nc" id="L242">    nr = 21600000L / stepMillis;</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L244">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
+    }
+
+<span class="nc" id="L247">    return tux;</span>
+  }
+
+  public TickUnits createYTickUnits() {
+<span class="nc" id="L251">    TickUnits tu = new TickUnits();</span>
+<span class="nc" id="L252">    final List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; lquantas = this.getQuantas();</span>
+<span class="nc" id="L253">    tu.add(new QuantizedNumberTickUnit(1, lquantas));</span>
+<span class="nc" id="L254">    return tu;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L259">    return &quot;QuantizedXYZDatasetImpl{&quot; + &quot;x=&quot; + java.util.Arrays.toString(x)</span>
+<span class="nc" id="L260">            + &quot;, y=&quot; + java.util.Arrays.toString(y) + &quot;, z=&quot; + java.util.Arrays.toString(z)</span>
+            + &quot;, minValue=&quot; + minValue + &quot;, maxValue=&quot; + maxValue + &quot;, quantas=&quot; + quantas
+<span class="nc" id="L262">            + &quot;, data=&quot; + java.util.Arrays.toString(data)</span>
+            + &quot;, startTimeMillis=&quot; + startTimeMillis + &quot;, stepMillis=&quot; + stepMillis + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

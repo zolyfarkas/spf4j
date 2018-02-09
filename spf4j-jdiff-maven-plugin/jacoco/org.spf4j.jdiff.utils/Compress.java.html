@@ -60,8 +60,8 @@ import java.util.zip.ZipOutputStream;
 
 public final class Compress {
 
-<span class="nc" id="L63">  private Compress() {</span>
-<span class="nc" id="L64">  }</span>
+  private Compress() {
+  }
 
   /**
    * Zip a file or folder.
@@ -111,16 +111,16 @@ public final class Compress {
 <span class="nc" id="L111">              ZipEntry ze = new ZipEntry(fileName);</span>
 <span class="nc" id="L112">              zos.putNextEntry(ze);</span>
 <span class="nc" id="L113">              copy(in, zos);</span>
-<span class="nc bnc" id="L114" title="All 8 branches missed.">            } catch (IOException ex) {</span>
+<span class="nc" id="L114">            } catch (IOException ex) {</span>
 <span class="nc" id="L115">              throw new UncheckedIOException(&quot;Error compressing &quot; + path, ex);</span>
 <span class="nc" id="L116">            }</span>
 <span class="nc" id="L117">          });</span>
-<span class="nc bnc" id="L118" title="All 16 branches missed.">      }</span>
+      }
 <span class="nc" id="L119">      Files.move(tmpFile, destFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
 <span class="nc" id="L122">      Files.deleteIfExists(tmpFile);</span>
-<span class="nc" id="L123">    }</span>
+    }
 <span class="nc" id="L124">  }</span>
 
   /**
@@ -138,15 +138,15 @@ public final class Compress {
     }
 <span class="fc" id="L139">    Path tmpFile = Files.createTempFile(parent, &quot;.&quot;, null);</span>
     try {
-<span class="pc" id="L141">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source));</span>
+<span class="fc" id="L141">      try (InputStream in = new BufferedInputStream(Files.newInputStream(source));</span>
 <span class="fc" id="L142">              OutputStream os = new BufferedOutputStream(Files.newOutputStream(tmpFile))) {</span>
 <span class="fc" id="L143">        copy(in, os);</span>
-<span class="pc bpc" id="L144" title="12 of 16 branches missed.">      }</span>
+      }
 <span class="fc" id="L145">      Files.move(tmpFile, destinationFile,</span>
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-<span class="pc" id="L148">      Files.deleteIfExists(tmpFile);</span>
-<span class="pc" id="L149">    }</span>
+<span class="fc" id="L148">      Files.deleteIfExists(tmpFile);</span>
+    }
 <span class="fc" id="L150">  }</span>
 
 
@@ -180,7 +180,7 @@ public final class Compress {
     }
 <span class="fc" id="L181">    final List&lt;Path&gt; response = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L182">    URI zipUri = URI.create(&quot;jar:&quot; + zipFile.toUri().toURL());</span>
-<span class="pc" id="L183">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
+<span class="fc" id="L183">    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {</span>
 <span class="fc bfc" id="L184" title="All 2 branches covered.">      for (Path root : zipFs.getRootDirectories()) {</span>
 <span class="fc" id="L185">        Path dest =  destinationDirectory.resolve(root.toString().substring(1));</span>
 <span class="fc" id="L186">        Files.walkFileTree(root, new SimpleFileVisitor&lt;Path&gt;() {</span>
@@ -203,7 +203,7 @@ public final class Compress {
           }
         });
 <span class="fc" id="L205">      }</span>
-<span class="pc bpc" id="L206" title="6 of 8 branches missed.">    } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L206">    } catch (IOException | RuntimeException ex) {</span>
 <span class="nc bnc" id="L207" title="All 2 branches missed.">      for (Path path : response) {</span>
         try {
 <span class="nc" id="L209">          Files.delete(path);</span>
@@ -283,4 +283,4 @@ public final class Compress {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

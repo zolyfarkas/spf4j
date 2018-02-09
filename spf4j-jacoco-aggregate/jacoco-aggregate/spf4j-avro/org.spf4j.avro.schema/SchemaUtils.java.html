@@ -71,123 +71,123 @@ public final class SchemaUtils {
   private static final boolean HAS_IDL_CYCLE_DEF_SUPPORT;
 
   static {
-<span class="nc" id="L74">    boolean hasIDLCycleSupp = true;</span>
+<span class="fc" id="L74">    boolean hasIDLCycleSupp = true;</span>
     try {
 <span class="nc" id="L76">      Class.forName(&quot;org.apache.avro.compiler.idl.ResolvingVisitor&quot;);</span>
-<span class="nc" id="L77">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L78">      hasIDLCycleSupp = false;</span>
+<span class="fc" id="L77">    } catch (ClassNotFoundException ex) {</span>
+<span class="fc" id="L78">      hasIDLCycleSupp = false;</span>
 <span class="nc" id="L79">    }</span>
-<span class="nc" id="L80">    HAS_IDL_CYCLE_DEF_SUPPORT = hasIDLCycleSupp;</span>
+<span class="fc" id="L80">    HAS_IDL_CYCLE_DEF_SUPPORT = hasIDLCycleSupp;</span>
   }
 
 
-<span class="nc" id="L84">  private static final JsonFactory JSON_FACT = new JsonFactory();</span>
+<span class="fc" id="L84">  private static final JsonFactory JSON_FACT = new JsonFactory();</span>
 
-<span class="nc" id="L86">  public static final BiConsumer&lt;Schema, Schema&gt; SCHEMA_ESENTIALS</span>
+<span class="fc" id="L86">  public static final BiConsumer&lt;Schema, Schema&gt; SCHEMA_ESENTIALS</span>
           = (a, b) -&gt; {
-<span class="nc" id="L88">            SchemaUtils.copyAliases(a, b);</span>
-<span class="nc" id="L89">            SchemaUtils.copyLogicalTypes(a, b);</span>
-<span class="nc" id="L90">          };</span>
+<span class="fc" id="L88">            SchemaUtils.copyAliases(a, b);</span>
+<span class="fc" id="L89">            SchemaUtils.copyLogicalTypes(a, b);</span>
+<span class="fc" id="L90">          };</span>
 
-<span class="nc" id="L92">  public static final BiConsumer&lt;Schema.Field, Schema.Field&gt; FIELD_ESENTIALS</span>
+<span class="fc" id="L92">  public static final BiConsumer&lt;Schema.Field, Schema.Field&gt; FIELD_ESENTIALS</span>
           = (a, b) -&gt; {
-<span class="nc" id="L94">            SchemaUtils.copyAliases(a, b);</span>
-<span class="nc" id="L95">          };</span>
+<span class="fc" id="L94">            SchemaUtils.copyAliases(a, b);</span>
+<span class="fc" id="L95">          };</span>
 
-<span class="nc" id="L97">  public static final BiConsumer&lt;Schema, Schema&gt; SCHEMA_EVERYTHING</span>
+<span class="fc" id="L97">  public static final BiConsumer&lt;Schema, Schema&gt; SCHEMA_EVERYTHING</span>
           = (a, b) -&gt; {
-<span class="nc" id="L99">            SchemaUtils.copyAliases(a, b);</span>
-<span class="nc" id="L100">            SchemaUtils.copyLogicalTypes(a, b);</span>
-<span class="nc" id="L101">            SchemaUtils.copyProperties(a, b);</span>
-<span class="nc" id="L102">          };</span>
+<span class="fc" id="L99">            SchemaUtils.copyAliases(a, b);</span>
+<span class="fc" id="L100">            SchemaUtils.copyLogicalTypes(a, b);</span>
+<span class="fc" id="L101">            SchemaUtils.copyProperties(a, b);</span>
+<span class="fc" id="L102">          };</span>
 
-<span class="nc" id="L104">  public static final BiConsumer&lt;Schema.Field, Schema.Field&gt; FIELD_EVERYTHING</span>
+<span class="fc" id="L104">  public static final BiConsumer&lt;Schema.Field, Schema.Field&gt; FIELD_EVERYTHING</span>
           = (a, b) -&gt; {
-<span class="nc" id="L106">            SchemaUtils.copyAliases(a, b);</span>
-<span class="nc" id="L107">            SchemaUtils.copyProperties(a, b);</span>
-<span class="nc" id="L108">          };</span>
+<span class="fc" id="L106">            SchemaUtils.copyAliases(a, b);</span>
+<span class="fc" id="L107">            SchemaUtils.copyProperties(a, b);</span>
+<span class="fc" id="L108">          };</span>
 
   private SchemaUtils() {
   }
 
   public static boolean isIdlCycleSupport() {
-<span class="nc" id="L114">    return HAS_IDL_CYCLE_DEF_SUPPORT;</span>
+<span class="fc" id="L114">    return HAS_IDL_CYCLE_DEF_SUPPORT;</span>
   }
 
 
 
   public static void copyAliases(final Schema from, final Schema to) {
     //CHECKSTYLE:OFF
-<span class="nc bnc" id="L121" title="All 2 branches missed.">    switch (from.getType()) { // only named types.</span>
+<span class="pc bfc" id="L121" title="All 2 branches covered.">    switch (from.getType()) { // only named types.</span>
       case RECORD:
       case ENUM:
       case FIXED:
-<span class="nc" id="L125">        Set&lt;String&gt; aliases = from.getAliases();</span>
-<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (String alias : aliases) {</span>
+<span class="fc" id="L125">        Set&lt;String&gt; aliases = from.getAliases();</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">        for (String alias : aliases) {</span>
 <span class="nc" id="L127">          to.addAlias(alias);</span>
 <span class="nc" id="L128">        }</span>
       default:
       //ignore unnamed one's
     }
     //CHECKSTYLE:OFF
-<span class="nc" id="L133">  }</span>
+<span class="fc" id="L133">  }</span>
 
   public static void copyAliases(final Schema.Field from, final Schema.Field to) {
-<span class="nc" id="L136">    Set&lt;String&gt; aliases = from.aliases();</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">    for (String alias : aliases) {</span>
+<span class="fc" id="L136">    Set&lt;String&gt; aliases = from.aliases();</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">    for (String alias : aliases) {</span>
 <span class="nc" id="L138">      to.addAlias(alias);</span>
 <span class="nc" id="L139">    }</span>
-<span class="nc" id="L140">  }</span>
+<span class="fc" id="L140">  }</span>
 
   public static void copyLogicalTypes(final Schema from, final Schema to) {
-<span class="nc" id="L143">    LogicalType logicalType = from.getLogicalType();</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">    if (logicalType != null) {</span>
+<span class="fc" id="L143">    LogicalType logicalType = from.getLogicalType();</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">    if (logicalType != null) {</span>
 <span class="nc" id="L145">      logicalType.addToSchema(to);</span>
     }
-<span class="nc" id="L147">  }</span>
+<span class="fc" id="L147">  }</span>
 
   public static void copyProperties(final JsonProperties from, final JsonProperties to) {
-<span class="nc" id="L150">    Map&lt;String, Object&gt; objectProps = from.getObjectProps();</span>
-<span class="nc bnc" id="L151" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : objectProps.entrySet()) {</span>
-<span class="nc" id="L152">      to.addProp(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L153">    }</span>
-<span class="nc" id="L154">  }</span>
+<span class="fc" id="L150">    Map&lt;String, Object&gt; objectProps = from.getObjectProps();</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">    for (Map.Entry&lt;String, Object&gt; entry : objectProps.entrySet()) {</span>
+<span class="fc" id="L152">      to.addProp(entry.getKey(), entry.getValue());</span>
+<span class="fc" id="L153">    }</span>
+<span class="fc" id="L154">  }</span>
 
   public static boolean hasGeneratedJavaClass(final Schema schema) {
-<span class="nc" id="L157">    Schema.Type type = schema.getType();</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">    switch (type) {</span>
+<span class="fc" id="L157">    Schema.Type type = schema.getType();</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">    switch (type) {</span>
       case ENUM:
       case RECORD:
       case FIXED:
-<span class="nc" id="L162">        return true;</span>
+<span class="fc" id="L162">        return true;</span>
       default:
 <span class="nc" id="L164">        return false;</span>
     }
   }
 
   public static String getJavaClassName(final Schema schema) {
-<span class="nc" id="L169">    String namespace = schema.getNamespace();</span>
-<span class="nc bnc" id="L170" title="All 4 branches missed.">    if (namespace == null || namespace.isEmpty()) {</span>
-<span class="nc" id="L171">      return SpecificCompiler.mangle(schema.getName());</span>
+<span class="fc" id="L169">    String namespace = schema.getNamespace();</span>
+<span class="pc bpc" id="L170" title="1 of 4 branches missed.">    if (namespace == null || namespace.isEmpty()) {</span>
+<span class="fc" id="L171">      return SpecificCompiler.mangle(schema.getName());</span>
     } else {
-<span class="nc" id="L173">      return namespace + '.' + SpecificCompiler.mangle(schema.getName());</span>
+<span class="fc" id="L173">      return namespace + '.' + SpecificCompiler.mangle(schema.getName());</span>
     }
   }
 
   @Beta
   public static void writeIdlProtocol(final String protocolName, final String protocolNameSpace,
           final Appendable appendable, final Schema... schemas) throws IOException {
-<span class="nc bnc" id="L180" title="All 2 branches missed.">    if (protocolNameSpace != null) {</span>
-<span class="nc" id="L181">      appendable.append(&quot;@namespace(\&quot;&quot;).append(protocolNameSpace).append(&quot;\&quot;)\n&quot;);</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">    if (protocolNameSpace != null) {</span>
+<span class="fc" id="L181">      appendable.append(&quot;@namespace(\&quot;&quot;).append(protocolNameSpace).append(&quot;\&quot;)\n&quot;);</span>
     }
-<span class="nc" id="L183">    appendable.append(&quot;protocol &quot;).append(protocolName).append(&quot; {\n\n&quot;);</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (isIdlCycleSupport()) {</span>
+<span class="fc" id="L183">    appendable.append(&quot;protocol &quot;).append(protocolName).append(&quot; {\n\n&quot;);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">    if (isIdlCycleSupport()) {</span>
 <span class="nc" id="L185">      writeIdl(appendable, new HashSet&lt;String&gt;(4), protocolNameSpace, schemas);</span>
     } else {
-<span class="nc" id="L187">      writeIdlLegacy(appendable, new HashSet&lt;String&gt;(4), protocolNameSpace, schemas);</span>
+<span class="fc" id="L187">      writeIdlLegacy(appendable, new HashSet&lt;String&gt;(4), protocolNameSpace, schemas);</span>
     }
-<span class="nc" id="L189">    appendable.append(&quot;}\n&quot;);</span>
-<span class="nc" id="L190">  }</span>
+<span class="fc" id="L189">    appendable.append(&quot;}\n&quot;);</span>
+<span class="fc" id="L190">  }</span>
 
   @Beta
   public static void writeIdl(final Appendable appendable,
@@ -215,105 +215,105 @@ public final class SchemaUtils {
   public static void writeIdlLegacy(final Appendable appendable,
           final Set&lt;String&gt; alreadyDeclared, final String protocolNameSpace, final Schema ... pschemas)
           throws IOException {
-<span class="nc" id="L218">    MutableGraph&lt;Schema&gt; schemaDeps = GraphBuilder.directed().allowsSelfLoops(false)</span>
-<span class="nc" id="L219">            .expectedNodeCount(4).build();</span>
-<span class="nc" id="L220">    Map&lt;Schema, String&gt; idlRepresentation = new HashMap&lt;&gt;(4);</span>
-<span class="nc" id="L221">    final Set&lt;Schema&gt; toDeclare = new HashSet&lt;&gt;(4);</span>
-<span class="nc" id="L222">    toDeclare.addAll(Arrays.asList(pschemas));</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">    while (!toDeclare.isEmpty()) {</span>
-<span class="nc" id="L224">      Iterator&lt;Schema&gt; iterator = toDeclare.iterator();</span>
-<span class="nc" id="L225">      Schema schema = iterator.next();</span>
-<span class="nc" id="L226">      iterator.remove();</span>
-<span class="nc" id="L227">      StringWriter schemaIdrStr = new StringWriter();</span>
-<span class="nc" id="L228">      JsonGenerator jsonGen = JSON_FACT.createJsonGenerator(schemaIdrStr);</span>
-<span class="nc" id="L229">      Set&lt;Schema&gt; orig = new HashSet&lt;&gt;(toDeclare);</span>
-<span class="nc" id="L230">      writeSchema(schema, schemaIdrStr, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);</span>
-<span class="nc" id="L231">      idlRepresentation.put(schema, schemaIdrStr.toString());</span>
-<span class="nc" id="L232">      schemaDeps.addNode(schema);</span>
-<span class="nc" id="L233">      Set&lt;Schema&gt; dependencies = Sets.difference(toDeclare, orig);</span>
-<span class="nc bnc" id="L234" title="All 2 branches missed.">      for (Schema dep : dependencies) {</span>
-<span class="nc" id="L235">        schemaDeps.putEdge(schema, dep);</span>
-<span class="nc" id="L236">      }</span>
-<span class="nc" id="L237">     }</span>
+<span class="fc" id="L218">    MutableGraph&lt;Schema&gt; schemaDeps = GraphBuilder.directed().allowsSelfLoops(false)</span>
+<span class="fc" id="L219">            .expectedNodeCount(4).build();</span>
+<span class="fc" id="L220">    Map&lt;Schema, String&gt; idlRepresentation = new HashMap&lt;&gt;(4);</span>
+<span class="fc" id="L221">    final Set&lt;Schema&gt; toDeclare = new HashSet&lt;&gt;(4);</span>
+<span class="fc" id="L222">    toDeclare.addAll(Arrays.asList(pschemas));</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">    while (!toDeclare.isEmpty()) {</span>
+<span class="fc" id="L224">      Iterator&lt;Schema&gt; iterator = toDeclare.iterator();</span>
+<span class="fc" id="L225">      Schema schema = iterator.next();</span>
+<span class="fc" id="L226">      iterator.remove();</span>
+<span class="fc" id="L227">      StringWriter schemaIdrStr = new StringWriter();</span>
+<span class="fc" id="L228">      JsonGenerator jsonGen = JSON_FACT.createJsonGenerator(schemaIdrStr);</span>
+<span class="fc" id="L229">      Set&lt;Schema&gt; orig = new HashSet&lt;&gt;(toDeclare);</span>
+<span class="fc" id="L230">      writeSchema(schema, schemaIdrStr, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);</span>
+<span class="fc" id="L231">      idlRepresentation.put(schema, schemaIdrStr.toString());</span>
+<span class="fc" id="L232">      schemaDeps.addNode(schema);</span>
+<span class="fc" id="L233">      Set&lt;Schema&gt; dependencies = Sets.difference(toDeclare, orig);</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">      for (Schema dep : dependencies) {</span>
+<span class="fc" id="L235">        schemaDeps.putEdge(schema, dep);</span>
+<span class="fc" id="L236">      }</span>
+<span class="fc" id="L237">     }</span>
      // Now process the nodes from leaves onward.
 
-<span class="nc" id="L240">    MutableGraph&lt;Schema&gt; traverseGraph = Graphs.clone(schemaDeps);</span>
-<span class="nc" id="L241">    Set&lt;Schema&gt; nodes = traverseGraph.nodes();</span>
-<span class="nc" id="L242">    List&lt;Schema&gt; nodesToRemove = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L240">    MutableGraph&lt;Schema&gt; traverseGraph = Graphs.clone(schemaDeps);</span>
+<span class="fc" id="L241">    Set&lt;Schema&gt; nodes = traverseGraph.nodes();</span>
+<span class="fc" id="L242">    List&lt;Schema&gt; nodesToRemove = new ArrayList&lt;&gt;();</span>
     do {
-<span class="nc bnc" id="L244" title="All 2 branches missed.">      for (Schema token : nodes) {</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (traverseGraph.outDegree(token) == 0) {</span>
-<span class="nc" id="L246">          nodesToRemove.add(token);</span>
-<span class="nc" id="L247">          appendable.append(idlRepresentation.get(token));</span>
-<span class="nc" id="L248">          appendable.append('\n');</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">      for (Schema token : nodes) {</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">        if (traverseGraph.outDegree(token) == 0) {</span>
+<span class="fc" id="L246">          nodesToRemove.add(token);</span>
+<span class="fc" id="L247">          appendable.append(idlRepresentation.get(token));</span>
+<span class="fc" id="L248">          appendable.append('\n');</span>
         }
-<span class="nc" id="L250">      }</span>
-<span class="nc bnc" id="L251" title="All 4 branches missed.">      if (nodesToRemove.isEmpty() &amp;&amp; !nodes.isEmpty()) {</span>
+<span class="fc" id="L250">      }</span>
+<span class="pc bpc" id="L251" title="3 of 4 branches missed.">      if (nodesToRemove.isEmpty() &amp;&amp; !nodes.isEmpty()) {</span>
 <span class="nc" id="L252">        throw new IllegalArgumentException(&quot;Schema definition cycle for&quot; + nodes);</span>
       }
-<span class="nc bnc" id="L254" title="All 2 branches missed.">      for (Schema token : nodesToRemove) {</span>
-<span class="nc" id="L255">        traverseGraph.removeNode(token);</span>
-<span class="nc" id="L256">      }</span>
-<span class="nc" id="L257">      nodesToRemove.clear();</span>
-<span class="nc" id="L258">      nodes = traverseGraph.nodes();</span>
-<span class="nc bnc" id="L259" title="All 2 branches missed.">    } while (!nodes.isEmpty());</span>
+<span class="fc bfc" id="L254" title="All 2 branches covered.">      for (Schema token : nodesToRemove) {</span>
+<span class="fc" id="L255">        traverseGraph.removeNode(token);</span>
+<span class="fc" id="L256">      }</span>
+<span class="fc" id="L257">      nodesToRemove.clear();</span>
+<span class="fc" id="L258">      nodes = traverseGraph.nodes();</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">    } while (!nodes.isEmpty());</span>
 
 
-<span class="nc" id="L262">  }</span>
+<span class="fc" id="L262">  }</span>
 
 
   private static void writeSchema(Schema schema, final Appendable appendable, JsonGenerator jsonGen,
           final String protocolNameSpace, final Set&lt;String&gt; alreadyDeclared, final Set&lt;Schema&gt; toDeclare)
           throws IOException {
-<span class="nc" id="L268">    Schema.Type type = schema.getType();</span>
-<span class="nc" id="L269">    writeSchemaAttributes(schema, appendable, jsonGen, true);</span>
-<span class="nc" id="L270">    String namespace = schema.getNamespace();</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">    if (!Objects.equals(namespace, protocolNameSpace)) {</span>
-<span class="nc" id="L272">      appendable.append(&quot;@namespace(\&quot;&quot;).append(namespace).append(&quot;\&quot;)\n&quot;);</span>
+<span class="fc" id="L268">    Schema.Type type = schema.getType();</span>
+<span class="fc" id="L269">    writeSchemaAttributes(schema, appendable, jsonGen, true);</span>
+<span class="fc" id="L270">    String namespace = schema.getNamespace();</span>
+<span class="fc bfc" id="L271" title="All 2 branches covered.">    if (!Objects.equals(namespace, protocolNameSpace)) {</span>
+<span class="fc" id="L272">      appendable.append(&quot;@namespace(\&quot;&quot;).append(namespace).append(&quot;\&quot;)\n&quot;);</span>
     }
-<span class="nc" id="L274">    Set&lt;String&gt; saliases = schema.getAliases();</span>
-<span class="nc bnc" id="L275" title="All 2 branches missed.">    if (!saliases.isEmpty()) {</span>
-<span class="nc" id="L276">      appendable.append(&quot;@aliases(&quot;);</span>
-<span class="nc" id="L277">      toJson(saliases, jsonGen);</span>
-<span class="nc" id="L278">      jsonGen.flush();</span>
-<span class="nc" id="L279">      appendable.append(&quot;)\n&quot;);</span>
+<span class="fc" id="L274">    Set&lt;String&gt; saliases = schema.getAliases();</span>
+<span class="fc bfc" id="L275" title="All 2 branches covered.">    if (!saliases.isEmpty()) {</span>
+<span class="fc" id="L276">      appendable.append(&quot;@aliases(&quot;);</span>
+<span class="fc" id="L277">      toJson(saliases, jsonGen);</span>
+<span class="fc" id="L278">      jsonGen.flush();</span>
+<span class="fc" id="L279">      appendable.append(&quot;)\n&quot;);</span>
     }
-<span class="nc bnc" id="L281" title="All 5 branches missed.">    switch (type) {</span>
+<span class="pc bpc" id="L281" title="2 of 5 branches missed.">    switch (type) {</span>
       case RECORD:
-<span class="nc" id="L283">        appendable.append(&quot;record &quot;).append(schema.getName()).append(&quot; {\n\n&quot;);</span>
-<span class="nc" id="L284">        alreadyDeclared.add(schema.getFullName());</span>
-<span class="nc bnc" id="L285" title="All 2 branches missed.">        for (Field field : schema.getFields()) {</span>
-<span class="nc" id="L286">          String fDoc = field.doc();</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">          if (fDoc != null) {</span>
-<span class="nc" id="L288">            appendable.append(&quot;  /** &quot;).append(fDoc).append(&quot; */\n&quot;);</span>
+<span class="fc" id="L283">        appendable.append(&quot;record &quot;).append(schema.getName()).append(&quot; {\n\n&quot;);</span>
+<span class="fc" id="L284">        alreadyDeclared.add(schema.getFullName());</span>
+<span class="fc bfc" id="L285" title="All 2 branches covered.">        for (Field field : schema.getFields()) {</span>
+<span class="fc" id="L286">          String fDoc = field.doc();</span>
+<span class="fc bfc" id="L287" title="All 2 branches covered.">          if (fDoc != null) {</span>
+<span class="fc" id="L288">            appendable.append(&quot;  /** &quot;).append(fDoc).append(&quot; */\n&quot;);</span>
           }
-<span class="nc" id="L290">          appendable.append(&quot;  &quot;);</span>
-<span class="nc" id="L291">          writeFieldSchema(field.schema(), appendable, jsonGen, alreadyDeclared, toDeclare, schema.getNamespace());</span>
-<span class="nc" id="L292">          appendable.append(' ');</span>
-<span class="nc" id="L293">          Set&lt;String&gt; faliases = field.aliases();</span>
-<span class="nc bnc" id="L294" title="All 2 branches missed.">          if (!faliases.isEmpty()) {</span>
-<span class="nc" id="L295">            appendable.append(&quot;@aliases(&quot;);</span>
-<span class="nc" id="L296">            toJson(faliases, jsonGen);</span>
-<span class="nc" id="L297">            jsonGen.flush();</span>
-<span class="nc" id="L298">            appendable.append(&quot;) &quot;);</span>
+<span class="fc" id="L290">          appendable.append(&quot;  &quot;);</span>
+<span class="fc" id="L291">          writeFieldSchema(field.schema(), appendable, jsonGen, alreadyDeclared, toDeclare, schema.getNamespace());</span>
+<span class="fc" id="L292">          appendable.append(' ');</span>
+<span class="fc" id="L293">          Set&lt;String&gt; faliases = field.aliases();</span>
+<span class="fc bfc" id="L294" title="All 2 branches covered.">          if (!faliases.isEmpty()) {</span>
+<span class="fc" id="L295">            appendable.append(&quot;@aliases(&quot;);</span>
+<span class="fc" id="L296">            toJson(faliases, jsonGen);</span>
+<span class="fc" id="L297">            jsonGen.flush();</span>
+<span class="fc" id="L298">            appendable.append(&quot;) &quot;);</span>
           }
-<span class="nc" id="L300">          Field.Order order = field.order();</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">          if (order != null) {</span>
-<span class="nc" id="L302">            appendable.append(&quot; @order(\&quot;&quot;).append(order.name()).append(&quot;\&quot;) &quot;);</span>
+<span class="fc" id="L300">          Field.Order order = field.order();</span>
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">          if (order != null) {</span>
+<span class="fc" id="L302">            appendable.append(&quot; @order(\&quot;&quot;).append(order.name()).append(&quot;\&quot;) &quot;);</span>
           }
-<span class="nc" id="L304">          writeJsonProperties(field, appendable, jsonGen, false);</span>
-<span class="nc" id="L305">          appendable.append(' ');</span>
-<span class="nc" id="L306">          appendable.append(field.name());</span>
-<span class="nc" id="L307">          JsonNode defaultValue = field.defaultValue();</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">          if (defaultValue != null) {</span>
-<span class="nc" id="L309">            appendable.append(&quot; = &quot;);</span>
-<span class="nc" id="L310">            toJson(field.defaultVal(), jsonGen);</span>
-<span class="nc" id="L311">            jsonGen.flush();</span>
+<span class="fc" id="L304">          writeJsonProperties(field, appendable, jsonGen, false);</span>
+<span class="fc" id="L305">          appendable.append(' ');</span>
+<span class="fc" id="L306">          appendable.append(field.name());</span>
+<span class="fc" id="L307">          JsonNode defaultValue = field.defaultValue();</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">          if (defaultValue != null) {</span>
+<span class="fc" id="L309">            appendable.append(&quot; = &quot;);</span>
+<span class="fc" id="L310">            toJson(field.defaultVal(), jsonGen);</span>
+<span class="fc" id="L311">            jsonGen.flush();</span>
           }
-<span class="nc" id="L313">          appendable.append(&quot;;\n\n&quot;);</span>
-<span class="nc" id="L314">        }</span>
-<span class="nc" id="L315">        appendable.append(&quot;}\n&quot;);</span>
-<span class="nc" id="L316">        break;</span>
+<span class="fc" id="L313">          appendable.append(&quot;;\n\n&quot;);</span>
+<span class="fc" id="L314">        }</span>
+<span class="fc" id="L315">        appendable.append(&quot;}\n&quot;);</span>
+<span class="fc" id="L316">        break;</span>
       case ARRAY:
       case MAP:
       case UNION:
@@ -327,54 +327,54 @@ public final class SchemaUtils {
       case STRING:
 <span class="nc" id="L328">        throw new UnsupportedOperationException(&quot;No IDL entity, nust be part of a record: &quot; + schema);</span>
       case ENUM:
-<span class="nc" id="L330">        appendable.append(&quot;enum &quot;).append(schema.getName()).append(&quot; {&quot;);</span>
-<span class="nc" id="L331">        alreadyDeclared.add(schema.getFullName());</span>
-<span class="nc" id="L332">        Iterator&lt;String&gt; i = schema.getEnumSymbols().iterator();</span>
-<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (i.hasNext()) {</span>
-<span class="nc" id="L334">          appendable.append(i.next());</span>
-<span class="nc bnc" id="L335" title="All 2 branches missed.">          while (i.hasNext()) {</span>
-<span class="nc" id="L336">            appendable.append(',');</span>
-<span class="nc" id="L337">            appendable.append(i.next());</span>
+<span class="fc" id="L330">        appendable.append(&quot;enum &quot;).append(schema.getName()).append(&quot; {&quot;);</span>
+<span class="fc" id="L331">        alreadyDeclared.add(schema.getFullName());</span>
+<span class="fc" id="L332">        Iterator&lt;String&gt; i = schema.getEnumSymbols().iterator();</span>
+<span class="pc bpc" id="L333" title="1 of 2 branches missed.">        if (i.hasNext()) {</span>
+<span class="fc" id="L334">          appendable.append(i.next());</span>
+<span class="fc bfc" id="L335" title="All 2 branches covered.">          while (i.hasNext()) {</span>
+<span class="fc" id="L336">            appendable.append(',');</span>
+<span class="fc" id="L337">            appendable.append(i.next());</span>
           }
         } else {
 <span class="nc" id="L340">          throw new IllegalStateException(&quot;Enum schema must have at least a symbol &quot; + schema);</span>
         }
-<span class="nc" id="L342">        appendable.append(&quot;}\n&quot;);</span>
-<span class="nc" id="L343">        break;</span>
+<span class="fc" id="L342">        appendable.append(&quot;}\n&quot;);</span>
+<span class="fc" id="L343">        break;</span>
       case FIXED:
-<span class="nc" id="L345">        appendable.append(&quot;fixed &quot;).append(schema.getName()).append('(')</span>
-<span class="nc" id="L346">                .append(Integer.toString(schema.getFixedSize())).append(&quot;);\n&quot;);</span>
-<span class="nc" id="L347">        alreadyDeclared.add(schema.getFullName());</span>
-<span class="nc" id="L348">        break;</span>
+<span class="fc" id="L345">        appendable.append(&quot;fixed &quot;).append(schema.getName()).append('(')</span>
+<span class="fc" id="L346">                .append(Integer.toString(schema.getFixedSize())).append(&quot;);\n&quot;);</span>
+<span class="fc" id="L347">        alreadyDeclared.add(schema.getFullName());</span>
+<span class="fc" id="L348">        break;</span>
       default:
 <span class="nc" id="L350">        throw new IllegalStateException(&quot;Unsupported schema &quot; + schema);</span>
     }
-<span class="nc" id="L352">  }</span>
+<span class="fc" id="L352">  }</span>
 
   private static void writeFieldSchema(final Schema schema,
           final Appendable appendable, final JsonGenerator jsonGen,
           final Set&lt;String&gt; alreadyDeclared, final Set&lt;Schema&gt; toDeclare,
           final String recordNameSpace) throws IOException {
-<span class="nc" id="L358">    Schema.Type type = schema.getType();</span>
-<span class="nc bnc" id="L359" title="All 6 branches missed.">    switch (type) {</span>
+<span class="fc" id="L358">    Schema.Type type = schema.getType();</span>
+<span class="pc bpc" id="L359" title="2 of 6 branches missed.">    switch (type) {</span>
       case RECORD:
       case ENUM:
       case FIXED:
-<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (Objects.equals(recordNameSpace, schema.getNamespace())) {</span>
-<span class="nc" id="L364">          appendable.append(schema.getName());</span>
+<span class="fc bfc" id="L363" title="All 2 branches covered.">        if (Objects.equals(recordNameSpace, schema.getNamespace())) {</span>
+<span class="fc" id="L364">          appendable.append(schema.getName());</span>
         } else {
-<span class="nc" id="L366">          appendable.append(schema.getFullName());</span>
+<span class="fc" id="L366">          appendable.append(schema.getFullName());</span>
         }
-<span class="nc bnc" id="L368" title="All 2 branches missed.">        if (!alreadyDeclared.contains(schema.getFullName())) {</span>
-<span class="nc" id="L369">          toDeclare.add(schema);</span>
+<span class="pc bpc" id="L368" title="1 of 2 branches missed.">        if (!alreadyDeclared.contains(schema.getFullName())) {</span>
+<span class="fc" id="L369">          toDeclare.add(schema);</span>
         }
         break;
       case ARRAY:
-<span class="nc" id="L373">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
-<span class="nc" id="L374">        appendable.append(&quot;array&lt;&quot;);</span>
-<span class="nc" id="L375">        writeFieldSchema(schema.getElementType(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);</span>
-<span class="nc" id="L376">        appendable.append('&gt;');</span>
-<span class="nc" id="L377">        break;</span>
+<span class="fc" id="L373">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
+<span class="fc" id="L374">        appendable.append(&quot;array&lt;&quot;);</span>
+<span class="fc" id="L375">        writeFieldSchema(schema.getElementType(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);</span>
+<span class="fc" id="L376">        appendable.append('&gt;');</span>
+<span class="fc" id="L377">        break;</span>
       case MAP:
 <span class="nc" id="L379">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
 <span class="nc" id="L380">        appendable.append(&quot;map&lt;&quot;);</span>
@@ -382,21 +382,21 @@ public final class SchemaUtils {
 <span class="nc" id="L382">        appendable.append('&gt;');</span>
 <span class="nc" id="L383">        break;</span>
       case UNION:
-<span class="nc" id="L385">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
-<span class="nc" id="L386">        appendable.append(&quot;union {&quot;);</span>
-<span class="nc" id="L387">        List&lt;Schema&gt; types = schema.getTypes();</span>
-<span class="nc" id="L388">        Iterator&lt;Schema&gt; iterator = types.iterator();</span>
-<span class="nc bnc" id="L389" title="All 2 branches missed.">        if (iterator.hasNext()) {</span>
-<span class="nc" id="L390">          writeFieldSchema(iterator.next(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);</span>
-<span class="nc bnc" id="L391" title="All 2 branches missed.">          while (iterator.hasNext()) {</span>
-<span class="nc" id="L392">            appendable.append(',');</span>
-<span class="nc" id="L393">            writeFieldSchema(iterator.next(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);</span>
+<span class="fc" id="L385">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
+<span class="fc" id="L386">        appendable.append(&quot;union {&quot;);</span>
+<span class="fc" id="L387">        List&lt;Schema&gt; types = schema.getTypes();</span>
+<span class="fc" id="L388">        Iterator&lt;Schema&gt; iterator = types.iterator();</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">        if (iterator.hasNext()) {</span>
+<span class="fc" id="L390">          writeFieldSchema(iterator.next(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">          while (iterator.hasNext()) {</span>
+<span class="fc" id="L392">            appendable.append(',');</span>
+<span class="fc" id="L393">            writeFieldSchema(iterator.next(), appendable, jsonGen, alreadyDeclared, toDeclare, recordNameSpace);</span>
           }
         } else {
 <span class="nc" id="L396">          throw new IllegalStateException(&quot;Union schmemas must have member types &quot; + schema);</span>
         }
-<span class="nc" id="L398">        appendable.append('}');</span>
-<span class="nc" id="L399">        break;</span>
+<span class="fc" id="L398">        appendable.append('}');</span>
+<span class="fc" id="L399">        break;</span>
       case BOOLEAN:
       case BYTES:
       case DOUBLE:
@@ -405,67 +405,67 @@ public final class SchemaUtils {
       case LONG:
       case NULL:
       case STRING:
-<span class="nc" id="L408">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
-<span class="nc" id="L409">        appendable.append(schema.getName());</span>
-<span class="nc" id="L410">        break;</span>
+<span class="fc" id="L408">        writeSchemaAttributes(schema, appendable, jsonGen, false);</span>
+<span class="fc" id="L409">        appendable.append(schema.getName());</span>
+<span class="fc" id="L410">        break;</span>
       default:
 <span class="nc" id="L412">        throw new IllegalStateException(&quot;Unsupported schema &quot; + schema);</span>
     }
-<span class="nc" id="L414">  }</span>
+<span class="fc" id="L414">  }</span>
 
   public static void writeSchemaAttributes(final Schema schema,
           final Appendable appendable, final JsonGenerator jsonGen, final boolean crBetween)
           throws IOException {
-<span class="nc" id="L419">    String doc = schema.getDoc();</span>
-<span class="nc bnc" id="L420" title="All 2 branches missed.">    if (doc != null) {</span>
-<span class="nc" id="L421">      appendable.append(&quot;/** &quot;).append(doc).append(&quot; */&quot;);</span>
-<span class="nc bnc" id="L422" title="All 2 branches missed.">      if (crBetween) {</span>
-<span class="nc" id="L423">        appendable.append('\n');</span>
+<span class="fc" id="L419">    String doc = schema.getDoc();</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">    if (doc != null) {</span>
+<span class="fc" id="L421">      appendable.append(&quot;/** &quot;).append(doc).append(&quot; */&quot;);</span>
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">      if (crBetween) {</span>
+<span class="fc" id="L423">        appendable.append('\n');</span>
       } else {
 <span class="nc" id="L425">        appendable.append(' ');</span>
       }
     }
-<span class="nc" id="L428">    writeJsonProperties(schema, appendable, jsonGen, crBetween);</span>
-<span class="nc" id="L429">  }</span>
+<span class="fc" id="L428">    writeJsonProperties(schema, appendable, jsonGen, crBetween);</span>
+<span class="fc" id="L429">  }</span>
 
   public static void writeJsonProperties(final JsonProperties props,
           final Appendable appendable, final JsonGenerator jsonGen, final boolean crBetween) throws IOException {
-<span class="nc" id="L433">    Map&lt;String, Object&gt; objectProps = props.getObjectProps();</span>
-<span class="nc bnc" id="L434" title="All 2 branches missed.">    for (Map.Entry&lt;String, Object&gt; entry : objectProps.entrySet()) {</span>
-<span class="nc" id="L435">      appendable.append('@').append(entry.getKey()).append('(');</span>
-<span class="nc" id="L436">      toJson(entry.getValue(), jsonGen);</span>
-<span class="nc" id="L437">      jsonGen.flush();</span>
-<span class="nc" id="L438">      appendable.append(')');</span>
-<span class="nc bnc" id="L439" title="All 2 branches missed.">      if (crBetween) {</span>
-<span class="nc" id="L440">        appendable.append('\n');</span>
+<span class="fc" id="L433">    Map&lt;String, Object&gt; objectProps = props.getObjectProps();</span>
+<span class="fc bfc" id="L434" title="All 2 branches covered.">    for (Map.Entry&lt;String, Object&gt; entry : objectProps.entrySet()) {</span>
+<span class="fc" id="L435">      appendable.append('@').append(entry.getKey()).append('(');</span>
+<span class="fc" id="L436">      toJson(entry.getValue(), jsonGen);</span>
+<span class="fc" id="L437">      jsonGen.flush();</span>
+<span class="fc" id="L438">      appendable.append(')');</span>
+<span class="fc bfc" id="L439" title="All 2 branches covered.">      if (crBetween) {</span>
+<span class="fc" id="L440">        appendable.append('\n');</span>
       } else {
-<span class="nc" id="L442">        appendable.append(' ');</span>
+<span class="fc" id="L442">        appendable.append(' ');</span>
       }
-<span class="nc" id="L444">    }</span>
-<span class="nc" id="L445">  }</span>
+<span class="fc" id="L444">    }</span>
+<span class="fc" id="L445">  }</span>
 
   @SuppressWarnings(value=&quot;unchecked&quot;)
   @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
   static void toJson(final Object datum, final JsonGenerator generator) throws IOException {
-<span class="nc bnc" id="L450" title="All 2 branches missed.">    if (datum == JsonProperties.NULL_VALUE) { // null</span>
-<span class="nc" id="L451">      generator.writeNull();</span>
-<span class="nc bnc" id="L452" title="All 2 branches missed.">    } else if (datum instanceof Map) { // record, map</span>
+<span class="fc bfc" id="L450" title="All 2 branches covered.">    if (datum == JsonProperties.NULL_VALUE) { // null</span>
+<span class="fc" id="L451">      generator.writeNull();</span>
+<span class="pc bpc" id="L452" title="1 of 2 branches missed.">    } else if (datum instanceof Map) { // record, map</span>
 <span class="nc" id="L453">      generator.writeStartObject();</span>
 <span class="nc bnc" id="L454" title="All 2 branches missed.">      for (Map.Entry&lt;Object,Object&gt; entry : ((Map&lt;Object,Object&gt;) datum).entrySet()) {</span>
 <span class="nc" id="L455">        generator.writeFieldName(entry.getKey().toString());</span>
 <span class="nc" id="L456">        toJson(entry.getValue(), generator);</span>
 <span class="nc" id="L457">      }</span>
 <span class="nc" id="L458">      generator.writeEndObject();</span>
-<span class="nc bnc" id="L459" title="All 2 branches missed.">    } else if (datum instanceof Collection) { // array</span>
-<span class="nc" id="L460">      generator.writeStartArray();</span>
-<span class="nc bnc" id="L461" title="All 2 branches missed.">      for (Object element : (Collection&lt;?&gt;) datum) {</span>
-<span class="nc" id="L462">        toJson(element, generator);</span>
-<span class="nc" id="L463">      }</span>
-<span class="nc" id="L464">      generator.writeEndArray();</span>
-<span class="nc bnc" id="L465" title="All 2 branches missed.">    } else if (datum instanceof byte[]) { // bytes, fixed</span>
+<span class="fc bfc" id="L459" title="All 2 branches covered.">    } else if (datum instanceof Collection) { // array</span>
+<span class="fc" id="L460">      generator.writeStartArray();</span>
+<span class="fc bfc" id="L461" title="All 2 branches covered.">      for (Object element : (Collection&lt;?&gt;) datum) {</span>
+<span class="fc" id="L462">        toJson(element, generator);</span>
+<span class="fc" id="L463">      }</span>
+<span class="fc" id="L464">      generator.writeEndArray();</span>
+<span class="pc bpc" id="L465" title="1 of 2 branches missed.">    } else if (datum instanceof byte[]) { // bytes, fixed</span>
 <span class="nc" id="L466">      generator.writeString(new String((byte[]) datum, StandardCharsets.ISO_8859_1));</span>
-<span class="nc bnc" id="L467" title="All 4 branches missed.">    } else if (datum instanceof CharSequence || datum instanceof Enum&lt;?&gt;) { // string, enum</span>
-<span class="nc" id="L468">      generator.writeString(datum.toString());</span>
+<span class="pc bpc" id="L467" title="3 of 4 branches missed.">    } else if (datum instanceof CharSequence || datum instanceof Enum&lt;?&gt;) { // string, enum</span>
+<span class="fc" id="L468">      generator.writeString(datum.toString());</span>
 <span class="nc bnc" id="L469" title="All 2 branches missed.">    } else if (datum instanceof Double) { // double</span>
 <span class="nc" id="L470">      generator.writeNumber((Double) datum);</span>
 <span class="nc bnc" id="L471" title="All 2 branches missed.">    } else if (datum instanceof Float) { // float</span>
@@ -479,7 +479,7 @@ public final class SchemaUtils {
     } else {
 <span class="nc" id="L480">      throw new AvroRuntimeException(&quot;Unknown datum class: &quot; + datum.getClass());</span>
     }
-<span class="nc" id="L482">  }</span>
+<span class="fc" id="L482">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -222,7 +222,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
     @Override
     public Collection&lt;ObjectHolder&lt;T&gt;&gt; tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
 <span class="fc" id="L224">        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        if (acquired) {</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        if (acquired) {</span>
             try {
 <span class="pc bpc" id="L227" title="1 of 2 branches missed.">                if (!thread.isAlive()) {</span>
 <span class="nc bnc" id="L228" title="All 2 branches missed.">                    if (!borrowedObjects.isEmpty()) {</span>
@@ -235,7 +235,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="fc" id="L235">                lock.unlock();</span>
             }
         } else {
-<span class="nc" id="L238">            return null;</span>
+<span class="fc" id="L238">            return null;</span>
         }
     }
 

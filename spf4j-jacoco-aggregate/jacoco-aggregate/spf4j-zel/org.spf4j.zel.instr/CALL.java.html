@@ -48,60 +48,60 @@ public final class CALL extends Instruction {
 
     private final int nrParameters;
 
-<span class="nc" id="L51">    public CALL(final int nrParameters) {</span>
-<span class="nc" id="L52">        this.nrParameters = nrParameters;</span>
-<span class="nc" id="L53">    }</span>
+<span class="fc" id="L51">    public CALL(final int nrParameters) {</span>
+<span class="fc" id="L52">        this.nrParameters = nrParameters;</span>
+<span class="fc" id="L53">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-<span class="nc" id="L59">        Object function = context.peekFromTop(nrParameters);</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (function instanceof Program) {</span>
-<span class="nc" id="L61">            final Program p = (Program) function;</span>
+<span class="fc" id="L59">        Object function = context.peekFromTop(nrParameters);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (function instanceof Program) {</span>
+<span class="fc" id="L61">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
-<span class="nc bnc" id="L64" title="All 3 branches missed.">            switch (p.getType()) {</span>
+<span class="pc bpc" id="L64" title="1 of 3 branches missed.">            switch (p.getType()) {</span>
                 case DETERMINISTIC:
-<span class="nc" id="L66">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
-<span class="nc" id="L67">                    context.pop();</span>
-<span class="nc" id="L68">                    List&lt;Object&gt; params = getParameters(nctx, nrParameters);</span>
-<span class="nc" id="L69">                    obj = context.getResultCache().getResult(p,  params, () -&gt; nctx.executeSyncOrAsync());</span>
-<span class="nc" id="L70">                    break;</span>
+<span class="fc" id="L66">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="fc" id="L67">                    context.pop();</span>
+<span class="fc" id="L68">                    List&lt;Object&gt; params = getParameters(nctx, nrParameters);</span>
+<span class="fc" id="L69">                    obj = context.getResultCache().getResult(p,  params, () -&gt; nctx.executeSyncOrAsync());</span>
+<span class="fc" id="L70">                    break;</span>
                 case NONDETERMINISTIC:
-<span class="nc" id="L72">                        nctx = context.getSubProgramContext(p, nrParameters);</span>
-<span class="nc" id="L73">                        context.pop();</span>
-<span class="nc" id="L74">                        obj = nctx.executeSyncOrAsync();</span>
-<span class="nc" id="L75">                    break;</span>
+<span class="fc" id="L72">                        nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="fc" id="L73">                        context.pop();</span>
+<span class="fc" id="L74">                        obj = nctx.executeSyncOrAsync();</span>
+<span class="fc" id="L75">                    break;</span>
                 default:
 <span class="nc" id="L77">                    throw new UnsupportedOperationException(p.getType().toString());</span>
             }
-<span class="nc" id="L79">            context.push(obj);</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        } else if (function instanceof Method) {</span>
-<span class="nc" id="L81">            Object[] parameters = context.popSyncStackVals(nrParameters);</span>
-<span class="nc" id="L82">            context.pop();</span>
+<span class="fc" id="L79">            context.push(obj);</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
+<span class="fc" id="L81">            Object[] parameters = context.popSyncStackVals(nrParameters);</span>
+<span class="fc" id="L82">            context.pop();</span>
             try {
-<span class="nc" id="L84">                context.push(((Method) function).invoke(context, parameters));</span>
+<span class="fc" id="L84">                context.push(((Method) function).invoke(context, parameters));</span>
 <span class="nc" id="L85">            } catch (RuntimeException ex) {</span>
 <span class="nc" id="L86">                throw new ZExecutionException(&quot;cannot invoke &quot; + function, ex);</span>
-<span class="nc" id="L87">            }</span>
-<span class="nc" id="L88">        } else {</span>
+<span class="fc" id="L87">            }</span>
+<span class="fc" id="L88">        } else {</span>
 <span class="nc" id="L89">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
         }
-<span class="nc" id="L91">        return 1;</span>
+<span class="fc" id="L91">        return 1;</span>
     }
 
   public static List&lt;Object&gt; getParameters(final ExecutionContext nctx, final int nrParameters) {
-<span class="nc" id="L95">    List&lt;Object&gt; params = new ArrayList&lt;&gt;(nrParameters);</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">    for (int i = 0; i &lt; nrParameters; i++) {</span>
-<span class="nc" id="L97">      params.add(nctx.localPeek(i));</span>
+<span class="fc" id="L95">    List&lt;Object&gt; params = new ArrayList&lt;&gt;(nrParameters);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    for (int i = 0; i &lt; nrParameters; i++) {</span>
+<span class="fc" id="L97">      params.add(nctx.localPeek(i));</span>
     }
-<span class="nc" id="L99">    return params;</span>
+<span class="fc" id="L99">    return params;</span>
   }
 
     @Override
     public Object[] getParameters() {
-<span class="nc" id="L104">        return new Object[] {nrParameters};</span>
+<span class="fc" id="L104">        return new Object[] {nrParameters};</span>
     }
 
 }

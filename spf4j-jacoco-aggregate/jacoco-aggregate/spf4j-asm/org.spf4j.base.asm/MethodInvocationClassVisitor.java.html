@@ -65,30 +65,30 @@ class MethodInvocationClassVisitor extends ClassVisitor {
 
   MethodInvocationClassVisitor(final Collection addCaleesTo,
           final Set&lt;Method&gt; methods) {
-<span class="nc" id="L68">    super(Opcodes.ASM5);</span>
-<span class="nc" id="L69">    this.addCaleesTo = addCaleesTo;</span>
-<span class="nc" id="L70">    this.methodStrings = new HashMap&lt;&gt;(methods.size());</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">    for (Method m : methods) {</span>
-<span class="nc" id="L72">      this.methodStrings.put(TypeUtils.toString(m), m);</span>
-<span class="nc" id="L73">    }</span>
-<span class="nc" id="L74">  }</span>
+<span class="fc" id="L68">    super(Opcodes.ASM5);</span>
+<span class="fc" id="L69">    this.addCaleesTo = addCaleesTo;</span>
+<span class="fc" id="L70">    this.methodStrings = new HashMap&lt;&gt;(methods.size());</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (Method m : methods) {</span>
+<span class="fc" id="L72">      this.methodStrings.put(TypeUtils.toString(m), m);</span>
+<span class="fc" id="L73">    }</span>
+<span class="fc" id="L74">  }</span>
 
   @Override
   public void visit(final int version, final int access, final String name,
           final String signature, final String superName, final String[] interfaces) {
-<span class="nc" id="L79">    className = name;</span>
-<span class="nc" id="L80">  }</span>
+<span class="fc" id="L79">    className = name;</span>
+<span class="fc" id="L80">  }</span>
 
   @Override
   public void visitSource(final String psource, final String debug) {
-<span class="nc" id="L84">    this.source = psource;</span>
-<span class="nc" id="L85">  }</span>
+<span class="fc" id="L84">    this.source = psource;</span>
+<span class="fc" id="L85">  }</span>
 
   @Override
   public MethodVisitor visitMethod(final int access, final String methodName,
           final String methodDesc, final String signature,
           final String[] exceptions) {
-<span class="nc" id="L91">    return new MethodVisitorImpl(Opcodes.ASM5, methodDesc, methodName);</span>
+<span class="fc" id="L91">    return new MethodVisitorImpl(Opcodes.ASM5, methodDesc, methodName);</span>
   }
 
   @Override
@@ -104,120 +104,120 @@ class MethodInvocationClassVisitor extends ClassVisitor {
     private int lineNumber;
     private final Stack&lt;Object&gt; stack;
 
-<span class="nc" id="L107">    MethodVisitorImpl(final int api, final String methodDesc, final String methodName) {</span>
-<span class="nc" id="L108">      super(api);</span>
-<span class="nc" id="L109">      this.methodDesc = methodDesc;</span>
-<span class="nc" id="L110">      this.methodName = methodName;</span>
-<span class="nc" id="L111">      this.stack = new Stack&lt;&gt;();</span>
-<span class="nc" id="L112">      Type[] argumentTypes = Type.getArgumentTypes(methodDesc);</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">      for (int i = 0; i &lt; argumentTypes.length; i++) {</span>
-<span class="nc" id="L114">        stack.add(new UnknownValue(-1));</span>
+<span class="fc" id="L107">    MethodVisitorImpl(final int api, final String methodDesc, final String methodName) {</span>
+<span class="fc" id="L108">      super(api);</span>
+<span class="fc" id="L109">      this.methodDesc = methodDesc;</span>
+<span class="fc" id="L110">      this.methodName = methodName;</span>
+<span class="fc" id="L111">      this.stack = new Stack&lt;&gt;();</span>
+<span class="fc" id="L112">      Type[] argumentTypes = Type.getArgumentTypes(methodDesc);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">      for (int i = 0; i &lt; argumentTypes.length; i++) {</span>
+<span class="fc" id="L114">        stack.add(new UnknownValue(-1));</span>
       }
-<span class="nc" id="L116">    }</span>
+<span class="fc" id="L116">    }</span>
 
     @Override
     public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
             final boolean itf) {
-<span class="nc" id="L121">      final Method invokedMethod = methodStrings.get(owner + '/' + name + desc);</span>
-<span class="nc" id="L122">      Type returnType = Type.getReturnType(desc);</span>
-<span class="nc" id="L123">      Type[] parameterTypes = Type.getArgumentTypes(desc);</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">      if (invokedMethod != null) {</span>
-<span class="nc" id="L125">        Object[] parameters = new Object[parameterTypes.length];</span>
-<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (int i = parameterTypes.length - 1; i &gt;= 0; i--) {</span>
-<span class="nc bnc" id="L127" title="All 2 branches missed.">          if (stack.isEmpty()) {</span>
+<span class="fc" id="L121">      final Method invokedMethod = methodStrings.get(owner + '/' + name + desc);</span>
+<span class="fc" id="L122">      Type returnType = Type.getReturnType(desc);</span>
+<span class="fc" id="L123">      Type[] parameterTypes = Type.getArgumentTypes(desc);</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">      if (invokedMethod != null) {</span>
+<span class="fc" id="L125">        Object[] parameters = new Object[parameterTypes.length];</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        for (int i = parameterTypes.length - 1; i &gt;= 0; i--) {</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">          if (stack.isEmpty()) {</span>
 <span class="nc" id="L128">            throw new IllegalStateException(&quot;Not enough params in stack for invocation of &quot; + desc + &quot; at &quot;</span>
 <span class="nc" id="L129">                    + className + '.' + methodName + '.' + lineNumber);</span>
           } else {
-<span class="nc" id="L131">            parameters[i] = stack.pop();</span>
+<span class="fc" id="L131">            parameters[i] = stack.pop();</span>
           }
         }
-<span class="nc" id="L134">        addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,</span>
-<span class="nc" id="L135">                source, lineNumber, invokedMethod));</span>
-<span class="nc bnc" id="L136" title="All 4 branches missed.">        if (opcode != Opcodes.INVOKESTATIC &amp;&amp; !stack.isEmpty()) {</span>
+<span class="fc" id="L134">        addCaleesTo.add(new Invocation(className, methodName, methodDesc, parameters,</span>
+<span class="fc" id="L135">                source, lineNumber, invokedMethod));</span>
+<span class="pc bpc" id="L136" title="3 of 4 branches missed.">        if (opcode != Opcodes.INVOKESTATIC &amp;&amp; !stack.isEmpty()) {</span>
 <span class="nc" id="L137">          stack.pop();</span>
         }
-<span class="nc" id="L139">      } else {</span>
-<span class="nc" id="L140">        int length = parameterTypes.length;</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (opcode != Opcodes.INVOKESTATIC) {</span>
-<span class="nc" id="L142">          length++;</span>
+<span class="fc" id="L139">      } else {</span>
+<span class="fc" id="L140">        int length = parameterTypes.length;</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (opcode != Opcodes.INVOKESTATIC) {</span>
+<span class="fc" id="L142">          length++;</span>
         }
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">          if (!stack.isEmpty()) {</span>
-<span class="nc" id="L146">            stack.pop();</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">          if (!stack.isEmpty()) {</span>
+<span class="fc" id="L146">            stack.pop();</span>
           }
         }
       }
-<span class="nc bnc" id="L150" title="All 2 branches missed.">      if (returnType != Type.VOID_TYPE) {</span>
-<span class="nc" id="L151">        stack.push(new UnknownValue(opcode)); // return value</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">      if (returnType != Type.VOID_TYPE) {</span>
+<span class="fc" id="L151">        stack.push(new UnknownValue(opcode)); // return value</span>
       }
-<span class="nc" id="L153">    }</span>
+<span class="fc" id="L153">    }</span>
 
     @Override
     public void visitLdcInsn(final Object o) {
-<span class="nc" id="L157">      stack.push(o); // push the constant to the stack.</span>
-<span class="nc" id="L158">    }</span>
+<span class="fc" id="L157">      stack.push(o); // push the constant to the stack.</span>
+<span class="fc" id="L158">    }</span>
 
     @Override
     public void visitTypeInsn(final int opcode, final String type) {
-<span class="nc" id="L162">      stack.push(new UnknownValue(opcode));</span>
-<span class="nc" id="L163">    }</span>
+<span class="fc" id="L162">      stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L163">    }</span>
 
     @Override
     @SuppressFBWarnings({&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;, &quot;CC_CYCLOMATIC_COMPLEXITY&quot;})
     public void visitInsn(final int opcode) {
-<span class="nc" id="L168">      Object pop1 = null;</span>
-<span class="nc" id="L169">      Object pop2 = null;</span>
-<span class="nc bnc" id="L170" title="All 27 branches missed.">      switch (opcode) {</span>
+<span class="fc" id="L168">      Object pop1 = null;</span>
+<span class="fc" id="L169">      Object pop2 = null;</span>
+<span class="pc bpc" id="L170" title="2 of 27 branches missed.">      switch (opcode) {</span>
         case Opcodes.ICONST_0:
-<span class="nc" id="L172">          stack.push(0);</span>
-<span class="nc" id="L173">          break;</span>
+<span class="fc" id="L172">          stack.push(0);</span>
+<span class="fc" id="L173">          break;</span>
         case Opcodes.ICONST_1:
-<span class="nc" id="L175">          stack.push(1);</span>
-<span class="nc" id="L176">          break;</span>
+<span class="fc" id="L175">          stack.push(1);</span>
+<span class="fc" id="L176">          break;</span>
         case Opcodes.ICONST_2:
-<span class="nc" id="L178">          stack.push(2);</span>
-<span class="nc" id="L179">          break;</span>
+<span class="fc" id="L178">          stack.push(2);</span>
+<span class="fc" id="L179">          break;</span>
         case Opcodes.ICONST_3:
-<span class="nc" id="L181">          stack.push(3);</span>
-<span class="nc" id="L182">          break;</span>
+<span class="fc" id="L181">          stack.push(3);</span>
+<span class="fc" id="L182">          break;</span>
         case Opcodes.ICONST_4:
-<span class="nc" id="L184">          stack.push(4);</span>
-<span class="nc" id="L185">          break;</span>
+<span class="fc" id="L184">          stack.push(4);</span>
+<span class="fc" id="L185">          break;</span>
         case Opcodes.ICONST_5:
-<span class="nc" id="L187">          stack.push(5);</span>
-<span class="nc" id="L188">          break;</span>
+<span class="fc" id="L187">          stack.push(5);</span>
+<span class="fc" id="L188">          break;</span>
         case Opcodes.ICONST_M1:
-<span class="nc" id="L190">          stack.push(-1);</span>
-<span class="nc" id="L191">          break;</span>
+<span class="fc" id="L190">          stack.push(-1);</span>
+<span class="fc" id="L191">          break;</span>
         case Opcodes.LCONST_0:
-<span class="nc" id="L193">          stack.push(0L);</span>
-<span class="nc" id="L194">          break;</span>
+<span class="fc" id="L193">          stack.push(0L);</span>
+<span class="fc" id="L194">          break;</span>
         case Opcodes.LCONST_1:
-<span class="nc" id="L196">          stack.push(1L);</span>
-<span class="nc" id="L197">          break;</span>
+<span class="fc" id="L196">          stack.push(1L);</span>
+<span class="fc" id="L197">          break;</span>
         case Opcodes.FCONST_0:
-<span class="nc" id="L199">          stack.push(0f);</span>
-<span class="nc" id="L200">          break;</span>
+<span class="fc" id="L199">          stack.push(0f);</span>
+<span class="fc" id="L200">          break;</span>
         case Opcodes.FCONST_1:
-<span class="nc" id="L202">          stack.push(1f);</span>
-<span class="nc" id="L203">          break;</span>
+<span class="fc" id="L202">          stack.push(1f);</span>
+<span class="fc" id="L203">          break;</span>
         case Opcodes.FCONST_2:
-<span class="nc" id="L205">          stack.push(2f);</span>
-<span class="nc" id="L206">          break;</span>
+<span class="fc" id="L205">          stack.push(2f);</span>
+<span class="fc" id="L206">          break;</span>
         case Opcodes.DCONST_0:
-<span class="nc" id="L208">          stack.push(0d);</span>
-<span class="nc" id="L209">          break;</span>
+<span class="fc" id="L208">          stack.push(0d);</span>
+<span class="fc" id="L209">          break;</span>
         case Opcodes.DCONST_1:
-<span class="nc" id="L211">          stack.push(1d);</span>
-<span class="nc" id="L212">          break;</span>
+<span class="fc" id="L211">          stack.push(1d);</span>
+<span class="fc" id="L212">          break;</span>
         case Opcodes.ACONST_NULL:
-<span class="nc" id="L214">          stack.push(null);</span>
-<span class="nc" id="L215">          break;</span>
+<span class="fc" id="L214">          stack.push(null);</span>
+<span class="fc" id="L215">          break;</span>
         case Opcodes.DUP:
         case Opcodes.DUP2: // we do not differentiate betwen types with mutiple words.
-<span class="nc" id="L218">          Object pop = stack.peek();</span>
-<span class="nc" id="L219">          stack.push(pop);</span>
-<span class="nc" id="L220">          break;</span>
+<span class="fc" id="L218">          Object pop = stack.peek();</span>
+<span class="fc" id="L219">          stack.push(pop);</span>
+<span class="fc" id="L220">          break;</span>
         case Opcodes.DUP2_X1:
         case Opcodes.DUP_X1:
 <span class="nc" id="L223">          Object a1 = stack.peek();</span>
@@ -237,154 +237,154 @@ class MethodInvocationClassVisitor extends ClassVisitor {
 <span class="nc" id="L237">          stack.push(a2);</span>
 <span class="nc" id="L238">          break;</span>
         case Opcodes.IDIV:
-<span class="nc" id="L240">          pop1 = stack.pop();</span>
-<span class="nc" id="L241">          pop2 = stack.pop();</span>
+<span class="fc" id="L240">          pop1 = stack.pop();</span>
+<span class="fc" id="L241">          pop2 = stack.pop();</span>
           try {
-<span class="nc" id="L243">            stack.push((int) pop2 / (int) pop1);</span>
-<span class="nc" id="L244">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L245">            stack.push(new UnknownValue(opcode));</span>
-<span class="nc" id="L246">          }</span>
-<span class="nc" id="L247">          break;</span>
+<span class="fc" id="L243">            stack.push((int) pop2 / (int) pop1);</span>
+<span class="fc" id="L244">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L245">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L246">          }</span>
+<span class="fc" id="L247">          break;</span>
         case Opcodes.IMUL:
-<span class="nc" id="L249">          pop1 = stack.pop();</span>
-<span class="nc" id="L250">          pop2 = stack.pop();</span>
+<span class="fc" id="L249">          pop1 = stack.pop();</span>
+<span class="fc" id="L250">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L252">            stack.push((int) pop2 * (int) pop1);</span>
-<span class="nc" id="L253">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L254">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L253">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L254">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L255">          }</span>
-<span class="nc" id="L256">          break;</span>
+<span class="fc" id="L256">          break;</span>
          case Opcodes.IADD:
-<span class="nc" id="L258">          pop1 = stack.pop();</span>
-<span class="nc" id="L259">          pop2 = stack.pop();</span>
+<span class="fc" id="L258">          pop1 = stack.pop();</span>
+<span class="fc" id="L259">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L261">            stack.push((int) pop2 + (int) pop1);</span>
-<span class="nc" id="L262">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L263">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L262">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L263">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L264">          }</span>
-<span class="nc" id="L265">          break;</span>
+<span class="fc" id="L265">          break;</span>
          case Opcodes.ISUB:
-<span class="nc" id="L267">          pop1 = stack.pop();</span>
-<span class="nc" id="L268">          pop2 = stack.pop();</span>
+<span class="fc" id="L267">          pop1 = stack.pop();</span>
+<span class="fc" id="L268">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L270">            stack.push((int) pop2 - (int) pop1);</span>
-<span class="nc" id="L271">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L272">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L271">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L272">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L273">          }</span>
-<span class="nc" id="L274">          break;</span>
+<span class="fc" id="L274">          break;</span>
         case Opcodes.LDIV:
-<span class="nc" id="L276">          pop1 = stack.pop();</span>
-<span class="nc" id="L277">          pop2 = stack.pop();</span>
+<span class="fc" id="L276">          pop1 = stack.pop();</span>
+<span class="fc" id="L277">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L279">            stack.push((long) pop2 / (long) pop1);</span>
-<span class="nc" id="L280">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L281">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L280">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L281">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L282">          }</span>
-<span class="nc" id="L283">          break;</span>
+<span class="fc" id="L283">          break;</span>
         case Opcodes.LMUL:
-<span class="nc" id="L285">          pop1 = stack.pop();</span>
-<span class="nc" id="L286">          pop2 = stack.pop();</span>
+<span class="fc" id="L285">          pop1 = stack.pop();</span>
+<span class="fc" id="L286">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L288">            stack.push((long) pop2 * (long) pop1);</span>
-<span class="nc" id="L289">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L290">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L289">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L290">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L291">          }</span>
-<span class="nc" id="L292">          break;</span>
+<span class="fc" id="L292">          break;</span>
          case Opcodes.LADD:
-<span class="nc" id="L294">          pop1 = stack.pop();</span>
-<span class="nc" id="L295">          pop2 = stack.pop();</span>
+<span class="fc" id="L294">          pop1 = stack.pop();</span>
+<span class="fc" id="L295">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L297">            stack.push((long) pop2 + (long) pop1);</span>
-<span class="nc" id="L298">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L299">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L298">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L299">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L300">          }</span>
-<span class="nc" id="L301">          break;</span>
+<span class="fc" id="L301">          break;</span>
          case Opcodes.LSUB:
-<span class="nc" id="L303">          pop1 = stack.pop();</span>
-<span class="nc" id="L304">          pop2 = stack.pop();</span>
+<span class="fc" id="L303">          pop1 = stack.pop();</span>
+<span class="fc" id="L304">          pop2 = stack.pop();</span>
           try {
 <span class="nc" id="L306">            stack.push((long) pop2 - (long) pop1);</span>
-<span class="nc" id="L307">          } catch (RuntimeException ex) {</span>
-<span class="nc" id="L308">            stack.push(new UnknownValue(opcode));</span>
+<span class="fc" id="L307">          } catch (RuntimeException ex) {</span>
+<span class="fc" id="L308">            stack.push(new UnknownValue(opcode));</span>
 <span class="nc" id="L309">          }</span>
-<span class="nc" id="L310">          break;</span>
+<span class="fc" id="L310">          break;</span>
         default:
-<span class="nc" id="L312">          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
+<span class="fc" id="L312">          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
       }
-<span class="nc" id="L314">    }</span>
+<span class="fc" id="L314">    }</span>
 
     @Override
     public void visitFieldInsn(final int opcode, final String owner, final String name, final String desc) {
-<span class="nc bnc" id="L318" title="All 4 branches missed.">      switch (opcode) {</span>
+<span class="pc bpc" id="L318" title="1 of 4 branches missed.">      switch (opcode) {</span>
         case Opcodes.GETSTATIC:
           Class&lt;?&gt; clasz;
           try {
-<span class="nc" id="L322">            clasz = Class.forName(owner.replace('/', '.'));</span>
+<span class="fc" id="L322">            clasz = Class.forName(owner.replace('/', '.'));</span>
 <span class="nc" id="L323">          } catch (ClassNotFoundException ex) {</span>
 <span class="nc" id="L324">            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
 <span class="nc" id="L325">            break;</span>
-<span class="nc" id="L326">          }</span>
+<span class="fc" id="L326">          }</span>
           Field declaredField;
           try {
-<span class="nc" id="L329">            declaredField = clasz.getDeclaredField(name);</span>
+<span class="fc" id="L329">            declaredField = clasz.getDeclaredField(name);</span>
 <span class="nc" id="L330">          } catch (NoSuchFieldException | SecurityException ex) {</span>
 <span class="nc" id="L331">            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
 <span class="nc" id="L332">            break;</span>
-<span class="nc" id="L333">          }</span>
-<span class="nc bnc" id="L334" title="All 2 branches missed.">          if ((declaredField.getModifiers() &amp; Modifier.FINAL) == Modifier.FINAL) {</span>
-<span class="nc" id="L335">            AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
+<span class="fc" id="L333">          }</span>
+<span class="pc bpc" id="L334" title="1 of 2 branches missed.">          if ((declaredField.getModifiers() &amp; Modifier.FINAL) == Modifier.FINAL) {</span>
+<span class="fc" id="L335">            AccessController.doPrivileged(new PrivilegedAction&lt;Void&gt;() {</span>
               @Override
               public Void run() {
-<span class="nc" id="L338">                declaredField.setAccessible(true);</span>
-<span class="nc" id="L339">                return null;</span>
+<span class="fc" id="L338">                declaredField.setAccessible(true);</span>
+<span class="fc" id="L339">                return null;</span>
               }
             });
             Object value;
             try {
-<span class="nc" id="L344">              value = declaredField.get(null);</span>
+<span class="fc" id="L344">              value = declaredField.get(null);</span>
 <span class="nc" id="L345">            } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
 <span class="nc" id="L346">              stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
 <span class="nc" id="L347">              break;</span>
-<span class="nc" id="L348">            }</span>
-<span class="nc" id="L349">            stack.push(value);</span>
-<span class="nc" id="L350">          } else {</span>
+<span class="fc" id="L348">            }</span>
+<span class="fc" id="L349">            stack.push(value);</span>
+<span class="fc" id="L350">          } else {</span>
 <span class="nc" id="L351">            stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
           }
 <span class="nc" id="L353">          break;</span>
         case Opcodes.GETFIELD:
-<span class="nc" id="L355">          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
-<span class="nc" id="L356">          break;</span>
+<span class="fc" id="L355">          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
+<span class="fc" id="L356">          break;</span>
         case Opcodes.PUTSTATIC:
         case Opcodes.PUTFIELD:
-<span class="nc bnc" id="L359" title="All 2 branches missed.">          if (!stack.isEmpty()) {</span>
-<span class="nc" id="L360">            stack.pop();</span>
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">          if (!stack.isEmpty()) {</span>
+<span class="fc" id="L360">            stack.pop();</span>
           }
           break;
         default:
 <span class="nc" id="L364">          throw new IllegalStateException(&quot; Illegal opcode = &quot; + opcode + &quot; in context&quot;);</span>
       }
 
-<span class="nc" id="L367">    }</span>
+<span class="fc" id="L367">    }</span>
 
     @Override
     public void visitIntInsn(final int opcode, final int operand) {
-<span class="nc bnc" id="L371" title="All 2 branches missed.">      switch (opcode) {</span>
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">      switch (opcode) {</span>
         case Opcodes.BIPUSH:
         case Opcodes.SIPUSH:
-<span class="nc" id="L374">          stack.push(operand);</span>
-<span class="nc" id="L375">          break;</span>
+<span class="fc" id="L374">          stack.push(operand);</span>
+<span class="fc" id="L375">          break;</span>
         default:
 <span class="nc" id="L377">          stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
       }
-<span class="nc" id="L379">    }</span>
+<span class="fc" id="L379">    }</span>
 
     @Override
     public void visitVarInsn(final int opcode, final int var) {
-<span class="nc bnc" id="L383" title="All 4 branches missed.">      if (opcode &gt;= 21 &amp;&amp; opcode &lt;= 45) { // *LOAD* from local var instructions</span>
-<span class="nc" id="L384">        stack.push(new UnknownValue(opcode));</span>
-<span class="nc bnc" id="L385" title="All 4 branches missed.">      } else if (opcode &gt;= 54 &amp;&amp; opcode &lt;= 78) { // *STORE* to local var instructions</span>
-<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (!stack.isEmpty()) {</span>
-<span class="nc" id="L387">          stack.pop();</span>
+<span class="pc bpc" id="L383" title="1 of 4 branches missed.">      if (opcode &gt;= 21 &amp;&amp; opcode &lt;= 45) { // *LOAD* from local var instructions</span>
+<span class="fc" id="L384">        stack.push(new UnknownValue(opcode));</span>
+<span class="pc bpc" id="L385" title="2 of 4 branches missed.">      } else if (opcode &gt;= 54 &amp;&amp; opcode &lt;= 78) { // *STORE* to local var instructions</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">        if (!stack.isEmpty()) {</span>
+<span class="fc" id="L387">          stack.pop();</span>
         }
 //        else {
 //          throw new RuntimeException(&quot;Not enough params in stack for instr &quot; + opcode + &quot; at &quot;
@@ -393,7 +393,7 @@ class MethodInvocationClassVisitor extends ClassVisitor {
       } else {
 <span class="nc" id="L394">        stack.push(new UnknownValue(opcode)); // assume something will end up on the stack</span>
       }
-<span class="nc" id="L396">    }</span>
+<span class="fc" id="L396">    }</span>
 
     @Override
     public void visitMultiANewArrayInsn(final String desc, final int dims) {
@@ -404,20 +404,20 @@ class MethodInvocationClassVisitor extends ClassVisitor {
     public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
             final Object... bsmArgs) {
       // I am not sure this classic method handling is correct
-<span class="nc" id="L407">      Type[] argumentTypes = Type.getArgumentTypes(desc);</span>
-<span class="nc bnc" id="L408" title="All 2 branches missed.">      for (int i = 0; i &lt; argumentTypes.length; i++) {</span>
-<span class="nc" id="L409">        stack.pop();</span>
+<span class="fc" id="L407">      Type[] argumentTypes = Type.getArgumentTypes(desc);</span>
+<span class="fc bfc" id="L408" title="All 2 branches covered.">      for (int i = 0; i &lt; argumentTypes.length; i++) {</span>
+<span class="fc" id="L409">        stack.pop();</span>
       }
-<span class="nc" id="L411">      Type returnType = Type.getReturnType(desc);</span>
-<span class="nc bnc" id="L412" title="All 2 branches missed.">      if (returnType != Type.VOID_TYPE) {</span>
-<span class="nc" id="L413">        stack.push(new UnknownValue(Opcodes.INVOKEDYNAMIC)); // return value</span>
+<span class="fc" id="L411">      Type returnType = Type.getReturnType(desc);</span>
+<span class="pc bpc" id="L412" title="1 of 2 branches missed.">      if (returnType != Type.VOID_TYPE) {</span>
+<span class="fc" id="L413">        stack.push(new UnknownValue(Opcodes.INVOKEDYNAMIC)); // return value</span>
       }
-<span class="nc" id="L415">    }</span>
+<span class="fc" id="L415">    }</span>
 
     @Override
     public void visitLineNumber(final int line, final Label start) {
-<span class="nc" id="L419">      this.lineNumber = line;</span>
-<span class="nc" id="L420">    }</span>
+<span class="fc" id="L419">      this.lineNumber = line;</span>
+<span class="fc" id="L420">    }</span>
   }
 
 }

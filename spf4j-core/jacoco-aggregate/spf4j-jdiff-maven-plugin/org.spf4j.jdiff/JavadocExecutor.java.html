@@ -31,7 +31,7 @@ import org.codehaus.plexus.util.cli.DefaultConsumer;
  */
 public final class JavadocExecutor {
 
-<span class="nc" id="L34">  private Commandline cmd = new Commandline();</span>
+<span class="fc" id="L34">  private Commandline cmd = new Commandline();</span>
 
   public JavadocExecutor() {
 <span class="nc" id="L37">    this(System.getProperty(&quot;java.home&quot;) + &quot;/javadoc&quot;);</span>
@@ -43,9 +43,9 @@ public final class JavadocExecutor {
    * @param executable the executable
    * @param log the mojo logger
    */
-<span class="nc" id="L46">  public JavadocExecutor(final String executable) {</span>
-<span class="nc" id="L47">    cmd.setExecutable(executable);</span>
-<span class="nc" id="L48">  }</span>
+<span class="fc" id="L46">  public JavadocExecutor(final String executable) {</span>
+<span class="fc" id="L47">    cmd.setExecutable(executable);</span>
+<span class="fc" id="L48">  }</span>
 
   /**
    * Add a javadoc argument pair
@@ -54,10 +54,10 @@ public final class JavadocExecutor {
    * @param argValue the value
    */
   public void addArgumentPair(final String argKey, final String argValue) {
-<span class="nc" id="L57">    cmd.createArg().setValue(&quot;-&quot; + argKey);</span>
+<span class="fc" id="L57">    cmd.createArg().setValue(&quot;-&quot; + argKey);</span>
 
-<span class="nc" id="L59">    cmd.createArg().setValue(argValue);</span>
-<span class="nc" id="L60">  }</span>
+<span class="fc" id="L59">    cmd.createArg().setValue(argValue);</span>
+<span class="fc" id="L60">  }</span>
 
   /**
    * Add an javadoc argument
@@ -65,8 +65,8 @@ public final class JavadocExecutor {
    * @param arg the argument
    */
   public void addArgument(final String arg) {
-<span class="nc" id="L68">    cmd.createArg().setValue(arg);</span>
-<span class="nc" id="L69">  }</span>
+<span class="fc" id="L68">    cmd.createArg().setValue(arg);</span>
+<span class="fc" id="L69">  }</span>
 
   /**
    * Execute from the {@code workingDir}
@@ -76,27 +76,27 @@ public final class JavadocExecutor {
    * doesn't exit with {@code 0}
    */
   public void execute(final File dir) throws JavadocExecutionException, IOException {
-<span class="nc bnc" id="L79" title="All 2 branches missed.">    if (!dir.exists()) {</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">    if (!dir.exists()) {</span>
 <span class="nc" id="L80">      Files.createDirectories(dir.toPath());</span>
     }
 
-<span class="nc" id="L83">    cmd.setWorkingDirectory(dir.getAbsolutePath());</span>
+<span class="fc" id="L83">    cmd.setWorkingDirectory(dir.getAbsolutePath());</span>
 
-<span class="nc" id="L85">    int exitCode = 0;</span>
+<span class="fc" id="L85">    int exitCode = 0;</span>
 
     try {
-<span class="nc" id="L88">      exitCode = CommandLineUtils.executeCommandLine(cmd,</span>
+<span class="fc" id="L88">      exitCode = CommandLineUtils.executeCommandLine(cmd,</span>
               new DefaultConsumer(),
               new DefaultConsumer());
 <span class="nc" id="L91">    } catch (Exception ex) {</span>
 <span class="nc" id="L92">      throw new JavadocExecutionException(&quot;generateJDiff doclet failed: &quot; + cmd, ex);</span>
-<span class="nc" id="L93">    }</span>
+<span class="fc" id="L93">    }</span>
 
-<span class="nc bnc" id="L95" title="All 2 branches missed.">    if (exitCode != 0) {</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">    if (exitCode != 0) {</span>
 <span class="nc" id="L96">      throw new JavadocExecutionException(&quot;generate JDiff doclet &quot;</span>
               + cmd + &quot; failed with exit code &quot;  + exitCode);
     }
-<span class="nc" id="L99">  }</span>
+<span class="fc" id="L99">  }</span>
 
   @Override
   public String toString() {

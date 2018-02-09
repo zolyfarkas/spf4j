@@ -52,26 +52,26 @@ public abstract class BasicExecutionContext implements ExecutionContext {
 
   private final long deadlineNanos;
 
-  private Map&lt;Class, Object&gt; baggage;
+  private Map&lt;Object, Object&gt; baggage;
 
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-<span class="nc" id="L60">          final long deadlineNanos) {</span>
-<span class="nc" id="L61">    this.name = name;</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (parent != null) {</span>
-<span class="nc" id="L63">      long parentDeadline = parent.getDeadlineNanos();</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
+<span class="fc" id="L60">          final long deadlineNanos) {</span>
+<span class="fc" id="L61">    this.name = name;</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">    if (parent != null) {</span>
+<span class="fc" id="L63">      long parentDeadline = parent.getDeadlineNanos();</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
 <span class="nc" id="L65">        this.deadlineNanos = parentDeadline;</span>
       } else {
-<span class="nc" id="L67">        this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L67">        this.deadlineNanos = deadlineNanos;</span>
       }
-<span class="nc" id="L69">    } else {</span>
-<span class="nc" id="L70">      this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L69">    } else {</span>
+<span class="fc" id="L70">      this.deadlineNanos = deadlineNanos;</span>
     }
-<span class="nc" id="L72">    this.parent = parent;</span>
-<span class="nc" id="L73">    this.baggage = Collections.EMPTY_MAP;</span>
-<span class="nc" id="L74">  }</span>
+<span class="fc" id="L72">    this.parent = parent;</span>
+<span class="fc" id="L73">    this.baggage = Collections.EMPTY_MAP;</span>
+<span class="fc" id="L74">  }</span>
 
   public final  String getName() {
 <span class="nc" id="L77">    return name;</span>
@@ -79,38 +79,38 @@ public abstract class BasicExecutionContext implements ExecutionContext {
 
   @Override
   public final long getDeadlineNanos() {
-<span class="nc" id="L82">    return deadlineNanos;</span>
+<span class="fc" id="L82">    return deadlineNanos;</span>
   }
 
   @Nullable
   @Beta
   @Override
-  public final synchronized &lt;T&gt; T put(@Nonnull final T data) {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (baggage.isEmpty()) {</span>
-<span class="nc" id="L90">      baggage = new THashMap&lt;&gt;(2);</span>
+  public final synchronized &lt;T&gt; T put(@Nonnull final Object key, @Nonnull final T data) {
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (baggage.isEmpty()) {</span>
+<span class="fc" id="L90">      baggage = new THashMap&lt;&gt;(2);</span>
     }
-<span class="nc" id="L92">    return (T) baggage.put(data.getClass(), data);</span>
+<span class="fc" id="L92">    return (T) baggage.put(key, data);</span>
   }
 
   @Nullable
   @Beta
   @Override
-  public final synchronized &lt;T&gt; T get(@Nonnull final Class&lt;T&gt; clasz) {
-<span class="nc" id="L99">    T res = (T) baggage.get(clasz);</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (res == null) {</span>
+  public final synchronized Object get(@Nonnull final Object key) {
+<span class="fc" id="L99">    Object res = baggage.get(key);</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    if (res == null) {</span>
 <span class="nc bnc" id="L101" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L102">        return parent.get(clasz);</span>
+<span class="nc" id="L102">        return parent.get(key);</span>
       } else {
 <span class="nc" id="L104">        return null;</span>
       }
     } else {
-<span class="nc" id="L107">      return res;</span>
+<span class="fc" id="L107">      return res;</span>
     }
   }
 
   @Override
   public final ExecutionContext getParent() {
-<span class="nc" id="L113">    return parent;</span>
+<span class="fc" id="L113">    return parent;</span>
   }
 
   /**
@@ -119,7 +119,8 @@ public abstract class BasicExecutionContext implements ExecutionContext {
   @Override
   public String toString() {
 <span class="nc" id="L121">    return &quot;BasicExecutionContext{&quot; + &quot;name=&quot; + name + &quot;, parent=&quot;</span>
-            + parent + &quot;, deadlineNanos=&quot; + deadlineNanos + &quot;, baggage=&quot; + baggage + '}';
+<span class="nc" id="L122">            + parent + &quot;, deadline=&quot; + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)</span>
+            + &quot;, baggage=&quot; + baggage + '}';
   }
 
 

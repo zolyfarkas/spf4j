@@ -46,21 +46,21 @@ public class SerializablePair&lt;A extends Serializable, B extends Serializable&
     private static final long serialVersionUID = 1L;
 
     public SerializablePair(final A first, final B second) {
-<span class="nc" id="L49">        super(first, second);</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L49">        super(first, second);</span>
+<span class="fc" id="L50">    }</span>
 
     @SuppressFBWarnings(&quot;UMTP_UNBOUND_METHOD_TEMPLATE_PARAMETER&quot;)
     public static &lt;A extends Serializable, B extends Serializable&gt;
             SerializablePair&lt;A, B&gt; of(final A first, final B second) {
-<span class="nc" id="L55">        return new SerializablePair&lt;&gt;(first, second);</span>
+<span class="fc" id="L55">        return new SerializablePair&lt;&gt;(first, second);</span>
     }
 
     private Object writeReplace()
             throws java.io.ObjectStreamException {
-<span class="nc" id="L60">        PairProxy result = new PairProxy();</span>
-<span class="nc" id="L61">        result.first = getFirst();</span>
-<span class="nc" id="L62">        result.second = getSecond();</span>
-<span class="nc" id="L63">        return result;</span>
+<span class="fc" id="L60">        PairProxy result = new PairProxy();</span>
+<span class="fc" id="L61">        result.first = getFirst();</span>
+<span class="fc" id="L62">        result.second = getSecond();</span>
+<span class="fc" id="L63">        return result;</span>
     }
 
     private static final class PairProxy implements Serializable {
@@ -70,7 +70,7 @@ public class SerializablePair&lt;A extends Serializable, B extends Serializable&
         private Serializable second;
 
         private Object readResolve() {
-<span class="nc" id="L73">            return SerializablePair.of(first, second);</span>
+<span class="fc" id="L73">            return SerializablePair.of(first, second);</span>
         }
 
     }

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Spf4jTestLogRunListenerSingleton.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.test.log.junit4</a> &gt; <span class="el_source">Spf4jTestLogRunListenerSingleton.java</span></div><h1>Spf4jTestLogRunListenerSingleton.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.test.log.junit4;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.WillNotClose;
+import org.junit.runner.Description;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.test.log.CollectTrobleshootingLogs;
+import org.spf4j.test.log.ExceptionHandoverRegistry;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogCollection;
+import org.spf4j.test.log.LogPrinter;
+import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.log.UncaughtExceptionDetail;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings(&quot;FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY&quot;)
+public final class Spf4jTestLogRunListenerSingleton extends RunListener {
+
+<span class="fc" id="L47">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);</span>
+
+<span class="fc" id="L49">  private static final Spf4jTestLogRunListenerSingleton INSTANCE = new Spf4jTestLogRunListenerSingleton();</span>
+
+  private final Level minLogLevel;
+
+  private final int maxDebugLogsCollected;
+
+  private final Map&lt;Description, LogCollection&lt;ArrayDeque&lt;LogRecord&gt;&gt;&gt; collections;
+
+  private final boolean collectPrinted;
+
+  private final ExceptionAsserterUncaughtExceptionHandler uncaughtExceptionHandler;
+
+<span class="fc" id="L61">  private Spf4jTestLogRunListenerSingleton() {</span>
+<span class="fc" id="L62">    minLogLevel = Level.valueOf(System.getProperty(&quot;spf4j.test.log.collectMinLevel&quot;, &quot;DEBUG&quot;));</span>
+<span class="fc" id="L63">    maxDebugLogsCollected = Integer.getInteger(&quot;spf4j.test.log.collectmaxLogs&quot;, 100);</span>
+<span class="fc" id="L64">    collectPrinted = Boolean.getBoolean(&quot;spf4j.test.log.collectPrintedLogs&quot;);</span>
+<span class="fc" id="L65">    collections = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L66">    synchronized (Thread.class) {</span>
+<span class="fc" id="L67">      final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();</span>
+<span class="fc" id="L68">      uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);</span>
+<span class="fc" id="L69">      Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);</span>
+<span class="fc" id="L70">    }</span>
+<span class="fc" id="L71">  }</span>
+
+  public static Spf4jTestLogRunListenerSingleton getInstance() {
+<span class="fc" id="L74">    return INSTANCE;</span>
+  }
+
+  @Override
+  public void testRunFinished(final Result result) {
+<span class="fc" id="L79">    List&lt;UncaughtExceptionDetail&gt; exceptions = uncaughtExceptionHandler.getUncaughtExceptions();</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (!exceptions.isEmpty()) {</span>
+<span class="nc" id="L81">      AssertionError assertionError = new AssertionError(&quot;Uncaught exceptions encountered &quot; + exceptions);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">      for (UncaughtExceptionDetail ex : exceptions) {</span>
+<span class="nc" id="L83">        Throwable throwable = ex.getThrowable();</span>
+<span class="nc" id="L84">        assertionError.addSuppressed(throwable);</span>
+<span class="nc" id="L85">        LOG.info(&quot;Uncaught exceptions, failures = {} in thread {}&quot;, result.getFailures(),</span>
+<span class="nc" id="L86">                ex.getThread(), throwable);</span>
+<span class="nc" id="L87">      }</span>
+<span class="nc" id="L88">      throw assertionError;</span>
+    }
+<span class="fc" id="L90">  }</span>
+
+  @Override
+  public void testFailure(final Failure failure) {
+<span class="nc" id="L94">    Description description = failure.getDescription();</span>
+<span class="nc" id="L95">    LogCollection&lt;ArrayDeque&lt;LogRecord&gt;&gt; handler = collections.get(description);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.</span>
+<span class="nc" id="L97">      try (LogCollection&lt;ArrayDeque&lt;LogRecord&gt;&gt; h = handler) {</span>
+<span class="nc" id="L98">        dumpDebugInfo(h.get(), description);</span>
+      }
+    }
+<span class="nc" id="L101">  }</span>
+
+  private void dumpDebugInfo(final Collection&lt;LogRecord&gt; logs,
+          final Description description) {
+<span class="nc" id="L105">    synchronized (System.out) { // do not interleave other stuff.</span>
+<span class="nc" id="L106">      boolean first = true;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">      if (!logs.isEmpty()) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        for (LogRecord record : logs) {</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">          if (first) {</span>
+<span class="nc" id="L110">            LOG.info(&quot;Dumping last {} unprinted logs for {}&quot;, maxDebugLogsCollected, description);</span>
+<span class="nc" id="L111">            first = false;</span>
+          }
+<span class="nc" id="L113">          LogPrinter.printTo(System.out, record, &quot;&quot;);</span>
+<span class="nc" id="L114">        }</span>
+<span class="nc" id="L115">        LOG.info(&quot;End dump for {}&quot;, description);</span>
+      }
+<span class="nc" id="L117">    }</span>
+
+<span class="nc" id="L119">  }</span>
+
+  @Override
+  public synchronized void testFinished(final Description description) {
+<span class="fc" id="L123">    LogCollection&lt;ArrayDeque&lt;LogRecord&gt;&gt; handler = collections.remove(description);</span>
+<span class="fc" id="L124">    try (LogCollection&lt;ArrayDeque&lt;LogRecord&gt;&gt; h = handler) {</span>
+<span class="fc" id="L125">      handleUncaughtExceptions(description, h.get());</span>
+    }
+<span class="fc" id="L127">  }</span>
+
+  private void handleUncaughtExceptions(final Description description,
+          @WillNotClose final Collection&lt;LogRecord&gt; logs) {
+<span class="fc" id="L131">    List&lt;UncaughtExceptionDetail&gt; exceptions = uncaughtExceptionHandler.getUncaughtExceptions();</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (!exceptions.isEmpty()) {</span>
+<span class="nc" id="L133">      AssertionError assertionError = new AssertionError(&quot;Uncaught exceptions encountered &quot; + exceptions);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">      for (UncaughtExceptionDetail ex : exceptions) {</span>
+<span class="nc" id="L135">        Throwable throwable = ex.getThrowable();</span>
+<span class="nc" id="L136">        LOG.info(&quot;Uncaught exceptions during {} in thread {}&quot;, description, ex.getThread(), ex.getThrowable());</span>
+<span class="nc" id="L137">        assertionError.addSuppressed(throwable);</span>
+<span class="nc" id="L138">      }</span>
+<span class="nc" id="L139">      dumpDebugInfo(logs, description);</span>
+<span class="nc" id="L140">      throw assertionError;</span>
+    }
+<span class="fc" id="L142">  }</span>
+
+  @Override
+  public void testStarted(final Description description) throws Exception {
+<span class="fc" id="L146">    CollectTrobleshootingLogs annotation = description.getAnnotation(CollectTrobleshootingLogs.class);</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">    Level mll = annotation == null ? minLogLevel : annotation.minLevel();</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">    boolean clp = annotation == null ? collectPrinted : annotation.collectPrinted();</span>
+<span class="fc" id="L149">    collections.put(description, TestLoggers.sys().collect(mll, maxDebugLogsCollected, clp));</span>
+<span class="fc" id="L150">    super.testStarted(description);</span>
+<span class="fc" id="L151">  }</span>
+
+  public ExceptionHandoverRegistry getUncaughtExceptionHandler() {
+<span class="fc" id="L154">    return uncaughtExceptionHandler;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L159">    return &quot;DetailOnFailureRunListener{&quot; + &quot;minLogLevel=&quot; + minLogLevel</span>
+            + &quot;, maxDebugLogsCollected=&quot; + maxDebugLogsCollected + &quot;, collections=&quot;
+            + collections + &quot;, collectPrinted=&quot; + collectPrinted + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

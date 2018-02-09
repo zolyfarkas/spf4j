@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -43,54 +44,57 @@ import org.spf4j.concurrent.DefaultScheduler;
 @Beta
 public final class Timing {
 
-<span class="nc" id="L46">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
+<span class="fc" id="L47">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
 
-<span class="nc" id="L48">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
+<span class="fc" id="L49">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
 
   private static volatile Timing latestTiming;
 
   private static final ScheduledFuture UPDATER;
 
   static {
-<span class="nc" id="L55">    latestTiming = new Timing();</span>
-<span class="nc" id="L56">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -&gt; latestTiming = new Timing(),</span>
+<span class="fc" id="L56">    latestTiming = new Timing();</span>
+<span class="pc" id="L57">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -&gt; latestTiming = new Timing(),</span>
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
-<span class="nc" id="L58">  }</span>
+<span class="fc" id="L59">  }</span>
 
   private final long nanoTimeRef;
   private final long currentTimeMillisRef;
 
-<span class="nc" id="L63">  private Timing() {</span>
-<span class="nc" id="L64">    nanoTimeRef = System.nanoTime();</span>
-<span class="nc" id="L65">    currentTimeMillisRef = System.currentTimeMillis();</span>
-<span class="nc" id="L66">  }</span>
+<span class="fc" id="L64">  private Timing() {</span>
+<span class="fc" id="L65">    nanoTimeRef = System.nanoTime();</span>
+<span class="fc" id="L66">    currentTimeMillisRef = System.currentTimeMillis();</span>
+<span class="fc" id="L67">  }</span>
 
   public long fromNanoTimeToEpochMillis(final long nanoTime) {
-<span class="nc" id="L69">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
+<span class="fc" id="L70">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
   }
 
+  public Instant fromNanoTimeToInstant(final long nanoTime) {
+<span class="nc" id="L74">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
+  }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
-<span class="nc" id="L74">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
-<span class="nc" id="L76">      return System.nanoTime() + Long.MAX_VALUE;</span>
+<span class="fc" id="L78">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
+<span class="fc" id="L80">      return System.nanoTime() + Long.MAX_VALUE;</span>
 //      throw new IllegalArgumentException(&quot;Epoch time millis cannot be converted to nanotime &quot; + epochTimeMillis);
     }
-<span class="nc" id="L79">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
+<span class="fc" id="L83">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
   }
 
   public static Timing getCurrentTiming() {
-<span class="nc" id="L83">    return latestTiming;</span>
+<span class="fc" id="L87">    return latestTiming;</span>
   }
 
 
   public static void stopUpdate() {
-<span class="nc" id="L88">    UPDATER.cancel(false);</span>
-<span class="nc" id="L89">  }</span>
+<span class="nc" id="L92">    UPDATER.cancel(false);</span>
+<span class="nc" id="L93">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L93">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
+<span class="nc" id="L97">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
   }
 
 

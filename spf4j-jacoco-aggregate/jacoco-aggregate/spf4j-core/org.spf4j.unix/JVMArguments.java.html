@@ -65,16 +65,16 @@ public final class JVMArguments {
 
   private final List&lt;String&gt; arguments;
 
-<span class="nc" id="L68">  public JVMArguments(final int size) {</span>
-<span class="nc" id="L69">    arguments = new ArrayList&lt;&gt;(size);</span>
-<span class="nc" id="L70">  }</span>
+<span class="fc" id="L68">  public JVMArguments(final int size) {</span>
+<span class="fc" id="L69">    arguments = new ArrayList&lt;&gt;(size);</span>
+<span class="fc" id="L70">  }</span>
 
-<span class="nc" id="L72">  public JVMArguments(final Collection&lt;? extends String&gt; c) {</span>
-<span class="nc" id="L73">    arguments = new ArrayList&lt;&gt;(c);</span>
-<span class="nc" id="L74">  }</span>
+<span class="fc" id="L72">  public JVMArguments(final Collection&lt;? extends String&gt; c) {</span>
+<span class="fc" id="L73">    arguments = new ArrayList&lt;&gt;(c);</span>
+<span class="fc" id="L74">  }</span>
 
   public String getExecutable() {
-<span class="nc" id="L77">    return arguments.get(0);</span>
+<span class="fc" id="L77">    return arguments.get(0);</span>
   }
 
   /**
@@ -84,20 +84,20 @@ public final class JVMArguments {
    */
   @Nullable
   public String removeSystemProperty(final String pname) {
-<span class="nc" id="L87">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="nc" id="L88">    itr.next(); // skip command.</span>
-<span class="nc" id="L89">    int nl = pname.length();</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L91">      String s = itr.next();</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">      if (s.startsWith(&quot;-D&quot;)) {</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (s.regionMatches(2, pname, 0, nl)) {</span>
-<span class="nc" id="L94">          int l = nl + 2;</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">          if (s.length() == l) {</span>
+<span class="fc" id="L87">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L88">    itr.next(); // skip command.</span>
+<span class="fc" id="L89">    int nl = pname.length();</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L91">      String s = itr.next();</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">      if (s.startsWith(&quot;-D&quot;)) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (s.regionMatches(2, pname, 0, nl)) {</span>
+<span class="fc" id="L94">          int l = nl + 2;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">          if (s.length() == l) {</span>
 <span class="nc" id="L96">            itr.remove();</span>
 <span class="nc" id="L97">            return &quot;&quot;;</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">          } else if (s.charAt(l) == '=') {</span>
-<span class="nc" id="L99">            itr.remove();</span>
-<span class="nc" id="L100">            return s.substring(l + 1);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">          } else if (s.charAt(l) == '=') {</span>
+<span class="fc" id="L99">            itr.remove();</span>
+<span class="fc" id="L100">            return s.substring(l + 1);</span>
           }
         }
       }
@@ -107,48 +107,48 @@ public final class JVMArguments {
 
   @Nullable
   public String getSystemProperty(final String pname) {
-<span class="nc" id="L110">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="nc" id="L111">    itr.next(); // skip command.</span>
-<span class="nc" id="L112">    int nl = pname.length();</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L114">      String s = itr.next();</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (s.startsWith(&quot;-D&quot;)) {</span>
-<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (s.regionMatches(2, pname, 0, nl)) {</span>
-<span class="nc" id="L117">          int l = nl + 2;</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">          if (s.length() == l) {</span>
+<span class="fc" id="L110">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L111">    itr.next(); // skip command.</span>
+<span class="fc" id="L112">    int nl = pname.length();</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L114">      String s = itr.next();</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">      if (s.startsWith(&quot;-D&quot;)) {</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (s.regionMatches(2, pname, 0, nl)) {</span>
+<span class="fc" id="L117">          int l = nl + 2;</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">          if (s.length() == l) {</span>
 <span class="nc" id="L119">            return &quot;&quot;;</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">          } else if (s.charAt(l) == '=') {</span>
-<span class="nc" id="L121">            return s.substring(l + 1);</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">          } else if (s.charAt(l) == '=') {</span>
+<span class="fc" id="L121">            return s.substring(l + 1);</span>
           }
         }
       }
-<span class="nc" id="L125">    }</span>
-<span class="nc" id="L126">    return null;</span>
+<span class="fc" id="L125">    }</span>
+<span class="fc" id="L126">    return null;</span>
   }
 
 
   @Nullable
   public void createOrUpdateSystemProperty(final String pname, final Function&lt;String, String&gt; replacer) {
-<span class="nc" id="L132">    ListIterator&lt;String&gt; itr = arguments.listIterator();</span>
-<span class="nc" id="L133">    itr.next(); // skip command.</span>
-<span class="nc" id="L134">    int nl = pname.length();</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L136">      String s = itr.next();</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">      if (s.startsWith(&quot;-D&quot;)) {</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (s.regionMatches(2, pname, 0, nl)) {</span>
-<span class="nc" id="L139">          int l = nl + 2;</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">          if (s.length() == l) {</span>
+<span class="fc" id="L132">    ListIterator&lt;String&gt; itr = arguments.listIterator();</span>
+<span class="fc" id="L133">    itr.next(); // skip command.</span>
+<span class="fc" id="L134">    int nl = pname.length();</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L136">      String s = itr.next();</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">      if (s.startsWith(&quot;-D&quot;)) {</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        if (s.regionMatches(2, pname, 0, nl)) {</span>
+<span class="fc" id="L139">          int l = nl + 2;</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">          if (s.length() == l) {</span>
 <span class="nc" id="L141">            itr.set(&quot;-D&quot; + pname + '=' + replacer.apply(&quot;&quot;));</span>
 <span class="nc" id="L142">            return;</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">          } else if (s.charAt(l) == '=') {</span>
-<span class="nc" id="L144">            itr.set(&quot;-D&quot; + pname + '=' + replacer.apply(s.substring(l + 1)));</span>
-<span class="nc" id="L145">            return;</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">          } else if (s.charAt(l) == '=') {</span>
+<span class="fc" id="L144">            itr.set(&quot;-D&quot; + pname + '=' + replacer.apply(s.substring(l + 1)));</span>
+<span class="fc" id="L145">            return;</span>
           }
         }
       }
-<span class="nc" id="L149">    }</span>
-<span class="nc" id="L150">    arguments.add(1, &quot;-D&quot; + pname + '=' + replacer.apply(null));</span>
-<span class="nc" id="L151">  }</span>
+<span class="fc" id="L149">    }</span>
+<span class="fc" id="L150">    arguments.add(1, &quot;-D&quot; + pname + '=' + replacer.apply(null));</span>
+<span class="fc" id="L151">  }</span>
 
 
   public boolean hasSystemProperty(final String pname) {
@@ -176,18 +176,18 @@ public final class JVMArguments {
    * @return number of system properties removed.
    */
   public int removeAllSystemPropertiesStartingWith(final String pname) {
-<span class="nc" id="L179">    String name = &quot;-D&quot; + pname;</span>
-<span class="nc" id="L180">    int nrRemoved = 0;</span>
-<span class="nc" id="L181">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="nc" id="L182">    itr.next();</span>
-<span class="nc bnc" id="L183" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L184">      String s = itr.next();</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">      if (s.startsWith(name)) {</span>
-<span class="nc" id="L186">        itr.remove();</span>
-<span class="nc" id="L187">        nrRemoved++;</span>
+<span class="fc" id="L179">    String name = &quot;-D&quot; + pname;</span>
+<span class="fc" id="L180">    int nrRemoved = 0;</span>
+<span class="fc" id="L181">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L182">    itr.next();</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L184">      String s = itr.next();</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">      if (s.startsWith(name)) {</span>
+<span class="fc" id="L186">        itr.remove();</span>
+<span class="fc" id="L187">        nrRemoved++;</span>
       }
-<span class="nc" id="L189">    }</span>
-<span class="nc" id="L190">    return nrRemoved;</span>
+<span class="fc" id="L189">    }</span>
+<span class="fc" id="L190">    return nrRemoved;</span>
   }
 
   public void setSystemProperty(final String name, final String value) {
@@ -197,43 +197,43 @@ public final class JVMArguments {
 <span class="nc" id="L197">  }</span>
 
   public void setVMArgument(final String argument) {
-<span class="nc bnc" id="L200" title="All 2 branches missed.">    if (!hasVMArgument(argument)) {</span>
-<span class="nc" id="L201">      arguments.add(1, argument);</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">    if (!hasVMArgument(argument)) {</span>
+<span class="fc" id="L201">      arguments.add(1, argument);</span>
     }
-<span class="nc" id="L203">  }</span>
+<span class="fc" id="L203">  }</span>
 
   public boolean removeVMArgument(final String argument) {
-<span class="nc" id="L206">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="nc" id="L207">    itr.next();</span>
-<span class="nc bnc" id="L208" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L209">      String s = itr.next();</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">      if (s.equals(argument)) {</span>
-<span class="nc" id="L211">        itr.remove();</span>
-<span class="nc" id="L212">        return true;</span>
+<span class="fc" id="L206">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L207">    itr.next();</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L209">      String s = itr.next();</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">      if (s.equals(argument)) {</span>
+<span class="fc" id="L211">        itr.remove();</span>
+<span class="fc" id="L212">        return true;</span>
       }
 <span class="nc" id="L214">    }</span>
 <span class="nc" id="L215">    return false;</span>
   }
 
   public boolean hasVMArgument(final String argument) {
-<span class="nc" id="L219">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="nc" id="L220">    itr.next();</span>
-<span class="nc bnc" id="L221" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L222">      String s = itr.next();</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">      if (s.equals(argument)) {</span>
-<span class="nc" id="L224">        return true;</span>
+<span class="fc" id="L219">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L220">    itr.next();</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L222">      String s = itr.next();</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">      if (s.equals(argument)) {</span>
+<span class="fc" id="L224">        return true;</span>
       }
-<span class="nc" id="L226">    }</span>
-<span class="nc" id="L227">    return false;</span>
+<span class="fc" id="L226">    }</span>
+<span class="fc" id="L227">    return false;</span>
   }
 
   public boolean hasVMArgumentStartingWith(final String argumentPrefix) {
-<span class="nc" id="L231">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="nc" id="L232">    itr.next();</span>
-<span class="nc bnc" id="L233" title="All 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="nc" id="L234">      String s = itr.next();</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">      if (s.startsWith(argumentPrefix)) {</span>
-<span class="nc" id="L236">        return true;</span>
+<span class="fc" id="L231">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L232">    itr.next();</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L234">      String s = itr.next();</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">      if (s.startsWith(argumentPrefix)) {</span>
+<span class="fc" id="L236">        return true;</span>
       }
 <span class="nc" id="L238">    }</span>
 <span class="nc" id="L239">    return false;</span>
@@ -241,8 +241,8 @@ public final class JVMArguments {
 
 
   public void add(final String arg) {
-<span class="nc" id="L244">    arguments.add(arg);</span>
-<span class="nc" id="L245">  }</span>
+<span class="fc" id="L244">    arguments.add(arg);</span>
+<span class="fc" id="L245">  }</span>
 
   /**
    * Removes the n items from the end. Useful for removing all the Java arguments to rebuild them.
@@ -260,7 +260,7 @@ public final class JVMArguments {
    * Gets the process argument list of the current process.
    */
   public static JVMArguments current() throws IOException {
-<span class="nc" id="L263">    return of(-1);</span>
+<span class="fc" id="L263">    return of(-1);</span>
   }
 
   /**
@@ -269,14 +269,14 @@ public final class JVMArguments {
    * @param pid -1 to indicate the current process.
    */
   public static JVMArguments of(final int pid) throws IOException {
-<span class="nc" id="L272">    String os = Runtime.OS_NAME;</span>
-<span class="nc bnc" id="L273" title="All 5 branches missed.">    switch (os) {</span>
+<span class="fc" id="L272">    String os = Runtime.OS_NAME;</span>
+<span class="pc bpc" id="L273" title="4 of 5 branches missed.">    switch (os) {</span>
       case &quot;Linux&quot;:
 <span class="nc" id="L275">        return ofLinux(pid);</span>
       case &quot;SunOS&quot;:
 <span class="nc" id="L277">        return ofSolaris(pid);</span>
       case &quot;Mac OS X&quot;:
-<span class="nc" id="L279">        return ofMac(pid);</span>
+<span class="fc" id="L279">        return ofMac(pid);</span>
       case &quot;FreeBSD&quot;:
 <span class="nc" id="L281">        return ofFreeBSD(pid);</span>
       default:
@@ -291,8 +291,8 @@ public final class JVMArguments {
   }
 
   private static int resolvePID(final int pid) {
-<span class="nc bnc" id="L294" title="All 2 branches missed.">    if (pid == -1) {</span>
-<span class="nc" id="L295">      return Runtime.PID;</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">    if (pid == -1) {</span>
+<span class="fc" id="L295">      return Runtime.PID;</span>
     } else {
 <span class="nc" id="L297">      return pid;</span>
     }
@@ -489,26 +489,26 @@ public final class JVMArguments {
   @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
   private static JVMArguments ofMac(final int pid) {
     // local constants
-<span class="nc" id="L492">    final int ctlKern = 1;</span>
-<span class="nc" id="L493">    final int kernArgMax = 8;</span>
-<span class="nc" id="L494">    final int kernProcArgs2 = 49;</span>
-<span class="nc" id="L495">    final int sizeOfInt = Native.getNativeSize(int.class);</span>
-<span class="nc" id="L496">    IntByReference ibf = new IntByReference();</span>
+<span class="fc" id="L492">    final int ctlKern = 1;</span>
+<span class="fc" id="L493">    final int kernArgMax = 8;</span>
+<span class="fc" id="L494">    final int kernProcArgs2 = 49;</span>
+<span class="fc" id="L495">    final int sizeOfInt = Native.getNativeSize(int.class);</span>
+<span class="fc" id="L496">    IntByReference ibf = new IntByReference();</span>
 
-<span class="nc" id="L498">    IntByReference argmaxRef = new IntByReference(0);</span>
-<span class="nc" id="L499">    IntByReference size = new IntByReference(sizeOfInt);</span>
+<span class="fc" id="L498">    IntByReference argmaxRef = new IntByReference(0);</span>
+<span class="fc" id="L499">    IntByReference size = new IntByReference(sizeOfInt);</span>
 
     // for some reason, I was never able to get sysctlbyname work.
 //        if(LIBC.sysctlbyname(&quot;kern.argmax&quot;, argmaxRef.getPointer(), size, NULL, ibf)!=0)
-<span class="nc bnc" id="L503" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax}, 2, argmaxRef.getPointer(), size, NULL, ibf) != 0) {</span>
+<span class="pc bpc" id="L503" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax}, 2, argmaxRef.getPointer(), size, NULL, ibf) != 0) {</span>
 <span class="nc" id="L504">      throw new UnsupportedOperationException(&quot;Failed to get kernl.argmax: &quot;</span>
 <span class="nc" id="L505">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
     }
 
-<span class="nc" id="L508">    int argmax = argmaxRef.getValue();</span>
-<span class="nc" id="L509">    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);</span>
-<span class="nc" id="L510">    size.setValue(argmax);</span>
-<span class="nc bnc" id="L511" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {</span>
+<span class="fc" id="L508">    int argmax = argmaxRef.getValue();</span>
+<span class="fc" id="L509">    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);</span>
+<span class="fc" id="L510">    size.setValue(argmax);</span>
+<span class="pc bpc" id="L511" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {</span>
 <span class="nc" id="L512">      throw new UnsupportedOperationException(&quot;Failed to obtain ken.procargs2: &quot;</span>
 <span class="nc" id="L513">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
     }
@@ -551,48 +551,48 @@ public final class JVMArguments {
          * :               :
          * \---------------/ 0xffffffff
      */
-<span class="nc" id="L554">    int nargs = m.readInt();</span>
-<span class="nc" id="L555">    JVMArguments args = new JVMArguments(nargs);</span>
-<span class="nc" id="L556">    m.readString(); // exec path</span>
-<span class="nc bnc" id="L557" title="All 2 branches missed.">    for (int i = 0; i &lt; nargs; i++) {</span>
-<span class="nc" id="L558">      m.skip0();</span>
-<span class="nc" id="L559">      args.add(m.readString());</span>
+<span class="fc" id="L554">    int nargs = m.readInt();</span>
+<span class="fc" id="L555">    JVMArguments args = new JVMArguments(nargs);</span>
+<span class="fc" id="L556">    m.readString(); // exec path</span>
+<span class="fc bfc" id="L557" title="All 2 branches covered.">    for (int i = 0; i &lt; nargs; i++) {</span>
+<span class="fc" id="L558">      m.skip0();</span>
+<span class="fc" id="L559">      args.add(m.readString());</span>
     }
-<span class="nc" id="L561">    return args;</span>
+<span class="fc" id="L561">    return args;</span>
   }
 
   @SuppressFBWarnings(&quot;EQ_DOESNT_OVERRIDE_EQUALS&quot;)
   private static final class StringArrayMemory extends Memory {
 
-<span class="nc" id="L567">    private long offset = 0;</span>
+<span class="fc" id="L567">    private long offset = 0;</span>
     private final int sizeOfInt;
 
     StringArrayMemory(final long l, final int sizeOfInt) {
-<span class="nc" id="L571">      super(l);</span>
-<span class="nc" id="L572">      this.sizeOfInt = sizeOfInt;</span>
-<span class="nc" id="L573">    }</span>
+<span class="fc" id="L571">      super(l);</span>
+<span class="fc" id="L572">      this.sizeOfInt = sizeOfInt;</span>
+<span class="fc" id="L573">    }</span>
 
     private int readInt() {
-<span class="nc" id="L576">      int r = getInt(offset);</span>
-<span class="nc" id="L577">      offset += sizeOfInt;</span>
-<span class="nc" id="L578">      return r;</span>
+<span class="fc" id="L576">      int r = getInt(offset);</span>
+<span class="fc" id="L577">      offset += sizeOfInt;</span>
+<span class="fc" id="L578">      return r;</span>
     }
 
     private String readString() {
-<span class="nc" id="L582">      ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L582">      ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
       byte ch;
-<span class="nc bnc" id="L584" title="All 2 branches missed.">      while ((ch = getByte(offset++)) != '\0') {</span>
-<span class="nc" id="L585">        baos.write(ch);</span>
+<span class="fc bfc" id="L584" title="All 2 branches covered.">      while ((ch = getByte(offset++)) != '\0') {</span>
+<span class="fc" id="L585">        baos.write(ch);</span>
       }
-<span class="nc" id="L587">      return baos.toString();</span>
+<span class="fc" id="L587">      return baos.toString();</span>
     }
 
     void skip0() {
       // skip trailing '\0's
-<span class="nc bnc" id="L592" title="All 2 branches missed.">      while (getByte(offset) == '\0') {</span>
-<span class="nc" id="L593">        offset++;</span>
+<span class="fc bfc" id="L592" title="All 2 branches covered.">      while (getByte(offset) == '\0') {</span>
+<span class="fc" id="L593">        offset++;</span>
       }
-<span class="nc" id="L595">    }</span>
+<span class="fc" id="L595">    }</span>
   }
 
   private static JVMArguments ofFreeBSD(final int pid) {
@@ -638,7 +638,7 @@ public final class JVMArguments {
 
   @Override
   public String toString() {
-<span class="nc" id="L641">    return &quot;JVMArguments{&quot; + &quot;arguments=&quot; + arguments + '}';</span>
+<span class="fc" id="L641">    return &quot;JVMArguments{&quot; + &quot;arguments=&quot; + arguments + '}';</span>
   }
 
   @Override
@@ -662,7 +662,7 @@ public final class JVMArguments {
   }
 
   public String[] toArray() {
-<span class="nc" id="L665">    return arguments.toArray(new String[arguments.size()]);</span>
+<span class="fc" id="L665">    return arguments.toArray(new String[arguments.size()]);</span>
   }
 
 }

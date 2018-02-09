@@ -34,31 +34,31 @@ abstract class LogCollectorHandler&lt;A, T&gt; implements LogHandler, LogCollect
 
   LogCollectorHandler(final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-<span class="nc" id="L37">          final Collector&lt;LogRecord, A, T&gt; collector) {</span>
-<span class="nc" id="L38">    accObj = collector.supplier().get();</span>
-<span class="nc" id="L39">    acc = collector.accumulator();</span>
-<span class="nc" id="L40">    finisher = collector.finisher();</span>
-<span class="nc" id="L41">    this.fromLevel = fromLevel;</span>
-<span class="nc" id="L42">    this.toLevel = toLevel;</span>
-<span class="nc" id="L43">    this.passThrough = passThrough;</span>
-<span class="nc" id="L44">  }</span>
+<span class="fc" id="L37">          final Collector&lt;LogRecord, A, T&gt; collector) {</span>
+<span class="fc" id="L38">    accObj = collector.supplier().get();</span>
+<span class="fc" id="L39">    acc = collector.accumulator();</span>
+<span class="fc" id="L40">    finisher = collector.finisher();</span>
+<span class="fc" id="L41">    this.fromLevel = fromLevel;</span>
+<span class="fc" id="L42">    this.toLevel = toLevel;</span>
+<span class="fc" id="L43">    this.passThrough = passThrough;</span>
+<span class="fc" id="L44">  }</span>
 
   @Override
   public LogHandler.Handling handles(final Level level) {
-<span class="nc bnc" id="L48" title="All 4 branches missed.">    if (level.ordinal() &gt;= fromLevel.ordinal() &amp;&amp; level.ordinal() &lt;= toLevel.ordinal()) {</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">      return passThrough ? LogHandler.Handling.HANDLE_PASS : LogHandler.Handling.HANDLE_CONSUME;</span>
+<span class="pc bpc" id="L48" title="1 of 4 branches missed.">    if (level.ordinal() &gt;= fromLevel.ordinal() &amp;&amp; level.ordinal() &lt;= toLevel.ordinal()) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">      return passThrough ? LogHandler.Handling.HANDLE_PASS : LogHandler.Handling.HANDLE_CONSUME;</span>
     } else {
-<span class="nc" id="L51">      return LogHandler.Handling.NONE;</span>
+<span class="fc" id="L51">      return LogHandler.Handling.NONE;</span>
     }
   }
 
   @Override
   public LogRecord handle(final LogRecord record) {
-<span class="nc" id="L57">    synchronized (accObj) {</span>
-<span class="nc" id="L58">      acc.accept(accObj, record);</span>
-<span class="nc" id="L59">    }</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">    if (passThrough) {</span>
-<span class="nc" id="L61">      return record;</span>
+<span class="fc" id="L57">    synchronized (accObj) {</span>
+<span class="fc" id="L58">      acc.accept(accObj, record);</span>
+<span class="fc" id="L59">    }</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    if (passThrough) {</span>
+<span class="fc" id="L61">      return record;</span>
     } else {
 <span class="nc" id="L63">      return null;</span>
     }
@@ -66,15 +66,15 @@ abstract class LogCollectorHandler&lt;A, T&gt; implements LogHandler, LogCollect
 
   @Override
   public T get() {
-<span class="nc" id="L69">    synchronized (accObj) {</span>
-<span class="nc" id="L70">      close();</span>
-<span class="nc" id="L71">      return finisher.apply(accObj);</span>
+<span class="fc" id="L69">    synchronized (accObj) {</span>
+<span class="fc" id="L70">      close();</span>
+<span class="fc" id="L71">      return finisher.apply(accObj);</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L77">    return &quot;LogCollectorHandler{&quot; + &quot;accObj=&quot; + accObj + &quot;, fromLevel=&quot;</span>
+<span class="fc" id="L77">    return &quot;LogCollectorHandler{&quot; + &quot;accObj=&quot; + accObj + &quot;, fromLevel=&quot;</span>
             + fromLevel + &quot;, toLevel=&quot; + toLevel + &quot;, passThrough=&quot; + passThrough + '}';
   }
 

@@ -62,27 +62,27 @@ public final class MemoryUsageSampler {
 
   private static final String HOTSPOT_BEAN_NAME = &quot;com.sun.management:type=HotSpotDiagnostic&quot;;
 
-<span class="nc" id="L65">  private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
+<span class="fc" id="L65">  private static final MemoryMXBean MBEAN = ManagementFactory.getMemoryMXBean();</span>
 
-<span class="nc" id="L67">  private static final HotSpotDiagnosticMXBean HOTSPOT_DIAGNOSTIC_INSTANCE = getHotspotMBean();</span>
+<span class="fc" id="L67">  private static final HotSpotDiagnosticMXBean HOTSPOT_DIAGNOSTIC_INSTANCE = getHotspotMBean();</span>
 
   private static ScheduledFuture&lt;?&gt; samplingFuture;
   private static AccumulatorRunnable accumulatorRunnable;
 
   static {
-<span class="nc" id="L73">    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+<span class="fc" id="L73">    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
       @Override
       public void doRun() throws IOException {
 <span class="nc" id="L76">        stop();</span>
 <span class="nc" id="L77">      }</span>
     });
-<span class="nc" id="L79">    Registry.export(MemoryUsageSampler.class);</span>
-<span class="nc" id="L80">  }</span>
+<span class="fc" id="L79">    Registry.export(MemoryUsageSampler.class);</span>
+<span class="fc" id="L80">  }</span>
 
   private static HotSpotDiagnosticMXBean getHotspotMBean() {
     try {
-<span class="nc" id="L84">      MBeanServer server = ManagementFactory.getPlatformMBeanServer();</span>
-<span class="nc" id="L85">      return ManagementFactory.newPlatformMXBeanProxy(server,</span>
+<span class="fc" id="L84">      MBeanServer server = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="fc" id="L85">      return ManagementFactory.newPlatformMXBeanProxy(server,</span>
               HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
 <span class="nc" id="L87">    } catch (IOException ex) {</span>
 <span class="nc" id="L88">      throw new ExceptionInInitializerError(ex);</span>
@@ -97,29 +97,29 @@ public final class MemoryUsageSampler {
 <span class="nc" id="L97">  }</span>
 
   public static synchronized void start(final int sampleTimeMilis) {
-<span class="nc" id="L100">    start(sampleTimeMilis, sampleTimeMilis * 10);</span>
-<span class="nc" id="L101">  }</span>
+<span class="fc" id="L100">    start(sampleTimeMilis, sampleTimeMilis * 10);</span>
+<span class="fc" id="L101">  }</span>
 
   @JmxExport
   public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTimeMilis,
           @JmxExport(&quot;accumulateIntervalMillis&quot;) final int accumulateIntervalMillis) {
-<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (samplingFuture == null) {</span>
-<span class="nc" id="L107">      accumulatorRunnable = new AccumulatorRunnable(accumulateIntervalMillis);</span>
-<span class="nc" id="L108">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulatorRunnable,</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (samplingFuture == null) {</span>
+<span class="fc" id="L107">      accumulatorRunnable = new AccumulatorRunnable(accumulateIntervalMillis);</span>
+<span class="fc" id="L108">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulatorRunnable,</span>
               sampleTimeMilis, sampleTimeMilis, TimeUnit.MILLISECONDS);
     } else {
 <span class="nc" id="L111">      throw new IllegalStateException(&quot;Memory usage sampling already started &quot; + samplingFuture);</span>
     }
-<span class="nc" id="L113">  }</span>
+<span class="fc" id="L113">  }</span>
 
   @JmxExport
   public static synchronized void stop() throws IOException {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (samplingFuture != null) {</span>
-<span class="nc" id="L118">      samplingFuture.cancel(false);</span>
-<span class="nc" id="L119">      samplingFuture = null;</span>
-<span class="nc" id="L120">      accumulatorRunnable.close();</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
+<span class="fc" id="L118">      samplingFuture.cancel(false);</span>
+<span class="fc" id="L119">      samplingFuture = null;</span>
+<span class="fc" id="L120">      accumulatorRunnable.close();</span>
     }
-<span class="nc" id="L122">  }</span>
+<span class="fc" id="L122">  }</span>
 
   @JmxExport
   public static synchronized boolean isStarted() {
@@ -131,26 +131,26 @@ public final class MemoryUsageSampler {
     private final MeasurementRecorder heapCommited;
     private final MeasurementRecorder heapUsed;
 
-<span class="nc" id="L134">    AccumulatorRunnable(final int accumulationIntervalMillis) {</span>
-<span class="nc" id="L135">      heapCommited</span>
-<span class="nc" id="L136">              = RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-commited&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
-<span class="nc" id="L137">      heapUsed</span>
-<span class="nc" id="L138">              = RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-used&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
-<span class="nc" id="L139">    }</span>
+<span class="fc" id="L134">    AccumulatorRunnable(final int accumulationIntervalMillis) {</span>
+<span class="fc" id="L135">      heapCommited</span>
+<span class="fc" id="L136">              = RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-commited&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
+<span class="fc" id="L137">      heapUsed</span>
+<span class="fc" id="L138">              = RecorderFactory.createScalableMinMaxAvgRecorder(&quot;heap-used&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
+<span class="fc" id="L139">    }</span>
 
     @Override
     public void doRun() throws Exception {
-<span class="nc" id="L143">      MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
-<span class="nc" id="L144">      heapCommited.record(usage.getCommitted());</span>
-<span class="nc" id="L145">      heapUsed.record(usage.getUsed());</span>
-<span class="nc" id="L146">    }</span>
+<span class="fc" id="L143">      MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
+<span class="fc" id="L144">      heapCommited.record(usage.getCommitted());</span>
+<span class="fc" id="L145">      heapUsed.record(usage.getUsed());</span>
+<span class="fc" id="L146">    }</span>
 
     public void close() throws IOException {
-<span class="nc" id="L149">      IOException ex = Closeables.closeAll(heapCommited, heapUsed);</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">      if (ex != null) {</span>
+<span class="fc" id="L149">      IOException ex = Closeables.closeAll(heapCommited, heapUsed);</span>
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">      if (ex != null) {</span>
 <span class="nc" id="L151">        throw ex;</span>
       }
-<span class="nc" id="L153">    }</span>
+<span class="fc" id="L153">    }</span>
   }
 
   public static void dumpHeap(final String filename, final boolean liveObjectOnly) throws IOException {

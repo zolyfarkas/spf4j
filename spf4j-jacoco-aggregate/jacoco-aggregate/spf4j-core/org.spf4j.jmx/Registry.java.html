@@ -80,9 +80,9 @@ import javax.management.ObjectName;
 
 public final class Registry {
 
-<span class="nc" id="L83">  private static final MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();</span>
+<span class="fc" id="L83">  private static final MBeanServer MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();</span>
 
-<span class="nc" id="L85">  private static final Map&lt;ObjectName, Object&gt; REGISTERED = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L85">  private static final Map&lt;ObjectName, Object&gt; REGISTERED = new HashMap&lt;&gt;();</span>
 
   private Registry() {
   }
@@ -94,34 +94,34 @@ public final class Registry {
    * @return
    */
   public static synchronized Object registerMBean(final ObjectName objectName, final Object mbean) {
-<span class="nc" id="L97">    Object replaced = null;</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (MBEAN_SERVER.isRegistered(objectName)) {</span>
+<span class="fc" id="L97">    Object replaced = null;</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">    if (MBEAN_SERVER.isRegistered(objectName)) {</span>
       try {
-<span class="nc" id="L100">        replaced = REGISTERED.remove(objectName);</span>
-<span class="nc" id="L101">        MBEAN_SERVER.unregisterMBean(objectName);</span>
+<span class="fc" id="L100">        replaced = REGISTERED.remove(objectName);</span>
+<span class="fc" id="L101">        MBEAN_SERVER.unregisterMBean(objectName);</span>
 <span class="nc" id="L102">      } catch (InstanceNotFoundException | MBeanRegistrationException ex) {</span>
 <span class="nc" id="L103">        throw new IllegalStateException(ex);</span>
-<span class="nc" id="L104">      }</span>
+<span class="fc" id="L104">      }</span>
     }
     try {
-<span class="nc" id="L107">      MBEAN_SERVER.registerMBean(mbean, objectName);</span>
+<span class="fc" id="L107">      MBEAN_SERVER.registerMBean(mbean, objectName);</span>
 <span class="nc" id="L108">    } catch (InstanceAlreadyExistsException  ex) {</span>
 <span class="nc" id="L109">      throw new IllegalStateException(ex);</span>
 <span class="nc" id="L110">    } catch (NotCompliantMBeanException | MBeanRegistrationException ex) {</span>
 <span class="nc" id="L111">      throw new IllegalArgumentException(&quot;Invalid MBean &quot; + mbean, ex);</span>
-<span class="nc" id="L112">    }</span>
-<span class="nc" id="L113">    REGISTERED.put(objectName, mbean);</span>
-<span class="nc" id="L114">    return replaced;</span>
+<span class="fc" id="L112">    }</span>
+<span class="fc" id="L113">    REGISTERED.put(objectName, mbean);</span>
+<span class="fc" id="L114">    return replaced;</span>
   }
 
   public static synchronized void registerIfNotExistsMBean(final ObjectName objectName, final Object mbean) {
     try {
-<span class="nc" id="L119">      MBEAN_SERVER.registerMBean(mbean, objectName);</span>
+<span class="fc" id="L119">      MBEAN_SERVER.registerMBean(mbean, objectName);</span>
 <span class="nc" id="L120">    } catch (InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException ex) {</span>
 <span class="nc" id="L121">      throw new IllegalArgumentException(ex);</span>
-<span class="nc" id="L122">    }</span>
-<span class="nc" id="L123">    REGISTERED.put(objectName, mbean);</span>
-<span class="nc" id="L124">  }</span>
+<span class="fc" id="L122">    }</span>
+<span class="fc" id="L123">    REGISTERED.put(objectName, mbean);</span>
+<span class="fc" id="L124">  }</span>
 
   public static synchronized Object getRegistered(final ObjectName objectName) {
 <span class="nc" id="L127">    return REGISTERED.get(objectName);</span>
@@ -132,13 +132,13 @@ public final class Registry {
   }
 
   public static Object registerMBean(final String domain, final String name, final Object object) {
-<span class="nc" id="L135">    return Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);</span>
+<span class="fc" id="L135">    return Registry.registerMBean(ExportedValuesMBean.createObjectName(domain, name), object);</span>
   }
 
   @Nullable
   public static Object unregister(final Object object) {
-<span class="nc" id="L140">    final Class&lt;? extends Object&gt; aClass = object.getClass();</span>
-<span class="nc" id="L141">    return unregister(aClass.getPackage().getName(), aClass.getSimpleName());</span>
+<span class="fc" id="L140">    final Class&lt;? extends Object&gt; aClass = object.getClass();</span>
+<span class="fc" id="L141">    return unregister(aClass.getPackage().getName(), aClass.getSimpleName());</span>
   }
 
   @Nullable
@@ -148,36 +148,36 @@ public final class Registry {
 
   @Nullable
   public static Object unregister(final String packageName, final String mbeanName) {
-<span class="nc" id="L151">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
-<span class="nc" id="L152">    return unregister(objectName);</span>
+<span class="fc" id="L151">    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);</span>
+<span class="fc" id="L152">    return unregister(objectName);</span>
   }
 
   @Nullable
   public static synchronized Object unregister(final ObjectName objectName) {
-<span class="nc" id="L157">    Object result = null;</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">    if (MBEAN_SERVER.isRegistered(objectName)) {</span>
+<span class="fc" id="L157">    Object result = null;</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    if (MBEAN_SERVER.isRegistered(objectName)) {</span>
       try {
-<span class="nc" id="L160">        result = REGISTERED.remove(objectName);</span>
-<span class="nc" id="L161">        MBEAN_SERVER.unregisterMBean(objectName);</span>
+<span class="fc" id="L160">        result = REGISTERED.remove(objectName);</span>
+<span class="fc" id="L161">        MBEAN_SERVER.unregisterMBean(objectName);</span>
 <span class="nc" id="L162">      } catch (InstanceNotFoundException | MBeanRegistrationException ex) {</span>
 <span class="nc" id="L163">        throw new IllegalArgumentException(&quot;Cannot unregister &quot; + objectName, ex);</span>
-<span class="nc" id="L164">      }</span>
+<span class="fc" id="L164">      }</span>
     }
-<span class="nc" id="L166">    return result;</span>
+<span class="fc" id="L166">    return result;</span>
   }
 
   public static ExportedValuesMBean export(final Object object) {
-<span class="nc" id="L170">    final Class&lt;? extends Object&gt; aClass = object.getClass();</span>
-<span class="nc" id="L171">    return export(aClass.getPackage().getName(), aClass.getSimpleName(), object);</span>
+<span class="fc" id="L170">    final Class&lt;? extends Object&gt; aClass = object.getClass();</span>
+<span class="fc" id="L171">    return export(aClass.getPackage().getName(), aClass.getSimpleName(), object);</span>
   }
 
   public static ExportedValuesMBean export(final Class&lt;?&gt; object) {
-<span class="nc" id="L175">    return export(object.getPackage().getName(), object.getSimpleName(), object);</span>
+<span class="fc" id="L175">    return export(object.getPackage().getName(), object.getSimpleName(), object);</span>
   }
 
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           final Object... objects) {
-<span class="nc" id="L180">    return new DynamicMBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);</span>
+<span class="fc" id="L180">    return new DynamicMBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);</span>
   }
 
   /**
@@ -187,11 +187,11 @@ public final class Registry {
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           final Properties attributes, final Object... objects) {
-<span class="nc" id="L190">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">    if (attributes != null) {</span>
-<span class="nc" id="L192">       builder.withAttributes((Map) attributes);</span>
+<span class="fc" id="L190">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">    if (attributes != null) {</span>
+<span class="fc" id="L192">       builder.withAttributes((Map) attributes);</span>
     }
-<span class="nc" id="L194">    return builder.replace(packageName, mbeanName);</span>
+<span class="fc" id="L194">    return builder.replace(packageName, mbeanName);</span>
   }
 
   /**
@@ -200,11 +200,11 @@ public final class Registry {
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           @Nullable final Map&lt;String, Object&gt; attributes, final Object... objects) {
-<span class="nc" id="L203">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (attributes != null) {</span>
-<span class="nc" id="L205">       builder.withAttributes(attributes);</span>
+<span class="fc" id="L203">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">    if (attributes != null) {</span>
+<span class="fc" id="L205">       builder.withAttributes(attributes);</span>
     }
-<span class="nc" id="L207">    return builder.replace(packageName, mbeanName);</span>
+<span class="fc" id="L207">    return builder.replace(packageName, mbeanName);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

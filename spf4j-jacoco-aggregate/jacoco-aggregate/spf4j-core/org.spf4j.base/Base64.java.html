@@ -41,11 +41,11 @@ import java.nio.CharBuffer;
  *
  * @author zoly
  */
-<span class="nc bnc" id="L44" title="All 2 branches missed.">public final class Base64 {</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">public final class Base64 {</span>
 
-<span class="nc" id="L46">  private static final byte[] DECODE_MAP = initDecodeMap();</span>
+<span class="fc" id="L46">  private static final byte[] DECODE_MAP = initDecodeMap();</span>
 
-<span class="nc" id="L48">  private static final char[] ENCODE_MAP = initEncodeMap();</span>
+<span class="fc" id="L48">  private static final char[] ENCODE_MAP = initEncodeMap();</span>
 
   private static final byte PADDING = 127;
 
@@ -53,26 +53,26 @@ import java.nio.CharBuffer;
   }
 
   private static byte[] initDecodeMap() {
-<span class="nc" id="L56">    byte[] map = new byte[128];</span>
+<span class="fc" id="L56">    byte[] map = new byte[128];</span>
     int i;
-<span class="nc bnc" id="L58" title="All 2 branches missed.">    for (i = 0; i &lt; 128; i++) {</span>
-<span class="nc" id="L59">      map[i] = -1;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">    for (i = 0; i &lt; 128; i++) {</span>
+<span class="fc" id="L59">      map[i] = -1;</span>
     }
 
-<span class="nc bnc" id="L62" title="All 2 branches missed.">    for (i = 'A'; i &lt;= 'Z'; i++) {</span>
-<span class="nc" id="L63">      map[i] = (byte) (i - 'A');</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">    for (i = 'A'; i &lt;= 'Z'; i++) {</span>
+<span class="fc" id="L63">      map[i] = (byte) (i - 'A');</span>
     }
-<span class="nc bnc" id="L65" title="All 2 branches missed.">    for (i = 'a'; i &lt;= 'z'; i++) {</span>
-<span class="nc" id="L66">      map[i] = (byte) (i - 'a' + 26);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    for (i = 'a'; i &lt;= 'z'; i++) {</span>
+<span class="fc" id="L66">      map[i] = (byte) (i - 'a' + 26);</span>
     }
-<span class="nc bnc" id="L68" title="All 2 branches missed.">    for (i = '0'; i &lt;= '9'; i++) {</span>
-<span class="nc" id="L69">      map[i] = (byte) (i - '0' + 52);</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">    for (i = '0'; i &lt;= '9'; i++) {</span>
+<span class="fc" id="L69">      map[i] = (byte) (i - '0' + 52);</span>
     }
-<span class="nc" id="L71">    map['+'] = 62;</span>
-<span class="nc" id="L72">    map['/'] = 63;</span>
-<span class="nc" id="L73">    map['='] = PADDING;</span>
+<span class="fc" id="L71">    map['+'] = 62;</span>
+<span class="fc" id="L72">    map['/'] = 63;</span>
+<span class="fc" id="L73">    map['='] = PADDING;</span>
 
-<span class="nc" id="L75">    return map;</span>
+<span class="fc" id="L75">    return map;</span>
   }
 
   /**
@@ -93,29 +93,29 @@ import java.nio.CharBuffer;
    * then the speculation of this method will be correct, so we get the performance benefit.
    */
   private static int guessLength(final CharSequence text, final int from, final int len) {
-<span class="nc" id="L96">    final int to = from + len;</span>
+<span class="fc" id="L96">    final int to = from + len;</span>
 
     // compute the tail '=' chars
-<span class="nc" id="L99">    int j = to - 1;</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">    for (; j &gt;= 0; j--) {</span>
-<span class="nc" id="L101">      byte code = DECODE_MAP[text.charAt(j)];</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">      if (code != PADDING) {</span>
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (code == -1) { // most likely this base64 text is indented. go with the upper bound</span>
+<span class="fc" id="L99">    int j = to - 1;</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    for (; j &gt;= 0; j--) {</span>
+<span class="fc" id="L101">      byte code = DECODE_MAP[text.charAt(j)];</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">      if (code != PADDING) {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (code == -1) { // most likely this base64 text is indented. go with the upper bound</span>
 <span class="nc" id="L104">          return len / 4 * 3;</span>
         }
         break;
       }
     }
 
-<span class="nc" id="L110">    j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size</span>
-<span class="nc" id="L111">    int padSize = to - j;</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (padSize &gt; 2) { // something is wrong with base64. be safe and go with the upper bound</span>
+<span class="fc" id="L110">    j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size</span>
+<span class="fc" id="L111">    int padSize = to - j;</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">    if (padSize &gt; 2) { // something is wrong with base64. be safe and go with the upper bound</span>
 <span class="nc" id="L113">      return len / 4 * 3;</span>
     }
 
     // so far this base64 looks like it's unindented tightly packed base64.
     // take a chance and create an array with the expected size
-<span class="nc" id="L118">    return len / 4 * 3 - padSize;</span>
+<span class="fc" id="L118">    return len / 4 * 3 - padSize;</span>
   }
 
   private static int guessLength(final char[] text, final int from, final int len) {
@@ -149,11 +149,11 @@ import java.nio.CharBuffer;
   }
 
   public static byte[] decodeBase64(final String text) {
-<span class="nc" id="L152">    return Base64.decodeBase64(text, 0, text.length());</span>
+<span class="fc" id="L152">    return Base64.decodeBase64(text, 0, text.length());</span>
   }
 
   public static byte[] decodeBase64(final String text, final int from, final int length) {
-<span class="nc" id="L156">    return decodeBase64((CharSequence) text, from, length);</span>
+<span class="fc" id="L156">    return decodeBase64((CharSequence) text, from, length);</span>
   }
 
   public static byte[] decodeBase64V2(final String text, final int from, final int length) {
@@ -170,40 +170,40 @@ import java.nio.CharBuffer;
    *
    */
   public static byte[] decodeBase64(final CharSequence text, final int from, final int len) {
-<span class="nc" id="L173">    final int buflen = guessLength(text, from, len);</span>
-<span class="nc" id="L174">    final byte[] out = new byte[buflen];</span>
-<span class="nc" id="L175">    int o = 0;</span>
+<span class="fc" id="L173">    final int buflen = guessLength(text, from, len);</span>
+<span class="fc" id="L174">    final byte[] out = new byte[buflen];</span>
+<span class="fc" id="L175">    int o = 0;</span>
 
     int i;
 
-<span class="nc" id="L179">    final byte[] quadruplet = new byte[4];</span>
-<span class="nc" id="L180">    int q = 0;</span>
+<span class="fc" id="L179">    final byte[] quadruplet = new byte[4];</span>
+<span class="fc" id="L180">    int q = 0;</span>
 
     // convert each quadruplet to three bytes.
-<span class="nc" id="L183">    int to = from + len;</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">    for (i = from; i &lt; to; i++) {</span>
-<span class="nc" id="L185">      char ch = text.charAt(i);</span>
-<span class="nc" id="L186">      byte v = DECODE_MAP[ch];</span>
+<span class="fc" id="L183">    int to = from + len;</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">    for (i = from; i &lt; to; i++) {</span>
+<span class="fc" id="L185">      char ch = text.charAt(i);</span>
+<span class="fc" id="L186">      byte v = DECODE_MAP[ch];</span>
 
-<span class="nc bnc" id="L188" title="All 2 branches missed.">      if (v != -1) {</span>
-<span class="nc" id="L189">        quadruplet[q++] = v;</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">      if (v != -1) {</span>
+<span class="fc" id="L189">        quadruplet[q++] = v;</span>
       }
 
-<span class="nc bnc" id="L192" title="All 2 branches missed.">      if (q == 4) {</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">      if (q == 4) {</span>
         // quadruplet is now filled.
-<span class="nc" id="L194">        out[o++] = (byte) ((quadruplet[0] &lt;&lt; 2) | (quadruplet[1] &gt;&gt; 4));</span>
-<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (quadruplet[2] != PADDING) {</span>
-<span class="nc" id="L196">          out[o++] = (byte) ((quadruplet[1] &lt;&lt; 4) | (quadruplet[2] &gt;&gt; 2));</span>
+<span class="fc" id="L194">        out[o++] = (byte) ((quadruplet[0] &lt;&lt; 2) | (quadruplet[1] &gt;&gt; 4));</span>
+<span class="pc bpc" id="L195" title="1 of 2 branches missed.">        if (quadruplet[2] != PADDING) {</span>
+<span class="fc" id="L196">          out[o++] = (byte) ((quadruplet[1] &lt;&lt; 4) | (quadruplet[2] &gt;&gt; 2));</span>
         }
-<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (quadruplet[3] != PADDING) {</span>
-<span class="nc" id="L199">          out[o++] = (byte) ((quadruplet[2] &lt;&lt; 6) | (quadruplet[3]));</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">        if (quadruplet[3] != PADDING) {</span>
+<span class="fc" id="L199">          out[o++] = (byte) ((quadruplet[2] &lt;&lt; 6) | (quadruplet[3]));</span>
         }
-<span class="nc" id="L201">        q = 0;</span>
+<span class="fc" id="L201">        q = 0;</span>
       }
     }
 
-<span class="nc bnc" id="L205" title="All 2 branches missed.">    if (buflen == o) { // speculation worked out to be OK</span>
-<span class="nc" id="L206">      return out;</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">    if (buflen == o) { // speculation worked out to be OK</span>
+<span class="fc" id="L206">      return out;</span>
     }
 
     // we overestimated, so need to create a new buffer
@@ -256,25 +256,25 @@ import java.nio.CharBuffer;
   }
 
   private static char[] initEncodeMap() {
-<span class="nc" id="L259">    char[] map = new char[64];</span>
+<span class="fc" id="L259">    char[] map = new char[64];</span>
     int i;
-<span class="nc bnc" id="L261" title="All 2 branches missed.">    for (i = 0; i &lt; 26; i++) {</span>
-<span class="nc" id="L262">      map[i] = (char) ('A' + i);</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">    for (i = 0; i &lt; 26; i++) {</span>
+<span class="fc" id="L262">      map[i] = (char) ('A' + i);</span>
     }
-<span class="nc bnc" id="L264" title="All 2 branches missed.">    for (i = 26; i &lt; 52; i++) {</span>
-<span class="nc" id="L265">      map[i] = (char) ('a' + (i - 26));</span>
+<span class="fc bfc" id="L264" title="All 2 branches covered.">    for (i = 26; i &lt; 52; i++) {</span>
+<span class="fc" id="L265">      map[i] = (char) ('a' + (i - 26));</span>
     }
-<span class="nc bnc" id="L267" title="All 2 branches missed.">    for (i = 52; i &lt; 62; i++) {</span>
-<span class="nc" id="L268">      map[i] = (char) ('0' + (i - 52));</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">    for (i = 52; i &lt; 62; i++) {</span>
+<span class="fc" id="L268">      map[i] = (char) ('0' + (i - 52));</span>
     }
-<span class="nc" id="L270">    map[62] = '+';</span>
-<span class="nc" id="L271">    map[63] = '/';</span>
+<span class="fc" id="L270">    map[62] = '+';</span>
+<span class="fc" id="L271">    map[63] = '/';</span>
 
-<span class="nc" id="L273">    return map;</span>
+<span class="fc" id="L273">    return map;</span>
   }
 
   public static char encode(final int i) {
-<span class="nc" id="L277">    return ENCODE_MAP[i &amp; 0x3F];</span>
+<span class="fc" id="L277">    return ENCODE_MAP[i &amp; 0x3F];</span>
   }
 
   public static byte encodeByte(final int i) {
@@ -282,13 +282,13 @@ import java.nio.CharBuffer;
   }
 
   public static String encodeBase64(final byte[] input) {
-<span class="nc" id="L285">    return Base64.encodeBase64(input, 0, input.length);</span>
+<span class="fc" id="L285">    return Base64.encodeBase64(input, 0, input.length);</span>
   }
 
   public static String encodeBase64(final byte[] input, final int offset, final int len) {
-<span class="nc" id="L289">    char[] buf = TLScratch.getCharsTmp((((len + 2) / 3) * 4));</span>
-<span class="nc" id="L290">    int ptr = Base64.encodeBase64(input, offset, len, buf, 0);</span>
-<span class="nc" id="L291">    return new String(buf, 0, ptr);</span>
+<span class="fc" id="L289">    char[] buf = TLScratch.getCharsTmp((((len + 2) / 3) * 4));</span>
+<span class="fc" id="L290">    int ptr = Base64.encodeBase64(input, offset, len, buf, 0);</span>
+<span class="fc" id="L291">    return new String(buf, 0, ptr);</span>
   }
 
   /**
@@ -352,9 +352,9 @@ import java.nio.CharBuffer;
    */
   public static int encodeBase64(final byte[] input, final int offset,
           final int len, final char[] output, final int cptr) {
-<span class="nc" id="L355">    int ptr = cptr;</span>
-<span class="nc bnc" id="L356" title="All 2 branches missed.">    for (int i = offset; i &lt; len; i += 3) {</span>
-<span class="nc bnc" id="L357" title="All 3 branches missed.">      switch (len - i) {</span>
+<span class="fc" id="L355">    int ptr = cptr;</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">    for (int i = offset; i &lt; len; i += 3) {</span>
+<span class="pc bpc" id="L357" title="1 of 3 branches missed.">      switch (len - i) {</span>
         case 1:
 <span class="nc" id="L359">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
 <span class="nc" id="L360">          output[ptr++] = encode(((input[i]) &amp; 0x3) &lt;&lt; 4);</span>
@@ -362,26 +362,26 @@ import java.nio.CharBuffer;
 <span class="nc" id="L362">          output[ptr++] = '=';</span>
 <span class="nc" id="L363">          break;</span>
         case 2:
-<span class="nc" id="L365">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
-<span class="nc" id="L366">          output[ptr++] = encode(</span>
+<span class="fc" id="L365">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
+<span class="fc" id="L366">          output[ptr++] = encode(</span>
                   ((input[i] &amp; 0x3) &lt;&lt; 4)
                   | ((input[i + 1] &gt;&gt; 4) &amp; 0xF));
-<span class="nc" id="L369">          output[ptr++] = encode((input[i + 1] &amp; 0xF) &lt;&lt; 2);</span>
-<span class="nc" id="L370">          output[ptr++] = '=';</span>
-<span class="nc" id="L371">          break;</span>
+<span class="fc" id="L369">          output[ptr++] = encode((input[i + 1] &amp; 0xF) &lt;&lt; 2);</span>
+<span class="fc" id="L370">          output[ptr++] = '=';</span>
+<span class="fc" id="L371">          break;</span>
         default:
-<span class="nc" id="L373">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
-<span class="nc" id="L374">          output[ptr++] = encode(</span>
+<span class="fc" id="L373">          output[ptr++] = encode(input[i] &gt;&gt; 2);</span>
+<span class="fc" id="L374">          output[ptr++] = encode(</span>
                   ((input[i] &amp; 0x3) &lt;&lt; 4)
                   | ((input[i + 1] &gt;&gt; 4) &amp; 0xF));
-<span class="nc" id="L377">          output[ptr++] = encode(</span>
+<span class="fc" id="L377">          output[ptr++] = encode(</span>
                   ((input[i + 1] &amp; 0xF) &lt;&lt; 2)
                   | ((input[i + 2] &gt;&gt; 6) &amp; 0x3));
-<span class="nc" id="L380">          output[ptr++] = encode(input[i + 2] &amp; 0x3F);</span>
+<span class="fc" id="L380">          output[ptr++] = encode(input[i + 2] &amp; 0x3F);</span>
           break;
       }
     }
-<span class="nc" id="L384">    return ptr;</span>
+<span class="fc" id="L384">    return ptr;</span>
   }
 
   /**

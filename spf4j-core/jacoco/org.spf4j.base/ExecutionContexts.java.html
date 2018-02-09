@@ -32,8 +32,11 @@
 package org.spf4j.base;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Signed;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,48 +46,57 @@ import javax.annotation.concurrent.ThreadSafe;
 @ParametersAreNonnullByDefault
 public final class ExecutionContexts {
 
+<span class="fc" id="L49">  public static final long DEFAULT_TIMEOUT_NANOS =</span>
+<span class="fc" id="L50">          Long.getLong(&quot;spf4j.execContext.defaultTimeoutNanos&quot;, TimeUnit.HOURS.toNanos(8));</span>
+
   private ExecutionContexts() {
   }
 
-<span class="fc" id="L49">  private static final ThreadLocal&lt;ExecutionContext&gt; EXEC_CTX = new ThreadLocal&lt;ExecutionContext&gt;();</span>
+<span class="fc" id="L55">  private static final ThreadLocal&lt;ExecutionContext&gt; EXEC_CTX = new ThreadLocal&lt;ExecutionContext&gt;();</span>
 
-<span class="fc" id="L51">  private static final ExecutionContextFactory&lt;ExecutionContext&gt; CTX_FACTORY = initFactory();</span>
+<span class="fc" id="L57">  private static final ExecutionContextFactory&lt;ExecutionContext&gt; CTX_FACTORY = initFactory();</span>
 
   private static ExecutionContextFactory&lt;ExecutionContext&gt; initFactory() {
 
-<span class="fc" id="L55">    String factoryClass = System.getProperty(&quot;spf4j.execContentFactoryClass&quot;);</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (factoryClass == null) {</span>
+<span class="fc" id="L61">    String factoryClass = System.getProperty(&quot;spf4j.execContentFactoryClass&quot;);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">    if (factoryClass == null) {</span>
 
-<span class="fc" id="L58">      return new ExecutionContextFactory&lt;ExecutionContext&gt;() {</span>
+<span class="fc" id="L64">      return new ExecutionContextFactory&lt;ExecutionContext&gt;() {</span>
 
         @Override
         public ExecutionContext start(final String name, final ExecutionContext parent,
                  final long deadlineNanos, final Runnable onClose) {
-<span class="fc" id="L63">          return new BasicExecutionContext(name, parent, deadlineNanos) {</span>
+<span class="fc" id="L69">          return new BasicExecutionContext(name, parent, deadlineNanos) {</span>
+
+<span class="fc" id="L71">            private boolean isClosed = false;</span>
+
             @Override
             public void close() {
-<span class="fc" id="L66">              onClose.run();</span>
-<span class="fc" id="L67">            }</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">              if (!isClosed) {</span>
+<span class="fc" id="L76">                onClose.run();</span>
+<span class="fc" id="L77">                isClosed = true;</span>
+              }
+<span class="fc" id="L79">            }</span>
           };
         }
       };
     } else {
       try {
-<span class="nc" id="L73">        return ((Class&lt;ExecutionContextFactory&lt;ExecutionContext&gt;&gt;) Class.forName(factoryClass)).newInstance();</span>
-<span class="nc" id="L74">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
-<span class="nc" id="L75">        throw new ExceptionInInitializerError(ex);</span>
+<span class="nc" id="L85">        return ((Class&lt;ExecutionContextFactory&lt;ExecutionContext&gt;&gt;) Class.forName(factoryClass)).newInstance();</span>
+<span class="nc" id="L86">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L87">        throw new ExceptionInInitializerError(ex);</span>
       }
     }
   }
 
   @Nullable
   public static ExecutionContext current() {
-<span class="fc" id="L82">    return EXEC_CTX.get();</span>
+<span class="fc" id="L94">    return EXEC_CTX.get();</span>
   }
 
   static void setCurrent(final ExecutionContext current) {
-<span class="fc" id="L86">    EXEC_CTX.set(current);</span>
-<span class="fc" id="L87">  }</span>
+<span class="fc" id="L98">    EXEC_CTX.set(current);</span>
+<span class="fc" id="L99">  }</span>
 
   /**
    * start a execution context.
@@ -93,7 +105,7 @@ public final class ExecutionContexts {
    * @return the execution context.
    */
   public static ExecutionContext start(final long deadlineNanos) {
-<span class="fc" id="L96">    return start(&quot;anon&quot;, null, deadlineNanos);</span>
+<span class="fc" id="L108">    return start(&quot;anon&quot;, null, deadlineNanos);</span>
   }
 
   /**
@@ -104,58 +116,76 @@ public final class ExecutionContexts {
    * @return
    */
   public static ExecutionContext start(final long timeout, final TimeUnit tu) {
-<span class="fc" id="L107">    return start(TimeSource.getDeadlineNanos(timeout, tu));</span>
+<span class="fc" id="L119">    return start(TimeSource.getDeadlineNanos(timeout, tu));</span>
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
-<span class="nc" id="L111">    return start(parent, TimeSource.getDeadlineNanos(timeout, tu));</span>
+<span class="nc" id="L123">    return start(parent, TimeSource.getDeadlineNanos(timeout, tu));</span>
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent) {
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">    return start(parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + Long.MAX_VALUE);</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">    return start(parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS);</span>
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long deadlineNanos) {
-<span class="fc" id="L119">    return start(&quot;anon&quot;, parent, deadlineNanos);</span>
+<span class="fc" id="L131">    return start(&quot;anon&quot;, parent, deadlineNanos);</span>
   }
 
   public static ExecutionContext start(final String name, final long deadlineNanos) {
-<span class="nc" id="L123">    return start(name, null, deadlineNanos);</span>
+<span class="nc" id="L135">    return start(name, null, deadlineNanos);</span>
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent) {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">    return start(name, parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + Long.MAX_VALUE);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">    return start(name, parent, parent != null ? parent.getDeadlineNanos()</span>
+<span class="nc" id="L141">            : TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS);</span>
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long deadlineNanos) {
-<span class="fc" id="L133">    ExecutionContext xCtx = EXEC_CTX.get();</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">    ExecutionContext nCtx = CTX_FACTORY.start(name, parent == null ? xCtx : parent,</span>
-<span class="fc" id="L135">            deadlineNanos, () -&gt; ExecutionContexts.setCurrent(xCtx));</span>
-<span class="fc" id="L136">    EXEC_CTX.set(nCtx);</span>
-<span class="fc" id="L137">    return nCtx;</span>
+<span class="fc" id="L146">    ExecutionContext xCtx = EXEC_CTX.get();</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">    ExecutionContext nCtx = CTX_FACTORY.start(name, parent == null ? xCtx : parent,</span>
+<span class="fc" id="L148">            deadlineNanos, () -&gt; ExecutionContexts.setCurrent(xCtx));</span>
+<span class="fc" id="L149">    EXEC_CTX.set(nCtx);</span>
+<span class="fc" id="L150">    return nCtx;</span>
   }
 
   public static long getContextDeadlineNanos() {
-<span class="fc" id="L141">    ExecutionContext ec = ExecutionContexts.current();</span>
-<span class="pc bpc" id="L142" title="1 of 2 branches missed.">    if (ec == null) {</span>
-<span class="fc" id="L143">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
+<span class="fc" id="L154">    ExecutionContext ec = ExecutionContexts.current();</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">    if (ec == null) {</span>
+<span class="fc" id="L156">      return TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS;</span>
     } else {
-<span class="nc" id="L145">      return ec.getDeadlineNanos();</span>
+<span class="fc" id="L158">      return ec.getDeadlineNanos();</span>
     }
   }
 
-  public static long getSecondsToDeadline() {
-<span class="nc" id="L150">    return TimeUnit.NANOSECONDS.toSeconds(getContextDeadlineNanos() - TimeSource.nanoTime());</span>
+  @Signed
+  public static long getTimeRelativeToDeadline(final TimeUnit unit) {
+<span class="fc" id="L164">    return unit.convert(getContextDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
-  public static long getMillisToDeadline() {
-<span class="fc" id="L154">    return TimeUnit.NANOSECONDS.toMillis(getContextDeadlineNanos() - TimeSource.nanoTime());</span>
+  @Nonnegative
+  public static long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
+<span class="fc" id="L169">    long timeRelativeToDeadline = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">    if (timeRelativeToDeadline &lt;= 0) {</span>
+<span class="nc" id="L171">      throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-timeRelativeToDeadline) + ' ' + unit);</span>
+    }
+<span class="fc" id="L173">    return timeRelativeToDeadline;</span>
   }
 
-  public static long getNanosToDeadline() {
-<span class="fc" id="L158">    return getContextDeadlineNanos() - TimeSource.nanoTime();</span>
+  @Nonnegative
+  public static long getMillisToDeadline() throws TimeoutException {
+<span class="fc" id="L178">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+  }
+
+  @Nonnegative
+  public static int getSecondsToDeadline() throws TimeoutException {
+<span class="nc" id="L183">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L185">      return Integer.MAX_VALUE;</span>
+    } else {
+<span class="nc" id="L187">      return (int) secondsToDeadline;</span>
+    }
   }
 
 }

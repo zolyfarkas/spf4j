@@ -42,22 +42,22 @@ public final class Flusher {
     private Flusher() { }
     
     public static void flushEvery(final int intervalMillis, final MeasurementStore store) {
-<span class="nc" id="L45">        final ScheduledFuture&lt;?&gt; future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {</span>
+<span class="fc" id="L45">        final ScheduledFuture&lt;?&gt; future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {</span>
             @Override
             public void doRun() throws Exception {
 <span class="nc" id="L48">                store.flush();</span>
 <span class="nc" id="L49">            }</span>
         }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
-<span class="nc" id="L51">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(false) {</span>
+<span class="fc" id="L51">        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(false) {</span>
             @Override
             public void doRun() throws Exception {
                 try {
-<span class="nc" id="L55">                    future.cancel(false);</span>
+<span class="fc" id="L55">                    future.cancel(false);</span>
                 } finally {
-<span class="nc" id="L57">                    store.close();</span>
+<span class="fc" id="L57">                    store.close();</span>
                 }
-<span class="nc" id="L59">            }</span>
+<span class="fc" id="L59">            }</span>
         });
-<span class="nc" id="L61">    }</span>
+<span class="fc" id="L61">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

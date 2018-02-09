@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Header.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.tsdb</a> &gt; <span class="el_source">Header.java</span></div><h1>Header.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.tsdb;
+
+import com.google.common.base.Charsets;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+/**
+ * TSDB header detail
+ *
+ * @deprecated please use org.spf4j.tsdb2
+ * @author zoly
+ */
+@Deprecated
+final class Header {
+
+    public static final String TYPE = &quot;TSDB&quot;;
+
+    private final String type;
+    private final int version;
+    private final byte[] metaData;
+
+<span class="fc" id="L53">    Header(final int version, final byte[] metaData) {</span>
+<span class="fc" id="L54">        this.type = TYPE;</span>
+<span class="fc" id="L55">        this.version = version;</span>
+<span class="fc" id="L56">        this.metaData = metaData;</span>
+<span class="fc" id="L57">    }</span>
+
+<span class="fc" id="L59">    Header(final RandomAccessFile raf) throws IOException {</span>
+<span class="fc" id="L60">        byte[] bType = new byte[4];</span>
+<span class="fc" id="L61">        raf.readFully(bType);</span>
+<span class="fc" id="L62">        this.type = new String(bType, Charsets.US_ASCII);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (!TYPE.equals(this.type)) {</span>
+<span class="nc" id="L64">            throw new IOException(&quot;Invalid File Type &quot; + this.type);</span>
+        }
+<span class="fc" id="L66">        this.version = raf.readInt();</span>
+<span class="fc" id="L67">        int metaDataSize = raf.readInt();</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (metaDataSize &gt; 0) {</span>
+<span class="nc" id="L69">            this.metaData = new byte[metaDataSize];</span>
+<span class="nc" id="L70">            raf.readFully(this.metaData);</span>
+        } else {
+<span class="fc" id="L72">            this.metaData = new byte[]{};</span>
+        }
+<span class="fc" id="L74">    }</span>
+
+    public void writeTo(final RandomAccessFile raf) throws IOException {
+<span class="fc" id="L77">        raf.write(type.getBytes(Charsets.US_ASCII));</span>
+<span class="fc" id="L78">        raf.writeInt(version);</span>
+<span class="fc" id="L79">        raf.writeInt(metaData.length);</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (metaData.length &gt; 0) {</span>
+<span class="nc" id="L81">            raf.write(metaData);</span>
+        }
+<span class="fc" id="L83">    }</span>
+
+    public String getType() {
+<span class="nc" id="L86">        return type;</span>
+    }
+
+    public int getVersion() {
+<span class="nc" id="L90">        return version;</span>
+    }
+
+    public byte[] getMetaData() {
+<span class="nc" id="L94">        return metaData;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L99">        return &quot;Header{&quot; + &quot;type=&quot; + type + &quot;, version=&quot; + version + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

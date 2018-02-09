@@ -33,32 +33,39 @@ package org.spf4j.io.appenders;
 
 import com.google.common.base.Charsets;
 import java.io.IOException;
+import javax.activation.MimeType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.io.AppendableOutputStream;
+import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 
 /**
  *
  * @author zoly
  */
-<span class="fc" id="L48">public final class SpecificRecordAppender implements ObjectAppender&lt;SpecificRecord&gt; {</span>
-    
-<span class="fc" id="L50">    static final EncoderFactory EF = new EncoderFactory();</span>
+<span class="fc" id="L50">public final class SpecificRecordAppender implements ObjectAppender&lt;SpecificRecord&gt; {</span>
 
-    @Override
-    public void append(final SpecificRecord object, final Appendable appendTo) throws IOException {
-<span class="fc" id="L54">        try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, Charsets.UTF_8)) {</span>
-<span class="fc" id="L55">            final Schema schema = object.getSchema();</span>
-<span class="fc" id="L56">            SpecificDatumWriter&lt;SpecificRecord&gt; writer = new SpecificDatumWriter&lt;&gt;(schema);</span>
-<span class="fc" id="L57">            JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos);</span>
-<span class="fc" id="L58">            writer.write(object, jsonEncoder);</span>
-<span class="fc" id="L59">            jsonEncoder.flush();</span>
-        }
-<span class="fc" id="L61">    }</span>
-    
+<span class="fc" id="L52">  static final EncoderFactory EF = new EncoderFactory();</span>
+
+  @Override
+  public MimeType getAppendedType() {
+<span class="nc" id="L56">    return MimeTypes.APPLICATION_JSON;</span>
+  }
+
+  @Override
+  public void append(final SpecificRecord object, final Appendable appendTo) throws IOException {
+<span class="fc" id="L61">    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, Charsets.UTF_8)) {</span>
+<span class="fc" id="L62">      final Schema schema = object.getSchema();</span>
+<span class="fc" id="L63">      SpecificDatumWriter&lt;SpecificRecord&gt; writer = new SpecificDatumWriter&lt;&gt;(schema);</span>
+<span class="fc" id="L64">      JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos);</span>
+<span class="fc" id="L65">      writer.write(object, jsonEncoder);</span>
+<span class="fc" id="L66">      jsonEncoder.flush();</span>
+    }
+<span class="fc" id="L68">  }</span>
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

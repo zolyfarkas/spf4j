@@ -45,17 +45,17 @@ public final class ArrayBuilder&lt;T&gt; {
 
   private int size;
 
-<span class="nc" id="L48">  public ArrayBuilder(final int initialSize, final Class&lt;T&gt; elementType) {</span>
-<span class="nc" id="L49">    this.array = (T[]) Array.newInstance(elementType, initialSize);</span>
-<span class="nc" id="L50">    this.size = 0;</span>
-<span class="nc" id="L51">  }</span>
+<span class="fc" id="L48">  public ArrayBuilder(final int initialSize, final Class&lt;T&gt; elementType) {</span>
+<span class="fc" id="L49">    this.array = (T[]) Array.newInstance(elementType, initialSize);</span>
+<span class="fc" id="L50">    this.size = 0;</span>
+<span class="fc" id="L51">  }</span>
 
   public void add(final T element) {
-<span class="nc" id="L54">    int sp1 = size + 1;</span>
-<span class="nc" id="L55">    ensureCapacity(sp1);</span>
-<span class="nc" id="L56">    array[size] = element;</span>
-<span class="nc" id="L57">    size = sp1;</span>
-<span class="nc" id="L58">  }</span>
+<span class="fc" id="L54">    int sp1 = size + 1;</span>
+<span class="fc" id="L55">    ensureCapacity(sp1);</span>
+<span class="fc" id="L56">    array[size] = element;</span>
+<span class="fc" id="L57">    size = sp1;</span>
+<span class="fc" id="L58">  }</span>
 
   public void clear() {
 <span class="nc" id="L61">    Arrays.fill(array, 0, size, null);</span>
@@ -64,32 +64,32 @@ public final class ArrayBuilder&lt;T&gt; {
 
   private void ensureCapacity(final int minCapacity) {
     // overflow-conscious code
-<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (minCapacity - array.length &gt; 0) {</span>
-<span class="nc" id="L68">      expandCapacity(minCapacity);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    if (minCapacity - array.length &gt; 0) {</span>
+<span class="fc" id="L68">      expandCapacity(minCapacity);</span>
     }
-<span class="nc" id="L70">  }</span>
+<span class="fc" id="L70">  }</span>
 
   private void expandCapacity(final int minimumCapacity) {
-<span class="nc" id="L73">    int newCapacity = array.length + array.length &gt;&gt; 1;</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (newCapacity &lt; minimumCapacity) {</span>
-<span class="nc" id="L75">      newCapacity = minimumCapacity;</span>
+<span class="fc" id="L73">    int newCapacity = array.length + array.length &gt;&gt; 1;</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (newCapacity &lt; minimumCapacity) {</span>
+<span class="fc" id="L75">      newCapacity = minimumCapacity;</span>
     }
-<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (newCapacity &lt; 0) {</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (newCapacity &lt; 0) {</span>
 <span class="nc bnc" id="L78" title="All 2 branches missed.">      if (minimumCapacity &lt; 0) { // overflow</span>
 <span class="nc" id="L79">        throw new OutOfMemoryError();</span>
       }
 <span class="nc" id="L81">      newCapacity = Integer.MAX_VALUE;</span>
     }
-<span class="nc" id="L83">    array = Arrays.copyOf(array, newCapacity);</span>
-<span class="nc" id="L84">  }</span>
+<span class="fc" id="L83">    array = Arrays.copyOf(array, newCapacity);</span>
+<span class="fc" id="L84">  }</span>
 
   @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public T[] getArray() {
-<span class="nc" id="L88">    return array;</span>
+<span class="fc" id="L88">    return array;</span>
   }
 
   public int getSize() {
-<span class="nc" id="L92">    return size;</span>
+<span class="fc" id="L92">    return size;</span>
   }
 
   @Override
