@@ -41,6 +41,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnull;
@@ -51,7 +52,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.DateTimeFormats;
-import org.spf4j.base.IntMath;
+import org.spf4j.base.TimeSource;
+import org.spf4j.base.Timing;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
@@ -87,23 +89,21 @@ public final class Sampler {
   };
 
   private volatile boolean stopped;
-  private volatile int sampleTimeMillis;
-  private volatile int dumpTimeMillis;
+  private volatile int sampleTimeNanos;
+  private volatile long dumpTimeNanos;
   private final StackCollector stackCollector;
-  private volatile long lastDumpTime = System.currentTimeMillis();
+  private volatile long lastDumpTimeNanos = TimeSource.nanoTime();
 
   @GuardedBy("this")
   private Future<?> samplerFuture;
 
   private final String filePrefix;
 
-  private final IntMath.XorShift32 random = new IntMath.XorShift32();
-
   @Override
   public String toString() {
-    return "Sampler{" + "stopped=" + stopped + ", sampleTimeMillis="
-            + sampleTimeMillis + ", dumpTimeMillis=" + dumpTimeMillis + ", lastDumpTime="
-            + lastDumpTime + ", filePrefix=" + filePrefix + '}';
+    return "Sampler{" + "stopped=" + stopped + ", sampleTimeNanos="
+            + sampleTimeNanos + ", dumpTimeNanos=" + dumpTimeNanos + ", lastDumpTimeNanos="
+            + lastDumpTimeNanos + ", filePrefix=" + filePrefix + '}';
   }
 
   public Sampler() {
@@ -130,8 +130,11 @@ public final class Sampler {
     if (sampleTimeMillis < 1) {
       throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
     }
-    this.sampleTimeMillis = sampleTimeMillis;
-    this.dumpTimeMillis = dumpTimeMillis;
+    this.sampleTimeNanos = (int) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
+    if (sampleTimeNanos < 0) {
+      throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
+    }
+    this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
     this.stackCollector = collector;
     this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
   }
@@ -163,7 +166,8 @@ public final class Sampler {
   public synchronized void start() {
     if (stopped) {
       stopped = false;
-      final int stMillis = sampleTimeMillis;
+      final int stNanos = sampleTimeNanos;
+      final int stMs = (int) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);
       final List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
       samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
 
@@ -172,43 +176,45 @@ public final class Sampler {
         @Override
         public void doRun() throws IOException, InterruptedException {
           final Thread samplerThread = Thread.currentThread();
-          int dumpCounterMs = 0;
+          final ThreadLocalRandom random = ThreadLocalRandom.current();
+          int dumpCounterNanos = 0;
           int coarseCounter = 0;
-          int coarseCount = STOP_FLAG_READ_MILLIS / stMillis;
+          int coarseCount = STOP_FLAG_READ_MILLIS / stNanos;
           boolean lstopped = stopped;
-          long prevGcTime = 0;
-          int sleepTime = 0;
-          int halfStMillis = stMillis / 2;
-          if (halfStMillis == 0) {
-            halfStMillis = 1;
+          long prevGcTimeMillis = 0;
+          int sleepTimeNanos = 0;
+          int halfStNanos = stNanos / 2;
+          if (halfStNanos == 0) {
+            halfStNanos = 1;
           }
+          int maxSleeepNanos = stNanos + halfStNanos;
           while (!lstopped) {
             stackCollector.sample(samplerThread);
-            dumpCounterMs += sleepTime;
+            dumpCounterNanos += sleepTimeNanos;
             coarseCounter++;
             if (coarseCounter >= coarseCount) {
               coarseCounter = 0;
               lstopped = stopped;
-              long gcTime = GCUsageSampler.getGCTime(gcBeans);
-              if (gcTime > prevGcTime) {
-                int fakeSamples = (int) ((gcTime - prevGcTime)) / stMillis;
+              long gcTimeMillis = GCUsageSampler.getGCTime(gcBeans);
+              if (gcTimeMillis > prevGcTimeMillis) {
+                int fakeSamples = (int) ((gcTimeMillis - prevGcTimeMillis)) / stMs;
                 for (int i = 0; i < fakeSamples; i++) { // can be optimized
                   stackCollector.addSample(GC_FAKE_STACK);
                 }
-                prevGcTime = gcTime;
+                prevGcTimeMillis = gcTimeMillis;
               }
             }
-            if (dumpCounterMs >= dumpTimeMillis) {
-              long timeSinceLastDump = System.currentTimeMillis() - lastDumpTime;
-              if (timeSinceLastDump >= dumpTimeMillis) {
-                dumpCounterMs = 0;
+            if (dumpCounterNanos >= dumpTimeNanos) {
+              long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
+              if (nanosSinceLastDump >= dumpTimeNanos) {
+                dumpCounterNanos = 0;
                 dumpToFile();
               } else {
-                dumpCounterMs -= dumpTimeMillis - timeSinceLastDump;
+                dumpCounterNanos -= dumpTimeNanos - nanosSinceLastDump;
               }
             }
-            sleepTime = stMillis + (random.nextInt() % halfStMillis);
-            Thread.sleep(sleepTime);
+            sleepTimeNanos = random.nextInt(halfStNanos, maxSleeepNanos);
+            TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
           }
         }
       });
@@ -238,8 +244,8 @@ public final class Sampler {
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
     String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
-            + DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(lastDumpTime)) + '_'
-            + DateTimeFormats.TS_FORMAT.format(Instant.now()) + ".ssdump2");
+            + DateTimeFormats.TS_FORMAT.format(Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
+            + '_' + DateTimeFormats.TS_FORMAT.format(Instant.now()) + ".ssdump2");
     File file = new File(fileName);
     return dumpToFile(file);
   }
@@ -251,7 +257,7 @@ public final class Sampler {
     SampleNode collected = stackCollector.clear();
     if (collected != null) {
       Converter.save(file, collected);
-      lastDumpTime = System.currentTimeMillis();
+      lastDumpTimeNanos = TimeSource.nanoTime();
       return file;
     } else {
       return null;
@@ -275,12 +281,12 @@ public final class Sampler {
 
   @JmxExport(description = "stack sample time in milliseconds")
   public int getSampleTimeMillis() {
-    return sampleTimeMillis;
+    return (int) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);
   }
 
   @JmxExport
   public void setSampleTimeMillis(final int sampleTimeMillis) {
-    this.sampleTimeMillis = sampleTimeMillis;
+    this.sampleTimeNanos = (int) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
   }
 
   @JmxExport(description = "is the stack sampling stopped")
@@ -305,12 +311,12 @@ public final class Sampler {
 
   @JmxExport(description = "interval in milliseconds to save stack stamples periodically")
   public int getDumpTimeMillis() {
-    return dumpTimeMillis;
+    return (int) TimeUnit.NANOSECONDS.toMillis(dumpTimeNanos);
   }
 
   @JmxExport
   public void setDumpTimeMillis(final int dumpTimeMillis) {
-    this.dumpTimeMillis = dumpTimeMillis;
+    this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
   }
 
 }
