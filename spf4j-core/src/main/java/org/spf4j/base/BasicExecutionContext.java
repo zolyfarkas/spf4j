@@ -35,16 +35,18 @@ import com.google.common.annotations.Beta;
 import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The simplest execution context possible.
+ *
  * @author Zoltan Farkas
  */
 @ThreadSafe
-public abstract class BasicExecutionContext implements ExecutionContext {
+public class BasicExecutionContext implements ExecutionContext {
 
   private final String name;
 
@@ -52,13 +54,18 @@ public abstract class BasicExecutionContext implements ExecutionContext {
 
   private final long deadlineNanos;
 
+  private final Runnable onClose;
+
   private Map<Object, Object> baggage;
 
+  private boolean isClosed = false;
 
   @SuppressWarnings("unchecked")
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-          final long deadlineNanos) {
+          final long deadlineNanos, final Runnable onClose) {
+    this.isClosed = false;
     this.name = name;
+    this.onClose = onClose;
     if (parent != null) {
       long parentDeadline = parent.getDeadlineNanos();
       if (parentDeadline < deadlineNanos) {
@@ -73,7 +80,7 @@ public abstract class BasicExecutionContext implements ExecutionContext {
     this.baggage = Collections.EMPTY_MAP;
   }
 
-  public final  String getName() {
+  public final String getName() {
     return name;
   }
 
@@ -109,8 +116,24 @@ public abstract class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
+  public final synchronized <K, V> V compute(@Nonnull final K key, final BiFunction<K, V, V> compute) {
+    return (V) baggage.compute(key, (BiFunction) compute);
+  }
+
+  @Override
   public final ExecutionContext getParent() {
     return parent;
+  }
+
+  /**
+   * Close might be overridable to close any additional stuff added in the extendsd class.
+   */
+  @Override
+  public void close() {
+    if (!isClosed) {
+      onClose.run();
+      isClosed = true;
+    }
   }
 
   /**
@@ -122,6 +145,5 @@ public abstract class BasicExecutionContext implements ExecutionContext {
             + parent + ", deadline=" + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)
             + ", baggage=" + baggage + '}';
   }
-
 
 }

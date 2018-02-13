@@ -172,7 +172,7 @@ public final class Sampler {
       samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
 
         @SuppressWarnings("SleepWhileInLoop")
-        @SuppressFBWarnings("MDM_THREAD_YIELD")
+        @SuppressFBWarnings({ "MDM_THREAD_YIELD", "PREDICTABLE_RANDOM" })
         @Override
         public void doRun() throws IOException, InterruptedException {
           final Thread samplerThread = Thread.currentThread();

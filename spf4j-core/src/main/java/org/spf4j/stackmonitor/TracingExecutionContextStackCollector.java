@@ -31,58 +31,57 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.annotations.Beta;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import org.spf4j.base.ArrayBuilder;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Supplier;
+import org.spf4j.base.ExecutionContext;
 
-@Beta
-public final class ObservableOnlyStackCollector extends AbstractStackCollector {
+/**
+ * @author Zoltan Farkas
+ */
+public final class TracingExecutionContextStackCollector extends AbstractStackCollector {
 
-  private final ConcurrentMap<Thread, Consumer<StackTraceElement[]>> stConsumers;
+  private final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier;
 
+  private Thread[] requestFor;
 
-  public ObservableOnlyStackCollector() {
-    this.stConsumers = new ConcurrentHashMap<>();
+  private ExecutionContext[] contexts;
+
+  public TracingExecutionContextStackCollector(final int maxNrThreads,
+          final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier) {
+    requestFor = new Thread[maxNrThreads];
+    contexts = new ExecutionContext[maxNrThreads];
+    this.execCtxSupplier = execCtxSupplier;
   }
-
-  @Nullable
-  public Consumer<StackTraceElement[]> registerConsumer(final Thread thread,
-          final Consumer<StackTraceElement[]> consumer) {
-    return stConsumers.put(thread, consumer);
-  }
-
-  public Consumer<StackTraceElement[]> unregisterConsumer(final Thread thread) {
-    return stConsumers.remove(thread);
-  }
-
-  private ArrayBuilder<Thread> requestFor = new ArrayBuilder<>(8, Thread.class);
 
   @Override
-  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void sample(final Thread ignore) {
-    requestFor.clear();
-    for (Thread t : stConsumers.keySet()) {
-      requestFor.add(t);
-    }
-    Thread[] rfArray = requestFor.getArray();
-    StackTraceElement[][] stackDump = FastStackCollector.getStackTraces(rfArray);
-    int size = requestFor.getSize();
-    for (int i = 0; i < size; i++) {
-      Thread t = rfArray[i];
-      StackTraceElement[] stackTrace = stackDump[i];
-      Consumer<StackTraceElement[]> consumer = this.stConsumers.get(t);
-      if (consumer != null) {
-        consumer.accept(stackTrace);
+    Iterable<Map.Entry<Thread, ExecutionContext>> currentThreads = execCtxSupplier.get();
+    int i = 0;
+    for (Map.Entry<Thread, ExecutionContext> entry : currentThreads) {
+      requestFor[i] = entry.getKey();
+      contexts[i++] = entry.getValue();
+      if (i >= requestFor.length) {
+        break;
       }
+    }
+    Arrays.fill(requestFor, i, requestFor.length, null);
+    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(requestFor);
+    for (int j = 0; j < i; j++) {
+      StackTraceElement[] stackTrace = stackTraces[j];
       if (stackTrace != null && stackTrace.length > 0) {
         addSample(stackTrace);
+        contexts[j].compute("TSS", (String k, SampleNode v) -> {
+          if (v == null) {
+            return SampleNode.createSampleNode(stackTrace);
+          } else {
+            SampleNode.addToSampleNode(v, stackTrace);
+            return v;
+          }
+        });
       } else {
         addSample(new StackTraceElement[]{
-          new StackTraceElement("Thread", t.getName(), "", 0)
+          new StackTraceElement("Thread", requestFor[i].getName(), "", 0)
         });
       }
     }

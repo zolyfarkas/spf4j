@@ -40,7 +40,20 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public interface ExecutionContextFactory<T extends ExecutionContext> {
 
+  /**
+   * Create a ExecutionContext.
+   * @param name name of the context.
+   * @param parent parent execution context. (null if this is root)
+   * @param deadlineNanos the deadline of the context.
+   * @param onClose a callback that needs to be executed when context is closed.
+   * @return
+   */
    T start(String name, @Nullable ExecutionContext parent,
            long deadlineNanos, Runnable onClose);
+
+   default T startThreadRoot(String name, @Nullable ExecutionContext parent,
+           long deadlineNanos, Runnable onClose) {
+     return start(name, parent, deadlineNanos, onClose);
+   }
 
 }

@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnegative;
@@ -57,36 +58,32 @@ public final class ExecutionContexts {
   private static final ExecutionContextFactory<ExecutionContext> CTX_FACTORY = initFactory();
 
   private static ExecutionContextFactory<ExecutionContext> initFactory() {
-
     String factoryClass = System.getProperty("spf4j.execContentFactoryClass");
+    ExecutionContextFactory<ExecutionContext> factory;
     if (factoryClass == null) {
-
-      return new ExecutionContextFactory<ExecutionContext>() {
-
-        @Override
-        public ExecutionContext start(final String name, final ExecutionContext parent,
-                 final long deadlineNanos, final Runnable onClose) {
-          return new BasicExecutionContext(name, parent, deadlineNanos) {
-
-            private boolean isClosed = false;
-
-            @Override
-            public void close() {
-              if (!isClosed) {
-                onClose.run();
-                isClosed = true;
-              }
-            }
-          };
-        }
-      };
+      factory =  new BasicExecutionContextFactory();
     } else {
       try {
-        return ((Class<ExecutionContextFactory<ExecutionContext>>) Class.forName(factoryClass)).newInstance();
+        factory = ((Class<ExecutionContextFactory<ExecutionContext>>) Class.forName(factoryClass)).newInstance();
       } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
         throw new ExceptionInInitializerError(ex);
       }
     }
+    String factoryWrapperClass = System.getProperty("spf4j.execContentFactoryWrapperClass");
+    if (factoryWrapperClass != null) {
+      try {
+        factory = (ExecutionContextFactory<ExecutionContext>) Class.forName(factoryWrapperClass)
+                .getConstructor(ExecutionContextFactory.class).newInstance(factory);
+       } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+               | NoSuchMethodException | InvocationTargetException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    }
+    return factory;
+  }
+
+  public static ExecutionContextFactory<ExecutionContext> getContextFactory() {
+    return CTX_FACTORY;
   }
 
   @Nullable
@@ -94,7 +91,7 @@ public final class ExecutionContexts {
     return EXEC_CTX.get();
   }
 
-  static void setCurrent(final ExecutionContext current) {
+  private static void setCurrent(@Nullable final ExecutionContext current) {
     EXEC_CTX.set(current);
   }
 
@@ -144,8 +141,14 @@ public final class ExecutionContexts {
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long deadlineNanos) {
     ExecutionContext xCtx = EXEC_CTX.get();
-    ExecutionContext nCtx = CTX_FACTORY.start(name, parent == null ? xCtx : parent,
+    ExecutionContext nCtx;
+    if (xCtx == null) {
+      nCtx = CTX_FACTORY.startThreadRoot(name, parent,
+            deadlineNanos, () -> ExecutionContexts.setCurrent(null));
+    } else {
+      nCtx = CTX_FACTORY.start(name, parent == null ? xCtx : parent,
             deadlineNanos, () -> ExecutionContexts.setCurrent(xCtx));
+    }
     EXEC_CTX.set(nCtx);
     return nCtx;
   }
@@ -186,6 +189,16 @@ public final class ExecutionContexts {
     } else {
       return (int) secondsToDeadline;
     }
+  }
+
+  private static class BasicExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
+
+    @Override
+    public ExecutionContext start(final String name, final ExecutionContext parent,
+            final long deadlineNanos, final Runnable onClose) {
+      return new BasicExecutionContext(name, parent, deadlineNanos, onClose);
+    }
+
   }
 
 }

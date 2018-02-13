@@ -37,6 +37,7 @@ import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -151,5 +152,8 @@ public interface ExecutionContext extends AutoCloseable {
     }
     return curr.put(key, data);
   }
+
+  @Beta
+  <K, V> V compute(K key, BiFunction<K, V, V> compute);
 
 }
