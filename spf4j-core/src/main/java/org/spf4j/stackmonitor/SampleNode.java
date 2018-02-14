@@ -59,7 +59,7 @@ public final class SampleNode implements Serializable {
   public SampleNode(final StackTraceElement[] stackTrace, final int from) {
     sampleCount = 1;
     if (from >= 0) {
-      subNodes = new THashMap();
+      subNodes = new THashMap(4);
       subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
     }
   }
@@ -70,7 +70,7 @@ public final class SampleNode implements Serializable {
     for (int i = stackTrace.length - 1; i >= 0; i--) {
       StackTraceElement elem = stackTrace[i];
       if (prevResult.subNodes == null) {
-        prevResult.subNodes = new THashMap<>();
+        prevResult.subNodes = new THashMap<>(4);
       }
       SampleNode node = new SampleNode(1, null);
       prevResult.subNodes.put(Method.getMethod(elem), node);
@@ -87,7 +87,7 @@ public final class SampleNode implements Serializable {
       final Method method = Method.getMethod(elem);
       SampleNode nNode;
       if (prevResult.subNodes == null) {
-        prevResult.subNodes = new THashMap<>();
+        prevResult.subNodes = new THashMap<>(4);
         nNode = new SampleNode(1, null);
         prevResult.subNodes.put(method, nNode);
       } else {
@@ -173,7 +173,7 @@ public final class SampleNode implements Serializable {
       Method method = Method.getMethod(stackTrace[from]);
       SampleNode subNode = null;
       if (subNodes == null) {
-        subNodes = new THashMap();
+        subNodes = new THashMap(4);
       } else {
         subNode = subNodes.get(method);
       }
@@ -242,7 +242,7 @@ public final class SampleNode implements Serializable {
           newCount -= sn.getSampleCount();
         } else {
           if (sns == null) {
-            sns = new THashMap<>();
+            sns = new THashMap<>(4);
           }
           SampleNode sn2 = sn.filteredBy(predicate);
           if (sn2 == null) {

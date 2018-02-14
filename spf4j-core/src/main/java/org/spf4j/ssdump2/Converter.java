@@ -136,7 +136,7 @@ public final class Converter {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
     while (samples.hasNext()) {
       ASample asmp = samples.next();
-      SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>());
+      SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>(4));
       SampleNode parent = index.get(asmp.parentId);
       if (parent != null) {
         AMethod method = asmp.getMethod();
