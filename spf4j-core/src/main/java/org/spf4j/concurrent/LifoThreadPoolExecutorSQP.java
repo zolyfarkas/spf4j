@@ -276,7 +276,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
   @Override
   public boolean awaitTermination(final long time, final TimeUnit unit) throws InterruptedException {
-    long deadlinenanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(time, unit);
+    long deadlinenanos = System.nanoTime() + unit.toNanos(time);
     int threadCount;
     stateLock.lock();
     try {
