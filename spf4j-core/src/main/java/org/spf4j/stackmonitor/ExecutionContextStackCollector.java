@@ -36,6 +36,7 @@ import java.util.function.Supplier;
 
 /**
  * A stack sample collector that collects samples only for code executed within a execution context.
+ * This context requires ProfiledExecutionContextFactory wrapper.
  *
  * @author Zoltan Farkas
  */

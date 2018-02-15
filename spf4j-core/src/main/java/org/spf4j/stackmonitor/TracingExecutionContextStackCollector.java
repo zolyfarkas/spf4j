@@ -37,6 +37,11 @@ import java.util.function.Supplier;
 import org.spf4j.base.ExecutionContext;
 
 /**
+ * A stack sample collector that collects samples only for code executed within a execution context.
+ * Plus this collector will attach the samples to the contexts.
+ *
+ * This context requires ProfiledExecutionContextFactory wrapper.
+ *
  * @author Zoltan Farkas
  */
 public final class TracingExecutionContextStackCollector extends AbstractStackCollector {
