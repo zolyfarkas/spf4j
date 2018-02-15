@@ -282,7 +282,7 @@ public final class SampleNode implements Serializable, Writeable {
       } else {
         Map.Entry<Method, SampleNode> s = (Map.Entry<Method, SampleNode>) obj;
         appendable.append("{\"");
-        appendable.append(s.getKey().toString());
+        s.getKey().writeTo(appendable);
         appendable.append("\":");
         SampleNode sn = s.getValue();
         appendable.append(Integer.toString(sn.getSampleCount()));
