@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import java.util.List;
+
 /**
  * @author Zoltan Farkas
  */
@@ -33,6 +35,14 @@ public final class TestUtils {
    */
   public static boolean isExecutedFromIDE() {
     return isExecutedFromNetbeans() || System.getProperty("spf4j.execFromIDE") != null;
+  }
+
+  public static boolean isExecutedWithDebuggerAgent() {
+    List<String> inputArguments = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments();
+    return inputArguments.stream()
+            .filter((arg) -> "-agentlib:jdwp".equals(arg) || "-Xdebug".equals(arg) || arg.startsWith("-Xrunjdwp"))
+            .count() > 0;
+
   }
 
 }
