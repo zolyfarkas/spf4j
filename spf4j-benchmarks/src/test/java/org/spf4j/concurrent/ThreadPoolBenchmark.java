@@ -51,6 +51,7 @@ public class ThreadPoolBenchmark {
 
     private final ExecutorService es = LifoThreadPoolBuilder.newBuilder()
             .withQueueSizeLimit(10000)
+            .withSpinLockCount(0)
             .withMaxSize(8).build();
 
     @TearDown
