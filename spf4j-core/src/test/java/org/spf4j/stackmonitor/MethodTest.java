@@ -53,5 +53,6 @@ public final class MethodTest {
         Assert.assertEquals(m2, m1);
         Assert.assertEquals("a", m1.getDeclaringClass());
         Assert.assertEquals("b", m1.getMethodName());
+        Assert.assertEquals(m1, Method.from(m1.toString()));
     }
 }

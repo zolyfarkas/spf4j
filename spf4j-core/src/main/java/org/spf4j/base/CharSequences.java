@@ -605,4 +605,13 @@ public final class CharSequences {
   }
 
 
+  public static int indexOf(final CharSequence cs, final int from, final int to, final char c) {
+      for (int i = from; i < to; i++) {
+        if (c == cs.charAt(i)) {
+          return i;
+        }
+      }
+      return -1;
+  }
+
 }

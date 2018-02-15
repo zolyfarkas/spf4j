@@ -34,14 +34,20 @@ package org.spf4j.stackmonitor;
 import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Pair;
+import org.spf4j.base.Writeable;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
 
@@ -49,7 +55,7 @@ import org.spf4j.ds.HashMapGraph;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode implements Serializable {
+public final class SampleNode implements Serializable, Writeable {
 
   private static final long serialVersionUID = 1L;
 
@@ -196,8 +202,9 @@ public final class SampleNode implements Serializable {
 
   @Override
   public String toString() {
-    return "SampleNode{" + "count=" + sampleCount
-            + ((subNodes == null || subNodes.isEmpty()) ? "" : ", subNodes=" + subNodes) + '}';
+    StringBuilder sb = new StringBuilder(64);
+    writeTo(sb);
+    return sb.toString();
   }
 
   public int height() {
@@ -263,6 +270,47 @@ public final class SampleNode implements Serializable {
       return new SampleNode(newCount, sns);
     }
   }
+
+  @Override
+  public void writeTo(final Appendable appendable) throws IOException {
+    Deque<Object> dq = new ArrayDeque<>();
+    dq.add(Pair.of(Method.ROOT, this));
+    while (!dq.isEmpty()) {
+      Object obj = dq.removeLast();
+      if (obj instanceof CharSequence) {
+        appendable.append((CharSequence) obj);
+      } else {
+        Map.Entry<Method, SampleNode> s = (Map.Entry<Method, SampleNode>) obj;
+        appendable.append("{\"");
+        appendable.append(s.getKey().toString());
+        appendable.append("\":");
+        SampleNode sn = s.getValue();
+        appendable.append(Integer.toString(sn.getSampleCount()));
+        TMap<Method, SampleNode> cSn = sn.getSubNodes();
+        if (cSn != null) {
+          Iterator<Map.Entry<Method, SampleNode>> iterator = cSn.entrySet().iterator();
+          if (iterator.hasNext()) {
+            appendable.append(",\"c\":[");
+            dq.addLast("]}");
+            dq.addLast(iterator.next());
+            while (iterator.hasNext()) {
+              dq.addLast(",");
+              dq.addLast(iterator.next());
+            }
+          } else {
+            appendable.append('}');
+          }
+        } else {
+          appendable.append('}');
+        }
+      }
+    }
+  }
+
+//  public static Pair<Method, SampleNode> fromCharSequence(final CharSequence cs, final int start) {
+//    final int at = start;
+//    SampleNode sn = new SampleNode
+//  }
 
   public interface InvocationHandler {
 
