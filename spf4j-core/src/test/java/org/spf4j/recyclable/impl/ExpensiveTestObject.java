@@ -34,8 +34,8 @@ package org.spf4j.recyclable.impl;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.http.ConnectionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +88,7 @@ public final class ExpensiveTestObject implements Closeable {
     }
     long currentTime = System.currentTimeMillis();
     if (currentTime - lastTouchedTimeMillis > maxIdleMillis) {
-      throw new ConnectionClosedException("Connection closed for " + id);
+      throw new ClosedChannelException();
     }
     if (nrUses > nrUsesToFailAfter) {
       throw new IOExceptionImpl("Simulated random crap " + id);
