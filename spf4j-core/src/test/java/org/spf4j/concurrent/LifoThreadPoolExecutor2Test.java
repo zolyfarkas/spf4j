@@ -92,11 +92,11 @@ public class LifoThreadPoolExecutor2Test {
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING"})
   public static void testPoolThreadDynamics(final ExecutorService executor)
           throws InterruptedException, IOException, ExecutionException {
-    testMaxParallel(executor, 4, 3, TimeUnit.SECONDS);
+    testMaxParallel(executor, 4, 4, TimeUnit.SECONDS);
     if (executor instanceof LifoThreadPoolExecutorSQP) {
       LifoThreadPoolExecutorSQP le = (LifoThreadPoolExecutorSQP) executor;
       Assert.assertEquals(4, le.getThreadCount());
-      testMaxParallel(executor, 2, 3, TimeUnit.SECONDS);
+      testMaxParallel(executor, 2, 4, TimeUnit.SECONDS);
       Assert.assertEquals(2, le.getThreadCount());
     } else if (executor instanceof ThreadPoolExecutor) {
       ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
@@ -109,7 +109,7 @@ public class LifoThreadPoolExecutor2Test {
         //do nothing
       }
       Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool is at max
-      testMaxParallel(executor, 2, 3, TimeUnit.SECONDS);
+      testMaxParallel(executor, 2, 4, TimeUnit.SECONDS);
       Assert.assertEquals(8, tpe.getPoolSize()); // JDK thread pool sucks.
     } else {
       throw new IllegalStateException("Unsupported " + executor);
