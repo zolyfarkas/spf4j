@@ -34,6 +34,7 @@ package org.spf4j.base;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -94,7 +95,7 @@ public final class CallablesTest {
    */
   @Test
   public void testExecuteWithRetry4args2() throws Exception {
-    long startTime = System.currentTimeMillis();
+    long startTime = System.nanoTime();
     Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(60000) {
       private int count;
 
@@ -108,9 +109,9 @@ public final class CallablesTest {
         return 1;
       }
     }, 1, 10, IOException.class);
-    long elapsedTime = System.currentTimeMillis() - startTime;
+    long elapsedTime = System.nanoTime() - startTime;
     Assert.assertEquals(1L, result.longValue());
-    Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > 10L);
+    Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > TimeUnit.MILLISECONDS.toNanos(10));
   }
 
   @Test
