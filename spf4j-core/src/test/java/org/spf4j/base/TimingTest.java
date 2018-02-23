@@ -44,14 +44,14 @@ public class TimingTest {
   @Test
   public void testTiming() {
     Timing currentTiming = Timing.getCurrentTiming();
-    long currNanos = System.nanoTime();
+    long currNanos = TimeSource.nanoTime();
     long currMillis = System.currentTimeMillis();
     long millisInTheFutureCalculated = currentTiming.fromNanoTimeToEpochMillis(currNanos
             + TimeUnit.MILLISECONDS.toNanos(10));
     Assert.assertTrue(currMillis + 10 - millisInTheFutureCalculated <= 1);
     long fromEpochMillisToNanoTime = currentTiming.fromEpochMillisToNanoTime(Long.MAX_VALUE);
-    Assert.assertTrue(fromEpochMillisToNanoTime - System.nanoTime() > 0);
-    currNanos = System.nanoTime();
+    Assert.assertTrue(fromEpochMillisToNanoTime - TimeSource.nanoTime() > 0);
+    currNanos = TimeSource.nanoTime();
     long nanoTimeIn100ms = currentTiming.fromEpochMillisToNanoTime(System.currentTimeMillis() + 100);
     long expectNanoTimeIn100ms = currNanos + TimeUnit.MILLISECONDS.toNanos(100);
     Assert.assertTrue("expected = " + expectNanoTimeIn100ms + ", actual =" + nanoTimeIn100ms,

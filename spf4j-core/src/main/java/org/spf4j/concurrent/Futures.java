@@ -44,6 +44,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.TimeSource;
 
 /**
  *
@@ -92,7 +93,7 @@ public final class Futures {
   @CheckReturnValue
   @Nonnull
   public static Pair<Map<Future, Object>, Exception> getAll(final long timeoutMillis, final Future... futures)  {
-    long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
     return getAllWithDeadlineNanos(deadlineNanos, futures);
   }
 
@@ -112,7 +113,7 @@ public final class Futures {
     for (int i = 0; i < futures.length; i++) {
       Future future = futures[i];
       try {
-        final long toNanos = deadlineNanos - System.nanoTime();
+        final long toNanos = deadlineNanos - TimeSource.nanoTime();
         if (toNanos > 0) {
           results.put(future, future.get(toNanos, TimeUnit.NANOSECONDS));
         } else {
@@ -146,7 +147,7 @@ public final class Futures {
   @CheckReturnValue
   @Nonnull
   public static Pair<Map<Future, Object>, Exception> getAll(final long timeoutMillis, final Iterable<Future> futures)  {
-    long deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
     return getAllWithDeadlineNanos(deadlineNanos, futures);
   }
 
@@ -166,7 +167,7 @@ public final class Futures {
     while (iterator.hasNext()) {
       Future future = iterator.next();
       try {
-        final long toNanos = deadlineNanos - System.nanoTime();
+        final long toNanos = deadlineNanos - TimeSource.nanoTime();
         if (toNanos > 0) {
           results.put(future, future.get(toNanos, TimeUnit.NANOSECONDS));
         } else {

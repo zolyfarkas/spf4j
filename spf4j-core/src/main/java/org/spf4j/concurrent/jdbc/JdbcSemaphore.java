@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.MutableHolder;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.LockRuntimeException;
 import org.spf4j.jdbc.JdbcTemplate;
@@ -391,7 +392,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       if (toNanos < 0) {
         deadlineNanos = Long.MAX_VALUE;
       } else {
-        deadlineNanos = System.nanoTime() + toNanos;
+        deadlineNanos = TimeSource.nanoTime() + toNanos;
         if (deadlineNanos < 0) { //Overflow
           deadlineNanos = Long.MAX_VALUE;
         }
@@ -432,7 +433,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
                   }
                   acquired = Boolean.FALSE;
                 }
-                if (deadlineNanos - System.nanoTime() > heartBeat.getBeatDurationNanos()) {
+                if (deadlineNanos - TimeSource.nanoTime() > heartBeat.getBeatDurationNanos()) {
                   // do a heartbeat if have time, and if it makes sense.
                   beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));
                 }
@@ -472,7 +473,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           }
           try {
             if (releaseDeadOwnerPermits(nrPermits) <= 0) { //wait of we did not find anything dead to release.
-              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - System.nanoTime()),
+              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - TimeSource.nanoTime()),
                       ThreadLocalRandom.current().nextLong(acquirePollMillis));
               if (wtimeMilis > 0) {
                 syncObj.wait(wtimeMilis);
@@ -485,7 +486,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           }
 
         }
-      } while (!acquired && deadlineNanos > System.nanoTime());
+      } while (!acquired && deadlineNanos > TimeSource.nanoTime());
       if (acquired) {
         ownedReservations += nrPermits;
       }

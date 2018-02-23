@@ -103,7 +103,7 @@ public final class CallablesNanoNonInterrupt {
         return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate<>(deadline, retryOnReturnVal),
                 new FibonacciBackoffRetryPredicate<>(retryOnException, nrImmediateRetries,
                         maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
-                        () -> System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);
+                        () -> TimeSource.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);
       } catch (InterruptedException ex) {
         throw new UncheckedExecutionException(ex);
       } catch (TimeoutException ex) {

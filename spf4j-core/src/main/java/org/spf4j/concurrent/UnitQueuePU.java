@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
+import org.spf4j.base.TimeSource;
 
 /**
  * Special purpose queue for a single value Custom designed for the LifoThreadPool
@@ -92,9 +93,9 @@ public final class UnitQueuePU<T> {
       }
     }
 
-    long deadlineNanos = System.nanoTime() + timeoutNanos;
+    long deadlineNanos = TimeSource.nanoTime() + timeoutNanos;
     while ((result = value.getAndSet(null)) == null) {
-      final long to = deadlineNanos - System.nanoTime();
+      final long to = deadlineNanos - TimeSource.nanoTime();
       if (to <= 0) {
         return null;
       }

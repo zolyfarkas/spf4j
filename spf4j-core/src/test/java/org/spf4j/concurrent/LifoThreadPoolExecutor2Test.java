@@ -48,6 +48,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.TimeSource;
 import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
@@ -145,9 +146,9 @@ public class LifoThreadPoolExecutor2Test {
     };
     long start = System.currentTimeMillis();
     List<Future<?>> futures = new ArrayList<>(maxParallel);
-    long deadlineNanos = System.nanoTime() + unit.toNanos(time);
+    long deadlineNanos = TimeSource.nanoTime() + unit.toNanos(time);
     int i = 0;
-    for (; deadlineNanos - System.nanoTime() > 0; i++) {
+    for (; deadlineNanos - TimeSource.nanoTime() > 0; i++) {
       futures.add(executor.submit(runnable));
       if (i % maxParallel == 0) {
         nrExCaught += consume(futures);

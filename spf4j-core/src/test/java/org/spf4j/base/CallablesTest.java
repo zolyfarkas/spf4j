@@ -95,7 +95,7 @@ public final class CallablesTest {
    */
   @Test
   public void testExecuteWithRetry4args2() throws Exception {
-    long startTime = System.nanoTime();
+    long startTime = TimeSource.nanoTime();
     Integer result = Callables.executeWithRetry(new TimeoutCallable<Integer, IOException>(60000) {
       private int count;
 
@@ -109,7 +109,7 @@ public final class CallablesTest {
         return 1;
       }
     }, 1, 10, IOException.class);
-    long elapsedTime = System.nanoTime() - startTime;
+    long elapsedTime = TimeSource.nanoTime() - startTime;
     Assert.assertEquals(1L, result.longValue());
     Assert.assertTrue("Operation has to take at least 10 ms", elapsedTime > TimeUnit.MILLISECONDS.toNanos(10));
   }

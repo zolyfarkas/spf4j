@@ -39,6 +39,7 @@ import java.net.InetAddress;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 import org.spf4j.base.Callables;
+import org.spf4j.base.TimeSource;
 
 /**
  * Simple NTP client. Inspired by Android Sntp client. For how to use, see SntpClientTest.java.
@@ -124,21 +125,22 @@ public final class SntpClient {
       // Allocate response.
       DatagramPacket response = new DatagramPacket(buffer, buffer.length);
       // get current nanotime.
-      long requestTicks = System.nanoTime() / 1000000L;
+      long requestTicks = TimeSource.nanoTime() / 1000000L;
       // get current time and write it to the request packet
       long requestTime = System.currentTimeMillis();
       writeTimeStamp(buffer, TRANSMIT_TIME_OFFSET, requestTime);
       socket.send(request);
       // read the response
       socket.receive(response);
-      long responseTicks = System.nanoTime() / 1000000L;
-      long responseTime = requestTime + (responseTicks - requestTicks);
+      long responseTicks = TimeSource.nanoTime() / 1000000L;
+      long roundTripMs = responseTicks - requestTicks;
+      long responseTime = requestTime + roundTripMs;
 
       // extract the results
       long originateTime = readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);
       long receiveTime = readTimeStamp(buffer, RECEIVE_TIME_OFFSET);
       long transmitTime = readTimeStamp(buffer, TRANSMIT_TIME_OFFSET);
-      long roundTripTime = responseTicks - requestTicks - (transmitTime - receiveTime);
+      long roundTripTime = roundTripMs - (transmitTime - receiveTime);
       // receiveTime = originateTime + transit + skew
       // responseTime = transmitTime + transit - skew
       // clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime))/2
@@ -202,6 +204,6 @@ public final class SntpClient {
     buffer[offset++] = (byte) (fraction >> 16);
     buffer[offset++] = (byte) (fraction >> 8);
     // low order bits should be random data
-    buffer[offset] = (byte) (ThreadLocalRandom.current().nextInt() % 256);
+    buffer[offset] = (byte) (ThreadLocalRandom.current().nextInt(256));
   }
 }

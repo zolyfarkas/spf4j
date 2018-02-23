@@ -31,8 +31,10 @@
  */
 package org.spf4j.net;
 
+import org.spf4j.base.TimeSource;
+
 public final class Timing {
-    
+
     // system time computed from NTP server response
     private final long ntpTime;
 
@@ -59,13 +61,13 @@ public final class Timing {
     public long getRoundTripTime() {
         return roundTripTime;
     }
-    
+
     /**
      * Get current Time based on the NTP timing info.
      * @return current time, as number of millis since EPOCH.
      */
     public long getTime() {
-        return ntpTime + (System.nanoTime() / 1000000L - ntpTimeReference);
+        return ntpTime + (TimeSource.nanoTime() / 1000000L - ntpTimeReference);
     }
 
     @Override

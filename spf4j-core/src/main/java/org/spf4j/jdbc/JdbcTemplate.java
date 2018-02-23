@@ -44,6 +44,7 @@ import org.spf4j.base.CallablesNano;
 import org.spf4j.base.CallablesNanoNonInterrupt;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.JavaUtils;
+import org.spf4j.base.TimeSource;
 
 /**
  * A very simple JdbTemplate.
@@ -153,7 +154,7 @@ public final class JdbcTemplate {
    * @return
    */
   public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) {
-    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - System.nanoTime());
+    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());
     if (toSeconds < 0L) {
       throw new UncheckedTimeoutException("deadline exceeded by " + (-toSeconds) + " seconds");
     }

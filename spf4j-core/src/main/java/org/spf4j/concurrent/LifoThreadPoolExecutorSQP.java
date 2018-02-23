@@ -50,6 +50,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.TimeSource;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
@@ -276,7 +277,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
   @Override
   public boolean awaitTermination(final long time, final TimeUnit unit) throws InterruptedException {
-    long deadlinenanos = System.nanoTime() + unit.toNanos(time);
+    long deadlinenanos = TimeSource.nanoTime() + unit.toNanos(time);
     int threadCount;
     stateLock.lock();
     try {
@@ -284,7 +285,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
         throw new IllegalStateException("Threadpool is not is shutdown mode " + this);
       }
       threadCount = state.getThreadCount();
-      long timeoutNs = deadlinenanos - System.nanoTime();
+      long timeoutNs = deadlinenanos - TimeSource.nanoTime();
       while (threadCount > 0) {
         if (timeoutNs > 0) {
           timeoutNs = stateCondition.awaitNanos(timeoutNs);
@@ -425,7 +426,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       this.state = state;
       this.running = false;
       this.sync = new Object();
-      this.lastRunNanos = System.nanoTime();
+      this.lastRunNanos = TimeSource.nanoTime();
       this.poolStateLock = submitMonitor;
       this.poolStateCondition = submitCondition;
       this.toRun = new UnitQueuePU<>(this);
@@ -483,7 +484,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             poolStateCondition.signalAll();
             break;
           } else {
-            this.lastRunNanos = System.nanoTime(); // update last Run time to avoid core thread spinning.
+            this.lastRunNanos = TimeSource.nanoTime(); // update last Run time to avoid core thread spinning.
             // there must be a minimal wait time for a core thread to avoid spinning.
             maxIdleNanos = Math.max(origNanosWait, CORE_MINWAIT_NANOS);
           }
@@ -518,7 +519,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             while (true) {
               Runnable runnable;
               try {
-                final long wTime = maxIdleNanos - (System.nanoTime() - lastRunNanos);
+                final long wTime = maxIdleNanos - (TimeSource.nanoTime() - lastRunNanos);
                 if (wTime > 0) {
                   runnable = toRun.poll(wTime, state.spinlockCount);
                 } else {
@@ -576,7 +577,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       try {
         runnable.run();
       } finally {
-        lastRunNanos = System.nanoTime();
+        lastRunNanos = TimeSource.nanoTime();
       }
     }
 

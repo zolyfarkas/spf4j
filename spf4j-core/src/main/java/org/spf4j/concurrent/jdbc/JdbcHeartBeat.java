@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Iterables;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jdbc.JdbcTemplate;
@@ -189,9 +190,9 @@ public final class JdbcHeartBeat implements AutoCloseable {
     this.selectLastRunSql = "select " + lastHeartbeatColumn + " FROM " + hbTableName
             + " where " + ownerColumn + " = ?";
     this.lifecycleHooks = new CopyOnWriteArrayList<>();
-    long startTimeNanos =  System.nanoTime();
+    long startTimeNanos =  TimeSource.nanoTime();
     createHeartbeatRow();
-    long duration = System.nanoTime() - startTimeNanos;
+    long duration = TimeSource.nanoTime() - startTimeNanos;
     this.beatDurationNanos = Math.max(duration, TimeUnit.MILLISECONDS.toNanos(10));
   }
 

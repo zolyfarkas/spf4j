@@ -62,7 +62,7 @@ public final class Timing {
   private final long currentTimeMillisRef;
 
   private Timing() {
-    nanoTimeRef = System.nanoTime();
+    nanoTimeRef = TimeSource.nanoTime();
     currentTimeMillisRef = System.currentTimeMillis();
   }
 
@@ -77,7 +77,7 @@ public final class Timing {
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
     long msSinceLast = epochTimeMillis - currentTimeMillisRef;
     if (Math.abs(msSinceLast) > MAX_MS_SPAN) {
-      return System.nanoTime() + Long.MAX_VALUE;
+      return TimeSource.nanoTime() + Long.MAX_VALUE;
 //      throw new IllegalArgumentException("Epoch time millis cannot be converted to nanotime " + epochTimeMillis);
     }
     return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);

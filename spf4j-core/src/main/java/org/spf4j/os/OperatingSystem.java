@@ -57,6 +57,7 @@ import org.spf4j.base.Throwables;
 import static org.spf4j.base.Runtime.PID;
 import static org.spf4j.base.Runtime.isMacOsx;
 import org.spf4j.base.SysExits;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.Futures;
 import org.spf4j.unix.Lsof;
@@ -220,7 +221,7 @@ public final class OperatingSystem {
         int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
         throw new ExecutionException("Cannot execute stdout handler, killed process returned " + result, ex);
       }
-      long deadlineNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
+      long deadlineNanos = TimeSource.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
       try {
         handler.writeStdIn(pis);
       } catch (RuntimeException ex) {
