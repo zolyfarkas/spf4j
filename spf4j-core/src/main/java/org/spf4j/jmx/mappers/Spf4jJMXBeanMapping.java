@@ -177,7 +177,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
    */
    static class EnumMXBeanType extends Spf4jJMXBeanMapping {
 
-    final Class enumClass;
+    private final Class enumClass;
 
     EnumMXBeanType(final Class<?> c) {
       super(STRING, String.class);
