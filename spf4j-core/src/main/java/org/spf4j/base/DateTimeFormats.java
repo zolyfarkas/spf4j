@@ -39,8 +39,6 @@ import java.time.format.DateTimeFormatter;
  */
 public final class DateTimeFormats {
 
-  private DateTimeFormats() { }
-
   public static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();
 
   public static final DateTimeFormatter TS_FORMAT = DateTimeFormatter
@@ -48,5 +46,7 @@ public final class DateTimeFormats {
 
   public static final DateTimeFormatter DT_FORMAT = DateTimeFormatter
           .ofPattern("yyyy-MM-dd").withZone(DEFAULT_ZONE);
+
+  private DateTimeFormats() { }
 
 }

@@ -25,9 +25,6 @@ import javax.activation.MimeTypeParseException;
  */
 public final class MimeTypes {
 
-  private MimeTypes() {
-  }
-
   public static final MimeType PLAIN_TEXT;
   public static final MimeType APPLICATION_JSON;
   public static final MimeType APPLICATION_OCTET_STREAM;
@@ -40,6 +37,9 @@ public final class MimeTypes {
     } catch (MimeTypeParseException ex) {
       throw new ExceptionInInitializerError(ex);
     }
+  }
+
+  private MimeTypes() {
   }
 
 }
