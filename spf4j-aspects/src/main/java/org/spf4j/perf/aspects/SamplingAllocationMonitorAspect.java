@@ -63,7 +63,7 @@ public final class SamplingAllocationMonitorAspect {
 
     @AfterReturning(pointcut = "call(*.new(..))", returning = "obj", argNames = "jp,obj")
     public void afterAllocation(final JoinPoint jp, final Object obj) {
-        MutableInteger counter = Counter.SAMPLING_COUNTER.get();
+        MutableInteger counter = ThreadLocalCounter.get();
         int value = counter.getValue();
         if (value < SAMPLE_COUNT) {
             counter.setValue(value + 1);

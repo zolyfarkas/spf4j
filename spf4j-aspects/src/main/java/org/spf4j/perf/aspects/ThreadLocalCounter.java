@@ -38,9 +38,9 @@ import org.spf4j.base.MutableInteger;
  *
  * @author zoly
  */
-public final class Counter {
+public final class ThreadLocalCounter {
 
-  static final ThreadLocal<MutableInteger> SAMPLING_COUNTER = new ThreadLocal<MutableInteger>() {
+  private static final ThreadLocal<MutableInteger> SAMPLING_COUNTER = new ThreadLocal<MutableInteger>() {
 
     @Override
     protected MutableInteger initialValue() {
@@ -49,7 +49,11 @@ public final class Counter {
 
   };
 
-  private Counter() {
+  public static MutableInteger get() {
+    return SAMPLING_COUNTER.get();
+  }
+
+  private ThreadLocalCounter() {
   }
 
 }
