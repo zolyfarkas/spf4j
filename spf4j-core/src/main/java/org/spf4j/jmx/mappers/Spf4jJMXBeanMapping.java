@@ -79,16 +79,14 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
   private static final Type[] STR_STR_TYPES = {String.class, String.class};
 
 
-  private boolean isBasicType;
   protected OpenType<?> openType;
   protected Class<?> mappedTypeClass;
 
   Spf4jJMXBeanMapping() {
-    this(false, null, null);
+    this(null, null);
   }
 
-  Spf4jJMXBeanMapping(final boolean isBasicType, final OpenType<?> openType, final Class<?> mappedTypeClass) {
-    this.isBasicType = isBasicType;
+  Spf4jJMXBeanMapping(final OpenType<?> openType, final Class<?> mappedTypeClass) {
     this.openType = openType;
     this.mappedTypeClass = mappedTypeClass;
   }
@@ -151,7 +149,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
    static class BasicMXBeanType extends Spf4jJMXBeanMapping {
 
     BasicMXBeanType(final Class<?> c, final OpenType<?> openType) {
-      super(true, openType, c);
+      super(openType, c);
     }
 
     @Override
@@ -182,7 +180,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
     final Class enumClass;
 
     EnumMXBeanType(final Class<?> c) {
-      super(false, STRING, String.class);
+      super(STRING, String.class);
       this.enumClass = c;
     }
 
