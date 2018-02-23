@@ -68,7 +68,7 @@ public final class XCollectors {
             ArrayDeque<T>::new,
             (l, e) -> {
               if (l.size() >= limit) {
-                Object first = l.removeFirst();
+                l.removeFirst();
                 l.removeFirst();
                 l.addFirst(addIfLimited);
               }
