@@ -40,6 +40,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PushbackInputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -181,7 +182,7 @@ public final class Converter {
             pis.unread(read);
             return read >= 0;
           } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new UncheckedIOException(ex);
           }
         }
 
