@@ -44,10 +44,10 @@ import org.spf4j.reflect.ByTypeSupplier;
 public interface ObjectAppenderSupplier extends Function<Class, ObjectAppender>,
         ByTypeSupplier<ObjectAppender, RuntimeException> {
 
+    ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 
     default ObjectAppender apply(Class clasz) {
         return get(clasz);
     }
 
-    ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 }
