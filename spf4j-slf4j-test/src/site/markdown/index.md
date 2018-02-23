@@ -162,10 +162,10 @@ with tons of debug info dumped to output all the time. But making it available w
 
  sample log messages:
 
-      2018-01-25T19:55:06.080Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger"
-      2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1"
-      2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3"
-      2018-01-25T19:55:06.081Z ERROR "TEST" o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3" ["4"]
+      2018-01-25T19:55:06.080Z ERROR o.s.t.l.TestLoggerFactoryTest "main" "Hello logger"
+      2018-01-25T19:55:06.081Z ERROR o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1"
+      2018-01-25T19:55:06.081Z ERROR o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3"
+      2018-01-25T19:55:06.081Z ERROR o.s.t.l.TestLoggerFactoryTest "main" "Hello logger 1 2 3" ["4"]
       java.lang.RuntimeException
               at o.s.t.l.TestLoggerFactoryTest.logMarkerTests(TestLoggerFactoryTest.java:116)[test-classes/]
               at ^.testLogging(^:43)[^]
