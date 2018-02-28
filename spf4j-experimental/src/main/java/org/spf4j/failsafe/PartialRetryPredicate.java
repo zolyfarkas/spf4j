@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  *
  * @author Zoltan Farkas
  */
-public interface PartialRetryPredicate<T, C extends Callable>
+public interface PartialRetryPredicate<T, C extends Callable<?>>
         extends NewInstanceSupplier<PartialRetryPredicate<T, C>> {
 
   /**
@@ -33,7 +33,7 @@ public interface PartialRetryPredicate<T, C extends Callable>
    * @return
    */
   @Nullable
-  RetryDecision<C> getDecision(@Nullable T value, @Nonnull C what);
+  RetryDecision<?, C> getDecision(@Nullable T value, @Nonnull C what);
 
 
 }

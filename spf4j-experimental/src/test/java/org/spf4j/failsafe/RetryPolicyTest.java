@@ -63,8 +63,10 @@ public class RetryPolicyTest {
     RetryPolicy<Response, ServerCall> rp = RetryPolicy.<Response, ServerCall>newBuilder()
             .exceptionPredicateBuilder()
             .withPartialPredicate((t, sc)
-                    -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null).finishPredicate()
-            .resultPredicateBuilder().withPartialPredicate((resp, sc) -> {
+                    -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null)
+            .finishPredicate()
+            .resultPredicateBuilder()
+            .withPartialPredicate((resp, sc) -> {
               switch (resp.getType()) {
                 case CLIENT_ERROR:
                   return RetryDecision.abort();
@@ -83,7 +85,8 @@ public class RetryPolicyTest {
                 default:
                   throw new IllegalStateException("Unsupported " + resp.getType());
               }
-            }).finishPredicate()
+            })
+            .finishPredicate()
             .build(ServerCall.class);
     Server server = new Server();
     try (HandlerRegistration printer = TestLoggers.sys().print("", Level.DEBUG)) {

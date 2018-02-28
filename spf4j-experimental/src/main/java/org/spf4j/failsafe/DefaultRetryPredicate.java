@@ -55,7 +55,7 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
   public RetryDecision getDecision(final T value, final Callable<?> what) {
 
     for (PartialRetryPredicate<T, Callable<?>> predicate : predicates) {
-      RetryDecision<Callable<?>> decision = predicate.getDecision(value, what);
+      RetryDecision<?, Callable<?>> decision = predicate.getDecision(value, what);
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
           Callable<?> newCallable = decision.getNewCallable();

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author Zoltan Farkas
  */
-public class TimeoutRetryPredicate<T, C extends TimeoutCallable> implements RetryPredicate<T, C> {
+public class TimeoutRetryPredicate<T, C extends TimeoutCallable<?>> implements RetryPredicate<T, C> {
 
   private final RetryPredicate<T, C> predicate;
 
@@ -32,8 +32,8 @@ public class TimeoutRetryPredicate<T, C extends TimeoutCallable> implements Retr
   }
 
   @Override
-  public RetryDecision<C> getDecision(final T value, final C what) {
-    RetryDecision<C> decision = predicate.getDecision(value, what);
+  public RetryDecision<?, C> getDecision(final T value, final C what) {
+    RetryDecision<?, C> decision = predicate.getDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(what.getDeadlineNanos(), TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {

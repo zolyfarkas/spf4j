@@ -190,7 +190,7 @@ public class RetryExecutor {
     public T call() {
       try {
         T result = callable.call();
-        RetryDecision<Callable<T>> decision = this.resultRetryPredicate.getDecision(sync, callable);
+        RetryDecision<?, Callable<T>> decision = this.resultRetryPredicate.getDecision(sync, callable);
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
@@ -209,7 +209,7 @@ public class RetryExecutor {
         }
         return null;
       } catch (Exception e) {
-        RetryDecision<Callable<T>> decision = this.exceptionRetryPredicate.getDecision(e, callable);
+        RetryDecision<?, Callable<T>> decision = this.exceptionRetryPredicate.getDecision(e, callable);
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:

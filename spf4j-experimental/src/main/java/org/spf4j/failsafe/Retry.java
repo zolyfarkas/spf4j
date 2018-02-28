@@ -79,7 +79,7 @@ public final class Retry {
       lastEx = e;
     }
     Exception lastExChain = lastEx; // last exception chained with all previous exceptions
-    RetryDecision<C> decision = null;
+    RetryDecision<?, C> decision = null;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
     while ((lastEx != null
             && (decision = retryOnException.getDecision(lastEx, what)).getDecisionType()

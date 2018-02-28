@@ -85,7 +85,7 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
 
-    public final class PredicateBuilder<A, B extends Callable> {
+    public final class PredicateBuilder<A, B extends Callable<?>> {
 
       private Consumer<RetryPredicate<A, B>> consumer;
 
