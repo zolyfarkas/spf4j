@@ -118,7 +118,9 @@ public final class Throwables {
     @Override
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public boolean test(final Throwable t) {
-      if (t instanceof Error && !(t instanceof StackOverflowError)) {
+
+      if (t instanceof Error && !(t instanceof StackOverflowError)
+              && !(t.getClass().getName().endsWith("TokenMgrError"))) {
         return true;
       }
       if (t instanceof IOException) {
