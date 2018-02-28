@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -103,7 +104,8 @@ public class RetryDecision<T, C extends Callable<T>> {
 
 
   @CheckReturnValue
-  public static <T, C extends Callable<T>> RetryDecision<T, C> retry(final long retryNanos, @Nonnull final C callable) {
+  public static <T, C extends Callable<T>> RetryDecision<T, C> retry(
+          @Nonnegative final long retryNanos, @Nonnull final C callable) {
     return new RetryDecision(Type.Retry, retryNanos, TimeUnit.NANOSECONDS,  null, callable, Optional.empty());
   }
 
@@ -141,11 +143,6 @@ public class RetryDecision<T, C extends Callable<T>> {
   @CheckReturnValue
   public final Exception getException() {
     return exception;
-  }
-
-  @CheckReturnValue
-  public final RetryDecision<T, C> withDelayNanos(final int delayNanos) {
-    return new RetryDecision<>(decisionType, delayNanos, TimeUnit.NANOSECONDS, exception, newCallable, result);
   }
 
   @CheckReturnValue
