@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.MatchesPattern;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,9 +31,9 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.test.log.HandlerRegistration;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
+import org.spf4j.test.log.LogMatchers;
 import org.spf4j.test.log.TestLoggers;
 
 /**
@@ -66,59 +67,96 @@ public class RetryPolicyTest {
                     -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null)
             .finishPredicate()
             .resultPredicateBuilder()
-            .withPartialPredicate((resp, sc) -> {
-              switch (resp.getType()) {
-                case CLIENT_ERROR:
-                  return RetryDecision.abort();
-                case REDIRECT:
-                  return RetryDecision.retry(0, new ServerCall(sc.getServer(),
-                          new Request((String) resp.getPayload(), sc.getRequest().getDeadlineMSEpoch())));
-                case RETRY_LATER:
-                  return RetryDecision.retry(
-                          TimeUnit.NANOSECONDS.convert((Long) resp.getPayload() - System.currentTimeMillis(),
-                                  TimeUnit.MILLISECONDS), sc);
-                case TRANSIENT_ERROR:
-                  return RetryDecision.retryDefault(sc);
-                case ERROR:
-                case OK:
-                  return RetryDecision.abort();
-                default:
-                  throw new IllegalStateException("Unsupported " + resp.getType());
-              }
-            })
+            .withPartialPredicate(new PartialRetryPredicateImpl())
             .finishPredicate()
             .build(ServerCall.class);
     Server server = new Server();
-    try (HandlerRegistration printer = TestLoggers.sys().print("", Level.DEBUG)) {
-      Response response1 = new Response(Response.Type.OK, "");
-      server.setResponse("url1", (r) -> response1);
-      server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
-      long deadlineMillis = System.currentTimeMillis() + 1000;
-      ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
-      long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());
-      LOG.info("Timeout = {}", timeoutms);
-      LogAssert retryExpect = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG,
-              Matchers.hasProperty("message",
-                      Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")));
-      Response resp
-              = rp.execute(serverCall, SocketException.class);
-      Assert.assertEquals(response1, resp);
-      retryExpect.assertObservation();
-      server.breakException(new SocketException("Bla bla"));
-      LogAssert retryExpect2 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
-              Matchers.hasProperty("message",
-                      Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")));
-      try {
-        rp.execute(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class);
-        Assert.fail();
-      } catch (TimeoutException ex) {
-        Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
-        // as expected.
-      }
-      retryExpect2.assertObservation();
-      Future<?> submit = DefaultScheduler.INSTANCE.schedule(() -> server.breakException(null), 100, TimeUnit.MILLISECONDS);
+    Response response1 = new Response(Response.Type.OK, "");
+    server.setResponse("url1", (r) -> response1);
+    server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
+    server.setResponse("url3", (r) -> new Response(Response.Type.ERROR, "boooo"));
+    long deadlineMillis = System.currentTimeMillis() + 1000;
+    ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
+    long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());
+    LOG.info("Timeout = {}", timeoutms);
+    LogAssert retryExpect = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG,
+            LogMatchers.hasMatchingMessage(
+                    Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")));
+    Response resp
+            = rp.execute(serverCall, SocketException.class);
+    Assert.assertEquals(response1, resp);
+    retryExpect.assertObservation();
+    server.breakException(new SocketException("Bla bla"));
+    LogAssert retryExpect2 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+            LogMatchers.hasMatchingMessage(
+                    Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")));
+    try {
       rp.execute(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class);
-      submit.get();
+      Assert.fail();
+    } catch (TimeoutException ex) {
+      Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+      // as expected.
+    }
+    retryExpect2.assertObservation();
+    Future<?> submit = DefaultScheduler.INSTANCE.schedule(() -> server.breakException(null), 100, TimeUnit.MILLISECONDS);
+    rp.execute(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class);
+    submit.get();
+    // Test error response
+    LogAssert retryExpect3 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 4,
+            LogMatchers.hasMessageWithPattern(
+                    "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
+    Response er = rp.execute(new ServerCall(server, new Request("url3", System.currentTimeMillis() + 1000)), IOException.class);
+    Assert.assertEquals("boooo", er.getPayload());
+    retryExpect3.assertObservation();
+    // Test error response the second type, to make sure predicate state is handled correctly
+    LogAssert retryExpect4 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 4,
+            LogMatchers.hasMessageWithPattern(
+                    "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
+    Response er2 = rp.execute(new ServerCall(server, new Request("url3", System.currentTimeMillis() + 1000)), IOException.class);
+    Assert.assertEquals("boooo", er2.getPayload());
+    retryExpect4.assertObservation();
+
+
+  }
+
+  private class PartialRetryPredicateImpl implements PartialRetryPredicate<Response, ServerCall> {
+
+    public PartialRetryPredicateImpl() {
+    }
+
+    private int errorRetries = 0;
+
+    @Override
+    public RetryDecision<?, ServerCall> getDecision(Response resp, ServerCall sc) {
+      switch (resp.getType()) {
+        case CLIENT_ERROR:
+          return RetryDecision.abort();
+        case REDIRECT:
+          return RetryDecision.retry(0, new ServerCall(sc.getServer(),
+                  new Request((String) resp.getPayload(), sc.getRequest().getDeadlineMSEpoch())));
+        case RETRY_LATER:
+          return RetryDecision.retry(
+                  TimeUnit.NANOSECONDS.convert((Long) resp.getPayload() - System.currentTimeMillis(),
+                          TimeUnit.MILLISECONDS), sc);
+        case TRANSIENT_ERROR:
+          return RetryDecision.retryDefault(sc);
+        case ERROR:
+          if (errorRetries  > 3) {
+            return RetryDecision.abort();
+          } else {
+            errorRetries++;
+            return RetryDecision.retryDefault(sc);
+          }
+        case OK:
+          return RetryDecision.abort();
+        default:
+          throw new IllegalStateException("Unsupported " + resp.getType());
+      }
+    }
+
+    @Override
+    public PartialRetryPredicate<Response, ServerCall> newInstance() {
+      return new PartialRetryPredicateImpl();
     }
   }
 
