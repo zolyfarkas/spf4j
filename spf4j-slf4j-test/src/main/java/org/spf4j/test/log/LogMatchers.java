@@ -35,6 +35,10 @@ public final class LogMatchers {
     return Matchers.hasProperty("format", Matchers.equalTo(format));
   }
 
+  public static Matcher<LogRecord> hasFormatWithPattern(final String formatPattern) {
+    return Matchers.hasProperty("format", PatternMatcher.matchesPattern(formatPattern));
+  }
+
   public static Matcher<LogRecord> hasMatchingMarker(final Matcher<Marker> tMatcher) {
     return Matchers.hasProperty("marker", tMatcher);
   }
@@ -49,6 +53,10 @@ public final class LogMatchers {
 
   public static Matcher<LogRecord> hasMessage(final String message) {
     return Matchers.hasProperty("message", Matchers.equalTo(message));
+  }
+
+  public static Matcher<LogRecord> hasMessageWithPattern(final String messagePattern) {
+    return Matchers.hasProperty("message", PatternMatcher.matchesPattern(messagePattern));
   }
 
   public static Matcher<LogRecord> hasLevel(final Level level) {
