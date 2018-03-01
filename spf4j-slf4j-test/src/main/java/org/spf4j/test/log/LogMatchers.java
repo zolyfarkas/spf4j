@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import org.spf4j.test.matchers.PatternMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.slf4j.Marker;
