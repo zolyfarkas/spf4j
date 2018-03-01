@@ -76,7 +76,6 @@ public final class DefaultExecutor {
       default:
         throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
     }
-
     org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
 
       @Override
@@ -92,6 +91,10 @@ public final class DefaultExecutor {
   }
 
   private DefaultExecutor() {
+  }
+
+  public static ExecutorService instance() {
+    return INSTANCE;
   }
 
 }

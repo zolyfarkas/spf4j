@@ -32,8 +32,12 @@
 package org.spf4j.base;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -191,6 +195,26 @@ public final class ExecutionContexts {
     }
   }
 
+  public static long computeDeadline(final ExecutionContext current, final TimeUnit unit, final long timeout) {
+    long nanoTime = TimeSource.nanoTime();
+    long ctxDeadlinenanos = current.getDeadlineNanos();
+    long timeoutNanos = unit.toNanos(timeout);
+    return (ctxDeadlinenanos - nanoTime < timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;
+  }
+
+
+  public static TimeoutDeadline computeTimeoutDeadline(final ExecutionContext current,
+          final TimeUnit unit, final long timeout) throws TimeoutException {
+    long nanoTime = TimeSource.nanoTime();
+    long ctxDeadlinenanos = current.getDeadlineNanos();
+    long timeoutNanos = unit.toNanos(timeout);
+    long contextTimeoutNanos = ctxDeadlinenanos - nanoTime;
+    return (contextTimeoutNanos < timeoutNanos)
+            ? TimeoutDeadline.of(contextTimeoutNanos, ctxDeadlinenanos)
+            : TimeoutDeadline.of(timeoutNanos, nanoTime + timeoutNanos);
+  }
+
+
   private static class BasicExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
 
     @Override
@@ -200,5 +224,112 @@ public final class ExecutionContexts {
     }
 
   }
+
+  public static <T> Callable<T> propagatingCallable(final Callable<T> callable) {
+    ExecutionContext current = current();
+    return current == null ? callable : propagatingCallable(callable, current);
+  }
+
+  public static <T> Callable<T> propagatingCallable(final Callable<T> callable, final ExecutionContext ctx) {
+    return new PropagatingCallable<T>(callable, ctx);
+  }
+
+  public static <T> Collection<? extends Callable<T>> propagatingCallables(
+          final Collection<? extends Callable<T>> tasks) {
+        ExecutionContext current = current();
+        return current == null ? tasks : propagatingCallables(tasks, current);
+  }
+
+  public static <T> Collection<? extends Callable<T>> propagatingCallables(
+          final Collection<? extends Callable<T>> tasks,
+          final ExecutionContext ctx) {
+    return tasks.stream().map(
+              (c) -> new PropagatingCallable<>(c, ctx))
+              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
+  }
+
+  public static <T> Collection<? extends Callable<T>> deadlinedPropagatingCallables(
+          final Collection<? extends Callable<T>> tasks,
+          final ExecutionContext ctx, final long deadlineNanos) {
+    return tasks.stream().map(
+              (c) -> new DeadlinedPropagatingCallable<>(c, ctx, deadlineNanos))
+              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
+  }
+
+
+  public static <T> Callable<T> deadlinedPropagatingCallable(final Callable<T> callable,
+          final ExecutionContext ctx, final long deadlineNanos) {
+    return new DeadlinedPropagatingCallable<T>(callable, ctx, deadlineNanos);
+  }
+
+  public static Runnable propagatingRunnable(final Runnable runnable) {
+    ExecutionContext current = current();
+    return current == null ? runnable : propagatingRunnable(runnable, current);
+  }
+
+  public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx) {
+    return new PropagatingRunnable(runnable, ctx);
+  }
+
+  private static final class PropagatingCallable<T> implements Callable<T> {
+
+    private final Callable<T> task;
+    private final ExecutionContext current;
+
+    PropagatingCallable(final Callable<T> task, final ExecutionContext current) {
+      this.task = task;
+      this.current = current;
+    }
+
+    @Override
+    public T call() throws Exception {
+      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
+        return task.call();
+      }
+    }
+  }
+
+  private static final class DeadlinedPropagatingCallable<T> implements Callable<T> {
+
+    private final Callable<T> task;
+    private final ExecutionContext current;
+    private final long deadlineNanos;
+
+    DeadlinedPropagatingCallable(final Callable<T> task, final ExecutionContext current,
+            final long deadlineNanos) {
+      this.task = task;
+      this.current = current;
+      this.deadlineNanos = deadlineNanos;
+    }
+
+    @Override
+    public T call() throws Exception {
+      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current, deadlineNanos)) {
+        return task.call();
+      }
+    }
+  }
+
+
+  private static final class PropagatingRunnable implements Runnable {
+
+    private final Runnable task;
+    private final ExecutionContext current;
+
+    PropagatingRunnable(final Runnable task, final ExecutionContext current) {
+      this.task = task;
+      this.current = current;
+    }
+
+    @Override
+    public void run() {
+      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
+        task.run();
+      }
+    }
+  }
+
+
+
 
 }

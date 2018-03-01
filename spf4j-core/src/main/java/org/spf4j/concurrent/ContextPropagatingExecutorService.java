@@ -31,7 +31,6 @@
  */
 package org.spf4j.concurrent;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -40,10 +39,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.TimeSource;
+import org.spf4j.base.TimeoutDeadline;
 
 /**
  * @author Zoltan Farkas
@@ -83,47 +81,24 @@ public class ContextPropagatingExecutorService implements ExecutorService {
 
   @Override
   public final <T> Future<T> submit(final Callable<T> task) {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current == null) {
-      return wrapped.submit(task);
-    } else {
-      return wrapped.submit(new PropagatingCallable(task, current));
-    }
+    return wrapped.submit(ExecutionContexts.propagatingCallable(task));
   }
 
   @Override
   public final <T> Future<T> submit(final Runnable task, final T result) {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current == null) {
-      return wrapped.submit(task, result);
-    } else {
-      return wrapped.submit(new PropagatingRunnable(task, current), result);
-    }
-
+    return wrapped.submit(ExecutionContexts.propagatingRunnable(task), result);
   }
 
   @Override
   public final Future<?> submit(final Runnable task) {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current == null) {
-      return wrapped.submit(task);
-    } else {
-      return wrapped.submit(new PropagatingRunnable(task, current));
-    }
+    return wrapped.submit(ExecutionContexts.propagatingRunnable(task));
   }
 
   @Override
   public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks)
           throws InterruptedException {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current == null) {
-      return wrapped.invokeAll(tasks);
-    } else {
-      List<? extends Callable<T>> propagating = tasks.stream().map(
-              (c) -> new PropagatingCallable<>(c, current))
-              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
-      return wrapped.invokeAll(propagating);
-    }
+
+    return wrapped.invokeAll(ExecutionContexts.propagatingCallables(tasks));
   }
 
   @Override
@@ -134,26 +109,21 @@ public class ContextPropagatingExecutorService implements ExecutorService {
     if (current == null) {
       return wrapped.invokeAll(tasks, timeout, unit);
     } else {
-      long deadlineNanos = computeDeadline(current, unit, timeout);
-      List<? extends Callable<T>> propagating = tasks.stream().map(
-              (c) -> new DeadlinedPropagatingCallable<>(c, current, deadlineNanos))
-              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
-      return wrapped.invokeAll(propagating, timeout, unit);
+      TimeoutDeadline td;
+      try {
+        td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);
+      } catch (TimeoutException ex) {
+        return Futures.timedOutFutures(tasks.size(), ex);
+      }
+      return wrapped.invokeAll(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),
+              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);
     }
   }
 
   @Override
   public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks)
           throws InterruptedException, ExecutionException {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current == null) {
-      return wrapped.invokeAny(tasks);
-    } else {
-      List<? extends Callable<T>> propagating = tasks.stream()
-              .map((c) -> new PropagatingCallable<>(c, current))
-              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
-      return wrapped.invokeAny(propagating);
-    }
+    return wrapped.invokeAny(ExecutionContexts.propagatingCallables(tasks));
   }
 
   @Override
@@ -163,92 +133,20 @@ public class ContextPropagatingExecutorService implements ExecutorService {
     if (current == null) {
       return wrapped.invokeAny(tasks, timeout, unit);
     } else {
-      long deadlineNanos = computeDeadline(current, unit, timeout);
-      List<? extends Callable<T>> propagating = tasks.stream()
-              .map((c) -> new DeadlinedPropagatingCallable<>(c, current, deadlineNanos))
-              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
-      return wrapped.invokeAny(propagating, timeout, unit);
+      TimeoutDeadline td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);
+      return wrapped.invokeAny(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),
+              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);
     }
-  }
-
-  private static long computeDeadline(final ExecutionContext current, final TimeUnit unit, final long timeout) {
-    long nanoTime = TimeSource.nanoTime();
-    long ctxDeadlinenanos = current.getDeadlineNanos();
-    long timeoutNanos = unit.toNanos(timeout);
-    return (ctxDeadlinenanos - nanoTime < timeoutNanos) ? ctxDeadlinenanos :  nanoTime + timeoutNanos;
   }
 
   @Override
   public final void execute(final Runnable command) {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current == null) {
-      wrapped.execute(command);
-    } else {
-      wrapped.execute(new PropagatingRunnable(command, current));
-    }
+    wrapped.execute(ExecutionContexts.propagatingRunnable(command));
   }
 
   @Override
   public final String toString() {
     return "ContextPropagatingExecutorService{" + "wrapped=" + wrapped + '}';
-  }
-
-  private static final class PropagatingCallable<T> implements Callable<T> {
-
-    private final Callable<T> task;
-    private final ExecutionContext current;
-
-    PropagatingCallable(final Callable<T> task, final ExecutionContext current) {
-      this.task = task;
-      this.current = current;
-    }
-
-    @Override
-    public T call() throws Exception {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
-        return task.call();
-      }
-    }
-  }
-
-  private static final class DeadlinedPropagatingCallable<T> implements Callable<T> {
-
-    private final Callable<T> task;
-    private final ExecutionContext current;
-    private final long deadlineNanos;
-
-    DeadlinedPropagatingCallable(final Callable<T> task, final ExecutionContext current,
-            final long deadlineNanos) {
-      this.task = task;
-      this.current = current;
-      this.deadlineNanos = deadlineNanos;
-    }
-
-    @Override
-    public T call() throws Exception {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current, deadlineNanos)) {
-        return task.call();
-      }
-    }
-  }
-
-
-  private static final class PropagatingRunnable implements Runnable {
-
-    private final Runnable task;
-    private final ExecutionContext current;
-
-    PropagatingRunnable(final Runnable task, final ExecutionContext current) {
-      this.task = task;
-      this.current = current;
-    }
-
-    @Override
-    public void run() {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
-        task.run();
-      }
-    }
   }
 
 }

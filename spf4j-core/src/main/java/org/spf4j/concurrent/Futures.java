@@ -33,8 +33,10 @@ package org.spf4j.concurrent;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -195,7 +197,35 @@ public final class Futures {
     return Pair.of(results, exception);
   }
 
+  public static <T> List<Future<T>> timedOutFutures(final int copies, final TimeoutException ex) {
+    Future<T> fut = new Future<T>() {
+      @Override
+      public boolean cancel(final boolean mayInterruptIfRunning) {
+        throw new UnsupportedOperationException();
+      }
 
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+
+      @Override
+      public boolean isDone() {
+        return true;
+      }
+
+      @Override
+      public T get() throws ExecutionException {
+        throw new ExecutionException(ex);
+      }
+
+      @Override
+      public T get(final long timeout, final TimeUnit unit) throws TimeoutException {
+        throw ex;
+      }
+    };
+    return Collections.nCopies(copies, fut);
+  }
 
 
 }
