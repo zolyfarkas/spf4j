@@ -66,7 +66,30 @@ public class RetryPolicyTest {
                     -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null)
             .finishPredicate()
             .resultPredicateBuilder()
-            .withPartialPredicate(new PartialRetryPredicateImpl())
+            .withPartialPredicate((resp, sc) -> {
+              switch (resp.getType()) {
+                case CLIENT_ERROR:
+                  return RetryDecision.abort();
+                case REDIRECT:
+                  return RetryDecision.retry(0, new ServerCall(sc.getServer(),
+                          new Request((String) resp.getPayload(), sc.getRequest().getDeadlineMSEpoch())));
+                case RETRY_LATER:
+                  return RetryDecision.retry(
+                          TimeUnit.NANOSECONDS.convert((Long) resp.getPayload() - System.currentTimeMillis(),
+                                  TimeUnit.MILLISECONDS), sc);
+                case TRANSIENT_ERROR:
+                  return RetryDecision.retryDefault(sc);
+                case ERROR:
+                  return null;
+                case OK:
+                  return RetryDecision.abort();
+                default:
+                  throw new IllegalStateException("Unsupported " + resp.getType());
+              }
+            }).withLimitedPartialPredicate((resp, sc) ->
+                    (resp.getType() == Response.Type.ERROR)
+                            ? RetryDecision.retryDefault(sc)
+                            : RetryDecision.abort(), 3)
             .finishPredicate()
             .build(ServerCall.class);
     Server server = new Server();
@@ -101,62 +124,20 @@ public class RetryPolicyTest {
     rp.execute(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class);
     submit.get();
     // Test error response
-    LogAssert retryExpect3 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 4,
+    LogAssert retryExpect3 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
     Response er = rp.execute(new ServerCall(server, new Request("url3", System.currentTimeMillis() + 1000)), IOException.class);
     Assert.assertEquals("boooo", er.getPayload());
     retryExpect3.assertObservation();
     // Test error response the second type, to make sure predicate state is handled correctly
-    LogAssert retryExpect4 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 4,
+    LogAssert retryExpect4 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
     Response er2 = rp.execute(new ServerCall(server, new Request("url3", System.currentTimeMillis() + 1000)), IOException.class);
     Assert.assertEquals("boooo", er2.getPayload());
     retryExpect4.assertObservation();
 
-
-  }
-
-  private class PartialRetryPredicateImpl implements PartialRetryPredicate<Response, ServerCall> {
-
-    public PartialRetryPredicateImpl() {
-    }
-
-    private int errorRetries = 0;
-
-    @Override
-    public RetryDecision<?, ServerCall> getDecision(Response resp, ServerCall sc) {
-      switch (resp.getType()) {
-        case CLIENT_ERROR:
-          return RetryDecision.abort();
-        case REDIRECT:
-          return RetryDecision.retry(0, new ServerCall(sc.getServer(),
-                  new Request((String) resp.getPayload(), sc.getRequest().getDeadlineMSEpoch())));
-        case RETRY_LATER:
-          return RetryDecision.retry(
-                  TimeUnit.NANOSECONDS.convert((Long) resp.getPayload() - System.currentTimeMillis(),
-                          TimeUnit.MILLISECONDS), sc);
-        case TRANSIENT_ERROR:
-          return RetryDecision.retryDefault(sc);
-        case ERROR:
-          if (errorRetries  > 3) {
-            return RetryDecision.abort();
-          } else {
-            errorRetries++;
-            return RetryDecision.retryDefault(sc);
-          }
-        case OK:
-          return RetryDecision.abort();
-        default:
-          throw new IllegalStateException("Unsupported " + resp.getType());
-      }
-    }
-
-    @Override
-    public PartialRetryPredicate<Response, ServerCall> newInstance() {
-      return new PartialRetryPredicateImpl();
-    }
   }
 
 }

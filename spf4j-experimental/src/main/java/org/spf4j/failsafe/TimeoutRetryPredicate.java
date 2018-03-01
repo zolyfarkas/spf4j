@@ -51,9 +51,4 @@ public class TimeoutRetryPredicate<T, C extends TimeoutCallable<?>> implements R
     return decision;
   }
 
-  @Override
-  public TimeoutRetryPredicate<T, C> newInstance() {
-    return new TimeoutRetryPredicate<T, C>(predicate.newInstance());
-  }
-
 }

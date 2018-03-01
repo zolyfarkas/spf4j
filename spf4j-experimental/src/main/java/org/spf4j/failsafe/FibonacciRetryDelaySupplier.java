@@ -60,11 +60,6 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
   }
 
   @Override
-  public FibonacciRetryDelaySupplier newInstance() {
-    return new FibonacciRetryDelaySupplier(immediateLeft, startDelay, maxDelay);
-  }
-
-  @Override
   public String toString() {
     return "FibonacciBackoff{" + "immediateLeft=" + immediateLeft + ", p1=" + p1
             + ", p2=" + p2 + ", maxDelay=" + maxDelay + ", startDelay=" + startDelay + '}';

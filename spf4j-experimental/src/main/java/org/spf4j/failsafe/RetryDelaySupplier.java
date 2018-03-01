@@ -22,7 +22,7 @@ import java.util.function.LongSupplier;
  * @author Zoltan Farkas
  */
 public interface RetryDelaySupplier
-        extends LongSupplier, NewInstanceSupplier<RetryDelaySupplier> {
+        extends LongSupplier {
 
   long nextDelay();
 

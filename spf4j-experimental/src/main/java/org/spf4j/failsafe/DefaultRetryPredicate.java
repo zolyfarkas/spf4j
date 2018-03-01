@@ -36,19 +36,13 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
 
   DefaultRetryPredicate(
           final Supplier<Function<T, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
-          final PartialRetryPredicate<T, Callable<?>> ... predicates) {
+          final Supplier<PartialRetryPredicate<T, Callable<?>>> ... predicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     this.defaultBackoffSupplierSupplier = defaultBackoffSupplierSupplier;
-    this.predicates = predicates;
-  }
-
-  @Override
-  public RetryPredicate<T, Callable<?>> newInstance() {
-    PartialRetryPredicate<T, Callable<?>> [] p = predicates.clone();
-    for (int i = 0; i < p.length; i++) {
-      p[i] = p[i].newInstance();
+    this.predicates = new PartialRetryPredicate[predicates.length];
+    for (int i = 0; i < predicates.length; i++) {
+      this.predicates[i] = predicates[i].get();
     }
-    return new DefaultRetryPredicate(defaultBackoffSupplierSupplier, p);
   }
 
   @Override

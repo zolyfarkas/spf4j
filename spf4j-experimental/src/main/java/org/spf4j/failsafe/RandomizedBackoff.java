@@ -40,12 +40,6 @@ public class RandomizedBackoff implements RetryDelaySupplier {
   }
 
   @Override
-  public RetryDelaySupplier newInstance() {
-    RetryDelaySupplier wrappedNewInstance = wrapped.newInstance();
-    return wrappedNewInstance == wrapped ? this : new RandomizedBackoff(wrappedNewInstance);
-  }
-
-  @Override
   public String toString() {
     return "RandomizedBackoff{" + "wrapped=" + wrapped + '}';
   }

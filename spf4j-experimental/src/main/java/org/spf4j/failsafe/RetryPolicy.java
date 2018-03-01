@@ -37,6 +37,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -48,19 +49,19 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
   private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.maxExceptionChain", 10);
 
-  private final RetryPredicate<T, C> retryOnReturnVal;
-  private final RetryPredicate<Exception, C> retryOnException;
+  private final Supplier<RetryPredicate<T, C>> retryOnReturnVal;
+  private final Supplier<RetryPredicate<Exception, C>> retryOnException;
   private final int maxExceptionChain;
 
-  public RetryPolicy(final RetryPredicate<T, C> retryOnReturnVal,
-          final RetryPredicate<Exception, C> retryOnException, final int maxExceptionChain) {
+  public RetryPolicy(final Supplier<RetryPredicate<T, C>> retryOnReturnVal,
+          final Supplier<RetryPredicate<Exception, C>> retryOnException, final int maxExceptionChain) {
     this.retryOnReturnVal = retryOnReturnVal;
     this.retryOnException = retryOnException;
     this.maxExceptionChain = maxExceptionChain;
   }
 
-  public RetryPolicy(final RetryPredicate<Exception, C> retryOnException) {
-    this(RetryPredicate.NORETRY, retryOnException, MAX_EX_CHAIN_DEFAULT);
+  public RetryPolicy(final Supplier<RetryPredicate<Exception, C>> retryOnException) {
+    this(() -> RetryPredicate.NORETRY, retryOnException, MAX_EX_CHAIN_DEFAULT);
   }
 
   public final <EX extends Exception> T execute(final C pwhat, final Class<EX> exceptionClass)
@@ -69,11 +70,11 @@ public class RetryPolicy<T, C extends Callable<T>> {
   }
 
   public RetryPredicate<T, C> getRetryOnReturnVal() {
-    return retryOnReturnVal.newInstance();
+    return retryOnReturnVal.get();
   }
 
   public RetryPredicate<Exception, C> getRetryOnException() {
-    return retryOnException.newInstance();
+    return retryOnException.get();
   }
 
 
@@ -87,7 +88,7 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     public final class PredicateBuilder<A, B extends Callable<?>> {
 
-      private Consumer<RetryPredicate<A, B>> consumer;
+      private Consumer<Supplier<RetryPredicate<A, B>>> consumer;
 
       private int nrInitialRetries;
 
@@ -95,20 +96,35 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       private long maxDelayNanos;
 
-      private PredicateBuilder(final Consumer<RetryPredicate<A, B>> consumer) {
+      private PredicateBuilder(final Consumer<Supplier<RetryPredicate<A, B>>> consumer) {
         this.consumer = consumer;
         this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
         this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
         this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;
       }
 
-      private final List<PartialRetryPredicate<A, B>> predicates = new ArrayList<>(2);
+      private final List<Supplier<PartialRetryPredicate<A, B>>> predicates = new ArrayList<>(2);
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withPartialPredicate(final PartialRetryPredicate<A, B> predicate) {
-        predicates.add(predicate);
+        predicates.add(() -> predicate);
         return this;
       }
+
+      @CheckReturnValue
+      public PredicateBuilder<A, B> withLimitedPartialPredicate(final PartialRetryPredicate<A, B> predicate,
+              final int maxRetries) {
+        predicates.add(() -> new CountLimitedPartialRetryPredicate<>(maxRetries, predicate));
+        return this;
+      }
+
+      @CheckReturnValue
+      public PredicateBuilder<A, B> withStatefulPartialPredicate(
+              final Supplier<PartialRetryPredicate<A, B>> predicateSupplier) {
+        predicates.add(predicateSupplier);
+        return this;
+      }
+
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withInitialRetries(final int retries) {
@@ -131,17 +147,17 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       @CheckReturnValue
       public Builder<T, C> finishPredicate() {
-         consumer.accept(new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+         consumer.accept(() -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
                       (x) -> new RandomizedBackoff(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos))),
-                 predicates.toArray(new PartialRetryPredicate[predicates.size()])));
+                 predicates.toArray(new Supplier[predicates.size()])));
          return Builder.this;
       }
 
     }
 
-    private RetryPredicate<T, C> resultPredicate = null;
-    private RetryPredicate<Exception, C> exceptionPredicate = null;
+    private Supplier<RetryPredicate<T, C>> resultPredicate = null;
+    private Supplier<RetryPredicate<Exception, C>> exceptionPredicate = null;
 
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
@@ -164,13 +180,13 @@ public class RetryPolicy<T, C extends Callable<T>> {
     @CheckReturnValue
     @SuppressWarnings("unchecked")
     public RetryPolicy<T, C> build(final Class<? extends C> clasz) {
-      RetryPredicate<T, C> rp = resultPredicate == null ? RetryPredicate.NORETRY
+      Supplier<RetryPredicate<T, C>> rp = resultPredicate == null ? () -> RetryPredicate.NORETRY
               : resultPredicate;
-      RetryPredicate<Exception, C> ep = exceptionPredicate == null ? RetryPredicate.NORETRY
+      Supplier<RetryPredicate<Exception, C>> ep = exceptionPredicate == null ? () -> RetryPredicate.NORETRY
               : exceptionPredicate;
       if (TimeoutCallable.class.isAssignableFrom(clasz)) {
-        rp = new TimeoutRetryPredicate(rp);
-        ep = new TimeoutRetryPredicate(ep);
+        return new RetryPolicy<>(() -> new TimeoutRetryPredicate(rp.get()), () ->new TimeoutRetryPredicate(ep.get()),
+                maxExceptionChain);
       }
       return new RetryPolicy<>(rp, ep, maxExceptionChain);
     }
