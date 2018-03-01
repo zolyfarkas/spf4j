@@ -254,22 +254,31 @@ public class RetryExecutor {
 
   private class RetryManager extends AbstractRunnable {
 
+
     RetryManager() {
       super("RetryManager");
       isRunning = true;
     }
 
     public void shutdown() {
-      isRunning = false;
+      if (isRunning) {
+        isRunning = false;
+        Thread th = thread;
+        if (th != null) {
+          th.interrupt();
+        }
+      }
     }
 
     private volatile boolean isRunning;
+    private volatile Thread thread;
 
     @Override
     public void doRun() {
+      thread = Thread.currentThread();
       while (isRunning) {
         try {
-          FailedExecutionResult event = executionEvents.poll(1000, TimeUnit.SECONDS);
+          FailedExecutionResult event = executionEvents.poll(1, TimeUnit.MINUTES);
           if (event != null) {
             final RetryableCallable<Object> callable = event.getCallable();
             callable.setPreviousResult(event);

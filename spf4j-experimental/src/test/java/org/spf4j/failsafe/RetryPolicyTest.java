@@ -45,7 +45,8 @@ public class RetryPolicyTest {
 
   @Test(expected = IOException.class)
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
-    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.newBuilder().build((Class) Callable.class);
+    @SuppressWarnings("unchecked")
+    RetryPolicy<?, Callable<?>> rp = RetryPolicy.newBuilder(Callable.class).build();
     rp.execute(() -> {
       throw new IOException();
     }, IOException.class);
@@ -53,14 +54,15 @@ public class RetryPolicyTest {
 
   @Test
   public void testNoRetryPolicy2() throws InterruptedException, TimeoutException {
-    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.newBuilder().build((Class) Callable.class);
+    @SuppressWarnings("unchecked")
+    RetryPolicy<?, Callable<?>> rp = RetryPolicy.newBuilder(Callable.class).build();
     String result = (String) rp.execute(() -> "test", RuntimeException.class);
     Assert.assertEquals("test", result);
   }
 
   @Test
   public void testComplexRetry() throws InterruptedException, TimeoutException, IOException, ExecutionException {
-    RetryPolicy<Response, ServerCall> rp = RetryPolicy.<Response, ServerCall>newBuilder()
+    RetryPolicy<Response, ServerCall> rp = RetryPolicy.newBuilder(ServerCall.class)
             .exceptionPredicateBuilder()
             .withPartialPredicate((t, sc)
                     -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null)
@@ -91,7 +93,7 @@ public class RetryPolicyTest {
                             ? RetryDecision.retryDefault(sc)
                             : RetryDecision.abort(), 3)
             .finishPredicate()
-            .build(ServerCall.class);
+            .build();
     Server server = new Server();
     Response response1 = new Response(Response.Type.OK, "");
     server.setResponse("url1", (r) -> response1);

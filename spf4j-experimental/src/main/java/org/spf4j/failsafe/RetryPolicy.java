@@ -88,6 +88,8 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     public final class PredicateBuilder<A, B extends Callable<?>> {
 
+      private final List<Supplier<PartialRetryPredicate<A, B>>> predicates = new ArrayList<>(2);
+
       private Consumer<Supplier<RetryPredicate<A, B>>> consumer;
 
       private int nrInitialRetries;
@@ -96,14 +98,13 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       private long maxDelayNanos;
 
+
       private PredicateBuilder(final Consumer<Supplier<RetryPredicate<A, B>>> consumer) {
         this.consumer = consumer;
         this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
         this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
         this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;
       }
-
-      private final List<Supplier<PartialRetryPredicate<A, B>>> predicates = new ArrayList<>(2);
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withPartialPredicate(final PartialRetryPredicate<A, B> predicate) {
@@ -161,6 +162,12 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
+    private final Class<? extends C> clasz;
+
+    private Builder(final Class<? extends C> clasz) {
+      this.clasz = clasz;
+    }
+
     public Builder<T, C> withMaxExceptionChain(final int maxExChain) {
       maxExceptionChain = maxExChain;
       return this;
@@ -179,7 +186,7 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     @CheckReturnValue
     @SuppressWarnings("unchecked")
-    public RetryPolicy<T, C> build(final Class<? extends C> clasz) {
+    public RetryPolicy<T, C> build() {
       Supplier<RetryPredicate<T, C>> rp = resultPredicate == null ? () -> RetryPredicate.NORETRY
               : resultPredicate;
       Supplier<RetryPredicate<Exception, C>> ep = exceptionPredicate == null ? () -> RetryPredicate.NORETRY
@@ -195,8 +202,9 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
 
   @CheckReturnValue
-  public static <T, C extends Callable<T>> Builder<T, C> newBuilder() {
-    return new Builder();
+  public static <T, C extends Callable<T>> Builder<T, C> newBuilder(
+          final Class<C> clasz) {
+    return new Builder<>(clasz);
   }
 
 }
