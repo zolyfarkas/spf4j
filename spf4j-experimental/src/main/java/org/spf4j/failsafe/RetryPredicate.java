@@ -53,6 +53,11 @@ public interface RetryPredicate<T, C extends Callable<?>>
   RetryDecision<?, C> getDecision(@Nullable T value, @Nonnull C what);
 
 
+  /**
+   * Predicates can be stateful (have members), in that you should overwrite this method to
+   * create a new instance. (instead of returning the same instance is stateless.
+   * @return
+   */
   @Override
   default RetryPredicate<T, C> newInstance() {
     return this;
