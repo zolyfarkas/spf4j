@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 SPF4J.
+ * Copyright 2018 SPF4J.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,24 +23,10 @@ import javax.annotation.Nullable;
  *
  * @author Zoltan Farkas
  */
-public interface PartialRetryPredicate<T, C extends Callable<T>> {
-
-  /**
-   * Get the RetryDecision for the result value returned by Callable C.
-   * @param value the operation result.
-   * @param what the operation.
-   * @return
-   */
-  @Nullable
-  default RetryDecision<T, C> getDecision(@Nullable T value, @Nonnull C what) {
-    return null;
-  }
-
+@FunctionalInterface
+public interface PartialExceptionRetryPredicate<T, C extends Callable<T>> extends PartialRetryPredicate<T, C> {
 
   @Nullable
-  default RetryDecision<T, C> getExceptionDecision(@Nonnull Exception value, @Nonnull C what) {
-    return null;
-  }
-
+  RetryDecision<T, C> getExceptionDecision(@Nonnull Exception value, @Nonnull C what);
 
 }

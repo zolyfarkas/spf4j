@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
 
 /**
@@ -54,17 +55,15 @@ public final class Retry {
    * @param <T> - The type of callable to retry result;
    * @param <EX> - the exception thrown by the callable to retry.
    * @param pwhat - the callable to retry.
-   * @param retryOnReturnVal - the predicate to control retry on return value.
    * @param retryOnException - the predicate to return on retry value.
    * @return the result of the retried callable if successful.
    * @throws java.lang.InterruptedException - thrown if retry interrupted.
    * @throws EX - the exception thrown by callable.
    */
   @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "MDM_THREAD_YIELD" })
-  public static <T, EX extends Exception, C extends Callable<T>> T execute(
+  public static <T, EX extends Exception, C extends Callable<T>> T call(
           final C pwhat,
-          final RetryPredicate<T, C> retryOnReturnVal,
-          final RetryPredicate<Exception, C> retryOnException,
+          final RetryPredicate<T, C> retryPredicate,
           final Class<EX> exceptionClass,
           final int maxExceptionChain)
           throws InterruptedException, TimeoutException, EX {
@@ -79,12 +78,12 @@ public final class Retry {
       lastEx = e;
     }
     Exception lastExChain = lastEx; // last exception chained with all previous exceptions
-    RetryDecision<?, C> decision = null;
+    RetryDecision<T, C> decision = null;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
     while ((lastEx != null
-            && (decision = retryOnException.getDecision(lastEx, what)).getDecisionType()
+            && (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()
                 == RetryDecision.Type.Retry)
-            || (lastEx == null && (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()
+            || (lastEx == null && (decision = retryPredicate.getDecision(result, what)).getDecisionType()
                 == RetryDecision.Type.Retry)) {
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();
@@ -116,18 +115,17 @@ public final class Retry {
       throw new IllegalStateException("Decission should have ben initialized " + lastEx + ", " + result);
     }
     if (decision.getDecisionType() == RetryDecision.Type.Abort) {
-        Exception ex = decision.getException();
-        if (ex != null) {
-          lastEx = ex;
-          if (lastExChain != null) {
-            lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
+        Either<Exception, T> r = decision.getResult();
+        if (r != null) {
+          if (r.isLeft()) {
+            lastEx = r.getLeft();
+            if (lastExChain != null) {
+              lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
+            } else {
+              lastExChain = lastEx;
+            }
           } else {
-            lastExChain = lastEx;
-          }
-        } else {
-          Optional<T> newres = (Optional<T>) decision.getResult();
-          if (newres.isPresent()) {
-            result = newres.get();
+            result = r.getRight();
             lastEx = null;
           }
         }

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author Zoltan Farkas
  */
-public class TimeoutRetryPredicate<T, C extends TimeoutCallable<?>> implements RetryPredicate<T, C> {
+public class TimeoutRetryPredicate<T, C extends TimeoutCallable<T>> implements RetryPredicate<T, C> {
 
   private final RetryPredicate<T, C> predicate;
 
@@ -32,20 +32,28 @@ public class TimeoutRetryPredicate<T, C extends TimeoutCallable<?>> implements R
   }
 
   @Override
-  public RetryDecision<?, C> getDecision(final T value, final C what) {
-    RetryDecision<?, C> decision = predicate.getDecision(value, what);
+  public RetryDecision<T, C> getDecision(final T value, final C what) {
+    RetryDecision<T, C> decision = predicate.getDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(what.getDeadlineNanos(), TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
-        if (value instanceof Throwable) {
+         return (RetryDecision) RetryDecision.abortThrow(new TimeoutException("Time to deadline not enough "
+                  + timeToDeadlineNanos + " ns, last result = " + value));
+      }
+    }
+    return decision;
+  }
+
+  @Override
+  public RetryDecision<T, C> getExceptionDecision(Exception value, C what) {
+    RetryDecision<T, C> decision = predicate.getExceptionDecision(value, what);
+    if (decision.getDecisionType() == RetryDecision.Type.Retry) {
+      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(what.getDeadlineNanos(), TimeUnit.NANOSECONDS);
+      if (timeToDeadlineNanos < decision.getDelayNanos()) {
           TimeoutException timeoutException = new TimeoutException("Time to deadline not enough "
                   + timeToDeadlineNanos + " ns ");
           timeoutException.addSuppressed((Throwable) value);
-          return RetryDecision.abortThrow(timeoutException);
-        } else {
-          return RetryDecision.abortThrow(new TimeoutException("Time to deadline not enough "
-                  + timeToDeadlineNanos + " ns, last result = " + value));
-        }
+          return (RetryDecision) RetryDecision.abortThrow(timeoutException);
       }
     }
     return decision;

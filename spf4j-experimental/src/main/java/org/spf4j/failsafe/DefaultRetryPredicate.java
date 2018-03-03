@@ -24,21 +24,18 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Zoltan Farkas
  */
-class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
+class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPredicate.class);
 
-  private final Function<T, RetryDelaySupplier> defaultBackoffSupplier;
+  private final Function<Object, RetryDelaySupplier> defaultBackoffSupplier;
 
-  private final PartialRetryPredicate<T, Callable<?>> [] predicates;
-
-  private final Supplier<Function<T, RetryDelaySupplier>> defaultBackoffSupplierSupplier;
+  private final PartialRetryPredicate<T, Callable<T>> [] predicates;
 
   DefaultRetryPredicate(
-          final Supplier<Function<T, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
-          final Supplier<PartialRetryPredicate<T, Callable<?>>> ... predicates) {
+          final Supplier<Function<Object, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
+          final Supplier<PartialRetryPredicate<T, Callable<T>>> ... predicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
-    this.defaultBackoffSupplierSupplier = defaultBackoffSupplierSupplier;
     this.predicates = new PartialRetryPredicate[predicates.length];
     for (int i = 0; i < predicates.length; i++) {
       this.predicates[i] = predicates[i].get();
@@ -46,17 +43,17 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
   }
 
   @Override
-  public RetryDecision getDecision(final T value, final Callable<?> what) {
+  public RetryDecision<T, Callable<T>> getDecision(final T value, final Callable<T> what) {
 
-    for (PartialRetryPredicate<T, Callable<?>> predicate : predicates) {
-      RetryDecision<?, Callable<?>> decision = predicate.getDecision(value, what);
+    for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
+      RetryDecision<T, Callable<T>> decision = predicate.getDecision(value, what);
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
           Callable<?> newCallable = decision.getNewCallable();
           LOG.debug("Result {} for {} retrying {}", value, what, newCallable);
           if (decision.getDelayNanos() < 0) {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
-            return RetryDecision.retry(backoff.nextDelay(), newCallable);
+            return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
           } else {
             return decision;
           }
@@ -66,6 +63,29 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<?>> {
       }
     }
     return RetryDecision.abort();
+  }
+
+  @Override
+  public RetryDecision<T, Callable<T>> getExceptionDecision(Exception value, Callable<T> what) {
+    for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
+      RetryDecision<T, Callable<T>> decision = predicate.getExceptionDecision(value, what);
+      if (decision != null) {
+        if (decision.getDecisionType() == RetryDecision.Type.Retry) {
+          Callable<?> newCallable = decision.getNewCallable();
+          LOG.debug("Result {} for {} retrying {}", value, what, newCallable);
+          if (decision.getDelayNanos() < 0) {
+            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
+            return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
+          } else {
+            return decision;
+          }
+        } else {
+          return decision;
+        }
+      }
+    }
+    return RetryDecision.abort();
+
   }
 
 }

@@ -52,7 +52,7 @@ import org.spf4j.failsafe.RetryPredicate;
 import org.spf4j.base.TimeSource;
 
 /**
- * Executor that will execute Callables with retry.
+ * Executor that will call Callables with retry.
  * This executor cannot be used inside a Completion service.
  *
  *
@@ -136,8 +136,7 @@ public class RetryExecutor {
 
     @Override
     public int hashCode() {
-      int hash = 7;
-      return 53 * hash + (this.callable != null ? this.callable.hashCode() : 0);
+      return 53 + (this.callable != null ? this.callable.hashCode() : 0);
     }
 
     @Nullable
@@ -157,24 +156,20 @@ public class RetryExecutor {
     @Nullable
     private final FutureBean<T> future;
     private volatile FailedExecutionResult previousResult;
-    private final RetryPredicate<Object, Callable<T>> resultRetryPredicate;
-    private final RetryPredicate<Exception, Callable<T>> exceptionRetryPredicate;
+    private final RetryPredicate<T, Callable<T>> resultRetryPredicate;
 
     RetryableCallable(final Callable<T> callable, @Nullable final FutureBean<T> future,
             final FailedExecutionResult previousResult,
-            final RetryPredicate<?, Callable<T>> resultRetryPredicate,
-            final RetryPredicate<Exception, Callable<T>> exceptionRetryPredicate) {
+            final RetryPredicate<T, Callable<T>> resultRetryPredicate) {
       this.callable = callable;
       this.future = future;
       this.previousResult = previousResult;
-      this.resultRetryPredicate = (RetryPredicate<Object, Callable<T>>) resultRetryPredicate;
-      this.exceptionRetryPredicate = exceptionRetryPredicate;
+      this.resultRetryPredicate =  resultRetryPredicate;
     }
 
     RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean<T> future,
             @Nullable final FailedExecutionResult previousResult,
-            final RetryPredicate<?, Callable<T>> resultRetryPredicate,
-            final RetryPredicate<Exception, Callable<T>> exceptionRetryPredicate) {
+            final RetryPredicate<T, Callable<T>> resultRetryPredicate) {
       this(new Callable() {
 
         @Override
@@ -182,7 +177,7 @@ public class RetryExecutor {
           task.run();
           return result;
         }
-      }, future, previousResult, resultRetryPredicate, exceptionRetryPredicate);
+      }, future, previousResult, resultRetryPredicate);
     }
 
     @Override
@@ -190,7 +185,7 @@ public class RetryExecutor {
     public T call() {
       try {
         T result = callable.call();
-        RetryDecision<?, Callable<T>> decision = this.resultRetryPredicate.getDecision(sync, callable);
+        RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getDecision(result, callable);
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
@@ -209,7 +204,7 @@ public class RetryExecutor {
         }
         return null;
       } catch (Exception e) {
-        RetryDecision<?, Callable<T>> decision = this.exceptionRetryPredicate.getDecision(e, callable);
+        RetryDecision<?, Callable<T>> decision = this.resultRetryPredicate.getExceptionDecision(e, callable);
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
@@ -342,8 +337,7 @@ public class RetryExecutor {
   public final <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPolicy<A, C> policy) {
     FutureBean<?> result = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, null,
-            policy.getRetryOnReturnVal(),
-            policy.getRetryOnReturnVal()));
+            policy.getRetryPredicate()));
     return (Future<A>) result;
   }
 
@@ -352,8 +346,7 @@ public class RetryExecutor {
           final RetryPolicy<A, Callable<A>> policy) {
     FutureBean<?> resultFuture = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, resultFuture, null,
-            policy.getRetryOnReturnVal(),
-            policy.getRetryOnReturnVal()));
+            policy.getRetryPredicate()));
     return (Future<A>) resultFuture;
   }
 
@@ -363,8 +356,7 @@ public class RetryExecutor {
 
   public final void execute(final Runnable command, final RetryPolicy<Void, Callable<Void>> policy) {
     executionService.execute(new RetryableCallable(command, null, null, null,
-            policy.getRetryOnReturnVal(),
-            policy.getRetryOnException()));
+            policy.getRetryPredicate()));
   }
 
 
