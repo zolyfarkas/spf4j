@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- *
+ * Retry predicate that can make a retry decision. (or no decision at all)
  * @author Zoltan Farkas
  */
 public interface PartialRetryPredicate<T, C extends Callable<T>> {
@@ -41,6 +41,5 @@ public interface PartialRetryPredicate<T, C extends Callable<T>> {
   default RetryDecision<T, C> getExceptionDecision(@Nonnull Exception value, @Nonnull C what) {
     return null;
   }
-
 
 }

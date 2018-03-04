@@ -21,19 +21,23 @@ import java.util.concurrent.ThreadLocalRandom;
  * A randomizing Backoff strategy.
  * @author Zoltan Farkas
  */
-public class RandomizedBackoff implements RetryDelaySupplier {
+public class JitteredDelaySupplier implements RetryDelaySupplier {
 
   private final RetryDelaySupplier wrapped;
 
-  public RandomizedBackoff(final RetryDelaySupplier wrapped) {
+  private final double jitterFactor;
+
+  public JitteredDelaySupplier(final RetryDelaySupplier wrapped, final double jitterFactor) {
     this.wrapped = wrapped;
+    this.jitterFactor = jitterFactor;
   }
 
   @Override
   public long nextDelay() {
     long nextDelay = wrapped.nextDelay();
     if (nextDelay > 1) {
-      return ThreadLocalRandom.current().nextLong(nextDelay);
+      long jitter = (long) (nextDelay * jitterFactor);
+      return ThreadLocalRandom.current().nextLong(nextDelay - jitter, nextDelay);
     } else {
       return nextDelay;
     }

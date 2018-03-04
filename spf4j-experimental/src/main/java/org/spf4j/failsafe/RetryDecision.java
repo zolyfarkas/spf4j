@@ -190,6 +190,7 @@ public interface RetryDecision<T, C extends Callable<T>> {
 
   /**
    * @return The delay in nanoseconds, can be negative, if delay value is not decided.
+   * negative value can be returned only by a Partial retry predicate.
    */
   @CheckReturnValue
   long getDelayNanos();

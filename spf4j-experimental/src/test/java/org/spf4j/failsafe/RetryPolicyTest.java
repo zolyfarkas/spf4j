@@ -86,7 +86,7 @@ public class RetryPolicyTest {
                 default:
                   throw new IllegalStateException("Unsupported " + resp.getType());
               }
-            }).withResultLimitedPartialPredicate((resp, sc) ->
+            }).withResultPartialPredicate((resp, sc) ->
                     (resp.getType() == Response.Type.ERROR)
                             ? RetryDecision.retryDefault(sc)
                             : RetryDecision.abort(), 3)
