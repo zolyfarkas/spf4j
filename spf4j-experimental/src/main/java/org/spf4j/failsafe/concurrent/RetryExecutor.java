@@ -34,7 +34,7 @@ package org.spf4j.failsafe.concurrent;
 import org.spf4j.concurrent.*;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.List;
+import java.io.Closeable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.DelayQueue;
@@ -45,6 +45,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPolicy;
@@ -52,13 +53,12 @@ import org.spf4j.failsafe.RetryPredicate;
 import org.spf4j.base.TimeSource;
 
 /**
- * Executor that will call Callables with retry.
- * This executor cannot be used inside a Completion service.
+ * Executor that will call Callables with retry. This executor cannot be used inside a Completion service.
  *
  *
  * @author zoly
  */
-public class RetryExecutor {
+public class RetryExecutor implements AutoCloseable {
 
   private final ExecutorService executionService;
   private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
@@ -164,7 +164,7 @@ public class RetryExecutor {
       this.callable = callable;
       this.future = future;
       this.previousResult = previousResult;
-      this.resultRetryPredicate =  resultRetryPredicate;
+      this.resultRetryPredicate = resultRetryPredicate;
     }
 
     RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean<T> future,
@@ -189,14 +189,21 @@ public class RetryExecutor {
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
-            final long delayNanos = decision.getDelayNanos();
             startRetryManager();
+            final long delayNanos = decision.getDelayNanos();
             this.callable = decision.getNewCallable();
             executionEvents.add(new FailedExecutionResult(null, this, delayNanos));
             break;
           case Abort:
             if (future != null) {
-              future.setResult(result);
+              Either<Exception, T> newRes = decision.getResult();
+              if (newRes == null) {
+                future.setResult(result);
+              } else if (newRes.isLeft()) {
+                future.setExceptionResult(new ExecutionException(newRes.getLeft()));
+              } else {
+                future.setResult(newRes.getRight());
+              }
             }
             break;
           default:
@@ -204,14 +211,13 @@ public class RetryExecutor {
         }
         return null;
       } catch (Exception e) {
-        RetryDecision<?, Callable<T>> decision = this.resultRetryPredicate.getExceptionDecision(e, callable);
+        RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getExceptionDecision(e, callable);
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
           case Retry:
+            startRetryManager();
             final long delayNanos = decision.getDelayNanos();
-            startRetryManager();
             this.callable = decision.getNewCallable();
-            startRetryManager();
             if (previousResult != null) {
               final ExecutionException exception = previousResult.getException();
               if (exception != null) {
@@ -222,7 +228,14 @@ public class RetryExecutor {
             break;
           case Abort:
             if (future != null) {
-              future.setExceptionResult(new ExecutionException(e));
+              Either<Exception, T> newRes = decision.getResult();
+              if (newRes == null) {
+                future.setExceptionResult(new ExecutionException(e));
+              } else if (newRes.isLeft()) {
+                future.setExceptionResult(new ExecutionException(newRes.getLeft()));
+              } else {
+                future.setResult(newRes.getRight());
+              }
             }
             break;
           default:
@@ -249,6 +262,8 @@ public class RetryExecutor {
 
   private class RetryManager extends AbstractRunnable {
 
+    private volatile boolean isRunning;
+    private volatile Thread thread;
 
     RetryManager() {
       super("RetryManager");
@@ -264,9 +279,6 @@ public class RetryExecutor {
         }
       }
     }
-
-    private volatile boolean isRunning;
-    private volatile Thread thread;
 
     @Override
     public void doRun() {
@@ -288,37 +300,23 @@ public class RetryExecutor {
 
   }
 
+  public RetryExecutor(final ExecutorService exec) {
+    this(exec, null);
+  }
+
   public RetryExecutor(final ExecutorService exec,
           @Nullable final BlockingQueue<Future<?>> completionQueue) {
     executionService = exec;
     this.completionQueue = completionQueue;
   }
 
-  public final void shutdown() {
+  public final void close() throws InterruptedException {
     shutdownRetryManager();
-    executionService.shutdown();
-  }
-
-  public final List<Runnable> shutdownNow() {
-    shutdownRetryManager();
-    return executionService.shutdownNow();
-  }
-
-  public final boolean isShutdown() {
-    return executionService.isShutdown();
-  }
-
-  public final boolean isTerminated() {
-    return executionService.isTerminated();
-  }
-
-  public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
     try {
       this.retryManagerFuture.get();
     } catch (ExecutionException ex) {
       throw new UncheckedExecutionException(ex);
     }
-    return executionService.awaitTermination(timeout, unit);
   }
 
   private FutureBean<?> createFutureBean() {
@@ -341,7 +339,6 @@ public class RetryExecutor {
     return (Future<A>) result;
   }
 
-
   public final <A> Future<A> submit(final Runnable task, final A result,
           final RetryPolicy<A, Callable<A>> policy) {
     FutureBean<?> resultFuture = createFutureBean();
@@ -358,6 +355,5 @@ public class RetryExecutor {
     executionService.execute(new RetryableCallable(command, null, null, null,
             policy.getRetryPredicate()));
   }
-
 
 }

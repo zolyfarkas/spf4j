@@ -34,12 +34,16 @@ package org.spf4j.failsafe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.failsafe.concurrent.DefaultContextAwareRetryExecutor;
+import org.spf4j.failsafe.concurrent.RetryExecutor;
 
 /**
  * @author Zoltan Farkas
@@ -50,16 +54,21 @@ public class RetryPolicy<T, C extends Callable<T>> {
   private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.maxExceptionChain", 10);
 
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
+
+  private final Supplier<RetryExecutor> execSupplier;
+
   private final int maxExceptionChain;
 
   public RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
-           final int maxExceptionChain) {
+          final Supplier<RetryExecutor> execSupplier,
+          final int maxExceptionChain) {
     this.retryPredicate = retryPredicate;
     this.maxExceptionChain = maxExceptionChain;
+    this.execSupplier = execSupplier;
   }
 
-  public RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate) {
-    this(retryPredicate, MAX_EX_CHAIN_DEFAULT);
+  public RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate, final Supplier<RetryExecutor> execSupplier) {
+    this(retryPredicate, execSupplier, MAX_EX_CHAIN_DEFAULT);
   }
 
   public final <EX extends Exception> T call(final C pwhat, final Class<EX> exceptionClass)
@@ -67,10 +76,13 @@ public class RetryPolicy<T, C extends Callable<T>> {
     return Retry.call(pwhat, getRetryPredicate(), exceptionClass, maxExceptionChain);
   }
 
+  public final Future<T> submit(final C pwhat) {
+    return execSupplier.get().submit(pwhat, this);
+  }
+
   public RetryPredicate<T, C> getRetryPredicate() {
     return retryPredicate.get();
   }
-
 
   public static final class Builder<T, C extends Callable<T>> {
 
@@ -94,7 +106,6 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       private double jitterFactor;
 
-
       private PredicateBuilder(final Consumer<Supplier<RetryPredicate<A, B>>> consumer) {
         this.consumer = consumer;
         this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
@@ -105,18 +116,17 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withRetryOnException(final Class<? extends Exception> clasz) {
-        return PredicateBuilder.this.withExceptionPartialPredicate((e, c) ->
-                        clasz.isAssignableFrom(e.getClass())
-                                ? RetryDecision.retryDefault(c) : null);
+        return PredicateBuilder.this.withExceptionPartialPredicate((e, c)
+                -> clasz.isAssignableFrom(e.getClass())
+                ? RetryDecision.retryDefault(c) : null);
       }
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withRetryOnException(final Class<? extends Exception> clasz, final int maxRetries) {
-        return withExceptionPartialPredicate((e, c) ->
-                        clasz.isAssignableFrom(e.getClass())
-                                ? RetryDecision.retryDefault(c) : null, maxRetries);
+        return withExceptionPartialPredicate((e, c)
+                -> clasz.isAssignableFrom(e.getClass())
+                ? RetryDecision.retryDefault(c) : null, maxRetries);
       }
-
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withExceptionPartialPredicate(
@@ -140,7 +150,6 @@ public class RetryPolicy<T, C extends Callable<T>> {
         return this;
       }
 
-
       @CheckReturnValue
       public PredicateBuilder<A, B> withResultPartialPredicate(
               final PartialResultRetryPredicate<A, B> predicate) {
@@ -162,7 +171,6 @@ public class RetryPolicy<T, C extends Callable<T>> {
         predicates.add(predicateSupplier);
         return this;
       }
-
 
       @CheckReturnValue
       public PredicateBuilder<A, B> withJitterFactor(final double jitterfactor) {
@@ -191,14 +199,13 @@ public class RetryPolicy<T, C extends Callable<T>> {
         return this;
       }
 
-
       @CheckReturnValue
       public Builder<T, C> finishPredicate() {
-         consumer.accept(() -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
-                      (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
-                      startDelayNanos, maxDelayNanos), jitterFactor)),
-                 predicates.toArray(new Supplier[predicates.size()])));
-         return Builder.this;
+        consumer.accept(() -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+                (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
+                        startDelayNanos, maxDelayNanos), jitterFactor)),
+                predicates.toArray(new Supplier[predicates.size()])));
+        return Builder.this;
       }
 
     }
@@ -209,6 +216,8 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     private final Class<? extends C> clasz;
 
+    private Supplier<RetryExecutor> execSupplier = () -> DefaultContextAwareRetryExecutor.instance();
+
     private Builder(final Class<? extends C> clasz) {
       this.clasz = clasz;
     }
@@ -218,12 +227,15 @@ public class RetryPolicy<T, C extends Callable<T>> {
       return this;
     }
 
-    @CheckReturnValue
-    public  PredicateBuilder<T, C> retryPredicateBuilder() {
-      return new PredicateBuilder<T, C>((x) -> retryPredicate = x);
+    public Builder<T, C> withExecutorService(final RetryExecutor es) {
+      execSupplier = () -> es;
+      return this;
     }
 
-
+    @CheckReturnValue
+    public PredicateBuilder<T, C> retryPredicateBuilder() {
+      return new PredicateBuilder<T, C>((x) -> retryPredicate = x);
+    }
 
     @CheckReturnValue
     @SuppressWarnings("unchecked")
@@ -232,13 +244,15 @@ public class RetryPolicy<T, C extends Callable<T>> {
               : retryPredicate;
       if (TimeoutCallable.class.isAssignableFrom(clasz)) {
         return new RetryPolicy<>(() -> new TimeoutRetryPredicate(rp.get()),
-                maxExceptionChain);
+                execSupplier,
+                maxExceptionChain
+
+      );
       }
-      return new RetryPolicy<>(rp, maxExceptionChain);
+      return new RetryPolicy<>(rp, execSupplier, maxExceptionChain);
     }
 
   }
-
 
   @CheckReturnValue
   public static <T, C extends Callable<T>> Builder<T, C> newBuilder(
