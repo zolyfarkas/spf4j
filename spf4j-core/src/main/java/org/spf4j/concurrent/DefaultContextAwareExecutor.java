@@ -43,7 +43,7 @@ public final class DefaultContextAwareExecutor {
 
   private DefaultContextAwareExecutor() { }
 
-  public static ExecutorService insatnce() {
+  public static ExecutorService instance() {
     return INSTANCE;
   }
 
