@@ -15,13 +15,14 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.concurrent.Callable;
 import org.spf4j.base.Timing;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public class ServerCall implements TimeoutCallable<Response>{
+public class ServerCall implements Callable<Response> {
 
   private final Server server;
 
@@ -45,7 +46,6 @@ public class ServerCall implements TimeoutCallable<Response>{
     return request;
   }
 
-  @Override
   public long getDeadlineNanos() {
     return Timing.getCurrentTiming().fromEpochMillisToNanoTime(request.getDeadlineMSEpoch());
   }

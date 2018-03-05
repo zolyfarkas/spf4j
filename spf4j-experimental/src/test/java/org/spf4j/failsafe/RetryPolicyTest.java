@@ -61,8 +61,7 @@ public class RetryPolicyTest {
 
   @Test(expected = IOException.class)
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
-    @SuppressWarnings("unchecked")
-    RetryPolicy<?, Callable<?>> rp = RetryPolicy.newBuilder(Callable.class).build();
+    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder().build();
     rp.call(() -> {
       throw new IOException();
     }, IOException.class);
@@ -71,7 +70,7 @@ public class RetryPolicyTest {
   @Test
   public void testNoRetryPolicy2() throws InterruptedException, TimeoutException {
     @SuppressWarnings("unchecked")
-    RetryPolicy<?, Callable<?>> rp = RetryPolicy.newBuilder(Callable.class).build();
+    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder().build();
     String result = (String) rp.call(() -> "test", RuntimeException.class);
     Assert.assertEquals("test", result);
   }
@@ -98,8 +97,9 @@ public class RetryPolicyTest {
     testASyncRetry(server, rp, response1);
   }
 
-  public RetryPolicy buildRetryPolicy() {
-    return RetryPolicy.newBuilder(ServerCall.class)
+  public RetryPolicy<Response, ServerCall> buildRetryPolicy() {
+    return RetryPolicy.<Response, ServerCall>newBuilder()
+            .withDeadlineSupplier((c) -> c.getDeadlineNanos())
             .retryPredicateBuilder()
             .withExceptionPartialPredicate((t, sc)
                     -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null)

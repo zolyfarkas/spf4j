@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.concurrent.Callable;
 import org.spf4j.base.TimeSource;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,19 +24,24 @@ import java.util.concurrent.TimeoutException;
  *
  * @author Zoltan Farkas
  */
-public class TimeoutRetryPredicate<T, C extends TimeoutCallable<T>> implements RetryPredicate<T, C> {
+public class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPredicate<T, C> {
 
   private final RetryPredicate<T, C> predicate;
 
-  public TimeoutRetryPredicate(final RetryPredicate<T, C> predicate) {
+
+  private final DeadlineSupplier<C> deadlineSupplier;
+
+  public TimeoutRetryPredicate(final RetryPredicate<T, C> predicate, final DeadlineSupplier<C> deadlineSupplier) {
     this.predicate = predicate;
+    this.deadlineSupplier = deadlineSupplier;
   }
 
   @Override
   public RetryDecision<T, C> getDecision(final T value, final C what) {
     RetryDecision<T, C> decision = predicate.getDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(what.getDeadlineNanos(), TimeUnit.NANOSECONDS);
+      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(
+              deadlineSupplier.getDeadlineNanos(what), TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
          return (RetryDecision) RetryDecision.abortThrow(new TimeoutException("Time to deadline not enough "
                   + timeToDeadlineNanos + " ns, last result = " + value));
@@ -48,7 +54,8 @@ public class TimeoutRetryPredicate<T, C extends TimeoutCallable<T>> implements R
   public RetryDecision<T, C> getExceptionDecision(Exception value, C what) {
     RetryDecision<T, C> decision = predicate.getExceptionDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(what.getDeadlineNanos(), TimeUnit.NANOSECONDS);
+      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(
+              deadlineSupplier.getDeadlineNanos(what), TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
           TimeoutException timeoutException = new TimeoutException("Time to deadline not enough "
                   + timeToDeadlineNanos + " ns ");

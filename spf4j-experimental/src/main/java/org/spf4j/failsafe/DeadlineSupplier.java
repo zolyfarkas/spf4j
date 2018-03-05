@@ -21,8 +21,9 @@ import java.util.concurrent.Callable;
  *
  * @author Zoltan Farkas
  */
-public interface TimeoutCallable<T> extends Callable<T> {
+@FunctionalInterface
+public interface DeadlineSupplier<C extends Callable> {
 
-  long getDeadlineNanos();
-  
+  long getDeadlineNanos(C callable);
+
 }

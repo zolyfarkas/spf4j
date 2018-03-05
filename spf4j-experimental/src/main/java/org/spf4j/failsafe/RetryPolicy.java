@@ -34,7 +34,6 @@ package org.spf4j.failsafe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -42,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.failsafe.concurrent.DefaultContextAwareRetryExecutor;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 
@@ -92,11 +92,11 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
 
-    public final class PredicateBuilder<A, B extends Callable<A>> {
+    public final class PredicateBuilder {
 
-      private final List<Supplier<? extends PartialRetryPredicate<A, B>>> predicates = new ArrayList<>(2);
+      private final List<Supplier<? extends PartialRetryPredicate<T, C>>> predicates = new ArrayList<>(2);
 
-      private Consumer<Supplier<RetryPredicate<A, B>>> consumer;
+      private Consumer<Supplier<RetryPredicate<T, C>>> consumer;
 
       private int nrInitialRetries;
 
@@ -106,7 +106,7 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
       private double jitterFactor;
 
-      private PredicateBuilder(final Consumer<Supplier<RetryPredicate<A, B>>> consumer) {
+      private PredicateBuilder(final Consumer<Supplier<RetryPredicate<T, C>>> consumer) {
         this.consumer = consumer;
         this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
         this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
@@ -115,65 +115,65 @@ public class RetryPolicy<T, C extends Callable<T>> {
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withRetryOnException(final Class<? extends Exception> clasz) {
+      public PredicateBuilder withRetryOnException(final Class<? extends Exception> clasz) {
         return PredicateBuilder.this.withExceptionPartialPredicate((e, c)
                 -> clasz.isAssignableFrom(e.getClass())
                 ? RetryDecision.retryDefault(c) : null);
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withRetryOnException(final Class<? extends Exception> clasz, final int maxRetries) {
+      public PredicateBuilder withRetryOnException(final Class<? extends Exception> clasz, final int maxRetries) {
         return withExceptionPartialPredicate((e, c)
                 -> clasz.isAssignableFrom(e.getClass())
                 ? RetryDecision.retryDefault(c) : null, maxRetries);
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withExceptionPartialPredicate(
-              final PartialExceptionRetryPredicate<A, B> predicate) {
+      public PredicateBuilder withExceptionPartialPredicate(
+              final PartialExceptionRetryPredicate<T, C> predicate) {
         predicates.add(() -> predicate);
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withExceptionPartialPredicate(
-              final PartialExceptionRetryPredicate<A, B> predicate,
+      public PredicateBuilder withExceptionPartialPredicate(
+              final PartialExceptionRetryPredicate<T, C> predicate,
               final int maxRetries) {
         predicates.add(() -> new CountLimitedPartialRetryPredicate<>(maxRetries, predicate));
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withExceptionStatefulPartialPredicate(
-              final Supplier<PartialExceptionRetryPredicate<A, B>> predicateSupplier) {
+      public PredicateBuilder withExceptionStatefulPartialPredicate(
+              final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
         predicates.add(predicateSupplier);
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withResultPartialPredicate(
-              final PartialResultRetryPredicate<A, B> predicate) {
+      public PredicateBuilder withResultPartialPredicate(
+              final PartialResultRetryPredicate<T, C> predicate) {
         predicates.add(() -> predicate);
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withResultPartialPredicate(
-              final PartialResultRetryPredicate<A, B> predicate,
+      public PredicateBuilder withResultPartialPredicate(
+              final PartialResultRetryPredicate<T, C> predicate,
               final int maxRetries) {
         predicates.add(() -> new CountLimitedPartialRetryPredicate<>(maxRetries, predicate));
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withResultStatefulPartialPredicate(
-              final Supplier<PartialResultRetryPredicate<A, B>> predicateSupplier) {
+      public PredicateBuilder withResultStatefulPartialPredicate(
+              final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
         predicates.add(predicateSupplier);
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withJitterFactor(final double jitterfactor) {
+      public PredicateBuilder withJitterFactor(final double jitterfactor) {
         if (jitterFactor > 1 || jitterFactor < 0) {
           throw new IllegalArgumentException("Invalid jitter factor " + jitterfactor);
         }
@@ -182,19 +182,19 @@ public class RetryPolicy<T, C extends Callable<T>> {
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withInitialRetries(final int retries) {
+      public PredicateBuilder withInitialRetries(final int retries) {
         this.nrInitialRetries = retries;
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withInitialDelay(final long delay, final TimeUnit unit) {
+      public PredicateBuilder withInitialDelay(final long delay, final TimeUnit unit) {
         this.startDelayNanos = unit.toNanos(delay);
         return this;
       }
 
       @CheckReturnValue
-      public PredicateBuilder<A, B> withMaxDelay(final long delay, final TimeUnit unit) {
+      public PredicateBuilder withMaxDelay(final long delay, final TimeUnit unit) {
         this.maxDelayNanos = unit.toNanos(delay);
         return this;
       }
@@ -214,12 +214,11 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
-    private final Class<? extends C> clasz;
-
     private Supplier<RetryExecutor> execSupplier = () -> DefaultContextAwareRetryExecutor.instance();
 
-    private Builder(final Class<? extends C> clasz) {
-      this.clasz = clasz;
+    private DeadlineSupplier<C> deadlineSupplier = (c) -> ExecutionContexts.getContextDeadlineNanos();
+
+    private Builder() {
     }
 
     public Builder<T, C> withMaxExceptionChain(final int maxExChain) {
@@ -232,9 +231,14 @@ public class RetryPolicy<T, C extends Callable<T>> {
       return this;
     }
 
+    public Builder<T, C> withDeadlineSupplier(final DeadlineSupplier<C> ds) {
+      deadlineSupplier = ds;
+      return this;
+    }
+
     @CheckReturnValue
-    public PredicateBuilder<T, C> retryPredicateBuilder() {
-      return new PredicateBuilder<T, C>((x) -> retryPredicate = x);
+    public PredicateBuilder retryPredicateBuilder() {
+      return new PredicateBuilder((x) -> retryPredicate = x);
     }
 
     @CheckReturnValue
@@ -242,22 +246,17 @@ public class RetryPolicy<T, C extends Callable<T>> {
     public RetryPolicy<T, C> build() {
       Supplier<RetryPredicate<T, C>> rp = retryPredicate == null ? () -> RetryPredicate.NORETRY
               : retryPredicate;
-      if (TimeoutCallable.class.isAssignableFrom(clasz)) {
-        return new RetryPolicy<>(() -> new TimeoutRetryPredicate(rp.get()),
+        return new RetryPolicy<>(() -> new TimeoutRetryPredicate(rp.get(), deadlineSupplier),
                 execSupplier,
                 maxExceptionChain
-
       );
-      }
-      return new RetryPolicy<>(rp, execSupplier, maxExceptionChain);
     }
 
   }
 
   @CheckReturnValue
-  public static <T, C extends Callable<T>> Builder<T, C> newBuilder(
-          final Class<C> clasz) {
-    return new Builder<>(clasz);
+  public static <T, C extends Callable<T>> Builder<T, C> newBuilder() {
+    return new Builder<>();
   }
 
 }
