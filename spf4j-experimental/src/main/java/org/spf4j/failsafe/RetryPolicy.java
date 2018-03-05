@@ -51,8 +51,6 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
 @ParametersAreNonnullByDefault
 public class RetryPolicy<T, C extends Callable<T>> {
 
-  private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.maxExceptionChain", 10);
-
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
   private final Supplier<RetryExecutor> execSupplier;
@@ -65,10 +63,6 @@ public class RetryPolicy<T, C extends Callable<T>> {
     this.retryPredicate = retryPredicate;
     this.maxExceptionChain = maxExceptionChain;
     this.execSupplier = execSupplier;
-  }
-
-  public RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate, final Supplier<RetryExecutor> execSupplier) {
-    this(retryPredicate, execSupplier, MAX_EX_CHAIN_DEFAULT);
   }
 
   public final <EX extends Exception> T call(final C pwhat, final Class<EX> exceptionClass)
@@ -86,11 +80,16 @@ public class RetryPolicy<T, C extends Callable<T>> {
 
   public static final class Builder<T, C extends Callable<T>> {
 
-    private static final long DEFAULT_MAX_DELAY_NANOS = TimeUnit.SECONDS.toNanos(5);
+    private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.defaultMaxExceptionChain", 10);
 
-    private static final long DEFAULT_INITIAL_DELAY_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
+    private static final long DEFAULT_MAX_DELAY_NANOS =
+            TimeUnit.MILLISECONDS.toNanos(Long.getLong("spf4j.failsafe.defaultMaxRetryDelayMillis", 5000));
 
-    private static final int DEFAULT_INITIAL_NODELAY_RETRIES = 3;
+    private static final long DEFAULT_INITIAL_DELAY_NANOS =
+            Long.getLong("spf4j.failsafe.defaultInitialRetryDelayNanos", 1000);
+
+    private static final int DEFAULT_INITIAL_NODELAY_RETRIES =
+            Integer.getInteger("spf4j.failsafe.defaultInitialNoDelayRetries", 3);
 
     public final class PredicateBuilder {
 
