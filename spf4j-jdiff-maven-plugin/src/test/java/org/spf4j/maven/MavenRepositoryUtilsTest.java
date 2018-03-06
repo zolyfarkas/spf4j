@@ -41,7 +41,7 @@ public class MavenRepositoryUtilsTest {
   public void testRepositoryOperations()
           throws VersionRangeResolutionException, ArtifactResolutionException, DependencyResolutionException {
     File localRepo = new File(System.getProperty("user.home"), ".m2/repository");
-    RemoteRepository mavenCentralRepository = MavenRepositoryUtils.getDefaultlRepository();
+    RemoteRepository mavenCentralRepository = MavenRepositoryUtils.getDefaultRepository();
     List<Version> versions = MavenRepositoryUtils.getVersions(Arrays.asList(mavenCentralRepository), localRepo,
             "org.spf4j", "spf4j-core", "[8.3,]");
     LOG.debug("Versions = {}", versions);

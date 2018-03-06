@@ -121,7 +121,7 @@ public final class MavenRepositoryUtils {
     return repositorySystemSession;
   }
 
-  public static RemoteRepository getDefaultlRepository() {
+  public static RemoteRepository getDefaultRepository() {
     return new RemoteRepository.Builder("central", "default",
             System.getProperty("spf4j.jdiff.defaultMavenRepo", "http://central.maven.org/maven2/"))
             .build();
