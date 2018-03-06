@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.test.matchers;
+package org.spf4j.test.log;
 
 import java.util.regex.Pattern;
 
