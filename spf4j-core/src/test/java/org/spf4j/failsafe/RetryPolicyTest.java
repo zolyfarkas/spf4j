@@ -103,7 +103,6 @@ public class RetryPolicyTest {
   public final  RetryPolicy<Response, ServerCall> buildRetryPolicy() {
     return RetryPolicy.<Response, ServerCall>newBuilder()
             .withDeadlineSupplier((c) -> c.getDeadlineNanos())
-            .retryPredicateBuilder()
             .withDefaultThrowableRetryPredicate()
             .withResultPartialPredicate((resp, sc) -> {
               switch (resp.getType()) {
@@ -129,7 +128,6 @@ public class RetryPolicyTest {
             -> (resp.getType() == Response.Type.ERROR)
             ? RetryDecision.retryDefault(sc)
             : RetryDecision.abort(), 3)
-            .finishPredicate()
             .withExecutorService(es)
             .build();
   }
