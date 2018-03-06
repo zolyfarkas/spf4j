@@ -27,6 +27,8 @@ import org.hamcrest.StringDescription;
  */
 abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
+  private final String category;
+
   private final Level minLevel;
 
   private final Matcher<LogRecord>[] matchers;
@@ -35,7 +37,8 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final boolean assertSeen;
 
-  LogMatchingHandler(final boolean assertSeen, final Level minLevel, final Matcher<LogRecord>... matchers) {
+  LogMatchingHandler(final boolean assertSeen, final String category,
+          final Level minLevel, final Matcher<LogRecord>... matchers) {
     if (matchers.length < 1) {
       throw new IllegalArgumentException("You need to provide at least a matcher " + Arrays.toString(matchers));
     }
@@ -43,6 +46,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     this.at = 0;
     this.minLevel = minLevel;
     this.assertSeen = assertSeen;
+    this.category = category;
   }
 
   abstract void unregister();
@@ -77,11 +81,12 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    * Assert that a sequence of leg messages has been seen.
    */
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  public void assertSeen() {
+  private void assertSeen() {
     unregister();
     if (at < matchers.length) {
       Description description = new StringDescription();
-      description.appendText("Expected:\n");
+      description.appendText("Expected in category:").appendText(category)
+              .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
       matchers[0].describeTo(description);
       for (int i = 1; i < matchers.length; i++) {
         description.appendText("\n");
@@ -95,11 +100,12 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    * Assert that a sequence of messages has not been seen.
    */
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  public void assertNotSeen() {
+  private void assertNotSeen() {
     unregister();
     if (at >= matchers.length) {
       Description description = new StringDescription();
-      description.appendText("Not expected:\n");
+      description.appendText("Not expected in category:").appendText(category)
+              .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
       matchers[0].describeTo(description);
       for (int i = 1; i < matchers.length; i++) {
         description.appendText("\n");
