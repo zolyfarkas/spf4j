@@ -43,6 +43,24 @@ public interface RetryPredicate<T, C extends Callable<T>>
         extends PartialRetryPredicate<T, C> {
 
   /**
+   * Simple predicate that does not retry anything.
+   */
+  RetryPredicate NORETRY = new RetryPredicate<Object, Callable<Object>>() {
+
+    @Override
+    public RetryDecision getDecision(final Object value,
+            final Callable<Object> what) {
+      return RetryDecision.abort();
+    }
+
+    @Override
+    public RetryDecision getExceptionDecision(final Exception value, final Callable<Object> what) {
+      return RetryDecision.abort();
+    }
+
+  };
+
+  /**
    * Get the RetryDecision for the result value returned by Callable C.
    * @param value the operation result.
    * @param what the operation.
@@ -56,23 +74,5 @@ public interface RetryPredicate<T, C extends Callable<T>>
   @Nonnull
   RetryDecision<T, C> getExceptionDecision(@Nonnull Exception value, @Nonnull C what);
 
-
-  /**
-   * Simple predicate that does not retry anything.
-   */
-  RetryPredicate NORETRY = new RetryPredicate<Object, Callable<Object>>() {
-
-    @Override
-    public RetryDecision getDecision(final Object value,
-            final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
-
-    @Override
-    public RetryDecision getExceptionDecision(Exception value, Callable<Object> what) {
-      return RetryDecision.abort();
-    }
-
-  };
 
 }

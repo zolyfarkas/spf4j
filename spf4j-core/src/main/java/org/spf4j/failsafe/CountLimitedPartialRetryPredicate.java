@@ -20,16 +20,14 @@ import java.util.concurrent.Callable;
 /**
  * @author Zoltan Farkas
  */
-public class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> implements PartialRetryPredicate<T, C> {
+final class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> implements PartialRetryPredicate<T, C> {
 
-  private final int maxCount;
   private final PartialRetryPredicate<T, C> wrapped;
   private int count;
 
-  public CountLimitedPartialRetryPredicate(final int maxCount, final PartialRetryPredicate<T, C> wrapped) {
-    this.maxCount = maxCount;
+  CountLimitedPartialRetryPredicate(final int maxCount, final PartialRetryPredicate<T, C> wrapped) {
     this.wrapped = wrapped;
-    this.count = 0;
+    this.count = maxCount;
   }
 
   @Override
@@ -38,33 +36,33 @@ public class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> impleme
     if (decision == null) {
       return null;
     }
-    if (count >= maxCount) {
+    if (count <= 0) {
       return RetryDecision.abort();
     }
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      count++;
+      count--;
     }
     return decision;
   }
 
   @Override
-  public RetryDecision<T, C> getExceptionDecision(Exception value, C what) {
+  public RetryDecision<T, C> getExceptionDecision(final Exception value, final C what) {
     RetryDecision<T, C> decision = wrapped.getExceptionDecision(value, what);
     if (decision == null) {
       return null;
     }
-    if (count >= maxCount) {
+    if (count <= 0) {
       return RetryDecision.abort();
     }
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      count++;
+      count--;
     }
     return decision;
   }
 
   @Override
   public String toString() {
-    return "CountLimitedPartialRetryPredicate{" + "maxCount=" + maxCount + ", wrapped=" + wrapped
+    return "CountLimitedPartialRetryPredicate{wrapped=" + wrapped
             + ", count=" + count + '}';
   }
 

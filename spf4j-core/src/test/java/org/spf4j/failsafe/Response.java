@@ -23,7 +23,9 @@ import java.util.Objects;
  */
 public final class Response {
 
-  enum Type {OK, REDIRECT, RETRY_LATER, TRANSIENT_ERROR, CLIENT_ERROR, ERROR}
+  enum Type {
+    OK, REDIRECT, RETRY_LATER, TRANSIENT_ERROR, CLIENT_ERROR, ERROR
+  }
 
   private final Type type;
 
@@ -46,7 +48,7 @@ public final class Response {
   public int hashCode() {
     int hash = 7;
     hash = 43 * hash + Objects.hashCode(this.type);
-    return  43 * hash + Objects.hashCode(this.payload);
+    return 43 * hash + Objects.hashCode(this.payload);
   }
 
   @Override

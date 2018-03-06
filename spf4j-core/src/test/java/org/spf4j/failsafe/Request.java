@@ -13,22 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.failsafe.concurrent;
-
-import org.spf4j.concurrent.DefaultExecutor;
+package org.spf4j.failsafe;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public final class DefaultRetryExecutor {
+public final class Request {
 
-  private DefaultRetryExecutor() { }
+  private final String url;
 
-  private static final RetryExecutor R_EXEC = new RetryExecutor(DefaultExecutor.instance(), null);
+  private final long deadlineMSEpoch;
 
-  public static RetryExecutor instance() {
-    return R_EXEC;
+
+  public Request(final String url, final long deadlineMSEpoch) {
+    this.url = url;
+    this.deadlineMSEpoch = deadlineMSEpoch;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public long getDeadlineMSEpoch() {
+    return deadlineMSEpoch;
+  }
+
+  @Override
+  public String toString() {
+    return "Request{" + "url=" + url + ", deadlineMSEpoch=" + deadlineMSEpoch + '}';
   }
 
 }

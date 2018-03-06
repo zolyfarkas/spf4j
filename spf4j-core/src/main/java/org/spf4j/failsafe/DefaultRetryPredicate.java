@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,9 +25,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Zoltan Farkas
  */
-class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
+final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RetryPredicate.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryPredicate.class);
 
   private final Function<Object, RetryDelaySupplier> defaultBackoffSupplier;
 
@@ -34,7 +35,7 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   DefaultRetryPredicate(
           final Supplier<Function<Object, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
-          final Supplier<PartialRetryPredicate<T, Callable<T>>> ... predicates) {
+          final Supplier<PartialRetryPredicate<T, Callable<T>>>... predicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     this.predicates = new PartialRetryPredicate[predicates.length];
     for (int i = 0; i < predicates.length; i++) {
@@ -66,7 +67,7 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
   }
 
   @Override
-  public RetryDecision<T, Callable<T>> getExceptionDecision(Exception value, Callable<T> what) {
+  public RetryDecision<T, Callable<T>> getExceptionDecision(final Exception value, final Callable<T> what) {
     for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
       RetryDecision<T, Callable<T>> decision = predicate.getExceptionDecision(value, what);
       if (decision != null) {
@@ -87,5 +88,13 @@ class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
     return RetryDecision.abort();
 
   }
+
+  @Override
+  public String toString() {
+    return "DefaultRetryPredicate{" + "defaultBackoffSupplier="
+            + defaultBackoffSupplier + ", predicates=" + Arrays.toString(predicates) + '}';
+  }
+
+
 
 }

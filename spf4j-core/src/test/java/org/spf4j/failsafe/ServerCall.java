@@ -22,13 +22,13 @@ import org.spf4j.base.Timing;
  *
  * @author Zoltan Farkas
  */
-public class ServerCall implements Callable<Response> {
+public final class ServerCall implements Callable<Response> {
 
   private final Server server;
 
   private final Request request;
 
-  public ServerCall(Server server, Request request) {
+  public ServerCall(final Server server, final Request request) {
     this.server = server;
     this.request = request;
   }

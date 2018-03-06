@@ -15,24 +15,26 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A randomizing Backoff strategy.
  * @author Zoltan Farkas
  */
-public class JitteredDelaySupplier implements RetryDelaySupplier {
+final class JitteredDelaySupplier implements RetryDelaySupplier {
 
   private final RetryDelaySupplier wrapped;
 
   private final double jitterFactor;
 
-  public JitteredDelaySupplier(final RetryDelaySupplier wrapped, final double jitterFactor) {
+  JitteredDelaySupplier(final RetryDelaySupplier wrapped, final double jitterFactor) {
     this.wrapped = wrapped;
     this.jitterFactor = jitterFactor;
   }
 
   @Override
+  @SuppressFBWarnings("PREDICTABLE_RANDOM") // we can use predicatable randoms here
   public long nextDelay() {
     long nextDelay = wrapped.nextDelay();
     if (nextDelay > 1) {
@@ -45,7 +47,7 @@ public class JitteredDelaySupplier implements RetryDelaySupplier {
 
   @Override
   public String toString() {
-    return "RandomizedBackoff{" + "wrapped=" + wrapped + '}';
+    return "JitteredDelaySupplier{" + "wrapped=" + wrapped + '}';
   }
 
 }

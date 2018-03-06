@@ -23,10 +23,10 @@ import java.util.function.Function;
  *
  * @author Zoltan Farkas
  */
-public class Server {
+public final class Server {
 
 
-  public final Map<String, Function<Request, Response>> responses;
+  private final Map<String, Function<Request, Response>> responses;
 
   private volatile Exception breakException;
 
@@ -38,7 +38,7 @@ public class Server {
     breakException = ex;
   }
 
-  public void setResponse(String url, Function<Request, Response> response) {
+  public void setResponse(final String url, final Function<Request, Response> response) {
     responses.put(url, response);
   }
 
@@ -59,6 +59,12 @@ public class Server {
       return resp;
     }
   }
+
+  @Override
+  public String toString() {
+    return "Server{" + "responses=" + responses + ", breakException=" + breakException + '}';
+  }
+
 
 
 }

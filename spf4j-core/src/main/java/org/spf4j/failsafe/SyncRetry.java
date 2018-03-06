@@ -33,7 +33,6 @@ package org.spf4j.failsafe;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -41,11 +40,11 @@ import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
 
 /**
- *
  * @author Zoltan Farkas
  */
-public final class Retry {
+public final class SyncRetry {
 
+  private SyncRetry() { }
 
   /**
    * Naive implementation of execution with retry logic. a callable will be executed and retry attempted in current
@@ -55,7 +54,6 @@ public final class Retry {
    * @param <T> - The type of callable to retry result;
    * @param <EX> - the exception thrown by the callable to retry.
    * @param pwhat - the callable to retry.
-   * @param retryOnException - the predicate to return on retry value.
    * @return the result of the retried callable if successful.
    * @throws java.lang.InterruptedException - thrown if retry interrupted.
    * @throws EX - the exception thrown by callable.

@@ -21,17 +21,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- *
  * @author Zoltan Farkas
  */
-public class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPredicate<T, C> {
+final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPredicate<T, C> {
 
   private final RetryPredicate<T, C> predicate;
 
 
   private final DeadlineSupplier<C> deadlineSupplier;
 
-  public TimeoutRetryPredicate(final RetryPredicate<T, C> predicate, final DeadlineSupplier<C> deadlineSupplier) {
+  TimeoutRetryPredicate(final RetryPredicate<T, C> predicate, final DeadlineSupplier<C> deadlineSupplier) {
     this.predicate = predicate;
     this.deadlineSupplier = deadlineSupplier;
   }
@@ -51,7 +50,7 @@ public class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPre
   }
 
   @Override
-  public RetryDecision<T, C> getExceptionDecision(Exception value, C what) {
+  public RetryDecision<T, C> getExceptionDecision(final Exception value, final C what) {
     RetryDecision<T, C> decision = predicate.getExceptionDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(
@@ -64,6 +63,11 @@ public class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPre
       }
     }
     return decision;
+  }
+
+  @Override
+  public String toString() {
+    return "TimeoutRetryPredicate{" + "predicate=" + predicate + ", deadlineSupplier=" + deadlineSupplier + '}';
   }
 
 }

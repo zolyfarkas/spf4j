@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.Callable;
@@ -40,9 +41,9 @@ import org.spf4j.test.log.LogMatchers;
 import org.spf4j.test.log.TestLoggers;
 
 /**
- *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public class RetryPolicyTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPolicyTest.class);
@@ -97,7 +98,7 @@ public class RetryPolicyTest {
     testASyncRetry(server, rp, response1);
   }
 
-  public RetryPolicy<Response, ServerCall> buildRetryPolicy() {
+  public final  RetryPolicy<Response, ServerCall> buildRetryPolicy() {
     return RetryPolicy.<Response, ServerCall>newBuilder()
             .withDeadlineSupplier((c) -> c.getDeadlineNanos())
             .retryPredicateBuilder()
@@ -132,9 +133,9 @@ public class RetryPolicyTest {
             .build();
   }
 
-  public void testSyncRetry(Server server, RetryPolicy<Response, ServerCall> rp,
-          Response response1)
-          throws InterruptedException, TimeoutException, ExecutionException, InterruptedException, IOException {
+  public final void testSyncRetry(final Server server, final RetryPolicy<Response, ServerCall> rp,
+          final Response response1)
+          throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;
     ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
     long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());
@@ -180,9 +181,9 @@ public class RetryPolicyTest {
     retryExpect4.assertObservation();
   }
 
-  public void testASyncRetry(Server server, RetryPolicy<Response, ServerCall> rp,
-          Response response1)
-          throws InterruptedException, TimeoutException, ExecutionException, InterruptedException, IOException {
+  public final void testASyncRetry(final Server server, final RetryPolicy<Response, ServerCall> rp,
+          final Response response1)
+          throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;
     ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
     long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());

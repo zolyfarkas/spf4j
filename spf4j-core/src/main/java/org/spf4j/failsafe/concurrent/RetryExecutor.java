@@ -31,10 +31,8 @@
  */
 package org.spf4j.failsafe.concurrent;
 
-import org.spf4j.concurrent.*;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.Closeable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.DelayQueue;
@@ -51,6 +49,8 @@ import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.RetryPredicate;
 import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.FutureBean;
 
 /**
  * Executor that will call Callables with retry. This executor cannot be used inside a Completion service.
@@ -58,7 +58,7 @@ import org.spf4j.base.TimeSource;
  *
  * @author zoly
  */
-public class RetryExecutor implements AutoCloseable {
+public final class RetryExecutor implements AutoCloseable {
 
   private final ExecutorService executionService;
   private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
@@ -310,13 +310,17 @@ public class RetryExecutor implements AutoCloseable {
     this.completionQueue = completionQueue;
   }
 
-  public final void close() throws InterruptedException {
+  public void close() throws InterruptedException {
     shutdownRetryManager();
     try {
       this.retryManagerFuture.get();
     } catch (ExecutionException ex) {
       throw new UncheckedExecutionException(ex);
     }
+  }
+
+  public void initiateClose() {
+    shutdownRetryManager();
   }
 
   private FutureBean<?> createFutureBean() {
@@ -332,14 +336,14 @@ public class RetryExecutor implements AutoCloseable {
     }
   }
 
-  public final <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPolicy<A, C> policy) {
+  public <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPolicy<A, C> policy) {
     FutureBean<?> result = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, null,
             policy.getRetryPredicate()));
     return (Future<A>) result;
   }
 
-  public final <A> Future<A> submit(final Runnable task, final A result,
+  public <A> Future<A> submit(final Runnable task, final A result,
           final RetryPolicy<A, Callable<A>> policy) {
     FutureBean<?> resultFuture = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, resultFuture, null,
@@ -347,13 +351,22 @@ public class RetryExecutor implements AutoCloseable {
     return (Future<A>) resultFuture;
   }
 
-  public final Future<?> submit(final Runnable task, final RetryPolicy<Void, Callable<Void>> policy) {
+  public Future<?> submit(final Runnable task, final RetryPolicy<Void, Callable<Void>> policy) {
     return submit(task, null, policy);
   }
 
-  public final void execute(final Runnable command, final RetryPolicy<Void, Callable<Void>> policy) {
+  public void execute(final Runnable command, final RetryPolicy<Void, Callable<Void>> policy) {
     executionService.execute(new RetryableCallable(command, null, null, null,
             policy.getRetryPredicate()));
   }
+
+  @Override
+  public String toString() {
+    return "RetryExecutor{" + "executionService=" + executionService + ", executionEvents=" + executionEvents
+            + ", retryManager=" + retryManager + ", retryManagerFuture=" + retryManagerFuture
+            + ", completionQueue=" + completionQueue + ", sync=" + sync + '}';
+  }
+
+
 
 }

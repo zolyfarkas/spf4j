@@ -176,7 +176,7 @@ public interface RetryDecision<T, C extends Callable<T>> {
    };
   }
 
-  public enum Type {
+  enum Type {
     /** Do not retry operation*/
     Abort,
     /** Retry operation */
