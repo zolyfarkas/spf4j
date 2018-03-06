@@ -139,14 +139,15 @@ public final class Throwables {
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public boolean test(final Throwable t) {
       Throwable rootCause = com.google.common.base.Throwables.getRootCause(t);
-      if (rootCause instanceof RuntimeException) {
+      if (rootCause instanceof RuntimeException && !rootCause.getClass().getName().contains("Transient")) {
         return false;
       }
       Throwable e = Throwables.firstCause(t,
               (ex) -> (ex instanceof SQLTransientException
               || ex instanceof SQLRecoverableException
               || ex instanceof SocketException
-              || ex instanceof TimeoutException));
+              || ex instanceof TimeoutException
+              || ex.getClass().getName().contains("Transient")));
       return e != null;
     }
   };
