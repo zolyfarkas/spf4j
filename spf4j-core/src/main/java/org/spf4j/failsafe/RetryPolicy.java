@@ -43,6 +43,7 @@ import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.concurrent.DefaultContextAwareRetryExecutor;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 
@@ -53,13 +54,22 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class RetryPolicy<T, C extends Callable<T>> {
 
+  private static final Supplier<? extends PartialRetryPredicate<?, ?>> DEFAULT_TRANSIENT
+          = () -> new PartialExceptionRetryPredicate() {
+    @Override
+    public RetryDecision getExceptionDecision(Exception value, Callable what) {
+      return Throwables.isRetryable(value) ? RetryDecision.retryDefault(what) : null;
+    }
+  };
+
+
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
   private final Supplier<RetryExecutor> execSupplier;
 
   private final int maxExceptionChain;
 
-  public RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
+  private RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
           final Supplier<RetryExecutor> execSupplier,
           final int maxExceptionChain) {
     this.retryPredicate = retryPredicate;
@@ -101,7 +111,8 @@ public final class RetryPolicy<T, C extends Callable<T>> {
 
     public final class PredicateBuilder {
 
-      private final List<Supplier<? extends PartialRetryPredicate<T, C>>> predicates = new ArrayList<>(2);
+
+      private final List<Supplier<? extends PartialRetryPredicate<T, C>>> predicates;
 
       private Consumer<Supplier<RetryPredicate<T, C>>> consumer;
 
@@ -119,6 +130,13 @@ public final class RetryPolicy<T, C extends Callable<T>> {
         this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
         this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;
         this.jitterFactor = 0.2;
+        this.predicates = new ArrayList<>();
+      }
+
+    @CheckReturnValue
+      public PredicateBuilder withDefaultThrowableRetryPredicate() {
+        predicates.add((Supplier) DEFAULT_TRANSIENT);
+        return this;
       }
 
       @CheckReturnValue

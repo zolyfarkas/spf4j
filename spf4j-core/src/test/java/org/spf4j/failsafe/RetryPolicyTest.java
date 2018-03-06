@@ -30,7 +30,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultContextAwareExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -45,6 +44,8 @@ import org.spf4j.test.log.TestLoggers;
  */
 @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public class RetryPolicyTest {
+
+  public static final String PREDICATE_CLASS = DefaultRetryPredicate.class.getName();
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPolicyTest.class);
 
@@ -62,7 +63,8 @@ public class RetryPolicyTest {
 
   @Test(expected = IOException.class)
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
-    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder().build();
+    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder()
+            .build();
     rp.call(() -> {
       throw new IOException();
     }, IOException.class);
@@ -102,8 +104,7 @@ public class RetryPolicyTest {
     return RetryPolicy.<Response, ServerCall>newBuilder()
             .withDeadlineSupplier((c) -> c.getDeadlineNanos())
             .retryPredicateBuilder()
-            .withExceptionPartialPredicate((t, sc)
-                    -> Throwables.getIsRetryablePredicate().test(t) ? RetryDecision.retryDefault(sc) : null)
+            .withDefaultThrowableRetryPredicate()
             .withResultPartialPredicate((resp, sc) -> {
               switch (resp.getType()) {
                 case CLIENT_ERROR:
@@ -140,7 +141,7 @@ public class RetryPolicyTest {
     ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
     long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());
     LOG.info("Timeout = {}", timeoutms);
-    LogAssert retryExpect = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG,
+    LogAssert retryExpect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG,
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")));
     Response resp
@@ -148,7 +149,7 @@ public class RetryPolicyTest {
     Assert.assertEquals(response1, resp);
     retryExpect.assertObservation();
     server.breakException(new SocketException("Bla bla"));
-    LogAssert retryExpect2 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+    LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")));
     try {
@@ -164,7 +165,7 @@ public class RetryPolicyTest {
     rp.call(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class);
     submit.get();
     // Test error response
-    LogAssert retryExpect3 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+    LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
     Response er = rp.call(new ServerCall(server,
@@ -172,7 +173,7 @@ public class RetryPolicyTest {
     Assert.assertEquals("boooo", er.getPayload());
     retryExpect3.assertObservation();
     // Test error response the second type, to make sure predicate state is handled correctly
-    LogAssert retryExpect4 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+    LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
     Response er2 = rp.call(new ServerCall(server,
@@ -188,14 +189,14 @@ public class RetryPolicyTest {
     ServerCall serverCall = new ServerCall(server, new Request("url2", deadlineMillis));
     long timeoutms = TimeUnit.NANOSECONDS.toMillis(serverCall.getDeadlineNanos() - TimeSource.nanoTime());
     LOG.info("Timeout = {}", timeoutms);
-    LogAssert retryExpect = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG,
+    LogAssert retryExpect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG,
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")));
     Response resp = rp.submit(serverCall).get();
     Assert.assertEquals(response1, resp);
     retryExpect.assertObservation();
     server.breakException(new SocketException("Bla bla"));
-    LogAssert retryExpect2 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+    LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")));
     try {
@@ -212,7 +213,7 @@ public class RetryPolicyTest {
     rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000))).get();
     submit.get();
     // Test error response
-    LogAssert retryExpect3 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+    LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
     Response er = rp.submit(new ServerCall(server,
@@ -220,7 +221,7 @@ public class RetryPolicyTest {
     Assert.assertEquals("boooo", er.getPayload());
     retryExpect3.assertObservation();
     // Test error response the second type, to make sure predicate state is handled correctly
-    LogAssert retryExpect4 = TestLoggers.sys().expect("org.spf4j.failsafe.RetryPredicate", Level.DEBUG, 3,
+    LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"));
     Response er2 = rp.submit(new ServerCall(server,
