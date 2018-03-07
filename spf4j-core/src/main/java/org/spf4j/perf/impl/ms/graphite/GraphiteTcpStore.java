@@ -44,9 +44,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.net.SocketFactory;
-import org.spf4j.base.Handler;
+import org.spf4j.base.HandlerNano;
+import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.ms.Id2Info;
@@ -146,7 +148,8 @@ public final class GraphiteTcpStore implements MeasurementStore {
           final long timeStampMillis, final long... measurements) throws IOException {
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
-              socketWriterSupplier, 3, 1000, 60000, IOException.class);
+              1, TimeUnit.MINUTES,
+              socketWriterSupplier, RetryPolicy.DEFAULT, IOException.class);
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       return;
@@ -169,7 +172,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
     }
   }
 
-  private static class HandlerImpl implements Handler<Writer, IOException> {
+  private static class HandlerImpl implements HandlerNano<Writer, Void, IOException> {
 
     private final long[] measurements;
     private final MeasurementsInfo measurementInfo;
@@ -183,12 +186,13 @@ public final class GraphiteTcpStore implements MeasurementStore {
     }
 
     @Override
-    public void handle(final Writer socketWriter, final long deadline) throws IOException {
+    public Void handle(final Writer socketWriter, final long deadline) throws IOException {
       for (int i = 0; i < measurements.length; i++) {
         writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),
                 measurements[i], timeStampMillis, socketWriter);
       }
       socketWriter.flush();
+      return null;
     }
   }
 

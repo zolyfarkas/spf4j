@@ -40,5 +40,5 @@ public interface Handler<T, E extends Exception> {
     // CHECKSTYLE:OFF -- checkstyle does not seem to handle generic exceptions
     void handle(T object, long deadlineMillis) throws E;
     // CHECKSTYLE:ON
-    
+
 }

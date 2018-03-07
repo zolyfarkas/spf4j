@@ -44,9 +44,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.spf4j.base.Handler;
+import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Strings;
+import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
@@ -146,7 +148,8 @@ public final class GraphiteUdpStore implements MeasurementStore {
 
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
-              datagramChannelSupplier, 3, 1000, 60000, IOException.class);
+              1, TimeUnit.MINUTES,
+              datagramChannelSupplier, RetryPolicy.DEFAULT, IOException.class);
     } catch (TimeoutException ex) {
       throw new UncheckedTimeoutException(ex);
     } catch (InterruptedException ex) {
@@ -192,7 +195,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
   }
 
-  private static class HandlerImpl implements Handler<DatagramChannel, IOException> {
+  private static class HandlerImpl implements HandlerNano<DatagramChannel, Void, IOException> {
 
     private final long[] measurements;
     private final MeasurementsInfo measurementInfo;
@@ -206,7 +209,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
 
     @Override
-    public void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
+    public Void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
       try (ByteArrayBuilder bos = new ByteArrayBuilder();
               OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {
 
@@ -232,6 +235,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
           datagramChannel.write(byteBuffer);
         }
       }
+      return null;
     }
   }
 

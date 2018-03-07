@@ -61,6 +61,8 @@ public final class RetryPolicy<T, C extends Callable<T>> {
     }
   };
 
+  public static final RetryPolicy DEFAULT = RetryPolicy.newBuilder().withDefaultThrowableRetryPredicate().build();
+
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
   private final Supplier<RetryExecutor> execSupplier;

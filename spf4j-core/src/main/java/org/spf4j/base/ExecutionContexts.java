@@ -120,6 +120,10 @@ public final class ExecutionContexts {
     return start("anon", null, timeout, tu);
   }
 
+  public static ExecutionContext start(final String opname) {
+    return start(opname, null, DEFAULT_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);
+  }
+
   public static ExecutionContext start(final String opname, final long timeout, final TimeUnit tu) {
     return start(opname, null, timeout, tu);
   }

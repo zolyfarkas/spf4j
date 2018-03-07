@@ -36,7 +36,9 @@ import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Template;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  *
@@ -56,7 +58,8 @@ public final class TestCallable implements Callable<Integer> {
     public Integer call() throws IOException, InterruptedException, TimeoutException {
         Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
           object.doStuff();
-        }, pool, 5, 1000, 60000, IOException.class);
+          return null;
+        }, 1, TimeUnit.MINUTES, pool, RetryPolicy.DEFAULT, IOException.class);
         return testNr;
     }
 
