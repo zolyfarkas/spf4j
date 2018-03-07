@@ -56,7 +56,7 @@ public final class RetryPolicy<T, C extends Callable<T>> {
   private static final Supplier<? extends PartialRetryPredicate<?, ?>> DEFAULT_TRANSIENT
           = () -> new PartialExceptionRetryPredicate() {
     @Override
-    public RetryDecision getExceptionDecision(Exception value, Callable what) {
+    public RetryDecision getExceptionDecision(final Exception value, final Callable what) {
       return Throwables.isRetryable(value) ? RetryDecision.retryDefault(what) : null;
     }
   };
