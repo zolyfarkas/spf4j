@@ -38,7 +38,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
           final Supplier<PartialRetryPredicate<T, Callable<T>>>... predicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     this.predicates = new PartialRetryPredicate[predicates.length];
-    for (int i = 0; i < predicates.length; i++) {
+    for (int i = 0, l = predicates.length; i < l; i++) {
       this.predicates[i] = predicates[i].get();
     }
   }
