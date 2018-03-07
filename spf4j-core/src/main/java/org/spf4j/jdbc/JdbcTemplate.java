@@ -37,14 +37,16 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.sql.DataSource;
-import org.spf4j.base.CallablesNano;
-import org.spf4j.base.CallablesNanoNonInterrupt;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.JavaUtils;
 import org.spf4j.base.TimeSource;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  * A very simple JdbTemplate.
@@ -64,8 +66,17 @@ public final class JdbcTemplate {
 
   private final DataSource dataSource;
 
+  private final RetryPolicy<Object, Callable<Object>> retryPolicy;
+
   public JdbcTemplate(final DataSource dataSource) {
+    this(dataSource, RetryPolicy.newBuilder()
+            .withDefaultThrowableRetryPredicate()
+            .build());
+  }
+
+  public JdbcTemplate(final DataSource dataSource, final RetryPolicy<Object, Callable<Object>> retryPolicy) {
     this.dataSource = dataSource;
+    this.retryPolicy = retryPolicy;
   }
 
   public static void checkJdbcObjectName(final CharSequence name) {
@@ -79,60 +90,17 @@ public final class JdbcTemplate {
   public <R> R transactOnConnection(final HandlerNano<Connection, R, SQLException> handler,
           final long timeout, final TimeUnit tu)
           throws SQLException, InterruptedException {
-    try {
-      return CallablesNano.executeWithRetry(
-              new CallablesNano.NanoTimeoutCallable<R, SQLException>(tu.toNanos(timeout)) {
-
-                @Override
-                // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
-                @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-                public R call(final long deadlineNanos)
-                        throws SQLException {
-                  try (Connection conn = dataSource.getConnection()) {
-                    boolean autocomit = conn.getAutoCommit();
-                    if (autocomit) {
-                      conn.setAutoCommit(false);
-                    }
-                    try {
-                      R result = handler.handle(conn, deadlineNanos);
-                      conn.commit();
-                      return result;
-                    } catch (SQLException | RuntimeException ex) {
-                      conn.rollback();
-                      throw ex;
-                    } finally {
-                      if (autocomit) {
-                        conn.setAutoCommit(true);
-                      }
-                    }
-                  }
-                }
-              }, 2, 1000, SQLException.class);
-    } catch (TimeoutException ex) {
-      throw new SQLTimeoutException(ex);
-    }
-
-  }
-
-  @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
-  public <R> R transactOnConnectionNonInterrupt(final HandlerNano<Connection, R, SQLException> handler,
-          final long timeout, final TimeUnit tu)
-          throws SQLException {
-      return CallablesNanoNonInterrupt.executeWithRetry(
-              new CallablesNano.NanoTimeoutCallable<R, SQLException>(tu.toNanos(timeout)) {
-
+    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {
+      return retryPolicy.call(new Callable<R>() {
         @Override
-        // CHECKSTYLE IGNORE RedundantThrows FOR NEXT 100 LINES
-        @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
-        public R call(final long deadlineNanos)
-                throws SQLException {
+        public R call() throws SQLException {
           try (Connection conn = dataSource.getConnection()) {
             boolean autocomit = conn.getAutoCommit();
             if (autocomit) {
               conn.setAutoCommit(false);
             }
             try {
-              R result = handler.handle(conn, deadlineNanos);
+              R result = handler.handle(conn, ctx.getDeadlineNanos());
               conn.commit();
               return result;
             } catch (SQLException | RuntimeException ex) {
@@ -145,7 +113,21 @@ public final class JdbcTemplate {
             }
           }
         }
-      }, 2, 1000, SQLException.class);
+      }, SQLException.class);
+    } catch (TimeoutException ex) {
+      throw new SQLTimeoutException(ex);
+    }
+  }
+
+  @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
+  public <R> R transactOnConnectionNonInterrupt(final HandlerNano<Connection, R, SQLException> handler,
+          final long timeout, final TimeUnit tu)
+          throws SQLException {
+    try {
+      return transactOnConnection(handler, timeout, tu);
+    } catch (InterruptedException ex) {
+      throw new SQLException(ex);
+    }
   }
 
 

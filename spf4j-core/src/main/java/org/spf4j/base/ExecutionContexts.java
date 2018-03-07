@@ -51,8 +51,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ParametersAreNonnullByDefault
 public final class ExecutionContexts {
 
-  public static final long DEFAULT_TIMEOUT_NANOS =
-          Long.getLong("spf4j.execContext.defaultTimeoutNanos", TimeUnit.HOURS.toNanos(8));
+  public static final long DEFAULT_TIMEOUT_NANOS
+          = Long.getLong("spf4j.execContext.defaultTimeoutNanos", TimeUnit.HOURS.toNanos(8));
 
   private ExecutionContexts() {
   }
@@ -65,7 +65,7 @@ public final class ExecutionContexts {
     String factoryClass = System.getProperty("spf4j.execContentFactoryClass");
     ExecutionContextFactory<ExecutionContext> factory;
     if (factoryClass == null) {
-      factory =  new BasicExecutionContextFactory();
+      factory = new BasicExecutionContextFactory();
     } else {
       try {
         factory = ((Class<ExecutionContextFactory<ExecutionContext>>) Class.forName(factoryClass)).newInstance();
@@ -78,8 +78,8 @@ public final class ExecutionContexts {
       try {
         factory = (ExecutionContextFactory<ExecutionContext>) Class.forName(factoryWrapperClass)
                 .getConstructor(ExecutionContextFactory.class).newInstance(factory);
-       } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-               | NoSuchMethodException | InvocationTargetException ex) {
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+              | NoSuchMethodException | InvocationTargetException ex) {
         throw new ExceptionInInitializerError(ex);
       }
     }
@@ -117,11 +117,15 @@ public final class ExecutionContexts {
    * @return
    */
   public static ExecutionContext start(final long timeout, final TimeUnit tu) {
-    return start(TimeSource.getDeadlineNanos(timeout, tu));
+    return start("anon", null, timeout, tu);
+  }
+
+  public static ExecutionContext start(final String opname, final long timeout, final TimeUnit tu) {
+    return start(opname, null, timeout, tu);
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
-    return start(parent, TimeSource.getDeadlineNanos(timeout, tu));
+    return start("anon", parent, timeout, tu);
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent) {
@@ -143,15 +147,33 @@ public final class ExecutionContexts {
   }
 
   public static ExecutionContext start(final String name,
-          @Nullable final ExecutionContext parent, final long deadlineNanos) {
-    ExecutionContext xCtx = EXEC_CTX.get();
+          @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+    ExecutionContext localCtx = EXEC_CTX.get();
     ExecutionContext nCtx;
-    if (xCtx == null) {
+    if (localCtx == null) {
       nCtx = CTX_FACTORY.startThreadRoot(name, parent,
-            deadlineNanos, () -> ExecutionContexts.setCurrent(null));
+              computeDeadline(parent, tu, timeout), () -> ExecutionContexts.setCurrent(null));
+    } else if (parent == null) {
+      nCtx = CTX_FACTORY.start(name, localCtx, computeDeadline(localCtx, tu, timeout),
+              () -> ExecutionContexts.setCurrent(localCtx));
     } else {
-      nCtx = CTX_FACTORY.start(name, parent == null ? xCtx : parent,
-            deadlineNanos, () -> ExecutionContexts.setCurrent(xCtx));
+      nCtx = CTX_FACTORY.start(name, parent, computeDeadline(parent, tu, timeout),
+              () -> ExecutionContexts.setCurrent(localCtx));
+    }
+    EXEC_CTX.set(nCtx);
+    return nCtx;
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent, final long deadlineNanos) {
+    ExecutionContext localCtx = EXEC_CTX.get();
+    ExecutionContext nCtx;
+    if (localCtx == null) {
+      nCtx = CTX_FACTORY.startThreadRoot(name, parent,
+              deadlineNanos, () -> ExecutionContexts.setCurrent(null));
+    } else {
+      nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent,
+              deadlineNanos, () -> ExecutionContexts.setCurrent(localCtx));
     }
     EXEC_CTX.set(nCtx);
     return nCtx;
@@ -195,16 +217,22 @@ public final class ExecutionContexts {
     }
   }
 
-  public static long computeDeadline(final ExecutionContext current, final TimeUnit unit, final long timeout) {
+  public static long computeDeadline(@Nullable final ExecutionContext current,
+          final TimeUnit unit, final long timeout) {
+    if (current == null) {
+      return TimeSource.getDeadlineNanos(timeout, unit);
+    }
     long nanoTime = TimeSource.nanoTime();
     long ctxDeadlinenanos = current.getDeadlineNanos();
     long timeoutNanos = unit.toNanos(timeout);
     return (ctxDeadlinenanos - nanoTime < timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;
   }
 
-
-  public static TimeoutDeadline computeTimeoutDeadline(final ExecutionContext current,
+  public static TimeoutDeadline computeTimeoutDeadline(@Nullable final ExecutionContext current,
           final TimeUnit unit, final long timeout) throws TimeoutException {
+    if (current == null) {
+      return TimeoutDeadline.of(unit.toNanos(timeout), TimeSource.getDeadlineNanos(timeout, unit));
+    }
     long nanoTime = TimeSource.nanoTime();
     long ctxDeadlinenanos = current.getDeadlineNanos();
     long timeoutNanos = unit.toNanos(timeout);
@@ -213,7 +241,6 @@ public final class ExecutionContexts {
             ? TimeoutDeadline.of(contextTimeoutNanos, ctxDeadlinenanos)
             : TimeoutDeadline.of(timeoutNanos, nanoTime + timeoutNanos);
   }
-
 
   private static class BasicExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
 
@@ -236,26 +263,25 @@ public final class ExecutionContexts {
 
   public static <T> Collection<? extends Callable<T>> propagatingCallables(
           final Collection<? extends Callable<T>> tasks) {
-        ExecutionContext current = current();
-        return current == null ? tasks : propagatingCallables(tasks, current);
+    ExecutionContext current = current();
+    return current == null ? tasks : propagatingCallables(tasks, current);
   }
 
   public static <T> Collection<? extends Callable<T>> propagatingCallables(
           final Collection<? extends Callable<T>> tasks,
           final ExecutionContext ctx) {
     return tasks.stream().map(
-              (c) -> new PropagatingCallable<>(c, ctx))
-              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
+            (c) -> new PropagatingCallable<>(c, ctx))
+            .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
   }
 
   public static <T> Collection<? extends Callable<T>> deadlinedPropagatingCallables(
           final Collection<? extends Callable<T>> tasks,
           final ExecutionContext ctx, final long deadlineNanos) {
     return tasks.stream().map(
-              (c) -> new DeadlinedPropagatingCallable<>(c, ctx, deadlineNanos))
-              .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
+            (c) -> new DeadlinedPropagatingCallable<>(c, ctx, deadlineNanos))
+            .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
   }
-
 
   public static <T> Callable<T> deadlinedPropagatingCallable(final Callable<T> callable,
           final ExecutionContext ctx, final long deadlineNanos) {
@@ -310,7 +336,6 @@ public final class ExecutionContexts {
     }
   }
 
-
   private static final class PropagatingRunnable implements Runnable {
 
     private final Runnable task;
@@ -328,8 +353,5 @@ public final class ExecutionContexts {
       }
     }
   }
-
-
-
 
 }

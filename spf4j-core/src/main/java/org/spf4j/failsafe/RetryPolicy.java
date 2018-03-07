@@ -75,16 +75,17 @@ public final class RetryPolicy<T, C extends Callable<T>> {
     this.execSupplier = execSupplier;
   }
 
-  public <EX extends Exception> T call(final C pwhat, final Class<EX> exceptionClass)
+  public <R extends T, W extends Callable<R>, EX extends Exception> R call(
+          final W pwhat, final Class<EX> exceptionClass)
           throws InterruptedException, TimeoutException, EX {
-    return SyncRetry.call(pwhat, getRetryPredicate(), exceptionClass, maxExceptionChain);
+    return (R) SyncRetry.call(pwhat, (RetryPredicate<R, W>) getRetryPredicate(), exceptionClass, maxExceptionChain);
   }
 
-  public Future<T> submit(final C pwhat) {
-    return execSupplier.get().submit(pwhat, this);
+  public <R extends T, W extends Callable<R>> Future<R> submit(final W pwhat) {
+    return (Future<R>) execSupplier.get().submit((Callable) pwhat, (RetryPolicy) this);
   }
 
-  public RetryPredicate<T, C> getRetryPredicate() {
+  public RetryPredicate<? extends T, ? extends C> getRetryPredicate() {
     return retryPredicate.get();
   }
 
