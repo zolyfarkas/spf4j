@@ -114,6 +114,10 @@ public final class Sampler {
     this(sampleTimeMillis, 3600000, new FastStackCollector(false));
   }
 
+  public Sampler(final int sampleTimeMillis, final StackCollector collector) {
+    this(sampleTimeMillis, 3600000, collector);
+  }
+
   public Sampler(final StackCollector collector) {
     this(10, 3600000, collector);
   }

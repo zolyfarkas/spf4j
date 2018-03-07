@@ -74,7 +74,7 @@ public final class ExecutionContextStackCollector extends AbstractStackCollector
         addSample(stackTrace);
       } else {
         addSample(new StackTraceElement[]{
-          new StackTraceElement("Thread", requestFor[i].getName(), "", 0)
+          new StackTraceElement("Thread", requestFor[j].getName(), "", 0)
         });
       }
     }

@@ -33,11 +33,13 @@ package org.spf4j.stackmonitor;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.ssdump2.Converter;
@@ -46,25 +48,42 @@ public final class SsdumpTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
 
-  @Test
-  public void testProto() throws InterruptedException, IOException {
 
+  @Test
+  public void testDumpExecContexts() throws InterruptedException, IOException {
+    System.setProperty("spf4j.execContentFactoryWrapperClass",
+            "org.spf4j.stackmonitor.ProfiledExecutionContextFactory");
+    ProfiledExecutionContextFactory contextFactory =
+            (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
+
+    Sampler sampler = new Sampler(1, new ExecutionContextStackCollector(contextFactory::getCurrentThreads));
+    sampleTest(sampler, "ecStackSample");
+  }
+
+
+  @Test
+  public void testDumpDefault() throws InterruptedException, IOException {
     Sampler sampler = new Sampler(1);
+    sampleTest(sampler, "stackSample");
+  }
+
+  public void sampleTest(final Sampler sampler, final String filename) throws InterruptedException, IOException {
     sampler.registerJmx();
     sampler.start();
     MonitorTest.main(new String[]{});
-    final File serializedFile = File.createTempFile("stackSample", ".samp");
+    final File serializedFile = File.createTempFile(filename, ".ssdump2");
     sampler.getStackCollector().applyOnSamples((final SampleNode f) -> {
       if (f != null) {
         try {
           Converter.save(serializedFile, f);
         } catch (IOException ex) {
-          throw new RuntimeException(ex);
+          throw new UncheckedIOException(ex);
         }
 
       }
       return f;
     });
+    LOG.debug("Dumped to file {}", serializedFile);
     sampler.stop();
     final SampleNode samples = Converter.load(serializedFile);
     Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
@@ -73,6 +92,5 @@ public final class SsdumpTest {
               LOG.debug("Method: {} from {}", vertex, edges);
             }, true);
     Assert.assertNotNull(graph);
-
   }
 }

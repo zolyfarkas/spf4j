@@ -48,7 +48,11 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
 
   public ProfiledExecutionContextFactory(final ExecutionContextFactory<ExecutionContext> wrapped) {
     this.wrapped = wrapped;
-    this.currentContexts = new ConcurrentSkipListMap<>();
+    this.currentContexts = new ConcurrentSkipListMap<>(ProfiledExecutionContextFactory::compare);
+  }
+
+  private static int compare(final Thread o1, final Thread o2) {
+     return Long.compare(o1.getId(), o2.getId());
   }
 
   public Iterable<Thread> getCurrentThreads() {
