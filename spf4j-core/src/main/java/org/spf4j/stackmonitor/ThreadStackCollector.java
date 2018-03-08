@@ -33,6 +33,7 @@ package org.spf4j.stackmonitor;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
+import org.spf4j.base.Threads;
 
 /**
  * A stack sample collector that collects samples only for code executed within a execution context.
@@ -40,17 +41,17 @@ import java.util.function.Supplier;
  *
  * @author Zoltan Farkas
  */
-public final class ExecutionContextStackCollector extends AbstractStackCollector {
+public final class ThreadStackCollector extends AbstractStackCollector {
 
   private final Supplier<Iterable<Thread>> threadSupplier;
 
   private Thread[] requestFor;
 
-  public ExecutionContextStackCollector(final Supplier<Iterable<Thread>> threadSupplier) {
+  public ThreadStackCollector(final Supplier<Iterable<Thread>> threadSupplier) {
     this(20, threadSupplier);
   }
 
-  public ExecutionContextStackCollector(final int maxSampledThreads,
+  public ThreadStackCollector(final int maxSampledThreads,
           final Supplier<Iterable<Thread>> threadSupplier) {
     requestFor = new Thread[maxSampledThreads];
     this.threadSupplier = threadSupplier;
@@ -67,7 +68,7 @@ public final class ExecutionContextStackCollector extends AbstractStackCollector
       }
     }
     Arrays.fill(requestFor, i, requestFor.length, null);
-    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(requestFor);
+    StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);
     for (int j = 0; j < i; j++) {
       StackTraceElement[] stackTrace = stackTraces[j];
       if (stackTrace != null && stackTrace.length > 0) {

@@ -56,7 +56,7 @@ public final class SsdumpTest {
     ProfiledExecutionContextFactory contextFactory =
             (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
 
-    Sampler sampler = new Sampler(1, new ExecutionContextStackCollector(contextFactory::getCurrentThreads));
+    Sampler sampler = new Sampler(1, new ThreadStackCollector(contextFactory::getCurrentThreads));
     sampleTest(sampler, "ecStackSample");
   }
 

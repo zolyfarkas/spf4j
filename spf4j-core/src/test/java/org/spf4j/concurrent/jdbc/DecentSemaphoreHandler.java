@@ -38,6 +38,7 @@ import java.util.concurrent.TimeoutException;
 import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Threads;
 import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
@@ -60,7 +61,7 @@ public final class DecentSemaphoreHandler {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        FastStackCollector.dumpToPrintStream(System.err);
+        Threads.dumpToPrintStream(System.err);
       }
 
     });

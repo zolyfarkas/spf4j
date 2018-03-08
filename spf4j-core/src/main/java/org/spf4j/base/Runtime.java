@@ -65,7 +65,6 @@ import org.spf4j.jmx.Registry;
 import org.spf4j.os.ProcessHandler;
 import org.spf4j.os.ProcessResponse;
 import org.spf4j.recyclable.impl.ArraySuppliers;
-import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.unix.JVMArguments;
 import org.spf4j.unix.Lsof;
 import org.spf4j.unix.UnixRuntime;
@@ -139,7 +138,7 @@ public final class Runtime {
     IS_WINDOWS = osName.startsWith("Windows");
     final boolean dumpNonDaemonThreadInfoOnShutdown = Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown");
     if (dumpNonDaemonThreadInfoOnShutdown) { // prime class...
-      PRELOADED.add(FastStackCollector.class);
+      PRELOADED.add(Threads.class);
     }
     runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
       @Override
@@ -206,7 +205,7 @@ public final class Runtime {
         }
         // print out info on all remaining non daemon threads.
         if (dumpNonDaemonThreadInfoOnShutdown) {
-          Thread[] threads = FastStackCollector.getThreads();
+          Thread[] threads = Threads.getThreads();
           Thread current = Thread.currentThread();
           boolean first = true;
           for (Thread thread : threads) {
@@ -293,7 +292,7 @@ public final class Runtime {
   }
 
   public static boolean isTestFramework() {
-    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(FastStackCollector.getThreads());
+    StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());
     for (StackTraceElement[] sts : stackTraces) {
       if (sts != null) {
         for (StackTraceElement ste : sts) {
@@ -532,7 +531,7 @@ public final class Runtime {
    */
   @Nullable
   public static Thread getMainThread() {
-    Thread[] threads = FastStackCollector.getThreads();
+    Thread[] threads = Threads.getThreads();
     for (Thread t : threads) {
       if (t.getId() == 1L) {
         return t;

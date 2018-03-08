@@ -31,20 +31,13 @@
  */
 package org.spf4j.stackmonitor;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.spf4j.base.Throwables;
+import org.spf4j.base.Threads;
 
 /**
  * This is a high performance sampling collector. The goal is for the sampling overhead to be minimal. This is better
@@ -55,9 +48,6 @@ import org.spf4j.base.Throwables;
  * @author zoly
  */
 public final class FastStackCollector extends AbstractStackCollector {
-
-  private static final MethodHandle GET_THREADS;
-  private static final MethodHandle DUMP_THREADS;
 
   private static final String[] IGNORED_THREADS = {
     "Finalizer",
@@ -103,77 +93,11 @@ public final class FastStackCollector extends AbstractStackCollector {
     this.threadFilter = threadFilter;
   }
 
-  static {
-    final java.lang.reflect.Method getThreads;
-    final java.lang.reflect.Method dumpThreads;
-    try {
-
-      getThreads = Thread.class.getDeclaredMethod("getThreads");
-      dumpThreads = Thread.class.getDeclaredMethod("dumpThreads", Thread[].class);
-    } catch (NoSuchMethodException ex) {
-      throw new ExceptionInInitializerError(ex);
-    }
-    AccessController.doPrivileged((PrivilegedAction) () -> {
-      getThreads.setAccessible(true);
-      dumpThreads.setAccessible(true);
-      return null; // nothing to return
-    });
-    MethodHandles.Lookup lookup = MethodHandles.lookup();
-    try {
-      GET_THREADS = lookup.unreflect(getThreads);
-      DUMP_THREADS = lookup.unreflect(dumpThreads);
-    } catch (IllegalAccessException ex) {
-      throw new ExceptionInInitializerError(ex);
-    }
-
-  }
-
-  public static Thread[] getThreads() {
-    try {
-      return (Thread[]) GET_THREADS.invokeExact();
-    } catch (RuntimeException | Error ex) {
-      throw ex;
-    } catch (Throwable ex) {
-      throw new UncheckedExecutionException(ex);
-    }
-  }
-
-  public static StackTraceElement[][] getStackTraces(final Thread... threads) {
-    StackTraceElement[][] stackDump;
-    try {
-      stackDump = (StackTraceElement[][]) DUMP_THREADS.invokeExact(threads);
-    } catch (RuntimeException | Error ex) {
-      throw ex;
-    } catch (Throwable ex) {
-      throw new RuntimeException(ex);
-    }
-    return stackDump;
-  }
-
-  @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // jdk printstreams are sync I don't want interleaving.
-  public static void dumpToPrintStream(final PrintStream stream) {
-    synchronized (stream) {
-      Thread[] threads = getThreads();
-      StackTraceElement[][] stackTraces = getStackTraces(threads);
-      for (int i = 0; i < threads.length; i++) {
-        StackTraceElement[] stackTrace = stackTraces[i];
-        if (stackTrace != null && stackTrace.length > 0) {
-          Thread thread = threads[i];
-          stream.println("Thread " + thread.getName());
-          try {
-            Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);
-          } catch (IOException ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      }
-    }
-  }
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void sample(final Thread ignore) {
-    Thread[] threads = getThreads();
+    Thread[] threads = Threads.getThreads();
     final int nrThreads = threads.length;
     if (requestFor.length < nrThreads) {
       requestFor = new Thread[nrThreads - 1];
@@ -186,7 +110,7 @@ public final class FastStackCollector extends AbstractStackCollector {
       }
     }
     Arrays.fill(requestFor, j, requestFor.length, null);
-    StackTraceElement[][] stackDump = getStackTraces(requestFor);
+    StackTraceElement[][] stackDump = Threads.getStackTraces(requestFor);
     for (int i = 0; i < j; i++) {
       StackTraceElement[] stackTrace = stackDump[i];
       if (stackTrace != null && stackTrace.length > 0) {

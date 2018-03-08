@@ -48,6 +48,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Threads;
 import org.spf4j.base.TimeSource;
 import org.spf4j.stackmonitor.FastStackCollector;
 
@@ -157,7 +158,7 @@ public class LifoThreadPoolExecutor2Test {
     nrExCaught += consume(futures);
     LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
             (System.currentTimeMillis() - start));
-    LOG.debug("Threads: {}", FastStackCollector.getThreads());
+    LOG.debug("Threads: {}", Threads.getThreads());
     Assert.assertEquals(i, adder.sum());
     Assert.assertEquals(nrExCaught, exNr.sum());
   }

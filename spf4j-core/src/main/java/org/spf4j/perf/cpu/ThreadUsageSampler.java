@@ -43,13 +43,13 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Threads;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
-import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
  *
@@ -126,8 +126,8 @@ public final class ThreadUsageSampler {
   @JmxExport
   public static String getCurrentAliveThreadInfo() {
     StringBuilder sb = new StringBuilder(2048);
-    Thread[] threads = FastStackCollector.getThreads();
-    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);
+    Thread[] threads = Threads.getThreads();
+    StackTraceElement[][] stackTraces = Threads.getStackTraces(threads);
     for (int i = 0; i < threads.length; i++) {
       Thread t = threads[i];
       if (t.isAlive()) {
@@ -167,10 +167,10 @@ public final class ThreadUsageSampler {
           final int peakThreadCount = TH_BEAN.getPeakThreadCount();
           cpuUsage.record(peakThreadCount);
           if (peakThreadCount > maxThreadsNr) {
-            Thread[] ths = FastStackCollector.getThreads();
+            Thread[] ths = Threads.getThreads();
             if (ths.length > PEAK_THREAD_NAMES.size()) {
               if (withStackTraces) {
-                StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(ths);
+                StackTraceElement[][] stackTraces = Threads.getStackTraces(ths);
                 PEAK_THREAD_TRACES.clear();
                 PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));
               }
