@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
@@ -88,6 +89,7 @@ final class LogConfigImpl implements LogConfig {
   }
 
   @Override
+  @Nullable
   public LogConsumer getLogConsumer(final String category, final Level level) {
     ArrayList<LogHandler> res = new ArrayList<>(2);
     res.clear();

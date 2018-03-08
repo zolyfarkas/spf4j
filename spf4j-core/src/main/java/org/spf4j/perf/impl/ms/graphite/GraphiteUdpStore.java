@@ -46,6 +46,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Strings;
 import org.spf4j.failsafe.RetryPolicy;
@@ -209,6 +210,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     }
 
     @Override
+    @Nullable
     public Void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
       try (ByteArrayBuilder bos = new ByteArrayBuilder();
               OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {

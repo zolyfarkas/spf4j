@@ -116,6 +116,7 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
+  @Nullable
   public final synchronized <K, V> V compute(@Nonnull final K key, final BiFunction<K, V, V> compute) {
     return (V) baggage.compute(key, (BiFunction) compute);
   }

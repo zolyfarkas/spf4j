@@ -121,9 +121,8 @@ final class MapExportedValue implements ExportedValue {
     }
   }
 
-
-
   @Override
+  @Nullable
   public OpenType getValueOpenType() {
     return (converter != null) ? converter.getOpenType() : null;
   }

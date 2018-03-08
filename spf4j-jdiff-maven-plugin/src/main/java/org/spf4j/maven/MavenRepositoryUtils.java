@@ -15,12 +15,13 @@
  */
 package org.spf4j.maven;
 
+import com.google.common.collect.Sets;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.aether.AbstractRepositoryListener;
@@ -83,7 +84,7 @@ public final class MavenRepositoryUtils {
     return StringUtils.quoteAndEscape(result.toString(), '\'');
   }
 
-
+  @Nonnull
   public static RepositorySystem getRepositorySystem() {
     DefaultServiceLocator serviceLocator = MavenRepositorySystemUtils.newServiceLocator();
     serviceLocator
@@ -94,11 +95,14 @@ public final class MavenRepositoryUtils {
     serviceLocator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
       @Override
       public void serviceCreationFailed(final Class<?> type, final Class<?> impl, final Throwable exception) {
-        LOG.error("Error creating service {}, {}", new Object[] {type, impl, exception});
+        LOG.error("Error creating service {}, {}", new Object[]{type, impl, exception});
       }
     });
-
-    return serviceLocator.getService(RepositorySystem.class);
+    RepositorySystem service = serviceLocator.getService(RepositorySystem.class);
+    if (service == null) {
+      throw new IllegalStateException("No repository system in " + serviceLocator);
+    }
+    return service;
   }
 
   public static RepositorySystemSession getRepositorySystemSession(final RepositorySystem system,
@@ -197,7 +201,7 @@ public final class MavenRepositoryUtils {
     DependencyResult depresult = repositorySystem
             .resolveDependencies(session, dependencyRequest);
     List<ArtifactResult> artifactResults = depresult.getArtifactResults();
-    Set<File> result = new HashSet<>(artifactResults.size());
+    Set<File> result = Sets.newHashSetWithExpectedSize(artifactResults.size());
     for (ArtifactResult ar : artifactResults) {
       result.add(ar.getArtifact().getFile());
     }

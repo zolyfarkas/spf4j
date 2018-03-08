@@ -32,6 +32,7 @@
 package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
 
@@ -84,6 +85,7 @@ public final class MinMaxAvgAccumulator
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+    @Nullable
     public synchronized long[] get() {
         if (counter == 0) {
             return null;
@@ -130,6 +132,7 @@ public final class MinMaxAvgAccumulator
     }
 
     @Override
+    @Nullable
     public synchronized MinMaxAvgAccumulator reset() {
         if (counter == 0) {
             return null;
@@ -145,6 +148,7 @@ public final class MinMaxAvgAccumulator
 
     @Override
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+    @Nullable
     public long[] getThenReset() {
         final MinMaxAvgAccumulator vals = reset();
         if (vals == null) {

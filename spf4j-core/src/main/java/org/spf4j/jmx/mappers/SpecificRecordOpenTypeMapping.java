@@ -43,6 +43,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
@@ -71,6 +72,7 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
   }
 
   @Override
+  @Nonnull
   public Object fromOpenValue(final Object openValue) throws InvalidObjectException {
     if (!(openValue instanceof CompositeData)) {
       throw new InvalidObjectException("Not a CompositeData " + openValue);

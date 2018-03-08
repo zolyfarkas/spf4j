@@ -31,6 +31,7 @@
  */
 package org.spf4j.concurrent;
 
+import com.google.common.collect.Maps;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -161,7 +162,7 @@ public final class Futures {
     Exception exception = null;
     Map<Future, Object> results;
     if (futures instanceof Collection) {
-      results = new HashMap<>(((Collection) futures).size());
+      results = Maps.newHashMapWithExpectedSize(((Collection) futures).size());
     } else {
       results = new HashMap<>();
     }

@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Zoltan Farkas
  */
@@ -39,6 +41,7 @@ final class ConsumeAllLogs implements LogHandler {
   }
 
   @Override
+  @Nullable
   public LogRecord handle(final LogRecord record) {
     return null;
   }

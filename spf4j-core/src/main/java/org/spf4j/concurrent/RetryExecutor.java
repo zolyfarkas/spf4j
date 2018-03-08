@@ -54,7 +54,10 @@ import org.spf4j.base.TimeoutRunnable;
  *
  *
  * @author zoly
+ * @deprecated use RetryPolicy.
  */
+@Deprecated
+@SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
 public class RetryExecutor {
 
   public static final
@@ -204,6 +207,7 @@ public class RetryExecutor {
 
     @Override
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
+    @Nullable
     public T call() {
       try {
         T result = callable.call();

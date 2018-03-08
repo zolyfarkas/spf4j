@@ -18,6 +18,7 @@ package org.spf4j.test.log;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -53,6 +54,7 @@ abstract class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T>
   }
 
   @Override
+  @Nullable
   public LogRecord handle(final LogRecord record) {
     synchronized (accObj) {
       acc.accept(accObj, record);

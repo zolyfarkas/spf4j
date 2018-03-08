@@ -33,6 +33,7 @@ package org.spf4j.stackmonitor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -93,6 +94,29 @@ public final class FastStackCollector extends AbstractStackCollector {
     this.threadFilter = threadFilter;
   }
 
+  /**
+   * @deprecated use Threads.getThreads
+   */
+  @Deprecated
+  public static Thread[] getThreads() {
+    return Threads.getThreads();
+  }
+
+  /**
+   * @deprecated use Threads.getStackTraces
+   */
+  @Deprecated
+  public static StackTraceElement[][] getStackTraces(final Thread... threads) {
+    return Threads.getStackTraces(threads);
+  }
+
+  /**
+   * @deprecated use Threads.dumpToPrintStream
+   */
+  @Deprecated
+  public static void dumpToPrintStream(final PrintStream stream) {
+    Threads.dumpToPrintStream(stream);
+  }
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")

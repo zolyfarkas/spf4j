@@ -1019,7 +1019,7 @@ public final class MessageFormat extends Format {
       // match up to format
       FormatInfo finfo = formats[i];
       int len = finfo.getOffset() - patternOffset;
-      if (len == 0 || Strings.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {
+      if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {
         sourceOffset += len;
         patternOffset += len;
       } else {
@@ -1063,7 +1063,7 @@ public final class MessageFormat extends Format {
       }
     }
     int len = pattern.length() - patternOffset;
-    if (len == 0 || Strings.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {
+    if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {
       pos.setIndex(sourceOffset + len);
     } else {
       pos.setErrorIndex(sourceOffset);
@@ -1111,7 +1111,7 @@ public final class MessageFormat extends Format {
    * @return An <code>Object</code> array parsed from the string. In case of error, returns null.
    * @exception NullPointerException if <code>pos</code> is null.
    */
-  @Nonnull
+  @Nullable
   public Object parseObject(String source, ParsePosition pos) {
     return parse(source, pos);
   }

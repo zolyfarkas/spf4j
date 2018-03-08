@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Implementation of an arbitrary-dimension RTree. Based on R-Trees: A Dynamic Index Structure for Spatial Searching
@@ -214,6 +215,7 @@ public final class RTree<T> {
     return delete(coords, pointDims, entry);
   }
 
+  @Nullable
   private Node findLeaf(final Node n, final float[] coords,
           final float[] dimensions, final T entry) {
     if (n.leaf) {

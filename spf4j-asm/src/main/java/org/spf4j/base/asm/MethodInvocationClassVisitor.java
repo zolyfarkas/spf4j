@@ -31,6 +31,7 @@
  */
 package org.spf4j.base.asm;
 
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,7 +39,6 @@ import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -67,7 +67,7 @@ class MethodInvocationClassVisitor extends ClassVisitor {
           final Set<Method> methods) {
     super(Opcodes.ASM5);
     this.addCaleesTo = addCaleesTo;
-    this.methodStrings = new HashMap<>(methods.size());
+    this.methodStrings = Maps.newHashMapWithExpectedSize(methods.size());
     for (Method m : methods) {
       this.methodStrings.put(TypeUtils.toString(m), m);
     }

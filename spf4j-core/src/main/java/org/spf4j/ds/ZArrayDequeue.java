@@ -52,6 +52,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Resizable-array implementation of the {@link Deque} interface. Array deques have no capacity restrictions; they grow
@@ -316,6 +317,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
     return x;
   }
 
+  @Nullable
   public E pollFirst() {
     int h = head;
     E result = elements[h]; // Element is null if deque empty
@@ -327,6 +329,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
     return result;
   }
 
+  @Nullable
   public E pollLast() {
     int t = (tail - 1) & (elements.length - 1);
     E result = elements[t];
@@ -478,6 +481,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @return the head of the queue represented by this deque, or
    * <tt>null</tt> if this deque is empty
    */
+  @Nullable
   public E poll() {
     return pollFirst();
   }

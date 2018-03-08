@@ -154,6 +154,7 @@ public interface ExecutionContext extends AutoCloseable {
   }
 
   @Beta
+  @Nullable
   <K, V> V compute(K key, BiFunction<K, V, V> compute);
 
 }

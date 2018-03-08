@@ -37,6 +37,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -285,6 +286,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
   @Override
   @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+  @Nullable
   public synchronized long[] get() {
     if (measurementCount == 0) {
       return null;
@@ -353,6 +355,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
   }
 
   @Override
+  @Nullable
   public synchronized QuantizedAccumulator reset() {
     if (measurementCount == 0) {
       return null;
@@ -404,6 +407,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
 
   @Override
   @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+  @Nullable
   public long[] getThenReset() {
     final QuantizedAccumulator vals = reset();
     if (vals == null) {

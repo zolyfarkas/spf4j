@@ -150,7 +150,7 @@ public final class RetryExecutor implements AutoCloseable {
 
   }
 
-  private class RetryableCallable<T> implements Callable<T>, Runnable {
+  private class RetryableCallable<T> implements Runnable {
 
     private volatile Callable<T> callable;
     @Nullable
@@ -182,7 +182,7 @@ public final class RetryExecutor implements AutoCloseable {
 
     @Override
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
-    public T call() {
+    public void run() {
       try {
         T result = callable.call();
         RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getDecision(result, callable);
@@ -209,7 +209,6 @@ public final class RetryExecutor implements AutoCloseable {
           default:
             throw new IllegalStateException("Invalid decision type" + decisionType);
         }
-        return null;
       } catch (Exception e) {
         RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getExceptionDecision(e, callable);
         final RetryDecision.Type decisionType = decision.getDecisionType();
@@ -241,13 +240,7 @@ public final class RetryExecutor implements AutoCloseable {
           default:
             throw new IllegalStateException("Invalid decision type" + decisionType, e);
         }
-        return null;
       }
-    }
-
-    @Override
-    public void run() {
-      call();
     }
 
     public FailedExecutionResult getPreviousResult() {

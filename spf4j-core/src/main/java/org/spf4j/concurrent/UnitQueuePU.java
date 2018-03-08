@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
+import javax.annotation.Nullable;
 import org.spf4j.base.TimeSource;
 
 /**
@@ -57,6 +58,7 @@ public final class UnitQueuePU<T> {
     this.readerThread = readerThread;
   }
 
+  @Nullable
   public T poll() {
     T result = value.getAndSet(null);
     if (result != null) {
@@ -67,6 +69,7 @@ public final class UnitQueuePU<T> {
   }
 
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  @Nullable
   public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
     T result = poll();
     if (result != null) {

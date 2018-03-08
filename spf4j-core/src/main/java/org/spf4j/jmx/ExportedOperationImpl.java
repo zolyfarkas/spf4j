@@ -38,6 +38,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import javax.management.MBeanParameterInfo;
 
 import javax.management.openmbean.OpenDataException;
@@ -176,6 +177,7 @@ final class ExportedOperationImpl implements ExportedOperation {
   }
 
   @Override
+  @Nullable
   public OpenType<?> getReturnOpenType() {
     return (resultConverter != null) ? resultConverter.getOpenType() : null;
   }

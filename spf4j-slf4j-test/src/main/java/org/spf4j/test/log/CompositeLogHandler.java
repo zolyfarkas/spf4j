@@ -20,6 +20,7 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -40,6 +41,7 @@ final class CompositeLogHandler implements LogConsumer {
     this.logHandlers = logHandlers;
   }
 
+  @Nullable
   static LogConsumer from(final List<LogHandler> logHandlers) {
     if (logHandlers.isEmpty()) {
       return null;

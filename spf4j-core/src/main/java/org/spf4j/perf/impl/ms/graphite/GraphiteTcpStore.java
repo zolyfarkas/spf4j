@@ -46,6 +46,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 import javax.net.SocketFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.failsafe.RetryPolicy;
@@ -186,6 +187,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
     }
 
     @Override
+    @Nullable
     public Void handle(final Writer socketWriter, final long deadline) throws IOException {
       for (int i = 0; i < measurements.length; i++) {
         writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),

@@ -31,6 +31,7 @@
  */
 package org.spf4j.jmx.mappers;
 
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.sun.jmx.mbeanserver.MXBeanMapping;
 import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
@@ -47,7 +48,6 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -545,7 +545,7 @@ abstract class Spf4jJMXBeanMapping implements JMXBeanMapping {
       final TabularData td = (TabularData) data;
       Map<Object, Object> result;
       if (rawType.isInterface()) {
-        result = new HashMap<>(td.values().size());
+        result = Maps.newHashMapWithExpectedSize(td.values().size());
       } else {
         try {
           result = (Map) rawType.newInstance();

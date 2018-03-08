@@ -50,6 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -611,6 +612,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   }
 
   @JmxExport(description = "get a list of all dead owners which hold permits")
+  @Nonnull
   public List<OwnerPermits> getDeadOwnerPermits(final int wishPermits) throws SQLException, InterruptedException {
     return jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
       return getDeadOwnerPermits(conn, deadlineNanos, wishPermits);

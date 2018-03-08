@@ -34,6 +34,7 @@ package org.spf4j.ds;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -65,6 +66,7 @@ public final class LinkedHashSetEx<V> extends AbstractSet<V>
   }
 
   @Override
+  @Nullable
   public V getLastValue() {
     Map.Entry<V, Object> lastEntry = map.getLastEntry();
     if (lastEntry == null) {
@@ -75,6 +77,7 @@ public final class LinkedHashSetEx<V> extends AbstractSet<V>
   }
 
   @Override
+  @Nullable
   public V pollLastValue() {
     Map.Entry<V, Object> lastEntry = map.pollLastEntry();
     if (lastEntry == null) {

@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,9 +48,12 @@ import org.spf4j.base.Callables.TimeoutRetryPredicate;
  * Utility class for executing stuff with retry logic.
  *
  * @author zoly
+ * @deprecated use RetryPolicy & co.
  */
 @ParametersAreNonnullByDefault
 @Beta
+@Deprecated
+@SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class CallablesNano {
 

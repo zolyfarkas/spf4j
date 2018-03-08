@@ -36,8 +36,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.set.hash.THashSet;
 import java.lang.reflect.Type;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.GuardedBy;
@@ -134,7 +134,7 @@ public final class CachingTypeMapSupplierWrapper<H, E extends Exception> impleme
     public Set<H> load(final Type key) throws Exception {
       synchronized (wrapped) {
         Set<ByTypeSupplier<H, E>> all = wrapped.getAll(key);
-        Set<H> result = new HashSet<>(all.size());
+        Set<H> result = new THashSet<>(all.size());
         for (ByTypeSupplier<H, E> s : all) {
           result.add(s.get(key));
         }

@@ -219,12 +219,12 @@ public final class DynamicMBeanBuilder {
    * Replace mbean registered with packageName and mbeanName with a mbean constructed by this builder.
    * @param packageName
    * @param mbeanName
-   * @return null if nothing has been done.
+   * @return the MBean that was registered.
    */
-  @Nullable
+  @Nonnull
   public ExportedValuesMBean replace(final String packageName, final String mbeanName) {
     if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
-      return null;
+      throw new IllegalArgumentException("Nothing to register " + this);
     }
     ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
     ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);
@@ -236,13 +236,13 @@ public final class DynamicMBeanBuilder {
    * register a mbean.
    * @param packageName
    * @param mbeanName
-   * @return null if nothing is done, and a dinamic bean instance that was registered otherwise.
+   * @return  and a dinamic bean instance that was registered otherwise.
    * @throws InstanceAlreadyExistsException is a instance already exists.
    */
-  @Nullable
+  @Nonnull
   public ExportedValuesMBean register(final String packageName, final String mbeanName) {
     if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
-      return null;
+      throw new IllegalArgumentException("Nothing to register " + this);
     }
     ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
     ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);

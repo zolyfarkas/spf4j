@@ -32,11 +32,14 @@
 package org.spf4j.base;
 
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 
 /**
  *
  * @author zoly
+ * @deprecated use RetryPolicy
  */
+@Deprecated
 public abstract class TimeoutRunnable<E extends Exception> extends CheckedRunnable<E>
     implements Callable<Void> {
 
@@ -64,6 +67,7 @@ public abstract class TimeoutRunnable<E extends Exception> extends CheckedRunnab
     }
 
     @Override
+    @Nullable
     public final Void call() {
         run();
         return null;

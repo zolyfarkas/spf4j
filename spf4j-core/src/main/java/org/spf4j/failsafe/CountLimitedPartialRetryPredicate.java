@@ -16,10 +16,13 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 final class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> implements PartialRetryPredicate<T, C> {
 
   private final PartialRetryPredicate<T, C> wrapped;
@@ -31,6 +34,7 @@ final class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> implemen
   }
 
   @Override
+  @Nullable
   public RetryDecision<T, C> getDecision(final T value, final C what) {
     RetryDecision<T, C> decision = wrapped.getDecision(value, what);
     if (decision == null) {
@@ -46,6 +50,7 @@ final class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> implemen
   }
 
   @Override
+  @Nullable
   public RetryDecision<T, C> getExceptionDecision(final Exception value, final C what) {
     RetryDecision<T, C> decision = wrapped.getExceptionDecision(value, what);
     if (decision == null) {

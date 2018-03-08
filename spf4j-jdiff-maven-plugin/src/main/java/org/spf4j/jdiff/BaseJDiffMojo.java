@@ -1,5 +1,6 @@
 package org.spf4j.jdiff;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.repository.RemoteRepository;
 
+@SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
 public abstract class BaseJDiffMojo
         extends AbstractMojo {
 
@@ -43,7 +45,7 @@ public abstract class BaseJDiffMojo
    * List of packages.
    */
   @Parameter(property = "includePackageNames")
-  private ArrayList<String> includePackageNames;
+  private ArrayList<String> includePackageNames = new ArrayList<>(2);
 
   @Component
   private ToolchainManager toolchainManager;

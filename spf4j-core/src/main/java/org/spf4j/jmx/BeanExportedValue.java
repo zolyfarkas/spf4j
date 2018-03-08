@@ -161,6 +161,7 @@ class BeanExportedValue implements ExportedValue<Object> {
 
 
   @Override
+  @Nullable
   public OpenType<?> getValueOpenType() {
     return (converter != null) ? converter.getOpenType() : null;
   }

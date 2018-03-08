@@ -58,7 +58,7 @@ public final class SyncRetry {
    * @throws java.lang.InterruptedException - thrown if retry interrupted.
    * @throws EX - the exception thrown by callable.
    */
-  @SuppressFBWarnings({ "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "MDM_THREAD_YIELD" })
+  @SuppressFBWarnings({ "MDM_THREAD_YIELD", "ITC_INHERITANCE_TYPE_CHECKING" })
   public static <T, EX extends Exception, C extends Callable<T>> T call(
           final C pwhat,
           final RetryPredicate<T, C> retryPredicate,
@@ -66,23 +66,23 @@ public final class SyncRetry {
           final int maxExceptionChain)
           throws InterruptedException, TimeoutException, EX {
     C what = pwhat;
-    T result = null;
-    Exception lastEx = null; // last exception
+    T result;
+    Exception lastEx; // last exception
     try {
       result = what.call();
+      lastEx = null;
     } catch (InterruptedException ex1) {
       throw ex1;
     } catch (Exception e) { // only EX and RuntimeException
       lastEx = e;
+      result = null;
     }
     Exception lastExChain = lastEx; // last exception chained with all previous exceptions
-    RetryDecision<T, C> decision = null;
+    RetryDecision<T, C> decision;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
-    while ((lastEx != null
-            && (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()
-                == RetryDecision.Type.Retry)
-            || (lastEx == null && (decision = retryPredicate.getDecision(result, what)).getDecisionType()
-                == RetryDecision.Type.Retry)) {
+    while ((lastEx != null) ?
+            (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType() == RetryDecision.Type.Retry
+            : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();
         throw new InterruptedException();
@@ -94,23 +94,20 @@ public final class SyncRetry {
         throw new IllegalStateException("Invalid retry decision delay: " + delayNanos);
       }
       what = decision.getNewCallable();
-      result = null;
-      lastEx = null;
       try {
         result = what.call();
+        lastEx = null;
       } catch (InterruptedException ex1) {
         throw ex1;
       } catch (Exception e) { // only EX and RuntimeException
         lastEx = e;
+        result = null;
         if (lastExChain != null) {
           lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
         } else {
           lastExChain = lastEx;
         }
       }
-    }
-    if (decision == null) {
-      throw new IllegalStateException("Decission should have ben initialized " + lastEx + ", " + result);
     }
     if (decision.getDecisionType() == RetryDecision.Type.Abort) {
         Either<Exception, T> r = decision.getResult();
@@ -127,14 +124,17 @@ public final class SyncRetry {
             lastEx = null;
           }
         }
+    } else {
+      throw new IllegalStateException("Should not happen, decision =  " + decision);
     }
     if (lastEx != null) {
+      if (lastExChain == null) {
+        lastExChain = lastEx;
+      }
       if (lastExChain instanceof RuntimeException) {
         throw (RuntimeException) lastExChain;
       } else if (lastExChain instanceof TimeoutException) {
         throw (TimeoutException) lastExChain;
-      } else if (lastExChain == null) {
-        return null;
       } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {
         throw (EX) lastExChain;
       } else {

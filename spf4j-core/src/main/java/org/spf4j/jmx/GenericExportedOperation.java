@@ -37,6 +37,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import javax.management.MBeanParameterInfo;
 
 import javax.management.openmbean.OpenDataException;
@@ -163,6 +164,7 @@ public final class GenericExportedOperation implements ExportedOperation {
   }
 
   @Override
+  @Nullable
   public OpenType<?> getReturnOpenType() {
     return (resultConverter != null) ? resultConverter.getOpenType() : null;
   }

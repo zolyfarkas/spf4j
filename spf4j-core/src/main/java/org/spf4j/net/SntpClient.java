@@ -36,10 +36,14 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.spf4j.base.Callables;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  * Simple NTP client. Inspired by Android Sntp client. For how to use, see SntpClientTest.java.
@@ -64,6 +68,7 @@ public final class SntpClient {
   private static final int DEFAULT_SOCKET_TIMEOUT_MILLIS =
           Integer.getInteger("spf4j.sntpClient.defaultSocketTimeoutMillis", 5000); // 5 seconds
 
+
   private SntpClient() {
   }
 
@@ -87,18 +92,21 @@ public final class SntpClient {
   public static Timing requestTimeHA(final int timeoutMillis,
           final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
-    return Callables.executeWithRetry(new Callables.TimeoutCallable<Timing, IOException>(timeoutMillis) {
+    try (ExecutionContext ctx = ExecutionContexts.start("requestTimeHA", timeoutMillis, TimeUnit.MILLISECONDS)) {
+      return ((RetryPolicy<Timing, Callable<Timing>>) RetryPolicy.DEFAULT).call(new Callable<Timing>() {
 
-      private int i = 0;
+        private int i = 0;
 
-      @Override
-      @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
-      public Timing call(final long deadline) throws IOException {
-        int hostIdx = Math.abs(i++) % hosts.length;
-        return requestTime(hosts[hostIdx],
-                Math.min((int) (deadline - System.currentTimeMillis()), ntpResponseTimeoutMillis));
-      }
-    }, 3, 1000, IOException.class);
+        @Override
+        @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
+        public Timing call() throws IOException {
+          int hostIdx = Math.abs(i++) % hosts.length;
+          return requestTime(hosts[hostIdx],
+                  Math.min((int) TimeUnit.NANOSECONDS.toMillis(ctx.getDeadlineNanos() - TimeSource.nanoTime()),
+                          ntpResponseTimeoutMillis));
+        }
+      }, IOException.class);
+    }
   }
 
   /**

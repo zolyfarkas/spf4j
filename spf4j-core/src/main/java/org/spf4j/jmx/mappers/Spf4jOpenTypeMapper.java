@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenType;
 import static javax.management.openmbean.SimpleType.BIGDECIMAL;
@@ -151,6 +152,7 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
 
   @Override
+  @Nullable
   public JMXBeanMapping get(final Type t) throws NotSerializableException {
 
         Set<Type> ip = IN_PROGRESS.get();

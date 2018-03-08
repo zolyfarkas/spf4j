@@ -34,6 +34,7 @@ package org.spf4j.ds;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 
 /**
@@ -134,6 +135,7 @@ public final class HashMapGraph<V, E> implements Graph<V, E> {
     }
 
     @Override
+    @Nullable
     public E getEdge(final V from, final V to) {
         VertexEdges<V, E> edges = vertices.get(from);
         if (edges != null) {

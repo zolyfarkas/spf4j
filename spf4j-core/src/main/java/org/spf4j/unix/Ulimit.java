@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Arrays;
@@ -67,6 +68,7 @@ public final class Ulimit {
   }
 
   @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
+  @Nullable
   private static String[] findUlimitCmd() {
     final File bash = new File("/bin/bash");
     final File sh = new File("/bin/sh");

@@ -15,16 +15,19 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive...
 final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryPredicate.class);
@@ -44,6 +47,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
   }
 
   @Override
+  @Nonnull
   public RetryDecision<T, Callable<T>> getDecision(final T value, final Callable<T> what) {
 
     for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
@@ -67,6 +71,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
   }
 
   @Override
+  @Nonnull
   public RetryDecision<T, Callable<T>> getExceptionDecision(final Exception value, final Callable<T> what) {
     for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
       RetryDecision<T, Callable<T>> decision = predicate.getExceptionDecision(value, what);

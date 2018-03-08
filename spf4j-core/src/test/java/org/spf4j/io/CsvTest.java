@@ -33,6 +33,7 @@ package org.spf4j.io;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.CharSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
@@ -48,7 +49,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -91,7 +91,7 @@ public final class CsvTest {
               @Override
               public void startRow() {
                 if (!firstRow) {
-                  row = new HashMap<>(header.size());
+                  row = Maps.newHashMapWithExpectedSize(header.size());
                   i = 0;
                 }
               }

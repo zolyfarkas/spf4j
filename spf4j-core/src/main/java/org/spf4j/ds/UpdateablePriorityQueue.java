@@ -413,6 +413,7 @@ public final class UpdateablePriorityQueue<E> implements Iterable<E>, Serializab
     }
 
 
+    @Nullable
     private E removeAt(final int i) {
         assert i >= 0 && i < size;
         modCount++;
