@@ -32,16 +32,16 @@
 package org.spf4j.aspects;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.spf4j.annotations.Retry;
-import org.spf4j.annotations.VoidPredicate;
-import org.spf4j.base.Callables;
-import org.spf4j.base.Callables.TimeoutCallable;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.Timing;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  * Aspect that measures execution time and does performance logging for all methods annotated with: PerformanceMonitor
@@ -52,15 +52,14 @@ import org.spf4j.base.Timing;
 @Aspect
 public final class RetryAspect {
 
+  private static final ConcurrentMap<String, RetryPolicy> POLICIES = new ConcurrentHashMap<>();
+
   @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(annot)",
           argNames = "pjp,annot")
-  public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
+  public Object retriedMethod(final ProceedingJoinPoint pjp, final Retry annot)
           throws Throwable {
-    final TimeoutCallable<Object, Exception> timeoutCallable =
-            new TimeoutCallable<Object, Exception>(annot.timeoutMillis()) {
-
-      @Override
-      public Object call(final long dealine) throws Exception {
+    try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeoutMillis())) {
+      Callable c = () -> {
         try {
           return pjp.proceed();
         } catch (Exception | Error e) {
@@ -68,15 +67,19 @@ public final class RetryAspect {
         } catch (Throwable ex) {
           throw new UncheckedExecutionException(ex);
         }
+      };
+      String retryPolicyName = annot.retryPolicyName();
+      if ("".equals(retryPolicyName)) {
+        return RetryPolicy.DEFAULT.call(c, Exception.class);
+      } else {
+        return POLICIES.get(retryPolicyName).call(c, Exception.class);
       }
-    };
-    try (ExecutionContext ctx = ExecutionContexts.start(
-            Timing.getCurrentTiming().fromEpochMillisToNanoTime(timeoutCallable.getDeadline()))
-            ) {
-      return Callables.executeWithRetry(timeoutCallable, annot.immediateRetries(), annot.retryDelayMillis(),
-              annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY
-              : annot.exRetry().newInstance(), Exception.class);
     }
 
   }
+
+  public static RetryPolicy registerRetryPolicy(final String name, final RetryPolicy policy) {
+    return POLICIES.put(name, policy);
+  }
+
 }

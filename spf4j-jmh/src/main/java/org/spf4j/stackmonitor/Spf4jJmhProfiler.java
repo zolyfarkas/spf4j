@@ -36,8 +36,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.IterationParams;
@@ -93,13 +95,14 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
   }
 
   @Override
+  @Nonnull
   public Collection<? extends Result> afterIteration(final BenchmarkParams benchmarkParams,
           final IterationParams iterationParams, final IterationResult ir) {
     try {
       SAMPLER.stop();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
-      return null;
+      return Collections.EMPTY_LIST;
     }
     SampleNode collected = SAMPLER.getStackCollector().clear();
     String iterationId;
@@ -153,6 +156,7 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
       return id;
     }
 
+    @Nullable
     public SampleNode getSamples() throws IOException {
       if (this.perfDataFile == null) {
         return null;

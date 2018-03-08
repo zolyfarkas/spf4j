@@ -31,8 +31,10 @@
  */
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -41,6 +43,8 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.spf4j.base.Either;
 import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -53,210 +57,210 @@ import org.spf4j.recyclable.SmartRecyclingSupplier;
  */
 final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<ObjectHolder<T>> {
 
-    private static final  Either<Action, ObjectHolder<?>> REQ_MADE = Either.left(Action.REQUEST_MADE);
-    private static final  Either<Action, ObjectHolder<?>> NONE = Either.left(Action.NONE);
+  private static final Either<Action, ObjectHolder<?>> REQ_MADE = Either.left(Action.REQUEST_MADE);
+  private static final Either<Action, ObjectHolder<?>> NONE = Either.left(Action.NONE);
 
-    private final Queue<ObjectHolder<T>> localObjects;
-    private final Map<T, ObjectHolder<T>> borrowedObjects;
-    private final SmartRecyclingSupplier<ObjectHolder<T>> globalPool;
-    private int reqReturnObjects;
-    private final Thread thread;
-    private final ReentrantLock lock;
+  private final Queue<ObjectHolder<T>> localObjects;
+  private final Map<T, ObjectHolder<T>> borrowedObjects;
+  private final SmartRecyclingSupplier<ObjectHolder<T>> globalPool;
+  private int reqReturnObjects;
+  private final Thread thread;
+  private final ReentrantLock lock;
 
-    LocalObjectPool(final SmartRecyclingSupplier<ObjectHolder<T>> globalPool) {
-        localObjects = new LinkedList<>();
-        borrowedObjects = new HashMap<>();
-        this.globalPool = globalPool;
-        reqReturnObjects = 0;
-        thread = Thread.currentThread();
-        lock = new ReentrantLock();
-    }
+  LocalObjectPool(final SmartRecyclingSupplier<ObjectHolder<T>> globalPool) {
+    localObjects = new LinkedList<>();
+    borrowedObjects = new HashMap<>();
+    this.globalPool = globalPool;
+    reqReturnObjects = 0;
+    thread = Thread.currentThread();
+    lock = new ReentrantLock();
+  }
 
-    @Override
-    public T get() throws ObjectCreationException,
-            InterruptedException, TimeoutException {
-        lock.lock();
-        try {
-            T object;
-            ObjectHolder<T> objectHolder;
-            do {
-                if (localObjects.isEmpty()) {
-                    objectHolder = globalPool.get(this);
-                } else {
-                    objectHolder = localObjects.remove();
-                }
-                object = objectHolder.borrowOrCreateObjectIfPossible();
-            } while (object == null);
-            borrowedObjects.put(object, objectHolder);
-            return object;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public void recycle(final T object, final Exception e) {
-        lock.lock();
-        try {
-            ObjectHolder holder = borrowedObjects.remove(object);
-            if (holder == null) {
-                // not borrowed from here.
-                globalPool.recycle(new ObjectHolder<>(object, globalPool.getSample().getFactory()), this);
-            } else {
-                try {
-                    holder.returnObject(object, e);
-                } finally {
-                    if (reqReturnObjects > 0) {
-                        reqReturnObjects--;
-                        globalPool.recycle(holder, this);
-                    } else {
-                        localObjects.add(holder);
-                    }
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public boolean tryDispose(final long timeoutMillis) {
-        throw new UnsupportedOperationException("LocalPool dispose is not supported");
-    }
-
-    @Override
-    public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
-        lock.lock();
-        try {
-            for (ObjectHolder<T> object : localObjects) {
-                if (!handler.handle(object)) {
-                    return false;
-                }
-            }
-            return true;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-
-    @Override
-    public Either<Action, ObjectHolder<T>> tryRequestReturnObject() throws InterruptedException {
-        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
-        if (acquired) {
-            try {
-
-                ObjectHolder<T> objectHolder = tryReturnObjectIfNotInUse();
-                if (objectHolder != null) {
-                    return Either.right(objectHolder);
-                } else if (this.thread == Thread.currentThread()) {
-                    // this will happen is the same thread is closing the pool.
-                    // in this case whatever objects the thread is borrowing, we will return
-                    // even if not officially returnes.
-                    if (this.borrowedObjects.isEmpty()) {
-                        return (Either) NONE;
-                    } else {
-                        Iterator<Map.Entry<T, ObjectHolder<T>>> it = this.borrowedObjects.entrySet().iterator();
-                        Map.Entry<T, ObjectHolder<T>> next = it.next();
-                        ObjectHolder<T> result = next.getValue();
-                        result.returnObject(next.getKey(), null);
-                        it.remove();
-                        return Either.right(result);
-                    }
-                } else {
-                    if (borrowedObjects.size() > reqReturnObjects) {
-                        reqReturnObjects++;
-                        return (Either) REQ_MADE;
-                    } else {
-                        return (Either) NONE;
-                    }
-                }
-            } finally {
-                lock.unlock();
-            }
+  @Override
+  @Nonnull
+  @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
+  public T get() throws ObjectCreationException,
+          InterruptedException, TimeoutException {
+    lock.lock();
+    try {
+      T object;
+      ObjectHolder<T> objectHolder;
+      do {
+        if (localObjects.isEmpty()) {
+          objectHolder = globalPool.get(this);
         } else {
+          objectHolder = localObjects.remove();
+        }
+        object = objectHolder.borrowOrCreateObjectIfPossible();
+      } while (object == null);
+      borrowedObjects.put(object, objectHolder);
+      return object;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public void recycle(final T object, final Exception e) {
+    lock.lock();
+    try {
+      ObjectHolder holder = borrowedObjects.remove(object);
+      if (holder == null) {
+        // not borrowed from here.
+        globalPool.recycle(new ObjectHolder<>(object, globalPool.getSample().getFactory()), this);
+      } else {
+        try {
+          holder.returnObject(object, e);
+        } finally {
+          if (reqReturnObjects > 0) {
+            reqReturnObjects--;
+            globalPool.recycle(holder, this);
+          } else {
+            localObjects.add(holder);
+          }
+        }
+      }
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public boolean tryDispose(final long timeoutMillis) {
+    throw new UnsupportedOperationException("LocalPool dispose is not supported");
+  }
+
+  @Override
+  public boolean scan(final ScanHandler<ObjectHolder<T>> handler) throws Exception {
+    lock.lock();
+    try {
+      for (ObjectHolder<T> object : localObjects) {
+        if (!handler.handle(object)) {
+          return false;
+        }
+      }
+      return true;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public Either<Action, ObjectHolder<T>> tryRequestReturnObject() throws InterruptedException {
+    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
+    if (acquired) {
+      try {
+
+        ObjectHolder<T> objectHolder = tryReturnObjectIfNotInUse();
+        if (objectHolder != null) {
+          return Either.right(objectHolder);
+        } else if (this.thread == Thread.currentThread()) {
+          // this will happen is the same thread is closing the pool.
+          // in this case whatever objects the thread is borrowing, we will return
+          // even if not officially returnes.
+          if (this.borrowedObjects.isEmpty()) {
             return (Either) NONE;
-        }
-    }
-
-    @Override
-    public ObjectHolder<T> tryReturnObjectIfNotInUse() throws InterruptedException {
-        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
-        if (acquired) {
-            try {
-                if (!localObjects.isEmpty()) {
-                    return localObjects.remove();
-                } else {
-                    return null;
-                }
-            } finally {
-                lock.unlock();
-            }
+          } else {
+            Iterator<Map.Entry<T, ObjectHolder<T>>> it = this.borrowedObjects.entrySet().iterator();
+            Map.Entry<T, ObjectHolder<T>> next = it.next();
+            ObjectHolder<T> result = next.getValue();
+            result.returnObject(next.getKey(), null);
+            it.remove();
+            return Either.right(result);
+          }
         } else {
-            return null;
+          if (borrowedObjects.size() > reqReturnObjects) {
+            reqReturnObjects++;
+            return (Either) REQ_MADE;
+          } else {
+            return (Either) NONE;
+          }
         }
+      } finally {
+        lock.unlock();
+      }
+    } else {
+      return (Either) NONE;
     }
+  }
 
-
-    @Override
-    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotInUse() throws InterruptedException {
-        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
-        if (acquired) {
-            try {
-                if (!localObjects.isEmpty()) {
-                    Collection<ObjectHolder<T>> result = new ArrayList<>(localObjects);
-                    localObjects.clear();
-                    return result;
-                } else {
-                    return null;
-                }
-            } finally {
-                lock.unlock();
-            }
+  @Override
+  @Nullable
+  public ObjectHolder<T> tryReturnObjectIfNotInUse() throws InterruptedException {
+    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
+    if (acquired) {
+      try {
+        if (!localObjects.isEmpty()) {
+          return localObjects.remove();
         } else {
-            return null;
+          return null;
         }
+      } finally {
+        lock.unlock();
+      }
+    } else {
+      return null;
     }
+  }
 
-
-    @Override
-    public Collection<ObjectHolder<T>> tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
-        boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
-        if (acquired) {
-            try {
-                if (!thread.isAlive()) {
-                    if (!borrowedObjects.isEmpty()) {
-                        throw new IllegalStateException("Objects not returned by dead thread: " + borrowedObjects);
-                    }
-                    return localObjects;
-                }
-                return null;
-            } finally {
-                lock.unlock();
-            }
+  @Override
+  public Collection<ObjectHolder<T>> tryReturnObjectsIfNotInUse() throws InterruptedException {
+    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
+    if (acquired) {
+      try {
+        if (!localObjects.isEmpty()) {
+          Collection<ObjectHolder<T>> result = new ArrayList<>(localObjects);
+          localObjects.clear();
+          return result;
         } else {
-            return null;
+          return Collections.EMPTY_LIST;
         }
+      } finally {
+        lock.unlock();
+      }
+    } else {
+      return Collections.EMPTY_LIST;
     }
+  }
 
-    @Override
-    public String toString() {
-        return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects="
-                + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
-    }
-
-    @Override
-    public void recycle(final T object) {
-        recycle(object, null);
-    }
-
-    @Override
-    public boolean nevermind(final ObjectHolder<T> object) {
-        lock.lock();
-        try {
-            return borrowedObjects.remove(object.getObj()) != null;
-        } finally {
-            lock.unlock();
+  @Override
+  public Collection<ObjectHolder<T>> tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
+    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);
+    if (acquired) {
+      try {
+        if (!thread.isAlive()) {
+          if (!borrowedObjects.isEmpty()) {
+            throw new IllegalStateException("Objects not returned by dead thread: " + borrowedObjects);
+          }
+          return localObjects;
         }
+        return Collections.EMPTY_LIST;
+      } finally {
+        lock.unlock();
+      }
+    } else {
+      return Collections.EMPTY_LIST;
     }
+  }
+
+  @Override
+  public String toString() {
+    return "LocalObjectPool{" + "localObjects=" + localObjects + ", borrowedObjects="
+            + borrowedObjects + ", reqReturnObjects=" + reqReturnObjects + ", thread=" + thread + '}';
+  }
+
+  @Override
+  public void recycle(final T object) {
+    recycle(object, null);
+  }
+
+  @Override
+  public boolean nevermind(final ObjectHolder<T> object) {
+    lock.lock();
+    try {
+      return borrowedObjects.remove(object.getObj()) != null;
+    } finally {
+      lock.unlock();
+    }
+  }
 }

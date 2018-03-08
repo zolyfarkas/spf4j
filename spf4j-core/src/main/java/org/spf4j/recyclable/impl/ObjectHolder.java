@@ -79,6 +79,7 @@ public final class ObjectHolder<T> {
     return obj;
   }
 
+  @Nullable
   public synchronized T borrowOrCreateObjectIfPossible() throws ObjectCreationException {
     if (borrowed) {
       return null;

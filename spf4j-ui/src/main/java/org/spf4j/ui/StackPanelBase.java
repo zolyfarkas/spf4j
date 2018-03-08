@@ -53,6 +53,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -280,6 +281,7 @@ public abstract class StackPanelBase<T> extends JPanel
     return method;
   }
 
+  @Nullable
   public abstract String getDetail(Point location);
 
   public abstract void filter();

@@ -80,8 +80,9 @@ public final class SyncRetry {
     Exception lastExChain = lastEx; // last exception chained with all previous exceptions
     RetryDecision<T, C> decision;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
-    while ((lastEx != null) ?
-            (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType() == RetryDecision.Type.Retry
+    while ((lastEx != null)
+            ? (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()
+              == RetryDecision.Type.Retry
             : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();

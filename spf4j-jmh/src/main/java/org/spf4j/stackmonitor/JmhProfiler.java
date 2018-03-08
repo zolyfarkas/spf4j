@@ -37,7 +37,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import javax.annotation.Nonnull;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.IterationParams;
 import org.openjdk.jmh.profile.InternalProfiler;
@@ -83,13 +85,14 @@ public final class JmhProfiler implements InternalProfiler {
     }
 
     @Override
+    @Nonnull
     public Collection<? extends Result> afterIteration(final BenchmarkParams benchmarkParams,
             final IterationParams iterationParams, final IterationResult ir) {
         try {
             SAMPLER.stop();
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            return null;
+            return Collections.EMPTY_LIST;
         }
         SampleNode collected = SAMPLER.getStackCollector().clear();
         try {

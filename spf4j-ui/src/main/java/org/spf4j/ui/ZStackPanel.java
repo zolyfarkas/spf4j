@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
@@ -226,6 +227,7 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
   }
 
   @Override
+  @Nullable
   public String getDetail(final Point location) {
     List<Sampled<InvokedMethod>> tips = search(location.x, location.y, 0, 0);
     if (tips.size() >= 1) {

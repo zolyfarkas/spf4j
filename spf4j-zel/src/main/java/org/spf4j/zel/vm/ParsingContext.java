@@ -32,6 +32,7 @@
 package org.spf4j.zel.vm;
 
 import java.io.Serializable;
+import javax.annotation.Nullable;
 import org.spf4j.zel.instr.Instruction;
 
 
@@ -101,6 +102,7 @@ public interface ParsingContext {
      *
      * @return Object[]
      */
+    @Nullable
     ProgramBuilder getProgramBuilder();
 
     /**

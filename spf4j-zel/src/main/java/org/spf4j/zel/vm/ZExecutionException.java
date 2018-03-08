@@ -31,8 +31,8 @@
  */
 package org.spf4j.zel.vm;
 
+import gnu.trove.set.hash.THashSet;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -87,7 +87,7 @@ public final class ZExecutionException extends ExecutionException {
         result.append(msg);
         result.append('\n');
         result.append("Zel trace:\n");
-        Set<String> sourceIds = new HashSet<>(zelframes.size());
+        Set<String> sourceIds = new THashSet<>(zelframes.size());
         for (ZelFrame frame : zelframes) {
             result.append(frame);
             result.append('\n');

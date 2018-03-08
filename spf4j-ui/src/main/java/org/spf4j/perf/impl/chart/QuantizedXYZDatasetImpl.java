@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.jfree.chart.axis.TickUnits;
 import org.jfree.data.DomainOrder;
@@ -174,6 +175,7 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   }
 
   @Override
+  @Nullable
   public DatasetGroup getGroup() {
     return null;
   }

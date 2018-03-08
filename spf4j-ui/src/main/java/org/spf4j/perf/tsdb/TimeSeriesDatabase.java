@@ -36,6 +36,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -356,7 +357,7 @@ public final class TimeSeriesDatabase implements Closeable {
 
   public Map<String, TSTable> getTsTables() {
     synchronized (path) {
-      Map<String, TSTable> result = new HashMap<>(tables.size());
+      Map<String, TSTable> result = Maps.newHashMapWithExpectedSize(tables.size());
       for (Map.Entry<String, TSTable> entry : tables.entrySet()) {
         result.put(entry.getKey(), new TSTable(entry.getValue()));
       }

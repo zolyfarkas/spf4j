@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 import org.spf4j.zel.instr.CALLA;
 import org.spf4j.zel.instr.Instruction;
@@ -133,6 +134,7 @@ public final class ProgramBuilder {
         return res;
     }
 
+    @Nullable
     public <T> T itterate(final Function<Object, T> func) {
          for (int i = 0; i < instrNumber; i++) {
             Instruction code = instructions[i];
@@ -271,6 +273,7 @@ public final class ProgramBuilder {
 
         @Override
         @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN", "NP_BOOLEAN_RETURN_NULL" })
+        @Nullable
         public Boolean apply(final Object input) {
             if (input instanceof Program) {
                 Program prog = (Program) input;
@@ -288,6 +291,7 @@ public final class ProgramBuilder {
         @Override
         @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN",
           "ITC_INHERITANCE_TYPE_CHECKING", "NP_BOOLEAN_RETURN_NULL" })
+        @Nullable
         public Boolean apply(final Object input) {
             if (input instanceof Program) {
                 Program prog = (Program) input;

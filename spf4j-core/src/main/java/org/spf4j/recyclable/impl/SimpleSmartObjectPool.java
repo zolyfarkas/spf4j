@@ -315,13 +315,11 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
         }
 
         Collection<T> returned = objectBorower.tryReturnObjectsIfNotNeededAnymore();
-        if (returned != null) {
-          for (T ro : returned) {
-            if (!borrowedObjects.remove(objectBorower, ro)) {
-              throw new IllegalStateException("Object returned hasn't been borrowed" + ro);
-            }
-            availableObjects.add(ro);
+        for (T ro : returned) {
+          if (!borrowedObjects.remove(objectBorower, ro)) {
+            throw new IllegalStateException("Object returned hasn't been borrowed" + ro);
           }
+          availableObjects.add(ro);
         }
 
       }
@@ -354,10 +352,8 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
       List<Pair<ObjectBorower<T>, T>> returnedObjects = new ArrayList<>();
       for (ObjectBorower<T> b : borrowedObjects.keySet()) {
         Collection<T> objects = b.tryReturnObjectsIfNotInUse();
-        if (objects != null) {
-          for (T object : objects) {
-            returnedObjects.add(Pair.of(b, object));
-          }
+        for (T object : objects) {
+          returnedObjects.add(Pair.of(b, object));
         }
       }
       for (Pair<ObjectBorower<T>, T> ro : returnedObjects) {

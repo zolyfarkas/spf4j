@@ -68,7 +68,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
      * Return all objects that are not currently in use.
      */
 
-    @Nullable
+    @Nonnull
     Collection<T> tryReturnObjectsIfNotInUse() throws InterruptedException;
 
     /**
@@ -77,7 +77,7 @@ public interface ObjectBorower<T> extends Scanable<T> {
      *
      * @return all objects borrowed
      */
-    @Nullable
+    @Nonnull
     Collection<T> tryReturnObjectsIfNotNeededAnymore() throws InterruptedException;
 
 

@@ -73,6 +73,7 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
 
   @Override
   @Nonnull
+  @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive
   public Object fromOpenValue(final Object openValue) throws InvalidObjectException {
     if (!(openValue instanceof CompositeData)) {
       throw new InvalidObjectException("Not a CompositeData " + openValue);
@@ -115,6 +116,8 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
       .where(new TypeParameter<T>() { }, valToken);
   }
 
+  @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive
+  @Nonnull
   public static Type getGenericType(final Schema schema) {
     Schema.Type type = schema.getType();
     switch (type) {

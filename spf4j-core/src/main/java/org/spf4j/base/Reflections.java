@@ -206,6 +206,7 @@ public final class Reflections {
     }
   }
 
+  @Nonnull
   public static Type primitiveToWrapper(final Type type) {
     if (type instanceof Class && ((Class) type).isPrimitive()) {
       return PRIMITIVE_MAP.get((Class) type);

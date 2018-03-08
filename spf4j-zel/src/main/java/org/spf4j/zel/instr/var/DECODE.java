@@ -32,6 +32,7 @@
 package org.spf4j.zel.instr.var;
 
 import java.util.Objects;
+import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
@@ -45,6 +46,7 @@ public final class DECODE implements Method {
     }
 
     @Override
+    @Nullable
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
         Object expr = parameters[0];
         int i = 1;

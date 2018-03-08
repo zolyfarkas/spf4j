@@ -31,6 +31,7 @@
  */
 package org.spf4j.zel.vm;
 
+import javax.annotation.Nullable;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.NOP;
 
@@ -56,6 +57,7 @@ public final class NullParsingContext implements ParsingContext {
   }
 
   @Override
+  @Nullable
   public ProgramBuilder getProgramBuilder() {
     return null;
   }

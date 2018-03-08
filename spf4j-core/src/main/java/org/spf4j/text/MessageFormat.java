@@ -1082,7 +1082,7 @@ public final class MessageFormat extends Format {
    * @return An <code>Object</code> array parsed from the string.
    * @exception ParseException if the beginning of the specified string cannot be parsed.
    */
-  @Nonnull
+  @Nullable
   public Object[] parse(String source) throws ParseException {
     ParsePosition pos = new ParsePosition(0);
     Object[] result = parse(source, pos);

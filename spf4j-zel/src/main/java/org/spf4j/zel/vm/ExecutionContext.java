@@ -56,6 +56,8 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
 @ParametersAreNonnullByDefault
 public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
+  public static final Object VOID = new Object();
+
   private final Object[] tuple = new Object[2];
 
   @Nonnull
@@ -255,7 +257,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
         syncStackVals();
         return result;
       } else {
-        return null;
+        return VOID;
       }
     } catch (SuspendedException | InterruptedException e) {
       throw e;

@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * An AttributedString holds text and related attribute information. It
@@ -565,6 +566,7 @@ public final class AttributedString {
         return text.charAt(index);
     }
 
+    @Nullable
     private synchronized Object getAttribute(Attribute attribute, int runIndex) {
         ArrayList<Attribute> currentRunAttributes = runAttributes[runIndex];
         ArrayList<Object> currentRunAttributeValues = runAttributeValues[runIndex];
@@ -581,6 +583,7 @@ public final class AttributedString {
     }
 
     // gets an attribute value, but returns an annotation only if it's range does not extend outside the range beginIndex..endIndex
+    @Nullable
     private Object getAttributeCheckRange(Attribute attribute, int runIndex, int beginIndex, int endIndex) {
         Object value = getAttribute(attribute, runIndex);
         if (value instanceof Annotation) {
@@ -938,6 +941,7 @@ public final class AttributedString {
             }
         }
 
+        @Nullable
         public Object getAttribute(Attribute attribute) {
             int runIndex = currentRunIndex;
             if (runIndex < 0) {
@@ -1035,6 +1039,7 @@ public final class AttributedString {
             return set;
         }
 
+        @Nullable
         public Object get(Object key) {
             return AttributedString.this.getAttributeCheckRange((Attribute) key, runIndex, beginIndex, endIndex);
         }

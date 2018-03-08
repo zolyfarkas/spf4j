@@ -40,6 +40,7 @@ import gnu.trove.set.hash.THashSet;
 import java.lang.reflect.Type;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.concurrent.UnboundedLoadingCache;
@@ -106,6 +107,7 @@ public final class CachingTypeMapSupplierWrapper<H, E extends Exception> impleme
 
   @Override
   @SuppressFBWarnings({ "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE", "SPP_USE_ISEMPTY", "LEST_LOST_EXCEPTION_STACK_TRACE" })
+  @Nullable
   public H get(final Type type) throws E {
     Set<H> get;
     try {

@@ -37,6 +37,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
@@ -100,6 +101,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
 
   @Override
   @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
+  @Nullable
   public String getDetail(final Point location) {
     List<Sampled<Pair<Method, SampleNode>>> tips = search(location.x, location.y, 0, 0);
     if (tips.size() >= 1) {

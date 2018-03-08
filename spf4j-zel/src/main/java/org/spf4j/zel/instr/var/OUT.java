@@ -33,6 +33,7 @@ package org.spf4j.zel.instr.var;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.PrintStream;
+import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
@@ -45,6 +46,7 @@ public final class OUT implements Method {
 
     @Override
     @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
+    @Nullable
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
         final PrintStream out = context.getIo().getOut();
         synchronized (out) {

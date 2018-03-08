@@ -31,6 +31,7 @@
  */
 package org.spf4j.recyclable.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
@@ -67,6 +68,8 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
 
 
     @Override
+    @Nonnull
+    @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
     public T get() throws ObjectCreationException, InterruptedException, TimeoutException {
         return localPool.get().get();
     }
