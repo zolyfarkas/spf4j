@@ -5,31 +5,47 @@ The Z Expression Language
 
  Now there are a few other components out there that do a similar job, here is what it's different (or not :-) ) about this particular implementation:
 
-  1. LGPL license
 
-  2. Asynchronous programming / coroutines (function calls can be executed asynchronously)
+  1. "Improved" Asynchronous programming / coroutines. Zel attempts to bridge the sync and async async divide by implementing
+  a stack based virtual machine, where the the stack elements are: Either\<Object, Future\<Object\>\>. What this means at a higher level
+  that a function like:  "function(int value) \{ ... print(value)..\}" can be called either with a int or a Future\<int\>.
+  Future.get gets invoked when needed. (when calling java libs...  like print in the example above).
+  Also  Functions can be executed async automatically by the VM or not. We let the VMs free our objects,
+  maybe it is time to let them execute functions asynchronously... Zel is an attempt to play with the idea...
 
-  3. Support for deterministic functions, (aka memorization) executions will be cached for deterministic functions
 
-  4. Integer mathematical operations do not overflow.
-     Real number representation can be used seamlessly with decimal or binary representation.
+  2. Support for deterministic functions, (aka memorization) execution results will be cached for deterministic functions
 
-  5. Everything is Either<Object, Future<Object>>.
+  3. Integer mathematical operations do not overflow. (types are upgraded: int -> long -> BigInteger)
+     Real number representation can be used seamlessly with decimal or binary representation. (double or BigDecimal)
 
    
-  6. ZEL uses the last value out principle, expressions will return the last evaluated expression.
+  4. ZEL uses the last value out principle, expressions will return the last evaluated expression.
      There is a return keyword that can also be used but it is optional
 
-  7. Expressions are compiled providing decent execution performance. 
+  5. Expressions are compiled providing decent execution performance.
      The concurrency features in Zel enable you to easier write code that takes advantage of multi core systems.
      (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower(simple single threaded benchmarks)
      than MVEL and Groovy, for latest results see: )
 
-  8. Implemented using javaCC
+  6. Implemented using javaCC
+
+  7. Python style type system, yuck. (Planning to improve to a proper strong type system)
+
+  8. Apache and LGPL license.
 
  Here are some examples:
 
 +-----------------------------------------------------------------------
+
+EX1:    // fibonacci recursive definition executes in O(n)
+        // deterministic function results are automatically memorized
+        
+        func det fib (x) { fib(x-1) + fib(x-2) }
+        fib(0) = 0; // memorize result
+        fib(1) = 1; // memorize result
+        out(fib(200))
+
 EX1:    // ZEL mathematical expressions in java code
 
         Program prog = Program.compile("1+5*4/(1+1)");
@@ -46,13 +62,11 @@ EX3:    // java integration, java objects are supported just like in java:
         Program prog = Program.compile("a.toString().substring(0, 1 + 1)", "a");
         String result = (String) prog.execute(100);
 
-EX4:    // fibonacci recursive definition executes in O(n)
-        // deterministic function results are automatically memorized
-        
-        func det fib (x) { fib(x-1) + fib(x-2) }
-        fib(0) = 0; // memorize result
-        fib(1) = 1; // memorize result
-        out(fib(200)) 
+EX4:    // ZEL mathematical expressions in java code
+
+        Program prog = Program.compile("1+5*4/(1+1)");
+        Number result = (Number) prog.execute();
+ 
 
 EX5:    // Async programming.
         // Zel function invocations are async by default.
