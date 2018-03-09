@@ -46,8 +46,8 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
-import org.spf4j.base.Writeable;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
 
@@ -55,7 +55,7 @@ import org.spf4j.ds.HashMapGraph;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode implements Serializable, Writeable {
+public final class SampleNode implements Serializable, JsonWriteable {
 
   private static final long serialVersionUID = 1L;
 
