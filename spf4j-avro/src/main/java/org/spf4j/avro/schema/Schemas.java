@@ -33,11 +33,13 @@ package org.spf4j.avro.schema;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
@@ -49,11 +51,13 @@ import org.spf4j.ds.IdentityHashSet;
  */
 @Beta
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive
 public final class Schemas {
 
   private Schemas() {
   }
 
+  @Nonnull
   public static ImmutableSchema immutable(final Schema schema) {
     if (schema instanceof ImmutableSchema) {
       return (ImmutableSchema) schema;
@@ -61,6 +65,7 @@ public final class Schemas {
     return visit(schema, new ImmutableCloningVisitor(schema, false));
   }
 
+  @Nonnull
   public static ImmutableSchema immutable(final Schema schema, final boolean withSerializationSignificatAttrsonly) {
     return visit(schema, new ImmutableCloningVisitor(schema, withSerializationSignificatAttrsonly));
   }

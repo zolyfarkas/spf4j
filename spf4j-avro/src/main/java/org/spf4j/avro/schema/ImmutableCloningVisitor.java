@@ -164,7 +164,11 @@ public final class ImmutableCloningVisitor implements SchemaVisitor<ImmutableSch
 
   @Override
   public ImmutableSchema get() {
-    return replace.get(root);
+    ImmutableSchema result = replace.get(root);
+    if (result == null) {
+      throw new IllegalStateException("Replacement map does not contain " + root + ", map " + replace);
+    }
+    return result;
   }
 
   @Override

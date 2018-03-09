@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.apache.avro.Schema.Field;
 import org.codehaus.jackson.JsonGenerator;
@@ -131,6 +132,7 @@ public final class ImmutableField extends Field {
   }
 
   @Override
+  @Nullable
   public String getProp(final String name) {
     return wrapped.getProp(name);
   }

@@ -169,7 +169,11 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
 
   @Override
   public Schema get() {
-    return replace.get(root);
+    Schema result = replace.get(root);
+    if (result == null) {
+      throw new IllegalStateException("Replacement map does not contain " + root + ", map " + replace);
+    }
+    return result;
   }
 
   @Override

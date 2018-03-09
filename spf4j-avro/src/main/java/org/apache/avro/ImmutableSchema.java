@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -137,6 +138,7 @@ public final class ImmutableSchema extends Schema {
   }
 
   @Override
+  @Nullable
   public String getDoc() {
     return wrapped.getDoc();
   }
@@ -226,6 +228,7 @@ public final class ImmutableSchema extends Schema {
   }
 
   @Override
+  @Nullable
   public String getProp(final String name) {
     return wrapped.getProp(name);
   }

@@ -34,6 +34,7 @@ package org.spf4j.avro.schema;
 import com.google.common.annotations.Beta;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 
@@ -77,6 +78,7 @@ public interface SchemaVisitor<T> {
    * Invoked when visiting is complete.
    * @return a value which will be returned by the visit method.
    */
+  @Nullable
   default T get() {
     return null;
   }
