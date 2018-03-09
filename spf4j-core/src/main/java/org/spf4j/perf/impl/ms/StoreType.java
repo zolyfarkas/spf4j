@@ -104,7 +104,7 @@ public enum StoreType {
 
     public MeasurementStore create(final String configuration) throws IOException, ObjectCreationException {
         MeasurementStore store =  factory.create(configuration);
-        Registry.export(store.getClass().getName(),
+        Registry.exportIfNeeded(store.getClass().getName(),
                     store.toString(), store);
         return store;
     }

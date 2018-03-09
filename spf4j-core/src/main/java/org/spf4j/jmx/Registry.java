@@ -180,6 +180,11 @@ public final class Registry {
     return new DynamicMBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);
   }
 
+  public static ExportedValuesMBean exportIfNeeded(final String packageName, final String mbeanName,
+          final Object... objects) {
+    return new DynamicMBeanBuilder().withJmxExportObjects(objects).replaceIfExports(packageName, mbeanName);
+  }
+
   /**
    * @deprecated use DynamicMBeanBuilder instead.
    */

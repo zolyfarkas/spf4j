@@ -215,6 +215,10 @@ public final class DynamicMBeanBuilder {
 
   }
 
+  public boolean isEmpty() {
+    return exportedAttributes.isEmpty() && exportedOps.isEmpty();
+  }
+
   /**
    * Replace mbean registered with packageName and mbeanName with a mbean constructed by this builder.
    * @param packageName
@@ -223,7 +227,7 @@ public final class DynamicMBeanBuilder {
    */
   @Nonnull
   public ExportedValuesMBean replace(final String packageName, final String mbeanName) {
-    if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
+    if (isEmpty()) {
       throw new IllegalArgumentException("Nothing to register " + this);
     }
     ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
@@ -231,6 +235,18 @@ public final class DynamicMBeanBuilder {
     Registry.registerMBean(objectName, mbean);
     return mbean;
   }
+
+  @Nullable
+  public ExportedValuesMBean replaceIfExports(final String packageName, final String mbeanName) {
+    if (isEmpty()) {
+      return null;
+    }
+    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+    ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);
+    Registry.registerMBean(objectName, mbean);
+    return mbean;
+  }
+
 
   /**
    * register a mbean.
@@ -241,8 +257,20 @@ public final class DynamicMBeanBuilder {
    */
   @Nonnull
   public ExportedValuesMBean register(final String packageName, final String mbeanName) {
-    if (exportedAttributes.isEmpty() && exportedOps.isEmpty()) {
+    if (isEmpty()) {
       throw new IllegalArgumentException("Nothing to register " + this);
+    }
+    ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
+    ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);
+    Registry.registerIfNotExistsMBean(objectName, mbean);
+    return mbean;
+  }
+
+
+  @Nullable
+  public ExportedValuesMBean registerIfExports(final String packageName, final String mbeanName) {
+    if (isEmpty()) {
+      return null;
     }
     ObjectName objectName = ExportedValuesMBean.createObjectName(packageName, mbeanName);
     ExportedValuesMBean mbean = new ExportedValuesMBean(objectName, exportedAttributes, exportedOps);
