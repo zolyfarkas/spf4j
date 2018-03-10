@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Zoltan Farkas
  */
@@ -24,28 +26,29 @@ final class ConsumeAllLogs implements LogHandler {
 
   private final Level to;
 
-<span class="fc" id="L27">  ConsumeAllLogs(final Level from, final Level to) {</span>
-<span class="fc" id="L28">    this.from = from;</span>
-<span class="fc" id="L29">    this.to = to;</span>
-<span class="fc" id="L30">  }</span>
+<span class="fc" id="L29">  ConsumeAllLogs(final Level from, final Level to) {</span>
+<span class="fc" id="L30">    this.from = from;</span>
+<span class="fc" id="L31">    this.to = to;</span>
+<span class="fc" id="L32">  }</span>
 
 
 
   @Override
   public Handling handles(final Level level) {
-<span class="fc" id="L36">    int ordinal = level.ordinal();</span>
-<span class="pc bpc" id="L37" title="1 of 4 branches missed.">    return  (from.ordinal() &lt;= ordinal &amp;&amp; to.ordinal() &gt;= ordinal)</span>
+<span class="fc" id="L38">    int ordinal = level.ordinal();</span>
+<span class="pc bpc" id="L39" title="1 of 4 branches missed.">    return  (from.ordinal() &lt;= ordinal &amp;&amp; to.ordinal() &gt;= ordinal)</span>
             ?  Handling.HANDLE_CONSUME : Handling.NONE;
   }
 
   @Override
+  @Nullable
   public LogRecord handle(final LogRecord record) {
-<span class="nc" id="L43">    return null;</span>
+<span class="nc" id="L46">    return null;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L48">    return &quot;ConsumeAllLogs{&quot; + &quot;from=&quot; + from + &quot;, to=&quot; + to + '}';</span>
+<span class="nc" id="L51">    return &quot;ConsumeAllLogs{&quot; + &quot;from=&quot; + from + &quot;, to=&quot; + to + '}';</span>
   }
 
 }

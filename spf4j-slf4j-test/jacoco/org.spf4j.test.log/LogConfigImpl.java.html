@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
@@ -33,36 +34,36 @@ import javax.annotation.concurrent.Immutable;
 @ParametersAreNonnullByDefault
 final class LogConfigImpl implements LogConfig {
 
-<span class="fc" id="L36">  private static final Comparator&lt;String&gt; REV_STR_COMPARATOR = ((Comparator&lt;String&gt;) String::compareTo).reversed();</span>
+<span class="fc" id="L37">  private static final Comparator&lt;String&gt; REV_STR_COMPARATOR = ((Comparator&lt;String&gt;) String::compareTo).reversed();</span>
 
   private final ImmutableList&lt;LogHandler&gt; rootHandler;
 
   private final SortedMap&lt;String, List&lt;LogHandler&gt;&gt; logHandlers;
 
-<span class="fc" id="L42">  LogConfigImpl(final ImmutableList&lt;LogHandler&gt; rootHandler, final Map&lt;String, List&lt;LogHandler&gt;&gt; catHandlers) {</span>
-<span class="fc" id="L43">    this.rootHandler = rootHandler;</span>
-<span class="fc" id="L44">    logHandlers = new TreeMap&lt;&gt;(REV_STR_COMPARATOR);</span>
-<span class="fc" id="L45">    logHandlers.putAll(catHandlers);</span>
-<span class="fc" id="L46">  }</span>
+<span class="fc" id="L43">  LogConfigImpl(final ImmutableList&lt;LogHandler&gt; rootHandler, final Map&lt;String, List&lt;LogHandler&gt;&gt; catHandlers) {</span>
+<span class="fc" id="L44">    this.rootHandler = rootHandler;</span>
+<span class="fc" id="L45">    logHandlers = new TreeMap&lt;&gt;(REV_STR_COMPARATOR);</span>
+<span class="fc" id="L46">    logHandlers.putAll(catHandlers);</span>
+<span class="fc" id="L47">  }</span>
 
   @Override
   public LogConfigImpl add(final String category, final LogHandler handler) {
     ImmutableList&lt;LogHandler&gt; rh;
     Map&lt;String, List&lt;LogHandler&gt;&gt; ch;
-<span class="fc bfc" id="L52" title="All 2 branches covered.">    if (category.isEmpty()) {</span>
-<span class="fc" id="L53">      rh = ImmutableList.&lt;LogHandler&gt;builder().addAll(rootHandler).add(handler).build();</span>
-<span class="fc" id="L54">      ch = logHandlers;</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    if (category.isEmpty()) {</span>
+<span class="fc" id="L54">      rh = ImmutableList.&lt;LogHandler&gt;builder().addAll(rootHandler).add(handler).build();</span>
+<span class="fc" id="L55">      ch = logHandlers;</span>
     } else {
-<span class="fc" id="L56">      rh = rootHandler;</span>
-<span class="fc" id="L57">      ch = new HashMap&lt;&gt;(logHandlers);</span>
-<span class="fc" id="L58">      List&lt;LogHandler&gt; hndlrs = ch.get(category);</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">      if (hndlrs == null) {</span>
-<span class="fc" id="L60">        hndlrs = new ArrayList&lt;&gt;(2);</span>
-<span class="fc" id="L61">        ch.put(category, hndlrs);</span>
+<span class="fc" id="L57">      rh = rootHandler;</span>
+<span class="fc" id="L58">      ch = new HashMap&lt;&gt;(logHandlers);</span>
+<span class="fc" id="L59">      List&lt;LogHandler&gt; hndlrs = ch.get(category);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">      if (hndlrs == null) {</span>
+<span class="fc" id="L61">        hndlrs = new ArrayList&lt;&gt;(2);</span>
+<span class="fc" id="L62">        ch.put(category, hndlrs);</span>
       }
-<span class="fc" id="L63">      hndlrs.add(handler);</span>
+<span class="fc" id="L64">      hndlrs.add(handler);</span>
     }
-<span class="fc" id="L65">    return new LogConfigImpl(rh, ch);</span>
+<span class="fc" id="L66">    return new LogConfigImpl(rh, ch);</span>
   }
 
 
@@ -70,69 +71,70 @@ final class LogConfigImpl implements LogConfig {
   public LogConfigImpl remove(final String category, final LogHandler handler) {
     ImmutableList&lt;LogHandler&gt; rh;
     Map&lt;String, List&lt;LogHandler&gt;&gt; ch;
-<span class="fc bfc" id="L73" title="All 2 branches covered.">    if (category.isEmpty()) {</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">      rh = rootHandler.stream().filter((h) -&gt;  h != handler).collect(ImmutableList.toImmutableList());</span>
-<span class="fc" id="L75">      ch = logHandlers;</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">    if (category.isEmpty()) {</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">      rh = rootHandler.stream().filter((h) -&gt;  h != handler).collect(ImmutableList.toImmutableList());</span>
+<span class="fc" id="L76">      ch = logHandlers;</span>
     } else {
-<span class="fc" id="L77">      rh = rootHandler;</span>
-<span class="fc" id="L78">      ch = new HashMap&lt;&gt;(logHandlers);</span>
-<span class="fc" id="L79">      List&lt;LogHandler&gt; hndlrs = ch.get(category);</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">      if (hndlrs != null) {</span>
-<span class="fc" id="L81">        hndlrs.remove(handler);</span>
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (hndlrs.isEmpty()) {</span>
-<span class="fc" id="L83">          ch.remove(category);</span>
+<span class="fc" id="L78">      rh = rootHandler;</span>
+<span class="fc" id="L79">      ch = new HashMap&lt;&gt;(logHandlers);</span>
+<span class="fc" id="L80">      List&lt;LogHandler&gt; hndlrs = ch.get(category);</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">      if (hndlrs != null) {</span>
+<span class="fc" id="L82">        hndlrs.remove(handler);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (hndlrs.isEmpty()) {</span>
+<span class="fc" id="L84">          ch.remove(category);</span>
         }
       }
     }
-<span class="fc" id="L87">    return new LogConfigImpl(rh, ch);</span>
+<span class="fc" id="L88">    return new LogConfigImpl(rh, ch);</span>
   }
 
   @Override
+  @Nullable
   public LogConsumer getLogConsumer(final String category, final Level level) {
-<span class="fc" id="L92">    ArrayList&lt;LogHandler&gt; res = new ArrayList&lt;&gt;(2);</span>
-<span class="fc" id="L93">    res.clear();</span>
-<span class="fc bfc" id="L94" title="All 4 branches covered.">    if (category.isEmpty() || logHandlers.isEmpty()) {</span>
-<span class="fc" id="L95">      addAll(level, rootHandler, res);</span>
-<span class="fc" id="L96">      return CompositeLogHandler.from(res);</span>
+<span class="fc" id="L94">    ArrayList&lt;LogHandler&gt; res = new ArrayList&lt;&gt;(2);</span>
+<span class="fc" id="L95">    res.clear();</span>
+<span class="fc bfc" id="L96" title="All 4 branches covered.">    if (category.isEmpty() || logHandlers.isEmpty()) {</span>
+<span class="fc" id="L97">      addAll(level, rootHandler, res);</span>
+<span class="fc" id="L98">      return CompositeLogHandler.from(res);</span>
     }
-<span class="fc bfc" id="L98" title="All 2 branches covered.">    for (Map.Entry&lt;String, List&lt;LogHandler&gt;&gt; entry : logHandlers.tailMap(category).entrySet()) {</span>
-<span class="fc" id="L99">      String key = entry.getKey();</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">      if (category.startsWith(key)) {</span>
-<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (addAll(level, entry.getValue(), res)) {</span>
-<span class="fc" id="L102">          return CompositeLogHandler.from(res);</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">    for (Map.Entry&lt;String, List&lt;LogHandler&gt;&gt; entry : logHandlers.tailMap(category).entrySet()) {</span>
+<span class="fc" id="L101">      String key = entry.getKey();</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">      if (category.startsWith(key)) {</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (addAll(level, entry.getValue(), res)) {</span>
+<span class="fc" id="L104">          return CompositeLogHandler.from(res);</span>
         }
-<span class="nc bnc" id="L104" title="All 2 branches missed.">      } else if (key.charAt(0) != category.charAt(0)) {</span>
-<span class="nc" id="L105">        break;</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">      } else if (key.charAt(0) != category.charAt(0)) {</span>
+<span class="nc" id="L107">        break;</span>
       }
-<span class="fc" id="L107">    }</span>
-<span class="fc" id="L108">    addAll(level, rootHandler, res);</span>
-<span class="fc" id="L109">    return CompositeLogHandler.from(res);</span>
+<span class="fc" id="L109">    }</span>
+<span class="fc" id="L110">    addAll(level, rootHandler, res);</span>
+<span class="fc" id="L111">    return CompositeLogHandler.from(res);</span>
   }
 
   private static boolean addAll(final Level level, final List&lt;LogHandler&gt; from, final List&lt;LogHandler&gt; to) {
-<span class="fc bfc" id="L113" title="All 2 branches covered.">    for (LogHandler handler : from) {</span>
-<span class="fc" id="L114">      LogHandler.Handling handling = handler.handles(level);</span>
-<span class="pc bpc" id="L115" title="1 of 4 branches missed.">      switch (handling) {</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">    for (LogHandler handler : from) {</span>
+<span class="fc" id="L116">      LogHandler.Handling handling = handler.handles(level);</span>
+<span class="pc bpc" id="L117" title="1 of 4 branches missed.">      switch (handling) {</span>
         case HANDLE_CONSUME:
-<span class="fc bfc" id="L117" title="All 2 branches covered.">          if (!(handler instanceof ConsumeAllLogs)) {</span>
-<span class="fc" id="L118">            to.add(handler);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">          if (!(handler instanceof ConsumeAllLogs)) {</span>
+<span class="fc" id="L120">            to.add(handler);</span>
           }
-<span class="fc" id="L120">          return true;</span>
+<span class="fc" id="L122">          return true;</span>
         case HANDLE_PASS:
-<span class="fc" id="L122">          to.add(handler);</span>
-<span class="fc" id="L123">          break;</span>
-        case NONE:
+<span class="fc" id="L124">          to.add(handler);</span>
 <span class="fc" id="L125">          break;</span>
+        case NONE:
+<span class="fc" id="L127">          break;</span>
         default:
-<span class="nc" id="L127">          throw new UnsupportedOperationException(&quot;Not known &quot; + handling);</span>
+<span class="nc" id="L129">          throw new UnsupportedOperationException(&quot;Not known &quot; + handling);</span>
       }
-<span class="fc" id="L129">    }</span>
-<span class="fc" id="L130">    return false;</span>
+<span class="fc" id="L131">    }</span>
+<span class="fc" id="L132">    return false;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L135">    return &quot;LogConfigImpl{&quot; + &quot;rootHandler=&quot; + rootHandler + &quot;, logHandlers=&quot; + logHandlers + '}';</span>
+<span class="fc" id="L137">    return &quot;LogConfigImpl{&quot; + &quot;rootHandler=&quot; + rootHandler + &quot;, logHandlers=&quot; + logHandlers + '}';</span>
   }
 
 }
