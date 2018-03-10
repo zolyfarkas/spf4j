@@ -6,17 +6,18 @@
 
  This is an opinionated logging backend implementation for testing(junit) with the following features:
 
- *  Readable and parse-able output.
- *  Fast. (logging is no reason to have slow builds)
  *  Ability to assert Logging behavior.
- *  Fail unit tests that log an Error by default (if respective Error logs are not asserted against).
+ *  Readable and parse-able output.
+ *  Fail unit tests that log an Error by default (if respective Error logs are not asserted against). (similar to the junit default of failing on exception by default)
  *  Make debug logs available on unit test failure. This helps performance a lot by not requiring you to run your unit tests
 with tons of debug info dumped to output all the time. But making it available when you actually need it (Unit test failure)
  *  Easily change logging configuration via API.
  *  Uncaught exceptions from other threads will fail your tests. You can assert them if they are expected.
  *  No configurable format, It is the best format so everybody should be using it. Format will be evolved as needed.
  *  Ability to log other object payload additionally to the log message.
- *  Type level String image customization. (if unhappy with default toString, or performance optimization is desired)
+ *  Type level String image customization. (if unhappy with default toString, json format is desired, or performance optimization is desired)
+ *  Fast. (logging is no reason to have slow builds)
+ *  Environment specific configurations with best defaults right out of the box. (DEBUG when running from IDE, INFO otherwise)
 
 ## 2. How to use it.
 
@@ -47,6 +48,9 @@ with tons of debug info dumped to output all the time. But making it available w
       </plugin>
 
  Or if your IDE is not smart enough to pick the run listeners up from your pom.xml, you can use the Spf4jTestLogJUnitRunner with @RunWith
+
+ NOTE: since logging is JVM global, you should run your unit tests single threaded to be able to easily reason about your logging,
+ and accurate log message attribution.
 
 ### Examples:
 
@@ -95,11 +99,13 @@ with tons of debug info dumped to output all the time. But making it available w
       09:23:32.731 DEBUG o.s.t.l.TestLoggerFactoryTest "main" "log 1 2 3" ["4"]
 
 
-#### Customize String image that is logged:
+#### Customize String image that is logged.
+
+ If your objects implement JsonWriteable or you register a Json serializer for a particular type like:
 
        LogPrinter.getAppenderSupplier().register(TestLoggerFactoryTest.class,
             MimeTypes.APPLICATION_JSON, (o, a) -> {a.append("{\"a\" : \"b\"}");});
-       LOG.info("Json Payload", this);
+       LOG.info("Json Payload", this); // this will be not part of the messages string and will be logged as extra payload
 
  will be logged like:
 
