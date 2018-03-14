@@ -33,6 +33,7 @@ package org.spf4j.base;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -309,8 +310,8 @@ public final class Callables {
     public RetryDecision<R> getDecision(final T value, final Callable<R> callable) {
       long currentTime = currTimeSuplier.getAsLong();
       if (currentTime > deadline) {
-        return RetryDecision.abort(new TimeoutException("Deadline " + deadline + ' ' + tu
-                + " passed, current time is " + currentTime + ' ' + tu));
+        return RetryDecision.abort(new TimeoutException("Deadline " + Instant.ofEpochMilli(deadline) + ' ' + tu
+                + " passed, current time is " + Instant.ofEpochMilli(currentTime) + ' ' + tu));
       }
       if (retryRegistry == null) {
         retryRegistry = new HashMap<>();
@@ -330,8 +331,9 @@ public final class Callables {
             delay = Math.abs(random.nextInt()) % delay;
           }
           if (currentTime + delay > deadline) {
-            return RetryDecision.abort(new TimeoutException("No time left for retry " + deadline + ' ' + tu
-                + " passed, current time is " + currentTime + ' ' + tu));
+            return RetryDecision.abort(new TimeoutException("No time left for retry "
+                    + Instant.ofEpochMilli(deadline) + ' ' + tu
+                + " passed, current time is " + Instant.ofEpochMilli(currentTime) + ' ' + tu));
           }
           return RetryDecision.retry(tu.toMillis(delay), callable);
         default:
