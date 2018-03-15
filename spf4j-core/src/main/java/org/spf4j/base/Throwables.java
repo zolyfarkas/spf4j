@@ -36,7 +36,6 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.net.SocketException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.SQLRecoverableException;
@@ -145,7 +144,7 @@ public final class Throwables {
       Throwable e = Throwables.firstCause(t,
               (ex) -> (ex instanceof SQLTransientException
               || ex instanceof SQLRecoverableException
-              || ex instanceof SocketException
+              || (ex instanceof IOException && !ex.getClass().getName().contains("Json"))
               || ex instanceof TimeoutException
               || ex.getClass().getName().contains("Transient")));
       return e != null;
