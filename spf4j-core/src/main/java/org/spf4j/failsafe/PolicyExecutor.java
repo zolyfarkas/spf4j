@@ -32,47 +32,35 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.spf4j.base.ExecutionContexts;
 
 /**
- * A retry predicate.
  * @author Zoltan Farkas
  */
-public interface RetryPredicate<T, C extends Callable<? extends T>>
-        extends PartialRetryPredicate<T, C> {
+public interface PolicyExecutor<T, C extends Callable<? extends T>> {
 
-  /**
-   * Simple predicate that does not retry anything.
-   */
-  RetryPredicate NORETRY = new RetryPredicate<Object, Callable<Object>>() {
+  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass)
+          throws InterruptedException, TimeoutException, EX;
 
-    @Override
-    public RetryDecision getDecision(final Object value,
-            final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
+  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass, long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX;
 
-    @Override
-    public RetryDecision getExceptionDecision(final Exception value, final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
+  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+          long timeout, TimeUnit tu)
+          throws InterruptedException, TimeoutException, EX {
+    return call(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+  }
 
-  };
+  <R extends T, W extends Callable<R>> Future<R> submit(W pwhat);
 
-  /**
-   * Get the RetryDecision for the result value returned by Callable C.
-   * @param value the operation result.
-   * @param what the operation.
-   * @return
-   */
-  @Nonnull
-  @Override
-  RetryDecision<T, C> getDecision(@Nullable T value, @Nonnull C what);
+  <R extends T, W extends Callable<R>> Future<R> submit(W pwhat, long deadlineNanos);
 
 
-  @Nonnull
-  RetryDecision<T, C> getExceptionDecision(@Nonnull Exception value, @Nonnull C what);
-
+  default <R extends T, W extends Callable<R>> Future<R> submit(W pwhat, long timeout, TimeUnit tu) {
+    return submit(pwhat, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+  }
 
 }

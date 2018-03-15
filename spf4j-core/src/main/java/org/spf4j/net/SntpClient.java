@@ -105,7 +105,7 @@ public final class SntpClient {
                   Math.min((int) TimeUnit.NANOSECONDS.toMillis(ctx.getDeadlineNanos() - TimeSource.nanoTime()),
                           ntpResponseTimeoutMillis));
         }
-      }, IOException.class);
+      }, IOException.class, ctx.getDeadlineNanos());
     }
   }
 

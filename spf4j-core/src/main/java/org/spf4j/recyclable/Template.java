@@ -76,7 +76,7 @@ public final class Template<T, R, E extends Exception> {
             throw new UncheckedExecutionException(ex);
           }
         }
-      }, exClass);
+      }, exClass, ctx.getDeadlineNanos());
     }
   }
 

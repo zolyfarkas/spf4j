@@ -46,7 +46,6 @@ import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.RetryDecision;
-import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.RetryPredicate;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -329,28 +328,27 @@ public final class RetryExecutor implements AutoCloseable {
     }
   }
 
-  public <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPolicy<A, C> policy) {
+  public <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPredicate<A, C> predicate) {
     FutureBean<?> result = createFutureBean();
-    executionService.execute(new RetryableCallable(task, result, null,
-            policy.getRetryPredicate()));
+    executionService.execute(new RetryableCallable(task, result, null, predicate));
     return (Future<A>) result;
   }
 
   public <A> Future<A> submit(final Runnable task, final A result,
-          final RetryPolicy<A, Callable<A>> policy) {
+          final RetryPredicate<A, Callable<A>> predicate) {
     FutureBean<?> resultFuture = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, resultFuture, null,
-            policy.getRetryPredicate()));
+            predicate));
     return (Future<A>) resultFuture;
   }
 
-  public Future<?> submit(final Runnable task, final RetryPolicy<Void, Callable<Void>> policy) {
-    return submit(task, null, policy);
+  public Future<?> submit(final Runnable task, final RetryPredicate<Void, Callable<Void>> predicate) {
+    return submit(task, null, predicate);
   }
 
-  public void execute(final Runnable command, final RetryPolicy<Void, Callable<Void>> policy) {
+  public void execute(final Runnable command, final RetryPredicate<Void, Callable<Void>> predicate) {
     executionService.execute(new RetryableCallable(command, null, null, null,
-            policy.getRetryPredicate()));
+            predicate));
   }
 
   @Override

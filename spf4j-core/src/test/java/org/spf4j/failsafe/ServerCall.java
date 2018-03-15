@@ -16,7 +16,6 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
-import org.spf4j.base.Timing;
 
 /**
  *
@@ -44,10 +43,6 @@ public final class ServerCall implements Callable<Response> {
 
   public Request getRequest() {
     return request;
-  }
-
-  public long getDeadlineNanos() {
-    return Timing.getCurrentTiming().fromEpochMillisToNanoTime(request.getDeadlineMSEpoch());
   }
 
   @Override

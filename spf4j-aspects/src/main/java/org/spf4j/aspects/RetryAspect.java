@@ -70,9 +70,9 @@ public final class RetryAspect {
       };
       String retryPolicyName = annot.retryPolicyName();
       if ("".equals(retryPolicyName)) {
-        return RetryPolicy.DEFAULT.call(c, Exception.class);
+        return RetryPolicy.DEFAULT.call(c, Exception.class, ctx.getDeadlineNanos());
       } else {
-        return POLICIES.get(retryPolicyName).call(c, Exception.class);
+        return POLICIES.get(retryPolicyName).call(c, Exception.class, ctx.getDeadlineNanos());
       }
     }
 

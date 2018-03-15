@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  * Retry predicate that can make a retry decision. (or no decision at all)
  * @author Zoltan Farkas
  */
-public interface PartialRetryPredicate<T, C extends Callable<T>> {
+public interface PartialRetryPredicate<T, C extends Callable<? extends T>> {
 
   /**
    * Get the RetryDecision for the result value returned by Callable C.

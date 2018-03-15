@@ -59,7 +59,7 @@ public final class SyncRetry {
    * @throws EX - the exception thrown by callable.
    */
   @SuppressFBWarnings({ "MDM_THREAD_YIELD", "ITC_INHERITANCE_TYPE_CHECKING" })
-  public static <T, EX extends Exception, C extends Callable<T>> T call(
+  public static <T, EX extends Exception, C extends Callable<? extends T>> T call(
           final C pwhat,
           final RetryPredicate<T, C> retryPredicate,
           final Class<EX> exceptionClass,

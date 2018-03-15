@@ -28,19 +28,18 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
   private final RetryPredicate<T, C> predicate;
 
 
-  private final DeadlineSupplier<C> deadlineSupplier;
+  private final long deadlineNanos;
 
-  TimeoutRetryPredicate(final RetryPredicate<T, C> predicate, final DeadlineSupplier<C> deadlineSupplier) {
+  TimeoutRetryPredicate(final RetryPredicate<T, C> predicate, final long deadlineNanos) {
     this.predicate = predicate;
-    this.deadlineSupplier = deadlineSupplier;
+    this.deadlineNanos = deadlineNanos;
   }
 
   @Override
   public RetryDecision<T, C> getDecision(final T value, final C what) {
     RetryDecision<T, C> decision = predicate.getDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(
-              deadlineSupplier.getDeadlineNanos(what), TimeUnit.NANOSECONDS);
+      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
          return (RetryDecision) RetryDecision.abortThrow(new TimeoutException("Time to deadline not enough "
                   + timeToDeadlineNanos + " ns, last result = " + value));
@@ -53,8 +52,7 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
   public RetryDecision<T, C> getExceptionDecision(final Exception value, final C what) {
     RetryDecision<T, C> decision = predicate.getExceptionDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(
-              deadlineSupplier.getDeadlineNanos(what), TimeUnit.NANOSECONDS);
+      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
           TimeoutException timeoutException = new TimeoutException("Time to deadline not enough "
                   + timeToDeadlineNanos + " ns ");
@@ -67,7 +65,7 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
 
   @Override
   public String toString() {
-    return "TimeoutRetryPredicate{" + "predicate=" + predicate + ", deadlineSupplier=" + deadlineSupplier + '}';
+    return "TimeoutRetryPredicate{" + "predicate=" + predicate + ", deadlineNanos=" + deadlineNanos + '}';
   }
 
 }

@@ -91,7 +91,7 @@ public final class JdbcTemplate {
           final long timeout, final TimeUnit tu)
           throws SQLException, InterruptedException {
     try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {
-      return retryPolicy.call(new Callable<R>() {
+      return (R) retryPolicy.call(new Callable() {
         @Override
         public R call() throws SQLException {
           try (Connection conn = dataSource.getConnection()) {
@@ -113,7 +113,7 @@ public final class JdbcTemplate {
             }
           }
         }
-      }, SQLException.class);
+      }, SQLException.class, ctx.getDeadlineNanos());
     } catch (TimeoutException ex) {
       throw new SQLTimeoutException(ex);
     }

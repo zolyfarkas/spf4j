@@ -26,7 +26,7 @@ import org.spf4j.base.Either;
  *
  * @author Zoltan Farkas
  */
-public interface RetryDecision<T, C extends Callable<T>> {
+public interface RetryDecision<T, C extends Callable<? extends T>> {
 
   RetryDecision<?, ?> ABORT  = new RetryDecision() {
     @Override
