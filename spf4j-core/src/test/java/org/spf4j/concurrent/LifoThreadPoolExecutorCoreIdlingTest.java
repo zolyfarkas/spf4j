@@ -77,7 +77,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
   @Test
   public void testLifoExecSQMutable() throws InterruptedException, IOException {
     MutableLifoThreadPoolExecutorSQP executor
-            = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 1024);
+            = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 0);
     Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
             new File(org.spf4j.base.Runtime.TMP_FOLDER),
             "lifeTest1");
