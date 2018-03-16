@@ -53,6 +53,7 @@ public final class CharSequences {
   /**
    * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
    * add, char delete, char modify
+   * See https://en.wikipedia.org/wiki/Levenshtein_distance for more info.
    *
    * @param s1
    * @param s2
@@ -83,11 +84,7 @@ public final class CharSequences {
   }
 
   public static int distance(final char c1, final char c2) {
-    if (c1 == c2) {
-      return 0;
-    } else {
-      return 1;
-    }
+    return (c1 == c2) ? 0 : 1;
   }
 
   /**
