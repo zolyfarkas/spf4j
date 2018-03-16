@@ -58,7 +58,7 @@ public final class RetryAspect {
           argNames = "pjp,annot")
   public Object retriedMethod(final ProceedingJoinPoint pjp, final Retry annot)
           throws Throwable {
-    try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeoutMillis())) {
+    try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeout(), annot.units())) {
       Callable c = () -> {
         try {
           return pjp.proceed();
