@@ -106,7 +106,9 @@ public final class ProxyClientHandler implements ClientHandler {
                     serverSelector, exec, tasksToRunBySelector, daction).initialInterestRegistration();
         } catch (IOException ex) {
             Exception exs = Closeables.closeAll(proxyChannel, clientChannel);
-            ex.addSuppressed(exs);
+            if (exs != null) {
+              ex.addSuppressed(exs);
+            }
             throw ex;
         }
 
