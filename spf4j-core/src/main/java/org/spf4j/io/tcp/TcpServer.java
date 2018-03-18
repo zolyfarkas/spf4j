@@ -49,14 +49,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Callables;
-import org.spf4j.base.Callables.RetryDecision;
 import org.spf4j.base.Closeables;
 import org.spf4j.concurrent.RestartableServiceImpl;
 import org.spf4j.ds.UpdateablePriorityQueue;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  *
@@ -129,12 +128,8 @@ public final class TcpServer extends RestartableServiceImpl {
     protected void startUp() throws Exception {
       selector = Selector.open();
       try {
-        serverCh = Callables.executeWithRetry(
-                new Callables.TimeoutCallable<ServerSocketChannel, IOException>(bindTimeoutMillis) {
-          @Override
-          public ServerSocketChannel call(final long deadline)
-                  throws IOException, InterruptedException, TimeoutException {
-            ServerSocketChannel sc = ServerSocketChannel.open();
+        serverCh = RetryPolicy.defaultPolicy().call(() -> {
+          ServerSocketChannel sc = ServerSocketChannel.open();
             try {
               sc.bind(new InetSocketAddress(serverPort), acceptBacklog);
               sc.configureBlocking(false);
@@ -143,12 +138,7 @@ public final class TcpServer extends RestartableServiceImpl {
               sc.close();
               throw e;
             }
-          }
-        }, (e, deadlineMillis, what) -> {
-          String message = e.getMessage();
-          return (message != null && message.contains("Address already in use"))
-                  ? RetryDecision.retry(1000, what) : RetryDecision.abort(e);
-        }, IOException.class);
+        }, IOException.class, bindTimeoutMillis, TimeUnit.MILLISECONDS);
       } catch (IOException | RuntimeException e) {
         selector.close();
         throw e;
@@ -228,7 +218,7 @@ public final class TcpServer extends RestartableServiceImpl {
     }
 
     @Override
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
       this.stopAsync().awaitTerminated();
     }
 

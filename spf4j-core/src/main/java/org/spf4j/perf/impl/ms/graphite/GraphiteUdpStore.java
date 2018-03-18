@@ -150,7 +150,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
               1, TimeUnit.MINUTES,
-              datagramChannelSupplier, RetryPolicy.DEFAULT, IOException.class);
+              datagramChannelSupplier, RetryPolicy.defaultPolicy(), IOException.class);
     } catch (TimeoutException ex) {
       throw new UncheckedTimeoutException(ex);
     } catch (InterruptedException ex) {

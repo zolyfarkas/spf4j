@@ -60,7 +60,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     }
   };
 
-  public static final RetryPolicy DEFAULT = RetryPolicy.newBuilder()
+  private static final RetryPolicy DEFAULT = RetryPolicy.newBuilder()
           .withDefaultThrowableRetryPredicate()
           .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
           .build();
@@ -77,6 +77,10 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     this.retryPredicate = retryPredicate;
     this.maxExceptionChain = maxExceptionChain;
     this.execSupplier = execSupplier;
+  }
+
+  public static <T> RetryPolicy<T, Callable<? extends T>> defaultPolicy() {
+    return DEFAULT;
   }
 
   @Override

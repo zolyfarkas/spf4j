@@ -150,7 +150,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
     try {
       Template.doOnSupplied(new HandlerImpl(measurements, Id2Info.getInfo(tableId), timeStampMillis),
               1, TimeUnit.MINUTES,
-              socketWriterSupplier, RetryPolicy.DEFAULT, IOException.class);
+              socketWriterSupplier, RetryPolicy.defaultPolicy(), IOException.class);
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       return;

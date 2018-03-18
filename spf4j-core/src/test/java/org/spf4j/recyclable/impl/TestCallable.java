@@ -59,7 +59,7 @@ public final class TestCallable implements Callable<Integer> {
         Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
           object.doStuff();
           return null;
-        }, 1, TimeUnit.MINUTES, pool, RetryPolicy.DEFAULT, IOException.class);
+        }, 1, TimeUnit.MINUTES, pool,  RetryPolicy.defaultPolicy(), IOException.class);
         return testNr;
     }
 

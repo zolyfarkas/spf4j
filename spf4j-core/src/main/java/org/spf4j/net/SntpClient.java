@@ -93,12 +93,11 @@ public final class SntpClient {
           final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
     try (ExecutionContext ctx = ExecutionContexts.start("requestTimeHA", timeoutMillis, TimeUnit.MILLISECONDS)) {
-      return ((RetryPolicy<Timing, Callable<Timing>>) RetryPolicy.DEFAULT).call(new Callable<Timing>() {
+      return  RetryPolicy.defaultPolicy().call(new Callable<Timing>() {
 
         private int i = 0;
 
         @Override
-        @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
         public Timing call() throws IOException {
           int hostIdx = Math.abs(i++) % hosts.length;
           return requestTime(hosts[hostIdx],

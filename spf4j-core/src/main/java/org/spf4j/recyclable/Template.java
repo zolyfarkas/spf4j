@@ -47,9 +47,9 @@ public final class Template<T, R, E extends Exception> {
 
   private final RecyclingSupplier<T> pool;
   private final Class<E> exClass;
-  private final RetryPolicy<R, Callable<R>> retryPolicy;
+  private final RetryPolicy<R, Callable<? extends R>> retryPolicy;
 
-  public Template(final RecyclingSupplier<T> pool, final RetryPolicy<R, Callable<R>> retryPolicy,
+  public Template(final RecyclingSupplier<T> pool, final RetryPolicy<R, Callable<? extends R>> retryPolicy,
           final Class<E> exClass) {
     this.pool = pool;
     this.exClass = exClass;
@@ -63,7 +63,8 @@ public final class Template<T, R, E extends Exception> {
 
   public static <T, R, E extends Exception> R doOnSupplied(final HandlerNano<T, R, E> handler,
           final long timeout, final TimeUnit tu,
-          final RecyclingSupplier<T> pool, final RetryPolicy<R, Callable<R>> retryPolicy, final Class<E> exClass)
+          final RecyclingSupplier<T> pool, final RetryPolicy<R, Callable<? extends R>> retryPolicy,
+          final Class<E> exClass)
           throws E, InterruptedException, TimeoutException {
     try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {
       return retryPolicy.call(new Callable<R>() {
