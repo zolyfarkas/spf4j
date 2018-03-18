@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
@@ -132,7 +133,7 @@ public class LifoThreadPoolExecutor2Test {
       @SuppressFBWarnings("MDM_THREAD_YIELD")
       public void run() {
         adder.increment();
-        long sleep = (long) (50 * Math.random());
+        long sleep = ThreadLocalRandom.current().nextLong(0, 100);
         if (sleep < 10) {
           exNr.increment();
           throw new IllegalStateException();
@@ -149,10 +150,10 @@ public class LifoThreadPoolExecutor2Test {
     long deadlineNanos = TimeSource.nanoTime() + unit.toNanos(time);
     int i = 0;
     for (; deadlineNanos - TimeSource.nanoTime() > 0; i++) {
-      futures.add(executor.submit(runnable));
-      if (i % maxParallel == 0) {
+      if (i > 0 && i % maxParallel == 0) {
         nrExCaught += consume(futures);
       }
+      futures.add(executor.submit(runnable));
     }
     nrExCaught += consume(futures);
     LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
