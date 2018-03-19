@@ -114,6 +114,8 @@ public final class TransferBuffer {
       isEof = true;
       try {
         channel.socket().shutdownInput(); // ? is this really necessary?
+      } catch (ClosedChannelException cex) {
+        // channel is closed.
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
       }
