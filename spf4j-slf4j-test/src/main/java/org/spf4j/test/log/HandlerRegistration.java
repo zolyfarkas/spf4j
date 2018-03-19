@@ -20,5 +20,8 @@ package org.spf4j.test.log;
  * @author Zoltan Farkas
  */
 public interface HandlerRegistration extends AutoCloseable {
+  /**
+   * Will unregister this log handler.
+   */
   void close();
 }

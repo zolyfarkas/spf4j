@@ -23,10 +23,11 @@ import edu.umd.cs.findbugs.annotations.DischargesObligation;
  * @author Zoltan Farkas
  */
 @CleanupObligation
-public interface LogAssert {
+public interface LogAssert extends HandlerRegistration {
 
   /**
    * Assert that a sequence of messages has not been seen.
+   * also unregisters this assertion handler.
    */
   @DischargesObligation
   void assertObservation();

@@ -256,7 +256,7 @@ public final class TestLoggers implements ILoggerFactory {
       private boolean isClosed = false;
 
       @Override
-      void unregister() {
+      public void close() {
         synchronized (sync) {
           if (!isClosed) {
             config = config.remove(category, this);

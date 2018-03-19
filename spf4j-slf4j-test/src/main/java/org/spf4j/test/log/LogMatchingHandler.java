@@ -49,7 +49,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     this.category = category;
   }
 
-  abstract void unregister();
+  public abstract void close();
 
 
   @Override
@@ -82,7 +82,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    */
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   private void assertSeen() {
-    unregister();
+    close();
     if (at < matchers.length) {
       Description description = new StringDescription();
       description.appendText("Expected in category:").appendText(category)
@@ -101,7 +101,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    */
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   private void assertNotSeen() {
-    unregister();
+    close();
     if (at >= matchers.length) {
       Description description = new StringDescription();
       description.appendText("Not expected in category:").appendText(category)
