@@ -303,11 +303,15 @@ public final class RetryExecutor implements AutoCloseable {
   }
 
   public void close() throws InterruptedException {
-    shutdownRetryManager();
-    try {
-      this.retryManagerFuture.get();
-    } catch (ExecutionException ex) {
-      throw new UncheckedExecutionException(ex);
+    synchronized (sync) {
+      shutdownRetryManager();
+      if (this.retryManagerFuture != null) {
+        try {
+          this.retryManagerFuture.get();
+        } catch (ExecutionException ex) {
+          throw new UncheckedExecutionException(ex);
+        }
+      }
     }
   }
 

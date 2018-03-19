@@ -70,6 +70,21 @@ public class RetryPolicyTest {
   }
 
   @Test
+  public void testDefaulPolicy() throws IOException, InterruptedException, TimeoutException {
+    LogAssert expect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 2,
+            LogMatchers.hasMatchingMessage(
+                    Matchers.startsWith("Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest")));
+    try {
+      RetryPolicy.defaultPolicy().call(() -> {
+        throw new RuntimeException();
+      }, RuntimeException.class);
+      Assert.fail();
+    } catch (RuntimeException ex) {
+      expect.assertObservation();
+    }
+  }
+
+  @Test
   public void testNoRetryPolicy2() throws InterruptedException, TimeoutException {
     @SuppressWarnings("unchecked")
     RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder().build();
