@@ -35,10 +35,16 @@ import com.google.common.base.Charsets;
 import org.spf4j.io.tcp.proxy.ProxyClientHandler;
 import org.spf4j.io.tcp.TcpServer;
 import com.google.common.net.HostAndPort;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -53,6 +59,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +86,35 @@ public class TcpServerTest {
 
   private static final Logger SNIFFER_LOG = LoggerFactory.getLogger(TcpServerTest.class + ".SNIFFER");
 
-  private static final String TEST_SITE = "charizard.homeunix.net";
+  private static final String TEST_SITE = "localhost"; //"charizard.homeunix.net";
+
+  private static final int TEST_PORT = 8080;
+
+  private static HttpServer server;
+
+
+  @BeforeClass
+  public static void createHttpServer() throws IOException {
+    server = HttpServer.create(new InetSocketAddress(TEST_PORT), 0);
+    server.createContext("/", new HttpHandler() {
+      @Override
+      public void handle(final HttpExchange he) throws IOException {
+        Headers respHeaders = he.getResponseHeaders();
+        respHeaders.add("testheader", "testValue");
+        he.sendResponseHeaders(200, 0);
+        OutputStream responseBody = he.getResponseBody();
+        responseBody.write("Some Body".getBytes(StandardCharsets.UTF_8));
+        responseBody.close();
+      }
+    });
+    server.start();
+  }
+
+  public static void stopHttpServer() {
+    server.stop(3);
+  }
+
+
 
   private SnifferFactory printSnifferFactory = new SnifferFactory() {
     @Override
@@ -108,10 +143,6 @@ public class TcpServerTest {
           return nrBytes;
         }
 
-        @Override
-        public IOException received(final IOException ex) {
-          return ex;
-        }
       };
     }
   };
@@ -120,13 +151,12 @@ public class TcpServerTest {
   public void testProxy() throws IOException, InterruptedException {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
-            new ProxyClientHandler(HostAndPort.fromParts(TEST_SITE, 80), printSnifferFactory,
+            new ProxyClientHandler(HostAndPort.fromParts(TEST_SITE, TEST_PORT), printSnifferFactory,
                     printSnifferFactory, 10000, 5000),
             1976, 10)) {
       server.startAsync().awaitRunning();
-      //byte [] originalContent = readfromSite("http://" + TEST_SITE);
       long start = System.currentTimeMillis();
-      byte[] originalContent = readfromSite("http://" + TEST_SITE);
+      byte[] originalContent = readfromSite("http://" + TEST_SITE + ':' + TEST_PORT);
       long time1 = System.currentTimeMillis();
       byte[] proxiedContent = readfromSite("http://localhost:1976");
       long time2 = System.currentTimeMillis();
@@ -141,7 +171,7 @@ public class TcpServerTest {
 
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(
-                    HostAndPort.fromParts(TEST_SITE, 80), printSnifferFactory, printSnifferFactory, 10000, 5000),
+                    HostAndPort.fromParts(TEST_SITE, TEST_PORT), printSnifferFactory, printSnifferFactory, 10000, 5000),
             1977, 10)) {
       server.startAsync().awaitRunning();
 

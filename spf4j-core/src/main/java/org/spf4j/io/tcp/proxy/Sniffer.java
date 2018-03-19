@@ -57,6 +57,8 @@ public interface Sniffer {
      * @return A exception you want to propagate, or null in case we do not want to propagate exception.
      */
     @Nullable
-    IOException received(IOException ex);
+    default IOException received(final IOException ex) {
+      return ex;
+    }
 
 }
