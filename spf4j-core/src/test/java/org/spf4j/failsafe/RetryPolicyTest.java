@@ -146,6 +146,7 @@ public class RetryPolicyTest {
             .build();
   }
 
+  @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
   public final void testSyncRetry(final Server server, final RetryPolicy<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
@@ -201,6 +202,7 @@ public class RetryPolicyTest {
     }
   }
 
+  @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
   public final void testASyncRetry(final Server server, final RetryPolicy<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
