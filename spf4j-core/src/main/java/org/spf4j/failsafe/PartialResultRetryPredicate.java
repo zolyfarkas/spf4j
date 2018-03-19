@@ -16,6 +16,7 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -24,9 +25,15 @@ import javax.annotation.Nullable;
  * @author Zoltan Farkas
  */
 @FunctionalInterface
-public interface PartialResultRetryPredicate<T, C extends Callable<T>> extends PartialRetryPredicate<T, C> {
+public interface PartialResultRetryPredicate<T, C extends Callable<? extends T>>
+        extends  BiFunction<T, C, RetryDecision<T, C>>  {
 
   @Nullable
   RetryDecision<T, C> getDecision(@Nonnull T value, @Nonnull C what);
+
+  @Override
+  default RetryDecision<T, C> apply(final T t, final C u) {
+    return getDecision(t, u);
+  }
 
 }

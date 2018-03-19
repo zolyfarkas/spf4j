@@ -52,8 +52,8 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyExecutor<T, C> {
 
-  private static final Supplier<? extends PartialRetryPredicate<?, ?>> DEFAULT_TRANSIENT
-          = () -> new PartialExceptionRetryPredicate() {
+  private static final Supplier<PartialExceptionRetryPredicate<Object, Callable<Object>>> DEFAULT_TRANSIENT
+          = () -> new PartialExceptionRetryPredicate<Object, Callable<Object>>() {
     @Override
     public RetryDecision getExceptionDecision(final Exception value, final Callable what) {
       return Throwables.isRetryable(value) ? RetryDecision.retryDefault(what) : null;
@@ -122,7 +122,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
             + ", maxExceptionChain=" + maxExceptionChain + '}';
   }
 
-  public static final class Builder<T, C extends Callable<T>> {
+  public static final class Builder<T, C extends Callable<? extends T>> {
 
     private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.defaultMaxExceptionChain", 10);
 
@@ -139,7 +139,9 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
     private Supplier<RetryExecutor> execSupplier = () -> DefaultContextAwareRetryExecutor.instance();
 
-    private final List<Supplier<? extends PartialRetryPredicate<T, C>>> predicates;
+    private final List<Supplier<? extends PartialResultRetryPredicate<T, C>>> resultPredicates;
+
+    private final List<Supplier<? extends PartialExceptionRetryPredicate<T, C>>> exceptionPredicates;
 
     private int nrInitialRetries;
 
@@ -154,18 +156,19 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
       this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
       this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;
       this.jitterFactor = 0.2;
-      this.predicates = new ArrayList<>();
+      this.resultPredicates = new ArrayList<>(2);
+      this.exceptionPredicates = new ArrayList<>(2);
     }
 
     @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate() {
-      predicates.add((Supplier) DEFAULT_TRANSIENT);
+      exceptionPredicates.add((Supplier) DEFAULT_TRANSIENT);
       return this;
     }
 
     @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz) {
-      return withExceptionPartialPredicate((e, c)
+      return withExceptionPartialPredicate((Exception e, C c)
               -> clasz.isAssignableFrom(e.getClass())
               ? RetryDecision.retryDefault(c) : null);
     }
@@ -180,7 +183,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate) {
-      predicates.add(() -> predicate);
+      exceptionPredicates.add(() -> predicate);
       return this;
     }
 
@@ -188,21 +191,25 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate,
             final int maxRetries) {
-      predicates.add(() -> new CountLimitedPartialRetryPredicate<>(maxRetries, predicate));
+      exceptionPredicates.add(() -> {
+        CountLimitedPartialRetryPredicate<T, Exception, C> p
+                = new CountLimitedPartialRetryPredicate<T, Exception, C>(maxRetries, predicate);
+        return (Exception value, C what) -> p.apply(value, what);
+      });
       return this;
     }
 
     @CheckReturnValue
     public Builder<T, C> withExceptionStatefulPartialPredicate(
             final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
-      predicates.add(predicateSupplier);
+      exceptionPredicates.add(predicateSupplier);
       return this;
     }
 
     @CheckReturnValue
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate) {
-      predicates.add(() -> predicate);
+      resultPredicates.add(() -> predicate);
       return this;
     }
 
@@ -210,14 +217,17 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate,
             final int maxRetries) {
-      predicates.add(() -> new CountLimitedPartialRetryPredicate<>(maxRetries, predicate));
+      resultPredicates.add(() -> {
+        CountLimitedPartialRetryPredicate<T, T, C> p = new CountLimitedPartialRetryPredicate<>(maxRetries, predicate);
+        return (T value, C what) -> p.apply(value, what);
+      });
       return this;
     }
 
     @CheckReturnValue
     public Builder<T, C> withResultStatefulPartialPredicate(
             final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
-      predicates.add(predicateSupplier);
+      resultPredicates.add(predicateSupplier);
       return this;
     }
 
@@ -261,11 +271,12 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     @CheckReturnValue
     @SuppressWarnings("unchecked")
     public RetryPolicy<T, C> build() {
+      Supplier[] rps = resultPredicates.toArray(new Supplier[resultPredicates.size()]);
+      Supplier[] eps = exceptionPredicates.toArray(new Supplier[exceptionPredicates.size()]);
       Supplier<RetryPredicate<T, C>> retryPredicate =
               () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
-                      startDelayNanos, maxDelayNanos), jitterFactor)),
-              predicates.toArray(new Supplier[predicates.size()]));
+                      startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new RetryPolicy<>(retryPredicate, execSupplier, maxExceptionChain
       );
     }

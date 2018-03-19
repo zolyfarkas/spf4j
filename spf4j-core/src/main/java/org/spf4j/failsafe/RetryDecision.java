@@ -97,7 +97,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
    * @return
    */
   @CheckReturnValue
-  static <T> RetryDecision<T, ? extends Callable<T>> abortReturn(final T result) {
+  static <T> RetryDecision<T, ? extends Callable<? extends T>> abortReturn(final T result) {
     return new RetryDecision<T, Callable<T>>() {
       @Override
       public Type getDecisionType() {
@@ -123,7 +123,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
   }
 
   @CheckReturnValue
-  static <T, C extends Callable<T>> RetryDecision<T, C> retry(
+  static <T, C extends Callable<? extends T>> RetryDecision<T, C> retry(
           @Nonnegative final long retryNanos, @Nonnull final C callable) {
    return new RetryDecision<T, C>() {
      @Override
@@ -151,7 +151,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
 
 
   @CheckReturnValue
-  static <T, C extends Callable<T>> RetryDecision<T, C> retryDefault(@Nonnull final C callable) {
+  static <T, C extends Callable<? extends T>> RetryDecision<T, C> retryDefault(@Nonnull final C callable) {
    return new RetryDecision<T, C>() {
      @Override
      public Type getDecisionType() {

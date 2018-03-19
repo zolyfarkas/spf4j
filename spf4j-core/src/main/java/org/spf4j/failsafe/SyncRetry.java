@@ -86,7 +86,11 @@ public final class SyncRetry {
             : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();
-        throw new InterruptedException();
+        InterruptedException ex = new InterruptedException();
+        if (lastExChain != null) {
+          ex.addSuppressed(lastExChain);
+        }
+        throw ex;
       }
       long delayNanos = decision.getDelayNanos();
       if (delayNanos > 0) {
@@ -99,6 +103,9 @@ public final class SyncRetry {
         result = what.call();
         lastEx = null;
       } catch (InterruptedException ex1) {
+        if (lastExChain != null) {
+          ex1.addSuppressed(lastExChain);
+        }
         throw ex1;
       } catch (Exception e) { // only EX and RuntimeException
         lastEx = e;

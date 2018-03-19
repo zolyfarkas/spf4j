@@ -16,6 +16,7 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -23,36 +24,21 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-final class CountLimitedPartialRetryPredicate<T, C extends Callable<T>> implements PartialRetryPredicate<T, C> {
+final class CountLimitedPartialRetryPredicate<T, V, C extends Callable<? extends T>>
+        implements BiFunction<V, C, RetryDecision<T, C>> {
 
-  private final PartialRetryPredicate<T, C> wrapped;
+  private final BiFunction<V, C, RetryDecision<T, C>> wrapped;
   private int count;
 
-  CountLimitedPartialRetryPredicate(final int maxCount, final PartialRetryPredicate<T, C> wrapped) {
+  CountLimitedPartialRetryPredicate(final int maxCount, final BiFunction<V, C, RetryDecision<T, C>> wrapped) {
     this.wrapped = wrapped;
     this.count = maxCount;
   }
 
   @Override
   @Nullable
-  public RetryDecision<T, C> getDecision(final T value, final C what) {
-    RetryDecision<T, C> decision = wrapped.getDecision(value, what);
-    if (decision == null) {
-      return null;
-    }
-    if (count <= 0) {
-      return RetryDecision.abort();
-    }
-    if (decision.getDecisionType() == RetryDecision.Type.Retry) {
-      count--;
-    }
-    return decision;
-  }
-
-  @Override
-  @Nullable
-  public RetryDecision<T, C> getExceptionDecision(final Exception value, final C what) {
-    RetryDecision<T, C> decision = wrapped.getExceptionDecision(value, what);
+  public RetryDecision<T, C> apply(final V value, final C what) {
+    RetryDecision<T, C> decision = wrapped.apply(value, what);
     if (decision == null) {
       return null;
     }

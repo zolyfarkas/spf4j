@@ -30,19 +30,40 @@ import org.slf4j.LoggerFactory;
 @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive...
 final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
+  private static final PartialResultRetryPredicate[] NO_RP = new PartialResultRetryPredicate[0];
+
+  private static final PartialExceptionRetryPredicate[] NO_EP = new PartialExceptionRetryPredicate[0];
+
   private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryPredicate.class);
 
   private final Function<Object, RetryDelaySupplier> defaultBackoffSupplier;
 
-  private final PartialRetryPredicate<T, Callable<T>> [] predicates;
+  private final PartialResultRetryPredicate<T, Callable<T>>[] resultPredicates;
+
+  private final PartialExceptionRetryPredicate<T, Callable<T>>[] exceptionPredicates;
 
   DefaultRetryPredicate(
           final Supplier<Function<Object, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
-          final Supplier<PartialRetryPredicate<T, Callable<T>>>... predicates) {
+          final Supplier<PartialResultRetryPredicate<T, Callable<T>>>[] resultPredicates,
+          final Supplier<PartialExceptionRetryPredicate<T, Callable<T>>>... exceptionPredicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
-    this.predicates = new PartialRetryPredicate[predicates.length];
-    for (int i = 0, l = predicates.length; i < l; i++) {
-      this.predicates[i] = predicates[i].get();
+    int rpl = resultPredicates.length;
+    if (rpl > 0) {
+      this.resultPredicates = new PartialResultRetryPredicate[rpl];
+      for (int i = 0; i < rpl; i++) {
+        this.resultPredicates[i] = resultPredicates[i].get();
+      }
+    } else {
+      this.resultPredicates = NO_RP;
+    }
+    int epl = exceptionPredicates.length;
+    if (epl > 0) {
+      this.exceptionPredicates = new PartialExceptionRetryPredicate[epl];
+      for (int i = 0; i < epl; i++) {
+        this.exceptionPredicates[i] = exceptionPredicates[i].get();
+      }
+    } else {
+      this.exceptionPredicates = NO_EP;
     }
   }
 
@@ -50,7 +71,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
   @Nonnull
   public RetryDecision<T, Callable<T>> getDecision(final T value, final Callable<T> what) {
 
-    for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
+    for (PartialResultRetryPredicate<T, Callable<T>> predicate : resultPredicates) {
       RetryDecision<T, Callable<T>> decision = predicate.getDecision(value, what);
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
@@ -73,7 +94,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
   @Override
   @Nonnull
   public RetryDecision<T, Callable<T>> getExceptionDecision(final Exception value, final Callable<T> what) {
-    for (PartialRetryPredicate<T, Callable<T>> predicate : predicates) {
+    for (PartialExceptionRetryPredicate<T, Callable<T>> predicate : exceptionPredicates) {
       RetryDecision<T, Callable<T>> decision = predicate.getExceptionDecision(value, what);
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
@@ -96,10 +117,9 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   @Override
   public String toString() {
-    return "DefaultRetryPredicate{" + "defaultBackoffSupplier="
-            + defaultBackoffSupplier + ", predicates=" + Arrays.toString(predicates) + '}';
+    return "DefaultRetryPredicate{" + "defaultBackoffSupplier=" + defaultBackoffSupplier
+            + ", resultPredicates=" + Arrays.toString(resultPredicates)
+            + ", exceptionPredicates=" + Arrays.toString(exceptionPredicates) + '}';
   }
-
-
 
 }
