@@ -79,7 +79,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     this.execSupplier = execSupplier;
   }
 
-  public static <T> RetryPolicy<T, Callable<? extends T>> defaultPolicy() {
+  public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> defaultPolicy() {
     return DEFAULT;
   }
 
@@ -99,14 +99,25 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
 
   @Override
-  public <R extends T, W extends Callable<R>> Future<R> submit(final W pwhat) {
-    return (Future<R>) execSupplier.get().submit((Callable) pwhat, (RetryPredicate) getRetryPredicate());
+  public <R extends T, W extends C> Future<R> submit(final W pwhat) {
+    return (Future<R>) execSupplier.get().submit(pwhat, getRetryPredicate());
   }
 
   @Override
-  public <R extends T, W extends Callable<R>> Future<R> submit(final W pwhat, final long deadlineNanos) {
-    return (Future<R>) execSupplier.get().submit((Callable) pwhat, (RetryPredicate) getRetryPredicate(deadlineNanos));
+  public <R extends T, W extends C> Future<R> submit(final W pwhat, final long deadlineNanos) {
+    return (Future<R>) execSupplier.get().submit(pwhat, getRetryPredicate(deadlineNanos));
   }
+
+
+  @Override
+  public <W extends C> void execute(final W pwhat) {
+    execSupplier.get().execute(pwhat, getRetryPredicate());
+  }
+
+  public <W extends C> void execute(final W pwhat, final long deadlineNanos) {
+    execSupplier.get().execute(pwhat, getRetryPredicate(deadlineNanos));
+  }
+
 
   public RetryPredicate<T, C> getRetryPredicate() {
     return retryPredicate.get();

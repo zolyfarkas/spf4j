@@ -332,14 +332,27 @@ public final class RetryExecutor implements AutoCloseable {
     }
   }
 
-  public <A, C extends Callable<A>> Future<A> submit(final C task, final RetryPredicate<A, C> predicate) {
+  @Nullable
+  private FutureBean<?> createFutureBeanIfCompletionQueue() {
+    if (completionQueue != null) {
+      return new FutureBean<Object>() {
+        @Override
+        public void done() {
+          completionQueue.add(this);
+        }
+      };
+    }
+    return null;
+  }
+
+  public <A, C extends Callable<? extends A>> Future<A> submit(final C task, final RetryPredicate<A, C> predicate) {
     FutureBean<?> result = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, null, predicate));
     return (Future<A>) result;
   }
 
   public <A> Future<A> submit(final Runnable task, final A result,
-          final RetryPredicate<A, Callable<A>> predicate) {
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
     FutureBean<?> resultFuture = createFutureBean();
     executionService.execute(new RetryableCallable(task, result, resultFuture, null,
             predicate));
@@ -351,8 +364,14 @@ public final class RetryExecutor implements AutoCloseable {
   }
 
   public void execute(final Runnable command, final RetryPredicate<Void, Callable<Void>> predicate) {
-    executionService.execute(new RetryableCallable(command, null, null, null,
-            predicate));
+    FutureBean<?> future = createFutureBeanIfCompletionQueue();
+    executionService.execute(new RetryableCallable(command, null, future, null, predicate));
+  }
+
+  public <A, C extends Callable<? extends A>> void execute(final C command,
+          final RetryPredicate<A, C> predicate) {
+    FutureBean<?> future = createFutureBeanIfCompletionQueue();
+    executionService.execute(new RetryableCallable(command, future, null, predicate));
   }
 
   @Override

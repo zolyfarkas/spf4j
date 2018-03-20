@@ -36,6 +36,7 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogMatchers;
+import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
 
 /**
@@ -60,13 +61,38 @@ public class RetryPolicyTest {
     es.close();
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
-    RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder()
-            .build();
-    rp.call(() -> {
-      throw new IOException();
-    }, IOException.class);
+    LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
+    try (LogAssert expect = vex) {
+      RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder()
+              .build();
+      rp.run(() -> {
+        throw new IOException();
+      }, IOException.class);
+      Assert.fail();
+    } catch (IOException ex) {
+      // expected
+      vex.assertObservation();
+    }
+  }
+
+
+  @Test
+  public void testNoRetryPolicyAsync() throws IOException, InterruptedException, TimeoutException {
+    LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
+    try (LogAssert expect = vex) {
+      RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder()
+              .build();
+      rp.submit(() -> {
+        throw new IOException();
+      }).get();
+      Assert.fail();
+    } catch (ExecutionException ex) {
+      Assert.assertEquals(IOException.class, ex.getCause().getClass());
+      // expected
+      vex.assertObservation();
+    }
   }
 
   @Test
@@ -75,7 +101,7 @@ public class RetryPolicyTest {
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest")))) {
       try {
-        RetryPolicy.defaultPolicy().call(() -> {
+        RetryPolicy.defaultPolicy().run(() -> {
           throw new RuntimeException();
         }, RuntimeException.class);
         Assert.fail();
@@ -86,11 +112,29 @@ public class RetryPolicyTest {
   }
 
   @Test
+  public void testDefaulPolicyAsync() throws IOException, InterruptedException, TimeoutException {
+    try (LogAssert expect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 2,
+            LogMatchers.hasMatchingMessage(
+                    Matchers.startsWith("Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest")))) {
+      try {
+        RetryPolicy.defaultPolicy().submit(() -> {
+          throw new RuntimeException();
+        }).get();
+        Assert.fail();
+      } catch (ExecutionException ex) {
+        Assert.assertEquals(RuntimeException.class, ex.getCause().getClass());
+        expect.assertObservation();
+      }
+    }
+  }
+
+
+  @Test
   public void testDefaulPolicyInterruption() throws IOException, InterruptedException, TimeoutException {
     try {
       Thread t = Thread.currentThread();
       DefaultScheduler.INSTANCE.schedule(() -> t.interrupt(), 1, TimeUnit.SECONDS);
-      RetryPolicy.defaultPolicy().call(() -> {
+      RetryPolicy.defaultPolicy().run(() -> {
         throw new IOException();
       }, IOException.class);
       Assert.fail();
@@ -181,7 +225,7 @@ public class RetryPolicyTest {
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")))) {
       try {
-        rp.call(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
+        rp.run(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
                 1000, TimeUnit.MILLISECONDS);
         Assert.fail();
       } catch (TimeoutException ex) {
@@ -192,8 +236,10 @@ public class RetryPolicyTest {
     }
     Future<?> submit = DefaultScheduler.INSTANCE.schedule(
             () -> server.breakException(null), 100, TimeUnit.MILLISECONDS);
-    rp.call(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
+    Response resp = rp.call(new ServerCall(server,
+            new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
             1000, TimeUnit.MILLISECONDS);
+    Assert.assertEquals(Response.Type.OK, resp.getType());
     submit.get();
     // Test error response
     try (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
