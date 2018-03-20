@@ -32,6 +32,7 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -46,25 +47,33 @@ import org.spf4j.base.Either;
 @ThreadSafe
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public class FutureBean<T> implements Future<T> {
-    
-    private volatile Either<T, ? extends ExecutionException> resultStore;
+
+    private volatile Either<T, ? extends Exception> resultStore;
+
+    private volatile boolean isCanceled;
+
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException("Not supported yet.");
+      if (isDone()) {
+        return false;
+      } else {
+        isCanceled = true;
+        return true;
+      }
     }
 
     @Override
     public final boolean isCancelled() {
-        throw new UnsupportedOperationException("Not supported yet.");
+       return isCanceled;
     }
 
     @Override
     public final boolean isDone() {
-        return resultStore != null;
+        return isCanceled || resultStore != null;
     }
-    
-    public final Either<T, ? extends ExecutionException> getResultStore() {
+
+    public final Either<T, ? extends Exception> getResultStore() {
         return resultStore;
     }
 
@@ -96,11 +105,20 @@ public class FutureBean<T> implements Future<T> {
         }
     }
 
-    public static <T> T processResult(final Either<T, ? extends ExecutionException> result) throws ExecutionException {
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    public static <T> T processResult(final Either<T, ? extends Exception> result)
+            throws ExecutionException {
         if (result.isLeft()) {
             return result.getLeft();
         } else {
-            throw result.getRight();
+            Exception e = result.getRight();
+            if (e instanceof ExecutionException) {
+              throw (ExecutionException) e;
+            } else if (e instanceof IllegalStateException) {
+              throw (IllegalStateException) e;
+            } else {
+              throw new IllegalStateException(e);
+            }
         }
     }
 
@@ -112,7 +130,7 @@ public class FutureBean<T> implements Future<T> {
         done();
         this.notifyAll();
     }
-    
+
     public final synchronized void setExceptionResult(final ExecutionException result) {
         if (resultStore != null) {
             throw new IllegalStateException("cannot set result multiple times " + result);
@@ -121,7 +139,16 @@ public class FutureBean<T> implements Future<T> {
         done();
         this.notifyAll();
     }
-    
+
+    public final synchronized void setCancelationResult(final CancellationException  result) {
+        if (resultStore != null) {
+            throw new IllegalStateException("cannot set result multiple times " + result);
+        }
+        resultStore = Either.right(result);
+        done();
+        this.notifyAll();
+    }
+
     public void done() {
     }
 

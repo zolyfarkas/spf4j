@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -182,6 +183,16 @@ public final class RetryExecutor implements AutoCloseable {
     @Override
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     public void run() {
+      if (future != null && future.isCancelled()) {
+        CancellationException cex = new CancellationException();
+        if (previousResult != null) {
+          final ExecutionException exception = previousResult.getException();
+          if (exception != null) {
+            cex = Throwables.suppress(cex, exception);
+          }
+        }
+        future.setCancelationResult(cex);
+      }
       try {
         T result = callable.call();
         RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getDecision(result, callable);

@@ -19,6 +19,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -144,16 +145,24 @@ public class RetryPolicyTest {
   }
 
   @Test
-  public void testDefaulPolicyInterruption() throws IOException, InterruptedException, TimeoutException {
+  public void testDefaulPolicyInterruptionAsync() throws IOException, InterruptedException,
+          TimeoutException, ExecutionException {
+    Future<Object> res = RetryPolicy.defaultPolicy().submit(() -> {
+      throw new IOException();
+    });
     try {
-      Thread t = Thread.currentThread();
-      DefaultScheduler.INSTANCE.schedule(() -> t.interrupt(), 1, TimeUnit.SECONDS);
-      RetryPolicy.defaultPolicy().call(() -> {
-        throw new IOException();
-      }, IOException.class);
+      res.get(100, TimeUnit.MILLISECONDS);
       Assert.fail();
-    } catch (InterruptedException ex) {
-      // expected
+    } catch (TimeoutException tex) {
+      // expected to time out.
+    }
+    res.cancel(true);
+    Assert.assertTrue(res.isDone());
+    try {
+      res.get(100, TimeUnit.MILLISECONDS);
+      Assert.fail();
+    } catch (CancellationException ex) {
+      Assert.assertThat(ex.getSuppressed(), Matchers.arrayWithSize(1));
     }
   }
 
