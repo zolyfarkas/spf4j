@@ -32,7 +32,6 @@
 package org.spf4j.zel.vm;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,9 +52,8 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
+import org.spf4j.base.Throwables;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LValRef;
 import org.spf4j.zel.instr.var.ARRAY;
@@ -85,8 +83,6 @@ import org.spf4j.zel.vm.gen.ZCompiler;
 public final class Program implements Serializable {
 
   private static final long serialVersionUID = 748365748433474932L;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(Program.class);
 
   private static final MemoryBuilder ZEL_GLOBAL_FUNC;
 
@@ -427,38 +423,48 @@ public final class Program implements Serializable {
       @Override
       public void run() {
         terminated = true;
+        try {
+          System.in.close();
+        } catch (IOException ex) {
+          // ignore.
+        }
       }
     });
+    System.out.println("zel>\n");
     while (!terminated) {
-      System.out.print("zel>");
       String line = br.readLine();
-      if (line != null) {
-        if ("QUIT".equalsIgnoreCase(line)) {
-          terminated = true;
-        } else {
-          try {
-            final Program prog = Program.compile(line, localSymTable, gmem, globalSymTable);
-            localSymTable = prog.getLocalSymbolTable();
-            globalSymTable = prog.getGlobalSymbolTable();
-            gmem = prog.getGlobalMem();
-            long startTime = System.nanoTime();
-            Pair<Object, ExecutionContext> res = prog.execute(
-                    VMExecutor.Lazy.DEFAULT, ProcessIOStreams.DEFAULT, resCache, mem);
-            long elapsed = System.nanoTime() - startTime;
-            final Object result = res.getFirst();
-            System.out.println("result>" + result);
-            System.out.println("type>" +  (result == null ? "none" : result.getClass()));
-            System.out.println("executed in>" + elapsed + " ns");
+      if (line == null) {
+        break;
+      }
+      line = line.trim();
+      if ("QUIT".equalsIgnoreCase(line)) {
+        terminated = true;
+      } else {
+        try {
+          final Program prog = Program.compile(line, localSymTable, gmem, globalSymTable);
+          localSymTable = prog.getLocalSymbolTable();
+          globalSymTable = prog.getGlobalSymbolTable();
+          gmem = prog.getGlobalMem();
+          long startTime = System.nanoTime();
+          Pair<Object, ExecutionContext> res = prog.execute(
+                  VMExecutor.Lazy.DEFAULT, ProcessIOStreams.DEFAULT, resCache, mem);
+          long elapsed = System.nanoTime() - startTime;
+          final Object result = res.getFirst();
+          System.out.println("result> " + result);
+          System.out.println("type> " + (result == null ? "none" : result.getClass()));
+          System.out.println("executed in> " + elapsed + " ns");
 
-            final ExecutionContext execCtx = res.getSecond();
-            mem = execCtx.getMem();
-            resCache = execCtx.getResultCache();
-          } catch (CompileException ex) {
-            System.out.println("Syntax Error: " + Throwables.getStackTraceAsString(ex));
-          } catch (ExecutionException ex) {
-            System.out.println("Execution Error: " + Throwables.getStackTraceAsString(ex));
-          }
+          final ExecutionContext execCtx = res.getSecond();
+          mem = execCtx.getMem();
+          resCache = execCtx.getResultCache();
+        } catch (CompileException ex) {
+          System.err.println("Syntax Error:\n");
+          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+        } catch (ExecutionException ex) {
+          System.err.println("Execution Error:\n");
+          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
         }
+        System.out.println("zel>");
       }
     }
   }

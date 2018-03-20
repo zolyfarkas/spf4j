@@ -56,7 +56,13 @@ import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
 @ParametersAreNonnullByDefault
 public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
-  public static final Object VOID = new Object();
+  public static final Object VOID = new Object() {
+    @Override
+    public String toString() {
+      return "VOID";
+    }
+
+  };
 
   private final Object[] tuple = new Object[2];
 

@@ -72,6 +72,9 @@ public final class ZelFrame implements Serializable {
     for (int i = 0; i < instructions.length; i++) {
       ParsingContext.Location loc = debug[i];
       int lineNr = loc.getRow();
+      if (lineNr < 0) {
+        continue;
+      }
       StringBuilder existing = annotations[lineNr];
       if (existing == null) {
         existing = new StringBuilder();
