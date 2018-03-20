@@ -134,9 +134,18 @@ public final class Throwables {
 
 
   private static volatile Predicate<Throwable> isRetryablePredicate = new Predicate<Throwable>() {
+
+    /**
+     * A default predicate that will return true if a exception is retriable...
+     * @param t
+     * @return
+     */
     @Override
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public boolean test(final Throwable t) {
+      if (Throwables.containsNonRecoverable(t)) {
+        return false;
+      }
       Throwable rootCause = com.google.common.base.Throwables.getRootCause(t);
       if (rootCause instanceof RuntimeException && !rootCause.getClass().getName().contains("Transient")) {
         return false;

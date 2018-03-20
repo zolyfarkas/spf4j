@@ -60,10 +60,24 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     }
   };
 
-  private static final RetryPolicy DEFAULT = RetryPolicy.newBuilder()
-          .withDefaultThrowableRetryPredicate()
-          .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
-          .build();
+  private static final RetryPolicy DEFAULT;
+  static {
+    RetryPolicy p;
+    String policySupplierClass = System.getProperty("spf4j.defaultRetryPolicySupplier");
+    if (policySupplierClass == null) {
+      p = RetryPolicy.newBuilder()
+            .withDefaultThrowableRetryPredicate()
+            .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
+            .build();
+    } else {
+      try {
+        p = ((Supplier<RetryPolicy>) Class.forName(policySupplierClass).newInstance()).get();
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    }
+    DEFAULT = p;
+  }
 
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
