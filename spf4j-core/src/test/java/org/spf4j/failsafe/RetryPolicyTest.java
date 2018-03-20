@@ -144,6 +144,20 @@ public class RetryPolicyTest {
   }
 
   @Test
+  public void testDefaulPolicyInterruption() throws IOException, InterruptedException, TimeoutException {
+    try {
+      Thread t = Thread.currentThread();
+      DefaultScheduler.INSTANCE.schedule(() -> t.interrupt(), 1, TimeUnit.SECONDS);
+      RetryPolicy.defaultPolicy().call(() -> {
+        throw new IOException();
+      }, IOException.class);
+      Assert.fail();
+    } catch (InterruptedException ex) {
+      // expected
+    }
+  }
+
+  @Test
   public void testNoRetryPolicy2() throws InterruptedException, TimeoutException {
     @SuppressWarnings("unchecked")
     RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder().build();
