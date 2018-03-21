@@ -39,6 +39,7 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
+import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.JThrowable;
 import org.spf4j.io.AppendableOutputStream;
@@ -77,19 +78,28 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
       writer.write(object, jsonEncoder);
       jsonEncoder.flush();
     } catch (IOException | RuntimeException ex) {
-      sb.setLength(0);
-      sb.append("{\"SerializationError\" :\n");
-      try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
-        JThrowable at = Converters.convert(ex);
-        Schema schema = at.getSchema();
-        SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
-        JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);
-        writer.write(at, jsonEncoder);
-        jsonEncoder.flush();
-      }
-      sb.append('}');
+      writeSerializationError(object, sb, ex);
     }
     appendTo.append(sb);
+  }
+
+  static void writeSerializationError(final Object object, final StringBuilder sb, final Exception ex)
+          throws IOException {
+    sb.setLength(0);
+    sb.append("{\"SerializationError\":\n");
+    try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
+      JThrowable at = Converters.convert(ex);
+      Schema schema = at.getSchema();
+      SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
+      JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);
+      writer.write(at, jsonEncoder);
+      jsonEncoder.flush();
+    }
+    sb.append(",\n");
+    sb.append("\"ObjectAsString\":\n\"");
+    EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);
+    escaper.append(object.toString());
+    sb.append("\"}");
   }
 
 }
