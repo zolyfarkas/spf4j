@@ -8,6 +8,7 @@ script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jM
 before_install: 
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
   - sudo apt-get install jq
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
 
 install: mvn -B -DskipTests=true -Dgpg.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install
@@ -16,17 +17,16 @@ env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
-   - secure: "SiJm46QrEHRorVsB5U6F0rcudtOlDBdWx8okQGLxgos4cNdO3Apni8bsjNKC9m9X4fNKKK8C53W2J4xRnpj2nj1wJWlYxgJW/ONITXNxiB+ylz3V6uyxDazydJOIorU1ILHwb3xAu8ylfPtEvFMpTOXrtiSzjFqQ3Ewsya3BXHs="
-
-#addons:
-#  coverity_scan:
-#    project:
-#      name: "zolyfarkas/spf4j"
-#      description: "Build submitted via Travis CI"
-#    notification_email: zolyfarkas@yahoo.com
-#    build_command_prepend: "mvn clean"
-#    build_command:   "mvn -DskipTests=true -Dgpg.skip=true compile"
-#    branch_pattern: master
+   - secure: "H6oUFK+zjRvy2qQUG7a2qHwYux6A9qvcAemT9Hr3aDSbkQvHJ6gkWF91vE3ImYGJ75fobm4fg94RJX7plvUwzOSMXfCZ1GJYmSQx3e13KPShNmrgfVizc49rREY8exMZfIazIWk8iYrG/IeCZwWH8VNAzD4Xyql2zJuthsNuVYfeAmDvyk0bpRetAh3ARctdyK6JiAcrSkR1pJRwWKguWo/XXaAqhIkWKsv7WtBSOW0QQZXMTgIDf99yIXFGsEK/vN5ynESaBQ3620Mx+/EHSTxTCu6vgzltPvF6zXsEGfgrV8l9+FGrtmI6Q5TCrgWW3cH936J/fWuGOkG0m6NCCq1XoF8/yzomIBC9ZnKixBTox+/1tA9+hppBjBL485bvNJzUmOXYhPOGeIzqe0bOYwR8q0mfqdkeE9FZXnIo1Cryi9chtfD2s7WQEOTtfnqrI79CZPhJNtA/NvGAKTNrMwVi85+HmwQnm8wI2GMUWu3aRXxfuKUSph0olYv47W3UoUAGEUea9nI5asebGtvgPJhcUQ3D5cMnNHdKLlANfQryVm3xrf6dOFXacMGb6mzpW16zQdnM8hjrKVJauwQ0ul7q0R0zf/y3jTrCtU7yAwH54fS56CjvbP4Qle2m5DiBm57tD3kZkeujVAaUFM4ms+hX37ZXEkgZOpl0jhKJD3o="
+addons:
+  coverity_scan:
+    project:
+      name: "zolyfarkas/spf4j"
+      description: "Build submitted via Travis CI"
+    notification_email: zolyfarkas@yahoo.com
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -DskipTests=true -Dgpg.skip=true compile"
+    branch_pattern: master
 
 after_success:
   - java -jar ~/codacy-coverage-reporter-assembly-latest.jar -l Java -r spf4j-jacoco-aggregate/target/site/jacoco-aggregate/jacoco.xml
