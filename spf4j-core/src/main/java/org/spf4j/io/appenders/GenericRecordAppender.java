@@ -38,9 +38,15 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.JsonEncoder;
+import org.apache.avro.specific.SpecificDatumWriter;
+import org.apache.avro.specific.SpecificRecord;
+import org.spf4j.base.avro.Converters;
+import org.spf4j.base.avro.JThrowable;
 import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
+import static org.spf4j.io.appenders.SpecificRecordAppender.EF;
+import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
 
 /**
  *
@@ -55,13 +61,28 @@ public final class GenericRecordAppender implements ObjectAppender<GenericRecord
 
   @Override
   public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
+    StringBuilder sb = TMP.get();
+    sb.setLength(0);
     try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, Charsets.UTF_8)) {
       final Schema schema = object.getSchema();
       GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(schema);
       JsonEncoder jsonEncoder = SpecificRecordAppender.EF.jsonEncoder(schema, bos);
       writer.write(object, jsonEncoder);
       jsonEncoder.flush();
+    } catch (IOException | RuntimeException ex) {
+      sb.setLength(0);
+      sb.append("{\"Error writing object\" :\n");
+      try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
+        JThrowable at = Converters.convert(ex);
+        Schema schema = at.getSchema();
+        SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
+        JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);
+        writer.write(at, jsonEncoder);
+        jsonEncoder.flush();
+      }
+      sb.append('}');
     }
+    appendTo.append(sb);
   }
 
 }

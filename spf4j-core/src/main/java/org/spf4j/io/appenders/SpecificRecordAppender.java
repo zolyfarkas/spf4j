@@ -39,6 +39,8 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
+import org.spf4j.base.avro.Converters;
+import org.spf4j.base.avro.JThrowable;
 import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
@@ -51,6 +53,14 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
 
   static final EncoderFactory EF = new EncoderFactory();
 
+  static final ThreadLocal<StringBuilder> TMP = new ThreadLocal<StringBuilder>() {
+    @Override
+    protected StringBuilder initialValue() {
+      return new StringBuilder(64);
+    }
+
+  };
+
   @Override
   public MimeType getAppendedType() {
     return MimeTypes.APPLICATION_JSON;
@@ -58,13 +68,28 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
 
   @Override
   public void append(final SpecificRecord object, final Appendable appendTo) throws IOException {
-    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, Charsets.UTF_8)) {
+    StringBuilder sb = TMP.get();
+    sb.setLength(0);
+    try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
       final Schema schema = object.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
       JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos);
       writer.write(object, jsonEncoder);
       jsonEncoder.flush();
+    } catch (IOException | RuntimeException ex) {
+      sb.setLength(0);
+      sb.append("{\"Error writing object\" :\n");
+      try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
+        JThrowable at = Converters.convert(ex);
+        Schema schema = at.getSchema();
+        SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
+        JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);
+        writer.write(at, jsonEncoder);
+        jsonEncoder.flush();
+      }
+      sb.append('}');
     }
+    appendTo.append(sb);
   }
 
 }

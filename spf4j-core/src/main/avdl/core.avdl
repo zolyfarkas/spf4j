@@ -1,0 +1,46 @@
+@namespace("org.spf4j.base.avro")
+protocol Core {
+
+   /** record representing a jar archive info */
+    record JPackageInfo {
+      /** the package url */
+      union {null, string} url = null;
+      /** version from manifest  */
+      union {null, string} version = null;
+    }
+
+    /** a location in a file */
+    record JFileLocation {
+      /** file name */
+      string fileName;
+      /** line number */
+      int lineNumber;
+    }
+
+    /** record representing the samples where a particular method was executed */
+    record JStackTraceElement {
+      /** java class name */
+      string className;
+      /** java method name */
+      string methodName;
+      /** location */
+      union {null, JFileLocation} location;
+      /** package info */
+      union {null, JPackageInfo} packageInfo;
+    }
+
+    /** a throwable */
+    record JThrowable {
+      /** exception class name */
+      string className;
+      /** exception message */
+      union { null, string } message = null;
+      /** the stack trace */
+      array<JStackTraceElement> stackTrace = [];
+      /** exception cause */
+      union {null, JThrowable} cause = [];
+      /** suppressed exceptions */
+      array<JThrowable> suppressed = [];
+    }
+
+}
