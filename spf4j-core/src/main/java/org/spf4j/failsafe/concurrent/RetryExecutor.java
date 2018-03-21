@@ -192,6 +192,7 @@ public final class RetryExecutor implements AutoCloseable {
           }
         }
         future.setCancelationResult(cex);
+        return;
       }
       try {
         T result = callable.call();
