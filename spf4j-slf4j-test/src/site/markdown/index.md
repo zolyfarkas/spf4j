@@ -18,6 +18,7 @@ with tons of debug info dumped to output all the time. But making it available w
  *  Type level String image customization. (if unhappy with default toString, json format is desired, or performance optimization is desired)
  *  Fast. (logging is no reason to have slow builds)
  *  Environment specific configurations with best defaults right out of the box. (DEBUG when running from IDE, INFO otherwise)
+ *  Assert logging made from various logging APIs. java.util.logging supported out of the box, for everything else [see](https://www.slf4j.org/legacy.html)
 
 ## 2. How to use it.
 
