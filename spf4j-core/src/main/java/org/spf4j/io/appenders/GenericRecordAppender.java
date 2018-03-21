@@ -71,7 +71,7 @@ public final class GenericRecordAppender implements ObjectAppender<GenericRecord
       jsonEncoder.flush();
     } catch (IOException | RuntimeException ex) {
       sb.setLength(0);
-      sb.append("{\"Error writing object\" :\n");
+      sb.append("{\"SerializationError\" :\n");
       try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
         JThrowable at = Converters.convert(ex);
         Schema schema = at.getSchema();
