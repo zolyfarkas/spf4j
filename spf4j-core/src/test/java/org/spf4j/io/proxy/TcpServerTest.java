@@ -147,7 +147,7 @@ public class TcpServerTest {
     }
   };
 
-  @Test(timeout = 1000000)
+  @Test(timeout = 100000)
   public void testProxy() throws IOException, InterruptedException {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
@@ -165,7 +165,7 @@ public class TcpServerTest {
     }
   }
 
-  @Test(timeout = 10000)
+  @Test(timeout = 100000)
   public void testProxySimple() throws IOException, InterruptedException {
     ForkJoinPool pool = new ForkJoinPool(1024);
 
@@ -193,7 +193,7 @@ public class TcpServerTest {
     }
   }
 
-  @Test(timeout = 20000)
+  @Test(timeout = 100000)
   public void testRestart() throws IOException, InterruptedException, TimeoutException {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
