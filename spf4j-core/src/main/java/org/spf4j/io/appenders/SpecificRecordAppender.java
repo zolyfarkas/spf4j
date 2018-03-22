@@ -32,6 +32,7 @@
 package org.spf4j.io.appenders;
 
 import com.google.common.base.Charsets;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import javax.activation.MimeType;
 import org.apache.avro.Schema;
@@ -51,6 +52,14 @@ import org.spf4j.io.ObjectAppender;
  * @author zoly
  */
 public final class SpecificRecordAppender implements ObjectAppender<SpecificRecord> {
+
+  /**
+   * Strict serialization means if something goes wrong with serializing an avro object.
+   * A exception will be thrown.
+   * If lenient serialization is being used a JSON representation of the error along with a toString representation
+   * of the object will be serialized in case something goes wrong with the serialization.
+   */
+  private static final boolean STRICT_SERIALIZATION = Boolean.getBoolean("spf4j.strictAvroObjectAppenders");
 
   static final EncoderFactory EF = new EncoderFactory();
 
@@ -83,8 +92,18 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
     appendTo.append(sb);
   }
 
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
   static void writeSerializationError(final Object object, final StringBuilder sb, final Exception ex)
           throws IOException {
+    if (STRICT_SERIALIZATION) {
+      if (ex instanceof IOException) {
+        throw (IOException) ex;
+      } else if (ex instanceof RuntimeException) {
+        throw (RuntimeException) ex;
+      } else {
+        throw new IllegalStateException(ex);
+      }
+    }
     sb.setLength(0);
     sb.append("{\"SerializationError\":\n");
     try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
