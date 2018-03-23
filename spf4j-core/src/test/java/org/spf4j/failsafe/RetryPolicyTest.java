@@ -66,9 +66,7 @@ public class RetryPolicyTest {
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
     LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
     try (LogAssert expect = vex) {
-      RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder()
-              .build();
-      rp.run(() -> {
+      RetryPolicy.NO_RETRY.run(() -> {
         throw new IOException();
       }, IOException.class);
       Assert.fail();
@@ -83,9 +81,7 @@ public class RetryPolicyTest {
   public void testNoRetryPolicyAsync() throws IOException, InterruptedException, TimeoutException {
     LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
     try (LogAssert expect = vex) {
-      RetryPolicy<Object, Callable<Object>> rp = RetryPolicy.<Object, Callable<Object>>newBuilder()
-              .build();
-      rp.submit(() -> {
+      RetryPolicy.noRetryPolicy().submit(() -> {
         throw new IOException();
       }).get();
       Assert.fail();

@@ -54,7 +54,7 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
 public final class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyExecutor<T, C> {
 
 
-  private static final RetryPolicy DEFAULT;
+  public static final RetryPolicy<Object, Callable<? extends Object>> DEFAULT;
   static {
     RetryPolicy p;
     String policySupplierClass = System.getProperty("spf4j.failsafe.defaultRetryPolicySupplier");
@@ -73,6 +73,9 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     DEFAULT = p;
   }
 
+  public static final RetryPolicy<Object, Callable<? extends Object>> NO_RETRY
+          = RetryPolicy.newBuilder().build();
+
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
   private final Supplier<RetryExecutor> execSupplier;
@@ -87,8 +90,12 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     this.execSupplier = execSupplier;
   }
 
+  public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> noRetryPolicy() {
+    return (RetryPolicy<T, C>) NO_RETRY;
+  }
+
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> defaultPolicy() {
-    return DEFAULT;
+    return (RetryPolicy<T, C>) DEFAULT;
   }
 
   @Override
