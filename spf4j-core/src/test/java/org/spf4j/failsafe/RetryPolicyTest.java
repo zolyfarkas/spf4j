@@ -131,7 +131,9 @@ public class RetryPolicyTest {
     try {
       Thread t = Thread.currentThread();
       DefaultScheduler.INSTANCE.schedule(() -> t.interrupt(), 1, TimeUnit.SECONDS);
-      RetryPolicy.defaultPolicy().run(() -> {
+      RetryPolicy.newBuilder()
+            .withRetryOnException(Exception.class, Integer.MAX_VALUE)
+            .build().run(() -> {
         throw new IOException();
       }, IOException.class);
       Assert.fail();
@@ -143,7 +145,9 @@ public class RetryPolicyTest {
   @Test
   public void testDefaulPolicyInterruptionAsync() throws IOException, InterruptedException,
           TimeoutException, ExecutionException {
-    Future<Object> res = RetryPolicy.defaultPolicy().submit(() -> {
+    Future<Object> res = RetryPolicy.newBuilder()
+            .withRetryOnException(Exception.class, Integer.MAX_VALUE)
+            .build().submit(() -> {
       throw new IOException();
     });
     try {
@@ -194,7 +198,7 @@ public class RetryPolicyTest {
 
   public final  RetryPolicy<Response, ServerCall> buildRetryPolicy() {
     return RetryPolicy.<Response, ServerCall>newBuilder()
-            .withDefaultThrowableRetryPredicate()
+            .withDefaultThrowableRetryPredicate(Integer.MAX_VALUE)
             .withResultPartialPredicate((resp, sc) -> {
               switch (resp.getType()) {
                 case CLIENT_ERROR:
