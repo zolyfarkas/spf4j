@@ -149,7 +149,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
             = TimeUnit.MILLISECONDS.toNanos(Long.getLong("spf4j.failsafe.defaultMaxRetryDelayMillis", 5000));
 
     private static final long DEFAULT_INITIAL_DELAY_NANOS
-            = Long.getLong("spf4j.failsafe.defaultInitialRetryDelayNanos", 1000);
+            = Long.getLong("spf4j.failsafe.defaultInitialRetryDelayNanos", 10000);
 
     private static final int DEFAULT_INITIAL_NODELAY_RETRIES
             = Integer.getInteger("spf4j.failsafe.defaultInitialNoDelayRetries", 3);
