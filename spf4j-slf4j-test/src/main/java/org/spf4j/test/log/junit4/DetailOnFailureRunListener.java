@@ -15,60 +15,11 @@
  */
 package org.spf4j.test.log.junit4;
 
-import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
-
 /**
  * @author Zoltan Farkas
+ * @deprecated use Spf4jTestLogRunListener instead.
  */
-public final class DetailOnFailureRunListener extends RunListener {
-
-  private final Spf4jTestLogRunListenerSingleton instance;
-
-  public DetailOnFailureRunListener() {
-    instance = Spf4jTestLogRunListenerSingleton.getInstance();
-  }
-
-  @Override
-  public void testIgnored(final Description description) throws Exception {
-    instance.testIgnored(description);
-  }
-
-  @Override
-  public void testAssumptionFailure(final Failure failure) {
-    instance.testAssumptionFailure(failure);
-  }
-
-  @Override
-  public void testFailure(final Failure failure) {
-    instance.testFailure(failure);
-  }
-
-  @Override
-  public void testFinished(final Description description) {
-    instance.testFinished(description);
-  }
-
-  @Override
-  public void testStarted(final Description description) throws Exception {
-    instance.testStarted(description);
-  }
-
-  @Override
-  public void testRunFinished(final Result result) {
-    instance.testRunFinished(result);
-  }
-
-  @Override
-  public void testRunStarted(final Description description) throws Exception {
-    instance.testStarted(description);
-  }
-
-  @Override
-  public String toString() {
-    return "DetailOnFailureRunListener{" + "instance=" + instance + '}';
-  }
+@Deprecated
+public final class DetailOnFailureRunListener extends Spf4jTestLogRunListener {
 
 }

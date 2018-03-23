@@ -42,13 +42,15 @@ with tons of debug info dumped to output all the time. But making it available w
           <properties>
             <property>
               <name>listener</name>
-              <value>org.spf4j.test.log.junit4.DetailOnFailureRunListener</value> <!-- comma separate multiple listeners -->
+              <value>org.spf4j.test.log.junit4.Spf4jTestLogRunListener</value> <!-- comma separate multiple listeners -->
             </property>
           </properties>
         </configuration>
       </plugin>
 
- Or if your IDE is not smart enough to pick the run listeners up from your pom.xml, you can use the Spf4jTestLogJUnitRunner with @RunWith
+ Or if your IDE is not smart enough (you InteliJ and Eclipse) to pick the run listeners up from your pom.xml,
+ you can use the Spf4jTestLogJUnitRunner in conjunction junit @RunWith annotation. If you have CustomClassRunners already,
+ you can easily upgrade them to register Spf4jTestLogRunListener as done in Spf4jTestLogJUnitRunner.
 
  NOTE: since logging is JVM global, you should run your unit tests single threaded to be able to easily reason about your logging,
  and accurate log message attribution.
@@ -83,7 +85,7 @@ with tons of debug info dumped to output all the time. But making it available w
       Assert.assertEquals(2L, (long) c.get());
     }
 
-#### Change LOG print config for a log category:
+#### Change LOG print config for a log category for a code section with API:
 
       try (HandlerRegistration printer = TestLoggers.sys().print("my.log.package", Level.TRACE)) {
         ...
