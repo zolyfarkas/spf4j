@@ -34,6 +34,7 @@ package org.spf4j.failsafe;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -52,18 +53,11 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyExecutor<T, C> {
 
-  private static final Supplier<PartialExceptionRetryPredicate<Object, Callable<Object>>> DEFAULT_TRANSIENT
-          = () -> new PartialExceptionRetryPredicate<Object, Callable<Object>>() {
-    @Override
-    public RetryDecision getExceptionDecision(final Exception value, final Callable what) {
-      return Throwables.isRetryable(value) ? RetryDecision.retryDefault(what) : null;
-    }
-  };
 
   private static final RetryPolicy DEFAULT;
   static {
     RetryPolicy p;
-    String policySupplierClass = System.getProperty("spf4j.defaultRetryPolicySupplier");
+    String policySupplierClass = System.getProperty("spf4j.failsafe.defaultRetryPolicySupplier");
     if (policySupplierClass == null) {
       p = RetryPolicy.newBuilder()
             .withDefaultThrowableRetryPredicate()
@@ -160,6 +154,10 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     private static final int DEFAULT_INITIAL_NODELAY_RETRIES
             = Integer.getInteger("spf4j.failsafe.defaultInitialNoDelayRetries", 3);
 
+    private static final int DEFAULT_MAX_NR_RETRIES
+            = Integer.getInteger("spf4j.failsafe.defaultMaxNrRetries", MAX_EX_CHAIN_DEFAULT);
+
+
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
     private Supplier<RetryExecutor> execSupplier = () -> DefaultContextAwareRetryExecutor.instance();
@@ -187,21 +185,32 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
     @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate() {
-      exceptionPredicates.add((Supplier) DEFAULT_TRANSIENT);
-      return this;
+      return withDefaultThrowableRetryPredicate(DEFAULT_MAX_NR_RETRIES);
+    }
+
+
+    @CheckReturnValue
+    public Builder<T, C> withDefaultThrowableRetryPredicate(final int maxNrRetries) {
+      return withExceptionPartialPredicate((e, c) -> Throwables.isRetryable(e) ? RetryDecision.retryDefault(c) : null,
+              maxNrRetries);
     }
 
     @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz) {
-      return withExceptionPartialPredicate((Exception e, C c)
-              -> clasz.isAssignableFrom(e.getClass())
-              ? RetryDecision.retryDefault(c) : null);
+      return withRetryOnException(clasz, DEFAULT_MAX_NR_RETRIES);
     }
 
     @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz, final int maxRetries) {
       return withExceptionPartialPredicate((e, c)
               -> clasz.isAssignableFrom(e.getClass())
+              ? RetryDecision.retryDefault(c) : null, maxRetries);
+    }
+
+    @CheckReturnValue
+    public Builder<T, C> withRetryOnResult(final T result, final int maxRetries) {
+      return withResultPartialPredicate((r, c) ->
+              Objects.equals(result, r)
               ? RetryDecision.retryDefault(c) : null, maxRetries);
     }
 
@@ -315,7 +324,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
    * @return
    */
   @CheckReturnValue
-  public static <T, C extends Callable<T>> Builder<T, C> newBuilder() {
+  public static <T, C extends Callable<? extends T>> Builder<T, C> newBuilder() {
     return new Builder<>();
   }
 

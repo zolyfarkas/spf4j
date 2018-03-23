@@ -66,7 +66,7 @@ public final class JdbcTemplate {
 
   private final DataSource dataSource;
 
-  private final RetryPolicy<Object, Callable<Object>> retryPolicy;
+  private final RetryPolicy<Object, Callable<? extends Object>> retryPolicy;
 
   public JdbcTemplate(final DataSource dataSource) {
     this(dataSource, RetryPolicy.newBuilder()
@@ -74,7 +74,7 @@ public final class JdbcTemplate {
             .build());
   }
 
-  public JdbcTemplate(final DataSource dataSource, final RetryPolicy<Object, Callable<Object>> retryPolicy) {
+  public JdbcTemplate(final DataSource dataSource, final RetryPolicy<Object, Callable<? extends Object>> retryPolicy) {
     this.dataSource = dataSource;
     this.retryPolicy = retryPolicy;
   }
