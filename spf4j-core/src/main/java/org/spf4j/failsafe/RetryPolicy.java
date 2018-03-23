@@ -78,16 +78,16 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
-  private final Supplier<RetryExecutor> execSupplier;
+  private final RetryExecutor executor;
 
   private final int maxExceptionChain;
 
   private RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
-          final Supplier<RetryExecutor> execSupplier,
+          final RetryExecutor execSupplier,
           final int maxExceptionChain) {
     this.retryPredicate = retryPredicate;
     this.maxExceptionChain = maxExceptionChain;
-    this.execSupplier = execSupplier;
+    this.executor = execSupplier;
   }
 
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> noRetryPolicy() {
@@ -115,22 +115,22 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
   @Override
   public <R extends T, W extends C> Future<R> submit(final W pwhat) {
-    return (Future<R>) execSupplier.get().submit(pwhat, getRetryPredicate());
+    return (Future<R>) executor.submit(pwhat, getRetryPredicate());
   }
 
   @Override
   public <R extends T, W extends C> Future<R> submit(final W pwhat, final long deadlineNanos) {
-    return (Future<R>) execSupplier.get().submit(pwhat, getRetryPredicate(deadlineNanos));
+    return (Future<R>) executor.submit(pwhat, getRetryPredicate(deadlineNanos));
   }
 
 
   @Override
   public <W extends C> void execute(final W pwhat) {
-    execSupplier.get().execute(pwhat, getRetryPredicate());
+    executor.execute(pwhat, getRetryPredicate());
   }
 
   public <W extends C> void execute(final W pwhat, final long deadlineNanos) {
-    execSupplier.get().execute(pwhat, getRetryPredicate(deadlineNanos));
+    executor.execute(pwhat, getRetryPredicate(deadlineNanos));
   }
 
 
@@ -144,7 +144,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
   @Override
   public String toString() {
-    return "RetryPolicy{" + "retryPredicate=" + retryPredicate + ", execSupplier=" + execSupplier
+    return "RetryPolicy{" + "retryPredicate=" + retryPredicate + ", execSupplier=" + executor
             + ", maxExceptionChain=" + maxExceptionChain + '}';
   }
 
@@ -318,7 +318,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
               () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
-      return new RetryPolicy<>(retryPredicate, execSupplier, maxExceptionChain
+      return new RetryPolicy<>(retryPredicate, execSupplier.get(), maxExceptionChain
       );
     }
 
