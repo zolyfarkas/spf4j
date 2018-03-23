@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.failsafe.PartialExceptionRetryPredicate;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -106,6 +107,33 @@ public final class Callables {
   };
 
   private Callables() { }
+
+  /**
+   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
+   */
+  @Deprecated
+  public static PartialExceptionRetryPredicate<?, ? extends Callable<?>> toFailsafePredicate(
+          final AdvancedRetryPredicate<Exception> oldStyle) {
+    return new PartialExceptionRetryPredicate<Object, Callable<? extends Object>>() {
+      @Override
+      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
+        AdvancedAction aa = oldStyle.apply(value);
+        switch (aa) {
+          case ABORT:
+            return org.spf4j.failsafe.RetryDecision.abort();
+          case RETRY:
+          case RETRY_DELAYED:
+            return org.spf4j.failsafe.RetryDecision.retryDefault(what);
+          case RETRY_IMMEDIATE:
+            return org.spf4j.failsafe.RetryDecision.retry(0, what);
+          default:
+            throw new IllegalStateException("Invalid enum value " + aa);
+        }
+      }
+    };
+  }
+
+
   /**
    * @deprecated use RetryPolicy
    */
