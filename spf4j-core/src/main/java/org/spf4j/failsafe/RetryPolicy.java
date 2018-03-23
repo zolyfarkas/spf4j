@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
@@ -51,18 +50,18 @@ import org.spf4j.failsafe.concurrent.RetryExecutor;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyExecutor<T, C> {
+public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyExecutor<T, C> {
 
+  private static final RetryPolicy<Object, Callable<? extends Object>> DEFAULT;
 
-  public static final RetryPolicy<Object, Callable<? extends Object>> DEFAULT;
   static {
     RetryPolicy p;
     String policySupplierClass = System.getProperty("spf4j.failsafe.defaultRetryPolicySupplier");
     if (policySupplierClass == null) {
       p = RetryPolicy.newBuilder()
-            .withDefaultThrowableRetryPredicate()
-            .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
-            .build();
+              .withDefaultThrowableRetryPredicate()
+              .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
+              .build();
     } else {
       try {
         p = ((Supplier<RetryPolicy>) Class.forName(policySupplierClass).newInstance()).get();
@@ -73,21 +72,45 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     DEFAULT = p;
   }
 
-  public static final RetryPolicy<Object, Callable<? extends Object>> NO_RETRY
+  private static final RetryPolicy<Object, Callable<? extends Object>> NO_RETRY
           = RetryPolicy.newBuilder().build();
+
+
+  private static final class LazyAsync {
+
+    private static final AsyncRetryPolicy<Object, Callable<? extends Object>> DEFAULT;
+
+    static {
+      AsyncRetryPolicy p;
+      String policySupplierClass = System.getProperty("spf4j.failsafe.defaultRetryPolicySupplier");
+      if (policySupplierClass == null) {
+        p = RetryPolicy.newBuilder()
+                .withDefaultThrowableRetryPredicate()
+                .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
+                .buildAsync();
+      } else {
+        try {
+          p = ((Supplier<AsyncRetryPolicy>) Class.forName(policySupplierClass).newInstance()).get();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+          throw new ExceptionInInitializerError(ex);
+        }
+      }
+      DEFAULT = p;
+    }
+
+    private static final AsyncRetryPolicy<Object, Callable<? extends Object>> NO_RETRY
+            = RetryPolicy.newBuilder().buildAsync();
+
+  }
 
   private final Supplier<RetryPredicate<T, C>> retryPredicate;
 
-  private final RetryExecutor executor;
-
   private final int maxExceptionChain;
 
-  private RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
-          final RetryExecutor execSupplier,
+  RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
           final int maxExceptionChain) {
     this.retryPredicate = retryPredicate;
     this.maxExceptionChain = maxExceptionChain;
-    this.executor = execSupplier;
   }
 
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> noRetryPolicy() {
@@ -98,53 +121,42 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     return (RetryPolicy<T, C>) DEFAULT;
   }
 
+  public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> defaultAsyncRetryPolicy() {
+    return (RetryPolicy<T, C>) LazyAsync.DEFAULT;
+  }
+
+  public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> noAsyncRetryPolicy() {
+    return (RetryPolicy<T, C>) LazyAsync.NO_RETRY;
+  }
+
   @Override
-  public <R extends T, W extends C, EX extends Exception> R call(
+  public final <R extends T, W extends C, EX extends Exception> R call(
           final W pwhat, final Class<EX> exceptionClass)
           throws InterruptedException, TimeoutException, EX {
     return (R) SyncRetry.call(pwhat, getRetryPredicate(), exceptionClass, maxExceptionChain);
   }
 
   @Override
-  public <R extends T, W extends C, EX extends Exception> R call(
+  public final <R extends T, W extends C, EX extends Exception> R call(
           final W pwhat, final Class<EX> exceptionClass, final long deadlineNanos)
           throws InterruptedException, TimeoutException, EX {
     return (R) SyncRetry.call(pwhat, getRetryPredicate(deadlineNanos), exceptionClass, maxExceptionChain);
   }
 
-
-  @Override
-  public <R extends T, W extends C> Future<R> submit(final W pwhat) {
-    return (Future<R>) executor.submit(pwhat, getRetryPredicate());
-  }
-
-  @Override
-  public <R extends T, W extends C> Future<R> submit(final W pwhat, final long deadlineNanos) {
-    return (Future<R>) executor.submit(pwhat, getRetryPredicate(deadlineNanos));
-  }
-
-
-  @Override
-  public <W extends C> void execute(final W pwhat) {
-    executor.execute(pwhat, getRetryPredicate());
-  }
-
-  public <W extends C> void execute(final W pwhat, final long deadlineNanos) {
-    executor.execute(pwhat, getRetryPredicate(deadlineNanos));
-  }
-
-
-  public RetryPredicate<T, C> getRetryPredicate() {
+  public final RetryPredicate<T, C> getRetryPredicate() {
     return retryPredicate.get();
   }
 
-  public RetryPredicate<T, C> getRetryPredicate(final long deadlineNanos) {
+  public final RetryPredicate<T, C> getRetryPredicate(final long deadlineNanos) {
     return new TimeoutRetryPredicate(retryPredicate.get(), deadlineNanos);
   }
 
+  /**
+   * @return string representation of policy.
+   */
   @Override
   public String toString() {
-    return "RetryPolicy{" + "retryPredicate=" + retryPredicate + ", execSupplier=" + executor
+    return "RetryPolicy{" + "retryPredicate=" + retryPredicate
             + ", maxExceptionChain=" + maxExceptionChain + '}';
   }
 
@@ -164,10 +176,7 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
     private static final int DEFAULT_MAX_NR_RETRIES
             = Integer.getInteger("spf4j.failsafe.defaultMaxNrRetries", MAX_EX_CHAIN_DEFAULT);
 
-
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
-
-    private Supplier<RetryExecutor> execSupplier = () -> DefaultContextAwareRetryExecutor.instance();
 
     private final List<Supplier<? extends PartialResultRetryPredicate<T, C>>> resultPredicates;
 
@@ -195,7 +204,6 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
       return withDefaultThrowableRetryPredicate(DEFAULT_MAX_NR_RETRIES);
     }
 
-
     @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate(final int maxNrRetries) {
       return withExceptionPartialPredicate((e, c) -> Throwables.isRetryable(e) ? RetryDecision.retryDefault(c) : null,
@@ -216,8 +224,8 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
 
     @CheckReturnValue
     public Builder<T, C> withRetryOnResult(final T result, final int maxRetries) {
-      return withResultPartialPredicate((r, c) ->
-              Objects.equals(result, r)
+      return withResultPartialPredicate((r, c)
+              -> Objects.equals(result, r)
               ? RetryDecision.retryDefault(c) : null, maxRetries);
     }
 
@@ -304,28 +312,38 @@ public final class RetryPolicy<T, C extends Callable<? extends T>> implements Po
       return this;
     }
 
-    public Builder<T, C> withExecutorService(final RetryExecutor es) {
-      execSupplier = () -> es;
-      return this;
-    }
-
     @CheckReturnValue
-    @SuppressWarnings("unchecked")
     public RetryPolicy<T, C> build() {
       Supplier[] rps = resultPredicates.toArray(new Supplier[resultPredicates.size()]);
       Supplier[] eps = exceptionPredicates.toArray(new Supplier[exceptionPredicates.size()]);
-      Supplier<RetryPredicate<T, C>> retryPredicate =
-              () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+      Supplier<RetryPredicate<T, C>> retryPredicate
+              = () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
-      return new RetryPolicy<>(retryPredicate, execSupplier.get(), maxExceptionChain
-      );
+      return new RetryPolicy<>(retryPredicate, maxExceptionChain);
+    }
+
+    @CheckReturnValue
+    public AsyncRetryPolicy<T, C> buildAsync() {
+      return buildAsync(DefaultContextAwareRetryExecutor.instance());
+    }
+
+    @CheckReturnValue
+    public AsyncRetryPolicy<T, C> buildAsync(final RetryExecutor es) {
+      Supplier[] rps = resultPredicates.toArray(new Supplier[resultPredicates.size()]);
+      Supplier[] eps = exceptionPredicates.toArray(new Supplier[exceptionPredicates.size()]);
+      Supplier<RetryPredicate<T, C>> retryPredicate
+              = () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+              (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
+                      startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
+      return new AsyncRetryPolicy<>(retryPredicate, maxExceptionChain, es);
     }
 
   }
 
   /**
    * Create a retry policy builder.
+   *
    * @param <T> the Type returned by the retried callables.
    * @param <C> the type of the Callable's returned.
    * @return

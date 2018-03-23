@@ -57,6 +57,7 @@ import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
+import org.spf4j.failsafe.AsyncRetryPolicy;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 
@@ -235,8 +236,8 @@ public final class ObjectPoolBuilderTest {
             5000, 1024, true);
     BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
     RetryExecutor exec = new RetryExecutor(execService, completionQueue);
-    RetryPolicy policy = RetryPolicy.newBuilder()
-            .withDefaultThrowableRetryPredicate().withExecutorService(exec).build();
+    AsyncRetryPolicy policy = RetryPolicy.newBuilder()
+            .withDefaultThrowableRetryPredicate().buildAsync(exec);
     int nrTests = 1000;
     for (int i = 0; i < nrTests; i++) {
       policy.execute(new TestCallable(pool, i));

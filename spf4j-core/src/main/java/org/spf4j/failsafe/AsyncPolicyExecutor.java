@@ -32,52 +32,34 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import org.spf4j.base.ExecutionContexts;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public interface PolicyExecutor<T, C extends Callable<? extends T>> {
+public interface AsyncPolicyExecutor<T, C extends Callable<? extends T>> extends PolicyExecutor<T, C> {
 
   @CheckReturnValue
-  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass)
-          throws InterruptedException, TimeoutException, EX;
+  <R extends T, W extends C> Future<R> submit(W pwhat);
 
   @CheckReturnValue
-  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX;
+  <R extends T, W extends C> Future<R> submit(W pwhat, long deadlineNanos);
 
   @CheckReturnValue
-  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
-          long timeout, TimeUnit tu)
-          throws InterruptedException, TimeoutException, EX {
-    return call(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+  default <R extends T, W extends C> Future<R> submit(W pwhat, long timeout, TimeUnit tu) {
+    return submit(pwhat, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
   }
 
-  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass)
-          throws InterruptedException, TimeoutException, EX {
-    T res = call(pwhat, exceptionClass);
-    if (res != null) {
-      throw new IllegalStateException("result must be null not " + res);
-    }
-  }
+  <W extends C> void execute(W pwhat);
 
-  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
-    T res = call(pwhat, exceptionClass, deadlineNanos);
-    if (res != null) {
-      throw new IllegalStateException("result must be null not " + res);
-    }
-  }
+  <W extends C> void execute(W pwhat, long deadlineNanos);
 
-  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass,
-          long timeout, TimeUnit tu)
-          throws InterruptedException, TimeoutException, EX {
-     run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+  default <W extends C> void execute(W pwhat, long timeout, TimeUnit tu) {
+     execute(pwhat, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
   }
-
 
 }

@@ -66,7 +66,7 @@ public class RetryPolicyTest {
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
     LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
     try (LogAssert expect = vex) {
-      RetryPolicy.NO_RETRY.run(() -> {
+      RetryPolicy.noRetryPolicy().run(() -> {
         throw new IOException();
       }, IOException.class);
       Assert.fail();
@@ -81,7 +81,7 @@ public class RetryPolicyTest {
   public void testNoRetryPolicyAsync() throws IOException, InterruptedException, TimeoutException {
     LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
     try (LogAssert expect = vex) {
-      RetryPolicy.noRetryPolicy().submit(() -> {
+      RetryPolicy.newBuilder().buildAsync().submit(() -> {
         throw new IOException();
       }).get();
       Assert.fail();
@@ -114,7 +114,10 @@ public class RetryPolicyTest {
             LogMatchers.hasMatchingMessage(
                     Matchers.startsWith("Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest")))) {
       try {
-        RetryPolicy.defaultPolicy().submit(() -> {
+        RetryPolicy.newBuilder()
+              .withDefaultThrowableRetryPredicate()
+              .withRetryOnException(Exception.class, 2) // will retry any other exception twice.
+              .buildAsync().submit(() -> {
           throw new RuntimeException();
         }).get();
         Assert.fail();
@@ -147,7 +150,7 @@ public class RetryPolicyTest {
           TimeoutException, ExecutionException {
     Future<Object> res = RetryPolicy.newBuilder()
             .withRetryOnException(Exception.class, Integer.MAX_VALUE)
-            .build().submit(() -> {
+            .buildAsync().submit(() -> {
       throw new IOException();
     });
     try {
@@ -187,7 +190,7 @@ public class RetryPolicyTest {
 
   @Test
   public void testComplexRetryASync() throws InterruptedException, TimeoutException, IOException, ExecutionException {
-    RetryPolicy<Response, ServerCall> rp = buildRetryPolicy();
+    AsyncRetryPolicy<Response, ServerCall> rp = buildRetryPolicy();
     Server server = new Server();
     Response response1 = new Response(Response.Type.OK, "");
     server.setResponse("url1", (r) -> response1);
@@ -196,7 +199,7 @@ public class RetryPolicyTest {
     testASyncRetry(server, rp, response1);
   }
 
-  public final  RetryPolicy<Response, ServerCall> buildRetryPolicy() {
+  public final  AsyncRetryPolicy<Response, ServerCall> buildRetryPolicy() {
     return RetryPolicy.<Response, ServerCall>newBuilder()
             .withDefaultThrowableRetryPredicate(Integer.MAX_VALUE)
             .withResultPartialPredicate((resp, sc) -> {
@@ -223,8 +226,7 @@ public class RetryPolicyTest {
             -> (resp.getType() == Response.Type.ERROR)
             ? RetryDecision.retryDefault(sc)
             : RetryDecision.abort(), 3)
-            .withExecutorService(es)
-            .build();
+            .buildAsync(es);
   }
 
   @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
@@ -286,7 +288,7 @@ public class RetryPolicyTest {
   }
 
   @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-  public final void testASyncRetry(final Server server, final RetryPolicy<Response, ServerCall> rp,
+  public final void testASyncRetry(final Server server, final AsyncRetryPolicy<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;
