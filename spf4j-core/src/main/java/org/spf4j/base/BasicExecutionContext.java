@@ -52,6 +52,8 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final ExecutionContext parent;
 
+  private final long startTimeNanos;
+
   private final long deadlineNanos;
 
   private final Runnable onClose;
@@ -62,10 +64,11 @@ public class BasicExecutionContext implements ExecutionContext {
 
   @SuppressWarnings("unchecked")
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-          final long deadlineNanos, final Runnable onClose) {
+          final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
     this.isClosed = false;
     this.name = name;
     this.onClose = onClose;
+    this.startTimeNanos = startTimeNanos;
     if (parent != null) {
       long parentDeadline = parent.getDeadlineNanos();
       if (parentDeadline < deadlineNanos) {
@@ -87,6 +90,10 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public final long getDeadlineNanos() {
     return deadlineNanos;
+  }
+
+  public final long getStartTimeNanos() {
+    return startTimeNanos;
   }
 
   @Nullable

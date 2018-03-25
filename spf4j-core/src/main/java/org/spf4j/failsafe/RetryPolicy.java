@@ -103,11 +103,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
 
   }
 
-  private final Supplier<RetryPredicate<T, C>> retryPredicate;
+  private final TimedSupplier<RetryPredicate<T, C>> retryPredicate;
 
   private final int maxExceptionChain;
 
-  RetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate,
+  RetryPolicy(final TimedSupplier<RetryPredicate<T, C>> retryPredicate,
           final int maxExceptionChain) {
     this.retryPredicate = retryPredicate;
     this.maxExceptionChain = maxExceptionChain;
@@ -131,24 +131,14 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
 
   @Override
   public final <R extends T, W extends C, EX extends Exception> R call(
-          final W pwhat, final Class<EX> exceptionClass)
+          final W pwhat, final Class<EX> exceptionClass, final long startNanos, final long deadlineNanos)
           throws InterruptedException, TimeoutException, EX {
-    return (R) SyncRetry.call(pwhat, getRetryPredicate(), exceptionClass, maxExceptionChain);
+    return (R) SyncRetry.call(pwhat, getRetryPredicate(startNanos, deadlineNanos), exceptionClass, maxExceptionChain);
   }
 
-  @Override
-  public final <R extends T, W extends C, EX extends Exception> R call(
-          final W pwhat, final Class<EX> exceptionClass, final long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
-    return (R) SyncRetry.call(pwhat, getRetryPredicate(deadlineNanos), exceptionClass, maxExceptionChain);
-  }
 
-  public final RetryPredicate<T, C> getRetryPredicate() {
-    return retryPredicate.get();
-  }
-
-  public final RetryPredicate<T, C> getRetryPredicate(final long deadlineNanos) {
-    return new TimeoutRetryPredicate(retryPredicate.get(), deadlineNanos);
+  public final RetryPredicate<T, C> getRetryPredicate(final long startTimeNanos, final long deadlineNanos) {
+    return new TimeoutRetryPredicate(retryPredicate.get(startTimeNanos, deadlineNanos), deadlineNanos);
   }
 
   /**
@@ -178,9 +168,9 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
 
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
-    private final List<Supplier<? extends PartialResultRetryPredicate<T, C>>> resultPredicates;
+    private final List<TimedSupplier<? extends PartialResultRetryPredicate<T, C>>> resultPredicates;
 
-    private final List<Supplier<? extends PartialExceptionRetryPredicate<T, C>>> exceptionPredicates;
+    private final List<TimedSupplier<? extends PartialExceptionRetryPredicate<T, C>>> exceptionPredicates;
 
     private int nrInitialRetries;
 
@@ -222,6 +212,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
               ? RetryDecision.retryDefault(c) : null, maxRetries);
     }
 
+
     @CheckReturnValue
     public Builder<T, C> withRetryOnResult(final T result, final int maxRetries) {
       return withResultPartialPredicate((r, c)
@@ -230,27 +221,50 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     }
 
     @CheckReturnValue
+    public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz,
+            final long maxTime, final TimeUnit tu) {
+      return withExceptionPartialPredicate((e, c)
+              -> clasz.isAssignableFrom(e.getClass())
+              ? RetryDecision.retryDefault(c) : null, maxTime, tu);
+    }
+
+    @CheckReturnValue
+    public Builder<T, C> withExceptionPartialPredicate(final PartialExceptionRetryPredicate<T, C> predicate,
+            final long maxTime, final TimeUnit tu) {
+      return withExceptionStatefulPartialPredicate((s, d)
+              -> {
+        TimeLimitedPartialRetryPredicate<T, Exception, C> p =
+                new TimeLimitedPartialRetryPredicate<>(s, d, maxTime, tu, predicate);
+        return (PartialExceptionRetryPredicate<T, C>) (Exception value, C what) -> p.apply(value, what);
+      });
+    }
+
+    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate) {
-      exceptionPredicates.add(() -> predicate);
-      return this;
+      return withExceptionStatefulPartialPredicate((s, e) -> predicate);
     }
 
     @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate,
             final int maxRetries) {
-      exceptionPredicates.add(() -> {
+      return withExceptionStatefulPartialPredicate((s, e) -> {
         CountLimitedPartialRetryPredicate<T, Exception, C> p
                 = new CountLimitedPartialRetryPredicate<T, Exception, C>(maxRetries, predicate);
         return (Exception value, C what) -> p.apply(value, what);
       });
-      return this;
     }
 
     @CheckReturnValue
     public Builder<T, C> withExceptionStatefulPartialPredicate(
             final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
+      return withExceptionStatefulPartialPredicate((s, e) -> predicateSupplier.get());
+    }
+
+    @CheckReturnValue
+    public Builder<T, C> withExceptionStatefulPartialPredicate(
+            final TimedSupplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
       exceptionPredicates.add(predicateSupplier);
       return this;
     }
@@ -258,7 +272,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     @CheckReturnValue
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate) {
-      resultPredicates.add(() -> predicate);
+      resultPredicates.add((s, e) -> predicate);
       return this;
     }
 
@@ -266,16 +280,21 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate,
             final int maxRetries) {
-      resultPredicates.add(() -> {
+      return withResultStatefulPartialPredicate((s, e) -> {
         CountLimitedPartialRetryPredicate<T, T, C> p = new CountLimitedPartialRetryPredicate<>(maxRetries, predicate);
         return (T value, C what) -> p.apply(value, what);
       });
-      return this;
     }
 
     @CheckReturnValue
     public Builder<T, C> withResultStatefulPartialPredicate(
             final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
+      return withResultStatefulPartialPredicate((s, e) -> predicateSupplier.get());
+    }
+
+    @CheckReturnValue
+    public Builder<T, C> withResultStatefulPartialPredicate(
+            final TimedSupplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
       resultPredicates.add(predicateSupplier);
       return this;
     }
@@ -314,10 +333,10 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
 
     @CheckReturnValue
     public RetryPolicy<T, C> build() {
-      Supplier[] rps = resultPredicates.toArray(new Supplier[resultPredicates.size()]);
-      Supplier[] eps = exceptionPredicates.toArray(new Supplier[exceptionPredicates.size()]);
-      Supplier<RetryPredicate<T, C>> retryPredicate
-              = () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+      TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
+      TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
+      TimedSupplier<RetryPredicate<T, C>> retryPredicate
+              = (s, e) -> new DefaultRetryPredicate(s, e, () -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new RetryPolicy<>(retryPredicate, maxExceptionChain);
@@ -330,10 +349,10 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
 
     @CheckReturnValue
     public AsyncRetryPolicy<T, C> buildAsync(final RetryExecutor es) {
-      Supplier[] rps = resultPredicates.toArray(new Supplier[resultPredicates.size()]);
-      Supplier[] eps = exceptionPredicates.toArray(new Supplier[exceptionPredicates.size()]);
-      Supplier<RetryPredicate<T, C>> retryPredicate
-              = () -> new DefaultRetryPredicate(() -> new TypeBasedRetryDelaySupplier<>(
+      TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
+      TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
+      TimedSupplier<RetryPredicate<T, C>> retryPredicate
+              = (s, e) -> new DefaultRetryPredicate(s, e, () -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new AsyncRetryPolicy<>(retryPredicate, maxExceptionChain, es);

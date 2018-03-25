@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeSource;
 
 /**
  *
@@ -44,22 +45,36 @@ import org.spf4j.base.ExecutionContexts;
 public interface AsyncPolicyExecutor<T, C extends Callable<? extends T>> extends PolicyExecutor<T, C> {
 
   @CheckReturnValue
-  <R extends T, W extends C> Future<R> submit(W pwhat);
+  default <R extends T, W extends C> Future<R> submit(W pwhat) {
+    long nanoTime = TimeSource.nanoTime();
+    return submit(pwhat, nanoTime, ExecutionContexts.getContextDeadlineNanos(nanoTime));
+  }
 
   @CheckReturnValue
-  <R extends T, W extends C> Future<R> submit(W pwhat, long deadlineNanos);
+  default <R extends T, W extends C> Future<R> submit(W pwhat, long deadlineNanos) {
+    return submit(pwhat, TimeSource.nanoTime(), deadlineNanos);
+  }
+
+  @CheckReturnValue
+  <R extends T, W extends C> Future<R> submit(W pwhat, long startTimeNanos, long deadlineNanos);
 
   @CheckReturnValue
   default <R extends T, W extends C> Future<R> submit(W pwhat, long timeout, TimeUnit tu) {
-    return submit(pwhat, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+    long nanoTime = TimeSource.nanoTime();
+    return submit(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime,
+            ExecutionContexts.current(), tu, timeout));
   }
 
-  <W extends C> void execute(W pwhat);
+  default <W extends C> void execute(W pwhat) {
+    long nanoTime = TimeSource.nanoTime();
+    execute(pwhat, nanoTime, ExecutionContexts.getContextDeadlineNanos(nanoTime));
+  }
 
-  <W extends C> void execute(W pwhat, long deadlineNanos);
+  <W extends C> void execute(W pwhat, long startTimeNanos, long deadlineNanos);
 
   default <W extends C> void execute(W pwhat, long timeout, TimeUnit tu) {
-     execute(pwhat, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+    long nanoTime = TimeSource.nanoTime();
+    execute(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));
   }
 
 }

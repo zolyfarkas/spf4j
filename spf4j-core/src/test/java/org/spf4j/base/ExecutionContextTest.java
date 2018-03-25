@@ -50,7 +50,7 @@ public class ExecutionContextTest {
 
   @Test
   public void testExecutionContext() throws InterruptedException, ExecutionException, TimeoutException {
-    try (ExecutionContext ec = ExecutionContexts.start(TimeSource.getDeadlineNanos(10, TimeUnit.SECONDS))) {
+    try (ExecutionContext ec = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
       long unitsToDeadline = ExecutionContexts.current().getTimeToDeadline(TimeUnit.SECONDS);
       Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
       Assert.assertThat(unitsToDeadline, Matchers.greaterThanOrEqualTo(9L));

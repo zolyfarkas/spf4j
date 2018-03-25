@@ -15,15 +15,12 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.Callable;
-
 /**
- *
  * @author Zoltan Farkas
  */
 @FunctionalInterface
-public interface DeadlineSupplier<C extends Callable> {
+public interface TimedSupplier<T> {
 
-  long getDeadlineNanos(C callable);
+  T get(long startTimeNanos, long deadlineNanos);
 
 }

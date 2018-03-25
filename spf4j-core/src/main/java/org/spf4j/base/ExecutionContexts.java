@@ -105,8 +105,8 @@ public final class ExecutionContexts {
    * @param deadlineNanos the deadline for this context. (System.nanotime)
    * @return the execution context.
    */
-  public static ExecutionContext start(final long deadlineNanos) {
-    return start("anon", null, deadlineNanos);
+  public static ExecutionContext start(final long startTimeNanos, final long deadlineNanos) {
+    return start("anon", null, startTimeNanos, deadlineNanos);
   }
 
   /**
@@ -133,35 +133,39 @@ public final class ExecutionContexts {
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent) {
-    return start(parent, parent != null ? parent.getDeadlineNanos() : TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS);
+    long nanoTime = TimeSource.nanoTime();
+    return start(parent, nanoTime, parent != null ? parent.getDeadlineNanos() : nanoTime + DEFAULT_TIMEOUT_NANOS);
   }
 
-  public static ExecutionContext start(@Nullable final ExecutionContext parent, final long deadlineNanos) {
-    return start("anon", parent, deadlineNanos);
+  public static ExecutionContext start(@Nullable final ExecutionContext parent,
+          final long startTimeNanos, final long deadlineNanos) {
+    return start("anon", parent, startTimeNanos, deadlineNanos);
   }
 
-  public static ExecutionContext start(final String name, final long deadlineNanos) {
-    return start(name, null, deadlineNanos);
+  public static ExecutionContext start(final String name, final long startTimeNanos, final long deadlineNanos) {
+    return start(name, null, startTimeNanos, deadlineNanos);
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent) {
-    return start(name, parent, parent != null ? parent.getDeadlineNanos()
-            : TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS);
+    long nanoTime = TimeSource.nanoTime();
+    return start(name, parent, nanoTime, parent != null ? parent.getDeadlineNanos()
+            : nanoTime + DEFAULT_TIMEOUT_NANOS);
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
     ExecutionContext localCtx = EXEC_CTX.get();
+    long nanoTime = TimeSource.nanoTime();
     ExecutionContext nCtx;
     if (localCtx == null) {
       nCtx = CTX_FACTORY.startThreadRoot(name, parent,
-              computeDeadline(parent, tu, timeout), () -> ExecutionContexts.setCurrent(null));
+              nanoTime, computeDeadline(nanoTime, parent, tu, timeout), () -> ExecutionContexts.setCurrent(null));
     } else if (parent == null) {
-      nCtx = CTX_FACTORY.start(name, localCtx, computeDeadline(localCtx, tu, timeout),
+      nCtx = CTX_FACTORY.start(name, localCtx, nanoTime, computeDeadline(nanoTime, localCtx, tu, timeout),
               () -> ExecutionContexts.setCurrent(localCtx));
     } else {
-      nCtx = CTX_FACTORY.start(name, parent, computeDeadline(parent, tu, timeout),
+      nCtx = CTX_FACTORY.start(name, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),
               () -> ExecutionContexts.setCurrent(localCtx));
     }
     EXEC_CTX.set(nCtx);
@@ -170,14 +174,19 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long deadlineNanos) {
+    return start(name, parent, TimeSource.nanoTime(), deadlineNanos);
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
     ExecutionContext localCtx = EXEC_CTX.get();
     ExecutionContext nCtx;
     if (localCtx == null) {
       nCtx = CTX_FACTORY.startThreadRoot(name, parent,
-              deadlineNanos, () -> ExecutionContexts.setCurrent(null));
+              startTimeNanos, deadlineNanos, () -> ExecutionContexts.setCurrent(null));
     } else {
       nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent,
-              deadlineNanos, () -> ExecutionContexts.setCurrent(localCtx));
+              startTimeNanos, deadlineNanos, () -> ExecutionContexts.setCurrent(localCtx));
     }
     EXEC_CTX.set(nCtx);
     return nCtx;
@@ -187,6 +196,15 @@ public final class ExecutionContexts {
     ExecutionContext ec = ExecutionContexts.current();
     if (ec == null) {
       return TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS;
+    } else {
+      return ec.getDeadlineNanos();
+    }
+  }
+
+  public static long getContextDeadlineNanos(final long currentTime) {
+    ExecutionContext ec = ExecutionContexts.current();
+    if (ec == null) {
+      return currentTime + DEFAULT_TIMEOUT_NANOS;
     } else {
       return ec.getDeadlineNanos();
     }
@@ -232,6 +250,16 @@ public final class ExecutionContexts {
     return (ctxDeadlinenanos - nanoTime < timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;
   }
 
+  public static long computeDeadline(final long startTimeNanos, @Nullable final ExecutionContext current,
+          final TimeUnit unit, final long timeout) {
+    if (current == null) {
+      return TimeSource.getDeadlineNanos(startTimeNanos, timeout, unit);
+    }
+    long ctxDeadlinenanos = current.getDeadlineNanos();
+    long timeoutNanos = unit.toNanos(timeout);
+    return (ctxDeadlinenanos - startTimeNanos < timeoutNanos) ? ctxDeadlinenanos : startTimeNanos + timeoutNanos;
+  }
+
   public static TimeoutDeadline computeTimeoutDeadline(@Nullable final ExecutionContext current,
           final TimeUnit unit, final long timeout) throws TimeoutException {
     if (current == null) {
@@ -250,8 +278,8 @@ public final class ExecutionContexts {
 
     @Override
     public ExecutionContext start(final String name, final ExecutionContext parent,
-            final long deadlineNanos, final Runnable onClose) {
-      return new BasicExecutionContext(name, parent, deadlineNanos, onClose);
+            final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
+      return new BasicExecutionContext(name, parent, startTimeNanos, deadlineNanos, onClose);
     }
 
   }
@@ -334,7 +362,8 @@ public final class ExecutionContexts {
 
     @Override
     public T call() throws Exception {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current, deadlineNanos)) {
+      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current,
+              TimeSource.nanoTime(), deadlineNanos)) {
         return task.call();
       }
     }

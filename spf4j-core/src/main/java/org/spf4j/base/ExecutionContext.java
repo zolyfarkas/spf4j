@@ -53,6 +53,8 @@ public interface ExecutionContext extends AutoCloseable {
   @DischargesObligation
   void close();
 
+  long getStartTimeNanos();
+
   long getDeadlineNanos();
 
   ExecutionContext getParent();

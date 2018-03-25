@@ -33,7 +33,6 @@ package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.function.Supplier;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 
 /**
@@ -45,29 +44,21 @@ public final class AsyncRetryPolicy<T, C extends Callable<? extends T>> extends 
 
   private final RetryExecutor executor;
 
-  AsyncRetryPolicy(final Supplier<RetryPredicate<T, C>> retryPredicate, final int maxExceptionChain,
+  AsyncRetryPolicy(final TimedSupplier<RetryPredicate<T, C>> retryPredicate, final int maxExceptionChain,
           final RetryExecutor executor) {
     super(retryPredicate, maxExceptionChain);
     this.executor = executor;
   }
 
-  @Override
-  public <R extends T, W extends C> Future<R> submit(final W pwhat) {
-    return (Future<R>) executor.submit(pwhat, getRetryPredicate());
-  }
 
   @Override
-  public <R extends T, W extends C> Future<R> submit(final W pwhat, final long deadlineNanos) {
-    return (Future<R>) executor.submit(pwhat, getRetryPredicate(deadlineNanos));
+  public <R extends T, W extends C> Future<R> submit(final W pwhat,
+          final long startTimeNanos, final long deadlineNanos) {
+    return (Future<R>) executor.submit(pwhat, getRetryPredicate(startTimeNanos, deadlineNanos));
   }
 
-  @Override
-  public <W extends C> void execute(final W pwhat) {
-    executor.execute(pwhat, getRetryPredicate());
-  }
-
-  public <W extends C> void execute(final W pwhat, final long deadlineNanos) {
-    executor.execute(pwhat, getRetryPredicate(deadlineNanos));
+  public <W extends C> void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
+    executor.execute(pwhat, getRetryPredicate(startTimeNanos, deadlineNanos));
   }
 
   @Override

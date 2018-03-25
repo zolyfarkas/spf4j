@@ -58,6 +58,14 @@ public final class TimeSource {
     return nanoTime() + timeUnit.toNanos(timeout);
   }
 
+  public static long getDeadlineNanos(final long currentTimeNanos, final long timeout, final TimeUnit timeUnit) {
+    if (timeout < 0) {
+      throw new IllegalArgumentException("Invalid timeout " + timeout + " " + timeUnit);
+    }
+    return currentTimeNanos + timeUnit.toNanos(timeout);
+  }
+
+
   public static long getTimeToDeadlineStrict(final long deadlineNanos, final TimeUnit timeUnit)
           throws TimeoutException {
     long timeoutNanos = deadlineNanos - nanoTime();

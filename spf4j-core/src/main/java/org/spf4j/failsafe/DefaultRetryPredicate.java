@@ -42,16 +42,16 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   private final PartialExceptionRetryPredicate<T, Callable<T>>[] exceptionPredicates;
 
-  DefaultRetryPredicate(
+  DefaultRetryPredicate(final long startNanos, final long deadlineNanos,
           final Supplier<Function<Object, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
-          final Supplier<PartialResultRetryPredicate<T, Callable<T>>>[] resultPredicates,
-          final Supplier<PartialExceptionRetryPredicate<T, Callable<T>>>... exceptionPredicates) {
+          final TimedSupplier<PartialResultRetryPredicate<T, Callable<T>>>[] resultPredicates,
+          final TimedSupplier<PartialExceptionRetryPredicate<T, Callable<T>>>... exceptionPredicates) {
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     int rpl = resultPredicates.length;
     if (rpl > 0) {
       this.resultPredicates = new PartialResultRetryPredicate[rpl];
       for (int i = 0; i < rpl; i++) {
-        this.resultPredicates[i] = resultPredicates[i].get();
+        this.resultPredicates[i] = resultPredicates[i].get(startNanos, deadlineNanos);
       }
     } else {
       this.resultPredicates = NO_RP;
@@ -60,7 +60,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
     if (epl > 0) {
       this.exceptionPredicates = new PartialExceptionRetryPredicate[epl];
       for (int i = 0; i < epl; i++) {
-        this.exceptionPredicates[i] = exceptionPredicates[i].get();
+        this.exceptionPredicates[i] = exceptionPredicates[i].get(startNanos, deadlineNanos);
       }
     } else {
       this.exceptionPredicates = NO_EP;

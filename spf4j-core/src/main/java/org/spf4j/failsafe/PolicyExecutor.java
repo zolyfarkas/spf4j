@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeSource;
 
 /**
  * @author Zoltan Farkas
@@ -43,18 +44,31 @@ import org.spf4j.base.ExecutionContexts;
 public interface PolicyExecutor<T, C extends Callable<? extends T>> {
 
   @CheckReturnValue
-  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass)
+  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+          long startNanos, long deadlineNanos)
           throws InterruptedException, TimeoutException, EX;
 
   @CheckReturnValue
-  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX;
+  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+          long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX {
+    return call(pwhat, exceptionClass, TimeSource.nanoTime(), deadlineNanos);
+  }
+
+  @CheckReturnValue
+  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass)
+          throws InterruptedException, TimeoutException, EX {
+    long nanoTime = TimeSource.nanoTime();
+    return call(pwhat, exceptionClass, nanoTime, ExecutionContexts.getContextDeadlineNanos());
+  }
 
   @CheckReturnValue
   default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
           long timeout, TimeUnit tu)
           throws InterruptedException, TimeoutException, EX {
-    return call(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+    long nanoTime = TimeSource.nanoTime();
+    return call(pwhat, exceptionClass, nanoTime,
+            ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));
   }
 
   default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass)
