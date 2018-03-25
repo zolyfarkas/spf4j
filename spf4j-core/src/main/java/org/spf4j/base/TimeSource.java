@@ -20,6 +20,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.LongSupplier;
 
 /**
+ * Utility method to convert between TimeSource.nanoTime and System.currentTimeMillis
  * @author Zoltan Farkas
  */
 public final class TimeSource {
@@ -30,6 +31,12 @@ public final class TimeSource {
     String cfgTimeSource = System.getProperty("spf4j.timeSource");
     if (cfgTimeSource == null) {
       TIMESUPP = () -> System.nanoTime();
+    } else if ("systemTime".equals(cfgTimeSource)) {
+      // System time is about 3 times faster on macOSX:
+      // and worth considerign is more than millisecond precission is not needed:
+      // TimingBenchmark.getCurrentTimeMillis         thrpt   10  108291306.615 ± 3493136.191  ops/s
+      // TimingBenchmark.getNanoTime                  thrpt   10  31056232.360 ± 1804247.295  ops/s
+      TIMESUPP = new SystemTimeProvider();
     } else {
       try {
         TIMESUPP = (LongSupplier) Class.forName(cfgTimeSource).newInstance();
@@ -79,5 +86,17 @@ public final class TimeSource {
     long timeoutNanos = deadlineNanos - nanoTime();
     return timeUnit.convert(timeoutNanos, TimeUnit.NANOSECONDS);
   }
+
+  private static final class SystemTimeProvider implements LongSupplier {
+
+    private static final long LOCAL_EPOCH = System.currentTimeMillis();
+
+    @Override
+    public long getAsLong() {
+      return TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis() - LOCAL_EPOCH);
+    }
+
+  }
+
 
 }

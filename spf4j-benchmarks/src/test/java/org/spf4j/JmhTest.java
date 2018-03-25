@@ -61,7 +61,7 @@ public final class JmhTest {
     final String profile = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
-            //.include(".*TestLogger.*")
+            //.include(".*Timing.*")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
@@ -74,6 +74,7 @@ public final class JmhTest {
             //         "-XX:+PrintInlining", "-XX:+PrintCompilation", "-XX:+LogCompilation"
             .jvmArgs("-XX:MaxInlineLevel=12", "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures",
                     "-Djmh.stack.profiles=" + destinationFolder,
+                    "-Dspf4j.timeSource=systemTime",
                     "-Dspf4j.executors.defaultExecutor.daemon=true",
                  // "-Djmh.executor=FJP",
                     "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
