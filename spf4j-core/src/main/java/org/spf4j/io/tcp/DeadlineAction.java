@@ -41,9 +41,10 @@ public final class DeadlineAction {
     public static final Comparator<DeadlineAction> COMPARATOR = new Comparator<DeadlineAction>() {
         @Override
         public int compare(final DeadlineAction o1, final DeadlineAction o2) {
-            if (o1.deadline < o2.deadline) {
+            long result = o1.deadline - o2.deadline;
+            if (result < 0) {
                 return -1;
-            } else if (o1.deadline > o2.deadline) {
+            } else if (result > 0) {
                 return 1;
             } else {
                 return 0;

@@ -38,12 +38,14 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Closeables;
+import org.spf4j.base.TimeSource;
 import org.spf4j.ds.UpdateablePriorityQueue;
 import org.spf4j.io.tcp.ClientHandler;
 import org.spf4j.io.tcp.DeadlineAction;
@@ -97,7 +99,7 @@ public final class ProxyClientHandler implements ClientHandler {
                 c2s.setIncomingSniffer(c2sSnifferFact.get(clientChannel));
             }
             TransferBuffer s2c = new TransferBuffer(proxyBufferSize);
-            final long connectDeadline = System.currentTimeMillis() + connectTimeoutMillis;
+            final long connectDeadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(connectTimeoutMillis);
             UpdateablePriorityQueue.ElementRef daction = deadlineActions.add(new DeadlineAction(connectDeadline,
                     new CloseChannelsOnTimeout(proxyChannel, clientChannel)));
             new ProxyBufferTransferHandler(c2s, s2c, null, clientChannel,

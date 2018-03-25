@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Closeables;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.RestartableServiceImpl;
 import org.spf4j.ds.UpdateablePriorityQueue;
 import org.spf4j.failsafe.RetryPolicy;
@@ -180,10 +181,10 @@ public final class TcpServer extends RestartableServiceImpl {
             }
           }
           // process deadlineActions
-          long currentTime = System.currentTimeMillis();
+          long currentTime = TimeSource.nanoTime();
           DeadlineAction peek;
           //CHECKSTYLE:OFF
-          while ((peek = deadlineActions.peek()) != null && currentTime > peek.getDeadline()) {
+          while ((peek = deadlineActions.peek()) != null && (peek.getDeadline() - currentTime <= 0)) {
             deadlineActions.poll().getAction().run();
           }
           //CHECKSTYLE:ON
