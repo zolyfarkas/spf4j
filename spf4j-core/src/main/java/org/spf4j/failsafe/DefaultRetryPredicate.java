@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +43,14 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   private final PartialExceptionRetryPredicate<T, Callable<T>>[] exceptionPredicates;
 
-  DefaultRetryPredicate(final long startNanos, final long deadlineNanos,
+  private final Logger log;
+
+  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER") // not suspect if you want to customize logging behavior.
+  DefaultRetryPredicate(@Nullable final Logger log, final long startNanos, final long deadlineNanos,
           final Supplier<Function<Object, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
           final TimedSupplier<PartialResultRetryPredicate<T, Callable<T>>>[] resultPredicates,
           final TimedSupplier<PartialExceptionRetryPredicate<T, Callable<T>>>... exceptionPredicates) {
+    this.log = log == null ? LOG : log;
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     int rpl = resultPredicates.length;
     if (rpl > 0) {
@@ -76,7 +81,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
           Callable<?> newCallable = decision.getNewCallable();
-          LOG.debug("Result {} for {} retrying {}", value, what, newCallable);
+          log.debug("Result {} for {} retrying {}", value, what, newCallable);
           if (decision.getDelayNanos() < 0) {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
             return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);

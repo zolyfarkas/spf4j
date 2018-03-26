@@ -41,6 +41,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.helpers.NOPLogger;
 import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.concurrent.DefaultContextAwareRetryExecutor;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
@@ -180,6 +182,8 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
 
     private double jitterFactor;
 
+    private Logger log;
+
     private Builder() {
       this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
       this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
@@ -187,7 +191,22 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
       this.jitterFactor = 0.2;
       this.resultPredicates = new ArrayList<>(2);
       this.exceptionPredicates = new ArrayList<>(2);
+      this.log = null;
     }
+
+    @CheckReturnValue
+    public Builder<T, C> withRetryLogger(final Logger plog) {
+      this.log = plog;
+      return this;
+    }
+
+    @CheckReturnValue
+    public Builder<T, C> withoutRetryLogger() {
+      this.log = NOPLogger.NOP_LOGGER;
+      return this;
+    }
+
+
 
     @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate() {
@@ -336,7 +355,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
       TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
       TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
       TimedSupplier<RetryPredicate<T, C>> retryPredicate
-              = (s, e) -> new DefaultRetryPredicate(s, e, () -> new TypeBasedRetryDelaySupplier<>(
+              = (s, e) -> new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new RetryPolicy<>(retryPredicate, maxExceptionChain);
@@ -352,7 +371,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
       TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
       TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
       TimedSupplier<RetryPredicate<T, C>> retryPredicate
-              = (s, e) -> new DefaultRetryPredicate(s, e, () -> new TypeBasedRetryDelaySupplier<>(
+              = (s, e) -> new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new AsyncRetryPolicy<>(retryPredicate, maxExceptionChain, es);
