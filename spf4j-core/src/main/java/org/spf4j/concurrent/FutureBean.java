@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
+import org.spf4j.base.TimeSource;
 
 /**
  * bean like implementation of a future
@@ -92,11 +93,11 @@ public class FutureBean<T> implements Future<T> {
             throws InterruptedException, ExecutionException, TimeoutException {
         long timeoutMillis = unit.toMillis(timeout);
         long toWait = timeoutMillis;
-        long startTime = System.currentTimeMillis();
+        long startTime = TimeSource.nanoTime();
         synchronized (this) {
             while (toWait > 0 && resultStore == null) {
                 this.wait(toWait);
-                toWait = timeoutMillis - (System.currentTimeMillis() - startTime);
+                toWait = timeoutMillis - (TimeSource.nanoTime() - startTime);
             }
             if (resultStore == null) {
                 throw new TimeoutException();
