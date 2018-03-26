@@ -32,8 +32,10 @@
 package org.spf4j.perf;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.TimeSource;
 import org.spf4j.perf.impl.NopMeasurementRecorder;
 
 /**
@@ -76,9 +78,9 @@ public final class PerformanceMonitor {
     return new Callable<T>() {
       @Override
       public T call() throws Exception {
-        final long start = System.currentTimeMillis();
+        final long start = TimeSource.nanoTime();
         T result = callable.call();
-        final long elapsed = System.currentTimeMillis() - start;
+        final long elapsed = TimeUnit.NANOSECONDS.toMillis(TimeSource.nanoTime() - start);
         String callableName = callable.toString();
         mrs.getRecorder(callableName).record(elapsed);
         if (elapsed > warnMillis) {

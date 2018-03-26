@@ -39,7 +39,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
-import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
 /**
  * This executor aims to be a general purpose executor for async tasks. (equivalent to ForkJoinPool.commonPool())
@@ -81,7 +80,7 @@ public final class DefaultExecutor {
       @Override
       public void doRun() throws InterruptedException {
         INSTANCE.shutdown();
-        INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
         List<Runnable> remaining = INSTANCE.shutdownNow();
         if (remaining.size() > 0) {
           org.spf4j.base.Runtime.error("Remaining tasks: " + remaining);

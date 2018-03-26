@@ -76,7 +76,8 @@ import org.spf4j.unix.UnixRuntime;
 public final class Runtime {
 
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
-  public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger("spf4j.waitForShutdownMillis", 30000);
+  public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
+          Integer.getInteger("spf4j.waitForShutdownMillis", 30000));
   public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
   public static final String JAVA_VERSION = System.getProperty("java.version");
   public static final String USER_NAME = System.getProperty("user.name");
@@ -173,10 +174,10 @@ public final class Runtime {
               thread.start();
               threads[i++] = thread;
             }
-            long deadline = System.currentTimeMillis() + WAIT_FOR_SHUTDOWN_MILLIS;
+            long deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
             for (Thread thread : threads) {
               try {
-                thread.join(deadline - System.currentTimeMillis());
+                thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
               } catch (InterruptedException ex) {
                 if (rex == null) {
                   rex = ex;
@@ -493,10 +494,10 @@ public final class Runtime {
   @SuppressFBWarnings
   public static boolean gc(final long timeoutMillis) {
     WeakReference<Object> ref = new WeakReference<>(new Object());
-    long deadline = System.currentTimeMillis() + timeoutMillis;
+    long deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
     do {
       System.gc();
-    } while (ref.get() != null && System.currentTimeMillis() < deadline);
+    } while (ref.get() != null && TimeSource.nanoTime() < deadline);
     return ref.get() == null;
   }
 

@@ -39,7 +39,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
-import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
 /**
  *
@@ -67,7 +66,7 @@ public final class DefaultScheduler {
       @Override
       public void doRun() throws InterruptedException {
         INSTANCE.shutdown();
-        INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);
+        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
         List<Runnable> remaining = INSTANCE.shutdownNow();
         if (remaining.size() > 0) {
           org.spf4j.base.Runtime.error("Remaining tasks: " + remaining);

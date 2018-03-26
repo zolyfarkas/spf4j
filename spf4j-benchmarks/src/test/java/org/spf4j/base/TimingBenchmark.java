@@ -31,7 +31,6 @@
  */
 package org.spf4j.base;
 
-import java.io.UnsupportedEncodingException;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
