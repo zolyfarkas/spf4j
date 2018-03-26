@@ -146,6 +146,10 @@ public final class ExecutionContexts {
     return start(name, null, startTimeNanos, deadlineNanos);
   }
 
+  public static ExecutionContext start(final String name, final long deadlineNanos) {
+    return start(name, null, TimeSource.nanoTime(), deadlineNanos);
+  }
+
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent) {
     long nanoTime = TimeSource.nanoTime();

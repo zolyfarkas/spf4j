@@ -54,6 +54,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.TimeSource;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LValRef;
 import org.spf4j.zel.instr.var.ARRAY;
@@ -445,10 +446,10 @@ public final class Program implements Serializable {
           localSymTable = prog.getLocalSymbolTable();
           globalSymTable = prog.getGlobalSymbolTable();
           gmem = prog.getGlobalMem();
-          long startTime = System.nanoTime();
+          long startTime = TimeSource.nanoTime();
           Pair<Object, ExecutionContext> res = prog.execute(
                   VMExecutor.Lazy.DEFAULT, ProcessIOStreams.DEFAULT, resCache, mem);
-          long elapsed = System.nanoTime() - startTime;
+          long elapsed = TimeSource.nanoTime() - startTime;
           final Object result = res.getFirst();
           System.out.println("result> " + result);
           System.out.println("type> " + (result == null ? "none" : result.getClass()));
