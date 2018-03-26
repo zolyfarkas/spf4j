@@ -446,7 +446,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           throw new LockRuntimeException(ex);
         }
         if (beat.getValue()) { // we did a heartbeat as part of the acquisition.
-          heartBeat.updateLastRun(System.currentTimeMillis());
+          heartBeat.updateLastRunNanos(TimeSource.nanoTime());
         }
         if (!acquired) {
           long secondsLeft = JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos);

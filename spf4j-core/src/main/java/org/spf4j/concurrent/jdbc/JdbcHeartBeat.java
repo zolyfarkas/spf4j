@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Iterables;
 import org.spf4j.base.TimeSource;
+import org.spf4j.base.Timing;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.jdbc.JdbcTemplate;
@@ -107,6 +108,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private final int jdbcTimeoutSeconds;
 
+  private final long intervalNanos;
+
   private final long intervalMillis;
 
   private final HeartBeatTableDesc hbTableDesc;
@@ -115,7 +118,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private final String deleteHeartBeatSql;
 
-  private volatile long lastRun;
+  private volatile long lastRunNanos;
 
   private boolean isClosed;
 
@@ -124,6 +127,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
   private final long beatDurationNanos;
 
   private ScheduledHeartBeat heartbeatRunnable;
+
+  private final double missedHBRatio;
 
   @Override
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
@@ -158,19 +163,21 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
           final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {
-    this(dataSource, HeartBeatTableDesc.DEFAULT, intervalMillis, jdbcTimeoutSeconds);
+    this(dataSource, HeartBeatTableDesc.DEFAULT, intervalMillis, jdbcTimeoutSeconds, 0.5);
   }
 
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
-          final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {
+          final int jdbcTimeoutSeconds, final double missedHBRatio) throws InterruptedException, SQLException {
     if (intervalMillis < 1000) {
       throw new IllegalArgumentException("The heartbeat interval should be at least 1s and not "
               + intervalMillis + " ms");
     }
-
+    this.missedHBRatio = missedHBRatio;
     this.jdbc = new JdbcTemplate(dataSource);
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.intervalMillis = intervalMillis;
+    this.intervalNanos = TimeUnit.MILLISECONDS.toNanos(intervalMillis);
+    this.lastRunNanos = TimeSource.nanoTime() - intervalNanos;
     this.hbTableDesc = hbTableDesc;
     this.isClosed = false;
     String hbTableName = hbTableDesc.getTableName();
@@ -290,17 +297,17 @@ public final class JdbcHeartBeat implements AutoCloseable {
         throw new IllegalStateException("Heartbeater is closed " + this);
       }
       if (scheduledHearbeat == null) {
-        long lr = lastRun;
-        long delay;
-        if (lr == 0) {
-          delay = intervalMillis;
-        } else if (lr > 0) {
-          delay = intervalMillis - (System.currentTimeMillis() - lr);
-        } else {
-          throw new IllegalStateException("The end of times are upon us :-) " + lr);
+        long lrn = lastRunNanos;
+        long nanosSincelLastHB = TimeSource.nanoTime() - lrn;
+        long delayNanos = intervalNanos - nanosSincelLastHB;
+        if (delayNanos < (-intervalNanos) * missedHBRatio) {
+          throw new HeartBeatError("Missed heartbeat since last one was " + nanosSincelLastHB + " ns ago");
+        }
+        if (delayNanos < 0) {
+          delayNanos = 0;
         }
         ListenableScheduledFuture<?> scheduleFut = DefaultScheduler.LISTENABLE_INSTANCE.schedule(
-                getHeartBeatRunnable(), delay, TimeUnit.MILLISECONDS);
+                getHeartBeatRunnable(), delayNanos, TimeUnit.NANOSECONDS);
         scheduledHearbeat = scheduleFut;
         Futures.addCallback(scheduleFut, new FutureCallback() {
           @Override
@@ -333,7 +340,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       beat(conn, deadlineNanos);
       return null;
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-    lastRun = System.currentTimeMillis();
+    lastRunNanos = TimeSource.nanoTime();
   }
 
   void beat(final Connection conn, final long deadlineNanos) {
@@ -358,7 +365,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
 
   boolean tryBeat(final Connection conn, final long deadlineNanos) {
-    if (System.currentTimeMillis() - lastRun > intervalMillis / 2) {
+    if (TimeSource.nanoTime() - lastRunNanos > intervalNanos / 2) {
       beat(conn, deadlineNanos);
       return true;
     } else {
@@ -366,8 +373,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
     }
   }
 
-  void updateLastRun(final long lastRunTime) {
-    lastRun = lastRunTime;
+  void updateLastRunNanos(final long lastRunTime) {
+    lastRunNanos = lastRunTime;
   }
 
 
@@ -397,14 +404,16 @@ public final class JdbcHeartBeat implements AutoCloseable {
     return intervalMillis;
   }
 
-  @JmxExport(description =  "The unix time millis the jdbc heartbeat run last")
-  public long getLastRunMillis() {
-    return lastRun;
+  @JmxExport(description =  "The TimeSource nanos time  the jdbc heartbeat run last")
+  public long getLastRunNanos() {
+    return lastRunNanos;
   }
 
   @JmxExport
   public String getLastRunTimeStampString() {
-    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastRun), ZoneId.systemDefault()).toString();
+    return ZonedDateTime.ofInstant(
+            Instant.ofEpochMilli(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastRunNanos)),
+            ZoneId.systemDefault()).toString();
   }
 
   /**
@@ -432,7 +441,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
       }
       beat = HEARTBEATS.get(dataSource);
       if (beat == null) {
-        beat = new JdbcHeartBeat(dataSource, hbTableDesc, heartBeatIntevalMillis, jdbcTimeoutSeconds);
+        beat = new JdbcHeartBeat(dataSource, hbTableDesc, heartBeatIntevalMillis, jdbcTimeoutSeconds, 0.5);
         beat.registerJmx();
         beat.addLyfecycleHook(new LifecycleHook() {
           @Override
@@ -491,7 +500,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
   @Override
   public String toString() {
     return "JdbcHeartBeat{" + "jdbc=" + jdbc + ", jdbcTimeoutSeconds=" + jdbcTimeoutSeconds + ", intervalMillis="
-            + intervalMillis + ", hbTableDesc=" + hbTableDesc + ", lastRun=" + lastRun + '}';
+            + intervalMillis + ", hbTableDesc=" + hbTableDesc + ", lastRunNanos=" + lastRunNanos + '}';
   }
 
   private class ScheduledHeartBeat implements Runnable {
@@ -499,20 +508,16 @@ public final class JdbcHeartBeat implements AutoCloseable {
     @Override
     public void run() {
       try {
-        long lr = lastRun;
-        long currentTimeMillis = System.currentTimeMillis();
-        if (lr != 0) {
-          // not first beat.
-          long millisSinceLastBeat = currentTimeMillis - lr;
-          if (millisSinceLastBeat < intervalMillis / 2) {
-            return;
-          } else if (((intervalMillis * 2) < millisSinceLastBeat)) {
-            // Unable to beat at inteval!
-            HeartBeatError err = new HeartBeatError("System to busy to provide regular heartbeat, lastRun = " + lr
-                    + ", intervalMillis = " + intervalMillis + ", currentTimeMillis = " + currentTimeMillis);
+        long lrn = lastRunNanos;
+        long currentTimeNanos = TimeSource.nanoTime();
+        // not first beat.
+        long nanosSinceLastBeat = currentTimeNanos - lrn;
+        if (((intervalNanos * (1 + missedHBRatio)) < nanosSinceLastBeat)) {
+          // Unable to beat at inteval!
+          HeartBeatError err = new HeartBeatError("System to busy to provide regular heartbeat, last heartbeat "
+                  + nanosSinceLastBeat + " ns ago");
 
-            handleError(err);
-          }
+          handleError(err);
         }
         beat();
       } catch (RuntimeException | SQLException | InterruptedException ex) {
