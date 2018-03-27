@@ -50,6 +50,7 @@ public class ExecutionContextTest {
 
   @Test
   public void testExecutionContext() throws InterruptedException, ExecutionException, TimeoutException {
+    ExecutionContext orig = ExecutionContexts.current();
     try (ExecutionContext ec = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
       long unitsToDeadline = ExecutionContexts.current().getTimeToDeadline(TimeUnit.SECONDS);
       Assert.assertThat(unitsToDeadline, Matchers.lessThanOrEqualTo(10L));
@@ -65,7 +66,7 @@ public class ExecutionContextTest {
       });
       submit.get();
     }
-    Assert.assertNull(ExecutionContexts.current());
+    Assert.assertSame(orig, ExecutionContexts.current());
   }
 
   @Test
