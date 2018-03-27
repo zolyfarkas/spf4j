@@ -15,13 +15,19 @@
  */
 package org.spf4j.test.log;
 
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
 
 /**
  *
  * @author Zoltan Farkas
  */
-@CleanupObligation
-public interface LogAssert extends ObservationAssert, AsyncObservationAssert, HandlerRegistration {
+public interface ObservationAssert {
+
+  /**
+   * Assert that a sequence of messages has not been seen.
+   * also unregisters this assertion handler.
+   */
+  @DischargesObligation
+  void assertObservation();
 
 }

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @author Zoltan Farkas
  */
 @Beta
-public interface AsyncObservationAssert {
+public interface AsyncObservationAssert extends HandlerRegistration {
 
   /**
    * Assert the something happens. (messages get logged or not)

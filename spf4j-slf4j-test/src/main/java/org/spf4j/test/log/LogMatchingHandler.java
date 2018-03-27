@@ -17,9 +17,11 @@ package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
+import org.spf4j.base.TimeSource;
 
 /**
  *
@@ -37,6 +39,8 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final boolean assertSeen;
 
+  private final Object sync;
+
   LogMatchingHandler(final boolean assertSeen, final String category,
           final Level minLevel, final Matcher<LogRecord>... matchers) {
     if (matchers.length < 1) {
@@ -47,6 +51,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     this.minLevel = minLevel;
     this.assertSeen = assertSeen;
     this.category = category;
+    this.sync = new Object();
   }
 
   public abstract void close();
@@ -60,8 +65,11 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   @Override
   @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
   public LogRecord handle(final LogRecord record) {
-    if (at < matchers.length && matchers[at].matches(record)) {
-      at++;
+    synchronized (sync) {
+      if (at < matchers.length && matchers[at].matches(record)) {
+        at++;
+        sync.notifyAll();
+      }
     }
     record.attach(DefaultAsserter.ASSERTED);
     return record;
@@ -76,6 +84,23 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     }
   }
 
+  @Override
+  public void assertObservation(final long timeout, final TimeUnit unit) throws InterruptedException {
+    long deadline = TimeSource.nanoTime() + unit.toNanos(timeout);
+    synchronized (sync) {
+      while (assertSeen ? at < matchers.length :  at >= matchers.length) {
+        long nanosToDeadline = deadline - TimeSource.nanoTime();
+        if (nanosToDeadline <= 0) {
+          if (assertSeen) {
+            throw new AssertionError(seenDescription().toString());
+          } else {
+            throw new AssertionError(notSeenDescription().toString());
+          }
+        }
+        TimeUnit.NANOSECONDS.timedWait(sync, nanosToDeadline);
+      }
+    }
+  }
 
   /**
    * Assert that a sequence of leg messages has been seen.
@@ -83,17 +108,23 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   private void assertSeen() {
     close();
-    if (at < matchers.length) {
-      Description description = new StringDescription();
-      description.appendText("Expected in category:").appendText(category)
-              .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
-      matchers[0].describeTo(description);
-      for (int i = 1; i < matchers.length; i++) {
-        description.appendText("\n");
-        matchers[i].describeTo(description);
+    synchronized (sync) {
+      if (at < matchers.length) {
+        throw new AssertionError(seenDescription().toString());
       }
-      throw new AssertionError(description.toString());
     }
+  }
+
+  private Description seenDescription() {
+    Description description = new StringDescription();
+    description.appendText("Expected in category:").appendText(category)
+            .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
+    matchers[0].describeTo(description);
+    for (int i = 1; i < matchers.length; i++) {
+      description.appendText("\n");
+      matchers[i].describeTo(description);
+    }
+    return description;
   }
 
   /**
@@ -102,17 +133,23 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   private void assertNotSeen() {
     close();
-    if (at >= matchers.length) {
-      Description description = new StringDescription();
-      description.appendText("Not expected in category:").appendText(category)
-              .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
-      matchers[0].describeTo(description);
-      for (int i = 1; i < matchers.length; i++) {
-        description.appendText("\n");
-        matchers[i].describeTo(description);
+    synchronized (sync) {
+      if (at >= matchers.length) {
+        throw new AssertionError(notSeenDescription().toString());
       }
-      throw new AssertionError(description.toString());
     }
+  }
+
+  private Description notSeenDescription() {
+    Description description = new StringDescription();
+    description.appendText("Not expected in category:").appendText(category)
+            .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
+    matchers[0].describeTo(description);
+    for (int i = 1; i < matchers.length; i++) {
+      description.appendText("\n");
+      matchers[i].describeTo(description);
+    }
+    return description;
   }
 
   @Override

@@ -282,5 +282,23 @@ public class TestLoggerFactoryTest {
   }
 
 
+  @Test
+  public void testAsyncLogging() throws InterruptedException {
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.INFO, LogMatchers.hasFormat("async"));
+    new Thread(() -> {
+      LOG.info("async");
+    }).start();
+    expect.assertObservation(5, TimeUnit.SECONDS);
+  }
+
+  @Test(expected = AssertionError.class)
+  public void testAsyncLogging2() throws InterruptedException {
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.INFO, LogMatchers.hasFormat("async"));
+    new Thread(() -> {
+      LOG.info("coco");
+    }).start();
+    expect.assertObservation(5, TimeUnit.SECONDS);
+  }
+
 
 }

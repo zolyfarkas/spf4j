@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.TimeSource;
 
 /**
  * @author Zoltan Farkas
@@ -52,7 +53,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
     this.finished = false;
     receiveQueue = new SynchronousQueue<>();
     replyQueue = new SynchronousQueue<>();
-    deadlineNanos = System.nanoTime() + TimeUnit.HOURS.toNanos(1);
+    deadlineNanos = TimeSource.nanoTime() + TimeUnit.HOURS.toNanos(1);
     this.isReading = new CountDownLatch(1);
     thread = new Thread(this);
     thread.start();
@@ -69,11 +70,9 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
     LOG.debug("{} is ready", this);
   }
 
-  abstract void unregister();
-
   @Override
   public void assertObservation(final long timeout, final TimeUnit unit) throws InterruptedException {
-    setDeadlineNanos(System.nanoTime() + unit.toNanos(timeout));
+    setDeadlineNanos(TimeSource.nanoTime() + unit.toNanos(timeout));
     thread.join(unit.toMillis(timeout * 2));
     if (!finished) {
       throw new AssertionError("Assertion thread still running, this = " + this);
@@ -93,7 +92,7 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
     } catch (Throwable error) {
       exception = error;
     } finally {
-      unregister();
+      close();
     }
     finished = true;
   }
@@ -111,34 +110,6 @@ abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, Unca
     thread.interrupt();
   }
 
-
-//  private void assertNotSeen() throws InterruptedException {
-//    long timeout;
-//    isReading.countDown();
-//    while ((timeout = getDeadlineNanos() - System.nanoTime()) > 0) {
-//      UncaughtExceptionDetail ucx;
-//      try {
-//        ucx = receiveQueue.poll(timeout, TimeUnit.NANOSECONDS);
-//      } catch (InterruptedException ex) {
-//        ucx = null;
-//      }
-//      if (ucx != null) {
-//        LOG.debug("{} received {}", this, ucx);
-//        if (matcher.matches(ucx)) {
-//          if (!replyQueue.offer(Boolean.TRUE, SETUP_SECONDS, TimeUnit.SECONDS)) {
-//            throw new IllegalStateException("Other side dissapeared for " + this);
-//          }
-//          AssertionError assertionError = new AssertionError("Encountered " + ucx);
-//          assertionError.addSuppressed(ucx.getThrowable());
-//          throw assertionError;
-//        } else {
-//          if (!replyQueue.offer(Boolean.FALSE, SETUP_SECONDS, TimeUnit.SECONDS)) {
-//            throw new IllegalStateException("Other side dissapeared for " + this);
-//          }
-//        }
-//      }
-//    }
-//  }
 
   private void assertSeen() throws InterruptedException {
     isReading.countDown();
