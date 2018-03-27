@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Strings;
+import org.spf4j.base.AppendableUtils;
 
 /**
  * Unique ID Generator Based on the assumptions: 1. host MAC address is used. (each network interface has a Unique ID)
@@ -129,9 +129,9 @@ public final class UIDGenerator implements Supplier<CharSequence> {
     }
     sb.append(baseEncoding.encode(intfMac)).append(separator);
 
-    Strings.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
+    AppendableUtils.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
     sb.append(separator);
-    Strings.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
+    AppendableUtils.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
     sb.append(separator);
     return sb;
   }
@@ -143,7 +143,7 @@ public final class UIDGenerator implements Supplier<CharSequence> {
   public CharSequence next() {
     StringBuilder result = new StringBuilder(maxSize);
     result.append(base);
-    Strings.appendUnsignedString(result, sequence.next(), 5);
+    AppendableUtils.appendUnsignedString(result, sequence.next(), 5);
     return result;
   }
 
