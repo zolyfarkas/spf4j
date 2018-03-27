@@ -325,7 +325,6 @@ public final class TestLoggers implements ILoggerFactory {
       }
     };
     reg.add(asserter);
-    asserter.waitUntilReading();
     return asserter;
   }
 

@@ -46,13 +46,16 @@ import org.spf4j.ssdump2.Converter;
 
 public final class SsdumpTest {
 
+  static {
+    System.setProperty("spf4j.execContentFactoryWrapperClass",
+            "org.spf4j.stackmonitor.ProfiledExecutionContextFactory");
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
 
 
   @Test
   public void testDumpExecContexts() throws InterruptedException, IOException {
-    System.setProperty("spf4j.execContentFactoryWrapperClass",
-            "org.spf4j.stackmonitor.ProfiledExecutionContextFactory");
     ProfiledExecutionContextFactory contextFactory =
             (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
 

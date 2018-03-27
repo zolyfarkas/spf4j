@@ -259,7 +259,7 @@ public class TestLoggerFactoryTest {
             .expectUncaughtException(
                     UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(new IllegalStateException())));
     try {
-      obs.assertObservation(5, TimeUnit.SECONDS);
+      obs.assertObservation(3, TimeUnit.SECONDS);
       Assert.fail();
     } catch (AssertionError ex) {
       // expected
