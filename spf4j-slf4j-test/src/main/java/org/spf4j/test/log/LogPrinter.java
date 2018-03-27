@@ -50,7 +50,7 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 @ParametersAreNonnullByDefault
 public final class LogPrinter implements LogHandler {
 
-  static final String PRINTED = "PRINTED";
+  public static final String PRINTED = "PRINTED";
 
   private static final DateTimeFormatter FMT =
           TestUtils.isExecutedFromIDE() ? new DateTimeFormatterBuilder()

@@ -21,13 +21,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.WillNotClose;
+import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Closeables;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.test.log.CollectTrobleshootingLogs;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.test.log.Level;
@@ -54,6 +59,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final Map<Description, LogCollection<ArrayDeque<LogRecord>>> collections;
 
+  private final Map<Description, ExecutionContext> ctxts;
+
   private final boolean collectPrinted;
 
   private final ExceptionAsserterUncaughtExceptionHandler uncaughtExceptionHandler;
@@ -63,6 +70,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     maxDebugLogsCollected = Integer.getInteger("spf4j.test.log.collectmaxLogs", 100);
     collectPrinted = Boolean.getBoolean("spf4j.test.log.collectPrintedLogs");
     collections = new ConcurrentHashMap<>();
+    ctxts = new ConcurrentHashMap<>();
     synchronized (Thread.class) {
       final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
       uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);
@@ -107,7 +115,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       if (!logs.isEmpty()) {
         for (LogRecord record : logs) {
           if (first) {
-            LOG.info("Dumping last {} unprinted logs for {}", maxDebugLogsCollected, description);
+            LOG.info("Dumping last {} logs clooected for debug for {}", maxDebugLogsCollected, description);
             first = false;
           }
           LogPrinter.printTo(System.out, record, "");
@@ -123,6 +131,21 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
     try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
       handleUncaughtExceptions(description, h.get());
+    }
+    ExecutionContext ctx = ctxts.remove(description);
+    ExecutionContext currentThreadContext = ExecutionContexts.current();
+    if (ctx == currentThreadContext) {
+      ctx.close();
+      List<AutoCloseable> closeables = (List<AutoCloseable>) ctx.get(AutoCloseable.class);
+      if (closeables != null) {
+        Exception ex = Closeables.closeAll(closeables);
+        if (ex != null) {
+          throw new IllegalStateException("cannot close " + closeables, ex);
+        }
+      }
+    } else {
+      throw new IllegalStateException("JUnit Threading model not as expected " + ctx + " != "
+              + currentThreadContext);
     }
   }
 
@@ -143,10 +166,18 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public void testStarted(final Description description) throws Exception {
-    CollectTrobleshootingLogs annotation = description.getAnnotation(CollectTrobleshootingLogs.class);
-    Level mll = annotation == null ? minLogLevel : annotation.minLevel();
-    boolean clp = annotation == null ? collectPrinted : annotation.collectPrinted();
+    Test ta = description.getAnnotation(Test.class);
+    ExecutionContext ctx;
+    if (ta != null && ta.timeout() > 0) {
+      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);
+    } else {
+      ctx = ExecutionContexts.start(description.getDisplayName());
+    }
+    CollectTrobleshootingLogs ca = description.getAnnotation(CollectTrobleshootingLogs.class);
+    Level mll = ca == null ? minLogLevel : ca.minLevel();
+    boolean clp = ca == null ? collectPrinted : ca.collectPrinted();
     collections.put(description, TestLoggers.sys().collect(mll, maxDebugLogsCollected, clp));
+    ctxts.put(description, ctx);
     super.testStarted(description);
   }
 

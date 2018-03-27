@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.io.MimeTypes;
 
 /**
@@ -37,6 +38,13 @@ import org.spf4j.io.MimeTypes;
 public class TestLoggerFactoryTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest.class);
+
+  @Test
+  public void testSomeHandler() {
+    HandlerRegistration reg = TestLoggers.sys().print("org.spf4j.test", Level.TRACE);
+    Assert.assertNotNull(reg);
+  }
+
 
   @Test
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT"})
@@ -267,5 +275,12 @@ public class TestLoggerFactoryTest {
     LOG.debug("log {} {} {}", 1, 2, 3, 4);
     Assert.assertEquals(4, collect.get().size());
   }
+
+  @Test
+  public void testExecutionContext() {
+     Assert.assertNotNull(ExecutionContexts.current());
+  }
+
+
 
 }

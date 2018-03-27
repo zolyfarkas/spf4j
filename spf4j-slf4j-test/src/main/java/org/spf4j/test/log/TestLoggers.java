@@ -19,6 +19,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -33,6 +34,8 @@ import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.XCollectors;
 import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
 //CHECKSTYLE:OFF
@@ -129,16 +132,14 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public HandlerRegistration intercept(final String category, final LogHandler handler) {
-    synchronized (sync) {
-      config = config.add(category, handler);
-      resetJulConfig();
-    }
-    return () -> {
+    HandlerRegistration reg = () -> {
       synchronized (sync) {
         config = config.remove(category, handler);
         resetJulConfig();
       }
     };
+    addConfig(category, handler, reg);
+    return reg;
   }
 
   /**
@@ -186,11 +187,28 @@ public final class TestLoggers implements ILoggerFactory {
         }
       }
     };
+    addConfig(category, handler, handler);
+    return handler;
+  }
+
+  private  void addConfig(final String category, final LogHandler handler, final HandlerRegistration reg) {
     synchronized (sync) {
       config = config.add(category, handler);
       resetJulConfig();
+      ExecutionContext ctx = ExecutionContexts.current();
+      if (ctx != null) {
+        ctx.compute(AutoCloseable.class, (Class<AutoCloseable> k, ArrayList<AutoCloseable> v) -> {
+          if  (v == null) {
+            ArrayList<AutoCloseable> res = new ArrayList();
+            res.add(reg);
+            return res;
+          } else {
+            v.add(reg);
+            return v;
+          }
+        });
+      }
     }
-    return handler;
   }
 
   /**
@@ -267,10 +285,7 @@ public final class TestLoggers implements ILoggerFactory {
       }
 
     };
-    synchronized (sync) {
-      config = config.add(category, handler);
-      resetJulConfig();
-    }
+    addConfig(category, handler, handler);
     return handler;
   }
 

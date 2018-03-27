@@ -100,7 +100,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Beta
   @Override
   public final synchronized <T> T put(@Nonnull final Object key, @Nonnull final T data) {
-    if (baggage.isEmpty()) {
+    if (baggage == Collections.EMPTY_MAP) {
       baggage = new THashMap<>(2);
     }
     return (T) baggage.put(key, data);
@@ -125,6 +125,9 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   @Nullable
   public final synchronized <K, V> V compute(@Nonnull final K key, final BiFunction<K, V, V> compute) {
+    if (baggage == Collections.EMPTY_MAP) {
+      baggage = new THashMap(2);
+    }
     return (V) baggage.compute(key, (BiFunction) compute);
   }
 
