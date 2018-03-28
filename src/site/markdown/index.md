@@ -514,7 +514,7 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
 
  Here is example:
 
-  '''
+ ```
          RetryPolicy.<Response, ServerCall>newBuilder()
             .withDeadlineSupplier((c) -> c.getDeadlineNanos())
             .withDefaultThrowableRetryPredicate() // use known transient exceptions.
@@ -544,7 +544,7 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
             : RetryDecision.abort(), 3)
             .withExecutorService(es)
             .build().call(serverCall, IOException.class);
-  '''
+  ```
 
 ## 9. Other utilities
 
