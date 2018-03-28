@@ -512,7 +512,40 @@ createScalableMinMaxAvgRecorderSource and createScalableCountingRecorderSource
 <li>6) ability to propagate checked exceptions.</li>
 </ul>
 <p>Here is example:</p>
-<p>''' RetryPolicy.&lt;Response, ServerCall&gt;newBuilder() .withDeadlineSupplier((c) -&gt; c.getDeadlineNanos()) .withDefaultThrowableRetryPredicate() // use known transient exceptions. .withResultPartialPredicate((resp, sc) -&gt; { switch (resp.getType()) { case CLIENT_ERROR: return RetryDecision.abort(); case REDIRECT: return RetryDecision.retry(0, new ServerCall(sc.getServer(), new Request((String) resp.getPayload(), sc.getRequest().getDeadlineMSEpoch()))); case RETRY_LATER: return RetryDecision.retry( TimeUnit.NANOSECONDS.convert((Long) resp.getPayload() - System.currentTimeMillis(), TimeUnit.MILLISECONDS), sc); case TRANSIENT_ERROR: return RetryDecision.retryDefault(sc); case ERROR: return null; case OK: return RetryDecision.abort(); default: throw new IllegalStateException(&quot;Unsupported &quot; + resp.getType()); } }).withResultPartialPredicate((resp, sc) -&gt; (resp.getType() == Response.Type.ERROR) ? RetryDecision.retryDefault(sc) : RetryDecision.abort(), 3) .withExecutorService(es) .build().call(serverCall, IOException.class); '''</p></div>
+
+<div>
+<div>
+<pre class="source">        RetryPolicy.&lt;Response, ServerCall&gt;newBuilder()
+           .withDeadlineSupplier((c) -&gt; c.getDeadlineNanos())
+           .withDefaultThrowableRetryPredicate() // use known transient exceptions.
+           .withResultPartialPredicate((resp, sc) -&gt; {
+             switch (resp.getType()) {
+               case CLIENT_ERROR:
+                 return RetryDecision.abort();
+               case REDIRECT:
+                 return RetryDecision.retry(0, new ServerCall(sc.getServer(),
+                         new Request((String) resp.getPayload(), sc.getRequest().getDeadlineMSEpoch())));
+               case RETRY_LATER:
+                 return RetryDecision.retry(
+                         TimeUnit.NANOSECONDS.convert((Long) resp.getPayload() - System.currentTimeMillis(),
+                                 TimeUnit.MILLISECONDS), sc);
+               case TRANSIENT_ERROR:
+                 return RetryDecision.retryDefault(sc);
+               case ERROR:
+                 return null;
+               case OK:
+                 return RetryDecision.abort();
+               default:
+                 throw new IllegalStateException(&quot;Unsupported &quot; + resp.getType());
+             }
+           }).withResultPartialPredicate((resp, sc)
+           -&gt; (resp.getType() == Response.Type.ERROR)
+           ? RetryDecision.retryDefault(sc)
+           : RetryDecision.abort(), 3)
+           .withExecutorService(es)
+           .build().call(serverCall, IOException.class);
+</pre></div></div>
+</div>
 <div class="section">
 <h2><a name="a9._Other_utilities"></a>9. Other utilities</h2>
 <p>Lifo Threadpool: org.spf4j.concurrent.LifoThreadPoolBuilder</p>
