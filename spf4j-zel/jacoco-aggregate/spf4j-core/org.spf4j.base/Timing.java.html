@@ -62,7 +62,7 @@ public final class Timing {
   private final long currentTimeMillisRef;
 
 <span class="fc" id="L64">  private Timing() {</span>
-<span class="fc" id="L65">    nanoTimeRef = System.nanoTime();</span>
+<span class="fc" id="L65">    nanoTimeRef = TimeSource.nanoTime();</span>
 <span class="fc" id="L66">    currentTimeMillisRef = System.currentTimeMillis();</span>
 <span class="fc" id="L67">  }</span>
 
@@ -71,13 +71,13 @@ public final class Timing {
   }
 
   public Instant fromNanoTimeToInstant(final long nanoTime) {
-<span class="nc" id="L74">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
+<span class="fc" id="L74">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
   }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
 <span class="fc" id="L78">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
 <span class="fc bfc" id="L79" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
-<span class="fc" id="L80">      return System.nanoTime() + Long.MAX_VALUE;</span>
+<span class="fc" id="L80">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
 //      throw new IllegalArgumentException(&quot;Epoch time millis cannot be converted to nanotime &quot; + epochTimeMillis);
     }
 <span class="fc" id="L83">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>

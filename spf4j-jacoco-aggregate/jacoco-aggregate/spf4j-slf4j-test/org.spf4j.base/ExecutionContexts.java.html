@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExecutionContexts.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">ExecutionContexts.java</span></div><h1>ExecutionContexts.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Signed;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ThreadSafe
+@ParametersAreNonnullByDefault
+public final class ExecutionContexts {
+
+<span class="fc" id="L54">  public static final long DEFAULT_TIMEOUT_NANOS</span>
+<span class="fc" id="L55">          = Long.getLong(&quot;spf4j.execContext.defaultTimeoutNanos&quot;, TimeUnit.HOURS.toNanos(8));</span>
+
+  private ExecutionContexts() {
+  }
+
+<span class="fc" id="L60">  private static final ThreadLocal&lt;ExecutionContext&gt; EXEC_CTX = new ThreadLocal&lt;ExecutionContext&gt;();</span>
+
+<span class="fc" id="L62">  private static final ExecutionContextFactory&lt;ExecutionContext&gt; CTX_FACTORY = initFactory();</span>
+
+  private static ExecutionContextFactory&lt;ExecutionContext&gt; initFactory() {
+<span class="fc" id="L65">    String factoryClass = System.getProperty(&quot;spf4j.execContentFactoryClass&quot;);</span>
+    ExecutionContextFactory&lt;ExecutionContext&gt; factory;
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (factoryClass == null) {</span>
+<span class="fc" id="L68">      factory = new BasicExecutionContextFactory();</span>
+    } else {
+      try {
+<span class="nc" id="L71">        factory = ((Class&lt;ExecutionContextFactory&lt;ExecutionContext&gt;&gt;) Class.forName(factoryClass)).newInstance();</span>
+<span class="nc" id="L72">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L73">        throw new ExceptionInInitializerError(ex);</span>
+<span class="nc" id="L74">      }</span>
+    }
+<span class="fc" id="L76">    String factoryWrapperClass = System.getProperty(&quot;spf4j.execContentFactoryWrapperClass&quot;);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">    if (factoryWrapperClass != null) {</span>
+      try {
+<span class="fc" id="L79">        factory = (ExecutionContextFactory&lt;ExecutionContext&gt;) Class.forName(factoryWrapperClass)</span>
+<span class="fc" id="L80">                .getConstructor(ExecutionContextFactory.class).newInstance(factory);</span>
+<span class="nc" id="L81">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException</span>
+              | NoSuchMethodException | InvocationTargetException ex) {
+<span class="nc" id="L83">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L84">      }</span>
+    }
+<span class="fc" id="L86">    return factory;</span>
+  }
+
+  public static ExecutionContextFactory&lt;ExecutionContext&gt; getContextFactory() {
+<span class="fc" id="L90">    return CTX_FACTORY;</span>
+  }
+
+  @Nullable
+  public static ExecutionContext current() {
+<span class="fc" id="L95">    return EXEC_CTX.get();</span>
+  }
+
+  private static void setCurrent(@Nullable final ExecutionContext current) {
+<span class="fc" id="L99">    EXEC_CTX.set(current);</span>
+<span class="fc" id="L100">  }</span>
+
+  /**
+   * start a execution context.
+   *
+   * @param deadlineNanos the deadline for this context. (System.nanotime)
+   * @return the execution context.
+   */
+  public static ExecutionContext start(final long startTimeNanos, final long deadlineNanos) {
+<span class="nc" id="L109">    return start(&quot;anon&quot;, null, startTimeNanos, deadlineNanos);</span>
+  }
+
+  /**
+   * start a execution context.
+   *
+   * @param timeout
+   * @param tu
+   * @return
+   */
+  public static ExecutionContext start(final long timeout, final TimeUnit tu) {
+<span class="fc" id="L120">    return start(&quot;anon&quot;, null, timeout, tu);</span>
+  }
+
+  public static ExecutionContext start(final String opname) {
+<span class="fc" id="L124">    return start(opname, null, DEFAULT_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);</span>
+  }
+
+  public static ExecutionContext start(final String opname, final long timeout, final TimeUnit tu) {
+<span class="fc" id="L128">    return start(opname, null, timeout, tu);</span>
+  }
+
+  public static ExecutionContext start(@Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+<span class="nc" id="L132">    return start(&quot;anon&quot;, parent, timeout, tu);</span>
+  }
+
+  public static ExecutionContext start(@Nullable final ExecutionContext parent) {
+<span class="fc" id="L136">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">    return start(parent, nanoTime, parent != null ? parent.getDeadlineNanos() : nanoTime + DEFAULT_TIMEOUT_NANOS);</span>
+  }
+
+  public static ExecutionContext start(@Nullable final ExecutionContext parent,
+          final long startTimeNanos, final long deadlineNanos) {
+<span class="fc" id="L142">    return start(&quot;anon&quot;, parent, startTimeNanos, deadlineNanos);</span>
+  }
+
+  public static ExecutionContext start(final String name, final long startTimeNanos, final long deadlineNanos) {
+<span class="nc" id="L146">    return start(name, null, startTimeNanos, deadlineNanos);</span>
+  }
+
+  public static ExecutionContext start(final String name, final long deadlineNanos) {
+<span class="nc" id="L150">    return start(name, null, TimeSource.nanoTime(), deadlineNanos);</span>
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent) {
+<span class="fc" id="L155">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">    return start(name, parent, nanoTime, parent != null ? parent.getDeadlineNanos()</span>
+            : nanoTime + DEFAULT_TIMEOUT_NANOS);
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+<span class="fc" id="L162">    ExecutionContext localCtx = EXEC_CTX.get();</span>
+<span class="fc" id="L163">    long nanoTime = TimeSource.nanoTime();</span>
+    ExecutionContext nCtx;
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    if (localCtx == null) {</span>
+<span class="fc" id="L166">      nCtx = CTX_FACTORY.startThreadRoot(name, parent,</span>
+<span class="fc" id="L167">              nanoTime, computeDeadline(nanoTime, parent, tu, timeout), () -&gt; ExecutionContexts.setCurrent(null));</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">    } else if (parent == null) {</span>
+<span class="fc" id="L169">      nCtx = CTX_FACTORY.start(name, localCtx, nanoTime, computeDeadline(nanoTime, localCtx, tu, timeout),</span>
+<span class="fc" id="L170">              () -&gt; ExecutionContexts.setCurrent(localCtx));</span>
+    } else {
+<span class="nc" id="L172">      nCtx = CTX_FACTORY.start(name, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),</span>
+<span class="nc" id="L173">              () -&gt; ExecutionContexts.setCurrent(localCtx));</span>
+    }
+<span class="fc" id="L175">    EXEC_CTX.set(nCtx);</span>
+<span class="fc" id="L176">    return nCtx;</span>
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent, final long deadlineNanos) {
+<span class="nc" id="L181">    return start(name, parent, TimeSource.nanoTime(), deadlineNanos);</span>
+  }
+
+  public static ExecutionContext start(final String name,
+          @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
+<span class="fc" id="L186">    ExecutionContext localCtx = EXEC_CTX.get();</span>
+    ExecutionContext nCtx;
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">    if (localCtx == null) {</span>
+<span class="fc" id="L189">      nCtx = CTX_FACTORY.startThreadRoot(name, parent,</span>
+<span class="fc" id="L190">              startTimeNanos, deadlineNanos, () -&gt; ExecutionContexts.setCurrent(null));</span>
+    } else {
+<span class="nc bnc" id="L192" title="All 2 branches missed.">      nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent,</span>
+<span class="nc" id="L193">              startTimeNanos, deadlineNanos, () -&gt; ExecutionContexts.setCurrent(localCtx));</span>
+    }
+<span class="fc" id="L195">    EXEC_CTX.set(nCtx);</span>
+<span class="fc" id="L196">    return nCtx;</span>
+  }
+
+  public static long getContextDeadlineNanos() {
+<span class="fc" id="L200">    ExecutionContext ec = ExecutionContexts.current();</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">    if (ec == null) {</span>
+<span class="fc" id="L202">      return TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS;</span>
+    } else {
+<span class="fc" id="L204">      return ec.getDeadlineNanos();</span>
+    }
+  }
+
+  public static long getContextDeadlineNanos(final long currentTime) {
+<span class="fc" id="L209">    ExecutionContext ec = ExecutionContexts.current();</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">    if (ec == null) {</span>
+<span class="fc" id="L211">      return currentTime + DEFAULT_TIMEOUT_NANOS;</span>
+    } else {
+<span class="fc" id="L213">      return ec.getDeadlineNanos();</span>
+    }
+  }
+
+  @Signed
+  public static long getTimeRelativeToDeadline(final TimeUnit unit) {
+<span class="fc" id="L219">    return unit.convert(getContextDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+  }
+
+  @Nonnegative
+  public static long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
+<span class="fc" id="L224">    long timeRelativeToDeadline = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">    if (timeRelativeToDeadline &lt;= 0) {</span>
+<span class="nc" id="L226">      throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-timeRelativeToDeadline) + ' ' + unit);</span>
+    }
+<span class="fc" id="L228">    return timeRelativeToDeadline;</span>
+  }
+
+  @Nonnegative
+  public static long getMillisToDeadline() throws TimeoutException {
+<span class="fc" id="L233">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+  }
+
+  @Nonnegative
+  public static int getSecondsToDeadline() throws TimeoutException {
+<span class="nc" id="L238">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L240">      return Integer.MAX_VALUE;</span>
+    } else {
+<span class="nc" id="L242">      return (int) secondsToDeadline;</span>
+    }
+  }
+
+  public static long computeDeadline(@Nullable final ExecutionContext current,
+          final TimeUnit unit, final long timeout) {
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L249">      return TimeSource.getDeadlineNanos(timeout, unit);</span>
+    }
+<span class="fc" id="L251">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L252">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
+<span class="fc" id="L253">    long timeoutNanos = unit.toNanos(timeout);</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">    return (ctxDeadlinenanos - nanoTime &lt; timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;</span>
+  }
+
+  public static long computeDeadline(final long startTimeNanos, @Nullable final ExecutionContext current,
+          final TimeUnit unit, final long timeout) {
+<span class="fc bfc" id="L259" title="All 2 branches covered.">    if (current == null) {</span>
+<span class="fc" id="L260">      return TimeSource.getDeadlineNanos(startTimeNanos, timeout, unit);</span>
+    }
+<span class="fc" id="L262">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
+<span class="fc" id="L263">    long timeoutNanos = unit.toNanos(timeout);</span>
+<span class="fc bfc" id="L264" title="All 2 branches covered.">    return (ctxDeadlinenanos - startTimeNanos &lt; timeoutNanos) ? ctxDeadlinenanos : startTimeNanos + timeoutNanos;</span>
+  }
+
+  public static TimeoutDeadline computeTimeoutDeadline(@Nullable final ExecutionContext current,
+          final TimeUnit unit, final long timeout) throws TimeoutException {
+<span class="nc bnc" id="L269" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L270">      return TimeoutDeadline.of(unit.toNanos(timeout), TimeSource.getDeadlineNanos(timeout, unit));</span>
+    }
+<span class="nc" id="L272">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="nc" id="L273">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
+<span class="nc" id="L274">    long timeoutNanos = unit.toNanos(timeout);</span>
+<span class="nc" id="L275">    long contextTimeoutNanos = ctxDeadlinenanos - nanoTime;</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">    return (contextTimeoutNanos &lt; timeoutNanos)</span>
+<span class="nc" id="L277">            ? TimeoutDeadline.of(contextTimeoutNanos, ctxDeadlinenanos)</span>
+<span class="nc" id="L278">            : TimeoutDeadline.of(timeoutNanos, nanoTime + timeoutNanos);</span>
+  }
+
+  private static class BasicExecutionContextFactory implements ExecutionContextFactory&lt;ExecutionContext&gt; {
+
+    @Override
+    public ExecutionContext start(final String name, final ExecutionContext parent,
+            final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
+<span class="fc" id="L286">      return new BasicExecutionContext(name, parent, startTimeNanos, deadlineNanos, onClose);</span>
+    }
+
+  }
+
+  public static &lt;T&gt; Callable&lt;T&gt; propagatingCallable(final Callable&lt;T&gt; callable) {
+<span class="nc" id="L292">    ExecutionContext current = current();</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">    return current == null ? callable : propagatingCallable(callable, current);</span>
+  }
+
+  public static &lt;T&gt; Callable&lt;T&gt; propagatingCallable(final Callable&lt;T&gt; callable, final ExecutionContext ctx) {
+<span class="nc" id="L297">    return new PropagatingCallable&lt;T&gt;(callable, ctx);</span>
+  }
+
+  public static &lt;T&gt; Collection&lt;? extends Callable&lt;T&gt;&gt; propagatingCallables(
+          final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks) {
+<span class="nc" id="L302">    ExecutionContext current = current();</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">    return current == null ? tasks : propagatingCallables(tasks, current);</span>
+  }
+
+  public static &lt;T&gt; Collection&lt;? extends Callable&lt;T&gt;&gt; propagatingCallables(
+          final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
+          final ExecutionContext ctx) {
+<span class="nc" id="L309">    return tasks.stream().map(</span>
+<span class="nc" id="L310">            (c) -&gt; new PropagatingCallable&lt;&gt;(c, ctx))</span>
+<span class="nc" id="L311">            .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(tasks.size())));</span>
+  }
+
+  public static &lt;T&gt; Collection&lt;? extends Callable&lt;T&gt;&gt; deadlinedPropagatingCallables(
+          final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
+          final ExecutionContext ctx, final long deadlineNanos) {
+<span class="nc" id="L317">    return tasks.stream().map(</span>
+<span class="nc" id="L318">            (c) -&gt; new DeadlinedPropagatingCallable&lt;&gt;(c, ctx, deadlineNanos))</span>
+<span class="nc" id="L319">            .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(tasks.size())));</span>
+  }
+
+  public static &lt;T&gt; Callable&lt;T&gt; deadlinedPropagatingCallable(final Callable&lt;T&gt; callable,
+          final ExecutionContext ctx, final long deadlineNanos) {
+<span class="nc" id="L324">    return new DeadlinedPropagatingCallable&lt;T&gt;(callable, ctx, deadlineNanos);</span>
+  }
+
+  public static Runnable propagatingRunnable(final Runnable runnable) {
+<span class="fc" id="L328">    ExecutionContext current = current();</span>
+<span class="fc bfc" id="L329" title="All 2 branches covered.">    return current == null ? runnable : propagatingRunnable(runnable, current);</span>
+  }
+
+  public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx) {
+<span class="fc" id="L333">    return new PropagatingRunnable(runnable, ctx);</span>
+  }
+
+  private static final class PropagatingCallable&lt;T&gt; implements Callable&lt;T&gt; {
+
+    private final Callable&lt;T&gt; task;
+    private final ExecutionContext current;
+
+<span class="nc" id="L341">    PropagatingCallable(final Callable&lt;T&gt; task, final ExecutionContext current) {</span>
+<span class="nc" id="L342">      this.task = task;</span>
+<span class="nc" id="L343">      this.current = current;</span>
+<span class="nc" id="L344">    }</span>
+
+    @Override
+    public T call() throws Exception {
+<span class="nc" id="L348">      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {</span>
+<span class="nc" id="L349">        return task.call();</span>
+      }
+    }
+  }
+
+  private static final class DeadlinedPropagatingCallable&lt;T&gt; implements Callable&lt;T&gt; {
+
+    private final Callable&lt;T&gt; task;
+    private final ExecutionContext current;
+    private final long deadlineNanos;
+
+    DeadlinedPropagatingCallable(final Callable&lt;T&gt; task, final ExecutionContext current,
+<span class="nc" id="L361">            final long deadlineNanos) {</span>
+<span class="nc" id="L362">      this.task = task;</span>
+<span class="nc" id="L363">      this.current = current;</span>
+<span class="nc" id="L364">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L365">    }</span>
+
+    @Override
+    public T call() throws Exception {
+<span class="nc" id="L369">      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current,</span>
+<span class="nc" id="L370">              TimeSource.nanoTime(), deadlineNanos)) {</span>
+<span class="nc" id="L371">        return task.call();</span>
+      }
+    }
+  }
+
+  private static final class PropagatingRunnable implements Runnable {
+
+    private final Runnable task;
+    private final ExecutionContext current;
+
+<span class="fc" id="L381">    PropagatingRunnable(final Runnable task, final ExecutionContext current) {</span>
+<span class="fc" id="L382">      this.task = task;</span>
+<span class="fc" id="L383">      this.current = current;</span>
+<span class="fc" id="L384">    }</span>
+
+    @Override
+    public void run() {
+<span class="fc" id="L388">      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {</span>
+<span class="fc" id="L389">        task.run();</span>
+      }
+<span class="fc" id="L391">    }</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

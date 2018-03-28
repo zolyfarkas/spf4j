@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ContextPropagatingExecutorService.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">ContextPropagatingExecutorService.java</span></div><h1>ContextPropagatingExecutorService.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.concurrent;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeoutDeadline;
+
+/**
+ * @author Zoltan Farkas
+ */
+public class ContextPropagatingExecutorService implements ExecutorService {
+
+  private final ExecutorService wrapped;
+
+<span class="fc" id="L53">  public ContextPropagatingExecutorService(final ExecutorService wrapped) {</span>
+<span class="fc" id="L54">    this.wrapped = wrapped;</span>
+<span class="fc" id="L55">  }</span>
+
+  @Override
+  public final void shutdown() {
+<span class="nc" id="L59">    wrapped.shutdown();</span>
+<span class="nc" id="L60">  }</span>
+
+  @Override
+  public final List&lt;Runnable&gt; shutdownNow() {
+<span class="nc" id="L64">    return wrapped.shutdownNow();</span>
+  }
+
+  @Override
+  public final boolean isShutdown() {
+<span class="nc" id="L69">    return wrapped.isShutdown();</span>
+  }
+
+  @Override
+  public final boolean isTerminated() {
+<span class="nc" id="L74">    return wrapped.isTerminated();</span>
+  }
+
+  @Override
+  public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
+<span class="nc" id="L79">    return wrapped.awaitTermination(timeout, unit);</span>
+  }
+
+  @Override
+  public final &lt;T&gt; Future&lt;T&gt; submit(final Callable&lt;T&gt; task) {
+<span class="nc" id="L84">    return wrapped.submit(ExecutionContexts.propagatingCallable(task));</span>
+  }
+
+  @Override
+  public final &lt;T&gt; Future&lt;T&gt; submit(final Runnable task, final T result) {
+<span class="nc" id="L89">    return wrapped.submit(ExecutionContexts.propagatingRunnable(task), result);</span>
+  }
+
+  @Override
+  public final Future&lt;?&gt; submit(final Runnable task) {
+<span class="nc" id="L94">    return wrapped.submit(ExecutionContexts.propagatingRunnable(task));</span>
+  }
+
+  @Override
+  public final &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)
+          throws InterruptedException {
+
+<span class="nc" id="L101">    return wrapped.invokeAll(ExecutionContexts.propagatingCallables(tasks));</span>
+  }
+
+  @Override
+  public final &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
+          final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+<span class="nc" id="L108">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L110">      return wrapped.invokeAll(tasks, timeout, unit);</span>
+    } else {
+      TimeoutDeadline td;
+      try {
+<span class="nc" id="L114">        td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);</span>
+<span class="nc" id="L115">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L116">        return Futures.timedOutFutures(tasks.size(), ex);</span>
+<span class="nc" id="L117">      }</span>
+<span class="nc" id="L118">      return wrapped.invokeAll(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),</span>
+<span class="nc" id="L119">              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
+    }
+  }
+
+  @Override
+  public final &lt;T&gt; T invokeAny(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)
+          throws InterruptedException, ExecutionException {
+<span class="nc" id="L126">    return wrapped.invokeAny(ExecutionContexts.propagatingCallables(tasks));</span>
+  }
+
+  @Override
+  public final &lt;T&gt; T invokeAny(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks, final long timeout, final TimeUnit unit)
+          throws InterruptedException, ExecutionException, TimeoutException {
+<span class="nc" id="L132">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L134">      return wrapped.invokeAny(tasks, timeout, unit);</span>
+    } else {
+<span class="nc" id="L136">      TimeoutDeadline td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);</span>
+<span class="nc" id="L137">      return wrapped.invokeAny(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),</span>
+<span class="nc" id="L138">              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
+    }
+  }
+
+  @Override
+  public final void execute(final Runnable command) {
+<span class="fc" id="L144">    wrapped.execute(ExecutionContexts.propagatingRunnable(command));</span>
+<span class="fc" id="L145">  }</span>
+
+  @Override
+  public final String toString() {
+<span class="nc" id="L149">    return &quot;ContextPropagatingExecutorService{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

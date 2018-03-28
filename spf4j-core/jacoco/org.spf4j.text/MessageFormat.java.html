@@ -1019,7 +1019,7 @@ public final class MessageFormat extends Format {
       // match up to format
 <span class="nc" id="L1020">      FormatInfo finfo = formats[i];</span>
 <span class="nc" id="L1021">      int len = finfo.getOffset() - patternOffset;</span>
-<span class="nc bnc" id="L1022" title="All 4 branches missed.">      if (len == 0 || Strings.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
+<span class="nc bnc" id="L1022" title="All 4 branches missed.">      if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
 <span class="nc" id="L1023">        sourceOffset += len;</span>
 <span class="nc" id="L1024">        patternOffset += len;</span>
       } else {
@@ -1063,7 +1063,7 @@ public final class MessageFormat extends Format {
       }
     }
 <span class="nc" id="L1065">    int len = pattern.length() - patternOffset;</span>
-<span class="nc bnc" id="L1066" title="All 4 branches missed.">    if (len == 0 || Strings.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
+<span class="nc bnc" id="L1066" title="All 4 branches missed.">    if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
 <span class="nc" id="L1067">      pos.setIndex(sourceOffset + len);</span>
     } else {
 <span class="nc" id="L1069">      pos.setErrorIndex(sourceOffset);</span>
@@ -1082,7 +1082,7 @@ public final class MessageFormat extends Format {
    * @return An &lt;code&gt;Object&lt;/code&gt; array parsed from the string.
    * @exception ParseException if the beginning of the specified string cannot be parsed.
    */
-  @Nonnull
+  @Nullable
   public Object[] parse(String source) throws ParseException {
 <span class="nc" id="L1087">    ParsePosition pos = new ParsePosition(0);</span>
 <span class="nc" id="L1088">    Object[] result = parse(source, pos);</span>
@@ -1111,7 +1111,7 @@ public final class MessageFormat extends Format {
    * @return An &lt;code&gt;Object&lt;/code&gt; array parsed from the string. In case of error, returns null.
    * @exception NullPointerException if &lt;code&gt;pos&lt;/code&gt; is null.
    */
-  @Nonnull
+  @Nullable
   public Object parseObject(String source, ParsePosition pos) {
 <span class="nc" id="L1116">    return parse(source, pos);</span>
   }

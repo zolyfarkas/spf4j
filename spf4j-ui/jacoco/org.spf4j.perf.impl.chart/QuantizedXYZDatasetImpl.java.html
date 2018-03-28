@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.jfree.chart.axis.TickUnits;
 import org.jfree.data.DomainOrder;
@@ -63,203 +64,204 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   private final long stepMillis;
 
   public QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
-<span class="nc" id="L66">          final long startTimeMillis, final long step) {</span>
-<span class="nc" id="L67">    this.data = pdata.clone();</span>
-<span class="nc" id="L68">    this.startTimeMillis = startTimeMillis;</span>
-<span class="nc" id="L69">    this.stepMillis = step;</span>
-<span class="nc" id="L70">    quantas = new ArrayList&lt;&gt;(dataSources.length);</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">    for (int i = 0; i &lt; dataSources.length; i++) {</span>
-<span class="nc" id="L72">      String ds = dataSources[i];</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">      if (ds.startsWith(&quot;Q&quot;)) {</span>
-<span class="nc" id="L74">        Quanta quanta = new Quanta(ds);</span>
-<span class="nc" id="L75">        quantas.add(ComparablePair.of(quanta, i));</span>
+<span class="nc" id="L67">          final long startTimeMillis, final long step) {</span>
+<span class="nc" id="L68">    this.data = pdata.clone();</span>
+<span class="nc" id="L69">    this.startTimeMillis = startTimeMillis;</span>
+<span class="nc" id="L70">    this.stepMillis = step;</span>
+<span class="nc" id="L71">    quantas = new ArrayList&lt;&gt;(dataSources.length);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    for (int i = 0; i &lt; dataSources.length; i++) {</span>
+<span class="nc" id="L73">      String ds = dataSources[i];</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">      if (ds.startsWith(&quot;Q&quot;)) {</span>
+<span class="nc" id="L75">        Quanta quanta = new Quanta(ds);</span>
+<span class="nc" id="L76">        quantas.add(ComparablePair.of(quanta, i));</span>
       }
     }
-<span class="nc" id="L78">    Collections.sort(quantas);</span>
-<span class="nc" id="L79">    final int nrQuantas = quantas.size();</span>
-<span class="nc" id="L80">    int seriesSize = nrQuantas * data.length;</span>
-<span class="nc" id="L81">    x = new double[seriesSize];</span>
-<span class="nc" id="L82">    y = new double[seriesSize];</span>
-<span class="nc" id="L83">    z = new double[seriesSize];</span>
-<span class="nc" id="L84">    double lMinValue = Double.POSITIVE_INFINITY;</span>
-<span class="nc" id="L85">    double lMaxValue = Double.NEGATIVE_INFINITY;</span>
+<span class="nc" id="L79">    Collections.sort(quantas);</span>
+<span class="nc" id="L80">    final int nrQuantas = quantas.size();</span>
+<span class="nc" id="L81">    int seriesSize = nrQuantas * data.length;</span>
+<span class="nc" id="L82">    x = new double[seriesSize];</span>
+<span class="nc" id="L83">    y = new double[seriesSize];</span>
+<span class="nc" id="L84">    z = new double[seriesSize];</span>
+<span class="nc" id="L85">    double lMinValue = Double.POSITIVE_INFINITY;</span>
+<span class="nc" id="L86">    double lMaxValue = Double.NEGATIVE_INFINITY;</span>
 
-<span class="nc" id="L87">    int k = 0;</span>
+<span class="nc" id="L88">    int k = 0;</span>
 
-<span class="nc bnc" id="L89" title="All 2 branches missed.">    for (int j = 0; j &lt; nrQuantas; j++) {</span>
-<span class="nc" id="L90">      ComparablePair&lt;Quanta, Integer&gt; pair = quantas.get(j);</span>
-<span class="nc" id="L91">      double[] values = Arrays.getColumn(data, pair.getSecond());</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">      for (int i = 0; i &lt; values.length; i++) {</span>
-<span class="nc" id="L93">        x[k] = i; //timestamps[i]*1000;</span>
-<span class="nc" id="L94">        y[k] = j; //(double) pair.getFirst().getClosestToZero();</span>
-<span class="nc" id="L95">        double zval = values[i];</span>
-<span class="nc" id="L96">        z[k] = zval;</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (zval &gt; lMaxValue) {</span>
-<span class="nc" id="L98">          lMaxValue = zval;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    for (int j = 0; j &lt; nrQuantas; j++) {</span>
+<span class="nc" id="L91">      ComparablePair&lt;Quanta, Integer&gt; pair = quantas.get(j);</span>
+<span class="nc" id="L92">      double[] values = Arrays.getColumn(data, pair.getSecond());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">      for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="nc" id="L94">        x[k] = i; //timestamps[i]*1000;</span>
+<span class="nc" id="L95">        y[k] = j; //(double) pair.getFirst().getClosestToZero();</span>
+<span class="nc" id="L96">        double zval = values[i];</span>
+<span class="nc" id="L97">        z[k] = zval;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (zval &gt; lMaxValue) {</span>
+<span class="nc" id="L99">          lMaxValue = zval;</span>
         }
-<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (zval &lt; lMinValue) {</span>
-<span class="nc" id="L101">          lMinValue = zval;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (zval &lt; lMinValue) {</span>
+<span class="nc" id="L102">          lMinValue = zval;</span>
         }
-<span class="nc" id="L103">        k++;</span>
+<span class="nc" id="L104">        k++;</span>
       }
     }
-<span class="nc" id="L106">    this.minValue = lMinValue;</span>
-<span class="nc" id="L107">    this.maxValue = lMaxValue;</span>
+<span class="nc" id="L107">    this.minValue = lMinValue;</span>
+<span class="nc" id="L108">    this.maxValue = lMaxValue;</span>
 
-<span class="nc" id="L109">  }</span>
+<span class="nc" id="L110">  }</span>
 
   @Override
   public Number getZ(final int series, final int item) {
-<span class="nc" id="L113">    return z[item];</span>
+<span class="nc" id="L114">    return z[item];</span>
   }
 
   @Override
   public double getZValue(final int series, final int item) {
-<span class="nc" id="L118">    return z[item];</span>
+<span class="nc" id="L119">    return z[item];</span>
   }
 
   @Override
   public DomainOrder getDomainOrder() {
-<span class="nc" id="L123">    return DomainOrder.ASCENDING;</span>
+<span class="nc" id="L124">    return DomainOrder.ASCENDING;</span>
   }
 
   @Override
   public int getItemCount(final int series) {
-<span class="nc" id="L128">    return x.length;</span>
+<span class="nc" id="L129">    return x.length;</span>
   }
 
   @Override
   public Number getX(final int series, final int item) {
-<span class="nc" id="L133">    return x[item];</span>
+<span class="nc" id="L134">    return x[item];</span>
   }
 
   @Override
   public double getXValue(final int series, final int item) {
-<span class="nc" id="L138">    return x[item];</span>
+<span class="nc" id="L139">    return x[item];</span>
   }
 
   @Override
   public Number getY(final int series, final int item) {
-<span class="nc" id="L143">    return y[item];</span>
+<span class="nc" id="L144">    return y[item];</span>
   }
 
   @Override
   public double getYValue(final int series, final int item) {
-<span class="nc" id="L148">    return y[item];</span>
+<span class="nc" id="L149">    return y[item];</span>
   }
 
   @Override
   public int getSeriesCount() {
-<span class="nc" id="L153">    return 1;</span>
+<span class="nc" id="L154">    return 1;</span>
   }
 
   @Override
   public Comparable getSeriesKey(final int series) {
-<span class="nc" id="L158">    return &quot;RrdXYZDataset&quot;;</span>
+<span class="nc" id="L159">    return &quot;RrdXYZDataset&quot;;</span>
   }
 
   @Override
   public int indexOf(final Comparable seriesKey) {
-<span class="nc" id="L163">    return 0;</span>
+<span class="nc" id="L164">    return 0;</span>
   }
 
   @Override
   public void addChangeListener(final DatasetChangeListener listener) {
     // nothing
-<span class="nc" id="L169">  }</span>
+<span class="nc" id="L170">  }</span>
 
   @Override
   public void removeChangeListener(final DatasetChangeListener listener) {
     // nothing
-<span class="nc" id="L174">  }</span>
+<span class="nc" id="L175">  }</span>
 
   @Override
+  @Nullable
   public DatasetGroup getGroup() {
-<span class="nc" id="L178">    return null;</span>
+<span class="nc" id="L180">    return null;</span>
   }
 
   @Override
   public void setGroup(final DatasetGroup group) {
     // nothing
-<span class="nc" id="L184">  }</span>
+<span class="nc" id="L186">  }</span>
 
   public double getMaxValue() {
-<span class="nc" id="L187">    return maxValue;</span>
+<span class="nc" id="L189">    return maxValue;</span>
   }
 
   public double getMinValue() {
-<span class="nc" id="L191">    return minValue;</span>
+<span class="nc" id="L193">    return minValue;</span>
   }
 
   public List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; getQuantas() {
-<span class="nc" id="L195">    return quantas;</span>
+<span class="nc" id="L197">    return quantas;</span>
   }
 
   public TickUnits createXTickUnits() {
-<span class="nc" id="L199">    TickUnits tux = new TickUnits();</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">    if (data.length == 0) {</span>
-<span class="nc" id="L201">      return tux;</span>
+<span class="nc" id="L201">    TickUnits tux = new TickUnits();</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (data.length == 0) {</span>
+<span class="nc" id="L203">      return tux;</span>
     }
-<span class="nc" id="L203">    ZoneId systemDefault = ZoneId.systemDefault();</span>
-<span class="nc" id="L204">    final DateTimeFormatter formatter = DateTimeFormatter</span>
-<span class="nc" id="L205">          .ofPattern(&quot;yyyyMMdd'T'HH:mm:ss&quot;).withZone(systemDefault);</span>
-<span class="nc" id="L206">    final DateTimeFormatter shortFormat = DateTimeFormatter</span>
-<span class="nc" id="L207">          .ofPattern(&quot;yyyyMMdd'T'HH&quot;).withZone(systemDefault);</span>
-<span class="nc" id="L208">    final DateTimeFormatter mediumFormat = DateTimeFormatter</span>
-<span class="nc" id="L209">          .ofPattern(&quot;yyyyMMdd'T'HH:mm&quot;).withZone(systemDefault);</span>
-<span class="nc" id="L210">    final long[] timestamps = new long[data[0].length];</span>
-<span class="nc" id="L211">    long time = startTimeMillis;</span>
-<span class="nc bnc" id="L212" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
-<span class="nc" id="L213">      timestamps[i] = time;</span>
-<span class="nc" id="L214">      time += stepMillis;</span>
+<span class="nc" id="L205">    ZoneId systemDefault = ZoneId.systemDefault();</span>
+<span class="nc" id="L206">    final DateTimeFormatter formatter = DateTimeFormatter</span>
+<span class="nc" id="L207">          .ofPattern(&quot;yyyyMMdd'T'HH:mm:ss&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L208">    final DateTimeFormatter shortFormat = DateTimeFormatter</span>
+<span class="nc" id="L209">          .ofPattern(&quot;yyyyMMdd'T'HH&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L210">    final DateTimeFormatter mediumFormat = DateTimeFormatter</span>
+<span class="nc" id="L211">          .ofPattern(&quot;yyyyMMdd'T'HH:mm&quot;).withZone(systemDefault);</span>
+<span class="nc" id="L212">    final long[] timestamps = new long[data[0].length];</span>
+<span class="nc" id="L213">    long time = startTimeMillis;</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
+<span class="nc" id="L215">      timestamps[i] = time;</span>
+<span class="nc" id="L216">      time += stepMillis;</span>
     }
-<span class="nc" id="L216">    tux.add(new TimestampTickUnitImpl(1, timestamps, stepMillis, formatter)); // base</span>
-<span class="nc" id="L217">    long nr = 5000L / stepMillis;</span>
-<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L219">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
+<span class="nc" id="L218">    tux.add(new TimestampTickUnitImpl(1, timestamps, stepMillis, formatter)); // base</span>
+<span class="nc" id="L219">    long nr = 5000L / stepMillis;</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L221">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
     }
 
-<span class="nc" id="L222">    nr = 15000L / stepMillis;</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L224">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
+<span class="nc" id="L224">    nr = 15000L / stepMillis;</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L226">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, formatter));</span>
     }
     // minute
-<span class="nc" id="L227">    nr = 60000L / stepMillis;</span>
-<span class="nc bnc" id="L228" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L229">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
+<span class="nc" id="L229">    nr = 60000L / stepMillis;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L231">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
     }
     // 15 minute
-<span class="nc" id="L232">    nr = 900000L / stepMillis;</span>
-<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L234">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
+<span class="nc" id="L234">    nr = 900000L / stepMillis;</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L236">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, mediumFormat));</span>
     }
     // hour
-<span class="nc" id="L237">    nr = 3600000L / stepMillis;</span>
-<span class="nc bnc" id="L238" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L239">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
+<span class="nc" id="L239">    nr = 3600000L / stepMillis;</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L241">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
     }
     // 6 hour
-<span class="nc" id="L242">    nr = 21600000L / stepMillis;</span>
-<span class="nc bnc" id="L243" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
-<span class="nc" id="L244">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
+<span class="nc" id="L244">    nr = 21600000L / stepMillis;</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">    if (nr &gt; 1) {</span>
+<span class="nc" id="L246">      tux.add(new TimestampTickUnitImpl(nr, timestamps, stepMillis, shortFormat));</span>
     }
 
-<span class="nc" id="L247">    return tux;</span>
+<span class="nc" id="L249">    return tux;</span>
   }
 
   public TickUnits createYTickUnits() {
-<span class="nc" id="L251">    TickUnits tu = new TickUnits();</span>
-<span class="nc" id="L252">    final List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; lquantas = this.getQuantas();</span>
-<span class="nc" id="L253">    tu.add(new QuantizedNumberTickUnit(1, lquantas));</span>
-<span class="nc" id="L254">    return tu;</span>
+<span class="nc" id="L253">    TickUnits tu = new TickUnits();</span>
+<span class="nc" id="L254">    final List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; lquantas = this.getQuantas();</span>
+<span class="nc" id="L255">    tu.add(new QuantizedNumberTickUnit(1, lquantas));</span>
+<span class="nc" id="L256">    return tu;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L259">    return &quot;QuantizedXYZDatasetImpl{&quot; + &quot;x=&quot; + java.util.Arrays.toString(x)</span>
-<span class="nc" id="L260">            + &quot;, y=&quot; + java.util.Arrays.toString(y) + &quot;, z=&quot; + java.util.Arrays.toString(z)</span>
+<span class="nc" id="L261">    return &quot;QuantizedXYZDatasetImpl{&quot; + &quot;x=&quot; + java.util.Arrays.toString(x)</span>
+<span class="nc" id="L262">            + &quot;, y=&quot; + java.util.Arrays.toString(y) + &quot;, z=&quot; + java.util.Arrays.toString(z)</span>
             + &quot;, minValue=&quot; + minValue + &quot;, maxValue=&quot; + maxValue + &quot;, quantas=&quot; + quantas
-<span class="nc" id="L262">            + &quot;, data=&quot; + java.util.Arrays.toString(data)</span>
+<span class="nc" id="L264">            + &quot;, data=&quot; + java.util.Arrays.toString(data)</span>
             + &quot;, startTimeMillis=&quot; + startTimeMillis + &quot;, stepMillis=&quot; + stepMillis + '}';
   }
 

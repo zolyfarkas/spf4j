@@ -71,7 +71,7 @@
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>      @AfterReturning(pointcut = <span class="jxr_string">"call(*.new(..))"</span>, returning = <span class="jxr_string">"obj"</span>, argNames = <span class="jxr_string">"jp,obj"</span>)
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> afterAllocation(<strong class="jxr_keyword">final</strong> JoinPoint jp, <strong class="jxr_keyword">final</strong> Object obj) {
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          MutableInteger counter = Counter.SAMPLING_COUNTER.get();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          MutableInteger counter = ThreadLocalCounter.get();
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">int</strong> value = counter.getValue();
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">if</strong> (value &lt; SAMPLE_COUNT) {
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>              counter.setValue(value + 1);

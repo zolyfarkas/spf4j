@@ -32,16 +32,16 @@
 package org.spf4j.aspects;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.spf4j.annotations.Retry;
-import org.spf4j.annotations.VoidPredicate;
-import org.spf4j.base.Callables;
-import org.spf4j.base.Callables.TimeoutCallable;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.Timing;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  * Aspect that measures execution time and does performance logging for all methods annotated with: PerformanceMonitor
@@ -52,32 +52,35 @@ import org.spf4j.base.Timing;
 @Aspect
 <span class="nc" id="L53">public final class RetryAspect {</span>
 
+<span class="nc" id="L55">  private static final ConcurrentMap&lt;String, RetryPolicy&gt; POLICIES = new ConcurrentHashMap&lt;&gt;();</span>
+
   @Around(value = &quot;execution(@org.spf4j.annotations.Retry * *(..)) &amp;&amp; @annotation(annot)&quot;,
           argNames = &quot;pjp,annot&quot;)
-  public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final Retry annot)
+  public Object retriedMethod(final ProceedingJoinPoint pjp, final Retry annot)
           throws Throwable {
-<span class="nc" id="L59">    final TimeoutCallable&lt;Object, Exception&gt; timeoutCallable =</span>
-<span class="nc" id="L60">            new TimeoutCallable&lt;Object, Exception&gt;(annot.timeoutMillis()) {</span>
-
-      @Override
-      public Object call(final long dealine) throws Exception {
+<span class="nc" id="L61">    try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeout(), annot.units())) {</span>
+<span class="nc" id="L62">      Callable c = () -&gt; {</span>
         try {
-<span class="nc" id="L65">          return pjp.proceed();</span>
-<span class="nc" id="L66">        } catch (Exception | Error e) {</span>
-<span class="nc" id="L67">          throw e;</span>
-<span class="nc" id="L68">        } catch (Throwable ex) {</span>
-<span class="nc" id="L69">          throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L64">          return pjp.proceed();</span>
+<span class="nc" id="L65">        } catch (Exception | Error e) {</span>
+<span class="nc" id="L66">          throw e;</span>
+<span class="nc" id="L67">        } catch (Throwable ex) {</span>
+<span class="nc" id="L68">          throw new UncheckedExecutionException(ex);</span>
         }
+      };
+<span class="nc" id="L71">      String retryPolicyName = annot.retryPolicyName();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">      if (&quot;&quot;.equals(retryPolicyName)) {</span>
+<span class="nc" id="L73">        return RetryPolicy.defaultPolicy().call(c, Exception.class, ctx.getDeadlineNanos());</span>
+      } else {
+<span class="nc" id="L75">        return POLICIES.get(retryPolicyName).call(c, Exception.class, ctx.getDeadlineNanos());</span>
       }
-    };
-<span class="nc" id="L73">    try (ExecutionContext ctx = ExecutionContexts.start(</span>
-<span class="nc" id="L74">            Timing.getCurrentTiming().fromEpochMillisToNanoTime(timeoutCallable.getDeadline()))</span>
-            ) {
-<span class="nc" id="L76">      return Callables.executeWithRetry(timeoutCallable, annot.immediateRetries(), annot.retryDelayMillis(),</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">              annot.exRetry() == VoidPredicate.class ? Callables.DEFAULT_EXCEPTION_RETRY</span>
-<span class="nc" id="L78">              : annot.exRetry().newInstance(), Exception.class);</span>
     }
 
   }
+
+  public static RetryPolicy registerRetryPolicy(final String name, final RetryPolicy policy) {
+<span class="nc" id="L82">    return POLICIES.put(name, policy);</span>
+  }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

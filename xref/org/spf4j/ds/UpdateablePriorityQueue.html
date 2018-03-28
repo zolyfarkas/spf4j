@@ -421,116 +421,117 @@
 <a class="jxr_linenumber" name="L413" href="#L413">413</a>     }
 <a class="jxr_linenumber" name="L414" href="#L414">414</a> 
 <a class="jxr_linenumber" name="L415" href="#L415">415</a> 
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <strong class="jxr_keyword">private</strong> E removeAt(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> i) {
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>         assert i &gt;= 0 &amp;&amp; i &lt; size;
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>         modCount++;
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>         queue[i].index = -1;
-<a class="jxr_linenumber" name="L420" href="#L420">420</a>         <strong class="jxr_keyword">int</strong> s = --size;
-<a class="jxr_linenumber" name="L421" href="#L421">421</a>         <strong class="jxr_keyword">if</strong> (s == i) { <em class="jxr_comment">// removed last element</em>
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>             queue[i] = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>             <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> moved = queue[s];
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>             queue[s] = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>             siftDown(i, moved);
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>             <strong class="jxr_keyword">if</strong> (queue[i] == moved) {
-<a class="jxr_linenumber" name="L428" href="#L428">428</a>                 siftUp(i, moved);
-<a class="jxr_linenumber" name="L429" href="#L429">429</a>                 <strong class="jxr_keyword">if</strong> (queue[i] != moved) {
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>                     <strong class="jxr_keyword">return</strong> moved.elem;
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 }
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>             }
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>         }
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>     }
-<a class="jxr_linenumber" name="L436" href="#L436">436</a> 
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>     @Nullable
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>     <strong class="jxr_keyword">private</strong> E removeAt(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> i) {
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>         assert i &gt;= 0 &amp;&amp; i &lt; size;
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>         modCount++;
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>         queue[i].index = -1;
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>         <strong class="jxr_keyword">int</strong> s = --size;
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         <strong class="jxr_keyword">if</strong> (s == i) { <em class="jxr_comment">// removed last element</em>
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>             queue[i] = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>             <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> moved = queue[s];
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>             queue[s] = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>             siftDown(i, moved);
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             <strong class="jxr_keyword">if</strong> (queue[i] == moved) {
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>                 siftUp(i, moved);
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>                 <strong class="jxr_keyword">if</strong> (queue[i] != moved) {
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                     <strong class="jxr_keyword">return</strong> moved.elem;
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>                 }
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>             }
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>         }
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>     }
 <a class="jxr_linenumber" name="L437" href="#L437">437</a> 
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> siftUp(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> pk, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> x) {
-<a class="jxr_linenumber" name="L439" href="#L439">439</a>         <strong class="jxr_keyword">int</strong> k = pk;
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>         <strong class="jxr_keyword">while</strong> (k &gt; 0) {
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>             <strong class="jxr_keyword">int</strong> parent = (k - 1) &gt;&gt;&gt; 1;
-<a class="jxr_linenumber" name="L442" href="#L442">442</a>             <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> e = queue[parent];
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>             <strong class="jxr_keyword">if</strong> (x.compareTo(e) &gt;= 0) {
-<a class="jxr_linenumber" name="L444" href="#L444">444</a>                 <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L445" href="#L445">445</a>             }
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>             queue[k] = e;
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>             e.index = k;
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>             k = parent;
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>         }
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>         queue[k] = x;
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>         x.index = k;
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>     }
-<a class="jxr_linenumber" name="L453" href="#L453">453</a> 
-<a class="jxr_linenumber" name="L454" href="#L454">454</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> siftDown(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> pk, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> x) {
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>         <strong class="jxr_keyword">int</strong> k = pk;
-<a class="jxr_linenumber" name="L456" href="#L456">456</a>         <strong class="jxr_keyword">int</strong> half = size &gt;&gt;&gt; 1;        <em class="jxr_comment">// loop while a non-leaf</em>
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>         <strong class="jxr_keyword">while</strong> (k &lt; half) {
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>             <strong class="jxr_keyword">int</strong> child = (k &lt;&lt; 1) + 1; <em class="jxr_comment">// assume left child is least</em>
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>             <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> c = queue[child];
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <strong class="jxr_keyword">int</strong> right = child + 1;
-<a class="jxr_linenumber" name="L461" href="#L461">461</a>             <strong class="jxr_keyword">if</strong> (right &lt; size &amp;&amp; c.compareTo(queue[right]) &gt; 0) {
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>                 <em class="jxr_comment">//CHECKSTYLE:OFF</em>
-<a class="jxr_linenumber" name="L463" href="#L463">463</a>                 c = queue[child = right];
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>                 <em class="jxr_comment">//CHECKSTYLE:ON</em>
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>             }
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>             <strong class="jxr_keyword">if</strong> (x.compareTo(c) &lt;= 0) {
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>                 <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>             }
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>             queue[k] = c;
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>             c.index = k;
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>             k = child;
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>         }
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>         queue[k] = x;
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>         x.index = k;
-<a class="jxr_linenumber" name="L475" href="#L475">475</a>     }
-<a class="jxr_linenumber" name="L476" href="#L476">476</a> 
-<a class="jxr_linenumber" name="L477" href="#L477">477</a>     <strong class="jxr_keyword">public</strong> Comparator&lt;? <strong class="jxr_keyword">super</strong> E&gt; comparator() {
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>         <strong class="jxr_keyword">return</strong> comparator;
-<a class="jxr_linenumber" name="L479" href="#L479">479</a>     }
-<a class="jxr_linenumber" name="L480" href="#L480">480</a> 
+<a class="jxr_linenumber" name="L438" href="#L438">438</a> 
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> siftUp(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> pk, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> x) {
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         <strong class="jxr_keyword">int</strong> k = pk;
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>         <strong class="jxr_keyword">while</strong> (k &gt; 0) {
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>             <strong class="jxr_keyword">int</strong> parent = (k - 1) &gt;&gt;&gt; 1;
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>             <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> e = queue[parent];
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>             <strong class="jxr_keyword">if</strong> (x.compareTo(e) &gt;= 0) {
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>             }
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>             queue[k] = e;
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>             e.index = k;
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>             k = parent;
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>         }
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         queue[k] = x;
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>         x.index = k;
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>     }
+<a class="jxr_linenumber" name="L454" href="#L454">454</a> 
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> siftDown(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> pk, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> x) {
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         <strong class="jxr_keyword">int</strong> k = pk;
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>         <strong class="jxr_keyword">int</strong> half = size &gt;&gt;&gt; 1;        <em class="jxr_comment">// loop while a non-leaf</em>
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         <strong class="jxr_keyword">while</strong> (k &lt; half) {
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>             <strong class="jxr_keyword">int</strong> child = (k &lt;&lt; 1) + 1; <em class="jxr_comment">// assume left child is least</em>
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a> c = queue[child];
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>             <strong class="jxr_keyword">int</strong> right = child + 1;
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>             <strong class="jxr_keyword">if</strong> (right &lt; size &amp;&amp; c.compareTo(queue[right]) &gt; 0) {
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>                 <em class="jxr_comment">//CHECKSTYLE:OFF</em>
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>                 c = queue[child = right];
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>                 <em class="jxr_comment">//CHECKSTYLE:ON</em>
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>             }
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>             <strong class="jxr_keyword">if</strong> (x.compareTo(c) &lt;= 0) {
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>             }
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>             queue[k] = c;
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>             c.index = k;
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>             k = child;
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         }
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>         queue[k] = x;
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>         x.index = k;
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     }
+<a class="jxr_linenumber" name="L477" href="#L477">477</a> 
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>     <strong class="jxr_keyword">public</strong> Comparator&lt;? <strong class="jxr_keyword">super</strong> E&gt; comparator() {
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>         <strong class="jxr_keyword">return</strong> comparator;
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>     }
 <a class="jxr_linenumber" name="L481" href="#L481">481</a> 
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeObject(<strong class="jxr_keyword">final</strong> java.io.ObjectOutputStream s)
-<a class="jxr_linenumber" name="L483" href="#L483">483</a>         <strong class="jxr_keyword">throws</strong> java.io.IOException {
-<a class="jxr_linenumber" name="L484" href="#L484">484</a>         <em class="jxr_comment">// Write out element count, and any hidden stuff</em>
-<a class="jxr_linenumber" name="L485" href="#L485">485</a>         s.defaultWriteObject();
-<a class="jxr_linenumber" name="L486" href="#L486">486</a> 
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>         <em class="jxr_comment">// Write out all elements in the "proper order".</em>
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; size; i++) {
-<a class="jxr_linenumber" name="L489" href="#L489">489</a>             s.writeObject(queue[i].elem);
-<a class="jxr_linenumber" name="L490" href="#L490">490</a>         }
-<a class="jxr_linenumber" name="L491" href="#L491">491</a>     }
-<a class="jxr_linenumber" name="L492" href="#L492">492</a> 
+<a class="jxr_linenumber" name="L482" href="#L482">482</a> 
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeObject(<strong class="jxr_keyword">final</strong> java.io.ObjectOutputStream s)
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>         <strong class="jxr_keyword">throws</strong> java.io.IOException {
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>         <em class="jxr_comment">// Write out element count, and any hidden stuff</em>
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>         s.defaultWriteObject();
+<a class="jxr_linenumber" name="L487" href="#L487">487</a> 
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <em class="jxr_comment">// Write out all elements in the "proper order".</em>
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; size; i++) {
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>             s.writeObject(queue[i].elem);
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>         }
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>     }
 <a class="jxr_linenumber" name="L493" href="#L493">493</a> 
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> readObject(<strong class="jxr_keyword">final</strong> java.io.ObjectInputStream s)
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>         <strong class="jxr_keyword">throws</strong> java.io.IOException, ClassNotFoundException {
-<a class="jxr_linenumber" name="L496" href="#L496">496</a>         <em class="jxr_comment">// Read in size, and any hidden stuff</em>
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>         s.defaultReadObject();
-<a class="jxr_linenumber" name="L498" href="#L498">498</a> 
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>         queue = (ElementRef[]) Array.newInstance(ElementRef.<strong class="jxr_keyword">class</strong>, size);
-<a class="jxr_linenumber" name="L500" href="#L500">500</a> 
-<a class="jxr_linenumber" name="L501" href="#L501">501</a>         <em class="jxr_comment">// Read in all elements.</em>
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; size; i++) {
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>             queue[i] = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a>((E) s.readObject(), i);
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>         }
-<a class="jxr_linenumber" name="L505" href="#L505">505</a> 
-<a class="jxr_linenumber" name="L506" href="#L506">506</a>         <em class="jxr_comment">// Elements are guaranteed to be in "proper order", but the</em>
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>         <em class="jxr_comment">// spec has never explained what that might be.</em>
-<a class="jxr_linenumber" name="L508" href="#L508">508</a>         heapify();
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>     }
-<a class="jxr_linenumber" name="L510" href="#L510">510</a> 
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> heapify() {
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = (size &gt;&gt;&gt; 1) - 1; i &gt;= 0; i--) {
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>             siftDown(i, queue[i]);
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>         }
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>     }
-<a class="jxr_linenumber" name="L516" href="#L516">516</a> 
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>     @Override
-<a class="jxr_linenumber" name="L518" href="#L518">518</a>     <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"UpdateablePriorityQueue{"</span> + <span class="jxr_string">"queue="</span> + Arrays.toString(queue) + <span class="jxr_string">", size="</span> + size + <span class="jxr_string">", comparator="</span>
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>                 + comparator + <span class="jxr_string">", modCount="</span> + modCount + '}';
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>     }
-<a class="jxr_linenumber" name="L522" href="#L522">522</a> 
+<a class="jxr_linenumber" name="L494" href="#L494">494</a> 
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> readObject(<strong class="jxr_keyword">final</strong> java.io.ObjectInputStream s)
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>         <strong class="jxr_keyword">throws</strong> java.io.IOException, ClassNotFoundException {
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>         <em class="jxr_comment">// Read in size, and any hidden stuff</em>
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>         s.defaultReadObject();
+<a class="jxr_linenumber" name="L499" href="#L499">499</a> 
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>         queue = (ElementRef[]) Array.newInstance(ElementRef.<strong class="jxr_keyword">class</strong>, size);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a> 
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <em class="jxr_comment">// Read in all elements.</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; size; i++) {
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>             queue[i] = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ds/UpdateablePriorityQueue.html">ElementRef</a>((E) s.readObject(), i);
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>         }
+<a class="jxr_linenumber" name="L506" href="#L506">506</a> 
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>         <em class="jxr_comment">// Elements are guaranteed to be in "proper order", but the</em>
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>         <em class="jxr_comment">// spec has never explained what that might be.</em>
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>         heapify();
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>     }
+<a class="jxr_linenumber" name="L511" href="#L511">511</a> 
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> heapify() {
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = (size &gt;&gt;&gt; 1) - 1; i &gt;= 0; i--) {
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>             siftDown(i, queue[i]);
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>         }
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>     }
+<a class="jxr_linenumber" name="L517" href="#L517">517</a> 
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>     @Override
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"UpdateablePriorityQueue{"</span> + <span class="jxr_string">"queue="</span> + Arrays.toString(queue) + <span class="jxr_string">", size="</span> + size + <span class="jxr_string">", comparator="</span>
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>                 + comparator + <span class="jxr_string">", modCount="</span> + modCount + '}';
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>     }
 <a class="jxr_linenumber" name="L523" href="#L523">523</a> 
 <a class="jxr_linenumber" name="L524" href="#L524">524</a> 
-<a class="jxr_linenumber" name="L525" href="#L525">525</a> }
+<a class="jxr_linenumber" name="L525" href="#L525">525</a> 
+<a class="jxr_linenumber" name="L526" href="#L526">526</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

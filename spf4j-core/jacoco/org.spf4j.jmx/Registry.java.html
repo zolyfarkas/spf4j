@@ -180,6 +180,12 @@ public final class Registry {
 <span class="fc" id="L180">    return new DynamicMBeanBuilder().withJmxExportObjects(objects).replace(packageName, mbeanName);</span>
   }
 
+  @Nullable
+  public static ExportedValuesMBean exportIfNeeded(final String packageName, final String mbeanName,
+          final Object... objects) {
+<span class="fc" id="L186">    return new DynamicMBeanBuilder().withJmxExportObjects(objects).replaceIfExports(packageName, mbeanName);</span>
+  }
+
   /**
    * @deprecated use DynamicMBeanBuilder instead.
    */
@@ -187,11 +193,11 @@ public final class Registry {
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           final Properties attributes, final Object... objects) {
-<span class="fc" id="L190">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
-<span class="pc bpc" id="L191" title="1 of 2 branches missed.">    if (attributes != null) {</span>
-<span class="fc" id="L192">       builder.withAttributes((Map) attributes);</span>
+<span class="fc" id="L196">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    if (attributes != null) {</span>
+<span class="fc" id="L198">       builder.withAttributes((Map) attributes);</span>
     }
-<span class="fc" id="L194">    return builder.replace(packageName, mbeanName);</span>
+<span class="fc" id="L200">    return builder.replace(packageName, mbeanName);</span>
   }
 
   /**
@@ -200,11 +206,11 @@ public final class Registry {
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
           @Nullable final Map&lt;String, Object&gt; attributes, final Object... objects) {
-<span class="fc" id="L203">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
-<span class="pc bpc" id="L204" title="1 of 2 branches missed.">    if (attributes != null) {</span>
-<span class="fc" id="L205">       builder.withAttributes(attributes);</span>
+<span class="fc" id="L209">    DynamicMBeanBuilder builder = new DynamicMBeanBuilder().withJmxExportObjects(objects);</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">    if (attributes != null) {</span>
+<span class="fc" id="L211">       builder.withAttributes(attributes);</span>
     }
-<span class="fc" id="L207">    return builder.replace(packageName, mbeanName);</span>
+<span class="fc" id="L213">    return builder.replace(packageName, mbeanName);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

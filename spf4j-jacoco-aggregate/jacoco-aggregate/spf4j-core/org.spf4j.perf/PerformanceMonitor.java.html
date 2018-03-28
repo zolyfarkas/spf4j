@@ -32,8 +32,10 @@
 package org.spf4j.perf;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.TimeSource;
 import org.spf4j.perf.impl.NopMeasurementRecorder;
 
 /**
@@ -42,61 +44,61 @@ import org.spf4j.perf.impl.NopMeasurementRecorder;
  */
 public final class PerformanceMonitor {
 
-<span class="fc" id="L45">  private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);</span>
+<span class="fc" id="L47">  private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);</span>
 
   private PerformanceMonitor() {
   }
 
   public static &lt;T&gt; T callAndMonitor(
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) throws Exception {
-<span class="fc" id="L52">    return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();</span>
+<span class="fc" id="L54">    return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();</span>
   }
 
   public static &lt;T&gt; T callAndMonitor(final MeasurementRecorderSource mrs,
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) throws Exception {
-<span class="nc" id="L57">    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable).call();</span>
+<span class="nc" id="L59">    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable).call();</span>
   }
 
   public static &lt;T&gt; T callAndMonitor(final MeasurementRecorderSource mrs,
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
           final boolean isLogInfo, final Object... detail) throws Exception {
-<span class="nc" id="L63">    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, isLogInfo, detail)</span>
-<span class="nc" id="L64">            .call();</span>
+<span class="nc" id="L65">    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, isLogInfo, detail)</span>
+<span class="nc" id="L66">            .call();</span>
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(final MeasurementRecorderSource mrs,
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) {
-<span class="nc" id="L69">    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, false);</span>
+<span class="nc" id="L71">    return performanceMonitoredCallable(mrs, warnMillis, errorMillis, callable, false);</span>
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(final MeasurementRecorderSource mrs,
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
           final boolean isLogInfo, final Object... detail) {
 
-<span class="nc" id="L76">    return new Callable&lt;T&gt;() {</span>
+<span class="nc" id="L78">    return new Callable&lt;T&gt;() {</span>
       @Override
       public T call() throws Exception {
-<span class="nc" id="L79">        final long start = System.currentTimeMillis();</span>
-<span class="nc" id="L80">        T result = callable.call();</span>
-<span class="nc" id="L81">        final long elapsed = System.currentTimeMillis() - start;</span>
-<span class="nc" id="L82">        String callableName = callable.toString();</span>
-<span class="nc" id="L83">        mrs.getRecorder(callableName).record(elapsed);</span>
-<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (elapsed &gt; warnMillis) {</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">          if (elapsed &gt; errorMillis) {</span>
-<span class="nc" id="L86">            LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
-<span class="nc" id="L87">                    elapsed, callableName, errorMillis, detail);</span>
+<span class="nc" id="L81">        final long start = TimeSource.nanoTime();</span>
+<span class="nc" id="L82">        T result = callable.call();</span>
+<span class="nc" id="L83">        final long elapsed = TimeUnit.NANOSECONDS.toMillis(TimeSource.nanoTime() - start);</span>
+<span class="nc" id="L84">        String callableName = callable.toString();</span>
+<span class="nc" id="L85">        mrs.getRecorder(callableName).record(elapsed);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (elapsed &gt; warnMillis) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">          if (elapsed &gt; errorMillis) {</span>
+<span class="nc" id="L88">            LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
+<span class="nc" id="L89">                    elapsed, callableName, errorMillis, detail);</span>
           } else {
-<span class="nc" id="L89">            LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
-<span class="nc" id="L90">                    elapsed, callableName, warnMillis, detail);</span>
+<span class="nc" id="L91">            LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
+<span class="nc" id="L92">                    elapsed, callableName, warnMillis, detail);</span>
           }
         } else {
-<span class="nc bnc" id="L93" title="All 2 branches missed.">          if (isLogInfo) {</span>
-<span class="nc" id="L94">            LOG.info(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">          if (isLogInfo) {</span>
+<span class="nc" id="L96">            LOG.info(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
           } else {
-<span class="nc" id="L96">            LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+<span class="nc" id="L98">            LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
           }
         }
-<span class="nc" id="L99">        return result;</span>
+<span class="nc" id="L101">        return result;</span>
 
       }
     };
@@ -105,14 +107,14 @@ public final class PerformanceMonitor {
 
   public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) {
-<span class="fc" id="L108">    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
+<span class="fc" id="L110">    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
             warnMillis, errorMillis, callable, false);
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
           final boolean isLogInfo, final Object... detail) {
-<span class="nc" id="L115">    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
+<span class="nc" id="L117">    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
             warnMillis, errorMillis, callable, isLogInfo, detail);
   }
 
@@ -120,30 +122,30 @@ public final class PerformanceMonitor {
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
           final boolean isLogInfo, final Object... detail) {
 
-<span class="fc" id="L123">    return new Callable&lt;T&gt;() {</span>
+<span class="fc" id="L125">    return new Callable&lt;T&gt;() {</span>
       @Override
       public T call() throws Exception {
-<span class="fc" id="L126">        final long start = System.currentTimeMillis();</span>
-<span class="fc" id="L127">        T result = callable.call();</span>
-<span class="fc" id="L128">        final long elapsed = System.currentTimeMillis() - start;</span>
-<span class="fc" id="L129">        mr.record(elapsed);</span>
-<span class="fc" id="L130">        String callableName = callable.toString();</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (elapsed &gt; warnMillis) {</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">          if (elapsed &gt; errorMillis) {</span>
-<span class="fc" id="L133">            LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
-<span class="fc" id="L134">                    elapsed, callableName, errorMillis, detail);</span>
+<span class="fc" id="L128">        final long start = System.currentTimeMillis();</span>
+<span class="fc" id="L129">        T result = callable.call();</span>
+<span class="fc" id="L130">        final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="fc" id="L131">        mr.record(elapsed);</span>
+<span class="fc" id="L132">        String callableName = callable.toString();</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if (elapsed &gt; warnMillis) {</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">          if (elapsed &gt; errorMillis) {</span>
+<span class="fc" id="L135">            LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
+<span class="fc" id="L136">                    elapsed, callableName, errorMillis, detail);</span>
           } else {
-<span class="nc" id="L136">            LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
-<span class="nc" id="L137">                    elapsed, callableName, warnMillis, detail);</span>
+<span class="nc" id="L138">            LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
+<span class="nc" id="L139">                    elapsed, callableName, warnMillis, detail);</span>
           }
         } else {
-<span class="nc bnc" id="L140" title="All 2 branches missed.">          if (isLogInfo) {</span>
-<span class="nc" id="L141">            LOG.info(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">          if (isLogInfo) {</span>
+<span class="nc" id="L143">            LOG.info(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
           } else {
-<span class="nc" id="L143">            LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
+<span class="nc" id="L145">            LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
           }
         }
-<span class="fc" id="L146">        return result;</span>
+<span class="fc" id="L148">        return result;</span>
 
       }
     };

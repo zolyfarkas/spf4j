@@ -43,13 +43,13 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Threads;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
-import org.spf4j.stackmonitor.FastStackCollector;
 
 /**
  *
@@ -126,8 +126,8 @@ public final class ThreadUsageSampler {
   @JmxExport
   public static String getCurrentAliveThreadInfo() {
 <span class="nc" id="L128">    StringBuilder sb = new StringBuilder(2048);</span>
-<span class="nc" id="L129">    Thread[] threads = FastStackCollector.getThreads();</span>
-<span class="nc" id="L130">    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);</span>
+<span class="nc" id="L129">    Thread[] threads = Threads.getThreads();</span>
+<span class="nc" id="L130">    StackTraceElement[][] stackTraces = Threads.getStackTraces(threads);</span>
 <span class="nc bnc" id="L131" title="All 2 branches missed.">    for (int i = 0; i &lt; threads.length; i++) {</span>
 <span class="nc" id="L132">      Thread t = threads[i];</span>
 <span class="nc bnc" id="L133" title="All 2 branches missed.">      if (t.isAlive()) {</span>
@@ -167,10 +167,10 @@ public final class ThreadUsageSampler {
 <span class="nc" id="L167">          final int peakThreadCount = TH_BEAN.getPeakThreadCount();</span>
 <span class="nc" id="L168">          cpuUsage.record(peakThreadCount);</span>
 <span class="nc bnc" id="L169" title="All 2 branches missed.">          if (peakThreadCount &gt; maxThreadsNr) {</span>
-<span class="nc" id="L170">            Thread[] ths = FastStackCollector.getThreads();</span>
+<span class="nc" id="L170">            Thread[] ths = Threads.getThreads();</span>
 <span class="nc bnc" id="L171" title="All 2 branches missed.">            if (ths.length &gt; PEAK_THREAD_NAMES.size()) {</span>
 <span class="nc bnc" id="L172" title="All 2 branches missed.">              if (withStackTraces) {</span>
-<span class="nc" id="L173">                StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(ths);</span>
+<span class="nc" id="L173">                StackTraceElement[][] stackTraces = Threads.getStackTraces(ths);</span>
 <span class="nc" id="L174">                PEAK_THREAD_TRACES.clear();</span>
 <span class="nc" id="L175">                PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));</span>
               }

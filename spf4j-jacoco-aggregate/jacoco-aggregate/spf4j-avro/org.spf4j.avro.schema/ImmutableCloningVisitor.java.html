@@ -164,12 +164,16 @@ public final class ImmutableCloningVisitor implements SchemaVisitor&lt;Immutable
 
   @Override
   public ImmutableSchema get() {
-<span class="fc" id="L167">    return replace.get(root);</span>
+<span class="fc" id="L167">    ImmutableSchema result = replace.get(root);</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L169">      throw new IllegalStateException(&quot;Replacement map does not contain &quot; + root + &quot;, map &quot; + replace);</span>
+    }
+<span class="fc" id="L171">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L172">    return &quot;UnmodifiableCloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
+<span class="nc" id="L176">    return &quot;UnmodifiableCloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
   }
 
 }

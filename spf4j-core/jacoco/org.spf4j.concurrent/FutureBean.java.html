@@ -32,12 +32,14 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
+import org.spf4j.base.TimeSource;
 
 /**
  * bean like implementation of a future
@@ -45,89 +47,115 @@ import org.spf4j.base.Either;
  */
 @ThreadSafe
 @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
-<span class="fc" id="L48">public class FutureBean&lt;T&gt; implements Future&lt;T&gt; {</span>
-    
-    private volatile Either&lt;T, ? extends ExecutionException&gt; resultStore;
+<span class="fc" id="L50">public class FutureBean&lt;T&gt; implements Future&lt;T&gt; {</span>
+
+    private volatile Either&lt;T, ? extends Exception&gt; resultStore;
+
+    private volatile boolean isCanceled;
+
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
-<span class="nc" id="L54">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">      if (isDone()) {</span>
+<span class="nc" id="L60">        return false;</span>
+      } else {
+<span class="fc" id="L62">        isCanceled = true;</span>
+<span class="fc" id="L63">        return true;</span>
+      }
     }
 
     @Override
     public final boolean isCancelled() {
-<span class="nc" id="L59">        throw new UnsupportedOperationException(&quot;Not supported yet.&quot;);</span>
+<span class="fc" id="L69">       return isCanceled;</span>
     }
 
     @Override
     public final boolean isDone() {
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        return resultStore != null;</span>
+<span class="pc bpc" id="L74" title="1 of 4 branches missed.">        return isCanceled || resultStore != null;</span>
     }
-    
-    public final Either&lt;T, ? extends ExecutionException&gt; getResultStore() {
-<span class="nc" id="L68">        return resultStore;</span>
+
+    public final Either&lt;T, ? extends Exception&gt; getResultStore() {
+<span class="nc" id="L78">        return resultStore;</span>
     }
 
     @Override
     // Findbugs complain here is rubbish, InterruptedException is thrown by wait
     @SuppressFBWarnings({&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;, &quot;MDM_WAIT_WITHOUT_TIMEOUT&quot; })
     public final synchronized T get() throws InterruptedException, ExecutionException {
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        while (resultStore == null) {</span>
-<span class="fc" id="L76">            this.wait();</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        while (resultStore == null) {</span>
+<span class="fc" id="L86">            this.wait();</span>
         }
-<span class="fc" id="L78">        return processResult(resultStore);</span>
+<span class="fc" id="L88">        return processResult(resultStore);</span>
     }
 
     @Override
     public final T get(final long timeout, final TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L84">        long timeoutMillis = unit.toMillis(timeout);</span>
-<span class="nc" id="L85">        long toWait = timeoutMillis;</span>
-<span class="nc" id="L86">        long startTime = System.currentTimeMillis();</span>
-<span class="nc" id="L87">        synchronized (this) {</span>
-<span class="nc bnc" id="L88" title="All 4 branches missed.">            while (toWait &gt; 0 &amp;&amp; resultStore == null) {</span>
-<span class="nc" id="L89">                this.wait(toWait);</span>
-<span class="nc" id="L90">                toWait = timeoutMillis - (System.currentTimeMillis() - startTime);</span>
+<span class="fc" id="L94">        long timeoutMillis = unit.toMillis(timeout);</span>
+<span class="fc" id="L95">        long toWait = timeoutMillis;</span>
+<span class="fc" id="L96">        long startTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L97">        synchronized (this) {</span>
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">            while (toWait &gt; 0 &amp;&amp; resultStore == null) {</span>
+<span class="fc" id="L99">                this.wait(toWait);</span>
+<span class="fc" id="L100">                toWait = timeoutMillis - (TimeSource.nanoTime() - startTime);</span>
             }
-<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (resultStore == null) {</span>
-<span class="nc" id="L93">                throw new TimeoutException();</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            if (resultStore == null) {</span>
+<span class="fc" id="L103">                throw new TimeoutException();</span>
             }
-<span class="nc" id="L95">            return processResult(resultStore);</span>
+<span class="nc" id="L105">            return processResult(resultStore);</span>
         }
     }
 
-    public static &lt;T&gt; T processResult(final Either&lt;T, ? extends ExecutionException&gt; result) throws ExecutionException {
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (result.isLeft()) {</span>
-<span class="fc" id="L101">            return result.getLeft();</span>
+    @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
+    public static &lt;T&gt; T processResult(final Either&lt;T, ? extends Exception&gt; result)
+            throws ExecutionException {
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (result.isLeft()) {</span>
+<span class="fc" id="L113">            return result.getLeft();</span>
         } else {
-<span class="nc" id="L103">            throw result.getRight();</span>
+<span class="fc" id="L115">            Exception e = result.getRight();</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            if (e instanceof ExecutionException) {</span>
+<span class="fc" id="L117">              throw (ExecutionException) e;</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">            } else if (e instanceof IllegalStateException) {</span>
+<span class="fc" id="L119">              throw (IllegalStateException) e;</span>
+            } else {
+<span class="nc" id="L121">              throw new IllegalStateException(e);</span>
+            }
         }
     }
 
     public final synchronized void setResult(final T result) {
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
-<span class="nc" id="L109">            throw new IllegalStateException(&quot;cannot set result multiple times &quot; +  result);</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc" id="L128">            throw new IllegalStateException(&quot;cannot set result multiple times &quot; +  result);</span>
         }
-<span class="fc" id="L111">        resultStore = Either.left(result);</span>
-<span class="fc" id="L112">        done();</span>
-<span class="fc" id="L113">        this.notifyAll();</span>
-<span class="fc" id="L114">    }</span>
-    
+<span class="fc" id="L130">        resultStore = Either.left(result);</span>
+<span class="fc" id="L131">        done();</span>
+<span class="fc" id="L132">        this.notifyAll();</span>
+<span class="fc" id="L133">    }</span>
+
     public final synchronized void setExceptionResult(final ExecutionException result) {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (resultStore != null) {</span>
-<span class="nc" id="L118">            throw new IllegalStateException(&quot;cannot set result multiple times &quot; + result);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc" id="L137">            throw new IllegalStateException(&quot;cannot set result multiple times &quot; + result);</span>
         }
-<span class="nc" id="L120">        resultStore = Either.right(result);</span>
-<span class="nc" id="L121">        done();</span>
-<span class="nc" id="L122">        this.notifyAll();</span>
-<span class="nc" id="L123">    }</span>
-    
+<span class="fc" id="L139">        resultStore = Either.right(result);</span>
+<span class="fc" id="L140">        done();</span>
+<span class="fc" id="L141">        this.notifyAll();</span>
+<span class="fc" id="L142">    }</span>
+
+    public final synchronized void setCancelationResult(final CancellationException  result) {
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (resultStore != null) {</span>
+<span class="nc" id="L146">            throw new IllegalStateException(&quot;cannot set result multiple times &quot; + result);</span>
+        }
+<span class="fc" id="L148">        resultStore = Either.right(result);</span>
+<span class="fc" id="L149">        done();</span>
+<span class="fc" id="L150">        this.notifyAll();</span>
+<span class="fc" id="L151">    }</span>
+
     public void done() {
-<span class="fc" id="L126">    }</span>
+<span class="fc" id="L154">    }</span>
 
     @Override
     public final String toString() {
-<span class="nc" id="L130">        return &quot;FutureBean{&quot; + &quot;resultStore=&quot; + resultStore + '}';</span>
+<span class="nc" id="L158">        return &quot;FutureBean{&quot; + &quot;resultStore=&quot; + resultStore + '}';</span>
     }
 
 }

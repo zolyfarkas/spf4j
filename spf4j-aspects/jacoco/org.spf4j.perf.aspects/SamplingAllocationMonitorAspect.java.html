@@ -63,7 +63,7 @@ import org.spf4j.stackmonitor.StackTrace;
 
     @AfterReturning(pointcut = &quot;call(*.new(..))&quot;, returning = &quot;obj&quot;, argNames = &quot;jp,obj&quot;)
     public void afterAllocation(final JoinPoint jp, final Object obj) {
-<span class="fc" id="L66">        MutableInteger counter = Counter.SAMPLING_COUNTER.get();</span>
+<span class="fc" id="L66">        MutableInteger counter = ThreadLocalCounter.get();</span>
 <span class="fc" id="L67">        int value = counter.getValue();</span>
 <span class="fc bfc" id="L68" title="All 2 branches covered.">        if (value &lt; SAMPLE_COUNT) {</span>
 <span class="fc" id="L69">            counter.setValue(value + 1);</span>

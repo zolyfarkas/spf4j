@@ -169,12 +169,16 @@ public final class CloningVisitor implements SchemaVisitor&lt;Schema&gt; {
 
   @Override
   public Schema get() {
-<span class="fc" id="L172">    return replace.get(root);</span>
+<span class="fc" id="L172">    Schema result = replace.get(root);</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L174">      throw new IllegalStateException(&quot;Replacement map does not contain &quot; + root + &quot;, map &quot; + replace);</span>
+    }
+<span class="fc" id="L176">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L177">    return &quot;CloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
+<span class="nc" id="L181">    return &quot;CloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
   }
 
 }

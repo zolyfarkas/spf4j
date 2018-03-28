@@ -41,12 +41,13 @@ public final class DeadlineAction {
 <span class="fc" id="L41">    public static final Comparator&lt;DeadlineAction&gt; COMPARATOR = new Comparator&lt;DeadlineAction&gt;() {</span>
         @Override
         public int compare(final DeadlineAction o1, final DeadlineAction o2) {
-<span class="nc bnc" id="L44" title="All 2 branches missed.">            if (o1.deadline &lt; o2.deadline) {</span>
-<span class="nc" id="L45">                return -1;</span>
-<span class="nc bnc" id="L46" title="All 2 branches missed.">            } else if (o1.deadline &gt; o2.deadline) {</span>
-<span class="nc" id="L47">                return 1;</span>
+<span class="nc" id="L44">            long result = o1.deadline - o2.deadline;</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">            if (result &lt; 0) {</span>
+<span class="nc" id="L46">                return -1;</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            } else if (result &gt; 0) {</span>
+<span class="nc" id="L48">                return 1;</span>
             } else {
-<span class="nc" id="L49">                return 0;</span>
+<span class="nc" id="L50">                return 0;</span>
             }
         }
     };
@@ -55,22 +56,22 @@ public final class DeadlineAction {
 
     private final Runnable action;
 
-<span class="fc" id="L58">    public DeadlineAction(final long deadline, final Runnable action) {</span>
-<span class="fc" id="L59">        this.deadline = deadline;</span>
-<span class="fc" id="L60">        this.action = action;</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L59">    public DeadlineAction(final long deadline, final Runnable action) {</span>
+<span class="fc" id="L60">        this.deadline = deadline;</span>
+<span class="fc" id="L61">        this.action = action;</span>
+<span class="fc" id="L62">    }</span>
 
     public long getDeadline() {
-<span class="fc" id="L64">        return deadline;</span>
+<span class="fc" id="L65">        return deadline;</span>
     }
 
     public Runnable getAction() {
-<span class="fc" id="L68">        return action;</span>
+<span class="nc" id="L69">        return action;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L73">        return &quot;DeadlineAction{&quot; + &quot;deadline=&quot; + deadline + &quot;, action=&quot; + action + '}';</span>
+<span class="nc" id="L74">        return &quot;DeadlineAction{&quot; + &quot;deadline=&quot; + deadline + &quot;, action=&quot; + action + '}';</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

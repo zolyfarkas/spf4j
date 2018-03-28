@@ -45,8 +45,8 @@ import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import org.apache.commons.lang3.tuple.Pair;
 import org.spf4j.base.ComparablePair;
+import org.spf4j.base.Pair;
 import org.spf4j.base.SerializablePair;
 import org.spf4j.jmx.JMXBeanMappingSupplier;
 

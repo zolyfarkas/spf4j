@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SyncRetry.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe</a> &gt; <span class="el_source">SyncRetry.java</span></div><h1>SyncRetry.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.failsafe;
+
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.spf4j.base.Either;
+import org.spf4j.base.Throwables;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class SyncRetry {
+
+  private SyncRetry() { }
+
+  /**
+   * Naive implementation of execution with retry logic. a callable will be executed and retry attempted in current
+   * thread if the result and exception predicates. before retry, a callable can be executed that can abort the retry
+   * and finish the function with the previous result.
+   *
+   * @param &lt;T&gt; - The type of callable to retry result;
+   * @param &lt;EX&gt; - the exception thrown by the callable to retry.
+   * @param pwhat - the callable to retry.
+   * @return the result of the retried callable if successful.
+   * @throws java.lang.InterruptedException - thrown if retry interrupted.
+   * @throws EX - the exception thrown by callable.
+   */
+  @SuppressFBWarnings({ &quot;MDM_THREAD_YIELD&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot; })
+  public static &lt;T, EX extends Exception, C extends Callable&lt;? extends T&gt;&gt; T call(
+          final C pwhat,
+          final RetryPredicate&lt;T, C&gt; retryPredicate,
+          final Class&lt;EX&gt; exceptionClass,
+          final int maxExceptionChain)
+          throws InterruptedException, TimeoutException, EX {
+<span class="fc" id="L68">    C what = pwhat;</span>
+    T result;
+    Exception lastEx; // last exception
+    try {
+<span class="fc" id="L72">      result = what.call();</span>
+<span class="fc" id="L73">      lastEx = null;</span>
+<span class="nc" id="L74">    } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L75">      throw ex1;</span>
+<span class="fc" id="L76">    } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L77">      lastEx = e;</span>
+<span class="fc" id="L78">      result = null;</span>
+<span class="fc" id="L79">    }</span>
+<span class="fc" id="L80">    Exception lastExChain = lastEx; // last exception chained with all previous exceptions</span>
+    RetryDecision&lt;T, C&gt; decision;
+    //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    while ((lastEx != null)</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">            ? (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()</span>
+              == RetryDecision.Type.Retry
+<span class="fc bfc" id="L86" title="All 2 branches covered.">            : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
+<span class="nc" id="L88">        Thread.currentThread().interrupt();</span>
+<span class="nc" id="L89">        InterruptedException ex = new InterruptedException();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="nc" id="L91">          ex.addSuppressed(lastExChain);</span>
+        }
+<span class="nc" id="L93">        throw ex;</span>
+      }
+<span class="fc" id="L95">      long delayNanos = decision.getDelayNanos();</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">      if (delayNanos &gt; 0) {</span>
+<span class="fc" id="L97">        TimeUnit.NANOSECONDS.sleep(delayNanos);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">      } else if (delayNanos &lt; 0) {</span>
+<span class="nc" id="L99">        throw new IllegalStateException(&quot;Invalid retry decision delay: &quot; + delayNanos);</span>
+      }
+<span class="fc" id="L101">      what = decision.getNewCallable();</span>
+      try {
+<span class="fc" id="L103">        result = what.call();</span>
+<span class="fc" id="L104">        lastEx = null;</span>
+<span class="nc" id="L105">      } catch (InterruptedException ex1) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="nc" id="L107">          ex1.addSuppressed(lastExChain);</span>
+        }
+<span class="nc" id="L109">        throw ex1;</span>
+<span class="fc" id="L110">      } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L111">        lastEx = e;</span>
+<span class="fc" id="L112">        result = null;</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="fc" id="L114">          lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);</span>
+        } else {
+<span class="nc" id="L116">          lastExChain = lastEx;</span>
+        }
+<span class="fc" id="L118">      }</span>
+<span class="fc" id="L119">    }</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
+<span class="fc" id="L121">        Either&lt;Exception, T&gt; r = decision.getResult();</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (r != null) {</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">          if (r.isLeft()) {</span>
+<span class="fc" id="L124">            lastEx = r.getLeft();</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">            if (lastExChain != null) {</span>
+<span class="fc" id="L126">              lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);</span>
+            } else {
+<span class="nc" id="L128">              lastExChain = lastEx;</span>
+            }
+          } else {
+<span class="nc" id="L131">            result = r.getRight();</span>
+<span class="nc" id="L132">            lastEx = null;</span>
+          }
+        }
+<span class="fc" id="L135">    } else {</span>
+<span class="nc" id="L136">      throw new IllegalStateException(&quot;Should not happen, decision =  &quot; + decision);</span>
+    }
+<span class="fc bfc" id="L138" title="All 2 branches covered.">    if (lastEx != null) {</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">      if (lastExChain == null) {</span>
+<span class="nc" id="L140">        lastExChain = lastEx;</span>
+      }
+<span class="fc bfc" id="L142" title="All 2 branches covered.">      if (lastExChain instanceof RuntimeException) {</span>
+<span class="fc" id="L143">        throw (RuntimeException) lastExChain;</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
+<span class="fc" id="L145">        throw (TimeoutException) lastExChain;</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
+<span class="fc" id="L147">        throw (EX) lastExChain;</span>
+      } else {
+<span class="nc" id="L149">        throw new UncheckedExecutionException(lastExChain);</span>
+      }
+    }
+<span class="fc" id="L152">    return result;</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

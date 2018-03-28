@@ -34,6 +34,7 @@ package org.spf4j.ds;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -42,61 +43,63 @@ import java.util.Map;
 public final class LinkedHashSetEx&lt;V&gt; extends AbstractSet&lt;V&gt;
         implements LinkedSet&lt;V&gt; {
 
-<span class="fc" id="L45">  private static final Object PRESENT = new Object();</span>
+<span class="fc" id="L46">  private static final Object PRESENT = new Object();</span>
 
   private final LinkedMap&lt;V, Object&gt; map;
 
-<span class="nc" id="L49">  public LinkedHashSetEx() {</span>
-<span class="nc" id="L50">    map = new LinkedHashMapEx&lt;&gt;();</span>
-<span class="nc" id="L51">  }</span>
+<span class="nc" id="L50">  public LinkedHashSetEx() {</span>
+<span class="nc" id="L51">    map = new LinkedHashMapEx&lt;&gt;();</span>
+<span class="nc" id="L52">  }</span>
 
-<span class="fc" id="L53">  public LinkedHashSetEx(final int capacity) {</span>
-<span class="fc" id="L54">    map = new LinkedHashMapEx&lt;&gt;(capacity);</span>
-<span class="fc" id="L55">  }</span>
+<span class="fc" id="L54">  public LinkedHashSetEx(final int capacity) {</span>
+<span class="fc" id="L55">    map = new LinkedHashMapEx&lt;&gt;(capacity);</span>
+<span class="fc" id="L56">  }</span>
 
   @Override
   public Iterator&lt;V&gt; iterator() {
-<span class="fc" id="L59">    return map.keySet().iterator();</span>
+<span class="fc" id="L60">    return map.keySet().iterator();</span>
   }
 
   @Override
   public int size() {
-<span class="nc" id="L64">    return map.size();</span>
+<span class="nc" id="L65">    return map.size();</span>
   }
 
   @Override
+  @Nullable
   public V getLastValue() {
-<span class="fc" id="L69">    Map.Entry&lt;V, Object&gt; lastEntry = map.getLastEntry();</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (lastEntry == null) {</span>
-<span class="nc" id="L71">      return null;</span>
+<span class="fc" id="L71">    Map.Entry&lt;V, Object&gt; lastEntry = map.getLastEntry();</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    if (lastEntry == null) {</span>
+<span class="nc" id="L73">      return null;</span>
     } else {
-<span class="fc" id="L73">      return lastEntry.getKey();</span>
+<span class="fc" id="L75">      return lastEntry.getKey();</span>
     }
   }
 
   @Override
+  @Nullable
   public V pollLastValue() {
-<span class="fc" id="L79">    Map.Entry&lt;V, Object&gt; lastEntry = map.pollLastEntry();</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">    if (lastEntry == null) {</span>
-<span class="fc" id="L81">      return null;</span>
+<span class="fc" id="L82">    Map.Entry&lt;V, Object&gt; lastEntry = map.pollLastEntry();</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    if (lastEntry == null) {</span>
+<span class="fc" id="L84">      return null;</span>
     } else {
-<span class="fc" id="L83">      return lastEntry.getKey();</span>
+<span class="fc" id="L86">      return lastEntry.getKey();</span>
     }
   }
 
   @Override
   public boolean add(final V e) {
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    return map.put(e, PRESENT) == null;</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    return map.put(e, PRESENT) == null;</span>
   }
 
   @Override
   public boolean contains(final Object o) {
-<span class="nc" id="L94">    return map.containsKey(o);</span>
+<span class="nc" id="L97">    return map.containsKey(o);</span>
   }
 
   @Override
   public boolean isEmpty() {
-<span class="nc" id="L99">    return map.isEmpty();</span>
+<span class="nc" id="L102">    return map.isEmpty();</span>
   }
 
 }

@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import java.util.List;
+
 /**
  * @author Zoltan Farkas
  */
@@ -22,8 +24,8 @@ public final class TestUtils {
   private TestUtils() { }
 
   public static boolean isExecutedFromNetbeans() {
-<span class="fc" id="L25">    String mvnNetbeansCP = System.getProperty(&quot;maven.ext.class.path&quot;);</span>
-<span class="pc bpc" id="L26" title="1 of 4 branches missed.">    return mvnNetbeansCP != null &amp;&amp; mvnNetbeansCP.contains(&quot;netbeans&quot;);</span>
+<span class="fc" id="L27">    String mvnNetbeansCP = System.getProperty(&quot;maven.ext.class.path&quot;);</span>
+<span class="pc bpc" id="L28" title="1 of 4 branches missed.">    return mvnNetbeansCP != null &amp;&amp; mvnNetbeansCP.contains(&quot;netbeans&quot;);</span>
   }
 
   /**
@@ -32,7 +34,15 @@ public final class TestUtils {
    * @return
    */
   public static boolean isExecutedFromIDE() {
-<span class="pc bpc" id="L35" title="1 of 4 branches missed.">    return isExecutedFromNetbeans() || System.getProperty(&quot;spf4j.execFromIDE&quot;) != null;</span>
+<span class="pc bpc" id="L37" title="1 of 4 branches missed.">    return isExecutedFromNetbeans() || System.getProperty(&quot;spf4j.execFromIDE&quot;) != null;</span>
+  }
+
+  public static boolean isExecutedWithDebuggerAgent() {
+<span class="fc" id="L41">    List&lt;String&gt; inputArguments = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
+<span class="fc" id="L42">    return inputArguments.stream()</span>
+<span class="pc bpc" id="L43" title="3 of 6 branches missed.">            .filter((arg) -&gt; &quot;-agentlib:jdwp&quot;.equals(arg) || &quot;-Xdebug&quot;.equals(arg) || arg.startsWith(&quot;-Xrunjdwp&quot;))</span>
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">            .count() &gt; 0;</span>
+
   }
 
 }

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PolicyExecutor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe</a> &gt; <span class="el_source">PolicyExecutor.java</span></div><h1>PolicyExecutor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.failsafe;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeSource;
+
+/**
+ * @author Zoltan Farkas
+ */
+public interface PolicyExecutor&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
+
+  @CheckReturnValue
+  &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass,
+          long startNanos, long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX;
+
+  @CheckReturnValue
+  default &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass,
+          long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX {
+<span class="fc" id="L55">    return call(pwhat, exceptionClass, TimeSource.nanoTime(), deadlineNanos);</span>
+  }
+
+  @CheckReturnValue
+  default &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass)
+          throws InterruptedException, TimeoutException, EX {
+<span class="fc" id="L61">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L62">    return call(pwhat, exceptionClass, nanoTime, ExecutionContexts.getContextDeadlineNanos());</span>
+  }
+
+  @CheckReturnValue
+  default &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass,
+          long timeout, TimeUnit tu)
+          throws InterruptedException, TimeoutException, EX {
+<span class="fc" id="L69">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L70">    return call(pwhat, exceptionClass, nanoTime,</span>
+<span class="fc" id="L71">            ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));</span>
+  }
+
+  default &lt;W extends C, EX extends Exception&gt; void run(W pwhat, Class&lt;EX&gt; exceptionClass)
+          throws InterruptedException, TimeoutException, EX {
+<span class="nc" id="L76">    T res = call(pwhat, exceptionClass);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (res != null) {</span>
+<span class="nc" id="L78">      throw new IllegalStateException(&quot;result must be null not &quot; + res);</span>
+    }
+<span class="nc" id="L80">  }</span>
+
+  default &lt;W extends C, EX extends Exception&gt; void run(W pwhat, Class&lt;EX&gt; exceptionClass, long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX {
+<span class="nc" id="L84">    T res = call(pwhat, exceptionClass, deadlineNanos);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (res != null) {</span>
+<span class="nc" id="L86">      throw new IllegalStateException(&quot;result must be null not &quot; + res);</span>
+    }
+<span class="nc" id="L88">  }</span>
+
+  default &lt;W extends C, EX extends Exception&gt; void run(W pwhat, Class&lt;EX&gt; exceptionClass,
+          long timeout, TimeUnit tu)
+          throws InterruptedException, TimeoutException, EX {
+<span class="nc" id="L93">     run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));</span>
+<span class="nc" id="L94">  }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

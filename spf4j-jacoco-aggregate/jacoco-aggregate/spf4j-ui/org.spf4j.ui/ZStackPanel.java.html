@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.spf4j.base.EqualsPredicate;
 import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
@@ -62,228 +63,229 @@ public final class ZStackPanel extends StackPanelBase&lt;InvokedMethod&gt; {
 
   private Graph&lt;InvokedMethod, SampleNode.InvocationCount&gt; completeGraph;
   private Map&lt;InvokedMethod, Rectangle2D&gt; methodLocations;
-<span class="nc" id="L65">  private double totalHeight = 0;</span>
+<span class="nc" id="L66">  private double totalHeight = 0;</span>
   private InvokedMethod startFrom;
 
 
   public ZStackPanel(final SampleNode samples) {
-<span class="nc" id="L70">    super(samples);</span>
-<span class="nc" id="L71">    completeGraph = SampleNode.toGraph(samples);</span>
-<span class="nc" id="L72">    startFrom = InvokedMethod.ROOT;</span>
-<span class="nc" id="L73">  }</span>
+<span class="nc" id="L71">    super(samples);</span>
+<span class="nc" id="L72">    completeGraph = SampleNode.toGraph(samples);</span>
+<span class="nc" id="L73">    startFrom = InvokedMethod.ROOT;</span>
+<span class="nc" id="L74">  }</span>
 
   @Override
   public int paint(final Graphics2D gr, final double width, final double rowHeight) {
-<span class="nc" id="L77">    paintGraph(gr, 0, 0, (int) width, rowHeight);</span>
-<span class="nc" id="L78">    return (int) totalHeight;</span>
+<span class="nc" id="L78">    paintGraph(gr, 0, 0, (int) width, rowHeight);</span>
+<span class="nc" id="L79">    return (int) totalHeight;</span>
   }
 
   private void paintGraph(
           final Graphics2D g2, final int x, final int y, final double areaWidth, final double rowHeight) {
 
-<span class="nc" id="L84">    final Graph&lt;InvokedMethod, SampleNode.InvocationCount&gt; graph = completeGraph.copy();</span>
-<span class="nc" id="L85">    int rootSamples = graph.getEdges(startFrom).getIncomming().keySet().iterator().next().getValue();</span>
-<span class="nc" id="L86">    final double pps = areaWidth / rootSamples;</span>
-<span class="nc" id="L87">    methodLocations = new HashMap&lt;InvokedMethod, Rectangle2D&gt;();</span>
-<span class="nc" id="L88">    final Traversals.TraversalCallback&lt;InvokedMethod, SampleNode.InvocationCount&gt; traversalCallback</span>
-<span class="nc" id="L89">            = new Traversals.TraversalCallback&lt;InvokedMethod, SampleNode.InvocationCount&gt;() {</span>
-<span class="nc" id="L90">      private int counter = 0;</span>
+<span class="nc" id="L85">    final Graph&lt;InvokedMethod, SampleNode.InvocationCount&gt; graph = completeGraph.copy();</span>
+<span class="nc" id="L86">    int rootSamples = graph.getEdges(startFrom).getIncomming().keySet().iterator().next().getValue();</span>
+<span class="nc" id="L87">    final double pps = areaWidth / rootSamples;</span>
+<span class="nc" id="L88">    methodLocations = new HashMap&lt;InvokedMethod, Rectangle2D&gt;();</span>
+<span class="nc" id="L89">    final Traversals.TraversalCallback&lt;InvokedMethod, SampleNode.InvocationCount&gt; traversalCallback</span>
+<span class="nc" id="L90">            = new Traversals.TraversalCallback&lt;InvokedMethod, SampleNode.InvocationCount&gt;() {</span>
+<span class="nc" id="L91">      private int counter = 0;</span>
 
       @Override
       public void handle(final InvokedMethod vertex, final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; edges) {
-<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (edges.size() == 1) {</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">          if (vertex.equals(startFrom)) {</span>
-<span class="nc" id="L96">            int nrSamples = edges.keySet().iterator().next().getValue();</span>
-<span class="nc" id="L97">            drawMethod(vertex, nrSamples, (double) x, (double) y, (double) areaWidth,</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (edges.size() == 1) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">          if (vertex.equals(startFrom)) {</span>
+<span class="nc" id="L97">            int nrSamples = edges.keySet().iterator().next().getValue();</span>
+<span class="nc" id="L98">            drawMethod(vertex, nrSamples, (double) x, (double) y, (double) areaWidth,</span>
                     (double) rowHeight);
-<span class="nc" id="L99">          } else {</span>
-<span class="nc" id="L100">            Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; fromEntry = edges.entrySet().iterator().next();</span>
-<span class="nc" id="L101">            InvokedMethod fromMethod = fromEntry.getValue();</span>
-<span class="nc" id="L102">            Rectangle2D fromMethodLocation = methodLocations.get(fromMethod);</span>
-<span class="nc" id="L103">            int relativeSamples = 0;</span>
+<span class="nc" id="L100">          } else {</span>
+<span class="nc" id="L101">            Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; fromEntry = edges.entrySet().iterator().next();</span>
+<span class="nc" id="L102">            InvokedMethod fromMethod = fromEntry.getValue();</span>
+<span class="nc" id="L103">            Rectangle2D fromMethodLocation = methodLocations.get(fromMethod);</span>
+<span class="nc" id="L104">            int relativeSamples = 0;</span>
             for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; ens
-<span class="nc bnc" id="L105" title="All 2 branches missed.">                    : graph.getEdges(fromMethod).getOutgoing().entrySet()) {</span>
-<span class="nc" id="L106">              InvokedMethod slm = ens.getValue();</span>
-<span class="nc bnc" id="L107" title="All 4 branches missed.">              if (methodLocations.containsKey(slm) &amp;&amp; graph.getEdges(slm).getIncomming().size() == 1</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">                      &amp;&amp; !fromMethod.equals(slm)) {</span>
-<span class="nc" id="L109">                relativeSamples += ens.getKey().getValue();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                    : graph.getEdges(fromMethod).getOutgoing().entrySet()) {</span>
+<span class="nc" id="L107">              InvokedMethod slm = ens.getValue();</span>
+<span class="nc bnc" id="L108" title="All 4 branches missed.">              if (methodLocations.containsKey(slm) &amp;&amp; graph.getEdges(slm).getIncomming().size() == 1</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                      &amp;&amp; !fromMethod.equals(slm)) {</span>
+<span class="nc" id="L110">                relativeSamples += ens.getKey().getValue();</span>
               }
-<span class="nc" id="L111">            }</span>
+<span class="nc" id="L112">            }</span>
 
-<span class="nc" id="L113">            int nrSamples = fromEntry.getKey().getValue();</span>
-<span class="nc" id="L114">            double width = nrSamples * pps;</span>
-<span class="nc" id="L115">            double newX = fromMethodLocation.getX() + relativeSamples * pps;</span>
-<span class="nc" id="L116">            drawMethod(vertex, nrSamples, newX, (fromMethodLocation.getY() + rowHeight),</span>
+<span class="nc" id="L114">            int nrSamples = fromEntry.getKey().getValue();</span>
+<span class="nc" id="L115">            double width = nrSamples * pps;</span>
+<span class="nc" id="L116">            double newX = fromMethodLocation.getX() + relativeSamples * pps;</span>
+<span class="nc" id="L117">            drawMethod(vertex, nrSamples, newX, (fromMethodLocation.getY() + rowHeight),</span>
                     width, rowHeight);
-<span class="nc" id="L118">          }</span>
-<span class="nc bnc" id="L119" title="All 2 branches missed.">        } else if (edges.size() &gt; 1) {</span>
-<span class="nc" id="L120">          renderMethodLinked(edges, vertex);</span>
+<span class="nc" id="L119">          }</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        } else if (edges.size() &gt; 1) {</span>
+<span class="nc" id="L121">          renderMethodLinked(edges, vertex);</span>
         } else {
-<span class="nc" id="L122">          throw new IllegalStateException(&quot;Invalid state, there must be a way to get to node &quot; + vertex);</span>
+<span class="nc" id="L123">          throw new IllegalStateException(&quot;Invalid state, there must be a way to get to node &quot; + vertex);</span>
         }
-<span class="nc" id="L124">      }</span>
+<span class="nc" id="L125">      }</span>
 
       @SuppressFBWarnings(&quot;ISB_TOSTRING_APPENDING&quot;)
       private void drawMethod(final InvokedMethod vertex, final int nrSamples,
               final double x, final double y, final double width, final double height,
               final Point... fromLinks) {
-<span class="nc" id="L130">        Rectangle2D.Double location = new Rectangle2D.Double(x, y, width, height);</span>
-<span class="nc" id="L131">        methodLocations.put(vertex, location);</span>
-<span class="nc" id="L132">        insert(x, y, width, height, new Sampled&lt;&gt;(vertex, nrSamples));</span>
-<span class="nc" id="L133">        double newHeight = y + height;</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (totalHeight &lt; newHeight) {</span>
-<span class="nc" id="L135">          totalHeight = newHeight;</span>
+<span class="nc" id="L131">        Rectangle2D.Double location = new Rectangle2D.Double(x, y, width, height);</span>
+<span class="nc" id="L132">        methodLocations.put(vertex, location);</span>
+<span class="nc" id="L133">        insert(x, y, width, height, new Sampled&lt;&gt;(vertex, nrSamples));</span>
+<span class="nc" id="L134">        double newHeight = y + height;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (totalHeight &lt; newHeight) {</span>
+<span class="nc" id="L136">          totalHeight = newHeight;</span>
         }
-<span class="nc" id="L137">        FlameStackPanel.setElementColor(counter++, g2);</span>
-<span class="nc" id="L138">        g2.setClip((int) x, (int) y, (int) width, (int) height);</span>
-<span class="nc" id="L139">        g2.fillRect((int) x, (int) y, (int) width, (int) height);</span>
-<span class="nc" id="L140">        String val = vertex.getMethod().toString() + '-' + nrSamples;</span>
+<span class="nc" id="L138">        FlameStackPanel.setElementColor(counter++, g2);</span>
+<span class="nc" id="L139">        g2.setClip((int) x, (int) y, (int) width, (int) height);</span>
+<span class="nc" id="L140">        g2.fillRect((int) x, (int) y, (int) width, (int) height);</span>
+<span class="nc" id="L141">        String val = vertex.getMethod().toString() + '-' + nrSamples;</span>
 
-<span class="nc" id="L142">        g2.setPaint(Color.BLACK);</span>
-<span class="nc" id="L143">        g2.drawString(val, (int) x, (int) (y + height - 1));</span>
-<span class="nc" id="L144">        g2.setClip(null);</span>
-<span class="nc" id="L145">        g2.setPaint(LINK_COLOR);</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">        for (Point divLoc : fromLinks) {</span>
-<span class="nc" id="L147">          g2.drawLine((int) divLoc.getX(), (int) divLoc.getY(),</span>
+<span class="nc" id="L143">        g2.setPaint(Color.BLACK);</span>
+<span class="nc" id="L144">        g2.drawString(val, (int) x, (int) (y + height - 1));</span>
+<span class="nc" id="L145">        g2.setClip(null);</span>
+<span class="nc" id="L146">        g2.setPaint(LINK_COLOR);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        for (Point divLoc : fromLinks) {</span>
+<span class="nc" id="L148">          g2.drawLine((int) divLoc.getX(), (int) divLoc.getY(),</span>
                   (int) (x + width / 2), (int) y);
         }
-<span class="nc" id="L150">        g2.drawRect((int) x, (int) y, (int) width, (int) height);</span>
-<span class="nc" id="L151">      }</span>
+<span class="nc" id="L151">        g2.drawRect((int) x, (int) y, (int) width, (int) height);</span>
+<span class="nc" id="L152">      }</span>
 
       private void renderMethodLinked(final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; edges,
               final InvokedMethod vertex) {
-<span class="nc" id="L155">        List&lt;Point&gt; fromPoints = new ArrayList&lt;&gt;(edges.size());</span>
-<span class="nc" id="L156">        double newYBase = 0;</span>
-<span class="nc" id="L157">        double newXBase = Double.MAX_VALUE;</span>
-<span class="nc" id="L158">        double newWidth = 0;</span>
-<span class="nc" id="L159">        double maxX = Double.MIN_VALUE;</span>
-<span class="nc" id="L160">        int nrSamples = 0;</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; fromEntry : edges.entrySet()) {</span>
-<span class="nc" id="L162">          Rectangle2D fromRect = methodLocations.get(fromEntry.getValue());</span>
-<span class="nc" id="L163">          newWidth += fromEntry.getKey().getValue() * pps;</span>
-<span class="nc" id="L164">          nrSamples += fromEntry.getKey().getValue();</span>
-<span class="nc bnc" id="L165" title="All 2 branches missed.">          if (fromRect == null) {</span>
-<span class="nc" id="L166">            continue;</span>
+<span class="nc" id="L156">        List&lt;Point&gt; fromPoints = new ArrayList&lt;&gt;(edges.size());</span>
+<span class="nc" id="L157">        double newYBase = 0;</span>
+<span class="nc" id="L158">        double newXBase = Double.MAX_VALUE;</span>
+<span class="nc" id="L159">        double newWidth = 0;</span>
+<span class="nc" id="L160">        double maxX = Double.MIN_VALUE;</span>
+<span class="nc" id="L161">        int nrSamples = 0;</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; fromEntry : edges.entrySet()) {</span>
+<span class="nc" id="L163">          Rectangle2D fromRect = methodLocations.get(fromEntry.getValue());</span>
+<span class="nc" id="L164">          newWidth += fromEntry.getKey().getValue() * pps;</span>
+<span class="nc" id="L165">          nrSamples += fromEntry.getKey().getValue();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">          if (fromRect == null) {</span>
+<span class="nc" id="L167">            continue;</span>
           }
-<span class="nc" id="L168">          double fromX = fromRect.getX();</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">          if (fromX &lt; newXBase) {</span>
-<span class="nc" id="L170">            newXBase = fromX;</span>
+<span class="nc" id="L169">          double fromX = fromRect.getX();</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">          if (fromX &lt; newXBase) {</span>
+<span class="nc" id="L171">            newXBase = fromX;</span>
           }
-<span class="nc" id="L172">          double mx = fromRect.getMaxX();</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">          if (mx &gt; maxX) {</span>
-<span class="nc" id="L174">            maxX = mx;</span>
+<span class="nc" id="L173">          double mx = fromRect.getMaxX();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">          if (mx &gt; maxX) {</span>
+<span class="nc" id="L175">            maxX = mx;</span>
           }
-<span class="nc" id="L176">          double newY = fromRect.getMaxY() + rowHeight;</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">          if (newY &gt; newYBase) {</span>
-<span class="nc" id="L178">            newYBase = newY;</span>
+<span class="nc" id="L177">          double newY = fromRect.getMaxY() + rowHeight;</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">          if (newY &gt; newYBase) {</span>
+<span class="nc" id="L179">            newYBase = newY;</span>
           }
-<span class="nc" id="L180">          fromPoints.add(new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));</span>
-<span class="nc" id="L181">        }</span>
+<span class="nc" id="L181">          fromPoints.add(new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));</span>
+<span class="nc" id="L182">        }</span>
 
-<span class="nc" id="L183">        Pair&lt;List&lt;Sampled&lt;InvokedMethod&gt;&gt;, Double&gt; result = findEmptySpace(newXBase, newYBase, newWidth, maxX);</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        while (!result.getFirst().isEmpty()) {</span>
+<span class="nc" id="L184">        Pair&lt;List&lt;Sampled&lt;InvokedMethod&gt;&gt;, Double&gt; result = findEmptySpace(newXBase, newYBase, newWidth, maxX);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        while (!result.getFirst().isEmpty()) {</span>
           // TODO: optimize this to increment with a better value
-<span class="nc" id="L186">          newYBase += rowHeight;</span>
-<span class="nc" id="L187">          result = findEmptySpace(newXBase, newYBase, newWidth, maxX);</span>
+<span class="nc" id="L187">          newYBase += rowHeight;</span>
+<span class="nc" id="L188">          result = findEmptySpace(newXBase, newYBase, newWidth, maxX);</span>
         }
-<span class="nc" id="L189">        drawMethod(vertex, nrSamples, result.getSecond(), newYBase,</span>
-<span class="nc" id="L190">                newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));</span>
-<span class="nc" id="L191">      }</span>
+<span class="nc" id="L190">        drawMethod(vertex, nrSamples, result.getSecond(), newYBase,</span>
+<span class="nc" id="L191">                newWidth, rowHeight, fromPoints.toArray(new Point[fromPoints.size()]));</span>
+<span class="nc" id="L192">      }</span>
 
       @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
       private Pair&lt;List&lt;Sampled&lt;InvokedMethod&gt;&gt;, Double&gt; findEmptySpace(
               final double newXBase, final double newYBase,
               final double newWidth, final double maxX) {
-<span class="nc" id="L197">        double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;</span>
-<span class="nc" id="L198">        tryx = fitToViewableArea(tryx, newWidth);</span>
-<span class="nc" id="L199">        List&lt;Sampled&lt;InvokedMethod&gt;&gt; methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (!methods.isEmpty()) {</span>
-<span class="nc" id="L201">          tryx = newXBase;</span>
-<span class="nc" id="L202">          tryx = fitToViewableArea(tryx, newWidth);</span>
-<span class="nc" id="L203">          methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">          if (!methods.isEmpty()) {</span>
-<span class="nc" id="L205">            tryx = maxX - newWidth;</span>
-<span class="nc" id="L206">            tryx = fitToViewableArea(tryx, newWidth);</span>
-<span class="nc" id="L207">            methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
+<span class="nc" id="L198">        double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;</span>
+<span class="nc" id="L199">        tryx = fitToViewableArea(tryx, newWidth);</span>
+<span class="nc" id="L200">        List&lt;Sampled&lt;InvokedMethod&gt;&gt; methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (!methods.isEmpty()) {</span>
+<span class="nc" id="L202">          tryx = newXBase;</span>
+<span class="nc" id="L203">          tryx = fitToViewableArea(tryx, newWidth);</span>
+<span class="nc" id="L204">          methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">          if (!methods.isEmpty()) {</span>
+<span class="nc" id="L206">            tryx = maxX - newWidth;</span>
+<span class="nc" id="L207">            tryx = fitToViewableArea(tryx, newWidth);</span>
+<span class="nc" id="L208">            methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);</span>
           }
         }
-<span class="nc" id="L210">        return Pair.of(methods, tryx);</span>
+<span class="nc" id="L211">        return Pair.of(methods, tryx);</span>
       }
 
       private double fitToViewableArea(final double ptryx, final double newWidth) {
-<span class="nc" id="L214">        double tryx = ptryx;</span>
-<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (tryx &lt; 0) {</span>
-<span class="nc" id="L216">          tryx = 0;</span>
-<span class="nc bnc" id="L217" title="All 2 branches missed.">        } else if (tryx &gt; areaWidth - newWidth) {</span>
-<span class="nc" id="L218">          tryx = areaWidth - newWidth;</span>
+<span class="nc" id="L215">        double tryx = ptryx;</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (tryx &lt; 0) {</span>
+<span class="nc" id="L217">          tryx = 0;</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        } else if (tryx &gt; areaWidth - newWidth) {</span>
+<span class="nc" id="L219">          tryx = areaWidth - newWidth;</span>
         }
-<span class="nc" id="L220">        return tryx;</span>
+<span class="nc" id="L221">        return tryx;</span>
       }
     };
 
-<span class="nc" id="L224">    Traversals.customTraverse(graph, startFrom, traversalCallback);</span>
+<span class="nc" id="L225">    Traversals.customTraverse(graph, startFrom, traversalCallback);</span>
 
-<span class="nc" id="L226">  }</span>
+<span class="nc" id="L227">  }</span>
 
   @Override
+  @Nullable
   public String getDetail(final Point location) {
-<span class="nc" id="L230">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(location.x, location.y, 0, 0);</span>
-<span class="nc bnc" id="L231" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L232">      final Sampled&lt;InvokedMethod&gt; node = tips.get(0);</span>
-<span class="nc" id="L233">      final InvokedMethod method = node.getObj();</span>
-<span class="nc" id="L234">      final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; incomming = completeGraph.getEdges(method).getIncomming();</span>
-<span class="nc" id="L235">      StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L236">      sb.append(method).append('-').append(node.getNrSamples())</span>
-<span class="nc" id="L237">              .append(&quot;\n invoked from: &quot;);</span>
-<span class="nc" id="L238">      appendEdgeInfo(incomming, sb);</span>
-<span class="nc" id="L239">      sb.append(&quot;\n invoking: &quot;);</span>
-<span class="nc" id="L240">      final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; outgoing = completeGraph.getEdges(method).getOutgoing();</span>
-<span class="nc" id="L241">      appendEdgeInfo(outgoing, sb);</span>
-<span class="nc" id="L242">      return sb.toString();</span>
+<span class="nc" id="L232">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(location.x, location.y, 0, 0);</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L234">      final Sampled&lt;InvokedMethod&gt; node = tips.get(0);</span>
+<span class="nc" id="L235">      final InvokedMethod method = node.getObj();</span>
+<span class="nc" id="L236">      final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; incomming = completeGraph.getEdges(method).getIncomming();</span>
+<span class="nc" id="L237">      StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L238">      sb.append(method).append('-').append(node.getNrSamples())</span>
+<span class="nc" id="L239">              .append(&quot;\n invoked from: &quot;);</span>
+<span class="nc" id="L240">      appendEdgeInfo(incomming, sb);</span>
+<span class="nc" id="L241">      sb.append(&quot;\n invoking: &quot;);</span>
+<span class="nc" id="L242">      final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; outgoing = completeGraph.getEdges(method).getOutgoing();</span>
+<span class="nc" id="L243">      appendEdgeInfo(outgoing, sb);</span>
+<span class="nc" id="L244">      return sb.toString();</span>
     } else {
-<span class="nc" id="L244">      return null;</span>
+<span class="nc" id="L246">      return null;</span>
     }
   }
 
   @Override
   public void updateSamples(final Method m, final SampleNode n) {
-<span class="nc" id="L250">    super.updateSamples(m, n);</span>
-<span class="nc bnc" id="L251" title="All 2 branches missed.">    if (n != null) {</span>
-<span class="nc" id="L252">      this.completeGraph = SampleNode.toGraph(n);</span>
+<span class="nc" id="L252">    super.updateSamples(m, n);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">    if (n != null) {</span>
+<span class="nc" id="L254">      this.completeGraph = SampleNode.toGraph(n);</span>
     } else {
-<span class="nc" id="L254">      this.completeGraph = new HashMapGraph&lt;&gt;();</span>
+<span class="nc" id="L256">      this.completeGraph = new HashMapGraph&lt;&gt;();</span>
     }
-<span class="nc" id="L256">  }</span>
+<span class="nc" id="L258">  }</span>
 
 
   @Override
   public void filter() {
-<span class="nc" id="L261">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(xx, yy, 0, 0);</span>
-<span class="nc bnc" id="L262" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L263">      final InvokedMethod value = tips.get(0).getObj();</span>
-<span class="nc" id="L264">      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate&lt;&gt;(value.getMethod())));</span>
-<span class="nc" id="L265">      repaint();</span>
+<span class="nc" id="L263">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L265">      final InvokedMethod value = tips.get(0).getObj();</span>
+<span class="nc" id="L266">      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate&lt;&gt;(value.getMethod())));</span>
+<span class="nc" id="L267">      repaint();</span>
     }
-<span class="nc" id="L267">  }</span>
+<span class="nc" id="L269">  }</span>
 
   @Override
   public void drill() {
-<span class="nc" id="L271">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(xx, yy, 0, 0);</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L273">      final InvokedMethod value = tips.get(0).getObj();</span>
-<span class="nc" id="L274">      startFrom = value;</span>
-<span class="nc" id="L275">      repaint();</span>
+<span class="nc" id="L273">    List&lt;Sampled&lt;InvokedMethod&gt;&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L275">      final InvokedMethod value = tips.get(0).getObj();</span>
+<span class="nc" id="L276">      startFrom = value;</span>
+<span class="nc" id="L277">      repaint();</span>
     }
-<span class="nc" id="L277">  }</span>
+<span class="nc" id="L279">  }</span>
 
   private static void appendEdgeInfo(final Map&lt;SampleNode.InvocationCount, InvokedMethod&gt; incomming,
           final StringBuilder sb) {
-<span class="nc bnc" id="L281" title="All 2 branches missed.">    for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; entry : incomming.entrySet()) {</span>
-<span class="nc" id="L282">      int ic = entry.getKey().getValue();</span>
-<span class="nc" id="L283">      InvokedMethod method = entry.getValue();</span>
-<span class="nc" id="L284">      sb.append(method).append('-').append(ic).append(&quot;; &quot;);</span>
-<span class="nc" id="L285">    }</span>
-<span class="nc" id="L286">  }</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">    for (Map.Entry&lt;SampleNode.InvocationCount, InvokedMethod&gt; entry : incomming.entrySet()) {</span>
+<span class="nc" id="L284">      int ic = entry.getKey().getValue();</span>
+<span class="nc" id="L285">      InvokedMethod method = entry.getValue();</span>
+<span class="nc" id="L286">      sb.append(method).append('-').append(ic).append(&quot;; &quot;);</span>
+<span class="nc" id="L287">    }</span>
+<span class="nc" id="L288">  }</span>
 
 
 }

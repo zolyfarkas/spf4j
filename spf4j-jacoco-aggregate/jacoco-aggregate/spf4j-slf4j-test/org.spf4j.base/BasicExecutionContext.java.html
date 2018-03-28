@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BasicExecutionContext.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">BasicExecutionContext.java</span></div><h1>BasicExecutionContext.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import com.google.common.annotations.Beta;
+import gnu.trove.map.hash.THashMap;
+import java.util.Collections;
+import java.util.Map;
+import java.util.function.BiFunction;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * The simplest execution context possible.
+ *
+ * @author Zoltan Farkas
+ */
+@ThreadSafe
+public class BasicExecutionContext implements ExecutionContext {
+
+  private final String name;
+
+  private final ExecutionContext parent;
+
+  private final long startTimeNanos;
+
+  private final long deadlineNanos;
+
+  private final Runnable onClose;
+
+  private Map&lt;Object, Object&gt; baggage;
+
+<span class="fc" id="L63">  private boolean isClosed = false;</span>
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
+<span class="fc" id="L67">          final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {</span>
+<span class="fc" id="L68">    this.isClosed = false;</span>
+<span class="fc" id="L69">    this.name = name;</span>
+<span class="fc" id="L70">    this.onClose = onClose;</span>
+<span class="fc" id="L71">    this.startTimeNanos = startTimeNanos;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    if (parent != null) {</span>
+<span class="fc" id="L73">      long parentDeadline = parent.getDeadlineNanos();</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
+<span class="nc" id="L75">        this.deadlineNanos = parentDeadline;</span>
+      } else {
+<span class="fc" id="L77">        this.deadlineNanos = deadlineNanos;</span>
+      }
+<span class="fc" id="L79">    } else {</span>
+<span class="fc" id="L80">      this.deadlineNanos = deadlineNanos;</span>
+    }
+<span class="fc" id="L82">    this.parent = parent;</span>
+<span class="fc" id="L83">    this.baggage = Collections.EMPTY_MAP;</span>
+<span class="fc" id="L84">  }</span>
+
+  public final String getName() {
+<span class="nc" id="L87">    return name;</span>
+  }
+
+  @Override
+  public final long getDeadlineNanos() {
+<span class="fc" id="L92">    return deadlineNanos;</span>
+  }
+
+  public final long getStartTimeNanos() {
+<span class="nc" id="L96">    return startTimeNanos;</span>
+  }
+
+  @Nullable
+  @Beta
+  @Override
+  public final synchronized &lt;T&gt; T put(@Nonnull final Object key, @Nonnull final T data) {
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">    if (baggage == Collections.EMPTY_MAP) {</span>
+<span class="fc" id="L104">      baggage = new THashMap&lt;&gt;(2);</span>
+    }
+<span class="fc" id="L106">    return (T) baggage.put(key, data);</span>
+  }
+
+  @Nullable
+  @Beta
+  @Override
+  public final synchronized Object get(@Nonnull final Object key) {
+<span class="fc" id="L113">    Object res = baggage.get(key);</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    if (res == null) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (parent != null) {</span>
+<span class="nc" id="L116">        return parent.get(key);</span>
+      } else {
+<span class="nc" id="L118">        return null;</span>
+      }
+    } else {
+<span class="fc" id="L121">      return res;</span>
+    }
+  }
+
+  @Override
+  @Nullable
+  public final synchronized &lt;K, V&gt; V compute(@Nonnull final K key, final BiFunction&lt;K, V, V&gt; compute) {
+<span class="fc bfc" id="L128" title="All 2 branches covered.">    if (baggage == Collections.EMPTY_MAP) {</span>
+<span class="fc" id="L129">      baggage = new THashMap(2);</span>
+    }
+<span class="fc" id="L131">    return (V) baggage.compute(key, (BiFunction) compute);</span>
+  }
+
+  @Override
+  public final ExecutionContext getParent() {
+<span class="fc" id="L136">    return parent;</span>
+  }
+
+  /**
+   * Close might be overridable to close any additional stuff added in the extendsd class.
+   */
+  @Override
+  public void close() {
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">    if (!isClosed) {</span>
+<span class="fc" id="L145">      onClose.run();</span>
+<span class="fc" id="L146">      isClosed = true;</span>
+    }
+<span class="fc" id="L148">  }</span>
+
+  /**
+   * Overwrite as needed for debug string.
+   */
+  @Override
+  public String toString() {
+<span class="nc" id="L155">    return &quot;BasicExecutionContext{&quot; + &quot;name=&quot; + name + &quot;, parent=&quot;</span>
+<span class="nc" id="L156">            + parent + &quot;, deadline=&quot; + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)</span>
+            + &quot;, baggage=&quot; + baggage + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

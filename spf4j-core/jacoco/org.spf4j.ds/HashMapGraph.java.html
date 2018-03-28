@@ -34,6 +34,7 @@ package org.spf4j.ds;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 
 /**
@@ -45,106 +46,107 @@ public final class HashMapGraph&lt;V, E&gt; implements Graph&lt;V, E&gt; {
     private Map&lt;E, Pair&lt;V, V&gt;&gt; edgeNodes;
     private Map&lt;V, VertexEdges&gt; vertices;
 
-<span class="fc" id="L48">    public HashMapGraph() {</span>
-<span class="fc" id="L49">        edgeNodes = new HashMap&lt;E, Pair&lt;V, V&gt;&gt;();</span>
-<span class="fc" id="L50">        vertices = new HashMap&lt;V, VertexEdges&gt;();</span>
-<span class="fc" id="L51">    }</span>
+<span class="fc" id="L49">    public HashMapGraph() {</span>
+<span class="fc" id="L50">        edgeNodes = new HashMap&lt;E, Pair&lt;V, V&gt;&gt;();</span>
+<span class="fc" id="L51">        vertices = new HashMap&lt;V, VertexEdges&gt;();</span>
+<span class="fc" id="L52">    }</span>
 
     private HashMapGraph(final Map&lt;E, Pair&lt;V, V&gt;&gt; edgeNodes,
-<span class="nc" id="L54">            final Map&lt;V, VertexEdges&gt; vertices) {</span>
-<span class="nc" id="L55">        this.edgeNodes = edgeNodes;</span>
-<span class="nc" id="L56">        this.vertices = vertices;</span>
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L55">            final Map&lt;V, VertexEdges&gt; vertices) {</span>
+<span class="nc" id="L56">        this.edgeNodes = edgeNodes;</span>
+<span class="nc" id="L57">        this.vertices = vertices;</span>
+<span class="nc" id="L58">    }</span>
 
     public void add(final V vertex) {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (!vertices.containsKey(vertex)) {</span>
-<span class="nc" id="L61">            vertices.put(vertex, null);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (!vertices.containsKey(vertex)) {</span>
+<span class="nc" id="L62">            vertices.put(vertex, null);</span>
         }
-<span class="nc" id="L63">    }</span>
+<span class="nc" id="L64">    }</span>
 
     public void add(final E edge, final V fromVertex, final V toVertex) {
-<span class="fc" id="L66">        edgeNodes.put(edge, new Pair&lt;V, V&gt;(fromVertex, toVertex));</span>
-<span class="fc" id="L67">        VertexEdges fromV = vertices.get(fromVertex);</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (fromV == null) {</span>
-<span class="fc" id="L69">            fromV = new VertexEdges();</span>
-<span class="fc" id="L70">            vertices.put(fromVertex, fromV);</span>
+<span class="fc" id="L67">        edgeNodes.put(edge, new Pair&lt;V, V&gt;(fromVertex, toVertex));</span>
+<span class="fc" id="L68">        VertexEdges fromV = vertices.get(fromVertex);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (fromV == null) {</span>
+<span class="fc" id="L70">            fromV = new VertexEdges();</span>
+<span class="fc" id="L71">            vertices.put(fromVertex, fromV);</span>
         }
-<span class="fc" id="L72">        fromV.getOutgoing().put(edge, toVertex);</span>
+<span class="fc" id="L73">        fromV.getOutgoing().put(edge, toVertex);</span>
 
-<span class="fc" id="L74">        VertexEdges toV = vertices.get(toVertex);</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (toV == null) {</span>
-<span class="fc" id="L76">            toV = new VertexEdges();</span>
-<span class="fc" id="L77">            vertices.put(toVertex, toV);</span>
+<span class="fc" id="L75">        VertexEdges toV = vertices.get(toVertex);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (toV == null) {</span>
+<span class="fc" id="L77">            toV = new VertexEdges();</span>
+<span class="fc" id="L78">            vertices.put(toVertex, toV);</span>
         }
-<span class="fc" id="L79">        toV.getIncomming().put(edge, fromVertex);</span>
-<span class="fc" id="L80">    }</span>
+<span class="fc" id="L80">        toV.getIncomming().put(edge, fromVertex);</span>
+<span class="fc" id="L81">    }</span>
 
     @Override
     public Pair&lt;V, V&gt; getVertices(final E edge) {
-<span class="nc" id="L84">        return edgeNodes.get(edge);</span>
+<span class="nc" id="L85">        return edgeNodes.get(edge);</span>
     }
 
     @Override
     public VertexEdges&lt;V, E&gt; getEdges(final V vertice) {
-<span class="fc" id="L89">        return vertices.get(vertice);</span>
+<span class="fc" id="L90">        return vertices.get(vertice);</span>
     }
 
     @Override
     public Set&lt;V&gt; getVertices() {
-<span class="fc" id="L94">        return vertices.keySet();</span>
+<span class="fc" id="L95">        return vertices.keySet();</span>
     }
 
     @Override
     public void remove(final V vertice) {
-<span class="nc" id="L99">        VertexEdges&lt;V, E&gt; remove = vertices.remove(vertice);</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (remove == null) {</span>
-<span class="nc" id="L101">            return;</span>
+<span class="nc" id="L100">        VertexEdges&lt;V, E&gt; remove = vertices.remove(vertice);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (remove == null) {</span>
+<span class="nc" id="L102">            return;</span>
         }
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (E edge : remove.getIncomming().keySet()) {</span>
-<span class="nc" id="L104">            V fromVertex = edgeNodes.remove(edge).getFirst();</span>
-<span class="nc" id="L105">            vertices.get(fromVertex).getOutgoing().remove(edge);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (E edge : remove.getIncomming().keySet()) {</span>
+<span class="nc" id="L105">            V fromVertex = edgeNodes.remove(edge).getFirst();</span>
+<span class="nc" id="L106">            vertices.get(fromVertex).getOutgoing().remove(edge);</span>
 
-<span class="nc" id="L107">        }</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        for (E edge : remove.getOutgoing().keySet()) {</span>
-<span class="nc" id="L109">            V toVertex = edgeNodes.remove(edge).getSecond();</span>
-<span class="nc" id="L110">            vertices.get(toVertex).getIncomming().remove(edge);</span>
-<span class="nc" id="L111">        }</span>
-<span class="nc" id="L112">    }</span>
+<span class="nc" id="L108">        }</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        for (E edge : remove.getOutgoing().keySet()) {</span>
+<span class="nc" id="L110">            V toVertex = edgeNodes.remove(edge).getSecond();</span>
+<span class="nc" id="L111">            vertices.get(toVertex).getIncomming().remove(edge);</span>
+<span class="nc" id="L112">        }</span>
+<span class="nc" id="L113">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L116">        return &quot;HashMapGraph{&quot; + &quot;edgeNodes=&quot; + edgeNodes + &quot;, vertices=&quot; + vertices + '}';</span>
+<span class="nc" id="L117">        return &quot;HashMapGraph{&quot; + &quot;edgeNodes=&quot; + edgeNodes + &quot;, vertices=&quot; + vertices + '}';</span>
     }
 
     @Override
     public Graph&lt;V, E&gt; copy() {
-<span class="nc" id="L121">        HashMap&lt;V, VertexEdges&gt; hashMap = new HashMap&lt;V, VertexEdges&gt;(vertices);</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        for (Map.Entry&lt;V, VertexEdges&gt; entry : hashMap.entrySet()) {</span>
-<span class="nc" id="L123">            V v = entry.getKey();</span>
-<span class="nc" id="L124">            VertexEdges vertexEdges = entry.getValue();</span>
-<span class="nc" id="L125">            hashMap.put(v, vertexEdges.copy());</span>
-<span class="nc" id="L126">        }</span>
-<span class="nc" id="L127">        return new HashMapGraph&lt;V, E&gt;(new HashMap&lt;E, Pair&lt;V, V&gt;&gt;(edgeNodes),</span>
+<span class="nc" id="L122">        HashMap&lt;V, VertexEdges&gt; hashMap = new HashMap&lt;V, VertexEdges&gt;(vertices);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        for (Map.Entry&lt;V, VertexEdges&gt; entry : hashMap.entrySet()) {</span>
+<span class="nc" id="L124">            V v = entry.getKey();</span>
+<span class="nc" id="L125">            VertexEdges vertexEdges = entry.getValue();</span>
+<span class="nc" id="L126">            hashMap.put(v, vertexEdges.copy());</span>
+<span class="nc" id="L127">        }</span>
+<span class="nc" id="L128">        return new HashMapGraph&lt;V, E&gt;(new HashMap&lt;E, Pair&lt;V, V&gt;&gt;(edgeNodes),</span>
                 hashMap);
     }
 
     @Override
     public boolean contains(final V vertice) {
-<span class="nc" id="L133">        return vertices.containsKey(vertice);</span>
+<span class="nc" id="L134">        return vertices.containsKey(vertice);</span>
     }
 
     @Override
+    @Nullable
     public E getEdge(final V from, final V to) {
-<span class="fc" id="L138">        VertexEdges&lt;V, E&gt; edges = vertices.get(from);</span>
-<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (edges != null) {</span>
-<span class="fc" id="L140">            Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
-<span class="fc bfc" id="L141" title="All 2 branches covered.">            for (Map.Entry&lt;E, V&gt; entry : outgoing.entrySet()) {</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">                if (entry.getValue().equals(to)) {</span>
-<span class="fc" id="L143">                    return entry.getKey();</span>
+<span class="fc" id="L140">        VertexEdges&lt;V, E&gt; edges = vertices.get(from);</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (edges != null) {</span>
+<span class="fc" id="L142">            Map&lt;E, V&gt; outgoing = edges.getOutgoing();</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">            for (Map.Entry&lt;E, V&gt; entry : outgoing.entrySet()) {</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">                if (entry.getValue().equals(to)) {</span>
+<span class="fc" id="L145">                    return entry.getKey();</span>
                 }
-<span class="fc" id="L145">            }</span>
+<span class="fc" id="L147">            }</span>
         }
-<span class="fc" id="L147">        return null;</span>
+<span class="fc" id="L149">        return null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

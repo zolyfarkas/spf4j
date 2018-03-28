@@ -73,19 +73,19 @@
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">import</strong> org.spf4j.os.ProcessHandler;
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  <strong class="jxr_keyword">import</strong> org.spf4j.os.ProcessResponse;
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  <strong class="jxr_keyword">import</strong> org.spf4j.recyclable.impl.ArraySuppliers;
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.FastStackCollector;
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.spf4j.unix.JVMArguments;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.spf4j.unix.Lsof;
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <strong class="jxr_keyword">import</strong> org.spf4j.unix.UnixRuntime;
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">Runtime</a> {
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> IS_LITTLE_ENDIAN = <span class="jxr_string">"little"</span>.equals(System.getProperty(<span class="jxr_string">"sun.cpu.endian"</span>));
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger(<span class="jxr_string">"spf4j.waitForShutdownMillis"</span>, 30000);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.spf4j.unix.JVMArguments;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.spf4j.unix.Lsof;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.spf4j.unix.UnixRuntime;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">Runtime</a> {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> IS_LITTLE_ENDIAN = <span class="jxr_string">"little"</span>.equals(System.getProperty(<span class="jxr_string">"sun.cpu.endian"</span>));
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>            Integer.getInteger(<span class="jxr_string">"spf4j.waitForShutdownMillis"</span>, 30000));
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String TMP_FOLDER = System.getProperty(<span class="jxr_string">"java.io.tmpdir"</span>);
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String JAVA_VERSION = System.getProperty(<span class="jxr_string">"java.version"</span>);
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String USER_NAME = System.getProperty(<span class="jxr_string">"user.name"</span>);
@@ -147,7 +147,7 @@
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>     IS_WINDOWS = osName.startsWith(<span class="jxr_string">"Windows"</span>);
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> dumpNonDaemonThreadInfoOnShutdown = Boolean.getBoolean(<span class="jxr_string">"spf4j.dumpNonDaemonThreadInfoOnShutdown"</span>);
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>     <strong class="jxr_keyword">if</strong> (dumpNonDaemonThreadInfoOnShutdown) { <em class="jxr_comment">// prime class...</em>
-<a class="jxr_linenumber" name="L142" href="#L142">142</a>       PRELOADED.add(FastStackCollector.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>       PRELOADED.add(Threads.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>     }
 <a class="jxr_linenumber" name="L144" href="#L144">144</a>     runtime.addShutdownHook(<strong class="jxr_keyword">new</strong> Thread(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a>(false) {
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>       @Override
@@ -182,10 +182,10 @@
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>               thread.start();
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>               threads[i++] = thread;
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>             }
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>             <strong class="jxr_keyword">long</strong> deadline = System.currentTimeMillis() + WAIT_FOR_SHUTDOWN_MILLIS;
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             <strong class="jxr_keyword">long</strong> deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>             <strong class="jxr_keyword">for</strong> (Thread thread : threads) {
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>               <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>                 thread.join(deadline - System.currentTimeMillis());
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>                 thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>               } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>                 <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>                   rex = ex;
@@ -214,7 +214,7 @@
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>         }
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>         <em class="jxr_comment">// print out info on all remaining non daemon threads.</em>
 <a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">if</strong> (dumpNonDaemonThreadInfoOnShutdown) {
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>           Thread[] threads = FastStackCollector.getThreads();
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>           Thread[] threads = Threads.getThreads();
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>           Thread current = Thread.currentThread();
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>           <strong class="jxr_keyword">boolean</strong> first = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>           <strong class="jxr_keyword">for</strong> (Thread thread : threads) {
@@ -301,7 +301,7 @@
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>   }
 <a class="jxr_linenumber" name="L294" href="#L294">294</a> 
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isTestFramework() {
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>     StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(FastStackCollector.getThreads());
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());
 <a class="jxr_linenumber" name="L297" href="#L297">297</a>     <strong class="jxr_keyword">for</strong> (StackTraceElement[] sts : stackTraces) {
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>       <strong class="jxr_keyword">if</strong> (sts != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>         <strong class="jxr_keyword">for</strong> (StackTraceElement ste : sts) {
@@ -502,10 +502,10 @@
 <a class="jxr_linenumber" name="L494" href="#L494">494</a>   @SuppressFBWarnings
 <a class="jxr_linenumber" name="L495" href="#L495">495</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> gc(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis) {
 <a class="jxr_linenumber" name="L496" href="#L496">496</a>     WeakReference&lt;Object&gt; ref = <strong class="jxr_keyword">new</strong> WeakReference&lt;&gt;(<strong class="jxr_keyword">new</strong> Object());
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>     <strong class="jxr_keyword">long</strong> deadline = System.currentTimeMillis() + timeoutMillis;
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>     <strong class="jxr_keyword">long</strong> deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
 <a class="jxr_linenumber" name="L498" href="#L498">498</a>     <strong class="jxr_keyword">do</strong> {
 <a class="jxr_linenumber" name="L499" href="#L499">499</a>       System.gc();
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>     } <strong class="jxr_keyword">while</strong> (ref.get() != <strong class="jxr_keyword">null</strong> &amp;&amp; System.currentTimeMillis() &lt; deadline);
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>     } <strong class="jxr_keyword">while</strong> (ref.get() != <strong class="jxr_keyword">null</strong> &amp;&amp; TimeSource.nanoTime() &lt; deadline);
 <a class="jxr_linenumber" name="L501" href="#L501">501</a>     <strong class="jxr_keyword">return</strong> ref.get() == <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L502" href="#L502">502</a>   }
 <a class="jxr_linenumber" name="L503" href="#L503">503</a> 
@@ -540,7 +540,7 @@
 <a class="jxr_linenumber" name="L532" href="#L532">532</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L533" href="#L533">533</a>   @Nullable
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Thread getMainThread() {
-<a class="jxr_linenumber" name="L535" href="#L535">535</a>     Thread[] threads = FastStackCollector.getThreads();
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>     Thread[] threads = Threads.getThreads();
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>     <strong class="jxr_keyword">for</strong> (Thread t : threads) {
 <a class="jxr_linenumber" name="L537" href="#L537">537</a>       <strong class="jxr_keyword">if</strong> (t.getId() == 1L) {
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>         <strong class="jxr_keyword">return</strong> t;

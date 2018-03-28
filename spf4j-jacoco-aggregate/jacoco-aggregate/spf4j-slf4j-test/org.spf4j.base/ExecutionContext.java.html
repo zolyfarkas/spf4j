@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExecutionContext.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">ExecutionContext.java</span></div><h1>ExecutionContext.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import com.google.common.annotations.Beta;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Signed;
+
+/**
+ * @author Zoltan Farkas
+ */
+@CleanupObligation
+@ParametersAreNonnullByDefault
+public interface ExecutionContext extends AutoCloseable {
+
+  @DischargesObligation
+  void close();
+
+  long getStartTimeNanos();
+
+  long getDeadlineNanos();
+
+  ExecutionContext getParent();
+
+  @Nonnegative
+  default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
+<span class="fc" id="L64">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L66">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+     }
+<span class="fc" id="L68">     return result;</span>
+  }
+
+  @Nonnegative
+  default long getUncheckedTimeToDeadline(final TimeUnit unit) {
+<span class="fc" id="L73">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L75">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+     }
+<span class="fc" id="L77">     return result;</span>
+  }
+
+  @Signed
+  default long getTimeRelativeToDeadline(final TimeUnit unit)  {
+<span class="fc" id="L82">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+  }
+
+  @Nonnegative
+  default long getMillisToDeadline() throws TimeoutException {
+<span class="nc" id="L87">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+  }
+
+  @Nonnegative
+  default int getSecondsToDeadline() throws TimeoutException {
+<span class="nc" id="L92">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L94">      return Integer.MAX_VALUE;</span>
+    } else {
+<span class="nc" id="L96">      return (int) secondsToDeadline;</span>
+    }
+  }
+
+
+  /**
+   * Method to get baggage.
+   * if current context does not have baggage, the parent context is queried.
+   * @param &lt;T&gt; type of baggage.
+   * @param key key of baggage.
+   * @param clasz class of baggage value.
+   * @return the baggage
+   */
+  @Nullable
+  @Beta
+  default &lt;T&gt; T get(Object key, Class&lt;T&gt; clasz) {
+<span class="fc" id="L112">    return (T) get(key);</span>
+  }
+
+
+  /**
+   * Method to get baggage.
+   * if current context does not have baggage, the parent context is queried.
+   * @param &lt;T&gt; type of baggage.
+   * @param key key of baggage.
+   * @return the baggage
+   */
+  @Nullable
+  @Beta
+  Object get(Object key);
+
+
+  /**
+   * Method to put baggage.
+   * @param &lt;T&gt; type of baggage.
+   * @param key the key of baggage.
+   * @param data the baggage.
+   * @return existing baggage if there.
+   */
+  @Nullable
+  @Beta
+  &lt;T&gt; T put(Object key, T data);
+
+
+  /**
+   * Method to put baggage to the root context.
+   * @param &lt;T&gt; type of baggage.
+   * @param key the key of baggage.
+   * @param data the baggage.
+   * @return existing baggage if there.
+   */
+  @Nullable
+  @Beta
+  default &lt;T&gt; T putToRoot(final Object key, final T data) {
+<span class="nc" id="L150">    ExecutionContext curr = this;</span>
+    ExecutionContext parent;
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    while ((parent = curr.getParent()) != null) {</span>
+<span class="nc" id="L153">      curr = parent;</span>
+    }
+<span class="nc" id="L155">    return curr.put(key, data);</span>
+  }
+
+  @Beta
+  @Nullable
+  &lt;K, V&gt; V compute(K key, BiFunction&lt;K, V, V&gt; compute);
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

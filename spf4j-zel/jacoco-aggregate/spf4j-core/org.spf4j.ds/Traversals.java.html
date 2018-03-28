@@ -32,10 +32,10 @@
 package org.spf4j.ds;
 
 import com.google.common.collect.Sets;
+import gnu.trove.set.hash.THashSet;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -57,7 +57,7 @@ public final class Traversals {
 
     public static &lt;V, E&gt; void traverse(final Graph&lt;V, E&gt; graph, final V startNode,
             final TraversalCallback&lt;V, E&gt; handler, final boolean isBreadth) {
-<span class="fc" id="L60">        Set&lt;V&gt; traversedNodes = new HashSet&lt;V&gt;(graph.getVertices().size());</span>
+<span class="fc" id="L60">        Set&lt;V&gt; traversedNodes = new THashSet&lt;V&gt;(graph.getVertices().size());</span>
 <span class="fc" id="L61">        Deque&lt;V&gt; traversalQueue = new ArrayDeque&lt;V&gt;();</span>
 <span class="fc" id="L62">        traversalQueue.add(startNode);</span>
 <span class="fc" id="L63">        boolean done = false;</span>
@@ -184,7 +184,7 @@ public final class Traversals {
 
     public static &lt;V, E&gt; void customTraverse(final Graph&lt;V, E&gt; graph, final V startNode,
             final TraversalCallback&lt;V, E&gt; handler) {
-<span class="nc" id="L187">        Set&lt;V&gt; traversedNodes = new HashSet&lt;V&gt;(graph.getVertices().size());</span>
+<span class="nc" id="L187">        Set&lt;V&gt; traversedNodes = new THashSet&lt;&gt;(graph.getVertices().size());</span>
 <span class="nc" id="L188">        Queue&lt;VertexHolder&lt;V&gt;&gt; traversalQueue = new PriorityQueue&lt;VertexHolder&lt;V&gt;&gt;(16);</span>
 <span class="nc" id="L189">        int counter = 0;</span>
 <span class="nc" id="L190">        traversalQueue.add(new VertexHolder&lt;V&gt;(startNode, counter++, 0));</span>

@@ -69,7 +69,7 @@
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">final</strong> String profile = System.getProperty(<span class="jxr_string">"basedir"</span>,
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/src/main/jfc/profile.jfc"</span>;
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      Options opt = <strong class="jxr_keyword">new</strong> OptionsBuilder()
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <em class="jxr_comment">//.include(".*TestLogger.*")</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <em class="jxr_comment">//.include(".*Timing.*")</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>              <em class="jxr_comment">//                .include(".*Reflections.*")</em>
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>              <em class="jxr_comment">//                .addProfiler(JmhProfiler.class)</em>
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>              <em class="jxr_comment">//                .addProfiler(CompilerProfiler.class)</em>
@@ -82,19 +82,20 @@
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              <em class="jxr_comment">//         "-XX:+PrintInlining", "-XX:+PrintCompilation", "-XX:+LogCompilation"</em>
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>              .jvmArgs(<span class="jxr_string">"-XX:MaxInlineLevel=12"</span>, <span class="jxr_string">"-Xmx256m"</span>, <span class="jxr_string">"-Xms256m"</span>, <span class="jxr_string">"-XX:+UnlockCommercialFeatures"</span>,
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>                      <span class="jxr_string">"-Djmh.stack.profiles="</span> + destinationFolder,
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>                      <span class="jxr_string">"-Dspf4j.executors.defaultExecutor.daemon=true"</span>,
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>                   <em class="jxr_comment">// "-Djmh.executor=FJP",</em>
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>                      <span class="jxr_string">"-Djmh.fr.options=defaultrecording=true,settings="</span> + profile)
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>              .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              .resultFormat(ResultFormatType.CSV)
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>              .warmupIterations(10)
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              .measurementIterations(10)
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>              .forks(1)
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>              .build();
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">new</strong> Runner(opt).run();
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>    }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>  }
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>                      <span class="jxr_string">"-Dspf4j.timeSource=systemTime"</span>,
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                      <span class="jxr_string">"-Dspf4j.executors.defaultExecutor.daemon=true"</span>,
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                   <em class="jxr_comment">// "-Djmh.executor=FJP",</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>                      <span class="jxr_string">"-Djmh.fr.options=defaultrecording=true,settings="</span> + profile)
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              .resultFormat(ResultFormatType.CSV)
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              .warmupIterations(10)
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>              .measurementIterations(10)
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>              .forks(1)
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              .build();
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">new</strong> Runner(opt).run();
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>    }
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

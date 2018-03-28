@@ -39,7 +39,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
-import static org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_MILLIS;
 
 /**
  * This executor aims to be a general purpose executor for async tasks. (equivalent to ForkJoinPool.commonPool())
@@ -52,46 +51,49 @@ public final class DefaultExecutor {
   public static final ExecutorService INSTANCE;
 
   static {
-<span class="fc" id="L55">    final int coreThreads = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.coreThreads&quot;, 0);</span>
-<span class="fc" id="L56">    final int maxIdleMillis = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.maxIdleMillis&quot;, 60000);</span>
-<span class="fc" id="L57">    final boolean isDaemon = Boolean.getBoolean(&quot;spf4j.executors.defaultExecutor.daemon&quot;);</span>
-<span class="fc" id="L58">    final String impParam = &quot;spf4j.executors.defaultExecutor.implementation&quot;;</span>
-<span class="fc" id="L59">    final String value = System.getProperty(impParam, &quot;spf4j&quot;);</span>
-<span class="pc bpc" id="L60" title="3 of 4 branches missed.">    switch (value) {</span>
+<span class="fc" id="L54">    final int coreThreads = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.coreThreads&quot;, 0);</span>
+<span class="fc" id="L55">    final int maxIdleMillis = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.maxIdleMillis&quot;, 60000);</span>
+<span class="fc" id="L56">    final boolean isDaemon = Boolean.getBoolean(&quot;spf4j.executors.defaultExecutor.daemon&quot;);</span>
+<span class="fc" id="L57">    final String impParam = &quot;spf4j.executors.defaultExecutor.implementation&quot;;</span>
+<span class="fc" id="L58">    final String value = System.getProperty(impParam, &quot;spf4j&quot;);</span>
+<span class="pc bpc" id="L59" title="3 of 4 branches missed.">    switch (value) {</span>
       case &quot;spf4j&quot;:
-<span class="fc" id="L62">        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
+<span class="fc" id="L61">        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
                 Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon,
-<span class="fc" id="L64">                Integer.getInteger(&quot;spf4j.executors.defaultExecutor.spinlockCount&quot;,</span>
+<span class="fc" id="L63">                Integer.getInteger(&quot;spf4j.executors.defaultExecutor.spinlockCount&quot;,</span>
                         1024));
-<span class="fc" id="L66">        lifoExec.exportJmx();</span>
-<span class="fc" id="L67">        INSTANCE = lifoExec;</span>
-<span class="fc" id="L68">        break;</span>
+<span class="fc" id="L65">        lifoExec.exportJmx();</span>
+<span class="fc" id="L66">        INSTANCE = lifoExec;</span>
+<span class="fc" id="L67">        break;</span>
       case &quot;fjp&quot;: // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
-<span class="nc" id="L70">        INSTANCE = new ForkJoinPool(32767);</span>
-<span class="nc" id="L71">        break;</span>
+<span class="nc" id="L69">        INSTANCE = new ForkJoinPool(32767);</span>
+<span class="nc" id="L70">        break;</span>
       case &quot;legacy&quot;:
-<span class="nc" id="L73">        INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
+<span class="nc" id="L72">        INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,</span>
                 new SynchronousQueue&lt;Runnable&gt;(), new CustomThreadFactory(&quot;DefaultExecutor&quot;, isDaemon));
-<span class="nc" id="L75">        break;</span>
+<span class="nc" id="L74">        break;</span>
       default:
-<span class="nc" id="L77">        throw new IllegalArgumentException(&quot;Ivalid setting for &quot; + impParam + &quot; = &quot; + value);</span>
+<span class="nc" id="L76">        throw new IllegalArgumentException(&quot;Ivalid setting for &quot; + impParam + &quot; = &quot; + value);</span>
     }
-
-<span class="fc" id="L80">    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
+<span class="fc" id="L78">    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
 
       @Override
       public void doRun() throws InterruptedException {
-<span class="fc" id="L84">        INSTANCE.shutdown();</span>
-<span class="fc" id="L85">        INSTANCE.awaitTermination(WAIT_FOR_SHUTDOWN_MILLIS, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L86">        List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (remaining.size() &gt; 0) {</span>
-<span class="nc" id="L88">          org.spf4j.base.Runtime.error(&quot;Remaining tasks: &quot; + remaining);</span>
+<span class="fc" id="L82">        INSTANCE.shutdown();</span>
+<span class="fc" id="L83">        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L84">        List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (remaining.size() &gt; 0) {</span>
+<span class="nc" id="L86">          org.spf4j.base.Runtime.error(&quot;Remaining tasks: &quot; + remaining);</span>
         }
-<span class="fc" id="L90">      }</span>
+<span class="fc" id="L88">      }</span>
     });
-<span class="fc" id="L92">  }</span>
+<span class="fc" id="L90">  }</span>
 
   private DefaultExecutor() {
+  }
+
+  public static ExecutorService instance() {
+<span class="fc" id="L96">    return INSTANCE;</span>
   }
 
 }

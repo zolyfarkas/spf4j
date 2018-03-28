@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,9 +48,12 @@ import org.spf4j.base.Callables.TimeoutRetryPredicate;
  * Utility class for executing stuff with retry logic.
  *
  * @author zoly
+ * @deprecated use RetryPolicy &amp; co.
  */
 @ParametersAreNonnullByDefault
 @Beta
+@Deprecated
+@SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;)
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class CallablesNano {
 
@@ -60,7 +64,7 @@ public final class CallablesNano {
           final int nrImmediateRetries,
           final long maxRetryWaitNanos, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L63">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+<span class="nc" id="L67">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
             (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
   }
@@ -71,7 +75,7 @@ public final class CallablesNano {
           final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L74">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
+<span class="nc" id="L78">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitNanos,</span>
             (TimeoutNanoRetryPredicate&lt;? super T, T&gt;) TimeoutNanoRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
@@ -97,23 +101,23 @@ public final class CallablesNano {
           final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L100">    final long deadline = what.getDeadline();</span>
-<span class="fc" id="L101">    return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+<span class="nc" id="L104">    final long deadline = what.getDeadline();</span>
+<span class="nc" id="L105">    return Callables.executeWithRetry(what, new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
             new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
                     maxWaitNanos / 100, maxWaitNanos, Callables::rootClass, deadline,
-<span class="fc" id="L104">                    () -&gt; System.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
+<span class="nc" id="L108">                    () -&gt; TimeSource.nanoTime(), TimeUnit.NANOSECONDS), exceptionClass);</span>
   }
 
   public static long toDeadlineNanos(final long timeoutNanos) {
-<span class="fc" id="L108">    long nanoTime = System.nanoTime();</span>
-<span class="fc" id="L109">    return Callables.overflowSafeAdd(nanoTime, timeoutNanos);</span>
+<span class="nc" id="L112">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="nc" id="L113">    return Callables.overflowSafeAdd(nanoTime, timeoutNanos);</span>
   }
 
   public abstract static class NanoTimeoutCallable&lt;T, EX extends Exception&gt; extends TimeoutCallable&lt;T, EX&gt; {
 
     public NanoTimeoutCallable(final long timeoutNanos) {
-<span class="fc" id="L115">      super(toDeadlineNanos(timeoutNanos));</span>
-<span class="fc" id="L116">    }</span>
+<span class="nc" id="L119">      super(toDeadlineNanos(timeoutNanos));</span>
+<span class="nc" id="L120">    }</span>
 
     /**
      * @param deadline System.nanoTime deadline.
@@ -127,13 +131,13 @@ public final class CallablesNano {
           final TimeoutNanoRetryPredicate&lt;Exception, T&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L130">    return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);</span>
+<span class="nc" id="L134">    return Callables.executeWithRetry(what, retryOnReturnVal, retryOnException, exceptionClass);</span>
   }
 
   public static &lt;T, EX extends Exception&gt; T executeWithRetry(final NanoTimeoutCallable&lt;T, EX&gt; what,
           final TimeoutNanoRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L136">    return Callables.executeWithRetry(what,</span>
+<span class="nc" id="L140">    return Callables.executeWithRetry(what,</span>
             (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
@@ -143,12 +147,12 @@ public final class CallablesNano {
     @Override
     Callables.RetryDecision&lt;R&gt; getDecision(T value, long deadlineNanos, Callable&lt;R&gt; what);
 
-<span class="fc" id="L146">    TimeoutNanoRetryPredicate NORETRY_FOR_RESULT = new TimeoutNanoRetryPredicate&lt;Object, Object&gt;() {</span>
+<span class="nc" id="L150">    TimeoutNanoRetryPredicate NORETRY_FOR_RESULT = new TimeoutNanoRetryPredicate&lt;Object, Object&gt;() {</span>
 
       @Override
       public Callables.RetryDecision&lt;Object&gt; getDecision(final Object value,
               final long deadline, final Callable&lt;Object&gt; what) {
-<span class="fc" id="L151">        return Callables.RetryDecision.abort();</span>
+<span class="nc" id="L155">        return Callables.RetryDecision.abort();</span>
       }
 
     };

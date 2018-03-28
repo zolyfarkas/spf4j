@@ -37,6 +37,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import javax.management.MBeanParameterInfo;
 
 import javax.management.openmbean.OpenDataException;
@@ -68,110 +69,111 @@ public final class GenericExportedOperation implements ExportedOperation {
           final Invocation invocation, final Type[] parameterTypes, final Type returnType,
           final String[] parameterNames, final String[] parameterDescriptions,
           final boolean[] mapOpenTypeParam,
-<span class="fc" id="L71">          final boolean mapOpenType) {</span>
-<span class="fc" id="L72">    this.name = name;</span>
-<span class="fc" id="L73">    this.description = description;</span>
-<span class="fc" id="L74">    this.invocation = invocation;</span>
-<span class="fc" id="L75">    this.returnType = returnType;</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">    if (mapOpenType) {</span>
+<span class="fc" id="L72">          final boolean mapOpenType) {</span>
+<span class="fc" id="L73">    this.name = name;</span>
+<span class="fc" id="L74">    this.description = description;</span>
+<span class="fc" id="L75">    this.invocation = invocation;</span>
+<span class="fc" id="L76">    this.returnType = returnType;</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (mapOpenType) {</span>
       try {
-<span class="fc" id="L78">        resultConverter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);</span>
-<span class="nc" id="L79">      } catch (NotSerializableException ex) {</span>
-<span class="nc" id="L80">        throw new UnsupportedOperationException(&quot;Cannot export &quot; + name</span>
+<span class="fc" id="L79">        resultConverter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(returnType);</span>
+<span class="nc" id="L80">      } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L81">        throw new UnsupportedOperationException(&quot;Cannot export &quot; + name</span>
                 + &quot; returned type &quot; + returnType + &quot;  not serializable&quot;, ex);
-<span class="fc" id="L82">      }</span>
+<span class="fc" id="L83">      }</span>
     } else {
-<span class="nc" id="L84">      resultConverter = null;</span>
+<span class="nc" id="L85">      resultConverter = null;</span>
     }
-<span class="fc" id="L86">    argConverters = new JMXBeanMapping[parameterTypes.length];</span>
-<span class="fc" id="L87">    paramInfos = new MBeanParameterInfo[parameterTypes.length];</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">    for (int i = 0; i &lt; paramInfos.length; i++) {</span>
-<span class="fc" id="L89">      String pname = parameterNames[i];</span>
-<span class="fc" id="L90">      String pdesc = parameterDescriptions[i];</span>
-<span class="fc" id="L91">      boolean mapParamOpenType = mapOpenTypeParam[i];</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">      if (&quot;&quot;.equals(pname)) {</span>
-<span class="nc" id="L93">        pname = &quot;param_&quot; + i;</span>
+<span class="fc" id="L87">    argConverters = new JMXBeanMapping[parameterTypes.length];</span>
+<span class="fc" id="L88">    paramInfos = new MBeanParameterInfo[parameterTypes.length];</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    for (int i = 0; i &lt; paramInfos.length; i++) {</span>
+<span class="fc" id="L90">      String pname = parameterNames[i];</span>
+<span class="fc" id="L91">      String pdesc = parameterDescriptions[i];</span>
+<span class="fc" id="L92">      boolean mapParamOpenType = mapOpenTypeParam[i];</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">      if (&quot;&quot;.equals(pname)) {</span>
+<span class="nc" id="L94">        pname = &quot;param_&quot; + i;</span>
       }
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">      if (pdesc.isEmpty()) {</span>
-<span class="nc" id="L96">        pdesc = name;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">      if (pdesc.isEmpty()) {</span>
+<span class="nc" id="L97">        pdesc = name;</span>
       }
-<span class="fc" id="L98">      Type parameterType = parameterTypes[i];</span>
+<span class="fc" id="L99">      Type parameterType = parameterTypes[i];</span>
 
       JMXBeanMapping paramOTM;
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">      if (mapParamOpenType) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">      if (mapParamOpenType) {</span>
         try {
-<span class="fc" id="L103">          paramOTM = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);</span>
-<span class="nc" id="L104">        } catch (NotSerializableException ex) {</span>
-<span class="nc" id="L105">          throw new UnsupportedOperationException(&quot;Cannot export &quot;</span>
-<span class="nc" id="L106">                  + name + &quot; arg &quot; + i + &quot; not serializable from &quot; + Arrays.toString(parameterTypes), ex);</span>
-<span class="fc" id="L107">        }</span>
+<span class="fc" id="L104">          paramOTM = GlobalMXBeanMapperSupplier.getOpenTypeMapping(parameterType);</span>
+<span class="nc" id="L105">        } catch (NotSerializableException ex) {</span>
+<span class="nc" id="L106">          throw new UnsupportedOperationException(&quot;Cannot export &quot;</span>
+<span class="nc" id="L107">                  + name + &quot; arg &quot; + i + &quot; not serializable from &quot; + Arrays.toString(parameterTypes), ex);</span>
+<span class="fc" id="L108">        }</span>
       } else {
-<span class="nc" id="L109">        paramOTM = null;</span>
+<span class="nc" id="L110">        paramOTM = null;</span>
       }
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">      if (paramOTM != null) {</span>
-<span class="fc" id="L112">        paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, paramOTM.getOpenType());</span>
-<span class="fc" id="L113">        argConverters[i] = paramOTM;</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">      if (paramOTM != null) {</span>
+<span class="fc" id="L113">        paramInfos[i] = new OpenMBeanParameterInfoSupport(pname, pdesc, paramOTM.getOpenType());</span>
+<span class="fc" id="L114">        argConverters[i] = paramOTM;</span>
       } else {
-<span class="nc" id="L115">        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);</span>
-<span class="nc" id="L116">        argConverters[i] = null;</span>
+<span class="nc" id="L116">        paramInfos[i] = new MBeanParameterInfo(pname, parameterType.getTypeName(), pdesc);</span>
+<span class="nc" id="L117">        argConverters[i] = null;</span>
       }
     }
-<span class="fc" id="L119">  }</span>
+<span class="fc" id="L120">  }</span>
 
   @Override
   public String getName() {
-<span class="fc" id="L123">    return name;</span>
+<span class="fc" id="L124">    return name;</span>
   }
 
   @Override
   public String getDescription() {
-<span class="fc" id="L128">    return description;</span>
+<span class="fc" id="L129">    return description;</span>
   }
 
   @Override
   public Object invoke(final Object[] parameters) throws OpenDataException, InvalidObjectException {
-<span class="fc bfc" id="L133" title="All 2 branches covered.">    for (int i = 0; i &lt; parameters.length; i++) {</span>
-<span class="fc" id="L134">      JMXBeanMapping argConverter = argConverters[i];</span>
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">      if (argConverter != null) {</span>
-<span class="fc" id="L136">        parameters[i] = argConverter.fromOpenValue(parameters[i]);</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">    for (int i = 0; i &lt; parameters.length; i++) {</span>
+<span class="fc" id="L135">      JMXBeanMapping argConverter = argConverters[i];</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">      if (argConverter != null) {</span>
+<span class="fc" id="L137">        parameters[i] = argConverter.fromOpenValue(parameters[i]);</span>
       }
     }
     try {
-<span class="fc" id="L140">      Object rVal = invocation.invoke(parameters);</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">      if (resultConverter != null) {</span>
-<span class="fc" id="L142">        return resultConverter.toOpenValue(rVal);</span>
+<span class="fc" id="L141">      Object rVal = invocation.invoke(parameters);</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">      if (resultConverter != null) {</span>
+<span class="fc" id="L143">        return resultConverter.toOpenValue(rVal);</span>
       } else {
-<span class="nc" id="L144">        return rVal;</span>
+<span class="nc" id="L145">        return rVal;</span>
       }
-<span class="nc" id="L146">    } catch (Exception ex) {</span>
-<span class="nc" id="L147">      OpenDataException x</span>
-<span class="nc" id="L148">              = new OpenDataException(&quot;Cannot invoke &quot; + invocation + &quot; with &quot; + Arrays.toString(parameters));</span>
-<span class="nc" id="L149">      x.addSuppressed(ex);</span>
-<span class="nc" id="L150">      throw x;</span>
+<span class="nc" id="L147">    } catch (Exception ex) {</span>
+<span class="nc" id="L148">      OpenDataException x</span>
+<span class="nc" id="L149">              = new OpenDataException(&quot;Cannot invoke &quot; + invocation + &quot; with &quot; + Arrays.toString(parameters));</span>
+<span class="nc" id="L150">      x.addSuppressed(ex);</span>
+<span class="nc" id="L151">      throw x;</span>
     }
   }
 
   @Override
   @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public MBeanParameterInfo[] getParameterInfos() {
-<span class="fc" id="L157">    return paramInfos;</span>
+<span class="fc" id="L158">    return paramInfos;</span>
   }
 
   @Override
   public Class&lt;?&gt; getReturnType() {
-<span class="fc" id="L162">    return TypeToken.of(this.returnType).getRawType();</span>
+<span class="fc" id="L163">    return TypeToken.of(this.returnType).getRawType();</span>
   }
 
   @Override
+  @Nullable
   public OpenType&lt;?&gt; getReturnOpenType() {
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">    return (resultConverter != null) ? resultConverter.getOpenType() : null;</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">    return (resultConverter != null) ? resultConverter.getOpenType() : null;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L172">    return &quot;GenericExportedOperation{&quot; + &quot;name=&quot; + name + &quot;, description=&quot; + description</span>
-<span class="nc" id="L173">            + &quot;, invocation=&quot; + invocation + &quot;, paramInfos=&quot; + Arrays.toString(paramInfos) + &quot;, argConverters=&quot;</span>
-<span class="nc" id="L174">            + Arrays.toString(argConverters) + &quot;, resultConverter=&quot; + resultConverter</span>
+<span class="nc" id="L174">    return &quot;GenericExportedOperation{&quot; + &quot;name=&quot; + name + &quot;, description=&quot; + description</span>
+<span class="nc" id="L175">            + &quot;, invocation=&quot; + invocation + &quot;, paramInfos=&quot; + Arrays.toString(paramInfos) + &quot;, argConverters=&quot;</span>
+<span class="nc" id="L176">            + Arrays.toString(argConverters) + &quot;, resultConverter=&quot; + resultConverter</span>
             + &quot;, returnType=&quot; + returnType + '}';
   }
 

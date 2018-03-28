@@ -65,7 +65,6 @@ import org.spf4j.jmx.Registry;
 import org.spf4j.os.ProcessHandler;
 import org.spf4j.os.ProcessResponse;
 import org.spf4j.recyclable.impl.ArraySuppliers;
-import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.unix.JVMArguments;
 import org.spf4j.unix.Lsof;
 import org.spf4j.unix.UnixRuntime;
@@ -76,8 +75,9 @@ import org.spf4j.unix.UnixRuntime;
  */
 public final class Runtime {
 
-<span class="fc" id="L79">  public static final boolean IS_LITTLE_ENDIAN = &quot;little&quot;.equals(System.getProperty(&quot;sun.cpu.endian&quot;));</span>
-<span class="fc" id="L80">  public static final int WAIT_FOR_SHUTDOWN_MILLIS = Integer.getInteger(&quot;spf4j.waitForShutdownMillis&quot;, 30000);</span>
+<span class="fc" id="L78">  public static final boolean IS_LITTLE_ENDIAN = &quot;little&quot;.equals(System.getProperty(&quot;sun.cpu.endian&quot;));</span>
+<span class="fc" id="L79">  public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(</span>
+<span class="fc" id="L80">          Integer.getInteger(&quot;spf4j.waitForShutdownMillis&quot;, 30000));</span>
 <span class="fc" id="L81">  public static final String TMP_FOLDER = System.getProperty(&quot;java.io.tmpdir&quot;);</span>
 <span class="fc" id="L82">  public static final String JAVA_VERSION = System.getProperty(&quot;java.version&quot;);</span>
 <span class="fc" id="L83">  public static final String USER_NAME = System.getProperty(&quot;user.name&quot;);</span>
@@ -139,7 +139,7 @@ public final class Runtime {
 <span class="fc" id="L139">    IS_WINDOWS = osName.startsWith(&quot;Windows&quot;);</span>
 <span class="fc" id="L140">    final boolean dumpNonDaemonThreadInfoOnShutdown = Boolean.getBoolean(&quot;spf4j.dumpNonDaemonThreadInfoOnShutdown&quot;);</span>
 <span class="pc bpc" id="L141" title="1 of 2 branches missed.">    if (dumpNonDaemonThreadInfoOnShutdown) { // prime class...</span>
-<span class="nc" id="L142">      PRELOADED.add(FastStackCollector.class);</span>
+<span class="nc" id="L142">      PRELOADED.add(Threads.class);</span>
     }
 <span class="fc" id="L144">    runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {</span>
       @Override
@@ -174,10 +174,10 @@ public final class Runtime {
 <span class="fc" id="L174">              thread.start();</span>
 <span class="fc" id="L175">              threads[i++] = thread;</span>
 <span class="fc" id="L176">            }</span>
-<span class="fc" id="L177">            long deadline = System.currentTimeMillis() + WAIT_FOR_SHUTDOWN_MILLIS;</span>
+<span class="fc" id="L177">            long deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;</span>
 <span class="fc bfc" id="L178" title="All 2 branches covered.">            for (Thread thread : threads) {</span>
               try {
-<span class="fc" id="L180">                thread.join(deadline - System.currentTimeMillis());</span>
+<span class="fc" id="L180">                thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));</span>
 <span class="nc" id="L181">              } catch (InterruptedException ex) {</span>
 <span class="nc bnc" id="L182" title="All 2 branches missed.">                if (rex == null) {</span>
 <span class="nc" id="L183">                  rex = ex;</span>
@@ -206,7 +206,7 @@ public final class Runtime {
 <span class="fc" id="L206">        }</span>
         // print out info on all remaining non daemon threads.
 <span class="pc bpc" id="L208" title="1 of 2 branches missed.">        if (dumpNonDaemonThreadInfoOnShutdown) {</span>
-<span class="nc" id="L209">          Thread[] threads = FastStackCollector.getThreads();</span>
+<span class="nc" id="L209">          Thread[] threads = Threads.getThreads();</span>
 <span class="nc" id="L210">          Thread current = Thread.currentThread();</span>
 <span class="nc" id="L211">          boolean first = true;</span>
 <span class="nc bnc" id="L212" title="All 2 branches missed.">          for (Thread thread : threads) {</span>
@@ -293,7 +293,7 @@ public final class Runtime {
   }
 
   public static boolean isTestFramework() {
-<span class="nc" id="L296">    StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(FastStackCollector.getThreads());</span>
+<span class="nc" id="L296">    StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());</span>
 <span class="nc bnc" id="L297" title="All 2 branches missed.">    for (StackTraceElement[] sts : stackTraces) {</span>
 <span class="nc bnc" id="L298" title="All 2 branches missed.">      if (sts != null) {</span>
 <span class="nc bnc" id="L299" title="All 2 branches missed.">        for (StackTraceElement ste : sts) {</span>
@@ -494,10 +494,10 @@ public final class Runtime {
   @SuppressFBWarnings
   public static boolean gc(final long timeoutMillis) {
 <span class="fc" id="L496">    WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(new Object());</span>
-<span class="fc" id="L497">    long deadline = System.currentTimeMillis() + timeoutMillis;</span>
+<span class="fc" id="L497">    long deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
     do {
 <span class="fc" id="L499">      System.gc();</span>
-<span class="pc bpc" id="L500" title="3 of 4 branches missed.">    } while (ref.get() != null &amp;&amp; System.currentTimeMillis() &lt; deadline);</span>
+<span class="pc bpc" id="L500" title="3 of 4 branches missed.">    } while (ref.get() != null &amp;&amp; TimeSource.nanoTime() &lt; deadline);</span>
 <span class="pc bpc" id="L501" title="1 of 2 branches missed.">    return ref.get() == null;</span>
   }
 
@@ -532,7 +532,7 @@ public final class Runtime {
    */
   @Nullable
   public static Thread getMainThread() {
-<span class="fc" id="L535">    Thread[] threads = FastStackCollector.getThreads();</span>
+<span class="fc" id="L535">    Thread[] threads = Threads.getThreads();</span>
 <span class="pc bpc" id="L536" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
 <span class="fc bfc" id="L537" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
 <span class="fc" id="L538">        return t;</span>

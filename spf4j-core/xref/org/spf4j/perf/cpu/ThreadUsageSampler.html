@@ -51,13 +51,13 @@
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ScheduledFuture;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.DefaultScheduler;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.spf4j.io.ByteArrayBuilder;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JmxExport;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.Registry;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.spf4j.perf.MeasurementRecorder;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.spf4j.perf.impl.RecorderFactory;
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.FastStackCollector;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Threads;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.DefaultScheduler;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.spf4j.io.ByteArrayBuilder;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JmxExport;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.Registry;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.spf4j.perf.MeasurementRecorder;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.spf4j.perf.impl.RecorderFactory;
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>  
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment"> *</em>
@@ -134,8 +134,8 @@
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>   @JmxExport
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getCurrentAliveThreadInfo() {
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>     StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder(2048);
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>     Thread[] threads = FastStackCollector.getThreads();
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>     StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(threads);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>     Thread[] threads = Threads.getThreads();
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     StackTraceElement[][] stackTraces = Threads.getStackTraces(threads);
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; threads.length; i++) {
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>       Thread t = threads[i];
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>       <strong class="jxr_keyword">if</strong> (t.isAlive()) {
@@ -175,10 +175,10 @@
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> peakThreadCount = TH_BEAN.getPeakThreadCount();
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>           cpuUsage.record(peakThreadCount);
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>           <strong class="jxr_keyword">if</strong> (peakThreadCount &gt; maxThreadsNr) {
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>             Thread[] ths = FastStackCollector.getThreads();
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             Thread[] ths = Threads.getThreads();
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>             <strong class="jxr_keyword">if</strong> (ths.length &gt; PEAK_THREAD_NAMES.size()) {
 <a class="jxr_linenumber" name="L172" href="#L172">172</a>               <strong class="jxr_keyword">if</strong> (withStackTraces) {
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 StackTraceElement[][] stackTraces = FastStackCollector.getStackTraces(ths);
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 StackTraceElement[][] stackTraces = Threads.getStackTraces(ths);
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>                 PEAK_THREAD_TRACES.clear();
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>                 PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>               }

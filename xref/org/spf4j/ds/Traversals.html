@@ -40,10 +40,10 @@
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.ds;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.Sets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayDeque;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.Deque;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.HashSet;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> gnu.trove.set.hash.THashSet;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayDeque;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.Deque;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.PriorityQueue;
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.Queue;
@@ -65,7 +65,7 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> &lt;V, E&gt; <strong class="jxr_keyword">void</strong> traverse(<strong class="jxr_keyword">final</strong> Graph&lt;V, E&gt; graph, <strong class="jxr_keyword">final</strong> V startNode,
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>              <strong class="jxr_keyword">final</strong> TraversalCallback&lt;V, E&gt; handler, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> isBreadth) {
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          Set&lt;V&gt; traversedNodes = <strong class="jxr_keyword">new</strong> HashSet&lt;V&gt;(graph.getVertices().size());
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          Set&lt;V&gt; traversedNodes = <strong class="jxr_keyword">new</strong> THashSet&lt;V&gt;(graph.getVertices().size());
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>          Deque&lt;V&gt; traversalQueue = <strong class="jxr_keyword">new</strong> ArrayDeque&lt;V&gt;();
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>          traversalQueue.add(startNode);
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">boolean</strong> done = false;
@@ -192,7 +192,7 @@
 <a class="jxr_linenumber" name="L184" href="#L184">184</a> 
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> &lt;V, E&gt; <strong class="jxr_keyword">void</strong> customTraverse(<strong class="jxr_keyword">final</strong> Graph&lt;V, E&gt; graph, <strong class="jxr_keyword">final</strong> V startNode,
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>             <strong class="jxr_keyword">final</strong> TraversalCallback&lt;V, E&gt; handler) {
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>         Set&lt;V&gt; traversedNodes = <strong class="jxr_keyword">new</strong> HashSet&lt;V&gt;(graph.getVertices().size());
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         Set&lt;V&gt; traversedNodes = <strong class="jxr_keyword">new</strong> THashSet&lt;&gt;(graph.getVertices().size());
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>         Queue&lt;VertexHolder&lt;V&gt;&gt; traversalQueue = <strong class="jxr_keyword">new</strong> PriorityQueue&lt;VertexHolder&lt;V&gt;&gt;(16);
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>         <strong class="jxr_keyword">int</strong> counter = 0;
 <a class="jxr_linenumber" name="L190" href="#L190">190</a>         traversalQueue.add(<strong class="jxr_keyword">new</strong> VertexHolder&lt;V&gt;(startNode, counter++, 0));

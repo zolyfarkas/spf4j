@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Converters.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.avro</a> &gt; <span class="el_source">Converters.java</span></div><h1>Converters.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base.avro;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.PackageInfo;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public final class Converters {
+
+  private Converters() { }
+
+  public static JStackTraceElement convert(final StackTraceElement stackTrace) {
+<span class="fc" id="L50">    String className = stackTrace.getClassName();</span>
+<span class="fc" id="L51">    JStackTraceElement.Builder builder = JStackTraceElement.newBuilder()</span>
+<span class="fc" id="L52">            .setClassName(className)</span>
+<span class="fc" id="L53">            .setMethodName(stackTrace.getMethodName());</span>
+<span class="fc" id="L54">    String fileName = stackTrace.getFileName();</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (fileName != null) {</span>
+<span class="fc" id="L56">      builder.setLocation(new JFileLocation(fileName, stackTrace.getLineNumber()));</span>
+    }
+<span class="fc" id="L58">    PackageInfo packageInfo = PackageInfo.getPackageInfo(className);</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">    if (!packageInfo.equals(PackageInfo.NONE)) {</span>
+<span class="fc" id="L60">      builder.setPackageInfo(new JPackageInfo(packageInfo.getUrl(), packageInfo.getVersion()));</span>
+    }
+<span class="fc" id="L62">    return builder.build();</span>
+  }
+
+  public static List&lt;JStackTraceElement&gt; convert(final StackTraceElement[] stackTraces) {
+<span class="fc" id="L66">    int l = stackTraces.length;</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (l == 0) {</span>
+<span class="nc" id="L68">      return Collections.EMPTY_LIST;</span>
+    }
+<span class="fc" id="L70">    List&lt;JStackTraceElement&gt; result = new ArrayList&lt;&gt;(l);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (StackTraceElement st : stackTraces) {</span>
+<span class="fc" id="L72">      result.add(convert(st));</span>
+    }
+<span class="fc" id="L74">    return result;</span>
+  }
+
+  public static List&lt;JThrowable&gt; convert(final Throwable[] throwables) {
+<span class="fc" id="L78">    int l = throwables.length;</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">    if (l == 0) {</span>
+<span class="fc" id="L80">      return Collections.EMPTY_LIST;</span>
+    }
+<span class="nc" id="L82">    List&lt;JThrowable&gt; result = new ArrayList&lt;&gt;(l);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    for (Throwable t : throwables) {</span>
+<span class="nc" id="L84">      result.add(convert(t));</span>
+    }
+<span class="nc" id="L86">    return result;</span>
+  }
+
+  public static JThrowable convert(final Throwable throwable) {
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">    if (throwable instanceof RemoteException) {</span>
+<span class="nc" id="L91">          return JThrowable.newBuilder()</span>
+<span class="nc" id="L92">            .setClassName(throwable.getClass().getName())</span>
+<span class="nc" id="L93">            .setMessage(throwable.getMessage())</span>
+<span class="nc" id="L94">            .setStackTrace(convert(throwable.getStackTrace()))</span>
+<span class="nc" id="L95">            .setSuppressed(convert(throwable.getSuppressed()))</span>
+<span class="nc" id="L96">            .setCause(((RemoteException) throwable).getRemoteCause())</span>
+<span class="nc" id="L97">            .build();</span>
+    }
+<span class="fc" id="L99">    Throwable cause = throwable.getCause();</span>
+<span class="fc" id="L100">    return JThrowable.newBuilder()</span>
+<span class="fc" id="L101">            .setClassName(throwable.getClass().getName())</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">            .setMessage(throwable.getMessage())</span>
+<span class="fc" id="L103">            .setCause(cause == null ? null : convert(cause))</span>
+<span class="fc" id="L104">            .setStackTrace(convert(throwable.getStackTrace()))</span>
+<span class="fc" id="L105">            .setSuppressed(convert(throwable.getSuppressed()))</span>
+<span class="fc" id="L106">            .build();</span>
+  }
+
+  public static RemoteException convert(final String source, final JThrowable throwable) {
+<span class="nc" id="L110">    return new RemoteException(source, throwable);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -311,33 +311,31 @@
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> execute() <strong class="jxr_keyword">throws</strong> MojoExecutionException {
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>     File f = outputDirectory;
 <a class="jxr_linenumber" name="L305" href="#L305">305</a> 
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>     <strong class="jxr_keyword">if</strong> (!f.exists()) {
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>       <strong class="jxr_keyword">if</strong> (!f.mkdirs()) {
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Unable to create directory "</span> + outputDirectory);
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>       }
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>     }
-<a class="jxr_linenumber" name="L311" href="#L311">311</a> 
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>     File outFile = <strong class="jxr_keyword">new</strong> File(f, fileName);
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     getLog().info(<span class="jxr_string">"Creating avdl file at "</span> + outFile);
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>     <strong class="jxr_keyword">try</strong> (Writer w = <strong class="jxr_keyword">new</strong> OutputStreamWriter(<strong class="jxr_keyword">new</strong> FileOutputStream(outFile), encoding)) {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>       <strong class="jxr_keyword">if</strong> (namespace != <strong class="jxr_keyword">null</strong> &amp;&amp; !namespace.isEmpty()) {
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>         w.write(<span class="jxr_string">"@namespace(\&quot;"</span>);
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>         w.write(namespace);
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>         w.write(<span class="jxr_string">"\&quot;)\n"</span>);
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>       }
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>       w.write(<span class="jxr_string">"protocol  "</span>);
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>       w.write(rootRecordName);
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>       w.write(<span class="jxr_string">"Protocol"</span>);
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>       w.write(<span class="jxr_string">" {\n"</span>);
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>       Map&lt;String, Object&gt; record = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>       processClasses(classes, record);
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>       writeRecord(w, namespace, rootRecordName, record);
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>       w.write(<span class="jxr_string">"}\n"</span>);
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot generate config description"</span>, ex);
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>     }
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>   }
-<a class="jxr_linenumber" name="L332" href="#L332">332</a> }
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>     <strong class="jxr_keyword">if</strong> (!f.exists() &amp;&amp; !f.mkdirs()) {
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Unable to create directory "</span> + outputDirectory);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     }
+<a class="jxr_linenumber" name="L309" href="#L309">309</a> 
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     File outFile = <strong class="jxr_keyword">new</strong> File(f, fileName);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     getLog().info(<span class="jxr_string">"Creating avdl file at "</span> + outFile);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>     <strong class="jxr_keyword">try</strong> (Writer w = <strong class="jxr_keyword">new</strong> OutputStreamWriter(<strong class="jxr_keyword">new</strong> FileOutputStream(outFile), encoding)) {
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>       <strong class="jxr_keyword">if</strong> (namespace != <strong class="jxr_keyword">null</strong> &amp;&amp; !namespace.isEmpty()) {
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         w.write(<span class="jxr_string">"@namespace(\&quot;"</span>);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>         w.write(namespace);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>         w.write(<span class="jxr_string">"\&quot;)\n"</span>);
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>       }
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>       w.write(<span class="jxr_string">"protocol  "</span>);
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>       w.write(rootRecordName);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>       w.write(<span class="jxr_string">"Protocol"</span>);
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>       w.write(<span class="jxr_string">" {\n"</span>);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>       Map&lt;String, Object&gt; record = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>       processClasses(classes, record);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>       writeRecord(w, namespace, rootRecordName, record);
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>       w.write(<span class="jxr_string">"}\n"</span>);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot generate config description"</span>, ex);
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     }
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>   }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

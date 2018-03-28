@@ -85,7 +85,7 @@
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>    @Test
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testLifoExecSQMutable() <strong class="jxr_keyword">throws</strong> InterruptedException, IOException {
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>      MutableLifoThreadPoolExecutorSQP executor
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>              = <strong class="jxr_keyword">new</strong> MutableLifoThreadPoolExecutorSQP(<span class="jxr_string">"test"</span>, 2, 8, 20, 1024, 1024);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>              = <strong class="jxr_keyword">new</strong> MutableLifoThreadPoolExecutorSQP(<span class="jxr_string">"test"</span>, 2, 8, 20, 1024, 0);
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>      Sampler s = Sampler.getSampler(20, 10000, <strong class="jxr_keyword">new</strong> FastStackCollector(<strong class="jxr_keyword">true</strong>),
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>              <strong class="jxr_keyword">new</strong> File(org.spf4j.base.Runtime.TMP_FOLDER),
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>              <span class="jxr_string">"lifeTest1"</span>);
@@ -98,7 +98,7 @@
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>      LOG.info(<span class="jxr_string">"Cpu profile saved to {}"</span>, s.dumpToFile());
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      LOG.debug(<span class="jxr_string">"CPU time = {} ns"</span>, cpuTime);
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>      s.stop();
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Assert.assertTrue(<span class="jxr_string">"CPU Time = "</span> + cpuTime, cpuTime &lt; 1000000000); <em class="jxr_comment">// 6069497000 with bug  53945000 without bug</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      Assert.assertTrue(<span class="jxr_string">"CPU Time = "</span> + cpuTime, cpuTime &lt; 1500000000); <em class="jxr_comment">// 6069497000 with bug  53945000 without bug</em>
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>      executor.shutdown();
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>      executor.awaitTermination(1, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>    }

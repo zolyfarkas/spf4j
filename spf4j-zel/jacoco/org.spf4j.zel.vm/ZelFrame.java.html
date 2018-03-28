@@ -72,53 +72,56 @@ public final class ZelFrame implements Serializable {
 <span class="fc bfc" id="L72" title="All 2 branches covered.">    for (int i = 0; i &lt; instructions.length; i++) {</span>
 <span class="fc" id="L73">      ParsingContext.Location loc = debug[i];</span>
 <span class="fc" id="L74">      int lineNr = loc.getRow();</span>
-<span class="fc" id="L75">      StringBuilder existing = annotations[lineNr];</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">      if (existing == null) {</span>
-<span class="fc" id="L77">        existing = new StringBuilder();</span>
-<span class="fc" id="L78">        existing.append(&quot; /* &quot;).append(instructions[i]);</span>
-<span class="fc" id="L79">        annotations[lineNr] = existing;</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">      if (lineNr &lt; 0) {</span>
+<span class="nc" id="L76">        continue;</span>
+      }
+<span class="fc" id="L78">      StringBuilder existing = annotations[lineNr];</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">      if (existing == null) {</span>
+<span class="fc" id="L80">        existing = new StringBuilder();</span>
+<span class="fc" id="L81">        existing.append(&quot; /* &quot;).append(instructions[i]);</span>
+<span class="fc" id="L82">        annotations[lineNr] = existing;</span>
       } else {
-<span class="fc" id="L81">        existing.append(';').append(instructions[i]);</span>
+<span class="fc" id="L84">        existing.append(';').append(instructions[i]);</span>
       }
     }
-<span class="fc" id="L84">    StringBuilder result = new StringBuilder(source.length() * 2);</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">    for (int i = 0; i &lt; lines.length; i++) {</span>
-<span class="fc" id="L86">      result.append(lines[i]);</span>
-<span class="fc" id="L87">      StringBuilder annotation = annotations[i];</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">      if (annotation != null) {</span>
-<span class="fc" id="L89">        result.append(annotation).append(&quot; */\n&quot;);</span>
+<span class="fc" id="L87">    StringBuilder result = new StringBuilder(source.length() * 2);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    for (int i = 0; i &lt; lines.length; i++) {</span>
+<span class="fc" id="L89">      result.append(lines[i]);</span>
+<span class="fc" id="L90">      StringBuilder annotation = annotations[i];</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">      if (annotation != null) {</span>
+<span class="fc" id="L92">        result.append(annotation).append(&quot; */\n&quot;);</span>
       } else {
-<span class="fc" id="L91">        result.append('\n');</span>
+<span class="fc" id="L94">        result.append('\n');</span>
       }
     }
-<span class="fc" id="L94">    SOURCES.put(id, result);</span>
-<span class="fc" id="L95">  }</span>
+<span class="fc" id="L97">    SOURCES.put(id, result);</span>
+<span class="fc" id="L98">  }</span>
 
   public static CharSequence getDetail(final String id) {
-<span class="nc" id="L98">    return SOURCES.get(id);</span>
+<span class="nc" id="L101">    return SOURCES.get(id);</span>
   }
 
-<span class="fc" id="L101">  public ZelFrame(final String programName, final String source, final int index) {</span>
-<span class="fc" id="L102">    this.programName = programName;</span>
-<span class="fc" id="L103">    this.index = index;</span>
-<span class="fc" id="L104">    this.source = source;</span>
-<span class="fc" id="L105">  }</span>
+<span class="fc" id="L104">  public ZelFrame(final String programName, final String source, final int index) {</span>
+<span class="fc" id="L105">    this.programName = programName;</span>
+<span class="fc" id="L106">    this.index = index;</span>
+<span class="fc" id="L107">    this.source = source;</span>
+<span class="fc" id="L108">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L109">    return programName + '(' + source + ':' + index + ')';</span>
+<span class="nc" id="L112">    return programName + '(' + source + ':' + index + ')';</span>
   }
 
   public String getProgramName() {
-<span class="nc" id="L113">    return programName;</span>
+<span class="nc" id="L116">    return programName;</span>
   }
 
   public String getSource() {
-<span class="nc" id="L117">    return source;</span>
+<span class="nc" id="L120">    return source;</span>
   }
 
   public int getIndex() {
-<span class="nc" id="L121">    return index;</span>
+<span class="nc" id="L124">    return index;</span>
   }
 
 }

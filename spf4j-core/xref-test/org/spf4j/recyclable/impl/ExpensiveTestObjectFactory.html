@@ -42,7 +42,7 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.spf4j.recyclable.ObjectDisposeException;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.spf4j.recyclable.RecyclingSupplier;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.http.ConnectionClosedException;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.nio.channels.ClosedChannelException;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> *</em>
@@ -78,7 +78,7 @@
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> dispose(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/recyclable/impl/ExpensiveTestObject.html">ExpensiveTestObject</a> object) <strong class="jxr_keyword">throws</strong> ObjectDisposeException {
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>          <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>              object.close();
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          } <strong class="jxr_keyword">catch</strong> (ConnectionClosedException ex) {
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          } <strong class="jxr_keyword">catch</strong> (ClosedChannelException ex) {
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>            <em class="jxr_comment">// connection is already closed.</em>
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>          } <strong class="jxr_keyword">catch</strong> (IOException ex) {
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ObjectDisposeException(ex);

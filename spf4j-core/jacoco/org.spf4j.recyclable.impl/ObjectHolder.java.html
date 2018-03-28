@@ -79,96 +79,97 @@ public final class ObjectHolder&lt;T&gt; {
 <span class="fc" id="L79">    return obj;</span>
   }
 
+  @Nullable
   public synchronized T borrowOrCreateObjectIfPossible() throws ObjectCreationException {
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">    if (borrowed) {</span>
-<span class="nc" id="L84">      return null;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    if (borrowed) {</span>
+<span class="nc" id="L85">      return null;</span>
     }
-<span class="fc bfc" id="L86" title="All 2 branches covered.">    if (obj == null) {</span>
-<span class="fc" id="L87">      obj = factory.create();</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">    if (obj == null) {</span>
+<span class="fc" id="L88">      obj = factory.create();</span>
     }
-<span class="fc" id="L89">    borrowed = true;</span>
-<span class="fc" id="L90">    return obj;</span>
+<span class="fc" id="L90">    borrowed = true;</span>
+<span class="fc" id="L91">    return obj;</span>
   }
 
   @Nullable
   public synchronized T borrowObjectIfAvailable() {
-<span class="nc bnc" id="L95" title="All 4 branches missed.">    if (borrowed || obj == null) {</span>
-<span class="nc" id="L96">      return null;</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">    if (borrowed || obj == null) {</span>
+<span class="nc" id="L97">      return null;</span>
     }
-<span class="nc" id="L98">    borrowed = true;</span>
-<span class="nc" id="L99">    return obj;</span>
+<span class="nc" id="L99">    borrowed = true;</span>
+<span class="nc" id="L100">    return obj;</span>
   }
 
   public synchronized void returnObject(final T object, @Nullable final Exception e) {
-<span class="pc bpc" id="L103" title="2 of 4 branches missed.">    if (!borrowed || object != obj) {</span>
-<span class="nc" id="L104">      throw new IllegalStateException(&quot;Cannot return something that was &quot;</span>
+<span class="pc bpc" id="L104" title="2 of 4 branches missed.">    if (!borrowed || object != obj) {</span>
+<span class="nc" id="L105">      throw new IllegalStateException(&quot;Cannot return something that was &quot;</span>
               + &quot;not borrowed from here &quot; + object);
     }
-<span class="fc" id="L107">    borrowed = false;</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">    if (e != null) {</span>
+<span class="fc" id="L108">    borrowed = false;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">    if (e != null) {</span>
       boolean isValid;
-<span class="fc" id="L110">      Exception vex = null;</span>
+<span class="fc" id="L111">      Exception vex = null;</span>
       try {
-<span class="fc" id="L112">        isValid = factory.validate(object, e);</span>
-<span class="nc" id="L113">      } catch (Exception ex) {</span>
-<span class="nc" id="L114">        isValid = false;</span>
-<span class="nc" id="L115">        vex = ex;</span>
-<span class="fc" id="L116">      }</span>
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">      if (!isValid) {</span>
-<span class="fc" id="L118">        LOG.warn(&quot;Validation of {} failed, detail {}&quot;, obj, vex, e);</span>
-<span class="fc" id="L119">        obj = null;</span>
+<span class="fc" id="L113">        isValid = factory.validate(object, e);</span>
+<span class="nc" id="L114">      } catch (Exception ex) {</span>
+<span class="nc" id="L115">        isValid = false;</span>
+<span class="nc" id="L116">        vex = ex;</span>
+<span class="fc" id="L117">      }</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">      if (!isValid) {</span>
+<span class="fc" id="L119">        LOG.warn(&quot;Validation of {} failed, detail {}&quot;, obj, vex, e);</span>
+<span class="fc" id="L120">        obj = null;</span>
         try {
-<span class="fc" id="L121">          factory.dispose(object);</span>
-<span class="fc" id="L122">        } catch (ObjectDisposeException ex1) {</span>
-<span class="fc" id="L123">          LOG.warn(&quot;Failed to dispose {}&quot;, object, ex1);</span>
-<span class="nc" id="L124">        } catch (RuntimeException ex1) {</span>
-<span class="nc" id="L125">          LOG.error(&quot;Failed to dispose {}&quot;, object, ex1);</span>
-<span class="fc" id="L126">        }</span>
+<span class="fc" id="L122">          factory.dispose(object);</span>
+<span class="fc" id="L123">        } catch (ObjectDisposeException ex1) {</span>
+<span class="fc" id="L124">          LOG.warn(&quot;Failed to dispose {}&quot;, object, ex1);</span>
+<span class="nc" id="L125">        } catch (RuntimeException ex1) {</span>
+<span class="nc" id="L126">          LOG.error(&quot;Failed to dispose {}&quot;, object, ex1);</span>
+<span class="fc" id="L127">        }</span>
       }
     }
-<span class="fc" id="L129">  }</span>
+<span class="fc" id="L130">  }</span>
 
   public synchronized void validateObjectIfNotBorrowed() throws ObjectDisposeException {
-<span class="pc bpc" id="L132" title="2 of 4 branches missed.">    if (!borrowed &amp;&amp; obj != null) {</span>
+<span class="pc bpc" id="L133" title="2 of 4 branches missed.">    if (!borrowed &amp;&amp; obj != null) {</span>
       boolean isValid;
-<span class="fc" id="L134">      Exception vex = null;</span>
+<span class="fc" id="L135">      Exception vex = null;</span>
       try {
-<span class="fc" id="L136">        isValid = factory.validate(obj, null);</span>
-<span class="nc" id="L137">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L138">        isValid = false;</span>
-<span class="fc" id="L139">      } catch (Exception ex) {</span>
-<span class="fc" id="L140">        isValid = false;</span>
-<span class="pc" id="L141">      }</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">      if (!isValid) {</span>
-<span class="fc" id="L143">        LOG.warn(&quot;Validation of {} failed, detail {} &quot;, obj, vex);</span>
-<span class="fc" id="L144">        T object = obj;</span>
-<span class="fc" id="L145">        obj = null;</span>
-<span class="nc" id="L146">        factory.dispose(object);</span>
+<span class="fc" id="L137">        isValid = factory.validate(obj, null);</span>
+<span class="nc" id="L138">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L139">        isValid = false;</span>
+<span class="fc" id="L140">      } catch (Exception ex) {</span>
+<span class="fc" id="L141">        isValid = false;</span>
+<span class="pc" id="L142">      }</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">      if (!isValid) {</span>
+<span class="fc" id="L144">        LOG.warn(&quot;Validation of {} failed, detail {} &quot;, obj, vex);</span>
+<span class="fc" id="L145">        T object = obj;</span>
+<span class="fc" id="L146">        obj = null;</span>
+<span class="nc" id="L147">        factory.dispose(object);</span>
       }
     }
-<span class="fc" id="L149">  }</span>
+<span class="fc" id="L150">  }</span>
 
   public synchronized boolean disposeIfNotBorrowed() throws ObjectDisposeException {
-<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    if (borrowed) {</span>
-<span class="nc" id="L153">      return false;</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">    if (borrowed) {</span>
+<span class="nc" id="L154">      return false;</span>
     }
-<span class="fc bfc" id="L155" title="All 2 branches covered.">    if (obj != null) {</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">    if (obj != null) {</span>
       try {
-<span class="fc" id="L157">        factory.dispose(obj);</span>
+<span class="fc" id="L158">        factory.dispose(obj);</span>
       } finally {
-<span class="fc" id="L159">        obj = null;</span>
+<span class="fc" id="L160">        obj = null;</span>
       }
     }
-<span class="fc" id="L162">    return true;</span>
+<span class="fc" id="L163">    return true;</span>
   }
 
   @Override
   public synchronized String toString() {
-<span class="fc" id="L167">    return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
+<span class="fc" id="L168">    return &quot;ObjectHolder{&quot; + &quot;obj=&quot; + obj + &quot;, borrowed=&quot; + borrowed + &quot;, factory=&quot; + factory + '}';</span>
   }
 
   public RecyclingSupplier.Factory&lt;T&gt; getFactory() {
-<span class="fc" id="L171">    return factory;</span>
+<span class="fc" id="L172">    return factory;</span>
   }
 
 

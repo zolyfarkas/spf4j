@@ -35,94 +35,127 @@ import com.google.common.annotations.Beta;
 import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The simplest execution context possible.
+ *
  * @author Zoltan Farkas
  */
 @ThreadSafe
-public abstract class BasicExecutionContext implements ExecutionContext {
+public class BasicExecutionContext implements ExecutionContext {
 
   private final String name;
 
   private final ExecutionContext parent;
 
+  private final long startTimeNanos;
+
   private final long deadlineNanos;
+
+  private final Runnable onClose;
 
   private Map&lt;Object, Object&gt; baggage;
 
+<span class="fc" id="L63">  private boolean isClosed = false;</span>
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-<span class="fc" id="L60">          final long deadlineNanos) {</span>
-<span class="fc" id="L61">    this.name = name;</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">    if (parent != null) {</span>
-<span class="fc" id="L63">      long parentDeadline = parent.getDeadlineNanos();</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
-<span class="nc" id="L65">        this.deadlineNanos = parentDeadline;</span>
+<span class="fc" id="L67">          final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {</span>
+<span class="fc" id="L68">    this.isClosed = false;</span>
+<span class="fc" id="L69">    this.name = name;</span>
+<span class="fc" id="L70">    this.onClose = onClose;</span>
+<span class="fc" id="L71">    this.startTimeNanos = startTimeNanos;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    if (parent != null) {</span>
+<span class="fc" id="L73">      long parentDeadline = parent.getDeadlineNanos();</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
+<span class="nc" id="L75">        this.deadlineNanos = parentDeadline;</span>
       } else {
-<span class="fc" id="L67">        this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L77">        this.deadlineNanos = deadlineNanos;</span>
       }
-<span class="fc" id="L69">    } else {</span>
-<span class="fc" id="L70">      this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L79">    } else {</span>
+<span class="fc" id="L80">      this.deadlineNanos = deadlineNanos;</span>
     }
-<span class="fc" id="L72">    this.parent = parent;</span>
-<span class="fc" id="L73">    this.baggage = Collections.EMPTY_MAP;</span>
-<span class="fc" id="L74">  }</span>
+<span class="fc" id="L82">    this.parent = parent;</span>
+<span class="fc" id="L83">    this.baggage = Collections.EMPTY_MAP;</span>
+<span class="fc" id="L84">  }</span>
 
-  public final  String getName() {
-<span class="nc" id="L77">    return name;</span>
+  public final String getName() {
+<span class="nc" id="L87">    return name;</span>
   }
 
   @Override
   public final long getDeadlineNanos() {
-<span class="fc" id="L82">    return deadlineNanos;</span>
+<span class="fc" id="L92">    return deadlineNanos;</span>
+  }
+
+  public final long getStartTimeNanos() {
+<span class="nc" id="L96">    return startTimeNanos;</span>
   }
 
   @Nullable
   @Beta
   @Override
   public final synchronized &lt;T&gt; T put(@Nonnull final Object key, @Nonnull final T data) {
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (baggage.isEmpty()) {</span>
-<span class="fc" id="L90">      baggage = new THashMap&lt;&gt;(2);</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">    if (baggage == Collections.EMPTY_MAP) {</span>
+<span class="fc" id="L104">      baggage = new THashMap&lt;&gt;(2);</span>
     }
-<span class="fc" id="L92">    return (T) baggage.put(key, data);</span>
+<span class="fc" id="L106">    return (T) baggage.put(key, data);</span>
   }
 
   @Nullable
   @Beta
   @Override
   public final synchronized Object get(@Nonnull final Object key) {
-<span class="fc" id="L99">    Object res = baggage.get(key);</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    if (res == null) {</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L102">        return parent.get(key);</span>
+<span class="fc" id="L113">    Object res = baggage.get(key);</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    if (res == null) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (parent != null) {</span>
+<span class="nc" id="L116">        return parent.get(key);</span>
       } else {
-<span class="nc" id="L104">        return null;</span>
+<span class="nc" id="L118">        return null;</span>
       }
     } else {
-<span class="fc" id="L107">      return res;</span>
+<span class="fc" id="L121">      return res;</span>
     }
   }
 
   @Override
-  public final ExecutionContext getParent() {
-<span class="fc" id="L113">    return parent;</span>
+  @Nullable
+  public final synchronized &lt;K, V&gt; V compute(@Nonnull final K key, final BiFunction&lt;K, V, V&gt; compute) {
+<span class="fc bfc" id="L128" title="All 2 branches covered.">    if (baggage == Collections.EMPTY_MAP) {</span>
+<span class="fc" id="L129">      baggage = new THashMap(2);</span>
+    }
+<span class="fc" id="L131">    return (V) baggage.compute(key, (BiFunction) compute);</span>
   }
+
+  @Override
+  public final ExecutionContext getParent() {
+<span class="fc" id="L136">    return parent;</span>
+  }
+
+  /**
+   * Close might be overridable to close any additional stuff added in the extendsd class.
+   */
+  @Override
+  public void close() {
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">    if (!isClosed) {</span>
+<span class="fc" id="L145">      onClose.run();</span>
+<span class="fc" id="L146">      isClosed = true;</span>
+    }
+<span class="fc" id="L148">  }</span>
 
   /**
    * Overwrite as needed for debug string.
    */
   @Override
   public String toString() {
-<span class="nc" id="L121">    return &quot;BasicExecutionContext{&quot; + &quot;name=&quot; + name + &quot;, parent=&quot;</span>
-<span class="nc" id="L122">            + parent + &quot;, deadline=&quot; + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)</span>
+<span class="nc" id="L155">    return &quot;BasicExecutionContext{&quot; + &quot;name=&quot; + name + &quot;, parent=&quot;</span>
+<span class="nc" id="L156">            + parent + &quot;, deadline=&quot; + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)</span>
             + &quot;, baggage=&quot; + baggage + '}';
   }
-
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

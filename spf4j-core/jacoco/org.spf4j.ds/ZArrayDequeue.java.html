@@ -52,6 +52,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Resizable-array implementation of the {@link Deque} interface. Array deques have no capacity restrictions; they grow
@@ -94,7 +95,7 @@ import javax.annotation.Nonnull;
  * @since 1.6
  * @param &lt;E&gt; the type of elements held in this collection
  */
-<span class="fc bfc" id="L97" title="All 2 branches covered.">public class ZArrayDequeue&lt;E&gt; extends AbstractCollection&lt;E&gt;</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">public class ZArrayDequeue&lt;E&gt; extends AbstractCollection&lt;E&gt;</span>
         implements Deque&lt;E&gt;, Cloneable, Serializable {
 
   /**
@@ -133,46 +134,46 @@ import javax.annotation.Nonnull;
    * @param numElements the number of elements to hold
    */
   private void allocateElements(int numElements) {
-<span class="fc" id="L136">    int initialCapacity = MIN_INITIAL_CAPACITY;</span>
+<span class="fc" id="L137">    int initialCapacity = MIN_INITIAL_CAPACITY;</span>
     // Find the best power of two to hold elements.
     // Tests &quot;&lt;=&quot; because arrays aren't kept full.
-<span class="fc bfc" id="L139" title="All 2 branches covered.">    if (numElements &gt;= initialCapacity) {</span>
-<span class="fc" id="L140">      initialCapacity = numElements;</span>
-<span class="fc" id="L141">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 1);</span>
-<span class="fc" id="L142">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 2);</span>
-<span class="fc" id="L143">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 4);</span>
-<span class="fc" id="L144">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 8);</span>
-<span class="fc" id="L145">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 16);</span>
-<span class="fc" id="L146">      initialCapacity++;</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">    if (numElements &gt;= initialCapacity) {</span>
+<span class="fc" id="L141">      initialCapacity = numElements;</span>
+<span class="fc" id="L142">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 1);</span>
+<span class="fc" id="L143">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 2);</span>
+<span class="fc" id="L144">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 4);</span>
+<span class="fc" id="L145">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 8);</span>
+<span class="fc" id="L146">      initialCapacity |= (initialCapacity &gt;&gt;&gt; 16);</span>
+<span class="fc" id="L147">      initialCapacity++;</span>
 
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">      if (initialCapacity &lt; 0) // Too many elements, must back off</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">      if (initialCapacity &lt; 0) // Too many elements, must back off</span>
       {
-<span class="nc" id="L150">        initialCapacity &gt;&gt;&gt;= 1;// Good luck allocating 2 ^ 30 elements</span>
+<span class="nc" id="L151">        initialCapacity &gt;&gt;&gt;= 1;// Good luck allocating 2 ^ 30 elements</span>
       }
     }
-<span class="fc" id="L153">    elements = (E[]) new Object[initialCapacity];</span>
-<span class="fc" id="L154">  }</span>
+<span class="fc" id="L154">    elements = (E[]) new Object[initialCapacity];</span>
+<span class="fc" id="L155">  }</span>
 
   /**
    * Double the capacity of this deque. Call only when full, i.e., when head and tail have wrapped around to become
    * equal.
    */
   private void doubleCapacity() {
-<span class="nc bnc" id="L161" title="All 4 branches missed.">    assert head == tail;</span>
-<span class="nc" id="L162">    int p = head;</span>
-<span class="nc" id="L163">    int n = elements.length;</span>
-<span class="nc" id="L164">    int r = n - p; // number of elements to the right of p</span>
-<span class="nc" id="L165">    int newCapacity = n &lt;&lt; 1;</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">    if (newCapacity &lt; 0) {</span>
-<span class="nc" id="L167">      throw new IllegalStateException(&quot;Sorry, deque too big: &quot; + newCapacity);</span>
+<span class="nc bnc" id="L162" title="All 4 branches missed.">    assert head == tail;</span>
+<span class="nc" id="L163">    int p = head;</span>
+<span class="nc" id="L164">    int n = elements.length;</span>
+<span class="nc" id="L165">    int r = n - p; // number of elements to the right of p</span>
+<span class="nc" id="L166">    int newCapacity = n &lt;&lt; 1;</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">    if (newCapacity &lt; 0) {</span>
+<span class="nc" id="L168">      throw new IllegalStateException(&quot;Sorry, deque too big: &quot; + newCapacity);</span>
     }
-<span class="nc" id="L169">    Object[] a = new Object[newCapacity];</span>
-<span class="nc" id="L170">    System.arraycopy(elements, p, a, 0, r);</span>
-<span class="nc" id="L171">    System.arraycopy(elements, 0, a, r, p);</span>
-<span class="nc" id="L172">    elements = (E[]) a;</span>
-<span class="nc" id="L173">    head = 0;</span>
-<span class="nc" id="L174">    tail = n;</span>
-<span class="nc" id="L175">  }</span>
+<span class="nc" id="L170">    Object[] a = new Object[newCapacity];</span>
+<span class="nc" id="L171">    System.arraycopy(elements, p, a, 0, r);</span>
+<span class="nc" id="L172">    System.arraycopy(elements, 0, a, r, p);</span>
+<span class="nc" id="L173">    elements = (E[]) a;</span>
+<span class="nc" id="L174">    head = 0;</span>
+<span class="nc" id="L175">    tail = n;</span>
+<span class="nc" id="L176">  }</span>
 
   /**
    * Copies the elements from our element array into the specified array, in order (from first to last element in the
@@ -181,31 +182,31 @@ import javax.annotation.Nonnull;
    * @return its argument
    */
   private &lt;T&gt; T[] copyElements(T[] a) {
-<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (head &lt; tail) {</span>
-<span class="nc" id="L185">      System.arraycopy(elements, head, a, 0, size());</span>
-<span class="nc bnc" id="L186" title="All 2 branches missed.">    } else if (head &gt; tail) {</span>
-<span class="nc" id="L187">      int headPortionLen = elements.length - head;</span>
-<span class="nc" id="L188">      System.arraycopy(elements, head, a, 0, headPortionLen);</span>
-<span class="nc" id="L189">      System.arraycopy(elements, 0, a, headPortionLen, tail);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">    if (head &lt; tail) {</span>
+<span class="nc" id="L186">      System.arraycopy(elements, head, a, 0, size());</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">    } else if (head &gt; tail) {</span>
+<span class="nc" id="L188">      int headPortionLen = elements.length - head;</span>
+<span class="nc" id="L189">      System.arraycopy(elements, head, a, 0, headPortionLen);</span>
+<span class="nc" id="L190">      System.arraycopy(elements, 0, a, headPortionLen, tail);</span>
     }
-<span class="nc" id="L191">    return a;</span>
+<span class="nc" id="L192">    return a;</span>
   }
 
   /**
    * Constructs an empty array deque with an initial capacity sufficient to hold 16 elements.
    */
-<span class="nc" id="L197">  public ZArrayDequeue() {</span>
-<span class="nc" id="L198">    elements = (E[]) new Object[16];</span>
-<span class="nc" id="L199">  }</span>
+<span class="nc" id="L198">  public ZArrayDequeue() {</span>
+<span class="nc" id="L199">    elements = (E[]) new Object[16];</span>
+<span class="nc" id="L200">  }</span>
 
   /**
    * Constructs an empty array deque with an initial capacity sufficient to hold the specified number of elements.
    *
    * @param numElements lower bound on initial capacity of the deque
    */
-<span class="fc" id="L206">  public ZArrayDequeue(int numElements) {</span>
-<span class="fc" id="L207">    allocateElements(numElements);</span>
-<span class="fc" id="L208">  }</span>
+<span class="fc" id="L207">  public ZArrayDequeue(int numElements) {</span>
+<span class="fc" id="L208">    allocateElements(numElements);</span>
+<span class="fc" id="L209">  }</span>
 
   /**
    * Constructs a deque containing the elements of the specified collection, in the order they are returned by the
@@ -215,10 +216,10 @@ import javax.annotation.Nonnull;
    * @param c the collection whose elements are to be placed into the deque
    * @throws NullPointerException if the specified collection is null
    */
-<span class="nc" id="L218">  public ZArrayDequeue(Collection&lt;? extends E&gt; c) {</span>
-<span class="nc" id="L219">    allocateElements(c.size());</span>
-<span class="nc" id="L220">    addAll(c);</span>
-<span class="nc" id="L221">  }</span>
+<span class="nc" id="L219">  public ZArrayDequeue(Collection&lt;? extends E&gt; c) {</span>
+<span class="nc" id="L220">    allocateElements(c.size());</span>
+<span class="nc" id="L221">    addAll(c);</span>
+<span class="nc" id="L222">  }</span>
 
   // The main insertion and extraction methods are addFirst,
   // addLast, pollFirst, pollLast. The other methods are defined in
@@ -230,14 +231,14 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public void addFirst(@Nonnull E e) {
-<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (e == null) {</span>
-<span class="nc" id="L234">      throw new IllegalArgumentException(&quot;Argument cannot be &quot; + e);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">    if (e == null) {</span>
+<span class="nc" id="L235">      throw new IllegalArgumentException(&quot;Argument cannot be &quot; + e);</span>
     }
-<span class="nc" id="L236">    elements[head = (head - 1) &amp; (elements.length - 1)] = e;</span>
-<span class="nc bnc" id="L237" title="All 2 branches missed.">    if (head == tail) {</span>
-<span class="nc" id="L238">      doubleCapacity();</span>
+<span class="nc" id="L237">    elements[head = (head - 1) &amp; (elements.length - 1)] = e;</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    if (head == tail) {</span>
+<span class="nc" id="L239">      doubleCapacity();</span>
     }
-<span class="nc" id="L240">  }</span>
+<span class="nc" id="L241">  }</span>
 
   /**
    * Inserts the specified element at the end of this deque.
@@ -249,25 +250,25 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public void addLast(@Nonnull E e) {
-<span class="nc bnc" id="L252" title="All 2 branches missed.">    if (e == null) {</span>
-<span class="nc" id="L253">      throw new IllegalArgumentException(&quot;Argument cannot be &quot; + e);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">    if (e == null) {</span>
+<span class="nc" id="L254">      throw new IllegalArgumentException(&quot;Argument cannot be &quot; + e);</span>
     }
-<span class="nc" id="L255">    elements[tail] = e;</span>
-<span class="nc bnc" id="L256" title="All 2 branches missed.">    if ((tail = (tail + 1) &amp; (elements.length - 1)) == head) {</span>
-<span class="nc" id="L257">      doubleCapacity();</span>
+<span class="nc" id="L256">    elements[tail] = e;</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">    if ((tail = (tail + 1) &amp; (elements.length - 1)) == head) {</span>
+<span class="nc" id="L258">      doubleCapacity();</span>
     }
-<span class="nc" id="L259">  }</span>
+<span class="nc" id="L260">  }</span>
 
   public int addLastAndGetPtr(@Nonnull final E e) {
-<span class="pc bpc" id="L262" title="1 of 2 branches missed.">    if (e == null) {</span>
-<span class="nc" id="L263">      throw new IllegalArgumentException(&quot;Argument cannot be &quot; + e);</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">    if (e == null) {</span>
+<span class="nc" id="L264">      throw new IllegalArgumentException(&quot;Argument cannot be &quot; + e);</span>
     }
-<span class="fc" id="L265">    elements[tail] = e;</span>
-<span class="fc" id="L266">    int result = tail;</span>
-<span class="pc bpc" id="L267" title="1 of 2 branches missed.">    if ((tail = (tail + 1) &amp; (elements.length - 1)) == head) {</span>
-<span class="nc" id="L268">      doubleCapacity();</span>
+<span class="fc" id="L266">    elements[tail] = e;</span>
+<span class="fc" id="L267">    int result = tail;</span>
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">    if ((tail = (tail + 1) &amp; (elements.length - 1)) == head) {</span>
+<span class="nc" id="L269">      doubleCapacity();</span>
     }
-<span class="fc" id="L270">    return result;</span>
+<span class="fc" id="L271">    return result;</span>
   }
 
   /**
@@ -278,8 +279,8 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public boolean offerFirst(E e) {
-<span class="nc" id="L281">    addFirst(e);</span>
-<span class="nc" id="L282">    return true;</span>
+<span class="nc" id="L282">    addFirst(e);</span>
+<span class="nc" id="L283">    return true;</span>
   }
 
   /**
@@ -290,82 +291,84 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public boolean offerLast(E e) {
-<span class="nc" id="L293">    addLast(e);</span>
-<span class="nc" id="L294">    return true;</span>
+<span class="nc" id="L294">    addLast(e);</span>
+<span class="nc" id="L295">    return true;</span>
   }
 
   /**
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E removeFirst() {
-<span class="nc" id="L301">    E x = pollFirst();</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">    if (x == null) {</span>
-<span class="nc" id="L303">      throw new NoSuchElementException();</span>
+<span class="nc" id="L302">    E x = pollFirst();</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">    if (x == null) {</span>
+<span class="nc" id="L304">      throw new NoSuchElementException();</span>
     }
-<span class="nc" id="L305">    return x;</span>
+<span class="nc" id="L306">    return x;</span>
   }
 
   /**
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E removeLast() {
-<span class="nc" id="L312">    E x = pollLast();</span>
-<span class="nc bnc" id="L313" title="All 2 branches missed.">    if (x == null) {</span>
-<span class="nc" id="L314">      throw new NoSuchElementException();</span>
+<span class="nc" id="L313">    E x = pollLast();</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">    if (x == null) {</span>
+<span class="nc" id="L315">      throw new NoSuchElementException();</span>
     }
-<span class="nc" id="L316">    return x;</span>
+<span class="nc" id="L317">    return x;</span>
   }
 
+  @Nullable
   public E pollFirst() {
-<span class="nc" id="L320">    int h = head;</span>
-<span class="nc" id="L321">    E result = elements[h]; // Element is null if deque empty</span>
-<span class="nc bnc" id="L322" title="All 2 branches missed.">    if (result == null) {</span>
-<span class="nc" id="L323">      return null;</span>
+<span class="nc" id="L322">    int h = head;</span>
+<span class="nc" id="L323">    E result = elements[h]; // Element is null if deque empty</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L325">      return null;</span>
     }
-<span class="nc" id="L325">    elements[h] = null;     // Must null out slot</span>
-<span class="nc" id="L326">    head = (h + 1) &amp; (elements.length - 1);</span>
-<span class="nc" id="L327">    return result;</span>
+<span class="nc" id="L327">    elements[h] = null;     // Must null out slot</span>
+<span class="nc" id="L328">    head = (h + 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L329">    return result;</span>
   }
 
+  @Nullable
   public E pollLast() {
-<span class="fc" id="L331">    int t = (tail - 1) &amp; (elements.length - 1);</span>
-<span class="fc" id="L332">    E result = elements[t];</span>
-<span class="fc bfc" id="L333" title="All 2 branches covered.">    if (result == null) {</span>
-<span class="fc" id="L334">      return null;</span>
+<span class="fc" id="L334">    int t = (tail - 1) &amp; (elements.length - 1);</span>
+<span class="fc" id="L335">    E result = elements[t];</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">    if (result == null) {</span>
+<span class="fc" id="L337">      return null;</span>
     }
-<span class="fc" id="L336">    elements[t] = null;</span>
-<span class="fc" id="L337">    tail = t;</span>
-<span class="fc" id="L338">    return result;</span>
+<span class="fc" id="L339">    elements[t] = null;</span>
+<span class="fc" id="L340">    tail = t;</span>
+<span class="fc" id="L341">    return result;</span>
   }
 
   /**
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E getFirst() {
-<span class="nc" id="L345">    E x = elements[head];</span>
-<span class="nc bnc" id="L346" title="All 2 branches missed.">    if (x == null) {</span>
-<span class="nc" id="L347">      throw new NoSuchElementException();</span>
+<span class="nc" id="L348">    E x = elements[head];</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">    if (x == null) {</span>
+<span class="nc" id="L350">      throw new NoSuchElementException();</span>
     }
-<span class="nc" id="L349">    return x;</span>
+<span class="nc" id="L352">    return x;</span>
   }
 
   /**
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E getLast() {
-<span class="nc" id="L356">    E x = elements[(tail - 1) &amp; (elements.length - 1)];</span>
-<span class="nc bnc" id="L357" title="All 2 branches missed.">    if (x == null) {</span>
-<span class="nc" id="L358">      throw new NoSuchElementException();</span>
+<span class="nc" id="L359">    E x = elements[(tail - 1) &amp; (elements.length - 1)];</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">    if (x == null) {</span>
+<span class="nc" id="L361">      throw new NoSuchElementException();</span>
     }
-<span class="nc" id="L360">    return x;</span>
+<span class="nc" id="L363">    return x;</span>
   }
 
   public E peekFirst() {
-<span class="nc" id="L364">    return elements[head]; // elements[head] is null if deque empty</span>
+<span class="nc" id="L367">    return elements[head]; // elements[head] is null if deque empty</span>
   }
 
   public E peekLast() {
-<span class="nc" id="L368">    return elements[(tail - 1) &amp; (elements.length - 1)];</span>
+<span class="nc" id="L371">    return elements[(tail - 1) &amp; (elements.length - 1)];</span>
   }
 
   /**
@@ -379,20 +382,20 @@ import javax.annotation.Nonnull;
    * @return &lt;tt&gt;true&lt;/tt&gt; if the deque contained the specified element
    */
   public boolean removeFirstOccurrence(Object o) {
-<span class="pc bpc" id="L382" title="1 of 2 branches missed.">    if (o == null) {</span>
-<span class="nc" id="L383">      return false;</span>
+<span class="pc bpc" id="L385" title="1 of 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L386">      return false;</span>
     }
-<span class="fc" id="L385">    int mask = elements.length - 1;</span>
-<span class="fc" id="L386">    int i = head;</span>
+<span class="fc" id="L388">    int mask = elements.length - 1;</span>
+<span class="fc" id="L389">    int i = head;</span>
     E x;
-<span class="pc bpc" id="L388" title="1 of 2 branches missed.">    while ((x = elements[i]) != null) {</span>
-<span class="pc bpc" id="L389" title="1 of 2 branches missed.">      if (o.equals(x)) {</span>
-<span class="fc" id="L390">        delete(i);</span>
-<span class="fc" id="L391">        return true;</span>
+<span class="pc bpc" id="L391" title="1 of 2 branches missed.">    while ((x = elements[i]) != null) {</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">      if (o.equals(x)) {</span>
+<span class="fc" id="L393">        delete(i);</span>
+<span class="fc" id="L394">        return true;</span>
       }
-<span class="nc" id="L393">      i = (i + 1) &amp; mask;</span>
+<span class="fc" id="L396">      i = (i + 1) &amp; mask;</span>
     }
-<span class="nc" id="L395">    return false;</span>
+<span class="nc" id="L398">    return false;</span>
   }
 
   /**
@@ -406,20 +409,20 @@ import javax.annotation.Nonnull;
    * @return &lt;tt&gt;true&lt;/tt&gt; if the deque contained the specified element
    */
   public boolean removeLastOccurrence(Object o) {
-<span class="nc bnc" id="L409" title="All 2 branches missed.">    if (o == null) {</span>
-<span class="nc" id="L410">      return false;</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L413">      return false;</span>
     }
-<span class="nc" id="L412">    int mask = elements.length - 1;</span>
-<span class="nc" id="L413">    int i = (tail - 1) &amp; mask;</span>
+<span class="nc" id="L415">    int mask = elements.length - 1;</span>
+<span class="nc" id="L416">    int i = (tail - 1) &amp; mask;</span>
     E x;
-<span class="nc bnc" id="L415" title="All 2 branches missed.">    while ((x = elements[i]) != null) {</span>
-<span class="nc bnc" id="L416" title="All 2 branches missed.">      if (o.equals(x)) {</span>
-<span class="nc" id="L417">        delete(i);</span>
-<span class="nc" id="L418">        return true;</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">    while ((x = elements[i]) != null) {</span>
+<span class="nc bnc" id="L419" title="All 2 branches missed.">      if (o.equals(x)) {</span>
+<span class="nc" id="L420">        delete(i);</span>
+<span class="nc" id="L421">        return true;</span>
       }
-<span class="nc" id="L420">      i = (i - 1) &amp; mask;</span>
+<span class="nc" id="L423">      i = (i - 1) &amp; mask;</span>
     }
-<span class="nc" id="L422">    return false;</span>
+<span class="nc" id="L425">    return false;</span>
   }
 
   // *** Queue methods ***
@@ -434,8 +437,8 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public boolean add(E e) {
-<span class="nc" id="L437">    addLast(e);</span>
-<span class="nc" id="L438">    return true;</span>
+<span class="nc" id="L440">    addLast(e);</span>
+<span class="nc" id="L441">    return true;</span>
   }
 
   /**
@@ -449,7 +452,7 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public boolean offer(E e) {
-<span class="nc" id="L452">    return offerLast(e);</span>
+<span class="nc" id="L455">    return offerLast(e);</span>
   }
 
   /**
@@ -464,7 +467,7 @@ import javax.annotation.Nonnull;
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E remove() {
-<span class="nc" id="L467">    return removeFirst();</span>
+<span class="nc" id="L470">    return removeFirst();</span>
   }
 
   /**
@@ -478,8 +481,9 @@ import javax.annotation.Nonnull;
    * @return the head of the queue represented by this deque, or
    * &lt;tt&gt;null&lt;/tt&gt; if this deque is empty
    */
+  @Nullable
   public E poll() {
-<span class="nc" id="L482">    return pollFirst();</span>
+<span class="nc" id="L486">    return pollFirst();</span>
   }
 
   /**
@@ -493,7 +497,7 @@ import javax.annotation.Nonnull;
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E element() {
-<span class="nc" id="L496">    return getFirst();</span>
+<span class="nc" id="L500">    return getFirst();</span>
   }
 
   /**
@@ -507,7 +511,7 @@ import javax.annotation.Nonnull;
    * &lt;tt&gt;null&lt;/tt&gt; if this deque is empty
    */
   public E peek() {
-<span class="nc" id="L510">    return peekFirst();</span>
+<span class="nc" id="L514">    return peekFirst();</span>
   }
 
   // *** Stack methods ***
@@ -522,8 +526,8 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified element is null
    */
   public void push(E e) {
-<span class="nc" id="L525">    addFirst(e);</span>
-<span class="nc" id="L526">  }</span>
+<span class="nc" id="L529">    addFirst(e);</span>
+<span class="nc" id="L530">  }</span>
 
   /**
    * Pops an element from the stack represented by this deque. In other words, removes and returns the first element of
@@ -536,24 +540,24 @@ import javax.annotation.Nonnull;
    * @throws NoSuchElementException {@inheritDoc}
    */
   public E pop() {
-<span class="nc" id="L539">    return removeFirst();</span>
+<span class="nc" id="L543">    return removeFirst();</span>
   }
 
   private void checkInvariants() {
-<span class="pc bpc" id="L543" title="2 of 4 branches missed.">    assert elements[tail] == null;</span>
-<span class="pc bpc" id="L544" title="6 of 10 branches missed.">    assert head == tail ? elements[head] == null</span>
+<span class="pc bpc" id="L547" title="2 of 4 branches missed.">    assert elements[tail] == null;</span>
+<span class="pc bpc" id="L548" title="6 of 10 branches missed.">    assert head == tail ? elements[head] == null</span>
             : (elements[head] != null
             &amp;&amp; elements[(tail - 1) &amp; (elements.length - 1)] != null);
-<span class="pc bpc" id="L547" title="2 of 4 branches missed.">    assert elements[(head - 1) &amp; (elements.length - 1)] == null;</span>
-<span class="fc" id="L548">  }</span>
+<span class="pc bpc" id="L551" title="2 of 4 branches missed.">    assert elements[(head - 1) &amp; (elements.length - 1)] == null;</span>
+<span class="fc" id="L552">  }</span>
 
   public void delete(int i, E elem) {
-<span class="fc bfc" id="L551" title="All 2 branches covered.">    if (elem.equals(elements[i])) {</span>
-<span class="fc" id="L552">      delete(i);</span>
+<span class="fc bfc" id="L555" title="All 2 branches covered.">    if (elem.equals(elements[i])) {</span>
+<span class="fc" id="L556">      delete(i);</span>
     } else {
-<span class="fc" id="L554">      remove(elem);</span>
+<span class="fc" id="L558">      remove(elem);</span>
     }
-<span class="fc" id="L556">  }</span>
+<span class="fc" id="L560">  }</span>
 
   /**
    * Removes the element at the specified position in the elements array, adjusting head and tail as necessary. This can
@@ -566,42 +570,42 @@ import javax.annotation.Nonnull;
    * @return true if elements moved backwards
    */
   private boolean delete(int i) {
-<span class="fc" id="L569">    checkInvariants();</span>
-<span class="fc" id="L570">    final E[] elements = this.elements;</span>
-<span class="fc" id="L571">    final int mask = elements.length - 1;</span>
-<span class="fc" id="L572">    final int h = head;</span>
-<span class="fc" id="L573">    final int t = tail;</span>
-<span class="fc" id="L574">    final int front = (i - h) &amp; mask;</span>
-<span class="fc" id="L575">    final int back = (t - i) &amp; mask;</span>
+<span class="fc" id="L573">    checkInvariants();</span>
+<span class="fc" id="L574">    final E[] elements = this.elements;</span>
+<span class="fc" id="L575">    final int mask = elements.length - 1;</span>
+<span class="fc" id="L576">    final int h = head;</span>
+<span class="fc" id="L577">    final int t = tail;</span>
+<span class="fc" id="L578">    final int front = (i - h) &amp; mask;</span>
+<span class="fc" id="L579">    final int back = (t - i) &amp; mask;</span>
 
     // Invariant: head &lt;= i &lt; tail mod circularity
-<span class="pc bpc" id="L578" title="1 of 2 branches missed.">    if (front &gt;= ((t - h) &amp; mask)) {</span>
-<span class="nc" id="L579">      throw new ConcurrentModificationException();</span>
+<span class="pc bpc" id="L582" title="1 of 2 branches missed.">    if (front &gt;= ((t - h) &amp; mask)) {</span>
+<span class="nc" id="L583">      throw new ConcurrentModificationException();</span>
     }
 
     // Optimize for least element motion
-<span class="fc bfc" id="L583" title="All 2 branches covered.">    if (front &lt; back) {</span>
-<span class="pc bpc" id="L584" title="1 of 2 branches missed.">      if (h &lt;= i) {</span>
-<span class="fc" id="L585">        System.arraycopy(elements, h, elements, h + 1, front);</span>
+<span class="fc bfc" id="L587" title="All 2 branches covered.">    if (front &lt; back) {</span>
+<span class="pc bpc" id="L588" title="1 of 2 branches missed.">      if (h &lt;= i) {</span>
+<span class="fc" id="L589">        System.arraycopy(elements, h, elements, h + 1, front);</span>
       } else { // Wrap around
-<span class="nc" id="L587">        System.arraycopy(elements, 0, elements, 1, i);</span>
-<span class="nc" id="L588">        elements[0] = elements[mask];</span>
-<span class="nc" id="L589">        System.arraycopy(elements, h, elements, h + 1, mask - h);</span>
+<span class="nc" id="L591">        System.arraycopy(elements, 0, elements, 1, i);</span>
+<span class="nc" id="L592">        elements[0] = elements[mask];</span>
+<span class="nc" id="L593">        System.arraycopy(elements, h, elements, h + 1, mask - h);</span>
       }
-<span class="fc" id="L591">      elements[h] = null;</span>
-<span class="fc" id="L592">      head = (h + 1) &amp; mask;</span>
-<span class="fc" id="L593">      return false;</span>
+<span class="fc" id="L595">      elements[h] = null;</span>
+<span class="fc" id="L596">      head = (h + 1) &amp; mask;</span>
+<span class="fc" id="L597">      return false;</span>
     } else {
-<span class="pc bpc" id="L595" title="1 of 2 branches missed.">      if (i &lt; t) { // Copy the null tail as well</span>
-<span class="fc" id="L596">        System.arraycopy(elements, i + 1, elements, i, back);</span>
-<span class="fc" id="L597">        tail = t - 1;</span>
+<span class="pc bpc" id="L599" title="1 of 2 branches missed.">      if (i &lt; t) { // Copy the null tail as well</span>
+<span class="fc" id="L600">        System.arraycopy(elements, i + 1, elements, i, back);</span>
+<span class="fc" id="L601">        tail = t - 1;</span>
       } else { // Wrap around
-<span class="nc" id="L599">        System.arraycopy(elements, i + 1, elements, i, mask - i);</span>
-<span class="nc" id="L600">        elements[mask] = elements[0];</span>
-<span class="nc" id="L601">        System.arraycopy(elements, 1, elements, 0, t);</span>
-<span class="nc" id="L602">        tail = (t - 1) &amp; mask;</span>
+<span class="nc" id="L603">        System.arraycopy(elements, i + 1, elements, i, mask - i);</span>
+<span class="nc" id="L604">        elements[mask] = elements[0];</span>
+<span class="nc" id="L605">        System.arraycopy(elements, 1, elements, 0, t);</span>
+<span class="nc" id="L606">        tail = (t - 1) &amp; mask;</span>
       }
-<span class="fc" id="L604">      return true;</span>
+<span class="fc" id="L608">      return true;</span>
     }
   }
 
@@ -612,7 +616,7 @@ import javax.annotation.Nonnull;
    * @return the number of elements in this deque
    */
   public int size() {
-<span class="nc" id="L615">    return (tail - head) &amp; (elements.length - 1);</span>
+<span class="nc" id="L619">    return (tail - head) &amp; (elements.length - 1);</span>
   }
 
   /**
@@ -621,7 +625,7 @@ import javax.annotation.Nonnull;
    * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contains no elements
    */
   public boolean isEmpty() {
-<span class="nc bnc" id="L624" title="All 2 branches missed.">    return head == tail;</span>
+<span class="nc bnc" id="L628" title="All 2 branches missed.">    return head == tail;</span>
   }
 
   /**
@@ -632,99 +636,99 @@ import javax.annotation.Nonnull;
    * @return an iterator over the elements in this deque
    */
   public Iterator&lt;E&gt; iterator() {
-<span class="nc" id="L635">    return new DeqIterator();</span>
+<span class="nc" id="L639">    return new DeqIterator();</span>
   }
 
   public Iterator&lt;E&gt; descendingIterator() {
-<span class="nc" id="L639">    return new DescendingIterator();</span>
+<span class="nc" id="L643">    return new DescendingIterator();</span>
   }
 
-<span class="nc" id="L642">  private class DeqIterator implements Iterator&lt;E&gt; {</span>
+<span class="nc" id="L646">  private class DeqIterator implements Iterator&lt;E&gt; {</span>
 
     /**
      * Index of element to be returned by subsequent call to next.
      */
-<span class="nc" id="L647">    private int cursor = head;</span>
+<span class="nc" id="L651">    private int cursor = head;</span>
 
     /**
      * Tail recorded at construction (also in remove), to stop iterator and also to check for comodification.
      */
-<span class="nc" id="L652">    private int fence = tail;</span>
+<span class="nc" id="L656">    private int fence = tail;</span>
 
     /**
      * Index of element returned by most recent call to next. Reset to -1 if element is deleted by a call to remove.
      */
-<span class="nc" id="L657">    private int lastRet = -1;</span>
+<span class="nc" id="L661">    private int lastRet = -1;</span>
 
     public boolean hasNext() {
-<span class="nc bnc" id="L660" title="All 2 branches missed.">      return cursor != fence;</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">      return cursor != fence;</span>
     }
 
     public E next() {
-<span class="nc bnc" id="L664" title="All 2 branches missed.">      if (cursor == fence) {</span>
-<span class="nc" id="L665">        throw new NoSuchElementException();</span>
+<span class="nc bnc" id="L668" title="All 2 branches missed.">      if (cursor == fence) {</span>
+<span class="nc" id="L669">        throw new NoSuchElementException();</span>
       }
-<span class="nc" id="L667">      E result = elements[cursor];</span>
+<span class="nc" id="L671">      E result = elements[cursor];</span>
       // This check doesn't catch all possible comodifications,
       // but does catch the ones that corrupt traversal
-<span class="nc bnc" id="L670" title="All 4 branches missed.">      if (tail != fence || result == null) {</span>
-<span class="nc" id="L671">        throw new ConcurrentModificationException();</span>
+<span class="nc bnc" id="L674" title="All 4 branches missed.">      if (tail != fence || result == null) {</span>
+<span class="nc" id="L675">        throw new ConcurrentModificationException();</span>
       }
-<span class="nc" id="L673">      lastRet = cursor;</span>
-<span class="nc" id="L674">      cursor = (cursor + 1) &amp; (elements.length - 1);</span>
-<span class="nc" id="L675">      return result;</span>
+<span class="nc" id="L677">      lastRet = cursor;</span>
+<span class="nc" id="L678">      cursor = (cursor + 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L679">      return result;</span>
     }
 
     public void remove() {
-<span class="nc bnc" id="L679" title="All 2 branches missed.">      if (lastRet &lt; 0) {</span>
-<span class="nc" id="L680">        throw new IllegalStateException();</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">      if (lastRet &lt; 0) {</span>
+<span class="nc" id="L684">        throw new IllegalStateException();</span>
       }
-<span class="nc bnc" id="L682" title="All 2 branches missed.">      if (delete(lastRet)) { // if left-shifted, undo increment in next()</span>
-<span class="nc" id="L683">        cursor = (cursor - 1) &amp; (elements.length - 1);</span>
-<span class="nc" id="L684">        fence = tail;</span>
+<span class="nc bnc" id="L686" title="All 2 branches missed.">      if (delete(lastRet)) { // if left-shifted, undo increment in next()</span>
+<span class="nc" id="L687">        cursor = (cursor - 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L688">        fence = tail;</span>
       }
-<span class="nc" id="L686">      lastRet = -1;</span>
-<span class="nc" id="L687">    }</span>
+<span class="nc" id="L690">      lastRet = -1;</span>
+<span class="nc" id="L691">    }</span>
   }
 
-<span class="nc" id="L690">  private class DescendingIterator implements Iterator&lt;E&gt; {</span>
+<span class="nc" id="L694">  private class DescendingIterator implements Iterator&lt;E&gt; {</span>
 
     /*
          * This class is nearly a mirror-image of DeqIterator, using
          * tail instead of head for initial cursor, and head instead of
          * tail for fence.
      */
-<span class="nc" id="L697">    private int cursor = tail;</span>
-<span class="nc" id="L698">    private int fence = head;</span>
-<span class="nc" id="L699">    private int lastRet = -1;</span>
+<span class="nc" id="L701">    private int cursor = tail;</span>
+<span class="nc" id="L702">    private int fence = head;</span>
+<span class="nc" id="L703">    private int lastRet = -1;</span>
 
     public boolean hasNext() {
-<span class="nc bnc" id="L702" title="All 2 branches missed.">      return cursor != fence;</span>
+<span class="nc bnc" id="L706" title="All 2 branches missed.">      return cursor != fence;</span>
     }
 
     public E next() {
-<span class="nc bnc" id="L706" title="All 2 branches missed.">      if (cursor == fence) {</span>
-<span class="nc" id="L707">        throw new NoSuchElementException();</span>
+<span class="nc bnc" id="L710" title="All 2 branches missed.">      if (cursor == fence) {</span>
+<span class="nc" id="L711">        throw new NoSuchElementException();</span>
       }
-<span class="nc" id="L709">      cursor = (cursor - 1) &amp; (elements.length - 1);</span>
-<span class="nc" id="L710">      E result = elements[cursor];</span>
-<span class="nc bnc" id="L711" title="All 4 branches missed.">      if (head != fence || result == null) {</span>
-<span class="nc" id="L712">        throw new ConcurrentModificationException();</span>
+<span class="nc" id="L713">      cursor = (cursor - 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L714">      E result = elements[cursor];</span>
+<span class="nc bnc" id="L715" title="All 4 branches missed.">      if (head != fence || result == null) {</span>
+<span class="nc" id="L716">        throw new ConcurrentModificationException();</span>
       }
-<span class="nc" id="L714">      lastRet = cursor;</span>
-<span class="nc" id="L715">      return result;</span>
+<span class="nc" id="L718">      lastRet = cursor;</span>
+<span class="nc" id="L719">      return result;</span>
     }
 
     public void remove() {
-<span class="nc bnc" id="L719" title="All 2 branches missed.">      if (lastRet &lt; 0) {</span>
-<span class="nc" id="L720">        throw new IllegalStateException();</span>
+<span class="nc bnc" id="L723" title="All 2 branches missed.">      if (lastRet &lt; 0) {</span>
+<span class="nc" id="L724">        throw new IllegalStateException();</span>
       }
-<span class="nc bnc" id="L722" title="All 2 branches missed.">      if (!delete(lastRet)) {</span>
-<span class="nc" id="L723">        cursor = (cursor + 1) &amp; (elements.length - 1);</span>
-<span class="nc" id="L724">        fence = head;</span>
+<span class="nc bnc" id="L726" title="All 2 branches missed.">      if (!delete(lastRet)) {</span>
+<span class="nc" id="L727">        cursor = (cursor + 1) &amp; (elements.length - 1);</span>
+<span class="nc" id="L728">        fence = head;</span>
       }
-<span class="nc" id="L726">      lastRet = -1;</span>
-<span class="nc" id="L727">    }</span>
+<span class="nc" id="L730">      lastRet = -1;</span>
+<span class="nc" id="L731">    }</span>
   }
 
   /**
@@ -735,19 +739,19 @@ import javax.annotation.Nonnull;
    * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contains the specified element
    */
   public boolean contains(Object o) {
-<span class="nc bnc" id="L738" title="All 2 branches missed.">    if (o == null) {</span>
-<span class="nc" id="L739">      return false;</span>
+<span class="nc bnc" id="L742" title="All 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L743">      return false;</span>
     }
-<span class="nc" id="L741">    int mask = elements.length - 1;</span>
-<span class="nc" id="L742">    int i = head;</span>
+<span class="nc" id="L745">    int mask = elements.length - 1;</span>
+<span class="nc" id="L746">    int i = head;</span>
     E x;
-<span class="nc bnc" id="L744" title="All 2 branches missed.">    while ((x = elements[i]) != null) {</span>
-<span class="nc bnc" id="L745" title="All 2 branches missed.">      if (o.equals(x)) {</span>
-<span class="nc" id="L746">        return true;</span>
+<span class="nc bnc" id="L748" title="All 2 branches missed.">    while ((x = elements[i]) != null) {</span>
+<span class="nc bnc" id="L749" title="All 2 branches missed.">      if (o.equals(x)) {</span>
+<span class="nc" id="L750">        return true;</span>
       }
-<span class="nc" id="L748">      i = (i + 1) &amp; mask;</span>
+<span class="nc" id="L752">      i = (i + 1) &amp; mask;</span>
     }
-<span class="nc" id="L750">    return false;</span>
+<span class="nc" id="L754">    return false;</span>
   }
 
   /**
@@ -763,25 +767,25 @@ import javax.annotation.Nonnull;
    * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contained the specified element
    */
   public boolean remove(Object o) {
-<span class="fc" id="L766">    return removeFirstOccurrence(o);</span>
+<span class="fc" id="L770">    return removeFirstOccurrence(o);</span>
   }
 
   /**
    * Removes all of the elements from this deque. The deque will be empty after this call returns.
    */
   public void clear() {
-<span class="nc" id="L773">    int h = head;</span>
-<span class="nc" id="L774">    int t = tail;</span>
-<span class="nc bnc" id="L775" title="All 2 branches missed.">    if (h != t) { // clear all cells</span>
-<span class="nc" id="L776">      head = tail = 0;</span>
-<span class="nc" id="L777">      int i = h;</span>
-<span class="nc" id="L778">      int mask = elements.length - 1;</span>
+<span class="nc" id="L777">    int h = head;</span>
+<span class="nc" id="L778">    int t = tail;</span>
+<span class="nc bnc" id="L779" title="All 2 branches missed.">    if (h != t) { // clear all cells</span>
+<span class="nc" id="L780">      head = tail = 0;</span>
+<span class="nc" id="L781">      int i = h;</span>
+<span class="nc" id="L782">      int mask = elements.length - 1;</span>
       do {
-<span class="nc" id="L780">        elements[i] = null;</span>
-<span class="nc" id="L781">        i = (i + 1) &amp; mask;</span>
-<span class="nc bnc" id="L782" title="All 2 branches missed.">      } while (i != t);</span>
+<span class="nc" id="L784">        elements[i] = null;</span>
+<span class="nc" id="L785">        i = (i + 1) &amp; mask;</span>
+<span class="nc bnc" id="L786" title="All 2 branches missed.">      } while (i != t);</span>
     }
-<span class="nc" id="L784">  }</span>
+<span class="nc" id="L788">  }</span>
 
   /**
    * Returns an array containing all of the elements in this deque in proper sequence (from first to last element).
@@ -796,7 +800,7 @@ import javax.annotation.Nonnull;
    * @return an array containing all of the elements in this deque
    */
   public Object[] toArray() {
-<span class="nc" id="L799">    return copyElements(new Object[size()]);</span>
+<span class="nc" id="L803">    return copyElements(new Object[size()]);</span>
   }
 
   /**
@@ -833,17 +837,17 @@ import javax.annotation.Nonnull;
    * @throws NullPointerException if the specified array is null
    */
   public &lt;T&gt; T[] toArray(final T[] pa) {
-<span class="nc" id="L836">    T[] a = pa;</span>
-<span class="nc" id="L837">    int size = size();</span>
-<span class="nc bnc" id="L838" title="All 2 branches missed.">    if (a.length &lt; size) {</span>
-<span class="nc" id="L839">      a = (T[]) java.lang.reflect.Array.newInstance(</span>
-<span class="nc" id="L840">              a.getClass().getComponentType(), size);</span>
+<span class="nc" id="L840">    T[] a = pa;</span>
+<span class="nc" id="L841">    int size = size();</span>
+<span class="nc bnc" id="L842" title="All 2 branches missed.">    if (a.length &lt; size) {</span>
+<span class="nc" id="L843">      a = (T[]) java.lang.reflect.Array.newInstance(</span>
+<span class="nc" id="L844">              a.getClass().getComponentType(), size);</span>
     }
-<span class="nc" id="L842">    copyElements(a);</span>
-<span class="nc bnc" id="L843" title="All 2 branches missed.">    if (a.length &gt; size) {</span>
-<span class="nc" id="L844">      a[size] = null;</span>
+<span class="nc" id="L846">    copyElements(a);</span>
+<span class="nc bnc" id="L847" title="All 2 branches missed.">    if (a.length &gt; size) {</span>
+<span class="nc" id="L848">      a[size] = null;</span>
     }
-<span class="nc" id="L846">    return a;</span>
+<span class="nc" id="L850">    return a;</span>
   }
 
   // *** Object methods ***
@@ -854,12 +858,12 @@ import javax.annotation.Nonnull;
    */
   public ZArrayDequeue&lt;E&gt; clone() {
     try {
-<span class="nc" id="L857">      ZArrayDequeue&lt;E&gt; result = (ZArrayDequeue&lt;E&gt;) super.clone();</span>
-<span class="nc" id="L858">      result.elements = Arrays.copyOf(elements, elements.length);</span>
-<span class="nc" id="L859">      return result;</span>
+<span class="nc" id="L861">      ZArrayDequeue&lt;E&gt; result = (ZArrayDequeue&lt;E&gt;) super.clone();</span>
+<span class="nc" id="L862">      result.elements = Arrays.copyOf(elements, elements.length);</span>
+<span class="nc" id="L863">      return result;</span>
 
-<span class="nc" id="L861">    } catch (CloneNotSupportedException e) {</span>
-<span class="nc" id="L862">      throw new AssertionError();</span>
+<span class="nc" id="L865">    } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L866">      throw new AssertionError();</span>
     }
   }
 
@@ -870,35 +874,35 @@ import javax.annotation.Nonnull;
    * reference) in first-to-last order.
    */
   private void writeObject(ObjectOutputStream s) throws IOException {
-<span class="nc" id="L873">    s.defaultWriteObject();</span>
+<span class="nc" id="L877">    s.defaultWriteObject();</span>
 
     // Write out size
-<span class="nc" id="L876">    s.writeInt(size());</span>
+<span class="nc" id="L880">    s.writeInt(size());</span>
 
     // Write out elements in order.
-<span class="nc" id="L879">    int mask = elements.length - 1;</span>
-<span class="nc bnc" id="L880" title="All 2 branches missed.">    for (int i = head; i != tail; i = (i + 1) &amp; mask) {</span>
-<span class="nc" id="L881">      s.writeObject(elements[i]);</span>
+<span class="nc" id="L883">    int mask = elements.length - 1;</span>
+<span class="nc bnc" id="L884" title="All 2 branches missed.">    for (int i = head; i != tail; i = (i + 1) &amp; mask) {</span>
+<span class="nc" id="L885">      s.writeObject(elements[i]);</span>
     }
-<span class="nc" id="L883">  }</span>
+<span class="nc" id="L887">  }</span>
 
   /**
    * Deserialize this deque.
    */
   private void readObject(ObjectInputStream s)
           throws IOException, ClassNotFoundException {
-<span class="nc" id="L890">    s.defaultReadObject();</span>
+<span class="nc" id="L894">    s.defaultReadObject();</span>
 
     // Read in size and allocate array
-<span class="nc" id="L893">    int size = s.readInt();</span>
-<span class="nc" id="L894">    allocateElements(size);</span>
-<span class="nc" id="L895">    head = 0;</span>
-<span class="nc" id="L896">    tail = size;</span>
+<span class="nc" id="L897">    int size = s.readInt();</span>
+<span class="nc" id="L898">    allocateElements(size);</span>
+<span class="nc" id="L899">    head = 0;</span>
+<span class="nc" id="L900">    tail = size;</span>
 
     // Read in all elements in the proper order.
-<span class="nc bnc" id="L899" title="All 2 branches missed.">    for (int i = 0; i &lt; size; i++) {</span>
-<span class="nc" id="L900">      elements[i] = (E) s.readObject();</span>
+<span class="nc bnc" id="L903" title="All 2 branches missed.">    for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L904">      elements[i] = (E) s.readObject();</span>
     }
-<span class="nc" id="L902">  }</span>
+<span class="nc" id="L906">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
