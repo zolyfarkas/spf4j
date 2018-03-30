@@ -33,18 +33,35 @@ package org.spf4j.stackmonitor;
 
 import javax.annotation.Nullable;
 
-
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public interface StackCollector {
+public final class GCFakeStackUtil {
 
-    @Nullable
-    SampleNode getAndReset();
+  private GCFakeStackUtil() { }
 
-    @Nullable
-    SampleNode get();
+  private static final StackTraceElement[] GC_FAKE_STACK = new StackTraceElement[]{
+    new StackTraceElement("java.lang.System", "gc", "System.java", -1)
+  };
 
-    void collect(StackTraceElement[] stackTrace);
+  @Nullable
+  public static SampleNode createFakeGCSamples(final long prevGCTimeMillis, final long gcTimeMillis,
+          final long stMs) {
+    if (gcTimeMillis > prevGCTimeMillis) {
+      int fakeSamples = (int) ((gcTimeMillis - prevGCTimeMillis) / stMs);
+      if (fakeSamples > 0) {
+        SampleNode node = SampleNode.createSampleNode(GC_FAKE_STACK);
+        for (int i = 0; i < fakeSamples; i++) { // can be optimized
+          SampleNode.addToSampleNode(node, GC_FAKE_STACK);
+        }
+        return node;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
 
 }

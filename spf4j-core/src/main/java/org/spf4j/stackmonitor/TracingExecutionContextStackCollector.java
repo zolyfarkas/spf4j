@@ -31,9 +31,12 @@
  */
 package org.spf4j.stackmonitor;
 
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.Threads;
 
@@ -45,7 +48,8 @@ import org.spf4j.base.Threads;
  *
  * @author Zoltan Farkas
  */
-public final class TracingExecutionContextStackCollector extends AbstractStackCollector {
+@NotThreadSafe
+public final class TracingExecutionContextStackCollector implements ISampler {
 
   private final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier;
 
@@ -53,15 +57,23 @@ public final class TracingExecutionContextStackCollector extends AbstractStackCo
 
   private ExecutionContext[] contexts;
 
+  private final TMap<String, StackCollector> collections;
+
+  public TracingExecutionContextStackCollector(
+          final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier) {
+    this(100, execCtxSupplier);
+  }
+
   public TracingExecutionContextStackCollector(final int maxNrThreads,
           final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier) {
     requestFor = new Thread[maxNrThreads];
     contexts = new ExecutionContext[maxNrThreads];
     this.execCtxSupplier = execCtxSupplier;
+    collections = new THashMap<>();
   }
 
   @Override
-  public void sample(final Thread ignore) {
+  public void sample() {
     Iterable<Map.Entry<Thread, ExecutionContext>> currentThreads = execCtxSupplier.get();
     int i = 0;
     for (Map.Entry<Thread, ExecutionContext> entry : currentThreads) {
@@ -75,9 +87,11 @@ public final class TracingExecutionContextStackCollector extends AbstractStackCo
     StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);
     for (int j = 0; j < i; j++) {
       StackTraceElement[] stackTrace = stackTraces[j];
+      ExecutionContext context = contexts[j];
+      StackCollector c = collections.computeIfAbsent(context.getName(), (k) -> new StackCollectorImpl());
       if (stackTrace != null && stackTrace.length > 0) {
-        addSample(stackTrace);
-        contexts[j].compute("TSS", (String k, SampleNode v) -> {
+        c.collect(stackTrace);
+        context.compute("TSS", (String k, SampleNode v) -> {
           if (v == null) {
             return SampleNode.createSampleNode(stackTrace);
           } else {
@@ -86,11 +100,39 @@ public final class TracingExecutionContextStackCollector extends AbstractStackCo
           }
         });
       } else {
-        addSample(new StackTraceElement[]{
+        c.collect(new StackTraceElement[]{
           new StackTraceElement("Thread", requestFor[j].getName(), "", 0)
         });
       }
     }
   }
+
+  @Override
+  public Map<String, SampleNode> getCollectionsAndReset() {
+    TMap<String, SampleNode> result = new THashMap<>(collections.size());
+    collections.forEachEntry((k, v) -> {
+      result.put(k, v.getAndReset());
+      return true;
+    });
+    return result;
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollections() {
+    TMap<String, SampleNode> result = new THashMap<>(collections.size());
+    collections.forEachEntry((k, v) -> {
+      result.put(k, v.get());
+      return true;
+    });
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "TracingExecutionContextStackCollector{" + "execCtxSupplier=" + execCtxSupplier
+            + ", collections=" + collections + '}';
+  }
+
+
 
 }

@@ -32,19 +32,54 @@
 package org.spf4j.stackmonitor;
 
 import javax.annotation.Nullable;
-
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * @author zoly
  */
-public interface StackCollector {
+@NotThreadSafe
+public final class StackCollectorImpl implements StackCollector {
 
-    @Nullable
-    SampleNode getAndReset();
+  private SampleNode samples;
 
-    @Nullable
-    SampleNode get();
+  @Override
+  @Nullable
+  public SampleNode getAndReset() {
+    SampleNode result = samples;
+    samples = null;
+    return result;
+  }
 
-    void collect(StackTraceElement[] stackTrace);
+  @Override
+  @Nullable
+  public SampleNode get() {
+    if (samples == null) {
+      return null;
+    }
+    return SampleNode.clone(samples);
+  }
+
+
+  @Override
+  public void collect(final StackTraceElement[] stackTrace) {
+    if (samples == null) {
+      samples = SampleNode.createSampleNode(stackTrace);
+    } else {
+      SampleNode.addToSampleNode(samples, stackTrace);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "AbstractStackCollector{" + "samples=" + samples + '}';
+  }
+
+  public int getNrNodes() {
+    if (samples == null) {
+      return 0;
+    } else {
+      return samples.getNrNodes();
+    }
+  }
 
 }

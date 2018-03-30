@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
@@ -53,10 +54,14 @@ public interface ExecutionContext extends AutoCloseable {
   @DischargesObligation
   void close();
 
+  @Nonnull
+  String getName();
+
   long getStartTimeNanos();
 
   long getDeadlineNanos();
 
+  @Nullable
   ExecutionContext getParent();
 
   @Nonnegative

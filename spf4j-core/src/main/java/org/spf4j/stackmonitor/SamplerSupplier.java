@@ -31,20 +31,11 @@
  */
 package org.spf4j.stackmonitor;
 
-import javax.annotation.Nullable;
-
-
 /**
- * @author zoly
+ * @author Zoltan Farkas
  */
-public interface StackCollector {
+public interface SamplerSupplier {
 
-    @Nullable
-    SampleNode getAndReset();
-
-    @Nullable
-    SampleNode get();
-
-    void collect(StackTraceElement[] stackTrace);
+    ISampler get(Thread samplingThread);
 
 }

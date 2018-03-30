@@ -40,7 +40,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.perf.cpu.CpuUsageSampler;
-import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.stackmonitor.Sampler;
 
 /**
@@ -56,7 +55,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 0);
-    Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
+    Sampler s = Sampler.getSampler(20, 10000,
             new File(org.spf4j.base.Runtime.TMP_FOLDER),
             "lifeTest1");
     s.start();
@@ -78,7 +77,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
   public void testLifoExecSQMutable() throws InterruptedException, IOException {
     MutableLifoThreadPoolExecutorSQP executor
             = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 0);
-    Sampler s = Sampler.getSampler(20, 10000, new FastStackCollector(true),
+    Sampler s = Sampler.getSampler(20, 10000,
             new File(org.spf4j.base.Runtime.TMP_FOLDER),
             "lifeTest1");
     s.start();

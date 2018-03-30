@@ -31,13 +31,17 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Threads;
 
 /**
@@ -48,7 +52,8 @@ import org.spf4j.base.Threads;
  *
  * @author zoly
  */
-public final class FastStackCollector extends AbstractStackCollector {
+@ParametersAreNonnullByDefault
+public final class FastStackCollector implements ISampler {
 
   private static final String[] IGNORED_THREADS = {
     "Finalizer",
@@ -60,31 +65,25 @@ public final class FastStackCollector extends AbstractStackCollector {
 
   private final Predicate<Thread> threadFilter;
 
+  private final StackCollector collector;
+
   private Thread[] requestFor = new Thread[]{};
 
   public FastStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
-    this(createNameBasedFilter(false, collectForMain, xtraIgnoredThreads));
+    this(false, collectForMain, xtraIgnoredThreads);
   }
 
   public FastStackCollector(final boolean collectRunnableThreadsOnly,
                             final boolean collectForMain,
                             final String... xtraIgnoredThreads) {
-    this(createNameBasedFilter(collectRunnableThreadsOnly, collectForMain, xtraIgnoredThreads));
+    this(collectRunnableThreadsOnly, collectForMain, Threads.EMPTY_ARRAY, xtraIgnoredThreads);
   }
 
-  public static Predicate<Thread> createNameBasedFilter(final boolean collectRunnableThreadsOnly,
-                                                        final boolean collectForMain,
-                                                        final String[] xtraIgnoredThreads) {
-    final Set<String> ignoredThreads = new THashSet<>(Arrays.asList(IGNORED_THREADS));
-    if (!collectForMain) {
-      ignoredThreads.add("main");
-    }
-    ignoredThreads.addAll(Arrays.asList(xtraIgnoredThreads));
-    if (collectRunnableThreadsOnly) {
-      return new ThreadNamesPredicate(ignoredThreads).or((Thread t) -> Thread.State.RUNNABLE != t.getState());
-    } else {
-      return new ThreadNamesPredicate(ignoredThreads);
-    }
+  public FastStackCollector(final boolean collectRunnableThreadsOnly,
+                            final boolean collectForMain,
+                            final Thread[] ignored,
+                            final String... xtraIgnoredThreads) {
+    this(createNameBasedFilter(collectRunnableThreadsOnly, collectForMain, ignored, xtraIgnoredThreads));
   }
 
   /**
@@ -92,6 +91,27 @@ public final class FastStackCollector extends AbstractStackCollector {
    */
   public FastStackCollector(final Predicate<Thread> threadFilter) {
     this.threadFilter = threadFilter;
+    this.collector = new StackCollectorImpl();
+  }
+
+  public static Predicate<Thread> createNameBasedFilter(final boolean collectRunnableThreadsOnly,
+                                                        final boolean collectForMain,
+                                                        final Thread[] ignored,
+                                                        final String[] xtraIgnoredThreads) {
+    final Set<String> ignoredThreadNames = new THashSet<>(Arrays.asList(IGNORED_THREADS));
+    ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));
+    Predicate<Thread> result = new ThreadNamesPredicate(ignoredThreadNames);
+    if (collectRunnableThreadsOnly) {
+      result = result.or((Thread t) -> Thread.State.RUNNABLE != t.getState());
+    }
+    for (Thread th : ignored) {
+      result = result.or((t) -> t == th);
+    }
+    if (!collectForMain) {
+      Thread mainThread = org.spf4j.base.Runtime.getMainThread();
+      result = result.or((t) -> t == mainThread);
+    }
+    return result;
   }
 
   /**
@@ -120,7 +140,7 @@ public final class FastStackCollector extends AbstractStackCollector {
 
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  public void sample(final Thread ignore) {
+  public void sample() {
     Thread[] threads = Threads.getThreads();
     final int nrThreads = threads.length;
     if (requestFor.length < nrThreads) {
@@ -129,7 +149,7 @@ public final class FastStackCollector extends AbstractStackCollector {
     int j = 0;
     for (int i = 0; i < nrThreads; i++) {
       Thread th = threads[i];
-      if (ignore != th && !threadFilter.test(th)) { // not interested in these traces
+      if (!threadFilter.test(th)) { // not interested in these traces
         requestFor[j++] = th;
       }
     }
@@ -138,13 +158,25 @@ public final class FastStackCollector extends AbstractStackCollector {
     for (int i = 0; i < j; i++) {
       StackTraceElement[] stackTrace = stackDump[i];
       if (stackTrace != null && stackTrace.length > 0) {
-        addSample(stackTrace);
+        collector.collect(stackTrace);
       } else {
-        addSample(new StackTraceElement[]{
+        collector.collect(new StackTraceElement[]{
           new StackTraceElement("Thread", requestFor[i].getName(), "", 0)
         });
       }
     }
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollectionsAndReset() {
+    SampleNode nodes = collector.getAndReset();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of("ALL", nodes);
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollections() {
+    SampleNode nodes = collector.get();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of("ALL", nodes);
   }
 
   public static final class ThreadNamesPredicate implements Predicate<Thread> {
@@ -159,6 +191,11 @@ public final class FastStackCollector extends AbstractStackCollector {
     public boolean test(@Nonnull final Thread input) {
       return ignoredThreadNames.contains(input.getName());
     }
+  }
+
+  @Override
+  public String toString() {
+    return "FastStackCollector{" + "threadFilter=" + threadFilter + ", collector=" + collector + '}';
   }
 
 }

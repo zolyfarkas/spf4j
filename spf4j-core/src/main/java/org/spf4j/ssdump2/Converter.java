@@ -44,6 +44,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -161,7 +162,7 @@ public final class Converter {
       Converter.convert(Method.ROOT, collected,
               -1, 0, (final ASample object, final long deadline) -> {
                 writer.write(object, encoder);
-      });
+              });
       encoder.flush();
     }
   }
@@ -205,4 +206,70 @@ public final class Converter {
       });
     }
   }
+
+  public static void saveLabeledDumps(final File file, final Map<String, SampleNode> collected) throws IOException {
+    try (BufferedOutputStream bos = new BufferedOutputStream(
+            Files.newOutputStream(file.toPath()))) {
+      final SpecificDatumWriter<ASample> writer = new SpecificDatumWriter<>(ASample.SCHEMA$);
+      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
+
+      encoder.writeMapStart();
+      encoder.setItemCount(collected.size());
+      for (Map.Entry<String, SampleNode> entry : collected.entrySet()) {
+        encoder.startItem();
+        encoder.writeString(entry.getKey());
+        encoder.writeArrayStart();
+        Converter.convert(Method.ROOT, entry.getValue(),
+                -1, 0, (final ASample object, final long deadline) -> {
+                  encoder.setItemCount(1);
+                  encoder.startItem();
+                  writer.write(object, encoder);
+                });
+        encoder.writeArrayEnd();
+      }
+      encoder.writeMapEnd();
+      encoder.flush();
+    }
+  }
+
+  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+  public static Map<String, SampleNode> loadLabeledDumps(final File file) throws IOException {
+    try (MemorizingBufferedInputStream bis
+            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
+      final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
+      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+      long nrItems = decoder.readMapStart();
+      ASample asmp = new ASample();
+      Map<String, SampleNode> result = new HashMap<>((int) nrItems);
+      while (nrItems > 0) {
+        for (int i = 0; i < nrItems; i++) {
+          String key = decoder.readString();
+          TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
+          long nrArrayItems = decoder.readArrayStart();
+          while (nrArrayItems > 0) {
+            for (int j = 0; j < nrArrayItems; j++) {
+              asmp = reader.read(asmp, decoder);
+              SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>(4));
+              SampleNode parent = index.get(asmp.parentId);
+              if (parent != null) {
+                AMethod method = asmp.getMethod();
+                Method m = Method.getMethod(method.declaringClass, method.getName());
+                final Map<Method, SampleNode> subNodes = parent.getSubNodes();
+                if (subNodes == null) {
+                  throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
+                }
+                subNodes.put(m, sn);
+              }
+              index.put(asmp.id, sn);
+            }
+            nrArrayItems = decoder.arrayNext();
+          }
+          result.put(key, index.get(0));
+          nrItems = decoder.mapNext();
+        }
+      }
+      return result;
+    }
+  }
+
 }

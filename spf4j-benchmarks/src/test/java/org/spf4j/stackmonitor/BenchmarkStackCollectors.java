@@ -49,37 +49,42 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 1)
 public class BenchmarkStackCollectors {
 
-        private static final SimpleStackCollector SIMPLE = new SimpleStackCollector();
-        private static final FastStackCollector FAST = new FastStackCollector(false);
+  private static final SimpleStackCollector SIMPLE;
+  private static final FastStackCollector FAST;
+  private static final MxStackCollector MX;
 
-        private static final MxStackCollector MX = new MxStackCollector();
+  static {
+    Thread currentThread = Thread.currentThread();
+    SIMPLE = new SimpleStackCollector(currentThread);
+    FAST = new FastStackCollector(false, true, new Thread[]{currentThread});
+    MX = new MxStackCollector(currentThread);
+  }
 
-        private static volatile List<Thread> testThreads;
+  private static volatile List<Thread> testThreads;
 
-        @Setup
-        public static void setup() {
-            testThreads = DemoTest.startTestThreads(8);
-        }
+  @Setup
+  public static void setup() {
+    testThreads = DemoTest.startTestThreads(8);
+  }
 
-        @TearDown
-        public static void tearDown() throws InterruptedException {
-            DemoTest.stopTestThreads(testThreads);
-        }
+  @TearDown
+  public static void tearDown() throws InterruptedException {
+    DemoTest.stopTestThreads(testThreads);
+  }
 
-        @Benchmark
-        public final void testSimple() {
-            SIMPLE.sample(Thread.currentThread());
-        }
+  @Benchmark
+  public final void testSimple() {
+    SIMPLE.sample();
+  }
 
-        @Benchmark
-        public final void testFast() {
-            FAST.sample(Thread.currentThread());
-        }
+  @Benchmark
+  public final void testFast() {
+    FAST.sample();
+  }
 
-        @Benchmark
-        public final void testMx() {
-            MX.sample(Thread.currentThread());
-        }
-
+  @Benchmark
+  public final void testMx() {
+    MX.sample();
+  }
 
 }

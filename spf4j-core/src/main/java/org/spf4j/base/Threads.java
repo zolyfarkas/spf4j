@@ -47,6 +47,8 @@ import java.security.PrivilegedAction;
  */
 public final class Threads {
 
+  public static final Thread[] EMPTY_ARRAY = new Thread[0];
+
   private static final MethodHandle GET_THREADS;
   private static final MethodHandle DUMP_THREADS;
 

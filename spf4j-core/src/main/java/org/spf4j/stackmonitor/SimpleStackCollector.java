@@ -31,27 +31,57 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
 import java.util.Map;
 
 /**
  *
  * @author zoly
  */
-public final class SimpleStackCollector extends AbstractStackCollector {
+public final class SimpleStackCollector implements ISampler {
 
-    @Override
-    public void sample(final Thread ignore) {
-        Map<Thread, StackTraceElement[]> stackDump = Thread.getAllStackTraces();
-        stackDump.remove(ignore);
-        for (Map.Entry<Thread, StackTraceElement[]> element : stackDump.entrySet()) {
-            StackTraceElement[] stackTrace = element.getValue();
-            if (stackTrace.length > 0) {
-                addSample(stackTrace);
-            } else {
-                addSample(new StackTraceElement[] {
-                  new StackTraceElement("Thread", element.getKey().getName(), "", 0)
-                   });
-            }
-        }
+  private final Thread ignore;
+
+  private final StackCollector collector;
+
+  public SimpleStackCollector(final Thread ignore) {
+    this.ignore = ignore;
+    this.collector = new StackCollectorImpl();
+  }
+
+  @Override
+  public void sample() {
+    Map<Thread, StackTraceElement[]> stackDump = Thread.getAllStackTraces();
+    stackDump.remove(ignore);
+    for (Map.Entry<Thread, StackTraceElement[]> element : stackDump.entrySet()) {
+      StackTraceElement[] stackTrace = element.getValue();
+      if (stackTrace.length > 0) {
+        collector.collect(stackTrace);
+      } else {
+        collector.collect(new StackTraceElement[]{
+          new StackTraceElement("Thread", element.getKey().getName(), "", 0)
+        });
+      }
     }
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollectionsAndReset() {
+    SampleNode nodes = collector.getAndReset();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of("ALL", nodes);
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollections() {
+    SampleNode nodes = collector.get();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of("ALL", nodes);
+  }
+
+  @Override
+  public String toString() {
+    return "SimpleStackCollector{" + "ignore=" + ignore + ", collector=" + collector + '}';
+  }
+
+
 }

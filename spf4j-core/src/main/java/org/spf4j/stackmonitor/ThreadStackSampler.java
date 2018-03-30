@@ -31,34 +31,41 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Supplier;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.spf4j.base.Threads;
 
 /**
- * A stack sample collector that collects samples only for code executed within a execution context.
- * This context requires ProfiledExecutionContextFactory wrapper.
+ * A stack sample collector that collects samples only for suppllied threads.
  *
  * @author Zoltan Farkas
  */
-public final class ThreadStackCollector extends AbstractStackCollector {
+@NotThreadSafe
+public final class ThreadStackSampler implements ISampler {
 
   private final Supplier<Iterable<Thread>> threadSupplier;
 
+  private final StackCollector collector;
+
   private Thread[] requestFor;
 
-  public ThreadStackCollector(final Supplier<Iterable<Thread>> threadSupplier) {
+  public ThreadStackSampler(final Supplier<Iterable<Thread>> threadSupplier) {
     this(20, threadSupplier);
   }
 
-  public ThreadStackCollector(final int maxSampledThreads,
+  public ThreadStackSampler(final int maxSampledThreads,
           final Supplier<Iterable<Thread>> threadSupplier) {
     requestFor = new Thread[maxSampledThreads];
     this.threadSupplier = threadSupplier;
+    this.collector = new StackCollectorImpl();
   }
 
   @Override
-  public void sample(final Thread ignore) {
+  public void sample() {
     Iterable<Thread> currentThreads = threadSupplier.get();
     int i = 0;
     for (Thread t : currentThreads) {
@@ -72,13 +79,30 @@ public final class ThreadStackCollector extends AbstractStackCollector {
     for (int j = 0; j < i; j++) {
       StackTraceElement[] stackTrace = stackTraces[j];
       if (stackTrace != null && stackTrace.length > 0) {
-        addSample(stackTrace);
+        collector.collect(stackTrace);
       } else {
-        addSample(new StackTraceElement[]{
+        collector.collect(new StackTraceElement[]{
           new StackTraceElement("Thread", requestFor[j].getName(), "", 0)
         });
       }
     }
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollectionsAndReset() {
+    SampleNode nodes = collector.getAndReset();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(threadSupplier.toString(), nodes);
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollections() {
+    SampleNode nodes = collector.get();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(threadSupplier.toString(), nodes);
+  }
+
+  @Override
+  public String toString() {
+    return "ThreadStackSampler{" + "threadSupplier=" + threadSupplier + ", collector=" + collector + '}';
   }
 
 }

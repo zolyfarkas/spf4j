@@ -52,12 +52,12 @@ public final class DemoTest {
 
   @Test
   public void testJmx() throws InterruptedException, IOException {
-    Sampler sampler = new Sampler(new SimpleStackCollector());
+    Sampler sampler = new Sampler((t) -> new SimpleStackCollector(t));
     sampler.registerJmx();
     sampler.start();
     main(new String[]{});
     sampler.stop();
-    SampleNode original = sampler.getStackCollector().applyOnSamples((SampleNode input) -> input);
+    SampleNode original = sampler.getStackCollections().values().iterator().next();
     File file = sampler.dumpToFile();
     LOG.debug("Samples saved to {}", file);
     Assert.assertNotNull(file);

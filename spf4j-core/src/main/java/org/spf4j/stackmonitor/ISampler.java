@@ -31,20 +31,18 @@
  */
 package org.spf4j.stackmonitor;
 
-import javax.annotation.Nullable;
-
+import java.util.Map;
 
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public interface StackCollector {
+public interface ISampler {
 
-    @Nullable
-    SampleNode getAndReset();
+  void sample();
 
-    @Nullable
-    SampleNode get();
+  Map<String, SampleNode> getCollectionsAndReset();
 
-    void collect(StackTraceElement[] stackTrace);
+  Map<String, SampleNode> getCollections();
 
 }

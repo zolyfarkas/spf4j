@@ -33,7 +33,6 @@ package org.spf4j.stackmonitor;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,9 +58,20 @@ public final class SsdumpTest {
     ProfiledExecutionContextFactory contextFactory =
             (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
 
-    Sampler sampler = new Sampler(1, new ThreadStackCollector(contextFactory::getCurrentThreads));
+    Sampler sampler = new Sampler(1, (t) -> new ThreadStackSampler(contextFactory::getCurrentThreads));
     sampleTest(sampler, "ecStackSample");
   }
+
+  @Test
+  public void testTracingDumpExecContexts() throws InterruptedException, IOException {
+    ProfiledExecutionContextFactory contextFactory =
+            (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
+
+    Sampler sampler = new Sampler(1,
+            (t) -> new TracingExecutionContextStackCollector(contextFactory::getCurrentThreadContexts));
+    sampleTest(sampler, "ecTracingStackSample");
+  }
+
 
 
   @Test
@@ -75,17 +85,7 @@ public final class SsdumpTest {
     sampler.start();
     MonitorTest.main(new String[]{});
     final File serializedFile = File.createTempFile(filename, ".ssdump2");
-    sampler.getStackCollector().applyOnSamples((final SampleNode f) -> {
-      if (f != null) {
-        try {
-          Converter.save(serializedFile, f);
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
-
-      }
-      return f;
-    });
+    Converter.save(serializedFile, sampler.getStackCollectionsAndReset().values().iterator().next());
     LOG.debug("Dumped to file {}", serializedFile);
     sampler.stop();
     final SampleNode samples = Converter.load(serializedFile);

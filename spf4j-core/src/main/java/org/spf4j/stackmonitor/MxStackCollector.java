@@ -31,31 +31,62 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.collect.ImmutableMap;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *
  * @author zoly
  */
-public final class MxStackCollector extends AbstractStackCollector {
+public final class MxStackCollector implements ISampler {
 
     private static final ThreadMXBean THREAD_MX = ManagementFactory.getThreadMXBean();
 
-    @Override
-    public void sample(final Thread ignore) {
-        ThreadInfo[] stackDump = THREAD_MX.dumpAllThreads(false, false);
-        recordStackDump(stackDump, ignore);
+    private final Thread ignore;
+
+    private final StackCollector collector;
+
+    public MxStackCollector(final Thread ignore) {
+      this.ignore = ignore;
+      this.collector = new StackCollectorImpl();
     }
 
-    private void recordStackDump(final ThreadInfo[] stackDump, final Thread ignore) {
+    @Override
+    public void sample() {
+        ThreadInfo[] stackDump = THREAD_MX.dumpAllThreads(false, false);
+        recordStackDump(stackDump);
+    }
+
+    private void recordStackDump(final ThreadInfo[] stackDump) {
         final long id = ignore.getId();
         for (ThreadInfo entry : stackDump) {
             StackTraceElement[] stackTrace = entry.getStackTrace();
             if (stackTrace.length > 0 && (entry.getThreadId() != id)) {
-                addSample(stackTrace);
+                collector.collect(stackTrace);
             }
         }
     }
+
+  @Override
+  public Map<String, SampleNode> getCollectionsAndReset() {
+    SampleNode nodes = collector.getAndReset();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of("ALL", nodes);
+  }
+
+  @Override
+  public Map<String, SampleNode> getCollections() {
+    SampleNode nodes = collector.get();
+    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of("ALL", nodes);
+  }
+
+  @Override
+  public String toString() {
+    return "MxStackCollector{" + "ignore=" + ignore + ", collector=" + collector + '}';
+  }
+
+
 }
