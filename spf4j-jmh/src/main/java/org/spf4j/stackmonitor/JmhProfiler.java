@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.IterationParams;
@@ -65,7 +66,7 @@ public final class JmhProfiler implements InternalProfiler {
     private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
 
     private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
-            new FastStackCollector(true));
+            (t) -> new FastStackCollector(false, true, new Thread[] {t}));
 
     private static volatile String benchmarkName;
 
@@ -94,7 +95,11 @@ public final class JmhProfiler implements InternalProfiler {
             Thread.currentThread().interrupt();
             return Collections.EMPTY_LIST;
         }
-        SampleNode collected = SAMPLER.getStackCollector().clear();
+        Map<String, SampleNode> c = SAMPLER.getStackCollectionsAndReset();
+        if (c.isEmpty()) {
+          return Collections.EMPTY_LIST;
+        }
+        SampleNode collected = c.values().iterator().next();
         try {
             return Arrays.asList(new StackResult(collected, benchmarkParams.id(), true));
         } catch (IOException ex) {

@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -71,7 +72,7 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
   private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
 
   private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
-          new FastStackCollector(true));
+          (t) -> new FastStackCollector(false, true, new Thread[] {t}));
 
   private static final AtomicInteger MEASUREMENT_ITERATION_COUNTER = new AtomicInteger(1);
 
@@ -104,7 +105,13 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
       Thread.currentThread().interrupt();
       return Collections.EMPTY_LIST;
     }
-    SampleNode collected = SAMPLER.getStackCollector().clear();
+    Map<String, SampleNode> c = SAMPLER.getStackCollectionsAndReset();
+    SampleNode collected;
+    if (c.isEmpty()) {
+      collected = null;
+    } else {
+      collected = c.values().iterator().next();
+    }
     String iterationId;
     IterationType itType = iterationParams.getType();
     switch (itType) {

@@ -94,7 +94,7 @@ public final class Spf4jRunListener extends RunListener {
   public Spf4jRunListener() {
     sampler = new Sampler(Integer.getInteger("spf4j.junit.sampleTimeMillis", 5),
           Integer.getInteger("spf4j.junit.dumpAfterMillis", Integer.MAX_VALUE),
-          new FastStackCollector(true));
+          (t) -> new FastStackCollector(false, true, new Thread[] {t}));
 
     destinationFolder = new File(System.getProperty("spf4j.junit.destinationFolder",
           "target/junit-ssdump"));
