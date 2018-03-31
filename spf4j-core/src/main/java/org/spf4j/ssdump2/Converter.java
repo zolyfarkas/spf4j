@@ -221,7 +221,7 @@ public final class Converter {
         encoder.writeArrayStart();
         Converter.convert(Method.ROOT, entry.getValue(),
                 -1, 0, (final ASample object, final long deadline) -> {
-                  encoder.setItemCount(1);
+                  encoder.setItemCount(1L);
                   encoder.startItem();
                   writer.write(object, encoder);
                 });
@@ -265,8 +265,8 @@ public final class Converter {
             nrArrayItems = decoder.arrayNext();
           }
           result.put(key, index.get(0));
-          nrItems = decoder.mapNext();
         }
+        nrItems = decoder.mapNext();
       }
       return result;
     }

@@ -84,16 +84,20 @@ public final class SsdumpTest {
     sampler.registerJmx();
     sampler.start();
     MonitorTest.main(new String[]{});
-    final File serializedFile = File.createTempFile(filename, ".ssdump2");
-    Converter.save(serializedFile, sampler.getStackCollectionsAndReset().values().iterator().next());
+    final File serializedFile = File.createTempFile(filename, ".ssdump3");
+    Map<String, SampleNode> collected = sampler.getStackCollectionsAndReset();
+    Converter.saveLabeledDumps(serializedFile, collected);
     LOG.debug("Dumped to file {}", serializedFile);
     sampler.stop();
-    final SampleNode samples = Converter.load(serializedFile);
-    Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(samples);
-    Traversals.traverse(graph, InvokedMethod.ROOT,
-            (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
-              LOG.debug("Method: {} from {}", vertex, edges);
-            }, true);
-    Assert.assertNotNull(graph);
+    Map<String, SampleNode> loadedDumps = Converter.loadLabeledDumps(serializedFile);
+    for (Map.Entry<String, SampleNode> entry : loadedDumps.entrySet()) {
+      LOG.debug("Loaded {}", entry.getKey());
+      Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(entry.getValue());
+      Traversals.traverse(graph, InvokedMethod.ROOT,
+              (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
+                LOG.debug("Method: {} from {}", vertex, edges);
+              }, true);
+      Assert.assertNotNull(graph);
+    }
   }
 }

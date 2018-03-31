@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -46,6 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author Zoltan Farkas
  */
 @ThreadSafe
+@ParametersAreNonnullByDefault
 public class BasicExecutionContext implements ExecutionContext {
 
   private final String name;

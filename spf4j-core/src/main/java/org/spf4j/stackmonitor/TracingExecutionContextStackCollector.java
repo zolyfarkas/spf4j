@@ -88,7 +88,8 @@ public final class TracingExecutionContextStackCollector implements ISampler {
     for (int j = 0; j < i; j++) {
       StackTraceElement[] stackTrace = stackTraces[j];
       ExecutionContext context = contexts[j];
-      StackCollector c = collections.computeIfAbsent(context.getName(), (k) -> new StackCollectorImpl());
+      String name = context.getName();
+      StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
       if (stackTrace != null && stackTrace.length > 0) {
         c.collect(stackTrace);
         context.compute("TSS", (String k, SampleNode v) -> {

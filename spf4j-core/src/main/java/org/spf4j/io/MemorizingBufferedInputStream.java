@@ -242,6 +242,9 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         if (isClosed) {
             throw new IOException("Stream is closed " + this);
         }
+        if (len < 0 || off + len > b.length) {
+          throw new ArrayIndexOutOfBoundsException("Offset " + off  + " or len " + len);
+        }
         int availableToRead = availableToRead();
         if (availableToRead <= 0) {
             fill();
