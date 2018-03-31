@@ -63,7 +63,7 @@ public class Spf4jTestLogRunListener extends RunListener {
 
   @Override
   public final void testRunStarted(final Description description) throws Exception {
-    instance.testStarted(description);
+    instance.testRunStarted(description);
   }
 
   @Override
