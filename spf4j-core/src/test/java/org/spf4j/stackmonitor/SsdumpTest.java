@@ -86,6 +86,7 @@ public final class SsdumpTest {
     MonitorTest.main(new String[]{});
     final File serializedFile = File.createTempFile(filename, ".ssdump3");
     Map<String, SampleNode> collected = sampler.getStackCollectionsAndReset();
+    Assert.assertEquals(1, collected.size());
     Converter.saveLabeledDumps(serializedFile, collected);
     LOG.debug("Dumped to file {}", serializedFile);
     sampler.stop();
