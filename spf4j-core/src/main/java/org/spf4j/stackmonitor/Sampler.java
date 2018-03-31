@@ -259,13 +259,14 @@ public final class Sampler {
       return null;
     }
     if (collections.size() == 1) {
+      Map.Entry<String, SampleNode> es = collections.entrySet().iterator().next();
       File file;
       if (pfile.getName().endsWith(".ssdump2")) {
         file = pfile;
       } else {
-        file = new File(pfile.getName() + ".ssdump2");
+        file = new File(pfile.getName() + es.getKey()  + ".ssdump2");
       }
-      Converter.save(file, collections.values().iterator().next());
+      Converter.save(file, es.getValue());
       lastDumpTimeNanos = TimeSource.nanoTime();
       return file;
     } else {
