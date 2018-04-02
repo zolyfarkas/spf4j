@@ -308,7 +308,7 @@ public class Explorer extends javax.swing.JFrame {
       } else if (f.isFile()) {
         String name = f.getName();
         return (name.endsWith("tsdb") || name.endsWith("tsdb2")
-                || name.endsWith("ssdump") || name.endsWith("ssdump2"));
+                || name.endsWith("ssdump") || name.endsWith("ssdump2") || name.endsWith("ssdump3"));
       } else {
         return false;
       }
