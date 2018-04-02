@@ -31,15 +31,9 @@
  */
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
-import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import org.spf4j.stackmonitor.SampleNode;
-import org.spf4j.stackmonitor.proto.Converter;
-import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
 /**
  * will need to add some standard filtering:
@@ -59,30 +53,22 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     /**
      * Creates new form StackDumpJInternalFrame
      */
-    public StackDumpJInternalFrame(final File sampleFile, final boolean isPro) throws IOException {
-        super(sampleFile.getPath());
+    public StackDumpJInternalFrame(final SampleNode samples,
+            final String title, final boolean isPro) throws IOException {
+        super(title);
         initComponents();
-        if (sampleFile.getName().endsWith("ssdump")) {
-            try (BufferedInputStream bis = new BufferedInputStream(
-                    Files.newInputStream(sampleFile.toPath()))) {
-                final CodedInputStream is = CodedInputStream.newInstance(bis);
-                is.setRecursionLimit(Short.MAX_VALUE);
-                samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
-            }
-        } else {
-            samples = org.spf4j.ssdump2.Converter.load(sampleFile);
-        }
         if (samples == null) {
-          samples = new SampleNode(new StackTraceElement[] {new StackTraceElement("NO SAMPLES", "", "", -1)}, 0);
+          this.samples = new SampleNode(new StackTraceElement[] {new StackTraceElement("NO SAMPLES", "", "", -1)}, 0);
+        } else {
+          this.samples = samples;
         }
         if (isPro) {
-            ssScrollPanel.setViewportView(new ZStackPanel(samples));
+            ssScrollPanel.setViewportView(new ZStackPanel(this.samples));
         } else {
-            ssScrollPanel.setViewportView(new FlameStackPanel(samples));
+            ssScrollPanel.setViewportView(new FlameStackPanel(this.samples));
         }
         ssScrollPanel.setVisible(true);
         pack();
-
     }
 
     /**
