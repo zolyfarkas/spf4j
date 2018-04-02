@@ -34,6 +34,7 @@ package org.spf4j.stackmonitor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -59,7 +60,8 @@ public final class SsdumpTest {
             (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
 
     Sampler sampler = new Sampler(1, (t) -> new ThreadStackSampler(contextFactory::getCurrentThreads));
-    sampleTest(sampler, "ecStackSample");
+    Map<String, SampleNode> collected = sampleTest(sampler, "ecStackSample");
+    Assert.assertEquals("Actual: " + collected,  1, collected.size());
   }
 
   @Test
@@ -69,7 +71,10 @@ public final class SsdumpTest {
 
     Sampler sampler = new Sampler(1,
             (t) -> new TracingExecutionContextStackCollector(contextFactory::getCurrentThreadContexts));
-    sampleTest(sampler, "ecTracingStackSample");
+    Map<String, SampleNode> collected = sampleTest(sampler, "ecTracingStackSample");
+    Assert.assertThat(collected.keySet(), Matchers.hasItems(
+            Matchers.equalTo("testThread"), Matchers.containsString("org.spf4j.stackmonitor.SsdumpTest")));
+
   }
 
 
@@ -80,13 +85,13 @@ public final class SsdumpTest {
     sampleTest(sampler, "stackSample");
   }
 
-  public void sampleTest(final Sampler sampler, final String filename) throws InterruptedException, IOException {
+  public Map<String, SampleNode> sampleTest(final Sampler sampler, final String filename)
+          throws InterruptedException, IOException {
     sampler.registerJmx();
     sampler.start();
     MonitorTest.main(new String[]{});
     final File serializedFile = File.createTempFile(filename, ".ssdump3");
     Map<String, SampleNode> collected = sampler.getStackCollectionsAndReset();
-    Assert.assertEquals("Actual: " + collected,  1, collected.size());
     Converter.saveLabeledDumps(serializedFile, collected);
     LOG.debug("Dumped to file {}", serializedFile);
     sampler.stop();
@@ -100,5 +105,6 @@ public final class SsdumpTest {
               }, true);
       Assert.assertNotNull(graph);
     }
+    return collected;
   }
 }
