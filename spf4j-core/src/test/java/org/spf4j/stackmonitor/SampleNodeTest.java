@@ -33,12 +33,13 @@ package org.spf4j.stackmonitor;
 
 import org.spf4j.base.Method;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.hamcrest.Matchers;
+import java.io.IOException;
+import java.io.StringReader;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.IntMath;
+import org.spf4j.base.Pair;
 
 /**
  *
@@ -50,16 +51,8 @@ public final class SampleNodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(SampleNodeTest.class);
 
   @Test
-  public void testMod() {
-    IntMath.XorShift32 random = new IntMath.XorShift32();
-    for (int i = 0; i < 100; i++) {
-      Assert.assertThat(10 + (random.nextInt() % 5), Matchers.greaterThan(4));
-    }
-  }
-
-  @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testSampleNode() {
+  public void testSampleNode() throws IOException {
 
     LOG.debug("sample");
     StackTraceElement[] st1 = new StackTraceElement[3];
@@ -114,5 +107,13 @@ public final class SampleNodeTest {
             + node2.getSubNodes().get(method).getSampleCount(),
             agg.getSubNodes().get(method).getSampleCount());
 
+    StringBuilder sb = new StringBuilder();
+    node1.writeTo(sb);
+    Pair<Method, SampleNode> parsed = SampleNode.parse(new StringReader(sb.toString()));
+    Assert.assertEquals(node1, parsed.getSecond());
+
   }
+
+
+
 }

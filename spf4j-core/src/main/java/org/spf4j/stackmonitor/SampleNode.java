@@ -35,6 +35,7 @@ import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -46,6 +47,10 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.WillNotClose;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
 import org.spf4j.ds.Graph;
@@ -273,8 +278,12 @@ public final class SampleNode implements Serializable, JsonWriteable {
 
   @Override
   public void writeTo(final Appendable appendable) throws IOException {
+    writeTo(Method.ROOT, appendable);
+  }
+
+  public void writeTo(final Method m, final Appendable appendable) throws IOException {
     Deque<Object> dq = new ArrayDeque<>();
-    dq.add(Pair.of(Method.ROOT, this));
+    dq.add(Pair.of(m, this));
     while (!dq.isEmpty()) {
       Object obj = dq.removeLast();
       if (obj instanceof CharSequence) {
@@ -307,10 +316,46 @@ public final class SampleNode implements Serializable, JsonWriteable {
     }
   }
 
-//  public static Pair<Method, SampleNode> fromCharSequence(final CharSequence cs, final int start) {
-//    final int at = start;
-//    SampleNode sn = new SampleNode
-//  }
+  private static final class Lazy {
+    private static final JsonFactory JSON = new JsonFactory();
+  }
+
+  public static Pair<Method, SampleNode> parse(@WillNotClose final Reader r) throws IOException {
+    JsonParser jsonP = Lazy.JSON.createJsonParser(r);
+    consume(jsonP, JsonToken.START_OBJECT);
+    return parse(jsonP);
+  }
+
+
+  private static Pair<Method, SampleNode> parse(final JsonParser jsonP) throws IOException {
+    consume(jsonP, JsonToken.FIELD_NAME);
+    String name = jsonP.getCurrentName();
+    consume(jsonP, JsonToken.VALUE_NUMBER_INT);
+    int sc = jsonP.getIntValue();
+    JsonToken nextToken = jsonP.nextToken();
+    if (nextToken == JsonToken.END_OBJECT) {
+      return Pair.of(Method.from(name), new SampleNode(sc, null));
+    } else if (nextToken == JsonToken.FIELD_NAME) {
+      consume(jsonP, JsonToken.START_ARRAY);
+      TMap<Method, SampleNode> nodes = new THashMap<>(4);
+      while (jsonP.nextToken() != JsonToken.END_ARRAY) {
+        Pair<Method, SampleNode> parse = parse(jsonP);
+        nodes.put(parse.getKey(), parse.getValue());
+      }
+      consume(jsonP, JsonToken.END_OBJECT);
+      return Pair.of(Method.from(name), new SampleNode(sc, nodes));
+    } else {
+      throw new IllegalArgumentException("Expected field name or end Object, not: " + nextToken);
+    }
+  }
+
+  private static void consume(final JsonParser jsonP, final JsonToken token)
+          throws IOException {
+    JsonToken nextToken = jsonP.nextToken();
+    if (nextToken != token) {
+      throw new IllegalArgumentException("Expected start object, not " + nextToken);
+    }
+  }
 
   public interface InvocationHandler {
 
@@ -409,9 +454,7 @@ public final class SampleNode implements Serializable, JsonWriteable {
 
   @Override
   public int hashCode() {
-    int hash = 5;
-    hash = 89 * hash + this.sampleCount;
-    return 89 * hash + Objects.hashCode(this.subNodes);
+    return 89 * this.sampleCount + Objects.hashCode(this.subNodes);
   }
 
   @Override
