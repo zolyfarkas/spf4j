@@ -60,7 +60,8 @@ public final class FastStackCollector implements ISampler {
     "Signal Dispatcher",
     "Reference Handler",
     "Attach Listener",
-    "VM JFR Buffer Thread"
+    "VM JFR Buffer Thread",
+    "DestroyJavaVM"
   };
 
   private final Predicate<Thread> threadFilter;
