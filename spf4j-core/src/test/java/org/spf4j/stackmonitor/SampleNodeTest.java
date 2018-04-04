@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Objects;
 import org.spf4j.base.Pair;
 
 /**
@@ -111,6 +112,7 @@ public final class SampleNodeTest {
     node1.writeTo(sb);
     Pair<Method, SampleNode> parsed = SampleNode.parse(new StringReader(sb.toString()));
     Assert.assertEquals(node1, parsed.getSecond());
+    Assert.assertEquals(node1, Objects.clone(node1));
 
   }
 
