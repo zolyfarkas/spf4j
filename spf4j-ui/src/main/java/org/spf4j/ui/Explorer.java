@@ -295,9 +295,6 @@ public class Explorer extends javax.swing.JFrame {
     JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, true);
     frame.setVisible(true);
     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-    frame = new StackDumpJInternalFrame(samples, fileName, false);
-    frame.setVisible(true);
-    desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
   }
 
 
