@@ -46,22 +46,27 @@ import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultEditorKit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.stackmonitor.SampleNode;
+import org.spf4j.stackmonitor.Sampler;
 import org.spf4j.stackmonitor.proto.Converter;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
 /**
  * @author zoly
  */
-@SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "UP_UNUSED_PARAMETER", "S508C_NON_TRANSLATABLE_STRING"})
+@SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL",
+  "UP_UNUSED_PARAMETER", "S508C_NON_TRANSLATABLE_STRING", "SE_BAD_FIELD"})
 public class Explorer extends javax.swing.JFrame {
 
   private static final long serialVersionUID = 1L;
 
   private File folder;
+
+  private Sampler sampler;
 
   /**
    * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
@@ -82,6 +87,9 @@ public class Explorer extends javax.swing.JFrame {
     copyMenuItem = new javax.swing.JMenuItem();
     pasteMenuItem = new javax.swing.JMenuItem();
     deleteMenuItem = new javax.swing.JMenuItem();
+    jMenu1 = new javax.swing.JMenu();
+    jMenuItem1 = new javax.swing.JMenuItem();
+    jMenuItem2 = new javax.swing.JMenuItem();
     helpMenu = new javax.swing.JMenu();
     contentMenuItem = new javax.swing.JMenuItem();
     aboutMenuItem = new javax.swing.JMenuItem();
@@ -145,6 +153,26 @@ public class Explorer extends javax.swing.JFrame {
     editMenu.add(deleteMenuItem);
 
     menuBar.add(editMenu);
+
+    jMenu1.setText("SelfProfile");
+
+    jMenuItem1.setText("Start");
+    jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItem1ActionPerformed(evt);
+      }
+    });
+    jMenu1.add(jMenuItem1);
+
+    jMenuItem2.setText("Stop & Display");
+    jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItem2ActionPerformed(evt);
+      }
+    });
+    jMenu1.add(jMenuItem2);
+
+    menuBar.add(jMenu1);
 
     helpMenu.setMnemonic('h');
     helpMenu.setText("Help");
@@ -222,7 +250,7 @@ public class Explorer extends javax.swing.JFrame {
 
     menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
     menuItem.setText("Cut");
-    menuItem.setMnemonic(KeyEvent.VK_T);
+    menuItem.setMnemonic(KeyEvent.VK_X);
     mainMenu.add(menuItem);
 
     menuItem = new JMenuItem(new DefaultEditorKit.CopyAction());
@@ -232,7 +260,7 @@ public class Explorer extends javax.swing.JFrame {
 
     menuItem = new JMenuItem(new DefaultEditorKit.PasteAction());
     menuItem.setText("Paste");
-    menuItem.setMnemonic(KeyEvent.VK_P);
+    menuItem.setMnemonic(KeyEvent.VK_V);
     mainMenu.add(menuItem);
 
     menuBar.add(mainMenu);
@@ -249,11 +277,42 @@ public class Explorer extends javax.swing.JFrame {
         frame.setVisible(false);
         f.setVisible(true);
         desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
+    }, (ex) -> {
+      JOptionPane.showMessageDialog(frame, "Invalid input " + ex);
+      frame.setVisible(false);
+      frame.dispose();
     });
     frame.getContentPane().add(panel);
     frame.pack();
     frame.setVisible(true);
   }//GEN-LAST:event_fromTextMenuItemActionPerformed
+
+  private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    try {
+      sampler = Sampler.getSampler(10, 100000, new File("."), "dump");
+      sampler.start();
+    } catch (InterruptedException ex) {
+      throw new RuntimeException(ex);
+    }
+  }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+  private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+    if (sampler != null) {
+      try {
+        sampler.stop();
+      } catch (InterruptedException ex) {
+        throw new RuntimeException(ex);
+      }
+      Map<String, SampleNode> samples = sampler.getStackCollectionsAndReset();
+      for (Map.Entry<String, SampleNode> entry : samples.entrySet()) {
+        try {
+          setFrames(entry.getValue(), "self:" + entry.getKey());
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
+        }
+      }
+    }
+  }//GEN-LAST:event_jMenuItem2ActionPerformed
 
   private void openFile(final File file) throws IOException {
     String fileName = file.getName();
@@ -353,6 +412,9 @@ public class Explorer extends javax.swing.JFrame {
   private javax.swing.JMenu fileMenu;
   private javax.swing.JMenuItem fromTextMenuItem;
   private javax.swing.JMenu helpMenu;
+  private javax.swing.JMenu jMenu1;
+  private javax.swing.JMenuItem jMenuItem1;
+  private javax.swing.JMenuItem jMenuItem2;
   private javax.swing.JMenuBar menuBar;
   private javax.swing.JMenuItem openMenuItem;
   private javax.swing.JMenuItem pasteMenuItem;

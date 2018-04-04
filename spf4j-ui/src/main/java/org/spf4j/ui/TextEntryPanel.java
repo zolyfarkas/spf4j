@@ -42,12 +42,16 @@ public class TextEntryPanel extends javax.swing.JPanel {
 
   private transient Consumer<SampleNode> nodeConsumer;
 
+  private transient Consumer<Exception> errorConsumer;
+
   /**
    * Creates new form TextEntryPanel
    */
-  public TextEntryPanel(final Consumer<SampleNode> nodeConsumer) {
+  public TextEntryPanel(final Consumer<SampleNode> nodeConsumer,
+          final Consumer<Exception> errorConsumer) {
     initComponents();
     this.nodeConsumer = nodeConsumer;
+    this.errorConsumer = errorConsumer;
     TextTransferHandler th = new TextTransferHandler();
     jTextPane1.setTransferHandler(th);
   }
@@ -101,8 +105,8 @@ public class TextEntryPanel extends javax.swing.JPanel {
   private void displayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayActionPerformed
     try {
       nodeConsumer.accept(SampleNode.parse(new StringReader(jTextPane1.getText())).getSecond());
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
+    } catch (IOException | RuntimeException ex) {
+      errorConsumer.accept(ex);
     }
   }//GEN-LAST:event_displayActionPerformed
 

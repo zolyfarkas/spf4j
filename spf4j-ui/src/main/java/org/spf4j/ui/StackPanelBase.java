@@ -164,7 +164,6 @@ public abstract class StackPanelBase<T> extends JPanel
       g2.drawImage(img, insets.left, insets.top, this);
       final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
       setPreferredSize(dimension);
-      setSize(dimension);
     } finally {
       g2.dispose();
     }
