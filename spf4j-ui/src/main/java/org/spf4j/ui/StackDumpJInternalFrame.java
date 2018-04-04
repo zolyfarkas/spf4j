@@ -32,7 +32,6 @@
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -54,7 +53,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
      * Creates new form StackDumpJInternalFrame
      */
     public StackDumpJInternalFrame(final SampleNode samples,
-            final String title, final boolean isPro) throws IOException {
+            final String title, final boolean isPro) {
         super(title);
         initComponents();
         if (samples == null) {
