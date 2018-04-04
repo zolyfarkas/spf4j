@@ -104,7 +104,7 @@ public interface ExecutionContext extends AutoCloseable {
 
 
   /**
-   * Method to get baggage.
+   * Method to get context associated data.
    * if current context does not have baggage, the parent context is queried.
    * @param <T> type of baggage.
    * @param key key of baggage.
@@ -119,11 +119,11 @@ public interface ExecutionContext extends AutoCloseable {
 
 
   /**
-   * Method to get baggage.
+   * Method to get context associated data.
    * if current context does not have baggage, the parent context is queried.
-   * @param <T> type of baggage.
-   * @param key key of baggage.
-   * @return the baggage
+   * @param <T> type of data.
+   * @param key key of data.
+   * @return the data
    */
   @Nullable
   @Beta
@@ -131,11 +131,11 @@ public interface ExecutionContext extends AutoCloseable {
 
 
   /**
-   * Method to put baggage.
-   * @param <T> type of baggage.
-   * @param key the key of baggage.
-   * @param data the baggage.
-   * @return existing baggage if there.
+   * Method to put context associated data.
+   * @param <T> type of data.
+   * @param key the key of data.
+   * @param data the data.
+   * @return existing data if there.
    */
   @Nullable
   @Beta
@@ -143,11 +143,11 @@ public interface ExecutionContext extends AutoCloseable {
 
 
   /**
-   * Method to put baggage to the root context.
-   * @param <T> type of baggage.
-   * @param key the key of baggage.
-   * @param data the baggage.
-   * @return existing baggage if there.
+   * Method to put context associated data to the root context.
+   * @param <T> type of data.
+   * @param key the key of data.
+   * @param data the data.
+   * @return existing data if there.
    */
   @Nullable
   @Beta
@@ -160,6 +160,14 @@ public interface ExecutionContext extends AutoCloseable {
     return curr.put(key, data);
   }
 
+  /**
+   * Compute context associated data.
+   * @param <K>
+   * @param <V>
+   * @param key
+   * @param compute
+   * @return
+   */
   @Beta
   @Nullable
   <K, V> V compute(K key, BiFunction<K, V, V> compute);
