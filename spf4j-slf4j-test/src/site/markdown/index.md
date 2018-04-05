@@ -53,7 +53,7 @@ with tons of debug info dumped to output all the time. But making it available w
  you can easily upgrade them to register Spf4jTestLogRunListener as done in Spf4jTestLogJUnitRunner.
 
  NOTE: since logging is JVM global, you should run your unit tests single threaded to be able to easily reason about your logging,
- and accurate log message attribution.
+ and more accurate log message attribution.
 
 ### Examples:
 
