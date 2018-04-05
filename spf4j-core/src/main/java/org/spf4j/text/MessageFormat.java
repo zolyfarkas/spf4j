@@ -74,7 +74,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.spf4j.base.CharSequences;
-import org.spf4j.base.Strings;
 
 /**
  * Performance mutation of the JDK message formatter.
@@ -1148,7 +1147,7 @@ public final class MessageFormat extends Format {
     }
     MessageFormat other = (MessageFormat) obj;
     return (maxOffset == other.maxOffset
-            && Strings.equals(pattern, other.pattern)
+            && CharSequences.equals(pattern, other.pattern)
             && ((locale != null && locale.equals(other.locale))
             || (locale == null && other.locale == null))
             && Arrays.equals(formats, other.formats));

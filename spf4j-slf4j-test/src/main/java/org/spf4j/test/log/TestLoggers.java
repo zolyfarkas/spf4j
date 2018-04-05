@@ -33,7 +33,7 @@ import javax.annotation.concurrent.GuardedBy;
 import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.spf4j.log.SLF4JBridgeHandler;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.XCollectors;
