@@ -47,12 +47,12 @@ public class TestLoggerFactoryTest {
 
 
   @Test
-  @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT"})
   public void testLogging() {
-    try (HandlerRegistration printer = TestLoggers.sys().print("org.spf4j.test", Level.TRACE)) {
+    TestLoggers tLog = TestLoggers.sys();
+    try (HandlerRegistration printer = tLog.print("org.spf4j.test", Level.TRACE)) {
       logTests();
       logMarkerTests();
-      LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR,
+      LogAssert expect = tLog.expect("org.spf4j.test", Level.ERROR,
               LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
       LOG.error("Booo", new RuntimeException());
       expect.assertObservation();
@@ -157,7 +157,6 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLoggingJul() {
     LogAssert expect = TestLoggers.sys().expect("my.test", Level.DEBUG,
             LogMatchers.hasFormat("Bla Bla"),
@@ -169,7 +168,6 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @CollectTrobleshootingLogs(minLevel = Level.TRACE)
   public void testIgnore() {
     TestLoggers config = TestLoggers.sys();
@@ -184,7 +182,6 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @CollectTrobleshootingLogs(minLevel = Level.TRACE)
   public void testCollect() {
     TestLoggers config = TestLoggers.sys();
@@ -195,7 +192,6 @@ public class TestLoggerFactoryTest {
     }
   }
 
-  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @Test
   public void testLogJson() {
     LogAssert expect = TestLoggers.sys().expect("", Level.INFO,
@@ -217,7 +213,6 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLogging33() {
     LogAssert expect = TestLoggers.sys().dontExpect("org.spf4j.test", Level.ERROR,
             LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
@@ -237,7 +232,6 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testUncaught() throws InterruptedException {
     IllegalStateException ex = new IllegalStateException();
     Thread thread = new Thread(() -> {
