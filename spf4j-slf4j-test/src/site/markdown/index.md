@@ -64,6 +64,14 @@ with tons of debug info dumped to output all the time. But making it available w
       LOG.error("Booo", new RuntimeException());
       expect.assertObservation(); // whithout assert the unit test fails when logging an error.
 
+#### Assert that you expect message to be logged asynchronously:
+
+      LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.ERROR, LogMatchers.hasFormat("async"));
+      new Thread(() -> {
+        LOG.error("async");
+      }).start();
+      expect.assertObservation(3, TimeUnit.SECONDS);
+
 #### Assert uncaught exceptions:
 
       AsyncObservationAssert obs = TestLoggers.sys().expectUncaughtException(Matchers.hasProperty("throwable",
