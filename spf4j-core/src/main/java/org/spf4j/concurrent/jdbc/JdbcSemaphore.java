@@ -434,9 +434,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
                   }
                   acquired = Boolean.FALSE;
                 }
-                if (deadlineNanos - TimeSource.nanoTime() > heartBeat.getBeatDurationNanos()) {
+                long currNanoTime = TimeSource.nanoTime();
+                if (deadlineNanos - currNanoTime > heartBeat.getBeatDurationNanos()) {
                   // do a heartbeat if have time, and if it makes sense.
-                  beat.setValue(heartBeat.tryBeat(conn, deadlineNanos));
+                  beat.setValue(heartBeat.tryBeat(conn, currNanoTime, deadlineNanos));
                 }
                 return acquired;
               }

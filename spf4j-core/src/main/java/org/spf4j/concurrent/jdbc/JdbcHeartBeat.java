@@ -130,6 +130,10 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   private final double missedHBRatio;
 
+  private final long maxMissedNanos;
+
+  private final long tryBeatThresholdNanos;
+
   @Override
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public void close() throws SQLException {
@@ -177,7 +181,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
     this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;
     this.intervalMillis = intervalMillis;
     this.intervalNanos = TimeUnit.MILLISECONDS.toNanos(intervalMillis);
-    this.lastRunNanos = TimeSource.nanoTime() - intervalNanos;
+    this.tryBeatThresholdNanos = intervalNanos / 2;
+    this.maxMissedNanos = (long) ((double) intervalNanos * (1 + missedHBRatio));
     this.hbTableDesc = hbTableDesc;
     this.isClosed = false;
     String hbTableName = hbTableDesc.getTableName();
@@ -199,7 +204,9 @@ public final class JdbcHeartBeat implements AutoCloseable {
     this.lifecycleHooks = new CopyOnWriteArrayList<>();
     long startTimeNanos =  TimeSource.nanoTime();
     createHeartbeatRow();
-    long duration = TimeSource.nanoTime() - startTimeNanos;
+    long currTime = TimeSource.nanoTime();
+    this.lastRunNanos = currTime;
+    long duration = currTime - startTimeNanos;
     this.beatDurationNanos = Math.max(duration, TimeUnit.MILLISECONDS.toNanos(10));
   }
 
@@ -235,7 +242,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         }
         return null;
       }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
-
+      LOG.debug("Start Heart Beat for {}", org.spf4j.base.Runtime.PROCESS_ID);
   }
 
   @JmxExport(description = "Remove all dead hearbeat rows")
@@ -364,8 +371,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
   }
 
 
-  boolean tryBeat(final Connection conn, final long deadlineNanos) {
-    if (TimeSource.nanoTime() - lastRunNanos > intervalNanos / 2) {
+  boolean tryBeat(final Connection conn, final long currentTimeNanos, final long deadlineNanos) {
+    if (currentTimeNanos - lastRunNanos > tryBeatThresholdNanos) {
       beat(conn, deadlineNanos);
       return true;
     } else {
@@ -507,23 +514,25 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
     @Override
     public void run() {
-      try {
         long lrn = lastRunNanos;
         long currentTimeNanos = TimeSource.nanoTime();
         // not first beat.
         long nanosSinceLastBeat = currentTimeNanos - lrn;
-        if (((intervalNanos * (1 + missedHBRatio)) < nanosSinceLastBeat)) {
+        if (maxMissedNanos < nanosSinceLastBeat) {
           // Unable to beat at inteval!
           HeartBeatError err = new HeartBeatError("System to busy to provide regular heartbeat, last heartbeat "
                   + nanosSinceLastBeat + " ns ago");
 
           handleError(err);
         }
-        beat();
-      } catch (RuntimeException | SQLException | InterruptedException ex) {
-        HeartBeatError err = new HeartBeatError("System failed heartbeat", ex);
-        handleError(err);
-      }
+        if (nanosSinceLastBeat > tryBeatThresholdNanos) {
+          try {
+            beat();
+          } catch (RuntimeException | SQLException | InterruptedException ex) {
+            HeartBeatError err = new HeartBeatError("System failed heartbeat", ex);
+            handleError(err);
+          }
+        }
     }
 
     public void handleError(final HeartBeatError err) {

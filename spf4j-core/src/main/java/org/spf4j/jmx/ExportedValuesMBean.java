@@ -250,7 +250,7 @@ final class ExportedValuesMBean implements DynamicMBean {
     try {
       final String sanitizedDomain = INVALID_CHARS.matcher(domain).replaceAll("_");
       final String sanitizedName = INVALID_CHARS.matcher(name).replaceAll("_");
-      StringBuilder builder = new StringBuilder();
+      StringBuilder builder = new StringBuilder(domain.length() + name.length() + 6);
       builder.append(sanitizedDomain).append(':');
       builder.append("name=").append(sanitizedName);
       return new ObjectName(builder.toString());

@@ -173,27 +173,27 @@ public final class SLF4JBridgeHandler extends Handler {
     Throwable thrown = record.getThrown();
     if (thrown != null) {
       if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
-        slf4jLogger.trace(i18nMessage, thrown);
+        slf4jLogger.trace(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
       } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
-        slf4jLogger.debug(i18nMessage, thrown);
+        slf4jLogger.debug(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
       } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
-        slf4jLogger.info(i18nMessage, thrown);
+        slf4jLogger.info(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
       } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
-        slf4jLogger.warn(i18nMessage, thrown);
+        slf4jLogger.warn(i18nMessage,  record.getSourceClassName(), record.getSourceMethodName(), thrown);
       } else {
-        slf4jLogger.error(i18nMessage, thrown);
+        slf4jLogger.error(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
       }
     } else {
        if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
-        slf4jLogger.trace(i18nMessage);
+        slf4jLogger.trace(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
       } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
-        slf4jLogger.debug(i18nMessage);
+        slf4jLogger.debug(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
       } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
-        slf4jLogger.info(i18nMessage);
+        slf4jLogger.info(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
       } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
-        slf4jLogger.warn(i18nMessage);
+        slf4jLogger.warn(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
       } else {
-        slf4jLogger.error(i18nMessage);
+        slf4jLogger.error(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
       }
     }
   }
