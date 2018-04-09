@@ -143,19 +143,29 @@ public final class Throwables {
     @Override
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public boolean test(final Throwable t) {
+      // non recoverables are not retryable.
       if (Throwables.containsNonRecoverable(t)) {
         return false;
       }
+      // Root Cause
       Throwable rootCause = com.google.common.base.Throwables.getRootCause(t);
-      if (rootCause instanceof RuntimeException && !rootCause.getClass().getName().contains("Transient")) {
-        return false;
+      if (rootCause instanceof RuntimeException) {
+        String name = rootCause.getClass().getName();
+        if (name.contains("NonTransient") || !name.contains("Transient")) {
+          return false;
+        }
       }
+      // check causal chaing
       Throwable e = Throwables.firstCause(t,
-              (ex) -> (ex instanceof SQLTransientException
+              (ex) -> {
+                String exClassName = ex.getClass().getName();
+                return (ex instanceof SQLTransientException
               || ex instanceof SQLRecoverableException
-              || (ex instanceof IOException && !ex.getClass().getName().contains("Json"))
+              || (ex instanceof IOException && !exClassName.contains("Json"))
               || ex instanceof TimeoutException
-              || ex.getClass().getName().contains("Transient")));
+              || (exClassName.contains("Transient")
+                        && !exClassName.contains("NonTransient")));
+                        });
       return e != null;
     }
   };
