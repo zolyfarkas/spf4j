@@ -17,6 +17,7 @@ with tons of debug info dumped to output all the time. But making it available w
  *  Ability to log other object payload additionally to the log message.
  *  Type level String image customization. (if unhappy with default toString, json format is desired, or performance optimization is desired)
  *  Fast. (logging is no reason to have slow builds)
+ *  Lossless and fast java.util.logging redirect. (source class, source method ... are not being lost)
  *  Environment specific configurations with best defaults right out of the box. (DEBUG when running from IDE, INFO otherwise)
  *  Assert logging made from various logging APIs. java.util.logging supported out of the box, for everything else [see](https://www.slf4j.org/legacy.html)
 
