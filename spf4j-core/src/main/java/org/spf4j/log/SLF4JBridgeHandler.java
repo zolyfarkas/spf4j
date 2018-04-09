@@ -48,13 +48,13 @@ import org.spf4j.text.MessageFormat;
  * <p>
  * Bridge/route all JUL log records to the SLF4J API.</p>
  * <p> Implementation based on jul-to-slf4j bridge but at least 20% faster. Speed improvements come from
- * using spf4j improved MessageFormatter + code cleanup</p>
+ * using spf4j improved MessageFormatter + code cleanup. Also unlike jul-to-slf4j the sorce class and source method
+ * information is not being dropped. </p>
  * <p> Implementation is interchangeable with the jul-to-slf4j implementation </p>
  *
  */
 public final class SLF4JBridgeHandler extends Handler {
 
-  private static final String FQCN = java.util.logging.Logger.class.getName();
   private static final String UNKNOWN_LOGGER_NAME = "unknown.jul.logger";
 
   private static final int TRACE_LEVEL_THRESHOLD = Level.FINEST.intValue();
@@ -164,7 +164,8 @@ public final class SLF4JBridgeHandler extends Handler {
       slf4jLevel = LocationAwareLogger.ERROR_INT;
     }
     String i18nMessage = getMessageI18N(record);
-    lal.log(null, FQCN, slf4jLevel, i18nMessage, null, record.getThrown());
+    lal.log(null, record.getSourceClassName() + '.' + record.getSourceMethodName(),
+        slf4jLevel, i18nMessage, null, record.getThrown());
   }
 
   private static void callPlainSLF4JLogger(final Logger slf4jLogger, final LogRecord record) {
