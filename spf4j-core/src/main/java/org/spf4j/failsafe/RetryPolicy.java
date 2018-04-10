@@ -231,14 +231,6 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
               ? RetryDecision.retryDefault(c) : null, maxRetries);
     }
 
-
-    @CheckReturnValue
-    public Builder<T, C> withRetryOnResult(final T result, final int maxRetries) {
-      return withResultPartialPredicate((r, c)
-              -> Objects.equals(result, r)
-              ? RetryDecision.retryDefault(c) : null, maxRetries);
-    }
-
     @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz,
             final long maxTime, final TimeUnit tu) {
@@ -250,7 +242,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(final PartialExceptionRetryPredicate<T, C> predicate,
             final long maxTime, final TimeUnit tu) {
-      return withExceptionStatefulPartialPredicate((s, d)
+      return withExceptionPartialPredicateSupplier((s, d)
               -> {
         TimeLimitedPartialRetryPredicate<T, Exception, C> p =
                 new TimeLimitedPartialRetryPredicate<>(s, d, maxTime, tu, predicate);
@@ -261,14 +253,25 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate) {
-      return withExceptionStatefulPartialPredicate((s, e) -> predicate);
+      return withExceptionPartialPredicateSupplier((s, e) -> predicate);
+    }
+
+    @CheckReturnValue
+    public <E extends Exception> Builder<T, C> withExceptionPartialPredicate(final Class<E> clasz,
+            final PartialTypedExceptionRetryPredicate<T, C, E> predicate) {
+      return withExceptionPartialPredicate((e, c) -> {
+        if (clasz.isAssignableFrom(e.getClass())) {
+          return predicate.getExceptionDecision((E) e, c);
+        }
+        return null;
+      });
     }
 
     @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate,
             final int maxRetries) {
-      return withExceptionStatefulPartialPredicate((s, e) -> {
+      return withExceptionPartialPredicateSupplier((s, e) -> {
         CountLimitedPartialRetryPredicate<T, Exception, C> p
                 = new CountLimitedPartialRetryPredicate<T, Exception, C>(maxRetries, predicate);
         return (Exception value, C what) -> p.apply(value, what);
@@ -276,17 +279,40 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     }
 
     @CheckReturnValue
+    public Builder<T, C> withExceptionPartialPredicateSupplier(
+            final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
+      return withExceptionPartialPredicateSupplier((s, e) -> predicateSupplier.get());
+    }
+
+    @Deprecated
+    @CheckReturnValue
     public Builder<T, C> withExceptionStatefulPartialPredicate(
             final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
-      return withExceptionStatefulPartialPredicate((s, e) -> predicateSupplier.get());
+      return Builder.this.withExceptionPartialPredicateSupplier(predicateSupplier);
     }
 
     @CheckReturnValue
-    public Builder<T, C> withExceptionStatefulPartialPredicate(
+    public Builder<T, C> withExceptionPartialPredicateSupplier(
             final TimedSupplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
       exceptionPredicates.add(predicateSupplier);
       return this;
     }
+
+    @Deprecated
+    @CheckReturnValue
+    public Builder<T, C> withExceptionStatefulPartialPredicate(
+            final TimedSupplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
+      return withExceptionPartialPredicateSupplier(predicateSupplier);
+    }
+
+
+    @CheckReturnValue
+    public Builder<T, C> withRetryOnResult(final T result, final int maxRetries) {
+      return withResultPartialPredicate((r, c)
+              -> Objects.equals(result, r)
+              ? RetryDecision.retryDefault(c) : null, maxRetries);
+    }
+
 
     @CheckReturnValue
     public Builder<T, C> withResultPartialPredicate(
@@ -299,23 +325,37 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements PolicyEx
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate,
             final int maxRetries) {
-      return withResultStatefulPartialPredicate((s, e) -> {
+      return withResultPartialPredicateSupplier((s, e) -> {
         CountLimitedPartialRetryPredicate<T, T, C> p = new CountLimitedPartialRetryPredicate<>(maxRetries, predicate);
         return (T value, C what) -> p.apply(value, what);
       });
     }
 
     @CheckReturnValue
+    public Builder<T, C> withResultPartialPredicateSupplier(
+            final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
+      return withResultPartialPredicateSupplier((s, e) -> predicateSupplier.get());
+    }
+
+    @Deprecated
+    @CheckReturnValue
     public Builder<T, C> withResultStatefulPartialPredicate(
             final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
-      return withResultStatefulPartialPredicate((s, e) -> predicateSupplier.get());
+      return Builder.this.withResultPartialPredicateSupplier(predicateSupplier);
     }
 
     @CheckReturnValue
-    public Builder<T, C> withResultStatefulPartialPredicate(
+    public Builder<T, C> withResultPartialPredicateSupplier(
             final TimedSupplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
       resultPredicates.add(predicateSupplier);
       return this;
+    }
+
+    @Deprecated
+    @CheckReturnValue
+    public Builder<T, C> withResultStatefulPartialPredicate(
+            final TimedSupplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
+      return withResultPartialPredicateSupplier(predicateSupplier);
     }
 
     @CheckReturnValue
