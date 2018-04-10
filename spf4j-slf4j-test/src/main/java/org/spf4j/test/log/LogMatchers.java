@@ -67,6 +67,22 @@ public final class LogMatchers {
      return Matchers.hasProperty("arguments", matcher);
   }
 
+  public static Matcher<LogRecord> hasArguments(final Object objects) {
+     return Matchers.hasProperty("arguments", Matchers.arrayContaining(objects));
+  }
+
+  public static Matcher<LogRecord> hasMatchingArguments(final Object objects) {
+     return Matchers.hasProperty("arguments", Matchers.arrayContaining(objects));
+  }
+
+  public static Matcher<LogRecord> hasExtraArguments(final Object... objects) {
+     return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(objects));
+  }
+
+  public static Matcher<LogRecord> hasMatchingExtraArgumentsContaining(final Matcher<Object>... matcher) {
+     return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(matcher));
+  }
+
   public static Matcher<LogRecord> hasMatchingExtraArguments(final Matcher<Object[]> matcher) {
      return Matchers.hasProperty("extraArguments", matcher);
   }

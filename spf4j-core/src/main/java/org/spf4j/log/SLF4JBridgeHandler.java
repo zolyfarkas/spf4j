@@ -31,6 +31,9 @@
  */
 package org.spf4j.log;
 
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Handler;
@@ -38,10 +41,12 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
+import org.spf4j.base.Method;
 import org.spf4j.text.MessageFormat;
 
 /**
@@ -55,6 +60,7 @@ import org.spf4j.text.MessageFormat;
  */
 public final class SLF4JBridgeHandler extends Handler {
 
+  private static final String FQCN = java.util.logging.Logger.class.getName();
   private static final String UNKNOWN_LOGGER_NAME = "unknown.jul.logger";
 
   private static final int TRACE_LEVEL_THRESHOLD = Level.FINEST.intValue();
@@ -64,6 +70,27 @@ public final class SLF4JBridgeHandler extends Handler {
 
   private static final class Lazy {
     private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
+  }
+
+  private static final boolean ALWAYS_TRY_INFER = Boolean.getBoolean("spf4j.jul2slf4jBridge.alwaysTryInferSource");
+
+  @Nullable
+  private static final Field NEED_INFER;
+
+  static {
+    NEED_INFER = AccessController.doPrivileged(new PrivilegedAction<Field>() {
+      @Override
+      public Field run() {
+        try {
+          Field declaredField = LogRecord.class.getDeclaredField("needToInferCaller");
+          declaredField.setAccessible(true);
+          return declaredField;
+        } catch (NoSuchFieldException | SecurityException ex) {
+          Lazy.LOG.debug("jul to slf4j bridge will not differentiate between computed caller info and provided", ex);
+          return null;
+        }
+      }
+    });
   }
 
   /**
@@ -164,39 +191,99 @@ public final class SLF4JBridgeHandler extends Handler {
       slf4jLevel = LocationAwareLogger.ERROR_INT;
     }
     String i18nMessage = getMessageI18N(record);
-    lal.log(null, record.getSourceClassName() + '.' + record.getSourceMethodName(),
-        slf4jLevel, i18nMessage, null, record.getThrown());
+    Method m = getSourceMethodInfo(record);
+    if (m != null) {
+      lal.log(null, m.toString(), slf4jLevel, i18nMessage, null, record.getThrown());
+    } else {
+      lal.log(null, FQCN, slf4jLevel, i18nMessage, null, record.getThrown());
+    }
   }
 
   private static void callPlainSLF4JLogger(final Logger slf4jLogger, final LogRecord record) {
     String i18nMessage = getMessageI18N(record);
     int julLevelValue = record.getLevel().intValue();
     Throwable thrown = record.getThrown();
+    Method m = getSourceMethodInfo(record);
     if (thrown != null) {
       if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
-        slf4jLogger.trace(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
+        if (m != null) {
+          slf4jLogger.trace(i18nMessage, m, thrown);
+        } else {
+          slf4jLogger.trace(i18nMessage, thrown);
+        }
       } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
-        slf4jLogger.debug(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
+        if (m != null) {
+          slf4jLogger.debug(i18nMessage, m, thrown);
+        } else {
+          slf4jLogger.debug(i18nMessage, thrown);
+        }
       } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
-        slf4jLogger.info(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
+        if (m != null) {
+          slf4jLogger.info(i18nMessage, m, thrown);
+        } else {
+          slf4jLogger.info(i18nMessage, thrown);
+        }
       } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
-        slf4jLogger.warn(i18nMessage,  record.getSourceClassName(), record.getSourceMethodName(), thrown);
+        if (m != null) {
+          slf4jLogger.warn(i18nMessage, m, thrown);
+        } else {
+          slf4jLogger.warn(i18nMessage, thrown);
+        }
       } else {
-        slf4jLogger.error(i18nMessage, record.getSourceClassName(), record.getSourceMethodName(), thrown);
+        if (m != null) {
+          slf4jLogger.error(i18nMessage, m, thrown);
+        } else {
+          slf4jLogger.error(i18nMessage, thrown);
+        }
       }
     } else {
        if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
-        slf4jLogger.trace(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
+        if (m != null) {
+          slf4jLogger.trace(i18nMessage, m);
+        } else {
+          slf4jLogger.trace(i18nMessage);
+        }
       } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
-        slf4jLogger.debug(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
+        if (m != null) {
+          slf4jLogger.debug(i18nMessage, m);
+        } else {
+          slf4jLogger.debug(i18nMessage);
+        }
       } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
-        slf4jLogger.info(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
+        if (m != null) {
+          slf4jLogger.info(i18nMessage, m);
+        } else {
+          slf4jLogger.info(i18nMessage);
+        }
       } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
-        slf4jLogger.warn(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
+        if (m != null) {
+          slf4jLogger.warn(i18nMessage, m);
+        } else {
+          slf4jLogger.warn(i18nMessage);
+        }
       } else {
-        slf4jLogger.error(i18nMessage, record.getSourceClassName(), record.getSourceMethodName());
+        if (m != null) {
+          slf4jLogger.error(i18nMessage, m);
+        } else {
+          slf4jLogger.error(i18nMessage);
+        }
       }
     }
+  }
+
+  @Nullable
+  public static Method getSourceMethodInfo(final LogRecord record) {
+    org.spf4j.base.Method m;
+    try {
+      if (ALWAYS_TRY_INFER || (NEED_INFER != null && !NEED_INFER.getBoolean(record))) {
+        m = new Method(record.getSourceClassName(), record.getSourceMethodName());
+      } else {
+        m = null;
+      }
+    } catch (IllegalArgumentException | IllegalAccessException ex) {
+      throw new RuntimeException(ex);
+    }
+    return m;
   }
 
   /**

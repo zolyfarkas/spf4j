@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.Method;
 import org.spf4j.io.MimeTypes;
 
 /**
@@ -160,10 +161,14 @@ public class TestLoggerFactoryTest {
   public void testLoggingJul() {
     LogAssert expect = TestLoggers.sys().expect("my.test", Level.DEBUG,
             LogMatchers.hasFormat("Bla Bla"),
-            LogMatchers.hasFormat("Boo Boo param"));
+            LogMatchers.hasFormat("Boo Boo param"),
+            Matchers.allOf(LogMatchers.hasFormat("test source"),
+                    LogMatchers.hasExtraArguments(new Method(TestLoggerFactoryTest.class.getName(),
+                            "testLoggingJul"))));
     java.util.logging.Logger logger = java.util.logging.Logger.getLogger("my.test");
     logger.info("Bla Bla");
     logger.log(java.util.logging.Level.FINE, "Boo Boo {0}", "param");
+    logger.logp(java.util.logging.Level.INFO, TestLoggerFactoryTest.class.getName(), "testLoggingJul", "test source");
     expect.assertObservation();
   }
 
