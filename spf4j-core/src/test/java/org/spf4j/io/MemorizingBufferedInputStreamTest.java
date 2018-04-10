@@ -44,7 +44,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.spf4j.base.IntMath;
 import org.spf4j.base.Strings;
 import static org.spf4j.io.PipedOutputStreamTest.generateTestStr;
 import static org.spf4j.io.PipedOutputStreamTest.test;
@@ -127,11 +126,12 @@ public class MemorizingBufferedInputStreamTest {
   @Test
   public void testStreamBuffering() throws IOException {
     test(TSTR, 8, true);
-    final IntMath.XorShift32 random = new IntMath.XorShift32();
     for (int i = 0; i < 100; i++) {
-      int nrChars = ThreadLocalRandom.current().nextInt(2, 100000);
+      ThreadLocalRandom rnd = ThreadLocalRandom.current();
+      int nrChars = rnd.nextInt(0, 100000);
+      int bufferSize = rnd.nextInt(2, 100000);
       StringBuilder sb = generateTestStr(nrChars);
-      test(sb.toString(), Math.abs(random.nextInt() % 10000), true);
+      test(sb.toString(), bufferSize, true);
       testBuff(sb, 8192);
       testBuff(sb, 32);
     }
