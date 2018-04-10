@@ -16,6 +16,7 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -120,6 +121,12 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
       }
 
     };
+  }
+
+  @CheckReturnValue
+  static <T, C extends Callable<? extends T>> RetryDecision<T, C> retry(
+          @Nonnegative final long time, final TimeUnit unit, @Nonnull final C callable) {
+    return retry(unit.toNanos(time), callable);
   }
 
   @CheckReturnValue
