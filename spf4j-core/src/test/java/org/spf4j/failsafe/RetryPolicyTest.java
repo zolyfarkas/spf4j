@@ -179,7 +179,7 @@ public class RetryPolicyTest {
 
   @Test
   public void testComplexRetrySync() throws InterruptedException, TimeoutException, IOException, ExecutionException {
-    RetryPolicy<Response, ServerCall> rp = buildRetryPolicy();
+    AsyncRetryExecutor<Response, ServerCall> rp = buildRetryExecutor();
     Server server = new Server();
     Response response1 = new Response(Response.Type.OK, "");
     server.setResponse("url1", (r) -> response1);
@@ -190,7 +190,7 @@ public class RetryPolicyTest {
 
   @Test
   public void testComplexRetryASync() throws InterruptedException, TimeoutException, IOException, ExecutionException {
-    AsyncRetryPolicy<Response, ServerCall> rp = buildRetryPolicy();
+    AsyncRetryExecutor<Response, ServerCall> rp = buildRetryExecutor();
     Server server = new Server();
     Response response1 = new Response(Response.Type.OK, "");
     server.setResponse("url1", (r) -> response1);
@@ -199,7 +199,7 @@ public class RetryPolicyTest {
     testASyncRetry(server, rp, response1);
   }
 
-  public final  AsyncRetryPolicy<Response, ServerCall> buildRetryPolicy() {
+  public final  AsyncRetryExecutor<Response, ServerCall> buildRetryExecutor() {
     return RetryPolicy.<Response, ServerCall>newBuilder()
             .withDefaultThrowableRetryPredicate(Integer.MAX_VALUE)
             .withResultPartialPredicate((resp, sc) -> {
@@ -230,7 +230,7 @@ public class RetryPolicyTest {
   }
 
   @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-  public final void testSyncRetry(final Server server, final RetryPolicy<Response, ServerCall> rp,
+  public final void testSyncRetry(final Server server, final AsyncRetryExecutor<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;
@@ -288,7 +288,7 @@ public class RetryPolicyTest {
   }
 
   @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-  public final void testASyncRetry(final Server server, final AsyncRetryPolicy<Response, ServerCall> rp,
+  public final void testASyncRetry(final Server server, final AsyncRetryExecutor<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;

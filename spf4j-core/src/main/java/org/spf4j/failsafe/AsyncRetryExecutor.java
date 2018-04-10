@@ -35,6 +35,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
 
@@ -42,7 +43,8 @@ import org.spf4j.base.TimeSource;
  *
  * @author Zoltan Farkas
  */
-public interface AsyncPolicyExecutor<T, C extends Callable<? extends T>> extends PolicyExecutor<T, C> {
+@ThreadSafe
+public interface AsyncRetryExecutor<T, C extends Callable<? extends T>> extends SyncRetryExecutor<T, C> {
 
   @CheckReturnValue
   default <R extends T, W extends C> Future<R> submit(W pwhat) {
@@ -76,5 +78,15 @@ public interface AsyncPolicyExecutor<T, C extends Callable<? extends T>> extends
     long nanoTime = TimeSource.nanoTime();
     execute(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));
   }
+
+
+  static <T, C extends Callable<? extends T>> AsyncRetryExecutor<T, C> defaultAsyncRetryExecutor() {
+    return (AsyncRetryExecutor<T, C>) DefaultAsyncExecutor.DEFAULT;
+  }
+
+  static <T, C extends Callable<? extends T>> AsyncRetryExecutor<T, C> noRetryAsyncExecutor() {
+    return (AsyncRetryExecutor<T, C>) DefaultAsyncExecutor.NO_RETRY;
+  }
+
 
 }

@@ -33,6 +33,7 @@ package org.spf4j.recyclable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,7 +42,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import org.junit.Assert;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.junit.Test;
-import org.spf4j.failsafe.AsyncRetryPolicy;
+import org.spf4j.failsafe.AsyncRetryExecutor;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 import org.spf4j.recyclable.impl.ExpensiveTestObject;
@@ -68,7 +69,7 @@ public final class ObjectPoolVsApache {
     ExecutorService execService = Executors.newFixedThreadPool(10);
     BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
     RetryExecutor exec = new RetryExecutor(execService, completionQueue);
-    AsyncRetryPolicy policy = RetryPolicy.newBuilder()
+    AsyncRetryExecutor<Object, Callable<? extends Object>> policy = RetryPolicy.newBuilder()
             .withDefaultThrowableRetryPredicate().buildAsync(exec);
     long zpooltime = testPool(policy, pool, completionQueue);
     long apooltime = testPoolApache(policy, apool, completionQueue);
@@ -76,7 +77,7 @@ public final class ObjectPoolVsApache {
     exec.close();
   }
 
-  private long testPool(final AsyncRetryPolicy exec, final RecyclingSupplier<ExpensiveTestObject> pool,
+  private long testPool(final AsyncRetryExecutor exec, final RecyclingSupplier<ExpensiveTestObject> pool,
           final BlockingQueue<Future<?>> completionQueue) throws InterruptedException, ExecutionException {
     long startTime = System.currentTimeMillis();
     for (int i = 0; i < TEST_TASKS; i++) {
@@ -88,7 +89,7 @@ public final class ObjectPoolVsApache {
     return System.currentTimeMillis() - startTime;
   }
 
-  private long testPoolApache(final AsyncRetryPolicy exec,
+  private long testPoolApache(final AsyncRetryExecutor exec,
           final GenericObjectPool pool,
           final BlockingQueue<Future<?>> completionQueue) throws InterruptedException, ExecutionException {
     long startTime = System.currentTimeMillis();

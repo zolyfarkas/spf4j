@@ -36,15 +36,67 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
 import org.spf4j.base.Either;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.TimeSource;
 
 /**
  * @author Zoltan Farkas
  */
-public final class SyncRetry {
+public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
 
-  private SyncRetry() { }
+  @CheckReturnValue
+  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+          long startNanos, long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX;
+
+  @CheckReturnValue
+  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+          long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX {
+    return call(pwhat, exceptionClass, TimeSource.nanoTime(), deadlineNanos);
+  }
+
+  @CheckReturnValue
+  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass)
+          throws InterruptedException, TimeoutException, EX {
+    long nanoTime = TimeSource.nanoTime();
+    return call(pwhat, exceptionClass, nanoTime, ExecutionContexts.getContextDeadlineNanos());
+  }
+
+  @CheckReturnValue
+  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+          long timeout, TimeUnit tu)
+          throws InterruptedException, TimeoutException, EX {
+    long nanoTime = TimeSource.nanoTime();
+    return call(pwhat, exceptionClass, nanoTime,
+            ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));
+  }
+
+  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass)
+          throws InterruptedException, TimeoutException, EX {
+    T res = call(pwhat, exceptionClass);
+    if (res != null) {
+      throw new IllegalStateException("result must be null not " + res);
+    }
+  }
+
+  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass, long deadlineNanos)
+          throws InterruptedException, TimeoutException, EX {
+    T res = call(pwhat, exceptionClass, deadlineNanos);
+    if (res != null) {
+      throw new IllegalStateException("result must be null not " + res);
+    }
+  }
+
+  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass,
+          long timeout, TimeUnit tu)
+          throws InterruptedException, TimeoutException, EX {
+     run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+  }
+
 
   /**
    * Naive implementation of execution with retry logic. a callable will be executed and retry attempted in current
@@ -59,7 +111,7 @@ public final class SyncRetry {
    * @throws EX - the exception thrown by callable.
    */
   @SuppressFBWarnings({ "MDM_THREAD_YIELD", "ITC_INHERITANCE_TYPE_CHECKING" })
-  public static <T, EX extends Exception, C extends Callable<? extends T>> T call(
+  static <T, EX extends Exception, C extends Callable<? extends T>> T call(
           final C pwhat,
           final RetryPredicate<T, C> retryPredicate,
           final Class<EX> exceptionClass,

@@ -32,38 +32,20 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import org.spf4j.failsafe.concurrent.RetryExecutor;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public final class AsyncRetryPolicy<T, C extends Callable<? extends T>> extends RetryPolicy<T, C>
-        implements AsyncPolicyExecutor<T, C> {
+final class DefaultAsyncExecutor {
 
-  private final RetryExecutor executor;
-
-  AsyncRetryPolicy(final TimedSupplier<RetryPredicate<T, C>> retryPredicate, final int maxExceptionChain,
-          final RetryExecutor executor) {
-    super(retryPredicate, maxExceptionChain);
-    this.executor = executor;
+  private DefaultAsyncExecutor() {
   }
 
+  static final AsyncRetryExecutor<Object, Callable<? extends Object>> DEFAULT
+          = RetryPolicy.defaultPolicy().async();
 
-  @Override
-  public <R extends T, W extends C> Future<R> submit(final W pwhat,
-          final long startTimeNanos, final long deadlineNanos) {
-    return (Future<R>) executor.submit(pwhat, getRetryPredicate(startTimeNanos, deadlineNanos));
-  }
-
-  public <W extends C> void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
-    executor.execute(pwhat, getRetryPredicate(startTimeNanos, deadlineNanos));
-  }
-
-  @Override
-  public String toString() {
-    return "AsyncRetryPolicy{" + "executor=" + executor + '}';
-  }
+  static final AsyncRetryExecutor<Object, Callable<? extends Object>> NO_RETRY
+          = RetryPolicy.noRetryPolicy().async();
 
 }
