@@ -95,17 +95,23 @@ public final class UnitQueuePU<T> {
         }
       }
     }
-
-    long deadlineNanos = TimeSource.nanoTime() + timeoutNanos;
-    while ((result = value.getAndSet(null)) == null) {
-      final long to = deadlineNanos - TimeSource.nanoTime();
-      if (to <= 0) {
-        return null;
-      }
-      LockSupport.parkNanos(to);
-      if (Thread.interrupted()) {
-        throw new InterruptedException();
-      }
+    if ((result = value.getAndSet(null)) == null) {
+      long currTime = TimeSource.nanoTime();
+      long deadlineNanos = currTime + timeoutNanos;
+      do {
+        final long to = deadlineNanos - currTime;
+        if (to <= 0) {
+          return null;
+        }
+        LockSupport.parkNanos(to);
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
+        if ((result = value.getAndSet(null)) != null) {
+         break;
+        }
+        currTime = TimeSource.nanoTime();
+      } while (true);
     }
     return result;
   }
