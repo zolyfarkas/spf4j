@@ -51,6 +51,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.TimeSource;
+import org.spf4j.base.Timing;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
@@ -590,7 +591,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
         stackTrace = StackTrace.EMPTY_STACK_TRACE;
       }
       return "QueuedThread{name = " + getName() + ", running=" + running + ", lastRunNanos="
-              + lastRunNanos + ", stack =" + Arrays.toString(stackTrace)
+              +  Timing.getCurrentTiming().fromNanoTimeToInstant(lastRunNanos)
+              + ", stack =" + Arrays.toString(stackTrace)
               + ", toRun = " + toRun + '}';
     }
 
