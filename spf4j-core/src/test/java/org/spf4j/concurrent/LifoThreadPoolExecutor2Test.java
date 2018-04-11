@@ -145,19 +145,21 @@ public class LifoThreadPoolExecutor2Test {
         }
       }
     };
-    long start = System.currentTimeMillis();
     List<Future<?>> futures = new ArrayList<>(maxParallel);
-    long deadlineNanos = TimeSource.nanoTime() + unit.toNanos(time);
+    long currTime = TimeSource.nanoTime();
+    long start = currTime;
+    long deadlineNanos = currTime + unit.toNanos(time);
     int i = 0;
-    for (; deadlineNanos - TimeSource.nanoTime() > 0; i++) {
+    for (; deadlineNanos - currTime > 0; i++) {
       if (i > 0 && i % maxParallel == 0) {
         nrExCaught += consume(futures);
       }
       futures.add(executor.submit(runnable));
+      currTime = TimeSource.nanoTime();
     }
     nrExCaught += consume(futures);
-    LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
-            (System.currentTimeMillis() - start));
+    LOG.debug("Stats for {}, maxParallel = {}, rejected = {}, Exec time = {} ns", executor.getClass(),
+            maxParallel, rejected, (currTime - start));
     LOG.debug("Threads: {}", Threads.getThreads());
     Assert.assertEquals(i, adder.sum());
     Assert.assertEquals(nrExCaught, exNr.sum());
