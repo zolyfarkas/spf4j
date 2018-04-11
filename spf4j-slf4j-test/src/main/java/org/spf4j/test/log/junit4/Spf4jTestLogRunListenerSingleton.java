@@ -115,7 +115,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       if (!logs.isEmpty()) {
         for (LogRecord record : logs) {
           if (first) {
-            LOG.info("Dumping last {} logs clooected for debug for {}", maxDebugLogsCollected, description);
+            LOG.info("Dumping last {} logs collected for debug for {}", maxDebugLogsCollected, description);
             first = false;
           }
           LogPrinter.printTo(System.out, record, "");
