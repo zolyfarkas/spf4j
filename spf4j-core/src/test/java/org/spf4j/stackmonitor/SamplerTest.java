@@ -29,49 +29,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.os;
+package org.spf4j.stackmonitor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Strings;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogAssert;
+import org.spf4j.test.log.LogMatchers;
+import org.spf4j.test.log.TestLoggers;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public final class StdOutToStringProcessHandler implements ProcessHandler<String, String> {
+public class SamplerTest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(StdOutToStringProcessHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SamplerTest.class);
 
-  @Override
-  public String handleStdOut(final InputStream stdout) throws IOException {
-    StringBuilder result = new StringBuilder(128);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, Charset.defaultCharset()));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      LOG.debug(line);
-      result.append(line).append(Strings.EOL);
-    }
-    return result.toString();
+  @Test
+  public void testSampler() throws InterruptedException {
+    Sampler sampler = Sampler.getSampler(5, 2000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
+    LogAssert expect = TestLoggers.sys()
+            .expect(Sampler.class.getName(), Level.INFO, LogMatchers.hasFormat("Stack samples written to {}"));
+    sampler.start();
+    LOG.debug("started sampling");
+    expect.assertObservation(3000, TimeUnit.MILLISECONDS);
+    sampler.stop();
   }
-
-  @Override
-  public String handleStdErr(final InputStream stderr) throws IOException {
-    StringBuilder result = new StringBuilder(128);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      LOG.error(line);
-      result.append(line).append(Strings.EOL);
-    }
-    return result.toString();
-  }
-
-
 
 }

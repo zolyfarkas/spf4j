@@ -31,6 +31,7 @@
  */
 package org.spf4j.os;
 
+import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.UncheckedTimeoutException;
 import com.sun.management.UnixOperatingSystemMXBean;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -49,6 +50,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
@@ -266,6 +268,7 @@ public final class OperatingSystem {
     }
   }
 
+  @CheckReturnValue
   public static String forkExec(final String[] command,
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
     ProcessResponse<String, String> resp
@@ -275,6 +278,18 @@ public final class OperatingSystem {
               + ", returned" + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
     }
     return resp.getOutput();
+  }
+
+  public static void forkExecLog(final String[] command,
+          final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    ProcessResponse<Void, Void> resp
+            = forkExec(command,
+                    new LoggingProcessHandler(LoggerFactory.getLogger("fork." + Joiner.on('.').join(command))),
+                    timeoutMillis, 60000);
+    if (resp.getResponseExitCode() != SysExits.OK) {
+      throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(command)
+              + ", returned" + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
+    }
   }
 
 }

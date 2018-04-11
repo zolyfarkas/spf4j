@@ -526,6 +526,33 @@ public final class Runtime {
     return OperatingSystem.forkExec(command, timeoutMillis);
   }
 
+ public static void jrunAndLog(final Class<?> classWithMain,
+          final long timeoutMillis, final String... arguments)
+          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+    jrunAndLog(classWithMain, classPath, timeoutMillis, arguments);
+  }
+
+  public static void jrunAndLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
+          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());
+    inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
+    jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);
+  }
+
+  public static void jrunAndLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
+          final String[] jvmArgs,
+          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
+    String[] command = Arrays.concat(new String[]{jvmPath},
+            jvmArgs,
+            new String[]{"-cp", classPath, classWithMain.getName()},
+            arguments);
+    OperatingSystem.forkExecLog(command, timeoutMillis);
+  }
+
+
+
   /**
    * get the main Thread.
    * @return null if there is no main thread (can happen when calling this is a shutdown hook)

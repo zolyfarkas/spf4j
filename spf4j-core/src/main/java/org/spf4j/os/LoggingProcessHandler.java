@@ -31,47 +31,52 @@
  */
 package org.spf4j.os;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.base.Strings;
 
 /**
- *
  * @author Zoltan Farkas
  */
-public final class StdOutToStringProcessHandler implements ProcessHandler<String, String> {
+@SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
+public final class LoggingProcessHandler implements ProcessHandler<Void, Void> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(StdOutToStringProcessHandler.class);
+  private final Logger log;
 
-  @Override
-  public String handleStdOut(final InputStream stdout) throws IOException {
-    StringBuilder result = new StringBuilder(128);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, Charset.defaultCharset()));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      LOG.debug(line);
-      result.append(line).append(Strings.EOL);
-    }
-    return result.toString();
+  public LoggingProcessHandler(final Logger log) {
+    this.log = log;
   }
 
   @Override
-  public String handleStdErr(final InputStream stderr) throws IOException {
-    StringBuilder result = new StringBuilder(128);
+  @Nullable
+  public Void handleStdOut(final InputStream is) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.defaultCharset()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      log.debug(line);
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public Void handleStdErr(final InputStream stderr) throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      LOG.error(line);
-      result.append(line).append(Strings.EOL);
+      log.error(line);
     }
-    return result.toString();
+    return null;
   }
 
-
+  @Override
+  public String toString() {
+    return "LoggingProcessHandler{" + "log=" + log + '}';
+  }
 
 }

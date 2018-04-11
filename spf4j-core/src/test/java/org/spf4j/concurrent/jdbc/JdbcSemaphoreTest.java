@@ -50,9 +50,12 @@ import javax.sql.DataSource;
 import org.junit.Assert;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.TimeSource;
+import org.spf4j.stackmonitor.Sampler;
 
 /**
  *
@@ -240,8 +243,8 @@ public class JdbcSemaphoreTest {
       ds.setPassword("sa");
       createSchemaObjects(ds);
       JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 1, true);
-      String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2").toString();
-      String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000, connStr, "test_sem2").toString();
+      String o1 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000000, connStr, "test_sem2").toString();
+      String o2 = org.spf4j.base.Runtime.jrun(DecentSemaphoreHandler.class, 10000000, connStr, "test_sem2").toString();
       Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
       Assert.assertFalse(semaphore.tryAcquire(10, TimeUnit.SECONDS));
       LOG.debug("P1: {}", o1);
@@ -258,5 +261,39 @@ public class JdbcSemaphoreTest {
       server.stop();
     }
   }
+
+  @Test
+  @Ignore
+  public void testPerformance()
+          throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
+    try {
+      File tempDB = File.createTempFile("test", "h2db");
+      tempDB.deleteOnExit();
+      String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+      JdbcDataSource ds = new JdbcDataSource();
+      ds.setURL(connStr);
+      ds.setUser("sa");
+      ds.setPassword("sa");
+      createSchemaObjects(ds);
+      JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 1, true);
+      Sampler s = new Sampler(5, 5000);
+      s.registerJmx();
+      s.start();
+      LOG.info("started sampling");
+      long deadline = TimeSource.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+      do {
+        semaphore.acquire(1, 1, TimeUnit.SECONDS);
+        semaphore.release();
+      } while (deadline > TimeSource.nanoTime());
+      semaphore.close();
+      s.stop();
+      LOG.debug("dumped samples to {}", s.dumpToFile());
+      } finally {
+        JdbcHeartBeat.stopHeartBeats();
+        server.stop();
+      }
+  }
+
 
 }

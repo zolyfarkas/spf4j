@@ -32,7 +32,6 @@
 package org.spf4j.jdbc;
 
 import com.google.common.annotations.Beta;
-import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -40,6 +39,8 @@ import java.sql.SQLTimeoutException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnegative;
+import javax.annotation.Signed;
 import javax.sql.DataSource;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
@@ -135,10 +136,27 @@ public final class JdbcTemplate {
    * @param deadlineNanos the deadline relative to the same as System.nanoTime()
    * @return
    */
-  public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) {
+  @Nonnegative
+  public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) throws SQLTimeoutException {
     long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());
     if (toSeconds < 0L) {
-      throw new UncheckedTimeoutException("deadline exceeded by " + (-toSeconds) + " seconds");
+      throw new SQLTimeoutException("deadline exceeded by " + (-toSeconds) + " seconds");
+    }
+    if (toSeconds == 0) {
+      return 1;
+    }
+    if (toSeconds > MAX_JDBC_TIMEOUTSECONDS) {
+      return MAX_JDBC_TIMEOUTSECONDS;
+    } else {
+     return (int) toSeconds;
+    }
+  }
+
+  @Signed
+  public static int getTimeoutToDeadlineSecondsNoEx(final long deadlineNanos) {
+    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());
+    if (toSeconds == 0) {
+      return 1;
     }
     if (toSeconds > MAX_JDBC_TIMEOUTSECONDS) {
       return MAX_JDBC_TIMEOUTSECONDS;

@@ -47,6 +47,8 @@ import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.DateTimeFormats;
@@ -68,6 +70,8 @@ import org.spf4j.ssdump2.Converter;
 @ThreadSafe
 public final class Sampler {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Sampler.class);
+
   private static Sampler instance;
 
   private static final int STOP_FLAG_READ_MILLIS = Integer.getInteger("spf4j.perf.ms.stopFlagReadMIllis", 2000);
@@ -83,7 +87,7 @@ public final class Sampler {
   private volatile int sampleTimeNanos;
   private volatile long dumpTimeNanos;
   private final SamplerSupplier stackCollectorSupp;
-  private volatile long lastDumpTimeNanos = TimeSource.nanoTime();
+  private volatile long lastDumpTimeNanos;
 
   private final Object sync = new Object();
 
@@ -116,6 +120,11 @@ public final class Sampler {
 
   public Sampler(final SamplerSupplier collector) {
     this(10, 3600000, collector);
+  }
+
+  public Sampler(final int sampleTimeMillis, final int dumpTimeMillis) {
+    this(sampleTimeMillis, dumpTimeMillis, (t) -> new FastStackCollector(false, true, new Thread[]{t}),
+            DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
   }
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector) {
@@ -178,6 +187,7 @@ public final class Sampler {
         @SuppressFBWarnings({"MDM_THREAD_YIELD", "PREDICTABLE_RANDOM"})
         @Override
         public void doRun() throws IOException, InterruptedException {
+          lastDumpTimeNanos = TimeSource.nanoTime();
           synchronized (sync) {
             stackCollector = stackCollectorSupp.get(Thread.currentThread());
           }
@@ -206,9 +216,9 @@ public final class Sampler {
               long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
               if (nanosSinceLastDump >= dumpTimeNanos) {
                 dumpCounterNanos = 0;
-                dumpToFile();
-              } else {
-                dumpCounterNanos -= dumpTimeNanos - nanosSinceLastDump;
+                File dumpFile = dumpToFile();
+                lastDumpTimeNanos = TimeSource.nanoTime();
+                LOG.info("Stack samples written to {}", dumpFile);
               }
             }
             sleepTimeNanos = random.nextInt(halfStNanos, maxSleeepNanos);
@@ -267,7 +277,6 @@ public final class Sampler {
         file = new File(pfile.getName() + es.getKey()  + ".ssdump2");
       }
       Converter.save(file, es.getValue());
-      lastDumpTimeNanos = TimeSource.nanoTime();
       return file;
     } else {
       File file;
@@ -277,7 +286,6 @@ public final class Sampler {
         file = new File(pfile.getName() + ".ssdump3");
       }
       Converter.saveLabeledDumps(file, collections);
-      lastDumpTimeNanos = TimeSource.nanoTime();
       return file;
     }
   }

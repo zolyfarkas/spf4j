@@ -39,9 +39,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.SQLTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -89,7 +89,7 @@ import org.spf4j.jmx.Registry;
 public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private static final int CLEANUP_TIMEOUT_SECONDS =
-          Integer.getInteger("spf4j.jdbc.semaphore.cleanupTimeoutSeconds", 0);
+          Integer.getInteger("spf4j.jdbc.semaphore.cleanupTimeoutSeconds", 60);
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphore.class);
 
@@ -443,6 +443,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
               }
             }
           }, timeout, unit);
+        } catch (SQLTimeoutException ex) {
+          return false;
         } catch (SQLException ex) {
           throw new LockRuntimeException(ex);
         }
@@ -450,14 +452,13 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           heartBeat.updateLastRunNanos(TimeSource.nanoTime());
         }
         if (!acquired) {
-          long secondsLeft = JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos);
+          long secondsLeft = JdbcTemplate.getTimeoutToDeadlineSecondsNoEx(deadlineNanos);
+          if (secondsLeft < 0) {
+            return false;
+          }
           if (secondsLeft < CLEANUP_TIMEOUT_SECONDS) {
-            Future<Integer> fut = DefaultExecutor.INSTANCE.submit(new Callable<Integer>() {
-              @Override
-              public Integer call() throws Exception {
-                return removeDeadHeartBeatAndNotOwnerRows(CLEANUP_TIMEOUT_SECONDS);
-              }
-            });
+            Future<Integer> fut = DefaultExecutor.INSTANCE.submit(
+                    () -> removeDeadHeartBeatAndNotOwnerRows(CLEANUP_TIMEOUT_SECONDS));
             try {
               fut.get(secondsLeft, TimeUnit.SECONDS);
             } catch (TimeoutException ex) {
@@ -469,6 +470,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
           } else {
             try {
               removeDeadHeartBeatAndNotOwnerRows(secondsLeft);
+            } catch (SQLTimeoutException ex) {
+              return false;
             } catch (SQLException ex) {
               throw new LockRuntimeException(ex);
             }
@@ -492,7 +495,6 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       if (acquired) {
         ownedReservations += nrPermits;
       }
-
       return acquired;
     }
   }

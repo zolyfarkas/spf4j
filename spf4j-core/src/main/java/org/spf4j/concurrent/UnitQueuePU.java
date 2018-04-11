@@ -70,6 +70,7 @@ public final class UnitQueuePU<T> {
 
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   @Nullable
+  @SuppressWarnings("checkstyle:InnerAssignment")
   public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
     T result = poll();
     if (result != null) {
@@ -108,7 +109,7 @@ public final class UnitQueuePU<T> {
           throw new InterruptedException();
         }
         if ((result = value.getAndSet(null)) != null) {
-         break;
+         return result;
         }
         currTime = TimeSource.nanoTime();
       } while (true);
