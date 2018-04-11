@@ -36,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -113,7 +114,7 @@ public class Slf4jMessageFormatterTest {
         try (AppendableLimiterWithOverflow limiter
                 = new AppendableLimiterWithOverflow(90, File.createTempFile("string", ".overflow"),
                         "...@", Charsets.UTF_8, appendTo)) {
-          input.append(object, limiter);
+          limiter.append(object);
         }
       }
     });
@@ -122,6 +123,7 @@ public class Slf4jMessageFormatterTest {
             "012345678901234567890123456789012345678901234567"
                     + "89012345678901234567890123456789012345678901234567890123456789");
     LOG.debug("formatted message: {}", sb);
+    Assert.assertThat(sb.toString(), Matchers.containsString("...@"));
 
   }
 
