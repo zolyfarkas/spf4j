@@ -141,7 +141,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
             = Integer.getInteger("spf4j.failsafe.defaultInitialNoDelayRetries", 3);
 
     private static final int DEFAULT_MAX_NR_RETRIES
-            = Integer.getInteger("spf4j.failsafe.defaultMaxNrRetries", MAX_EX_CHAIN_DEFAULT * 4);
+            = Integer.getInteger("spf4j.failsafe.defaultMaxNrRetries", MAX_EX_CHAIN_DEFAULT * 10);
 
     private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 
