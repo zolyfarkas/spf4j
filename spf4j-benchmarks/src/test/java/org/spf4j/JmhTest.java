@@ -62,6 +62,7 @@ public final class JmhTest {
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
             //.include(".*Timing.*")
+            //                .include(".*ThreadPoolBenchmark")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
