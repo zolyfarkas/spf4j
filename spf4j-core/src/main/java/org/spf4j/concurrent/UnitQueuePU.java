@@ -84,7 +84,7 @@ public final class UnitQueuePU<T> {
             if (result != null) {
               return result;
             }
-            if (Thread.interrupted()) {
+            if (i % 100 == 0 && Thread.interrupted()) {
               throw new InterruptedException();
             }
             i++;
@@ -103,11 +103,11 @@ public final class UnitQueuePU<T> {
           return null;
         }
         LockSupport.parkNanos(to);
-        if (Thread.interrupted()) {
-          throw new InterruptedException();
-        }
         if ((result = value.getAndSet(null)) != null) {
          return result;
+        }
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
         }
         currTime = TimeSource.nanoTime();
       } while (true);
