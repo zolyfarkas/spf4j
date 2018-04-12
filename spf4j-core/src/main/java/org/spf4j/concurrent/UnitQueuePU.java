@@ -60,19 +60,14 @@ public final class UnitQueuePU<T> {
 
   @Nullable
   public T poll() {
-    T result = value.getAndSet(null);
-    if (result != null) {
-      return result;
-    } else {
-      return null;
-    }
+    return value.getAndSet(null);
   }
 
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   @Nullable
   @SuppressWarnings("checkstyle:InnerAssignment")
-  public T poll(final long timeoutNanos, final long spinCount) throws InterruptedException {
-    T result = poll();
+  public T poll(final long timeoutNanos, final long spinCount, final long pcurrTime) throws InterruptedException {
+    T result = value.getAndSet(null);
     if (result != null) {
       return result;
     }
@@ -97,7 +92,7 @@ public final class UnitQueuePU<T> {
       }
     }
     if ((result = value.getAndSet(null)) == null) {
-      long currTime = TimeSource.nanoTime();
+      long currTime = spinCount <= 0 ? pcurrTime : TimeSource.nanoTime();
       long deadlineNanos = currTime + timeoutNanos;
       do {
         final long to = deadlineNanos - currTime;

@@ -578,10 +578,11 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
             while (true) {
               Runnable runnable;
               try {
+                long nanoTime = TimeSource.nanoTime();
                 final long wTime = Math.max(minWaitNanos, state.getMaxIdleTimeNanos())
-                        - (TimeSource.nanoTime() - lastRunNanos);
+                        - (nanoTime - lastRunNanos);
                 if (wTime > 0) {
-                  runnable = toRun.poll(wTime, state.spinlockCount);
+                  runnable = toRun.poll(wTime, state.spinlockCount, nanoTime);
                 } else {
                   running = false;
                   removeThreadFromQueue(ptr);

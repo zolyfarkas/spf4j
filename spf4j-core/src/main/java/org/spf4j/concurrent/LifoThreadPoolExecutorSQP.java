@@ -520,9 +520,10 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             while (true) {
               Runnable runnable;
               try {
-                final long wTime = maxIdleNanos - (TimeSource.nanoTime() - lastRunNanos);
+                long currTime = TimeSource.nanoTime();
+                final long wTime = maxIdleNanos - (currTime - lastRunNanos);
                 if (wTime > 0) {
-                  runnable = toRun.poll(wTime, state.spinlockCount);
+                  runnable = toRun.poll(wTime, state.spinlockCount, currTime);
                 } else {
                   running = false;
                   removeThreadFromQueue(ptr);
