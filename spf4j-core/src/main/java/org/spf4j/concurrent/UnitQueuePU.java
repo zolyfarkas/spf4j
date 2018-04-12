@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.spf4j.base.TimeSource;
 
@@ -58,12 +59,14 @@ public final class UnitQueuePU<T> {
     this.readerThread = readerThread;
   }
 
+  @CheckReturnValue
   @Nullable
   public T poll() {
     return value.getAndSet(null);
   }
 
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  @CheckReturnValue
   @Nullable
   @SuppressWarnings("checkstyle:InnerAssignment")
   public T poll(final long timeoutNanos, final long spinCount, final long pcurrTime) throws InterruptedException {
@@ -112,6 +115,7 @@ public final class UnitQueuePU<T> {
     return result;
   }
 
+  @CheckReturnValue
   public boolean offer(final T offer) {
     boolean result = value.compareAndSet(null, offer);
     if (result) {
