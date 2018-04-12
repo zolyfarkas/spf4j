@@ -32,8 +32,8 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import gnu.trove.map.hash.THashMap;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
@@ -104,7 +104,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public final synchronized <T> T put(@Nonnull final Object key, @Nonnull final T data) {
     if (baggage == Collections.EMPTY_MAP) {
-      baggage = new THashMap<>(2);
+      baggage = new HashMap<>(4);
     }
     return (T) baggage.put(key, data);
   }
@@ -129,7 +129,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Nullable
   public final synchronized <K, V> V compute(@Nonnull final K key, final BiFunction<K, V, V> compute) {
     if (baggage == Collections.EMPTY_MAP) {
-      baggage = new THashMap(2);
+      baggage = new HashMap(4);
     }
     return (V) baggage.compute(key, (BiFunction) compute);
   }
