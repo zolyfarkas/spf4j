@@ -64,7 +64,7 @@ public final class LifoThreadPoolBuilder {
     taskQueue = new ArrayDeque<>(256);
     queueSizeLimit = 0;
     daemonThreads = false;
-    spinLockCount = 1024;
+    spinLockCount = 100;
     threadPriority = Thread.NORM_PRIORITY;
     mutable = false;
     jmxEnabled = false;
