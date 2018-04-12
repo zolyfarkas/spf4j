@@ -80,7 +80,7 @@ public final class UnitQueuePU<T> {
         try {
           int i = 0;
           while (i < spinCount) {
-            result = poll();
+            result = value.getAndSet(null);
             if (result != null) {
               return result;
             }
