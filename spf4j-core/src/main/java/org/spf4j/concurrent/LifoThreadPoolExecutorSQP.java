@@ -417,7 +417,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
      */
     @CheckReturnValue
     @SuppressFBWarnings("MDM_SIGNAL_NOT_SIGNALALL") // Only one thread will away on this condition
-    void runNext(final Runnable runnable) {
+    private void runNext(final Runnable runnable) {
         toRun = runnable;
         submitCondition.signal();
     }
