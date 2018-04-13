@@ -55,7 +55,7 @@ final class UnitQueuePU<T> {
 
   private final Thread readerThread;
 
-  public UnitQueuePU(final Thread readerThread) {
+  UnitQueuePU(final Thread readerThread) {
     this.readerThread = readerThread;
   }
 
@@ -75,8 +75,7 @@ final class UnitQueuePU<T> {
       return result;
     }
     if (spinCount > 0 && org.spf4j.base.Runtime.NR_PROCESSORS > 1) {
-      boolean tryAcquire = SPIN_LIMIT.tryAcquire();
-      if (tryAcquire) {
+      if (SPIN_LIMIT.tryAcquire()) {
         try {
           int i = 0;
           while (i < spinCount) {
