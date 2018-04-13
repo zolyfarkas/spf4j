@@ -555,7 +555,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
     if (elem.equals(elements[i])) {
       delete(i);
     } else {
-      remove(elem);
+      removeLastOccurrence(elem);
     }
   }
 
