@@ -516,6 +516,21 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
 
     @Override
     public void run() {
+      if (runFirst != null) {
+        try {
+          run(runFirst);
+        }  catch (Throwable e) {
+          final UncaughtExceptionHandler uexh = this.getUncaughtExceptionHandler();
+          try {
+            uexh.uncaughtException(this, e);
+          } catch (RuntimeException ex) {
+            ex.addSuppressed(e);
+            throw new UncheckedExecutionException("Uncaught exception handler blew up: " + uexh, ex);
+          }
+        } finally {
+          runFirst = null;
+        }
+      }
       boolean shouldRun = true;
       long minWaitNanos = 0;
       do {
@@ -553,13 +568,6 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
     public void doRun(final long minWaitNanos) {
       running = true;
       try {
-        if (runFirst != null) {
-          try {
-            run(runFirst);
-          } finally {
-            runFirst = null;
-          }
-        }
         while (running) {
           submitMonitor.lock();
           Runnable poll = taskQueue.poll();
