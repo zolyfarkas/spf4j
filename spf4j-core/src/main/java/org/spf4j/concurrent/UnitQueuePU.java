@@ -44,7 +44,7 @@ import org.spf4j.base.TimeSource;
  *
  * @author zoly
  */
-public final class UnitQueuePU<T> {
+final class UnitQueuePU<T> {
 
   private static final int SPIN_LIMITER = Integer.getInteger("spf4j.lifoTp.maxSpinning",
           org.spf4j.base.Runtime.NR_PROCESSORS / 2);
