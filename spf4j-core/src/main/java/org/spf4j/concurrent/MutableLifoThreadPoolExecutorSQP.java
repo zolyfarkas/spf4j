@@ -514,10 +514,6 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
       toRun.offer(AbstractRunnable.NOP);
     }
 
-    public boolean isRunning() {
-      return running;
-    }
-
     @Override
     public void run() {
       boolean shouldRun = true;

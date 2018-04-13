@@ -455,10 +455,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       toRun.offer(AbstractRunnable.NOP);
     }
 
-    public boolean isRunning() {
-      return running;
-    }
-
     @Override
     public void run() {
       final long origNanosWait = TimeUnit.MILLISECONDS.toNanos(maxIdleTimeMillis);
