@@ -64,7 +64,7 @@ public class LifoThreadPoolExecutor2Test {
   @Test
   public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {
     LifoThreadPoolExecutorSQP executor
-            = new LifoThreadPoolExecutorSQP("test", 2, 8, 1000, 1024, 0);
+            = new LifoThreadPoolExecutorSQP("test", 2, 8, 1000, 0);
     testPoolThreadDynamics(executor);
   }
 

@@ -51,7 +51,7 @@ public class ThreadPoolExecutorTest {
 
   @Test(timeout = 10000)
   public void testInteruptionBehavior() throws InterruptedException, ExecutionException {
-    LifoThreadPoolExecutorSQP executor = new LifoThreadPoolExecutorSQP("test", 0, 16, 60000, 0, 1024);
+    LifoThreadPoolExecutorSQP executor = new LifoThreadPoolExecutorSQP("test", 0, 16, 60000, 0);
     testPoolTaskCancellation(executor);
   }
 

@@ -141,7 +141,7 @@ public final class LifoThreadPoolBuilder {
               taskQueue, queueSizeLimit, daemonThreads, spinLockCount, rejectionHandler, threadPriority);
     } else {
       result = new LifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,
-              taskQueue, queueSizeLimit, daemonThreads, spinLockCount, rejectionHandler, threadPriority);
+              taskQueue, queueSizeLimit, daemonThreads, rejectionHandler, threadPriority);
     }
     if (jmxEnabled) {
       result.exportJmx();

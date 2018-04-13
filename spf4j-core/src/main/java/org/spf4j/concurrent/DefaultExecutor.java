@@ -59,9 +59,7 @@ public final class DefaultExecutor {
     switch (value) {
       case "spf4j":
         LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
-                Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon,
-                Integer.getInteger("spf4j.executors.defaultExecutor.spinlockCount",
-                        1024));
+                Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon);
         lifoExec.exportJmx();
         INSTANCE = lifoExec;
         break;

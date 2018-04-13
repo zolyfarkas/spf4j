@@ -60,7 +60,7 @@ public class LifoThreadPoolExecutorSTest {
   @Test
   public void testLifoExecSQ() throws Exception {
     LifoThreadPoolExecutorSQP executor
-            = new LifoThreadPoolExecutorSQP("test", 2, 8, 10000, 1024, 1024);
+            = new LifoThreadPoolExecutorSQP("test", 2, 8, 10000, 1024);
     testPool(executor);
   }
 
