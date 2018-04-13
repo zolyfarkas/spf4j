@@ -440,7 +440,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
      * @return
      */
     @CheckReturnValue
-    public boolean runNext(final Runnable runnable) {
+    boolean runNext(final Runnable runnable) {
       synchronized (sync) {
         if (!running) {
           return false;
@@ -451,12 +451,28 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     }
 
     @SuppressFBWarnings
-    public void signal() {
+    void signal() {
       toRun.offer(AbstractRunnable.NOP);
     }
 
     @Override
     public void run() {
+      if (runFirst != null) {
+        try {
+          run(runFirst);
+        }  catch (Throwable e) {
+          final UncaughtExceptionHandler uexh = this.getUncaughtExceptionHandler();
+          try {
+            uexh.uncaughtException(this, e);
+          } catch (RuntimeException ex) {
+            ex.addSuppressed(e);
+            throw new UncheckedExecutionException("Uncaught exception handler blew up: " + uexh, ex);
+          }
+        } finally {
+          runFirst = null;
+        }
+      }
+
       final long origNanosWait = TimeUnit.MILLISECONDS.toNanos(maxIdleTimeMillis);
       long maxIdleNanos = origNanosWait;
       boolean shouldRun = true;
@@ -492,16 +508,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     }
 
     @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH"})
-    public void doRun(final long maxIdleNanos) {
+    private void doRun(final long maxIdleNanos) {
       running = true;
       try {
-        if (runFirst != null) {
-          try {
-            run(runFirst);
-          } finally {
-            runFirst = null;
-          }
-        }
         while (running) {
           poolStateLock.lock();
           Runnable poll = taskQueue.poll();
@@ -562,7 +571,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     }
 
     @SuppressFBWarnings("MDM_WAIT_WITHOUT_TIMEOUT")
-    public void removeThreadFromQueue(final int ptr) {
+    private void removeThreadFromQueue(final int ptr) {
       poolStateLock.lock();
       try {
         threadQueue.delete(ptr, this);
@@ -571,7 +580,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       }
     }
 
-    public void run(final Runnable runnable) {
+    private void run(final Runnable runnable) {
       try {
         runnable.run();
       } finally {
