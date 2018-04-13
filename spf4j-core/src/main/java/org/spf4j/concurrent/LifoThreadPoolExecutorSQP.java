@@ -468,9 +468,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
               timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
             } finally {
               threadQueue.delete(ptr, this);
-              poolStateLock.unlock();
             }
             if (toRun != null) {
+                poolStateLock.unlock();
                 try {
                   run(toRun);
                 } finally {
@@ -480,9 +480,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                 if (timeoutNanos <= 0) {
                   final int tc = state.getThreadCount();
                   if (state.isShutdown() || tc - 1 >= state.getCoreThreads()) {
+                    poolStateLock.unlock();
                     break;
                   }
                 }
+                poolStateLock.unlock();
             }
           }
         }
