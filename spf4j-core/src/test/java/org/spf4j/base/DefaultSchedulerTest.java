@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
 import org.spf4j.concurrent.DefaultScheduler;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.Assert;
@@ -64,7 +65,7 @@ public final class DefaultSchedulerTest {
         if (time % 1000 >= 100) {
           notAligned = true;
         }
-        LOG.debug("scheduled at {}", time);
+        LOG.debug("scheduled at {}", Instant.ofEpochMilli(time));
         if (first) {
           try {
             Thread.sleep(2000);
