@@ -551,7 +551,7 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
         submitMonitor.lock();
         try {
           final int tc = state.getThreadCount();
-          if (state.isShutdown() || tc - 1 >= state.getCoreThreads()) {
+          if (state.isShutdown() || tc > state.getCoreThreads()) {
             state.removeThread(this);
             shouldRun = false;
             submitCondition.signalAll();
