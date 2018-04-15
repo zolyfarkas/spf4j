@@ -32,7 +32,6 @@
 package org.spf4j.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import javax.annotation.CheckReturnValue;
@@ -46,10 +45,6 @@ import org.spf4j.base.TimeSource;
  */
 final class UnitQueuePU<T> {
 
-  private static final int SPIN_LIMITER = Integer.getInteger("spf4j.lifoTp.maxSpinning",
-          org.spf4j.base.Runtime.NR_PROCESSORS / 2);
-
-  private static final Semaphore SPIN_LIMIT = new Semaphore(SPIN_LIMITER);
 
   private final AtomicReference<T> value = new AtomicReference<>();
 
@@ -75,7 +70,7 @@ final class UnitQueuePU<T> {
       return result;
     }
     if (spinCount > 0 && org.spf4j.base.Runtime.NR_PROCESSORS > 1) {
-      if (SPIN_LIMIT.tryAcquire()) {
+      if (SpinLimiter.SPIN_LIMIT.tryAcquire()) {
         try {
           int i = 0;
           while (i < spinCount) {
@@ -89,7 +84,7 @@ final class UnitQueuePU<T> {
             i++;
           }
         } finally {
-          SPIN_LIMIT.release();
+          SpinLimiter.SPIN_LIMIT.release();
         }
       }
     }
