@@ -218,7 +218,7 @@ public class LifoThreadPoolExecutorTest {
 
   private static final class RejectedExecutionExceptionImpl extends RejectedExecutionException {
 
-    public RejectedExecutionExceptionImpl() {
+    RejectedExecutionExceptionImpl() {
     }
 
     @Override
