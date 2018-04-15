@@ -220,23 +220,24 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
         qt.start();
         return;
       }
-      // was not able to submit to an existing available thread, reached the maxThread limit.
-      // will attempt to queue the task, and reject if unable to
-      if (taskQueue.size() >= queueSizeLimit) {
-        stateLock.unlock();
-        rejectionHandler.rejectedExecution(command, this);
-      } else if (!taskQueue.offer(command)) {
-        stateLock.unlock();
-        rejectionHandler.rejectedExecution(command, this);
-      } else {
-        stateLock.unlock();
-      }
     } catch (Throwable t) {
       if (stateLock.isHeldByCurrentThread()) {
         stateLock.unlock();
       }
       throw t;
     }
+      // was not able to submit to an existing available thread, reached the maxThread limit.
+      // will attempt to queue the task, and reject if unable to
+    if (taskQueue.size() >= queueSizeLimit) {
+      stateLock.unlock();
+      rejectionHandler.rejectedExecution(command, this);
+    } else if (!taskQueue.offer(command)) {
+      stateLock.unlock();
+      rejectionHandler.rejectedExecution(command, this);
+    } else {
+      stateLock.unlock();
+    }
+
 
   }
 
