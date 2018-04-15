@@ -435,7 +435,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       doRun(TimeUnit.MILLISECONDS.toNanos(maxIdleTimeMillis));
     }
 
-    @SuppressFBWarnings({"MDM_WAIT_WITHOUT_TIMEOUT", "MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK_EXCEPTION_PATH"})
+    @SuppressFBWarnings({"MDM_LOCK_ISLOCKED", "UL_UNRELEASED_LOCK"})
     private void doRun(final long maxIdleNanos) {
       try {
         while (true) {
@@ -445,22 +445,25 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             poolStateLock.unlock();
             run(poll);
           } else { // nothing in the queue, will put the thread to thread queue.
-            if (state.isShutdown()) {
-              poolStateLock.unlock();
-              break;
-            }
             long timeoutNanos = lastRunNanos + maxIdleNanos - TimeSource.nanoTime();
             if (timeoutNanos <= 0) { // Thread was idle more than it should
               final int tc = state.getThreadCount();
               if (state.isShutdown() || tc > state.getCoreThreads()) { // can we terminate.
-                poolStateLock.unlock();
+                removeThread();
                 break;
               } else { // this is a core thread for now.
                 timeoutNanos = CORE_MINWAIT_NANOS;
               }
             }
             int ptr = threadQueue.addLastAndGetPtr(this);
-            timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
+            try {
+              timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
+            } catch (InterruptedException ex) {
+              if (state.isShutdown()) {
+                removeThread();
+                break;
+              }
+            }
             if (toRun != null) {
                 poolStateLock.unlock();
                 try {
@@ -473,34 +476,28 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                 if (timeoutNanos <= 0) {
                   final int tc = state.getThreadCount();
                   if (state.isShutdown() || tc > state.getCoreThreads()) {
-                    poolStateLock.unlock();
+                    removeThread();
                     break;
                   }
+                } else {
+                  poolStateLock.unlock();
                 }
-                poolStateLock.unlock();
             }
           }
         }
-      } catch (InterruptedException t) {
-        if (poolStateLock.isHeldByCurrentThread()) {
-          poolStateLock.unlock();
-        }
-      } catch (Throwable t) {
+      } catch (RuntimeException t) {
         if (poolStateLock.isHeldByCurrentThread()) {
           poolStateLock.unlock();
         }
         throw t;
-      } finally {
-        poolStateLock.lock();
-        try {
-          threadQueue.remove(this);
-          state.removeThread(this);
-          poolStateCondition.signalAll();
-        } finally {
-          poolStateLock.unlock();
-        }
       }
 
+    }
+
+    private void removeThread() {
+      state.removeThread(this);
+      poolStateCondition.signalAll();
+      poolStateLock.unlock();
     }
 
     private void run(final Runnable runnable) {
