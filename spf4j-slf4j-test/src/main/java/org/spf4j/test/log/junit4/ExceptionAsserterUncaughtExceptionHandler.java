@@ -58,7 +58,7 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
     if (wrapped != null) {
       wrapped.uncaughtException(t, e);
     } else {
-      LOG.info("Uncaught Exception in thread {}", t, e);
+      LOG.debug("Uncaught Exception in thread {}", t, e);
     }
     UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);
     boolean accepted = false;
