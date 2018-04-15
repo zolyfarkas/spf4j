@@ -19,6 +19,8 @@ import org.spf4j.test.log.ExceptionHandoverRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.UncaughtExceptionConsumer;
 
@@ -26,6 +28,8 @@ import org.spf4j.test.log.UncaughtExceptionConsumer;
  * @author Zoltan Farkas
  */
 class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler, ExceptionHandoverRegistry {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExceptionAsserterUncaughtExceptionHandler.class);
 
   private final Thread.UncaughtExceptionHandler wrapped;
 
@@ -53,6 +57,8 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
   public void uncaughtException(final Thread t, final Throwable e) {
     if (wrapped != null) {
       wrapped.uncaughtException(t, e);
+    } else {
+      LOG.info("Uncaught Exception in thread {}", t, e);
     }
     UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);
     boolean accepted = false;
