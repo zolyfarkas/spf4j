@@ -464,11 +464,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
               }
             }
             int ptr = threadQueue.addLastAndGetPtr(this);
-            try {
-              timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
-            } finally {
-              threadQueue.delete(ptr, this);
-            }
+            timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
             if (toRun != null) {
                 poolStateLock.unlock();
                 try {
@@ -478,6 +474,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                 }
             } else {
                 if (timeoutNanos <= 0) {
+                  threadQueue.delete(ptr, this);
                   final int tc = state.getThreadCount();
                   if (state.isShutdown() || tc - 1 >= state.getCoreThreads()) {
                     poolStateLock.unlock();
@@ -500,6 +497,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       } finally {
         poolStateLock.lock();
         try {
+          threadQueue.remove(this);
           state.removeThread(this);
           poolStateCondition.signalAll();
         } finally {
