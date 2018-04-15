@@ -473,8 +473,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                   toRun = null;
                 }
             } else {
+                threadQueue.delete(ptr, this);
                 if (timeoutNanos <= 0) {
-                  threadQueue.delete(ptr, this);
                   final int tc = state.getThreadCount();
                   if (state.isShutdown() || tc - 1 >= state.getCoreThreads()) {
                     poolStateLock.unlock();
