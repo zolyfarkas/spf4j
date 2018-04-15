@@ -69,10 +69,38 @@ public class LifoThreadPoolExecutorTest {
 
   @Test
   public void testLifoExecSQZeroQueue() throws InterruptedException, IOException {
-    LifoThreadPoolExecutorSQP executor
-            = new LifoThreadPoolExecutorSQP("test", 0, 16, 60000, 0);
+    RejectedExecutionException ex = new RejectedExecutionException() {
+      @Override
+      public Throwable fillInStackTrace() {
+        return this; // do nothing
+      }
+    };
+    ExecutorService executor =
+             LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(16).withMaxIdleTimeMillis(60000)
+                     .withQueueSizeLimit(0).withRejectionHandler((a, b) -> {
+                     throw ex;
+                     }).build();
+       testPool(executor);
+  }
+
+  @Test(timeout = 60000)
+  public void testMutableLifoExecSQZeroQueue() throws InterruptedException, IOException {
+    RejectedExecutionException ex = new RejectedExecutionException() {
+      @Override
+      public Throwable fillInStackTrace() {
+        return this; // do nothing
+      }
+    };
+    ExecutorService executor =
+             LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(16).withMaxIdleTimeMillis(60000)
+                     .withQueueSizeLimit(0).withRejectionHandler((a, b) -> {
+                     throw ex;
+                     })
+                     .withSpinLockCount(1024)
+                     .buildMutable();
     testPool(executor);
   }
+
 
   @Test(expected = RejectedExecutionException.class)
   public void testRejectZeroQueueSizeTp() {
@@ -162,12 +190,13 @@ public class LifoThreadPoolExecutorTest {
   public static void testPool(final ExecutorService executor)
           throws InterruptedException, IOException {
     final LongAdder adder = new LongAdder();
-    final int testCount = 20000000;
+    final int testCount = 10000000;
     long rejected = 0;
     final Runnable runnable = new Runnable() {
       @Override
       public void run() {
         adder.increment();
+//        LOG.debug("exec in {}", Thread.currentThread().getName());
       }
     };
     long start = System.currentTimeMillis();
@@ -191,8 +220,8 @@ public class LifoThreadPoolExecutorTest {
     }
     executor.shutdown();
     boolean awaitTermination = executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
-    LOG.debug("Stats for {}, rejected = {}, Exec time = {}", executor.getClass(), rejected,
-            (System.currentTimeMillis() - start));
+    LOG.debug("Stats for {}, submited = {}, rejected = {}, Exec time = {}", executor.getClass(),
+            testCount, rejected, (System.currentTimeMillis() - start));
     Assert.assertTrue(awaitTermination);
     Assert.assertEquals(testCount, adder.sum());
   }
