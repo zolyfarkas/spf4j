@@ -156,6 +156,9 @@ public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorServ
               + coreSize + ", " + maxSize + ", " + maxIdleTimeMillis + ", " + spinLockCount
               + ", " + queueSizeLimit);
     }
+    if (coreSize != maxSize && maxIdleTimeMillis <= 10) {
+      throw new IllegalArgumentException("Invalid max idle time, must be at least 10 ms: " + maxIdleTimeMillis);
+    }
     this.rejectionHandler = rejectionHandler;
     this.poolName = poolName;
     this.taskQueue = taskQueue;
