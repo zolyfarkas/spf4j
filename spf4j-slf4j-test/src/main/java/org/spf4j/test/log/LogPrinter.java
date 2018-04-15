@@ -43,6 +43,7 @@ import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.recyclable.impl.ArraySuppliers;
+import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
 
 /**
  * @author Zoltan Farkas
@@ -65,12 +66,8 @@ public final class LogPrinter implements LogHandler {
                 .toFormatter().withZone(ZoneId.systemDefault())
           : DateTimeFormatter.ISO_INSTANT;
 
-  private static final ThreadLocal<Buffer> TL_BUFFER = new ThreadLocal<Buffer>() {
-    @Override
-    protected Buffer initialValue() {
-      return new Buffer();
-    }
-  };
+  private static final ThreadLocalRecyclingSupplier<Buffer> TL_BUFFER =
+          new ThreadLocalRecyclingSupplier<Buffer>(() -> new Buffer());
 
   private static final ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 
@@ -142,8 +139,8 @@ public final class LogPrinter implements LogHandler {
     if (record.hasAttachment(PRINTED)) {
       return record;
     }
+    Buffer buff = TL_BUFFER.get();
     try {
-      Buffer buff = TL_BUFFER.get();
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
       if (record.getLevel() == Level.ERROR) {
@@ -155,6 +152,8 @@ public final class LogPrinter implements LogHandler {
       }
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
+    } finally {
+      TL_BUFFER.recycle(buff);
     }
     record.attach(PRINTED);
     return record;
