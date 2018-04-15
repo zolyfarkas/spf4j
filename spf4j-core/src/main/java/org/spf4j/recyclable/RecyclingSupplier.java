@@ -78,7 +78,9 @@ public interface RecyclingSupplier<T> extends Disposable {
      * recycle object.
      * @param object - object to recycle.
      */
-    void recycle(T object);
+    default void recycle(T object) {
+      recycle(object, null);
+    }
 
 
     @ParametersAreNonnullByDefault
