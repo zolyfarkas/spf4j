@@ -194,6 +194,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
           justification = "no blocking is done while holding the lock,"
           + " lock is released on all paths, findbugs just cannot figure it out...")
   public void execute(final Runnable command) {
+    boolean reject = false;
     stateLock.lock();
     try {
       if (state.isShutdown()) {
@@ -204,9 +205,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       }
       QueuedThread nqt = threadQueue.pollLast();
       if (nqt != null) {
-         nqt.runNext(command);
-         stateLock.unlock();
-         return;
+        nqt.runNext(command);
+        stateLock.unlock();
+        return;
       }
       int tc = state.getThreadCount();
       // was not able to submit to an existing available thread, will attempt to create a new thread.
@@ -220,25 +221,19 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
         qt.start();
         return;
       }
+      // was not able to submit to an existing available thread, reached the maxThread limit.
+      // will attempt to queue the task, and reject if unable to
+      reject = taskQueue.size() >= queueSizeLimit || !taskQueue.offer(command);
     } catch (Throwable t) {
       if (stateLock.isHeldByCurrentThread()) {
         stateLock.unlock();
       }
       throw t;
     }
-      // was not able to submit to an existing available thread, reached the maxThread limit.
-      // will attempt to queue the task, and reject if unable to
-    if (taskQueue.size() >= queueSizeLimit) {
-      stateLock.unlock();
+    stateLock.unlock();
+    if (reject) {
       rejectionHandler.rejectedExecution(command, this);
-    } else if (!taskQueue.offer(command)) {
-      stateLock.unlock();
-      rejectionHandler.rejectedExecution(command, this);
-    } else {
-      stateLock.unlock();
     }
-
-
   }
 
   @Override

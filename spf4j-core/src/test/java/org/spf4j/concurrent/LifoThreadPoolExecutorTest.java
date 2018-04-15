@@ -69,12 +69,7 @@ public class LifoThreadPoolExecutorTest {
 
   @Test
   public void testLifoExecSQZeroQueue() throws InterruptedException, IOException {
-    RejectedExecutionException ex = new RejectedExecutionException() {
-      @Override
-      public Throwable fillInStackTrace() {
-        return this; // do nothing
-      }
-    };
+    RejectedExecutionException ex = new RejectedExecutionExceptionImpl();
     ExecutorService executor =
              LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(16).withMaxIdleTimeMillis(60000)
                      .withQueueSizeLimit(0).withRejectionHandler((a, b) -> {
@@ -85,12 +80,7 @@ public class LifoThreadPoolExecutorTest {
 
   @Test(timeout = 60000)
   public void testMutableLifoExecSQZeroQueue() throws InterruptedException, IOException {
-    RejectedExecutionException ex = new RejectedExecutionException() {
-      @Override
-      public Throwable fillInStackTrace() {
-        return this; // do nothing
-      }
-    };
+    RejectedExecutionException ex = new RejectedExecutionExceptionImpl();
     ExecutorService executor =
              LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(16).withMaxIdleTimeMillis(60000)
                      .withQueueSizeLimit(0).withRejectionHandler((a, b) -> {
@@ -224,6 +214,17 @@ public class LifoThreadPoolExecutorTest {
             testCount, rejected, (System.currentTimeMillis() - start));
     Assert.assertTrue(awaitTermination);
     Assert.assertEquals(testCount, adder.sum());
+  }
+
+  private static final class RejectedExecutionExceptionImpl extends RejectedExecutionException {
+
+    public RejectedExecutionExceptionImpl() {
+    }
+
+    @Override
+    public Throwable fillInStackTrace() {
+      return this; // do nothing
+    }
   }
 
 }
