@@ -445,10 +445,14 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             poolStateLock.unlock();
             run(poll);
           } else { // nothing in the queue, will put the thread to thread queue.
+            if (state.isShutdown()) {
+              removeThread();
+              break;
+            }
             long timeoutNanos = lastRunNanos + maxIdleNanos - TimeSource.nanoTime();
             if (timeoutNanos <= 0) { // Thread was idle more than it should
               final int tc = state.getThreadCount();
-              if (state.isShutdown() || tc > state.getCoreThreads()) { // can we terminate.
+              if (tc > state.getCoreThreads()) { // can we terminate.
                 removeThread();
                 break;
               } else { // this is a core thread for now.
