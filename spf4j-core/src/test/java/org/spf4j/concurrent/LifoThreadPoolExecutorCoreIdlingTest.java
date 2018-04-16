@@ -51,7 +51,7 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorCoreIdlingTest.class);
 
-  @Test
+  @Test(timeout = 60000)
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 20, 0);

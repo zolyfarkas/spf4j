@@ -49,6 +49,8 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.GuardedBy;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
@@ -81,6 +83,8 @@ import sun.misc.Contended;
 @SuppressFBWarnings({"MDM_THREAD_PRIORITIES", "MDM_WAIT_WITHOUT_TIMEOUT"})
 public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService implements LifoThreadPool {
 
+
+  private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorSQP.class);
   /**
    * when a thread survives due core size, this the minimum wait time that core threads will wait for. worker threads
    * have a maximum time they are idle, after which they are retired... in case a user configures a thread pool with
@@ -483,13 +487,13 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                     removeThread();
                     break;
                   }
-                } else {
-                  poolStateLock.unlock();
                 }
+                poolStateLock.unlock();
             }
           }
         }
-      } catch (RuntimeException t) {
+      } catch (Throwable t) {
+        LOG.error("Unexpected exception", t);
         if (poolStateLock.isHeldByCurrentThread()) {
           poolStateLock.unlock();
         }
@@ -556,12 +560,14 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       if (!allThreads.add(thread)) {
         throw new IllegalStateException("Attempting to add a thread twice: " + thread);
       }
+      LOG.debug("Started thread {}", thread.getName());
     }
 
     public void removeThread(final QueuedThread thread) {
       if (!allThreads.remove(thread)) {
         throw new IllegalStateException("Removing thread failed: " + thread);
       }
+      LOG.debug("Terminating thread {}", thread.getName());
     }
 
     public void interruptAll() {
