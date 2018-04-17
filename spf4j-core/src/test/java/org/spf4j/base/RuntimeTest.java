@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -49,6 +50,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.os.StdOutToStringProcessHandler;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogCollection;
+import org.spf4j.test.log.TestLoggers;
 
 /**
  * @author zoly
@@ -106,7 +111,10 @@ public final class RuntimeTest {
 
   @Test(expected = TimeoutException.class, timeout = 30000)
   public void testExitCode3() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    LogCollection<Long> collect = TestLoggers.sys().collect(StdOutToStringProcessHandler.class.getName(), Level.ERROR,
+            Level.ERROR, false, Collectors.counting());
     Runtime.jrun(RuntimeTest.TestError3.class, 10000);
+    Assert.assertTrue(collect.get() > 0);
   }
 
   @Test(expected = InterruptedException.class, timeout = 30000)
@@ -115,7 +123,7 @@ public final class RuntimeTest {
     DefaultScheduler.INSTANCE.schedule(() -> {
       t.interrupt();
     }, 1, TimeUnit.SECONDS);
-    Runtime.jrun(RuntimeTest.TestError3.class, 10000);
+    Runtime.jrun(RuntimeTest.TestSleeping.class, 10000);
   }
 
   @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
@@ -148,6 +156,14 @@ public final class RuntimeTest {
     submit.get(10000, TimeUnit.MILLISECONDS);
 
   }
+
+  public static final class TestSleeping {
+
+    public static void main(final String[] args) throws InterruptedException {
+      Thread.sleep(60000);
+    }
+  }
+
 
   public static final class TestError {
 

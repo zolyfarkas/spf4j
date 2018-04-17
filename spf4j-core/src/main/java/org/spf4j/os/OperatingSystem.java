@@ -50,6 +50,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.slf4j.LoggerFactory;
@@ -197,6 +198,21 @@ public final class OperatingSystem {
     }
   }
 
+  /**
+   * Process execution utility.
+   * @param <T> type the stdout is reduced to.
+   * @param <E> type stderr is reduced to.
+   * @param command the command to execute.
+   * @param handler handler for child stdin, stdout and stderr. stdout and stderr handling will be done in 2 threads
+   * from the DefaultExecutor thread pool. while stdin handling will execute in the current thread.
+   * @param timeoutMillis time to wait for the process to execute.
+   * @param terminationTimeoutMillis this is the timeout used when trying to terminate the process gracefully.
+   * @return the response (respCode, stdout reduction, stderr reduction)
+   * @throws IOException
+   * @throws InterruptedException
+   * @throws ExecutionException
+   * @throws TimeoutException when timeout happens.
+   */
   @SuppressFBWarnings({ "COMMAND_INJECTION", "CC_CYCLOMATIC_COMPLEXITY" })
   public static <T, E> ProcessResponse<T, E> forkExec(final String[] command, final ProcessHandler<T, E> handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
@@ -207,14 +223,29 @@ public final class OperatingSystem {
             OutputStream pis = proc.getOutputStream()) {
       Future<E> esh;
       Future<T> osh;
+      final AtomicReference<Throwable> eex = new AtomicReference<>();
       try {
-        esh = DefaultExecutor.INSTANCE.submit(() -> handler.handleStdErr(pes));
+        esh = DefaultExecutor.INSTANCE.submit(() -> {
+          try {
+            return handler.handleStdErr(pes);
+          } catch (Throwable t) {
+            eex.set(t);
+            throw t;
+          }
+        });
       } catch (RuntimeException ex) { // Executor might Reject
-        int result = killProcess(proc, terminationTimeoutMillis, 5000);
+        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
         throw new ExecutionException("Cannot execute stderr handler, killed process returned " + result, ex);
       }
       try {
-        osh = DefaultExecutor.INSTANCE.submit(() -> handler.handleStdOut(pos));
+        osh = DefaultExecutor.INSTANCE.submit(() -> {
+          try {
+          return handler.handleStdOut(pos);
+          } catch (Throwable t) {
+            eex.set(t);
+            throw t;
+          }
+        });
       } catch (RuntimeException ex) { // Executor might Reject
         RuntimeException cex = Futures.cancelAll(true, esh);
         if (cex != null) {
@@ -226,7 +257,7 @@ public final class OperatingSystem {
       long deadlineNanos = TimeSource.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
       try {
         handler.writeStdIn(pis);
-      } catch (RuntimeException ex) {
+      } catch (RuntimeException | IOException ex) {
         RuntimeException cex = Futures.cancelAll(true, esh, osh);
         if (cex != null) {
           ex.addSuppressed(cex);
@@ -234,39 +265,52 @@ public final class OperatingSystem {
         int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
         throw new ExecutionException("Failure executing stdin handler, killed process returned " + result, ex);
       }
-      boolean isProcessFinished;
       try {
-        isProcessFinished = proc.waitFor(timeoutMillis, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException ex) {
-        RuntimeException cex = Futures.cancelAll(true, osh, esh);
-        if (cex != null) {
-          ex.addSuppressed(cex);
-        }
-        OperatingSystem.killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
-        throw ex;
-      }
-      if (isProcessFinished) {
+        int result = waitFor(eex, proc, timeoutMillis, TimeUnit.MILLISECONDS);
         Pair<Map<Future, Object>, Exception> results = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh);
         Exception hex = results.getSecond();
         Map<Future, Object> asyncRes = results.getFirst();
         if (hex == null) {
-          return new ProcessResponse<>(proc.exitValue(), (T) asyncRes.get(osh), (E) asyncRes.get(esh));
+          return new ProcessResponse<>(result, (T) asyncRes.get(osh), (E) asyncRes.get(esh));
         } else {
           Throwables.throwException(hex);
           throw new IllegalStateException();
         }
-      } else {
-        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
+      } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+        killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
         RuntimeException cex = Futures.cancelAll(true, osh, esh);
-        TimeoutException tex = new TimeoutException("Timed out while executing: " + java.util.Arrays.toString(command)
-                + ";\nprocess returned " + result + ";\nhandler:\n" + handler);
         if (cex != null) {
-          tex.addSuppressed(cex);
+          ex.addSuppressed(cex);
         }
-        throw tex;
+        throw ex;
       }
     }
   }
+
+  @SuppressFBWarnings("MDM_THREAD_YIELD") // best I can come up with so far. (same as JDK)
+  private static int waitFor(final AtomicReference<Throwable> exr,
+          final Process process,
+          final long timeout, final TimeUnit unit)
+          throws InterruptedException, ExecutionException, TimeoutException {
+    long startTime = TimeSource.nanoTime();
+    long rem = unit.toNanos(timeout);
+    do {
+      try {
+        return process.exitValue();
+      } catch (IllegalThreadStateException ex) {
+        if (rem > 0) {
+          Thread.sleep(Math.min(TimeUnit.NANOSECONDS.toMillis(rem) + 1, 100));
+        }
+      }
+      rem = unit.toNanos(timeout) - (TimeSource.nanoTime() - startTime);
+      Throwable get = exr.get();
+      if (get != null) {
+        throw new ExecutionException(get);
+      }
+    } while (rem > 0);
+    throw new TimeoutException("Process " + process + " timed out after " + timeout + " " + unit);
+  }
+
 
   @CheckReturnValue
   public static String forkExec(final String[] command,
