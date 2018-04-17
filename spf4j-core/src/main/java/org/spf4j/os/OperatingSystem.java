@@ -211,7 +211,7 @@ public final class OperatingSystem {
         esh = DefaultExecutor.INSTANCE.submit(() -> handler.handleStdErr(pes));
       } catch (RuntimeException ex) { // Executor might Reject
         int result = killProcess(proc, terminationTimeoutMillis, 5000);
-        throw new ExecutionException("Cannot exec stderr handler, killed process returned " + result, ex);
+        throw new ExecutionException("Cannot execute stderr handler, killed process returned " + result, ex);
       }
       try {
         osh = DefaultExecutor.INSTANCE.submit(() -> handler.handleStdOut(pos));
@@ -232,7 +232,7 @@ public final class OperatingSystem {
           ex.addSuppressed(cex);
         }
         int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
-        throw new ExecutionException("Filure executing stdin handler, killed process returned " + result, ex);
+        throw new ExecutionException("Failure executing stdin handler, killed process returned " + result, ex);
       }
       boolean isProcessFinished;
       try {
