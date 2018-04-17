@@ -57,6 +57,7 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
       LOG.debug(line);
       result.append(line).append(Strings.EOL);
     }
+    LOG.debug("done with stdout");
     return result.toString();
   }
 
@@ -69,6 +70,7 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
       LOG.error(line);
       result.append(line).append(Strings.EOL);
     }
+    LOG.debug("done with stderr");
     return result.toString();
   }
 
