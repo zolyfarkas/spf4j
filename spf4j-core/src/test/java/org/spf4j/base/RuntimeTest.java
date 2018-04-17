@@ -159,6 +159,7 @@ public final class RuntimeTest {
 
   public static final class TestSleeping {
 
+    @SuppressFBWarnings("MDM_THREAD_YIELD")
     public static void main(final String[] args) throws InterruptedException {
       Thread.sleep(60000);
     }
