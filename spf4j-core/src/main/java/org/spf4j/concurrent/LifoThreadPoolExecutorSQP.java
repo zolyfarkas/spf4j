@@ -216,12 +216,16 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       int tc = state.getThreadCount();
       // was not able to submit to an existing available thread, will attempt to create a new thread.
       if (tc < maxThreadCount) {
-        QueuedThread qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
-                state, stateLock, stateCondition);
-        qt.setDaemon(daemonThreads);
-        qt.setPriority(threadPriority);
-        state.addThread(qt);
-        stateLock.unlock();
+        QueuedThread qt;
+        try {
+          qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
+                  state, stateLock, stateCondition);
+          qt.setDaemon(daemonThreads);
+          qt.setPriority(threadPriority);
+          state.addThread(qt);
+        } finally {
+          stateLock.unlock();
+        }
         qt.start();
         return;
       }
