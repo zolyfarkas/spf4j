@@ -47,6 +47,8 @@ import java.lang.annotation.Target;
  * or modifying the current ones (if supported). The default implementation, Spf4jOpenTypeMapper supports this.
  * attribute description can be added to the annotation.
  *
+ * Classes annotated with this annotation can be exported with Registry.export or DynamicMBeanBuilder
+ *
  * @author zoly
  */
 
