@@ -47,11 +47,11 @@ public final class ConcurrentStack<E> {
   private final AtomicReference<Node<E>> top = new AtomicReference<Node<E>>();
 
   public void push(@Nonnull final E item) {
-    Node<E> newHead = new Node<E>(item);
     Node<E> oldHead;
+    Node<E> newHead;
     do {
       oldHead = top.get();
-      newHead.next = oldHead;
+      newHead = new Node<E>(item, oldHead);
     } while (!top.compareAndSet(oldHead, newHead));
   }
 
@@ -72,10 +72,11 @@ public final class ConcurrentStack<E> {
   private static class Node<E> {
 
     private final E item;
-    private Node<E> next;
+    private final Node<E> next;
 
-    Node(final E item) {
+    Node(final E item, @Nullable final Node<E> next) {
       this.item = item;
+      this.next = next;
     }
   }
 
