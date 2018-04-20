@@ -41,6 +41,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * test to validate the behavior between spf4j and FJP implementations...
@@ -48,6 +50,7 @@ import org.junit.Test;
  */
 public class ThreadPoolExecutorTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(ThreadPoolExecutorTest.class);
 
   @Test(timeout = 10000)
   public void testInteruptionBehavior() throws InterruptedException, ExecutionException {
@@ -61,6 +64,7 @@ public class ThreadPoolExecutorTest {
     try {
       testPoolTaskCancellation(new ForkJoinPool(16));
     } catch (AssertionError err) {
+      LOG.debug("Expected error", err);
       assertError = true;
     }
     Assert.assertTrue("expected that FJP tasks cannot be interrupted", assertError);
