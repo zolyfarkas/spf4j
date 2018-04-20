@@ -52,7 +52,8 @@ public final class JmhTest {
 
   @Test
   public void runJmh() throws RunnerException, IOException {
-    if ("true".equalsIgnoreCase(System.getenv("TRAVIS"))) {
+    if ("true".equalsIgnoreCase(System.getenv("TRAVIS"))
+            || "true".equalsIgnoreCase(System.getProperty("is.release", "false"))) {
       LOG.info("Benchmarks disabled in travis, not enough resources for this...");
       return;
     }
@@ -62,7 +63,7 @@ public final class JmhTest {
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
             //.include(".*Timing.*")
-           //                 .include(".*ThreadPoolBenchmark")
+//                           .include(".*ThreadPoolBenchmark")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
@@ -77,7 +78,7 @@ public final class JmhTest {
                     "-XX:BiasedLockingStartupDelay=0",
                     "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures",
                     "-Djmh.stack.profiles=" + destinationFolder,
-                    "-Dspf4j.timeSource=systemTime",
+//                    "-Dspf4j.timeSource=systemTime",
                     "-Dspf4j.executors.defaultExecutor.daemon=true",
                  // "-Djmh.executor=FJP",
                     "-Djmh.fr.options=defaultrecording=true,settings=" + profile)

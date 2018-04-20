@@ -37,7 +37,7 @@ public class NamingTest {
 
   @Test
   public void testNaming() {
-    Name n1 = Resolver.eval("/s/a/b/c");
+    Name n1 = Resolvers.eval("/s/a/b/c");
     Name n2 = Resolvers.eval("/s/a/b/c");
     Assert.assertEquals(n1, n2);
     DtabBuilder builder = new DtabBuilder();
