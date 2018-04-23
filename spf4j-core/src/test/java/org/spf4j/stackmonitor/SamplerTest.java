@@ -56,7 +56,7 @@ public class SamplerTest {
             .expect(Sampler.class.getName(), Level.INFO, LogMatchers.hasFormat("Stack samples written to {}"));
     sampler.start();
     LOG.debug("started sampling");
-    expect.assertObservation(3000, TimeUnit.MILLISECONDS);
+    expect.assertObservation(5000, TimeUnit.MILLISECONDS);
     sampler.stop();
   }
 
