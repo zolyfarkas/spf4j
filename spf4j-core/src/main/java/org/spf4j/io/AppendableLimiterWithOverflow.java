@@ -128,7 +128,11 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
 
   @Override
   public Appendable append(final CharSequence csq) throws IOException {
-    append(csq, 0, csq.length());
+    if (csq == null) {
+      append("null", 0, "null".length());
+    } else {
+      append(csq, 0, csq.length());
+    }
     return this;
   }
 

@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -46,7 +47,8 @@ public final class EscapeJsonStringAppendableWrapper implements Appendable {
   }
 
   @Override
-  public Appendable append(final CharSequence csq) throws IOException {
+  public Appendable append(@Nullable final CharSequence pcsq) throws IOException {
+    CharSequence csq = pcsq == null ? "null" : pcsq;
     for (int i = 0, l = csq.length(); i < l; i++) {
       AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);
     }
