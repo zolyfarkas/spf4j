@@ -80,7 +80,7 @@ public final class JmhTest {
                     "-Djmh.stack.profiles=" + destinationFolder,
 //                    "-Dspf4j.timeSource=systemTime",
                     "-Dspf4j.executors.defaultExecutor.daemon=true",
-                 // "-Djmh.executor=FJP",
+                  "-Djmh.executor=FJP",
                     "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
             .result(destinationFolder + "/" + "benchmarkResults.csv")
             .resultFormat(ResultFormatType.CSV)
