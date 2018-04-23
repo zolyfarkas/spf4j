@@ -191,7 +191,7 @@ public final class Runtime {
 <span class="fc bfc" id="L191" title="All 2 branches covered.">            for (Runnable runnable : values) {</span>
 <span class="fc" id="L192">              futures.add(DefaultExecutor.INSTANCE.submit(runnable));</span>
 <span class="fc" id="L193">            }</span>
-<span class="fc bfc" id="L194" title="All 2 branches covered.">            for (Future&lt;?&gt; future : futures) {</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">            for (Future&lt;?&gt; future : futures) {</span>
               try {
 <span class="fc" id="L196">                future.get();</span>
 <span class="nc" id="L197">              } catch (InterruptedException | ExecutionException | RuntimeException ex) {</span>
@@ -526,19 +526,46 @@ public final class Runtime {
 <span class="fc" id="L526">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
   }
 
+ public static void jrunAndLog(final Class&lt;?&gt; classWithMain,
+          final long timeoutMillis, final String... arguments)
+          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+<span class="nc" id="L532">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
+<span class="nc" id="L533">    jrunAndLog(classWithMain, classPath, timeoutMillis, arguments);</span>
+<span class="nc" id="L534">  }</span>
+
+  public static void jrunAndLog(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
+          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+<span class="nc" id="L538">    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());</span>
+<span class="nc" id="L539">    inputArguments.removeAllSystemPropertiesStartingWith(&quot;com.sun.management.jmxremote&quot;);</span>
+<span class="nc" id="L540">    jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);</span>
+<span class="nc" id="L541">  }</span>
+
+  public static void jrunAndLog(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
+          final String[] jvmArgs,
+          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
+<span class="nc" id="L546">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
+<span class="nc" id="L547">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
+            jvmArgs,
+<span class="nc" id="L549">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
+            arguments);
+<span class="nc" id="L551">    OperatingSystem.forkExecLog(command, timeoutMillis);</span>
+<span class="nc" id="L552">  }</span>
+
+
+
   /**
    * get the main Thread.
    * @return null if there is no main thread (can happen when calling this is a shutdown hook)
    */
   @Nullable
   public static Thread getMainThread() {
-<span class="fc" id="L535">    Thread[] threads = Threads.getThreads();</span>
-<span class="pc bpc" id="L536" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
-<span class="fc bfc" id="L537" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
-<span class="fc" id="L538">        return t;</span>
+<span class="fc" id="L562">    Thread[] threads = Threads.getThreads();</span>
+<span class="pc bpc" id="L563" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
+<span class="fc bfc" id="L564" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
+<span class="fc" id="L565">        return t;</span>
       }
     }
-<span class="nc" id="L541">    return null;</span>
+<span class="nc" id="L568">    return null;</span>
   }
 
   /**
@@ -546,36 +573,36 @@ public final class Runtime {
    */
   @Nullable
   public static Class&lt;?&gt; getMainClass() {
-<span class="fc" id="L549">    Thread mainThread = getMainThread();</span>
-<span class="pc bpc" id="L550" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
-<span class="nc" id="L551">      return null;</span>
+<span class="fc" id="L576">    Thread mainThread = getMainThread();</span>
+<span class="pc bpc" id="L577" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
+<span class="nc" id="L578">      return null;</span>
     }
-<span class="fc" id="L553">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
-<span class="pc bpc" id="L554" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
-<span class="nc" id="L555">      return null;</span>
+<span class="fc" id="L580">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
+<span class="pc bpc" id="L581" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
+<span class="nc" id="L582">      return null;</span>
     }
-<span class="fc" id="L557">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
+<span class="fc" id="L584">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
     try {
-<span class="fc" id="L559">      return Class.forName(className);</span>
-<span class="nc" id="L560">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L561">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
-<span class="nc" id="L562">      tex.initCause(ex);</span>
-<span class="nc" id="L563">      throw tex;</span>
+<span class="fc" id="L586">      return Class.forName(className);</span>
+<span class="nc" id="L587">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L588">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
+<span class="nc" id="L589">      tex.initCause(ex);</span>
+<span class="nc" id="L590">      throw tex;</span>
     }
   }
 
 
-<span class="nc" id="L568">  public static final class Jmx {</span>
+<span class="nc" id="L595">  public static final class Jmx {</span>
 
     @JmxExport
     public static PackageInfo getPackageInfo(@JmxExport(&quot;className&quot;) final String className) {
-<span class="fc" id="L572">      return PackageInfo.getPackageInfo(className);</span>
+<span class="fc" id="L599">      return PackageInfo.getPackageInfo(className);</span>
     }
 
     @JmxExport
     public static void restart() throws IOException {
-<span class="nc" id="L577">      UnixRuntime.restart();</span>
-<span class="nc" id="L578">    }</span>
+<span class="nc" id="L604">      UnixRuntime.restart();</span>
+<span class="nc" id="L605">    }</span>
 
   }
 

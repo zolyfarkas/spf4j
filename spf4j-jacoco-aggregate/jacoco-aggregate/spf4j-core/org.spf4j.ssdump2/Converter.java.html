@@ -44,6 +44,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -75,27 +76,27 @@ public final class Converter {
     private final SampleNode node;
     private final int parentId;
 
-<span class="fc" id="L78">    TraversalNode(final Method method, final SampleNode node, final int parentId) {</span>
-<span class="fc" id="L79">      this.method = method;</span>
-<span class="fc" id="L80">      this.node = node;</span>
-<span class="fc" id="L81">      this.parentId = parentId;</span>
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L79">    TraversalNode(final Method method, final SampleNode node, final int parentId) {</span>
+<span class="fc" id="L80">      this.method = method;</span>
+<span class="fc" id="L81">      this.node = node;</span>
+<span class="fc" id="L82">      this.parentId = parentId;</span>
+<span class="fc" id="L83">    }</span>
 
     public Method getMethod() {
-<span class="fc" id="L85">      return method;</span>
+<span class="fc" id="L86">      return method;</span>
     }
 
     public SampleNode getNode() {
-<span class="fc" id="L89">      return node;</span>
+<span class="fc" id="L90">      return node;</span>
     }
 
     public int getParentId() {
-<span class="fc" id="L93">      return parentId;</span>
+<span class="fc" id="L94">      return parentId;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L98">      return &quot;TraversalNode{&quot; + &quot;method=&quot; + method + &quot;, node=&quot; + node + &quot;, parentId=&quot; + parentId + '}';</span>
+<span class="nc" id="L99">      return &quot;TraversalNode{&quot; + &quot;method=&quot; + method + &quot;, node=&quot; + node + &quot;, parentId=&quot; + parentId + '}';</span>
     }
 
   }
@@ -104,85 +105,85 @@ public final class Converter {
           final int parentId, final int id,
           final Handler&lt;ASample, E&gt; handler) throws E {
 
-<span class="fc" id="L107">    final Deque&lt;TraversalNode&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L108">    dq.addLast(new TraversalNode(method, node, parentId));</span>
-<span class="fc" id="L109">    int nid = id;</span>
-<span class="fc bfc" id="L110" title="All 2 branches covered.">    while (!dq.isEmpty()) {</span>
-<span class="fc" id="L111">      TraversalNode first = dq.removeFirst();</span>
-<span class="fc" id="L112">      Method m = first.getMethod();</span>
-<span class="fc" id="L113">      ASample sample = new ASample();</span>
-<span class="fc" id="L114">      sample.id = nid;</span>
-<span class="fc" id="L115">      SampleNode n = first.getNode();</span>
-<span class="fc" id="L116">      sample.count = n.getSampleCount();</span>
-<span class="fc" id="L117">      AMethod am = new AMethod();</span>
-<span class="fc" id="L118">      am.setName(m.getMethodName());</span>
-<span class="fc" id="L119">      am.setDeclaringClass(m.getDeclaringClass());</span>
-<span class="fc" id="L120">      sample.method = am;</span>
-<span class="fc" id="L121">      sample.parentId = first.getParentId();</span>
-<span class="fc" id="L122">      final TMap&lt;Method, SampleNode&gt; subNodes = n.getSubNodes();</span>
-<span class="fc" id="L123">      final int pid = nid;</span>
-<span class="fc bfc" id="L124" title="All 2 branches covered.">      if (subNodes != null) {</span>
-<span class="fc" id="L125">        subNodes.forEachEntry((a, b) -&gt; {</span>
-<span class="fc" id="L126">          dq.addLast(new TraversalNode(a, b, pid));</span>
-<span class="fc" id="L127">          return true;</span>
+<span class="fc" id="L108">    final Deque&lt;TraversalNode&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L109">    dq.addLast(new TraversalNode(method, node, parentId));</span>
+<span class="fc" id="L110">    int nid = id;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    while (!dq.isEmpty()) {</span>
+<span class="fc" id="L112">      TraversalNode first = dq.removeFirst();</span>
+<span class="fc" id="L113">      Method m = first.getMethod();</span>
+<span class="fc" id="L114">      ASample sample = new ASample();</span>
+<span class="fc" id="L115">      sample.id = nid;</span>
+<span class="fc" id="L116">      SampleNode n = first.getNode();</span>
+<span class="fc" id="L117">      sample.count = n.getSampleCount();</span>
+<span class="fc" id="L118">      AMethod am = new AMethod();</span>
+<span class="fc" id="L119">      am.setName(m.getMethodName());</span>
+<span class="fc" id="L120">      am.setDeclaringClass(m.getDeclaringClass());</span>
+<span class="fc" id="L121">      sample.method = am;</span>
+<span class="fc" id="L122">      sample.parentId = first.getParentId();</span>
+<span class="fc" id="L123">      final TMap&lt;Method, SampleNode&gt; subNodes = n.getSubNodes();</span>
+<span class="fc" id="L124">      final int pid = nid;</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">      if (subNodes != null) {</span>
+<span class="fc" id="L126">        subNodes.forEachEntry((a, b) -&gt; {</span>
+<span class="fc" id="L127">          dq.addLast(new TraversalNode(a, b, pid));</span>
+<span class="fc" id="L128">          return true;</span>
         });
       }
-<span class="fc" id="L130">      handler.handle(sample, parentId);</span>
-<span class="fc" id="L131">      nid++;</span>
-<span class="fc" id="L132">    }</span>
-<span class="fc" id="L133">    return nid;</span>
+<span class="fc" id="L131">      handler.handle(sample, parentId);</span>
+<span class="fc" id="L132">      nid++;</span>
+<span class="fc" id="L133">    }</span>
+<span class="fc" id="L134">    return nid;</span>
   }
 
   public static SampleNode convert(final Iterator&lt;ASample&gt; samples) {
-<span class="fc" id="L137">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L138" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
-<span class="fc" id="L139">      ASample asmp = samples.next();</span>
-<span class="fc" id="L140">      SampleNode sn = new SampleNode(asmp.count, new THashMap&lt;Method, SampleNode&gt;(4));</span>
-<span class="fc" id="L141">      SampleNode parent = index.get(asmp.parentId);</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">      if (parent != null) {</span>
-<span class="fc" id="L143">        AMethod method = asmp.getMethod();</span>
-<span class="fc" id="L144">        Method m = Method.getMethod(method.declaringClass, method.getName());</span>
-<span class="fc" id="L145">        final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
-<span class="pc bpc" id="L146" title="1 of 2 branches missed.">        if (subNodes == null) {</span>
-<span class="nc" id="L147">          throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
+<span class="fc" id="L138">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
+<span class="fc" id="L140">      ASample asmp = samples.next();</span>
+<span class="fc" id="L141">      SampleNode sn = new SampleNode(asmp.count, new THashMap&lt;Method, SampleNode&gt;(4));</span>
+<span class="fc" id="L142">      SampleNode parent = index.get(asmp.parentId);</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">      if (parent != null) {</span>
+<span class="fc" id="L144">        AMethod method = asmp.getMethod();</span>
+<span class="fc" id="L145">        Method m = Method.getMethod(method.declaringClass, method.getName());</span>
+<span class="fc" id="L146">        final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if (subNodes == null) {</span>
+<span class="nc" id="L148">          throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
         }
-<span class="fc" id="L149">        subNodes.put(m, sn);</span>
+<span class="fc" id="L150">        subNodes.put(m, sn);</span>
       }
-<span class="fc" id="L151">      index.put(asmp.id, sn);</span>
-<span class="fc" id="L152">    }</span>
-<span class="fc" id="L153">    return index.get(0);</span>
+<span class="fc" id="L152">      index.put(asmp.id, sn);</span>
+<span class="fc" id="L153">    }</span>
+<span class="fc" id="L154">    return index.get(0);</span>
   }
 
   public static void save(final File file, final SampleNode collected) throws IOException {
-<span class="fc" id="L157">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
-<span class="fc" id="L158">            Files.newOutputStream(file.toPath()))) {</span>
-<span class="fc" id="L159">      final SpecificDatumWriter&lt;ASample&gt; writer = new SpecificDatumWriter&lt;&gt;(ASample.SCHEMA$);</span>
-<span class="fc" id="L160">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
-<span class="fc" id="L161">      Converter.convert(Method.ROOT, collected,</span>
+<span class="fc" id="L158">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="fc" id="L159">            Files.newOutputStream(file.toPath()))) {</span>
+<span class="fc" id="L160">      final SpecificDatumWriter&lt;ASample&gt; writer = new SpecificDatumWriter&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L161">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+<span class="fc" id="L162">      Converter.convert(Method.ROOT, collected,</span>
               -1, 0, (final ASample object, final long deadline) -&gt; {
-<span class="fc" id="L163">                writer.write(object, encoder);</span>
-<span class="fc" id="L164">      });</span>
-<span class="fc" id="L165">      encoder.flush();</span>
+<span class="fc" id="L164">                writer.write(object, encoder);</span>
+<span class="fc" id="L165">              });</span>
+<span class="fc" id="L166">      encoder.flush();</span>
     }
-<span class="fc" id="L167">  }</span>
+<span class="fc" id="L168">  }</span>
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   public static SampleNode load(final File file) throws IOException {
-<span class="fc" id="L171">    try (MemorizingBufferedInputStream bis</span>
-<span class="fc" id="L172">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
-<span class="fc" id="L173">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
-<span class="fc" id="L174">      final SpecificDatumReader&lt;ASample&gt; reader = new SpecificDatumReader&lt;&gt;(ASample.SCHEMA$);</span>
-<span class="fc" id="L175">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
-<span class="fc" id="L176">      return convert(new Iterator&lt;ASample&gt;() {</span>
+<span class="fc" id="L172">    try (MemorizingBufferedInputStream bis</span>
+<span class="fc" id="L173">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
+<span class="fc" id="L174">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
+<span class="fc" id="L175">      final SpecificDatumReader&lt;ASample&gt; reader = new SpecificDatumReader&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L176">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
+<span class="fc" id="L177">      return convert(new Iterator&lt;ASample&gt;() {</span>
 
         @Override
         public boolean hasNext() {
           try {
-<span class="fc" id="L181">            int read = pis.read();</span>
-<span class="fc" id="L182">            pis.unread(read);</span>
-<span class="fc bfc" id="L183" title="All 2 branches covered.">            return read &gt;= 0;</span>
-<span class="nc" id="L184">          } catch (IOException ex) {</span>
-<span class="nc" id="L185">            throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L182">            int read = pis.read();</span>
+<span class="fc" id="L183">            pis.unread(read);</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">            return read &gt;= 0;</span>
+<span class="nc" id="L185">          } catch (IOException ex) {</span>
+<span class="nc" id="L186">            throw new UncheckedIOException(ex);</span>
           }
         }
 
@@ -190,20 +191,86 @@ public final class Converter {
         @SuppressFBWarnings
         public ASample next() {
           try {
-<span class="fc" id="L193">            return reader.read(null, decoder);</span>
-<span class="nc" id="L194">          } catch (IOException ex) {</span>
-<span class="nc" id="L195">            NoSuchElementException e = new NoSuchElementException();</span>
-<span class="nc" id="L196">            e.addSuppressed(ex);</span>
-<span class="nc" id="L197">            throw e;</span>
+<span class="fc" id="L194">            return reader.read(null, decoder);</span>
+<span class="nc" id="L195">          } catch (IOException ex) {</span>
+<span class="nc" id="L196">            NoSuchElementException e = new NoSuchElementException();</span>
+<span class="nc" id="L197">            e.addSuppressed(ex);</span>
+<span class="nc" id="L198">            throw e;</span>
           }
         }
 
         @Override
         public void remove() {
-<span class="nc" id="L203">          throw new UnsupportedOperationException();</span>
+<span class="nc" id="L204">          throw new UnsupportedOperationException();</span>
         }
       });
     }
   }
+
+  public static void saveLabeledDumps(final File file, final Map&lt;String, SampleNode&gt; collected) throws IOException {
+<span class="fc" id="L211">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="fc" id="L212">            Files.newOutputStream(file.toPath()))) {</span>
+<span class="fc" id="L213">      final SpecificDatumWriter&lt;ASample&gt; writer = new SpecificDatumWriter&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L214">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+
+<span class="fc" id="L216">      encoder.writeMapStart();</span>
+<span class="fc" id="L217">      encoder.setItemCount(collected.size());</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">      for (Map.Entry&lt;String, SampleNode&gt; entry : collected.entrySet()) {</span>
+<span class="fc" id="L219">        encoder.startItem();</span>
+<span class="fc" id="L220">        encoder.writeString(entry.getKey());</span>
+<span class="fc" id="L221">        encoder.writeArrayStart();</span>
+<span class="fc" id="L222">        Converter.convert(Method.ROOT, entry.getValue(),</span>
+                -1, 0, (final ASample object, final long deadline) -&gt; {
+<span class="fc" id="L224">                  encoder.setItemCount(1L);</span>
+<span class="fc" id="L225">                  encoder.startItem();</span>
+<span class="fc" id="L226">                  writer.write(object, encoder);</span>
+<span class="fc" id="L227">                });</span>
+<span class="fc" id="L228">        encoder.writeArrayEnd();</span>
+<span class="fc" id="L229">      }</span>
+<span class="fc" id="L230">      encoder.writeMapEnd();</span>
+<span class="fc" id="L231">      encoder.flush();</span>
+    }
+<span class="fc" id="L233">  }</span>
+
+  @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
+  public static Map&lt;String, SampleNode&gt; loadLabeledDumps(final File file) throws IOException {
+<span class="fc" id="L237">    try (MemorizingBufferedInputStream bis</span>
+<span class="fc" id="L238">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
+<span class="fc" id="L239">      final SpecificDatumReader&lt;ASample&gt; reader = new SpecificDatumReader&lt;&gt;(ASample.SCHEMA$);</span>
+<span class="fc" id="L240">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
+<span class="fc" id="L241">      long nrItems = decoder.readMapStart();</span>
+<span class="fc" id="L242">      ASample asmp = new ASample();</span>
+<span class="fc" id="L243">      Map&lt;String, SampleNode&gt; result = new HashMap&lt;&gt;((int) nrItems);</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">      while (nrItems &gt; 0) {</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">        for (int i = 0; i &lt; nrItems; i++) {</span>
+<span class="fc" id="L246">          String key = decoder.readString();</span>
+<span class="fc" id="L247">          TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc" id="L248">          long nrArrayItems = decoder.readArrayStart();</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">          while (nrArrayItems &gt; 0) {</span>
+<span class="fc bfc" id="L250" title="All 2 branches covered.">            for (int j = 0; j &lt; nrArrayItems; j++) {</span>
+<span class="fc" id="L251">              asmp = reader.read(asmp, decoder);</span>
+<span class="fc" id="L252">              SampleNode sn = new SampleNode(asmp.count, new THashMap&lt;Method, SampleNode&gt;(4));</span>
+<span class="fc" id="L253">              SampleNode parent = index.get(asmp.parentId);</span>
+<span class="fc bfc" id="L254" title="All 2 branches covered.">              if (parent != null) {</span>
+<span class="fc" id="L255">                AMethod method = asmp.getMethod();</span>
+<span class="fc" id="L256">                Method m = Method.getMethod(method.declaringClass, method.getName());</span>
+<span class="fc" id="L257">                final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">                if (subNodes == null) {</span>
+<span class="nc" id="L259">                  throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
+                }
+<span class="fc" id="L261">                subNodes.put(m, sn);</span>
+              }
+<span class="fc" id="L263">              index.put(asmp.id, sn);</span>
+            }
+<span class="fc" id="L265">            nrArrayItems = decoder.arrayNext();</span>
+          }
+<span class="fc" id="L267">          result.put(key, index.get(0));</span>
+        }
+<span class="fc" id="L269">        nrItems = decoder.mapNext();</span>
+      }
+<span class="fc" id="L271">      return result;</span>
+    }
+  }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

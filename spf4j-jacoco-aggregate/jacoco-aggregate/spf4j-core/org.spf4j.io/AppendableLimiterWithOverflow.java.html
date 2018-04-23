@@ -128,93 +128,97 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
 
   @Override
   public Appendable append(final CharSequence csq) throws IOException {
-<span class="fc" id="L131">    append(csq, 0, csq.length());</span>
-<span class="fc" id="L132">    return this;</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    if (csq == null) {</span>
+<span class="nc" id="L132">      append(&quot;null&quot;, 0, &quot;null&quot;.length());</span>
+    } else {
+<span class="fc" id="L134">      append(csq, 0, csq.length());</span>
+    }
+<span class="fc" id="L136">    return this;</span>
   }
 
   @Override
   public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
-<span class="fc" id="L137">    int nrChars = end - start;</span>
-<span class="fc" id="L138">    int charsToWrite = Math.min(directWriteLimit - count, nrChars);</span>
-<span class="fc" id="L139">    int dwe = start + charsToWrite;</span>
-<span class="fc bfc" id="L140" title="All 2 branches covered.">    if (charsToWrite &gt; 0) {</span>
-<span class="fc" id="L141">      destination.append(csq, start, dwe);</span>
-<span class="pc bpc" id="L142" title="1 of 2 branches missed.">      if (buffer != null) {</span>
-<span class="nc" id="L143">        buffer.append(csq, start, charsToWrite);</span>
+<span class="fc" id="L141">    int nrChars = end - start;</span>
+<span class="fc" id="L142">    int charsToWrite = Math.min(directWriteLimit - count, nrChars);</span>
+<span class="fc" id="L143">    int dwe = start + charsToWrite;</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">    if (charsToWrite &gt; 0) {</span>
+<span class="fc" id="L145">      destination.append(csq, start, dwe);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">      if (buffer != null) {</span>
+<span class="nc" id="L147">        buffer.append(csq, start, charsToWrite);</span>
       }
-<span class="fc" id="L145">      count += charsToWrite;</span>
+<span class="fc" id="L149">      count += charsToWrite;</span>
     }
-<span class="fc" id="L147">    int charsToWriteAside = Math.min(limit - count, end - dwe);</span>
-<span class="fc bfc" id="L148" title="All 2 branches covered.">    if (charsToWriteAside &gt; 0) {</span>
-<span class="pc bpc" id="L149" title="1 of 2 branches missed.">      if (asideBuffer == null) {</span>
-<span class="fc" id="L150">        asideBuffer = new StringBuilder(limit - directWriteLimit);</span>
+<span class="fc" id="L151">    int charsToWriteAside = Math.min(limit - count, end - dwe);</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">    if (charsToWriteAside &gt; 0) {</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">      if (asideBuffer == null) {</span>
+<span class="fc" id="L154">        asideBuffer = new StringBuilder(limit - directWriteLimit);</span>
       }
-<span class="fc" id="L152">      asideBuffer.append(csq, dwe, dwe + charsToWriteAside);</span>
-<span class="fc" id="L153">      count += charsToWriteAside;</span>
+<span class="fc" id="L156">      asideBuffer.append(csq, dwe, dwe + charsToWriteAside);</span>
+<span class="fc" id="L157">      count += charsToWriteAside;</span>
     }
-<span class="fc bfc" id="L155" title="All 2 branches covered.">    if (charsToWrite + charsToWriteAside &lt; end) {</span>
-<span class="fc" id="L156">      createOverflowIfNeeded();</span>
-<span class="fc" id="L157">      overflowWriter.append(csq, charsToWrite + charsToWriteAside, end);</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    if (charsToWrite + charsToWriteAside &lt; end) {</span>
+<span class="fc" id="L160">      createOverflowIfNeeded();</span>
+<span class="fc" id="L161">      overflowWriter.append(csq, charsToWrite + charsToWriteAside, end);</span>
     }
-<span class="fc" id="L159">    return this;</span>
+<span class="fc" id="L163">    return this;</span>
   }
 
   @Override
   public Appendable append(final char c) throws IOException {
-<span class="fc" id="L164">    int charsToWrite = Math.min(directWriteLimit - count, 1);</span>
-<span class="pc bpc" id="L165" title="1 of 2 branches missed.">    if (charsToWrite &gt; 0) {</span>
-<span class="fc" id="L166">      destination.append(c);</span>
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">      if (buffer != null) {</span>
-<span class="nc" id="L168">        buffer.append(c);</span>
+<span class="fc" id="L168">    int charsToWrite = Math.min(directWriteLimit - count, 1);</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">    if (charsToWrite &gt; 0) {</span>
+<span class="fc" id="L170">      destination.append(c);</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">      if (buffer != null) {</span>
+<span class="nc" id="L172">        buffer.append(c);</span>
       }
-<span class="fc" id="L170">      count++;</span>
+<span class="fc" id="L174">      count++;</span>
     } else {
-<span class="nc" id="L172">      int charsToWriteAside = Math.min(limit - count, 1);</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">      if (charsToWriteAside &gt; 0) {</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (asideBuffer == null) {</span>
-<span class="nc" id="L175">          asideBuffer = new StringBuilder(limit - directWriteLimit);</span>
+<span class="nc" id="L176">      int charsToWriteAside = Math.min(limit - count, 1);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">      if (charsToWriteAside &gt; 0) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (asideBuffer == null) {</span>
+<span class="nc" id="L179">          asideBuffer = new StringBuilder(limit - directWriteLimit);</span>
         }
-<span class="nc" id="L177">        asideBuffer.append(c);</span>
-<span class="nc" id="L178">        count++;</span>
+<span class="nc" id="L181">        asideBuffer.append(c);</span>
+<span class="nc" id="L182">        count++;</span>
       } else {
-<span class="nc" id="L180">        createOverflowIfNeeded();</span>
-<span class="nc" id="L181">        overflowWriter.append(c);</span>
+<span class="nc" id="L184">        createOverflowIfNeeded();</span>
+<span class="nc" id="L185">        overflowWriter.append(c);</span>
       }
     }
-<span class="fc" id="L184">    return this;</span>
+<span class="fc" id="L188">    return this;</span>
   }
 
 
   public void createOverflowIfNeeded() throws IOException {
-<span class="pc bpc" id="L189" title="2 of 4 branches missed.">    if (count &gt;= limit &amp;&amp; overflowWriter == null) {</span>
-<span class="fc" id="L190">      overflowWriter = owflSupplier.getOverflowWriter();</span>
-<span class="pc bpc" id="L191" title="1 of 2 branches missed.">      if (buffer != null) {</span>
-<span class="nc" id="L192">        overflowWriter.append(buffer);</span>
+<span class="pc bpc" id="L193" title="2 of 4 branches missed.">    if (count &gt;= limit &amp;&amp; overflowWriter == null) {</span>
+<span class="fc" id="L194">      overflowWriter = owflSupplier.getOverflowWriter();</span>
+<span class="pc bpc" id="L195" title="1 of 2 branches missed.">      if (buffer != null) {</span>
+<span class="nc" id="L196">        overflowWriter.append(buffer);</span>
       } else {
-<span class="fc" id="L194">        CharSequence cs = (CharSequence) destination;</span>
-<span class="fc" id="L195">        final int l = cs.length();</span>
-<span class="fc" id="L196">        overflowWriter.append(cs, l - directWriteLimit, l);</span>
+<span class="fc" id="L198">        CharSequence cs = (CharSequence) destination;</span>
+<span class="fc" id="L199">        final int l = cs.length();</span>
+<span class="fc" id="L200">        overflowWriter.append(cs, l - directWriteLimit, l);</span>
       }
-<span class="fc" id="L198">      overflowWriter.append(asideBuffer);</span>
-<span class="fc" id="L199">      asideBuffer = null;</span>
-<span class="fc" id="L200">      destination.append(destinationSuffix);</span>
+<span class="fc" id="L202">      overflowWriter.append(asideBuffer);</span>
+<span class="fc" id="L203">      asideBuffer = null;</span>
+<span class="fc" id="L204">      destination.append(destinationSuffix);</span>
     }
-<span class="fc" id="L202">  }</span>
+<span class="fc" id="L206">  }</span>
 
 
   @Override
   @DischargesObligation
   public void close() throws IOException {
-<span class="fc bfc" id="L208" title="All 2 branches covered.">    if (overflowWriter != null) {</span>
-<span class="fc" id="L209">      overflowWriter.close();</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">    } else if (asideBuffer != null) {</span>
-<span class="fc" id="L211">      destination.append(asideBuffer);</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">    if (overflowWriter != null) {</span>
+<span class="fc" id="L213">      overflowWriter.close();</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">    } else if (asideBuffer != null) {</span>
+<span class="fc" id="L215">      destination.append(asideBuffer);</span>
     }
-<span class="fc" id="L213">  }</span>
+<span class="fc" id="L217">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L217">    return &quot;AppendableLimiterWithOverflow{&quot; + &quot;directWriteLimit=&quot; + directWriteLimit</span>
+<span class="nc" id="L221">    return &quot;AppendableLimiterWithOverflow{&quot; + &quot;directWriteLimit=&quot; + directWriteLimit</span>
             + &quot;, limit=&quot; + limit + &quot;, destination=&quot; + destination + &quot;, count=&quot; + count
             + &quot;, overflowWriter=&quot; + overflowWriter + &quot;, destinationSuffix=&quot; + destinationSuffix
             + &quot;, buffer=&quot; + buffer + &quot;, overflow=&quot; + owflSupplier + &quot;, asideBuffer=&quot; + asideBuffer + '}';

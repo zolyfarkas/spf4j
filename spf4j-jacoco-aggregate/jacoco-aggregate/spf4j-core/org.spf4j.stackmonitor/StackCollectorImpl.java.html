@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StackCollectorImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">StackCollectorImpl.java</span></div><h1>StackCollectorImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+
+/**
+ * @author zoly
+ */
+@NotThreadSafe
+<span class="fc" id="L41">public final class StackCollectorImpl implements StackCollector {</span>
+
+  private SampleNode samples;
+
+  @Override
+  @Nullable
+  public SampleNode getAndReset() {
+<span class="fc" id="L48">    SampleNode result = samples;</span>
+<span class="fc" id="L49">    samples = null;</span>
+<span class="fc" id="L50">    return result;</span>
+  }
+
+  @Override
+  @Nullable
+  public SampleNode get() {
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (samples == null) {</span>
+<span class="nc" id="L57">      return null;</span>
+    }
+<span class="fc" id="L59">    return SampleNode.clone(samples);</span>
+  }
+
+
+  @Override
+  public void collect(final StackTraceElement[] stackTrace) {
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    if (samples == null) {</span>
+<span class="fc" id="L66">      samples = SampleNode.createSampleNode(stackTrace);</span>
+    } else {
+<span class="fc" id="L68">      SampleNode.addToSampleNode(samples, stackTrace);</span>
+    }
+<span class="fc" id="L70">  }</span>
+
+  @Override
+  public String toString() {
+<span class="fc" id="L74">    return &quot;AbstractStackCollector{&quot; + &quot;samples=&quot; + samples + '}';</span>
+  }
+
+  public int getNrNodes() {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (samples == null) {</span>
+<span class="nc" id="L79">      return 0;</span>
+    } else {
+<span class="nc" id="L81">      return samples.getNrNodes();</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

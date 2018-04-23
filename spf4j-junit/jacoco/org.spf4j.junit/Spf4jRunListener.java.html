@@ -94,12 +94,12 @@ public final class Spf4jRunListener extends RunListener {
 <span class="fc" id="L94">  public Spf4jRunListener() {</span>
 <span class="fc" id="L95">    sampler = new Sampler(Integer.getInteger(&quot;spf4j.junit.sampleTimeMillis&quot;, 5),</span>
 <span class="fc" id="L96">          Integer.getInteger(&quot;spf4j.junit.dumpAfterMillis&quot;, Integer.MAX_VALUE),</span>
-          new FastStackCollector(true));
+<span class="fc" id="L97">          (t) -&gt; new FastStackCollector(false, true, new Thread[] {t}));</span>
 
 <span class="fc" id="L99">    destinationFolder = new File(System.getProperty(&quot;spf4j.junit.destinationFolder&quot;,</span>
           &quot;target/junit-ssdump&quot;));
 
-<span class="pc bpc" id="L102" title="1 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
+<span class="pc bpc" id="L102" title="3 of 4 branches missed.">    if (!destinationFolder.mkdirs() &amp;&amp; !destinationFolder.canWrite()) {</span>
 <span class="nc" id="L103">      throw new ExceptionInInitializerError(&quot;Unable to write to &quot; + destinationFolder);</span>
     }
 <span class="fc" id="L105">  }</span>

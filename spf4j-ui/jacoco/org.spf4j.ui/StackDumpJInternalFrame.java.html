@@ -31,94 +31,111 @@
  */
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
-import com.google.protobuf.CodedInputStream;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.awt.event.ItemEvent;
 import org.spf4j.stackmonitor.SampleNode;
-import org.spf4j.stackmonitor.proto.Converter;
-import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
 /**
  * will need to add some standard filtering:
  *
- * Pair.of(sun.misc.Unsafe.class.getName(), &quot;park&quot;));
- * Pair.of(java.lang.Object.class.getName(), &quot;wait&quot;));
- * Pair.of(java.lang.Thread.class.getName(), &quot;sleep&quot;));
- * Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketAccept&quot;));
+ * Pair.of(sun.misc.Unsafe.class.getName(), &quot;park&quot;)); Pair.of(java.lang.Object.class.getName(), &quot;wait&quot;));
+ * Pair.of(java.lang.Thread.class.getName(), &quot;sleep&quot;)); Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketAccept&quot;));
  * Pair.of(&quot;java.net.PlainSocketImpl&quot;, &quot;socketConnect&quot;));
+ *
  * @author zoly
  */
-@SuppressFBWarnings({&quot;FCBL_FIELD_COULD_BE_LOCAL&quot;, &quot;SE_BAD_FIELD&quot; })
+@SuppressFBWarnings({&quot;FCBL_FIELD_COULD_BE_LOCAL&quot;, &quot;SE_BAD_FIELD&quot;})
 public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
-    private SampleNode samples;
+  private SampleNode samples;
 
-    /**
-     * Creates new form StackDumpJInternalFrame
-     */
-    public StackDumpJInternalFrame(final File sampleFile, final boolean isPro) throws IOException {
-<span class="nc" id="L63">        super(sampleFile.getPath());</span>
-<span class="nc" id="L64">        initComponents();</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (sampleFile.getName().endsWith(&quot;ssdump&quot;)) {</span>
-<span class="nc" id="L66">            try (BufferedInputStream bis = new BufferedInputStream(</span>
-<span class="nc" id="L67">                    Files.newInputStream(sampleFile.toPath()))) {</span>
-<span class="nc" id="L68">                final CodedInputStream is = CodedInputStream.newInstance(bis);</span>
-<span class="nc" id="L69">                is.setRecursionLimit(Short.MAX_VALUE);</span>
-<span class="nc" id="L70">                samples = Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));</span>
-<span class="nc" id="L71">            }</span>
-        } else {
-<span class="nc" id="L73">            samples = org.spf4j.ssdump2.Converter.load(sampleFile);</span>
-        }
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (samples == null) {</span>
-<span class="nc" id="L76">          samples = new SampleNode(new StackTraceElement[] {new StackTraceElement(&quot;NO SAMPLES&quot;, &quot;&quot;, &quot;&quot;, -1)}, 0);</span>
-        }
-<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (isPro) {</span>
-<span class="nc" id="L79">            ssScrollPanel.setViewportView(new ZStackPanel(samples));</span>
-        } else {
-<span class="nc" id="L81">            ssScrollPanel.setViewportView(new FlameStackPanel(samples));</span>
-        }
-<span class="nc" id="L83">        ssScrollPanel.setVisible(true);</span>
-<span class="nc" id="L84">        pack();</span>
+  /**
+   * Creates new form StackDumpJInternalFrame
+   */
+  public StackDumpJInternalFrame(final SampleNode samples,
+          final String title, final boolean isgraph) {
+<span class="nc" id="L58">    super(title);</span>
+<span class="nc" id="L59">    initComponents();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    if (samples == null) {</span>
+<span class="nc" id="L61">      this.samples = new SampleNode(new StackTraceElement[]{new StackTraceElement(&quot;NO SAMPLES&quot;, &quot;&quot;, &quot;&quot;, -1)}, 0);</span>
+    } else {
+<span class="nc" id="L63">      this.samples = samples;</span>
+    }
+<span class="nc" id="L65">    setViewType(isgraph);</span>
+<span class="nc" id="L66">    ssScrollPanel.setVisible(true);</span>
+<span class="nc" id="L67">    pack();</span>
+<span class="nc" id="L68">  }</span>
 
-<span class="nc" id="L86">    }</span>
+  private void setViewType(final boolean isgraph) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    if (isgraph) {</span>
+<span class="nc" id="L72">      graphToggle.setSelected(true);</span>
+<span class="nc" id="L73">      ssScrollPanel.setViewportView(new ZStackPanel(this.samples));</span>
+    } else {
+<span class="nc" id="L75">      graphToggle.setSelected(false);</span>
+<span class="nc" id="L76">      ssScrollPanel.setViewportView(new FlameStackPanel(this.samples));</span>
+    }
+<span class="nc" id="L78">  }</span>
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings(&quot;unchecked&quot;)
-    @SuppressFBWarnings
-    // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
-    private void initComponents() {
+  /**
+   * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
+   * content of this method is always regenerated by the Form Editor.
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  @SuppressFBWarnings
+  // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
+  private void initComponents() {
 
-<span class="nc" id="L98">        ssScrollPanel = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L89">    ssScrollPanel = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L90">    jToolBar1 = new javax.swing.JToolBar();</span>
+<span class="nc" id="L91">    graphToggle = new javax.swing.JToggleButton();</span>
 
-<span class="nc" id="L100">        setClosable(true);</span>
-<span class="nc" id="L101">        setIconifiable(true);</span>
-<span class="nc" id="L102">        setMaximizable(true);</span>
-<span class="nc" id="L103">        setResizable(true);</span>
+<span class="nc" id="L93">    setClosable(true);</span>
+<span class="nc" id="L94">    setIconifiable(true);</span>
+<span class="nc" id="L95">    setMaximizable(true);</span>
+<span class="nc" id="L96">    setResizable(true);</span>
 
-<span class="nc" id="L105">        ssScrollPanel.setAutoscrolls(true);</span>
+<span class="nc" id="L98">    ssScrollPanel.setAutoscrolls(true);</span>
 
-<span class="nc" id="L107">        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
-<span class="nc" id="L108">        getContentPane().setLayout(layout);</span>
-<span class="nc" id="L109">        layout.setHorizontalGroup(</span>
-<span class="nc" id="L110">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L111">            .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)</span>
-        );
-<span class="nc" id="L113">        layout.setVerticalGroup(</span>
-<span class="nc" id="L114">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L115">            .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 328, Short.MAX_VALUE)</span>
-        );
+<span class="nc" id="L100">    jToolBar1.setRollover(true);</span>
 
-<span class="nc" id="L118">        pack();</span>
-<span class="nc" id="L119">    }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane ssScrollPanel;
-    // End of variables declaration//GEN-END:variables
+<span class="nc" id="L102">    graphToggle.setText(&quot;graph&quot;);</span>
+<span class="nc" id="L103">    graphToggle.setFocusable(false);</span>
+<span class="nc" id="L104">    graphToggle.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L105">    graphToggle.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L106">    graphToggle.addItemListener(new java.awt.event.ItemListener() {</span>
+      public void itemStateChanged(java.awt.event.ItemEvent evt) {
+<span class="nc" id="L108">        graphToggleItemStateChanged(evt);</span>
+<span class="nc" id="L109">      }</span>
+    });
+<span class="nc" id="L111">    jToolBar1.add(graphToggle);</span>
+
+<span class="nc" id="L113">    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
+<span class="nc" id="L114">    getContentPane().setLayout(layout);</span>
+<span class="nc" id="L115">    layout.setHorizontalGroup(</span>
+<span class="nc" id="L116">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L117">      .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)</span>
+<span class="nc" id="L118">      .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
+    );
+<span class="nc" id="L120">    layout.setVerticalGroup(</span>
+<span class="nc" id="L121">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L122">      .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()</span>
+<span class="nc" id="L123">        .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L124">        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)</span>
+<span class="nc" id="L125">        .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE))</span>
+    );
+
+<span class="nc" id="L128">    pack();</span>
+<span class="nc" id="L129">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+
+  private void graphToggleItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_graphToggleItemStateChanged
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    setViewType(evt.getStateChange() == ItemEvent.SELECTED);</span>
+<span class="nc" id="L133">  }//GEN-LAST:event_graphToggleItemStateChanged</span>
+
+  // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JToggleButton graphToggle;
+  private javax.swing.JToolBar jToolBar1;
+  private javax.swing.JScrollPane ssScrollPanel;
+  // End of variables declaration//GEN-END:variables
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -382,18 +382,18 @@ import javax.annotation.Nullable;
    * @return &lt;tt&gt;true&lt;/tt&gt; if the deque contained the specified element
    */
   public boolean removeFirstOccurrence(Object o) {
-<span class="pc bpc" id="L385" title="1 of 2 branches missed.">    if (o == null) {</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">    if (o == null) {</span>
 <span class="nc" id="L386">      return false;</span>
     }
-<span class="fc" id="L388">    int mask = elements.length - 1;</span>
-<span class="fc" id="L389">    int i = head;</span>
+<span class="nc" id="L388">    int mask = elements.length - 1;</span>
+<span class="nc" id="L389">    int i = head;</span>
     E x;
-<span class="pc bpc" id="L391" title="1 of 2 branches missed.">    while ((x = elements[i]) != null) {</span>
-<span class="fc bfc" id="L392" title="All 2 branches covered.">      if (o.equals(x)) {</span>
-<span class="fc" id="L393">        delete(i);</span>
-<span class="fc" id="L394">        return true;</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">    while ((x = elements[i]) != null) {</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">      if (o.equals(x)) {</span>
+<span class="nc" id="L393">        delete(i);</span>
+<span class="nc" id="L394">        return true;</span>
       }
-<span class="fc" id="L396">      i = (i + 1) &amp; mask;</span>
+<span class="nc" id="L396">      i = (i + 1) &amp; mask;</span>
     }
 <span class="nc" id="L398">    return false;</span>
   }
@@ -409,18 +409,18 @@ import javax.annotation.Nullable;
    * @return &lt;tt&gt;true&lt;/tt&gt; if the deque contained the specified element
    */
   public boolean removeLastOccurrence(Object o) {
-<span class="nc bnc" id="L412" title="All 2 branches missed.">    if (o == null) {</span>
+<span class="pc bpc" id="L412" title="1 of 2 branches missed.">    if (o == null) {</span>
 <span class="nc" id="L413">      return false;</span>
     }
-<span class="nc" id="L415">    int mask = elements.length - 1;</span>
-<span class="nc" id="L416">    int i = (tail - 1) &amp; mask;</span>
+<span class="fc" id="L415">    int mask = elements.length - 1;</span>
+<span class="fc" id="L416">    int i = (tail - 1) &amp; mask;</span>
     E x;
-<span class="nc bnc" id="L418" title="All 2 branches missed.">    while ((x = elements[i]) != null) {</span>
-<span class="nc bnc" id="L419" title="All 2 branches missed.">      if (o.equals(x)) {</span>
-<span class="nc" id="L420">        delete(i);</span>
-<span class="nc" id="L421">        return true;</span>
+<span class="pc bpc" id="L418" title="1 of 2 branches missed.">    while ((x = elements[i]) != null) {</span>
+<span class="fc bfc" id="L419" title="All 2 branches covered.">      if (o.equals(x)) {</span>
+<span class="fc" id="L420">        delete(i);</span>
+<span class="fc" id="L421">        return true;</span>
       }
-<span class="nc" id="L423">      i = (i - 1) &amp; mask;</span>
+<span class="fc" id="L423">      i = (i - 1) &amp; mask;</span>
     }
 <span class="nc" id="L425">    return false;</span>
   }
@@ -555,7 +555,7 @@ import javax.annotation.Nullable;
 <span class="fc bfc" id="L555" title="All 2 branches covered.">    if (elem.equals(elements[i])) {</span>
 <span class="fc" id="L556">      delete(i);</span>
     } else {
-<span class="fc" id="L558">      remove(elem);</span>
+<span class="fc" id="L558">      removeLastOccurrence(elem);</span>
     }
 <span class="fc" id="L560">  }</span>
 
@@ -585,12 +585,12 @@ import javax.annotation.Nullable;
 
     // Optimize for least element motion
 <span class="fc bfc" id="L587" title="All 2 branches covered.">    if (front &lt; back) {</span>
-<span class="pc bpc" id="L588" title="1 of 2 branches missed.">      if (h &lt;= i) {</span>
+<span class="fc bfc" id="L588" title="All 2 branches covered.">      if (h &lt;= i) {</span>
 <span class="fc" id="L589">        System.arraycopy(elements, h, elements, h + 1, front);</span>
       } else { // Wrap around
-<span class="nc" id="L591">        System.arraycopy(elements, 0, elements, 1, i);</span>
-<span class="nc" id="L592">        elements[0] = elements[mask];</span>
-<span class="nc" id="L593">        System.arraycopy(elements, h, elements, h + 1, mask - h);</span>
+<span class="fc" id="L591">        System.arraycopy(elements, 0, elements, 1, i);</span>
+<span class="fc" id="L592">        elements[0] = elements[mask];</span>
+<span class="fc" id="L593">        System.arraycopy(elements, h, elements, h + 1, mask - h);</span>
       }
 <span class="fc" id="L595">      elements[h] = null;</span>
 <span class="fc" id="L596">      head = (h + 1) &amp; mask;</span>
@@ -767,7 +767,7 @@ import javax.annotation.Nullable;
    * @return &lt;tt&gt;true&lt;/tt&gt; if this deque contained the specified element
    */
   public boolean remove(Object o) {
-<span class="fc" id="L770">    return removeFirstOccurrence(o);</span>
+<span class="nc" id="L770">    return removeFirstOccurrence(o);</span>
   }
 
   /**

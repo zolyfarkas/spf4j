@@ -65,7 +65,7 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.DefaultExecutor;
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.DefaultScheduler;
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.AsyncRetryPolicy;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.AsyncRetryExecutor;
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.RetryPolicy;
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.concurrent.RetryExecutor;
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  
@@ -244,7 +244,7 @@
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>             5000, 1024, <strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>     BlockingQueue&lt;Future&lt;?&gt;&gt; completionQueue = <strong class="jxr_keyword">new</strong> LinkedBlockingDeque&lt;&gt;();
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>     RetryExecutor exec = <strong class="jxr_keyword">new</strong> RetryExecutor(execService, completionQueue);
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>     AsyncRetryPolicy policy = RetryPolicy.newBuilder()
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>     AsyncRetryExecutor policy = RetryPolicy.newBuilder()
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>             .withDefaultThrowableRetryPredicate().buildAsync(exec);
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>     <strong class="jxr_keyword">int</strong> nrTests = 1000;
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nrTests; i++) {

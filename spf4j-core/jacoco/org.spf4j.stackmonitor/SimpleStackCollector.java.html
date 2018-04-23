@@ -31,28 +31,58 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
 import java.util.Map;
 
 /**
  *
  * @author zoly
  */
-<span class="fc" id="L40">public final class SimpleStackCollector extends AbstractStackCollector {</span>
+public final class SimpleStackCollector implements ISampler {
 
-    @Override
-    public void sample(final Thread ignore) {
-<span class="fc" id="L44">        Map&lt;Thread, StackTraceElement[]&gt; stackDump = Thread.getAllStackTraces();</span>
-<span class="fc" id="L45">        stackDump.remove(ignore);</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        for (Map.Entry&lt;Thread, StackTraceElement[]&gt; element : stackDump.entrySet()) {</span>
-<span class="fc" id="L47">            StackTraceElement[] stackTrace = element.getValue();</span>
-<span class="fc bfc" id="L48" title="All 2 branches covered.">            if (stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L49">                addSample(stackTrace);</span>
-            } else {
-<span class="fc" id="L51">                addSample(new StackTraceElement[] {</span>
-<span class="fc" id="L52">                  new StackTraceElement(&quot;Thread&quot;, element.getKey().getName(), &quot;&quot;, 0)</span>
-                   });
-            }
-<span class="fc" id="L55">        }</span>
-<span class="fc" id="L56">    }</span>
+  private final Thread ignore;
+
+  private final StackCollector collector;
+
+<span class="fc" id="L48">  public SimpleStackCollector(final Thread ignore) {</span>
+<span class="fc" id="L49">    this.ignore = ignore;</span>
+<span class="fc" id="L50">    this.collector = new StackCollectorImpl();</span>
+<span class="fc" id="L51">  }</span>
+
+  @Override
+  public void sample() {
+<span class="fc" id="L55">    Map&lt;Thread, StackTraceElement[]&gt; stackDump = Thread.getAllStackTraces();</span>
+<span class="fc" id="L56">    stackDump.remove(ignore);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">    for (Map.Entry&lt;Thread, StackTraceElement[]&gt; element : stackDump.entrySet()) {</span>
+<span class="fc" id="L58">      StackTraceElement[] stackTrace = element.getValue();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">      if (stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L60">        collector.collect(stackTrace);</span>
+      } else {
+<span class="fc" id="L62">        collector.collect(new StackTraceElement[]{</span>
+<span class="fc" id="L63">          new StackTraceElement(&quot;Thread&quot;, element.getKey().getName(), &quot;&quot;, 0)</span>
+        });
+      }
+<span class="fc" id="L66">    }</span>
+<span class="fc" id="L67">  }</span>
+
+  @Override
+  public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
+<span class="fc" id="L71">    SampleNode nodes = collector.getAndReset();</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+  }
+
+  @Override
+  public Map&lt;String, SampleNode&gt; getCollections() {
+<span class="fc" id="L77">    SampleNode nodes = collector.get();</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L83">    return &quot;SimpleStackCollector{&quot; + &quot;ignore=&quot; + ignore + &quot;, collector=&quot; + collector + '}';</span>
+  }
+
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

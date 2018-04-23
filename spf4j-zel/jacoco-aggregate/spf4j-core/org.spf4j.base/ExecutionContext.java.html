@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
@@ -53,53 +54,57 @@ public interface ExecutionContext extends AutoCloseable {
   @DischargesObligation
   void close();
 
+  @Nonnull
+  String getName();
+
   long getStartTimeNanos();
 
   long getDeadlineNanos();
 
+  @Nullable
   ExecutionContext getParent();
 
   @Nonnegative
   default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L64">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L66">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="fc" id="L69">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L71">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L68">     return result;</span>
+<span class="fc" id="L73">     return result;</span>
   }
 
   @Nonnegative
   default long getUncheckedTimeToDeadline(final TimeUnit unit) {
-<span class="fc" id="L73">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L75">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="fc" id="L78">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L80">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L77">     return result;</span>
+<span class="fc" id="L82">     return result;</span>
   }
 
   @Signed
   default long getTimeRelativeToDeadline(final TimeUnit unit)  {
-<span class="fc" id="L82">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L87">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
   @Nonnegative
   default long getMillisToDeadline() throws TimeoutException {
-<span class="nc" id="L87">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L92">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   @Nonnegative
   default int getSecondsToDeadline() throws TimeoutException {
-<span class="nc" id="L92">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L94">      return Integer.MAX_VALUE;</span>
+<span class="nc" id="L97">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L99">      return Integer.MAX_VALUE;</span>
     } else {
-<span class="nc" id="L96">      return (int) secondsToDeadline;</span>
+<span class="nc" id="L101">      return (int) secondsToDeadline;</span>
     }
   }
 
 
   /**
-   * Method to get baggage.
+   * Method to get context associated data.
    * if current context does not have baggage, the parent context is queried.
    * @param &lt;T&gt; type of baggage.
    * @param key key of baggage.
@@ -109,16 +114,16 @@ public interface ExecutionContext extends AutoCloseable {
   @Nullable
   @Beta
   default &lt;T&gt; T get(Object key, Class&lt;T&gt; clasz) {
-<span class="fc" id="L112">    return (T) get(key);</span>
+<span class="fc" id="L117">    return (T) get(key);</span>
   }
 
 
   /**
-   * Method to get baggage.
+   * Method to get context associated data.
    * if current context does not have baggage, the parent context is queried.
-   * @param &lt;T&gt; type of baggage.
-   * @param key key of baggage.
-   * @return the baggage
+   * @param &lt;T&gt; type of data.
+   * @param key key of data.
+   * @return the data
    */
   @Nullable
   @Beta
@@ -126,11 +131,11 @@ public interface ExecutionContext extends AutoCloseable {
 
 
   /**
-   * Method to put baggage.
-   * @param &lt;T&gt; type of baggage.
-   * @param key the key of baggage.
-   * @param data the baggage.
-   * @return existing baggage if there.
+   * Method to put context associated data.
+   * @param &lt;T&gt; type of data.
+   * @param key the key of data.
+   * @param data the data.
+   * @return existing data if there.
    */
   @Nullable
   @Beta
@@ -138,23 +143,31 @@ public interface ExecutionContext extends AutoCloseable {
 
 
   /**
-   * Method to put baggage to the root context.
-   * @param &lt;T&gt; type of baggage.
-   * @param key the key of baggage.
-   * @param data the baggage.
-   * @return existing baggage if there.
+   * Method to put context associated data to the root context.
+   * @param &lt;T&gt; type of data.
+   * @param key the key of data.
+   * @param data the data.
+   * @return existing data if there.
    */
   @Nullable
   @Beta
   default &lt;T&gt; T putToRoot(final Object key, final T data) {
-<span class="nc" id="L150">    ExecutionContext curr = this;</span>
+<span class="nc" id="L155">    ExecutionContext curr = this;</span>
     ExecutionContext parent;
-<span class="nc bnc" id="L152" title="All 2 branches missed.">    while ((parent = curr.getParent()) != null) {</span>
-<span class="nc" id="L153">      curr = parent;</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">    while ((parent = curr.getParent()) != null) {</span>
+<span class="nc" id="L158">      curr = parent;</span>
     }
-<span class="nc" id="L155">    return curr.put(key, data);</span>
+<span class="nc" id="L160">    return curr.put(key, data);</span>
   }
 
+  /**
+   * Compute context associated data.
+   * @param &lt;K&gt;
+   * @param &lt;V&gt;
+   * @param key
+   * @param compute
+   * @return
+   */
   @Beta
   @Nullable
   &lt;K, V&gt; V compute(K key, BiFunction&lt;K, V, V&gt; compute);

@@ -31,22 +31,50 @@
  */
 package org.spf4j.os;
 
-import com.google.common.io.CharStreams;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.Strings;
 
 /**
  *
  * @author Zoltan Farkas
  */
-<span class="fc" id="L44">public final class StdOutToStringProcessHandler implements ProcessHandler&lt;String, String&gt; {</span>
+<span class="fc" id="L47">public final class StdOutToStringProcessHandler implements ProcessHandler&lt;String, String&gt; {</span>
+
+<span class="fc" id="L49">  private static final Logger LOG = LoggerFactory.getLogger(StdOutToStringProcessHandler.class);</span>
 
   @Override
   public String handleStdOut(final InputStream stdout) throws IOException {
-<span class="fc" id="L48">    return CharStreams.toString(new InputStreamReader(stdout, Charset.defaultCharset()));</span>
+<span class="fc" id="L53">    StringBuilder result = new StringBuilder(128);</span>
+<span class="fc" id="L54">    BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, Charset.defaultCharset()));</span>
+    String line;
+<span class="fc bfc" id="L56" title="All 2 branches covered.">    while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L57">      LOG.debug(line);</span>
+<span class="fc" id="L58">      result.append(line).append(Strings.EOL);</span>
+    }
+<span class="fc" id="L60">    LOG.debug(&quot;done with stdout&quot;);</span>
+<span class="fc" id="L61">    return result.toString();</span>
   }
+
+  @Override
+  public String handleStdErr(final InputStream stderr) throws IOException {
+<span class="fc" id="L66">    StringBuilder result = new StringBuilder(128);</span>
+<span class="fc" id="L67">    BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));</span>
+    String line;
+<span class="fc bfc" id="L69" title="All 2 branches covered.">    while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L70">      LOG.error(line);</span>
+<span class="fc" id="L71">      result.append(line).append(Strings.EOL);</span>
+    }
+<span class="fc" id="L73">    LOG.debug(&quot;done with stderr&quot;);</span>
+<span class="fc" id="L74">    return result.toString();</span>
+  }
+
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

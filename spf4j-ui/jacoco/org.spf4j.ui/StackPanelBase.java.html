@@ -164,121 +164,120 @@ public abstract class StackPanelBase&lt;T&gt; extends JPanel
 <span class="nc" id="L164">      g2.drawImage(img, insets.left, insets.top, this);</span>
 <span class="nc" id="L165">      final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);</span>
 <span class="nc" id="L166">      setPreferredSize(dimension);</span>
-<span class="nc" id="L167">      setSize(dimension);</span>
     } finally {
-<span class="nc" id="L169">      g2.dispose();</span>
+<span class="nc" id="L168">      g2.dispose();</span>
     }
-<span class="nc" id="L171">  }</span>
+<span class="nc" id="L170">  }</span>
 
   public abstract int paint(Graphics2D gr, double width, double rowHeight);
 
   @Override
   public final void actionPerformed(final ActionEvent e) {
-<span class="nc" id="L177">    final String actionCommand = e.getActionCommand();</span>
-<span class="nc bnc" id="L178" title="All 5 branches missed.">    switch (actionCommand) {</span>
+<span class="nc" id="L176">    final String actionCommand = e.getActionCommand();</span>
+<span class="nc bnc" id="L177" title="All 5 branches missed.">    switch (actionCommand) {</span>
       case &quot;FILTER&quot;:
-<span class="nc" id="L180">        history.addLast(Pair.of(method, samples));</span>
-<span class="nc" id="L181">        filter();</span>
-<span class="nc" id="L182">        break;</span>
+<span class="nc" id="L179">        history.addLast(Pair.of(method, samples));</span>
+<span class="nc" id="L180">        filter();</span>
+<span class="nc" id="L181">        break;</span>
       case &quot;DRILL&quot;:
-<span class="nc" id="L184">        history.addLast(Pair.of(method, samples));</span>
-<span class="nc" id="L185">        drill();</span>
-<span class="nc" id="L186">        break;</span>
+<span class="nc" id="L183">        history.addLast(Pair.of(method, samples));</span>
+<span class="nc" id="L184">        drill();</span>
+<span class="nc" id="L185">        break;</span>
       case &quot;BACK&quot;:
-<span class="nc" id="L188">        Pair&lt;Method, SampleNode&gt; prev = history.pollLast();</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (prev != null) {</span>
-<span class="nc" id="L190">          updateSamples(prev.getFirst(), prev.getSecond());</span>
-<span class="nc" id="L191">          repaint();</span>
+<span class="nc" id="L187">        Pair&lt;Method, SampleNode&gt; prev = history.pollLast();</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (prev != null) {</span>
+<span class="nc" id="L189">          updateSamples(prev.getFirst(), prev.getSecond());</span>
+<span class="nc" id="L190">          repaint();</span>
         }
         break;
       case &quot;COPY&quot;:
-<span class="nc" id="L195">        final String detail = getDetail(new Point(xx, yy));</span>
-<span class="nc" id="L196">        java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(</span>
-<span class="nc" id="L197">                new Transferable() {</span>
+<span class="nc" id="L194">        final String detail = getDetail(new Point(xx, yy));</span>
+<span class="nc" id="L195">        java.awt.Toolkit.getDefaultToolkit().getSystemClipboard().setContents(</span>
+<span class="nc" id="L196">                new Transferable() {</span>
           @Override
           public DataFlavor[] getTransferDataFlavors() {
-<span class="nc" id="L200">            return new DataFlavor[]{DataFlavor.stringFlavor};</span>
+<span class="nc" id="L199">            return new DataFlavor[]{DataFlavor.stringFlavor};</span>
           }
 
           @Override
           public boolean isDataFlavorSupported(final DataFlavor flavor) {
-<span class="nc" id="L205">            return flavor.equals(DataFlavor.stringFlavor);</span>
+<span class="nc" id="L204">            return flavor.equals(DataFlavor.stringFlavor);</span>
           }
 
           @Override
           public Object getTransferData(final DataFlavor flavor) {
-<span class="nc" id="L210">            return detail;</span>
+<span class="nc" id="L209">            return detail;</span>
           }
-<span class="nc" id="L212">        }, new ClipboardOwner() {</span>
+<span class="nc" id="L211">        }, new ClipboardOwner() {</span>
           @Override
           public void lostOwnership(final Clipboard clipboard, final Transferable contents) {
-<span class="nc" id="L215">          }</span>
+<span class="nc" id="L214">          }</span>
         });
-<span class="nc" id="L217">        break;</span>
+<span class="nc" id="L216">        break;</span>
       default:
         break;
     }
-<span class="nc" id="L221">  }</span>
+<span class="nc" id="L220">  }</span>
 
   @Override
   public final void mousePressed(final MouseEvent e) {
-<span class="nc bnc" id="L225" title="All 2 branches missed.">    if (e.isPopupTrigger()) {</span>
-<span class="nc" id="L226">      xx = e.getX();</span>
-<span class="nc" id="L227">      yy = e.getY();</span>
-<span class="nc" id="L228">      menu.show(this, e.getX(), e.getY());</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">    if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L225">      xx = e.getX();</span>
+<span class="nc" id="L226">      yy = e.getY();</span>
+<span class="nc" id="L227">      menu.show(this, e.getX(), e.getY());</span>
     }
-<span class="nc" id="L230">  }</span>
+<span class="nc" id="L229">  }</span>
 
   @Override
   public final void mouseReleased(final MouseEvent e) {
-<span class="nc bnc" id="L234" title="All 2 branches missed.">    if (e.isPopupTrigger()) {</span>
-<span class="nc" id="L235">      xx = e.getX();</span>
-<span class="nc" id="L236">      yy = e.getY();</span>
-<span class="nc" id="L237">      menu.show(this, e.getX(), e.getY());</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L234">      xx = e.getX();</span>
+<span class="nc" id="L235">      yy = e.getY();</span>
+<span class="nc" id="L236">      menu.show(this, e.getX(), e.getY());</span>
     }
-<span class="nc" id="L239">  }</span>
+<span class="nc" id="L238">  }</span>
 
   @Override
   @SuppressFBWarnings
   public void mouseClicked(final MouseEvent e) {
     // default do nothing
-<span class="nc" id="L245">  }</span>
+<span class="nc" id="L244">  }</span>
 
   @Override
   @SuppressFBWarnings
   public void mouseEntered(final MouseEvent e) {
     // default do nothing
-<span class="nc" id="L251">  }</span>
+<span class="nc" id="L250">  }</span>
 
   @Override
   @SuppressFBWarnings
   public void mouseExited(final MouseEvent e) {
     // default do nothing
-<span class="nc" id="L257">  }</span>
+<span class="nc" id="L256">  }</span>
 
   public static void setElementColor(final int depth, final Graphics2D g2) {
-<span class="nc bnc" id="L260" title="All 2 branches missed.">    if (depth % 2 == 0) {</span>
-<span class="nc" id="L261">      g2.setPaint(Color.YELLOW);</span>
-<span class="nc" id="L262">      g2.setBackground(Color.YELLOW);</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">    if (depth % 2 == 0) {</span>
+<span class="nc" id="L260">      g2.setPaint(Color.YELLOW);</span>
+<span class="nc" id="L261">      g2.setBackground(Color.YELLOW);</span>
     } else {
-<span class="nc" id="L264">      g2.setPaint(Color.ORANGE);</span>
-<span class="nc" id="L265">      g2.setBackground(Color.ORANGE);</span>
+<span class="nc" id="L263">      g2.setPaint(Color.ORANGE);</span>
+<span class="nc" id="L264">      g2.setBackground(Color.ORANGE);</span>
     }
-<span class="nc" id="L267">  }</span>
+<span class="nc" id="L266">  }</span>
 
   //CHECKSTYLE:OFF
   public void updateSamples(final Method m, final SampleNode n) {
     //CHECKSTYLE:ON
-<span class="nc" id="L272">    this.samples = n;</span>
-<span class="nc" id="L273">    this.method = m;</span>
-<span class="nc" id="L274">  }</span>
+<span class="nc" id="L271">    this.samples = n;</span>
+<span class="nc" id="L272">    this.method = m;</span>
+<span class="nc" id="L273">  }</span>
 
   public final SampleNode getSamples() {
-<span class="nc" id="L277">    return samples;</span>
+<span class="nc" id="L276">    return samples;</span>
   }
 
   public final Method getMethod() {
-<span class="nc" id="L281">    return method;</span>
+<span class="nc" id="L280">    return method;</span>
   }
 
   @Nullable

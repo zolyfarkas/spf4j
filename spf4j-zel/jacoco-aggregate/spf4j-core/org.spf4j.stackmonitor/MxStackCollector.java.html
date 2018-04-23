@@ -31,32 +31,63 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.collect.ImmutableMap;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *
  * @author zoly
  */
-<span class="nc" id="L42">public final class MxStackCollector extends AbstractStackCollector {</span>
+public final class MxStackCollector implements ISampler {
 
-<span class="nc" id="L44">    private static final ThreadMXBean THREAD_MX = ManagementFactory.getThreadMXBean();</span>
+<span class="nc" id="L47">    private static final ThreadMXBean THREAD_MX = ManagementFactory.getThreadMXBean();</span>
+
+    private final Thread ignore;
+
+    private final StackCollector collector;
+
+<span class="nc" id="L53">    public MxStackCollector(final Thread ignore) {</span>
+<span class="nc" id="L54">      this.ignore = ignore;</span>
+<span class="nc" id="L55">      this.collector = new StackCollectorImpl();</span>
+<span class="nc" id="L56">    }</span>
 
     @Override
-    public void sample(final Thread ignore) {
-<span class="nc" id="L48">        ThreadInfo[] stackDump = THREAD_MX.dumpAllThreads(false, false);</span>
-<span class="nc" id="L49">        recordStackDump(stackDump, ignore);</span>
-<span class="nc" id="L50">    }</span>
+    public void sample() {
+<span class="nc" id="L60">        ThreadInfo[] stackDump = THREAD_MX.dumpAllThreads(false, false);</span>
+<span class="nc" id="L61">        recordStackDump(stackDump);</span>
+<span class="nc" id="L62">    }</span>
 
-    private void recordStackDump(final ThreadInfo[] stackDump, final Thread ignore) {
-<span class="nc" id="L53">        final long id = ignore.getId();</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        for (ThreadInfo entry : stackDump) {</span>
-<span class="nc" id="L55">            StackTraceElement[] stackTrace = entry.getStackTrace();</span>
-<span class="nc bnc" id="L56" title="All 4 branches missed.">            if (stackTrace.length &gt; 0 &amp;&amp; (entry.getThreadId() != id)) {</span>
-<span class="nc" id="L57">                addSample(stackTrace);</span>
+    private void recordStackDump(final ThreadInfo[] stackDump) {
+<span class="nc" id="L65">        final long id = ignore.getId();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        for (ThreadInfo entry : stackDump) {</span>
+<span class="nc" id="L67">            StackTraceElement[] stackTrace = entry.getStackTrace();</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">            if (stackTrace.length &gt; 0 &amp;&amp; (entry.getThreadId() != id)) {</span>
+<span class="nc" id="L69">                collector.collect(stackTrace);</span>
             }
         }
-<span class="nc" id="L60">    }</span>
+<span class="nc" id="L72">    }</span>
+
+  @Override
+  public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
+<span class="nc" id="L76">    SampleNode nodes = collector.getAndReset();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+  }
+
+  @Override
+  public Map&lt;String, SampleNode&gt; getCollections() {
+<span class="nc" id="L82">    SampleNode nodes = collector.get();</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L88">    return &quot;MxStackCollector{&quot; + &quot;ignore=&quot; + ignore + &quot;, collector=&quot; + collector + '}';</span>
+  }
+
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

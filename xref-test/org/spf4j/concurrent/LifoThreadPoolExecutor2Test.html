@@ -72,7 +72,7 @@
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>    @Test
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testLifoExecSQ() <strong class="jxr_keyword">throws</strong> InterruptedException, IOException, ExecutionException {
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>      LifoThreadPoolExecutorSQP executor
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>              = <strong class="jxr_keyword">new</strong> LifoThreadPoolExecutorSQP(<span class="jxr_string">"test"</span>, 2, 8, 1000, 1024, 0);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              = <strong class="jxr_keyword">new</strong> LifoThreadPoolExecutorSQP(<span class="jxr_string">"test"</span>, 2, 8, 1000, 0);
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>      testPoolThreadDynamics(executor);
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>    }
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>  
@@ -153,38 +153,40 @@
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>         }
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>       }
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>     };
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">long</strong> start = System.currentTimeMillis();
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>     List&lt;Future&lt;?&gt;&gt; futures = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(maxParallel);
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <strong class="jxr_keyword">long</strong> deadlineNanos = TimeSource.nanoTime() + unit.toNanos(time);
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>     <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">for</strong> (; deadlineNanos - TimeSource.nanoTime() &gt; 0; i++) {
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>       <strong class="jxr_keyword">if</strong> (i &gt; 0 &amp;&amp; i % maxParallel == 0) {
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>         nrExCaught += consume(futures);
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>       }
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>       futures.add(executor.submit(runnable));
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>     }
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>     nrExCaught += consume(futures);
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>     LOG.debug(<span class="jxr_string">"Stats for {}, rejected = {}, Exec time = {}"</span>, executor.getClass(), rejected,
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>             (System.currentTimeMillis() - start));
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>     LOG.debug(<span class="jxr_string">"Threads: {}"</span>, Threads.getThreads());
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>     Assert.assertEquals(i, adder.sum());
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>     Assert.assertEquals(nrExCaught, exNr.sum());
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>   }
-<a class="jxr_linenumber" name="L165" href="#L165">165</a> 
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> consume(<strong class="jxr_keyword">final</strong> List&lt;Future&lt;?&gt;&gt; futures) <strong class="jxr_keyword">throws</strong> InterruptedException {
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>     <strong class="jxr_keyword">int</strong> nrEx = 0;
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">for</strong> (Future fut : futures) {
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>         fut.get();
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>       } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>         nrEx++;
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>       }
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>     }
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>     futures.clear();
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">return</strong> nrEx;
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>   }
-<a class="jxr_linenumber" name="L178" href="#L178">178</a> 
-<a class="jxr_linenumber" name="L179" href="#L179">179</a> }
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     List&lt;Future&lt;?&gt;&gt; futures = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(maxParallel);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     <strong class="jxr_keyword">long</strong> currTime = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <strong class="jxr_keyword">long</strong> start = currTime;
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     <strong class="jxr_keyword">long</strong> deadlineNanos = currTime + unit.toNanos(time);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     <strong class="jxr_keyword">for</strong> (; deadlineNanos - currTime &gt; 0; i++) {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>       <strong class="jxr_keyword">if</strong> (i &gt; 0 &amp;&amp; i % maxParallel == 0) {
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         nrExCaught += consume(futures);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>       }
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>       futures.add(executor.submit(runnable));
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>       currTime = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     }
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     nrExCaught += consume(futures);
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>     LOG.debug(<span class="jxr_string">"Stats for {}, maxParallel = {}, rejected = {}, Exec time = {} ns"</span>, executor.getClass(),
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>             maxParallel, rejected, (currTime - start));
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>     LOG.debug(<span class="jxr_string">"Threads: {}"</span>, Threads.getThreads());
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>     Assert.assertEquals(i, adder.sum());
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     Assert.assertEquals(nrExCaught, exNr.sum());
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>   }
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> consume(<strong class="jxr_keyword">final</strong> List&lt;Future&lt;?&gt;&gt; futures) <strong class="jxr_keyword">throws</strong> InterruptedException {
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>     <strong class="jxr_keyword">int</strong> nrEx = 0;
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <strong class="jxr_keyword">for</strong> (Future fut : futures) {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         fut.get();
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>       } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         nrEx++;
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>       }
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     }
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     futures.clear();
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <strong class="jxr_keyword">return</strong> nrEx;
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>   }
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
+<a class="jxr_linenumber" name="L181" href="#L181">181</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ConcurrentStack.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">ConcurrentStack.java</span></div><h1>ConcurrentStack.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.concurrent;
+
+import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * A Treiber stack.
+ * @author Zoltan Farkas
+ * @param &lt;E&gt;
+ */
+@ThreadSafe
+<span class="nc" id="L45">public final class ConcurrentStack&lt;E&gt; {</span>
+
+<span class="nc" id="L47">  private final AtomicReference&lt;Node&lt;E&gt;&gt; top = new AtomicReference&lt;Node&lt;E&gt;&gt;();</span>
+
+  public void push(@Nonnull final E item) {
+    Node&lt;E&gt; oldHead;
+    Node&lt;E&gt; newHead;
+    do {
+<span class="nc" id="L53">      oldHead = top.get();</span>
+<span class="nc" id="L54">      newHead = new Node&lt;E&gt;(item, oldHead);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">    } while (!top.compareAndSet(oldHead, newHead));</span>
+<span class="nc" id="L56">  }</span>
+
+  @Nullable
+  public E pop() {
+    Node&lt;E&gt; oldHead;
+    Node&lt;E&gt; newHead;
+    do {
+<span class="nc" id="L63">      oldHead = top.get();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (oldHead == null) {</span>
+<span class="nc" id="L65">        return null;</span>
+      }
+<span class="nc" id="L67">      newHead = oldHead.next;</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">    } while (!top.compareAndSet(oldHead, newHead));</span>
+<span class="nc" id="L69">    return oldHead.item;</span>
+  }
+
+  private static class Node&lt;E&gt; {
+
+    private final E item;
+    private final Node&lt;E&gt; next;
+
+<span class="nc" id="L77">    Node(final E item, @Nullable final Node&lt;E&gt; next) {</span>
+<span class="nc" id="L78">      this.item = item;</span>
+<span class="nc" id="L79">      this.next = next;</span>
+<span class="nc" id="L80">    }</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L85">    return &quot;ConcurrentStack{&quot; + &quot;top=&quot; + top + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

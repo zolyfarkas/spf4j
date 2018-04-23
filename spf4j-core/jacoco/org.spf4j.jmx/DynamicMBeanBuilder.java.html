@@ -326,9 +326,9 @@ static void exportMethod(final Method method,
 
 <span class="fc" id="L327">    BeanExportedValue existing = (BeanExportedValue) exportedAttributes.get(valueName);</span>
 <span class="fc" id="L328">    Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];</span>
-<span class="fc bfc" id="L329" title="All 2 branches covered.">    if (existing == null) {</span>
-<span class="fc" id="L330">      existing = new BeanExportedValue(valueName, null,</span>
-<span class="fc" id="L331">              null, method, object, parameterType, annot.mapOpenType());</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">    if (existing == null) {</span>
+<span class="nc" id="L330">      existing = new BeanExportedValue(valueName, null,</span>
+<span class="nc" id="L331">              null, method, object, parameterType, annot.mapOpenType());</span>
     } else {
 <span class="pc bpc" id="L333" title="1 of 2 branches missed.">      if (existing.getValueType() != parameterType) {</span>
 <span class="nc" id="L334">        throw new IllegalArgumentException(</span>
@@ -345,16 +345,16 @@ static void exportMethod(final Method method,
 <span class="fc" id="L345">    String customName = annot.value();</span>
 <span class="fc bfc" id="L346" title="All 2 branches covered.">    String valueName = &quot;&quot;.equals(customName) ? pvalueName : customName;</span>
 <span class="fc" id="L347">    BeanExportedValue existing = (BeanExportedValue) exported.get(valueName);</span>
-<span class="fc bfc" id="L348" title="All 2 branches covered.">    if (existing == null) {</span>
+<span class="pc bpc" id="L348" title="1 of 2 branches missed.">    if (existing == null) {</span>
 <span class="fc" id="L349">      existing = new BeanExportedValue(</span>
 <span class="fc" id="L350">              valueName, annot.description(),</span>
 <span class="fc" id="L351">              method, null, object, method.getGenericReturnType(), annot.mapOpenType());</span>
     } else {
-<span class="pc bpc" id="L353" title="1 of 2 branches missed.">      if (existing.getValueType() != method.getReturnType()) {</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">      if (existing.getValueType() != method.getReturnType()) {</span>
 <span class="nc" id="L354">        throw new IllegalArgumentException(</span>
                 &quot;Getter and setter icorrectly defined &quot; + existing + ' ' + method);
       }
-<span class="fc" id="L357">      existing = existing.withGetter(method, annot.description());</span>
+<span class="nc" id="L357">      existing = existing.withGetter(method, annot.description());</span>
     }
 <span class="fc" id="L359">    exported.put(valueName, existing);</span>
 <span class="fc" id="L360">  }</span>

@@ -39,24 +39,24 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.stackmonitor;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Preconditions;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.lang.management.GarbageCollectorMXBean;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.lang.management.ManagementFactory;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.time.Instant;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ThreadLocalRandom;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeoutException;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nonnull;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.annotation.PreDestroy;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.GuardedBy;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.ThreadSafe;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.lang.management.ManagementFactory;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.time.Instant;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ThreadLocalRandom;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeoutException;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nonnull;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> javax.annotation.PreDestroy;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.GuardedBy;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.ThreadSafe;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.CharSequences;
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.DateTimeFormats;
@@ -65,42 +65,42 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.DefaultExecutor;
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JmxExport;
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.Registry;
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> org.spf4j.perf.memory.GCUsageSampler;
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> org.spf4j.ssdump2.Converter;
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment"> * Utility to sample stack traces. Stack traces can be persisted for later analysis.</em>
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment"> * please read <a href="http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf" target="alexandria_uri">http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf</a> pure java stack sampling will probably</em>
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment"> * have safepoint bias.</em>
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  @ThreadSafe
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> {
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> instance;
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> STOP_FLAG_READ_MILLIS = Integer.getInteger(<span class="jxr_string">"spf4j.perf.ms.stopFlagReadMIllis"</span>, 2000);
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DEFAULT_SS_DUMP_FOLDER = System.getProperty(<span class="jxr_string">"spf4j.perf.ms.defaultSsdumpFolder"</span>,
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  System.getProperty(<span class="jxr_string">"java.io.tmpdir"</span>));
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>              System.getProperty(<span class="jxr_string">"spf4j.perf.ms.defaultSsdumpFilePrefix"</span>,
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>                      ManagementFactory.getRuntimeMXBean().getName()));
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> org.spf4j.ssdump2.Converter;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment"> * Utility to sample stack traces. Stack traces can be persisted for later analysis.</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment"> * please read <a href="http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf" target="alexandria_uri">http://sape.inf.usi.ch/sites/default/files/publication/pldi10.pdf</a> pure java stack sampling will probably</em>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment"> * have safepoint bias.</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  @ThreadSafe
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> {
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(Sampler.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> instance;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> STOP_FLAG_READ_MILLIS = Integer.getInteger(<span class="jxr_string">"spf4j.perf.ms.stopFlagReadMIllis"</span>, 2000);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DEFAULT_SS_DUMP_FOLDER = System.getProperty(<span class="jxr_string">"spf4j.perf.ms.defaultSsdumpFolder"</span>,
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>            System.getProperty(<span class="jxr_string">"java.io.tmpdir"</span>));
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>            System.getProperty(<span class="jxr_string">"spf4j.perf.ms.defaultSsdumpFilePrefix"</span>,
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>                    ManagementFactory.getRuntimeMXBean().getName()));
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> StackTraceElement[] GC_FAKE_STACK = <strong class="jxr_keyword">new</strong> StackTraceElement[]{
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">new</strong> StackTraceElement(<span class="jxr_string">"java.lang.System"</span>, <span class="jxr_string">"gc"</span>, <span class="jxr_string">"System.java"</span>, -1)
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>    };
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>  
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">boolean</strong> stopped;
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">int</strong> sampleTimeNanos;
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">long</strong> dumpTimeNanos;
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> stackCollector;
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">long</strong> lastDumpTimeNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">boolean</strong> stopped;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">int</strong> sampleTimeNanos;
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">long</strong> dumpTimeNanos;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SamplerSupplier.html">SamplerSupplier</a> stackCollectorSupp;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> <strong class="jxr_keyword">long</strong> lastDumpTimeNanos;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Object sync = <strong class="jxr_keyword">new</strong> Object();
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>    @GuardedBy(<span class="jxr_string">"sync"</span>)
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>    <strong class="jxr_keyword">private</strong> <a href="../../../org/spf4j/stackmonitor/ISampler.html">ISampler</a> stackCollector;
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>  
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>    @GuardedBy(<span class="jxr_string">"this"</span>)
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>    <strong class="jxr_keyword">private</strong> Future&lt;?&gt; samplerFuture;
@@ -115,223 +115,255 @@
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>   }
 <a class="jxr_linenumber" name="L108" href="#L108">108</a> 
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>() {
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>     <strong class="jxr_keyword">this</strong>(10, 3600000, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/FastStackCollector.html">FastStackCollector</a>(false));
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     <strong class="jxr_keyword">this</strong>(10, 3600000, (t) -&gt; <strong class="jxr_keyword">new</strong> FastStackCollector(false, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">new</strong> Thread[]{t}));
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>   }
 <a class="jxr_linenumber" name="L112" href="#L112">112</a> 
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis) {
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>     <strong class="jxr_keyword">this</strong>(sampleTimeMillis, 3600000, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/FastStackCollector.html">FastStackCollector</a>(false));
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     <strong class="jxr_keyword">this</strong>(sampleTimeMillis, 3600000, (t) -&gt; <strong class="jxr_keyword">new</strong> FastStackCollector(false, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">new</strong> Thread[]{t}));
 <a class="jxr_linenumber" name="L115" href="#L115">115</a>   }
 <a class="jxr_linenumber" name="L116" href="#L116">116</a> 
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> collector) {
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SamplerSupplier.html">SamplerSupplier</a> collector) {
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>     <strong class="jxr_keyword">this</strong>(sampleTimeMillis, 3600000, collector);
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>   }
 <a class="jxr_linenumber" name="L120" href="#L120">120</a> 
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> collector) {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SamplerSupplier.html">SamplerSupplier</a> collector) {
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">this</strong>(10, 3600000, collector);
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>   }
 <a class="jxr_linenumber" name="L124" href="#L124">124</a> 
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> collector) {
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">this</strong>(sampleTimeMillis, dumpTimeMillis, collector,
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis) {
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">this</strong>(sampleTimeMillis, dumpTimeMillis, (t) -&gt; <strong class="jxr_keyword">new</strong> FastStackCollector(false, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">new</strong> Thread[]{t}),
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>   }
 <a class="jxr_linenumber" name="L129" href="#L129">129</a> 
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> collector,
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>           <strong class="jxr_keyword">final</strong> String dumpFolder, <strong class="jxr_keyword">final</strong> String dumpFilePrefix) {
-<a class="jxr_linenumber" name="L132" href="#L132">132</a>     CharSequences.validatedFileName(dumpFilePrefix);
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>     stopped = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>     <strong class="jxr_keyword">if</strong> (sampleTimeMillis &lt; 1) {
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Invalid sample time "</span> + sampleTimeMillis);
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>     }
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>     <strong class="jxr_keyword">this</strong>.sampleTimeNanos = (<strong class="jxr_keyword">int</strong>) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>     <strong class="jxr_keyword">if</strong> (sampleTimeNanos &lt; 0) {
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Invalid sample time "</span> + sampleTimeMillis);
-<a class="jxr_linenumber" name="L140" href="#L140">140</a>     }
-<a class="jxr_linenumber" name="L141" href="#L141">141</a>     <strong class="jxr_keyword">this</strong>.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
-<a class="jxr_linenumber" name="L142" href="#L142">142</a>     <strong class="jxr_keyword">this</strong>.stackCollector = collector;
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>     <strong class="jxr_keyword">this</strong>.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>   }
-<a class="jxr_linenumber" name="L145" href="#L145">145</a> 
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> getSampler(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis,
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> collector,
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>           <strong class="jxr_keyword">final</strong> File dumpFolder, <strong class="jxr_keyword">final</strong> String dumpFilePrefix) <strong class="jxr_keyword">throws</strong> InterruptedException {
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>     <strong class="jxr_keyword">if</strong> (instance == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>       instance =  <strong class="jxr_keyword">new</strong> Sampler(sampleTimeMillis, dumpTimeMillis, collector,
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>               dumpFolder.getAbsolutePath(), dumpFilePrefix);
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>       instance.registerJmx();
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>       <strong class="jxr_keyword">return</strong> instance;
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>         instance.dispose();
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>         instance =  <strong class="jxr_keyword">new</strong> Sampler(sampleTimeMillis, dumpTimeMillis, collector,
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>                 dumpFolder.getAbsolutePath(), dumpFilePrefix);
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>         instance.registerJmx();
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>         <strong class="jxr_keyword">return</strong> instance;
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>     }
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>   }
-<a class="jxr_linenumber" name="L162" href="#L162">162</a> 
-<a class="jxr_linenumber" name="L163" href="#L163">163</a> 
-<a class="jxr_linenumber" name="L164" href="#L164">164</a> 
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> registerJmx() {
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>     Registry.export(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>   }
-<a class="jxr_linenumber" name="L168" href="#L168">168</a> 
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>   @JmxExport(description = <span class="jxr_string">"start stack sampling"</span>)
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> start() {
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>     <strong class="jxr_keyword">if</strong> (stopped) {
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>       stopped = false;
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> stNanos = sampleTimeNanos;
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> stMs = (<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>       <strong class="jxr_keyword">final</strong> List&lt;GarbageCollectorMXBean&gt; gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>       samplerFuture = DefaultExecutor.INSTANCE.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a>(<span class="jxr_string">"SPF4J-Sampling-Thread"</span>) {
-<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>         @SuppressWarnings(<span class="jxr_string">"SleepWhileInLoop"</span>)
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>         @SuppressFBWarnings({ <span class="jxr_string">"MDM_THREAD_YIELD"</span>, <span class="jxr_string">"PREDICTABLE_RANDOM"</span> })
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>         @Override
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> IOException, InterruptedException {
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>           <strong class="jxr_keyword">final</strong> Thread samplerThread = Thread.currentThread();
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/IntMath.html">ThreadLocalRandom</a> random = ThreadLocalRandom.current();
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>           <strong class="jxr_keyword">int</strong> dumpCounterNanos = 0;
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>           <strong class="jxr_keyword">int</strong> coarseCounter = 0;
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>           <strong class="jxr_keyword">int</strong> coarseCount = STOP_FLAG_READ_MILLIS / stNanos;
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>           <strong class="jxr_keyword">boolean</strong> lstopped = stopped;
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>           <strong class="jxr_keyword">long</strong> prevGcTimeMillis = 0;
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>           <strong class="jxr_keyword">int</strong> sleepTimeNanos = 0;
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>           <strong class="jxr_keyword">int</strong> halfStNanos = stNanos / 2;
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>           <strong class="jxr_keyword">if</strong> (halfStNanos == 0) {
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>             halfStNanos = 1;
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SamplerSupplier.html">SamplerSupplier</a> collector) {
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     <strong class="jxr_keyword">this</strong>(sampleTimeMillis, dumpTimeMillis, collector,
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>   }
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SamplerSupplier.html">SamplerSupplier</a> collector,
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>           <strong class="jxr_keyword">final</strong> String dumpFolder, <strong class="jxr_keyword">final</strong> String dumpFilePrefix) {
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     CharSequences.validatedFileName(dumpFilePrefix);
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     stopped = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     <strong class="jxr_keyword">if</strong> (sampleTimeMillis &lt; 1) {
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Invalid sample time "</span> + sampleTimeMillis);
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>     }
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     <strong class="jxr_keyword">this</strong>.sampleTimeNanos = (<strong class="jxr_keyword">int</strong>) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     <strong class="jxr_keyword">if</strong> (sampleTimeNanos &lt; 0) {
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Invalid sample time "</span> + sampleTimeMillis);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     }
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     <strong class="jxr_keyword">this</strong>.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     <strong class="jxr_keyword">this</strong>.stackCollectorSupp = collector;
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">this</strong>.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>   }
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> getSampler(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis,
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis,
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>           <strong class="jxr_keyword">final</strong> File dumpFolder, <strong class="jxr_keyword">final</strong> String dumpFilePrefix) <strong class="jxr_keyword">throws</strong> InterruptedException {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     <strong class="jxr_keyword">return</strong> getSampler(sampleTimeMillis, dumpTimeMillis,
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             (t) -&gt; <strong class="jxr_keyword">new</strong> FastStackCollector(false, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">new</strong> Thread[]{t}), dumpFolder, dumpFilePrefix);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>   }
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> 
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a> getSampler(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis,
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/stackmonitor/SamplerSupplier.html">SamplerSupplier</a> collector,
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>           <strong class="jxr_keyword">final</strong> File dumpFolder, <strong class="jxr_keyword">final</strong> String dumpFilePrefix) <strong class="jxr_keyword">throws</strong> InterruptedException {
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>     <strong class="jxr_keyword">if</strong> (instance == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>       instance = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(sampleTimeMillis, dumpTimeMillis, collector,
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>               dumpFolder.getAbsolutePath(), dumpFilePrefix);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>       instance.registerJmx();
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>       <strong class="jxr_keyword">return</strong> instance;
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>       instance.dispose();
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>       instance = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Sampler.html">Sampler</a>(sampleTimeMillis, dumpTimeMillis, collector,
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>               dumpFolder.getAbsolutePath(), dumpFilePrefix);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>       instance.registerJmx();
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>       <strong class="jxr_keyword">return</strong> instance;
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>   }
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> registerJmx() {
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     Registry.export(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>   }
+<a class="jxr_linenumber" name="L178" href="#L178">178</a> 
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>   @JmxExport(description = <span class="jxr_string">"start stack sampling"</span>)
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> start() {
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     <strong class="jxr_keyword">if</strong> (stopped) {
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>       stopped = false;
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> stNanos = sampleTimeNanos;
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>       samplerFuture = DefaultExecutor.INSTANCE.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a>(<span class="jxr_string">"SPF4J-Sampling-Thread"</span>) {
+<a class="jxr_linenumber" name="L185" href="#L185">185</a> 
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         @SuppressWarnings(<span class="jxr_string">"SleepWhileInLoop"</span>)
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         @SuppressFBWarnings({<span class="jxr_string">"MDM_THREAD_YIELD"</span>, <span class="jxr_string">"PREDICTABLE_RANDOM"</span>})
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         @Override
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> IOException, InterruptedException {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>           lastDumpTimeNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>           <strong class="jxr_keyword">synchronized</strong> (sync) {
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             stackCollector = stackCollectorSupp.get(Thread.currentThread());
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>           }
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>           <strong class="jxr_keyword">int</strong> maxSleeepNanos = stNanos + halfStNanos;
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>           <strong class="jxr_keyword">while</strong> (!lstopped) {
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>             stackCollector.sample(samplerThread);
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>             dumpCounterNanos += sleepTimeNanos;
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>             coarseCounter++;
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>             <strong class="jxr_keyword">if</strong> (coarseCounter &gt;= coarseCount) {
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>               coarseCounter = 0;
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>               lstopped = stopped;
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>               <strong class="jxr_keyword">long</strong> gcTimeMillis = GCUsageSampler.getGCTime(gcBeans);
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>               <strong class="jxr_keyword">if</strong> (gcTimeMillis &gt; prevGcTimeMillis) {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>                 <strong class="jxr_keyword">int</strong> fakeSamples = (<strong class="jxr_keyword">int</strong>) ((gcTimeMillis - prevGcTimeMillis)) / stMs;
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; fakeSamples; i++) { <em class="jxr_comment">// can be optimized</em>
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>                   stackCollector.addSample(GC_FAKE_STACK);
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 }
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>                 prevGcTimeMillis = gcTimeMillis;
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>               }
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>             }
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <strong class="jxr_keyword">if</strong> (dumpCounterNanos &gt;= dumpTimeNanos) {
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>               <strong class="jxr_keyword">long</strong> nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>               <strong class="jxr_keyword">if</strong> (nanosSinceLastDump &gt;= dumpTimeNanos) {
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 dumpCounterNanos = 0;
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 dumpToFile();
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>               } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>                 dumpCounterNanos -= dumpTimeNanos - nanosSinceLastDump;
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>               }
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>             }
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>             sleepTimeNanos = random.nextInt(halfStNanos, maxSleeepNanos);
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>             TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>           }
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>         }
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>       });
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Sampling can only be started once for "</span> + <strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>     }
-<a class="jxr_linenumber" name="L228" href="#L228">228</a> 
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>   }
-<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>   @JmxExport(description = <span class="jxr_string">"save stack samples to file"</span>)
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>   @Nullable
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>   <strong class="jxr_keyword">public</strong> File dumpToFile() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>     <strong class="jxr_keyword">return</strong> dumpToFile((String) <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>   }
-<a class="jxr_linenumber" name="L236" href="#L236">236</a> 
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L238" href="#L238">238</a> <em class="jxr_javadoccomment">   * Dumps the sampled stacks to file. the collected samples are reset</em>
-<a class="jxr_linenumber" name="L239" href="#L239">239</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L240" href="#L240">240</a> <em class="jxr_javadoccomment">   * @param id - id will be added to file name returns the name of the file.</em>
-<a class="jxr_linenumber" name="L241" href="#L241">241</a> <em class="jxr_javadoccomment">   * @return - the file name where the data was persisted or null if there was no data to persist.</em>
-<a class="jxr_linenumber" name="L242" href="#L242">242</a> <em class="jxr_javadoccomment">   * @throws IOException - io issues while persisting data.</em>
-<a class="jxr_linenumber" name="L243" href="#L243">243</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>   @JmxExport(value = <span class="jxr_string">"dumpToSpecificFile"</span>, description = <span class="jxr_string">"save stack samples to file"</span>)
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>   @Nullable
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>   @SuppressFBWarnings(<span class="jxr_string">"PATH_TRAVERSAL_IN"</span>) <em class="jxr_comment">// not possible the provided ID is validated for path separators.</em>
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> File dumpToFile(
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>           @JmxExport(value = <span class="jxr_string">"fileID"</span>, description = <span class="jxr_string">"the ID that will be part of the file name"</span>)
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>           @Nullable <strong class="jxr_keyword">final</strong> String id) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>     String fileName = filePrefix + CharSequences.validatedFileName(((id == <strong class="jxr_keyword">null</strong>) ? <span class="jxr_string">""</span> : '_' + id) + '_'
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>             + DateTimeFormats.TS_FORMAT.format(Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>             + '_' + DateTimeFormats.TS_FORMAT.format(Instant.now()) + <span class="jxr_string">".ssdump2"</span>);
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>     File file = <strong class="jxr_keyword">new</strong> File(fileName);
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>     <strong class="jxr_keyword">return</strong> dumpToFile(file);
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>   }
-<a class="jxr_linenumber" name="L256" href="#L256">256</a> 
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>   @Nullable
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>   <strong class="jxr_keyword">public</strong> File dumpToFile(@Nonnull <strong class="jxr_keyword">final</strong> File file) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>     Preconditions.checkArgument(file.getName().endsWith(<span class="jxr_string">".ssdump2"</span>),
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>             <span class="jxr_string">"File name must have ssdump2 extension not %s"</span>, file);
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>     <a href="../../../org/spf4j/stackmonitor/SampleNode.html">SampleNode</a> collected = stackCollector.clear();
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>     <strong class="jxr_keyword">if</strong> (collected != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>       Converter.save(file, collected);
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>       lastDumpTimeNanos = TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>       <strong class="jxr_keyword">return</strong> file;
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>     }
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>   }
-<a class="jxr_linenumber" name="L270" href="#L270">270</a> 
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>   @JmxExport(description = <span class="jxr_string">"stop stack sampling"</span>)
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> stop() <strong class="jxr_keyword">throws</strong> InterruptedException {
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>     <strong class="jxr_keyword">if</strong> (!stopped) {
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>       stopped = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>         samplerFuture.get(STOP_FLAG_READ_MILLIS &lt;&lt; 2, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>       } <strong class="jxr_keyword">catch</strong> (TimeoutException ex) {
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>         samplerFuture.cancel(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Spf4jProfilerException.html">Spf4jProfilerException</a>(ex);
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>       } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Spf4jProfilerException.html">Spf4jProfilerException</a>(ex);
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>       }
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>     }
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>   }
-<a class="jxr_linenumber" name="L285" href="#L285">285</a> 
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>   @JmxExport(description = <span class="jxr_string">"stack sample time in milliseconds"</span>)
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getSampleTimeMillis() {
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>   }
-<a class="jxr_linenumber" name="L290" href="#L290">290</a> 
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>   @JmxExport
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setSampleTimeMillis(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis) {
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>     <strong class="jxr_keyword">this</strong>.sampleTimeNanos = (<strong class="jxr_keyword">int</strong>) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>   }
-<a class="jxr_linenumber" name="L295" href="#L295">295</a> 
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>   @JmxExport(description = <span class="jxr_string">"is the stack sampling stopped"</span>)
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isStopped() {
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>     <strong class="jxr_keyword">return</strong> stopped;
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>   }
-<a class="jxr_linenumber" name="L300" href="#L300">300</a> 
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>   @JmxExport(description = <span class="jxr_string">"clear in memory collected stack samples"</span>)
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> clear() {
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>     stackCollector.clear();
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>   }
-<a class="jxr_linenumber" name="L305" href="#L305">305</a> 
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/stackmonitor/StackCollector.html">StackCollector</a> getStackCollector() {
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>     <strong class="jxr_keyword">return</strong> stackCollector;
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>   }
-<a class="jxr_linenumber" name="L309" href="#L309">309</a> 
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>   @PreDestroy
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> dispose() <strong class="jxr_keyword">throws</strong> InterruptedException {
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>     stop();
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     Registry.unregister(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>   }
-<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>   @JmxExport(description = <span class="jxr_string">"interval in milliseconds to save stack stamples periodically"</span>)
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getDumpTimeMillis() {
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>     <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toMillis(dumpTimeNanos);
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>   }
-<a class="jxr_linenumber" name="L320" href="#L320">320</a> 
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>   @JmxExport
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDumpTimeMillis(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis) {
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>     <strong class="jxr_keyword">this</strong>.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>   }
-<a class="jxr_linenumber" name="L325" href="#L325">325</a> 
-<a class="jxr_linenumber" name="L326" href="#L326">326</a> }
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/IntMath.html">ThreadLocalRandom</a> random = ThreadLocalRandom.current();
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>           <strong class="jxr_keyword">int</strong> dumpCounterNanos = 0;
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>           <strong class="jxr_keyword">int</strong> coarseCounter = 0;
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>           <strong class="jxr_keyword">int</strong> coarseCount = STOP_FLAG_READ_MILLIS / stNanos;
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>           <strong class="jxr_keyword">boolean</strong> lstopped = stopped;
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>           <strong class="jxr_keyword">int</strong> sleepTimeNanos = 0;
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>           <strong class="jxr_keyword">int</strong> halfStNanos = stNanos / 2;
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>           <strong class="jxr_keyword">if</strong> (halfStNanos == 0) {
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             halfStNanos = 1;
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>           }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>           <strong class="jxr_keyword">int</strong> maxSleeepNanos = stNanos + halfStNanos;
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>           <strong class="jxr_keyword">while</strong> (!lstopped) {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <strong class="jxr_keyword">synchronized</strong> (sync) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>               stackCollector.sample();
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             }
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             dumpCounterNanos += sleepTimeNanos;
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             coarseCounter++;
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <strong class="jxr_keyword">if</strong> (coarseCounter &gt;= coarseCount) {
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>               coarseCounter = 0;
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>               lstopped = stopped;
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>             }
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>             <strong class="jxr_keyword">if</strong> (dumpCounterNanos &gt;= dumpTimeNanos) {
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>               <strong class="jxr_keyword">long</strong> nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>               <strong class="jxr_keyword">if</strong> (nanosSinceLastDump &gt;= dumpTimeNanos) {
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>                 dumpCounterNanos = 0;
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>                 File dumpFile = dumpToFile();
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>                 lastDumpTimeNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>                 LOG.info(<span class="jxr_string">"Stack samples written to {}"</span>, dumpFile);
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>               }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>             }
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             sleepTimeNanos = random.nextInt(halfStNanos, maxSleeepNanos);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>           }
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         }
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>       });
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Sampling can only be started once for "</span> + <strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>     }
+<a class="jxr_linenumber" name="L232" href="#L232">232</a> 
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>   }
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> 
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>   @JmxExport(description = <span class="jxr_string">"save stack samples to file"</span>)
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>   @Nullable
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>   <strong class="jxr_keyword">public</strong> File dumpToFile() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>     <strong class="jxr_keyword">return</strong> dumpToFile((String) <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>   }
+<a class="jxr_linenumber" name="L240" href="#L240">240</a> 
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> <em class="jxr_javadoccomment">   * Dumps the sampled stacks to file. the collected samples are reset</em>
+<a class="jxr_linenumber" name="L243" href="#L243">243</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L244" href="#L244">244</a> <em class="jxr_javadoccomment">   * @param id - id will be added to file name returns the name of the file.</em>
+<a class="jxr_linenumber" name="L245" href="#L245">245</a> <em class="jxr_javadoccomment">   * @return - the file name where the data was persisted or null if there was no data to persist.</em>
+<a class="jxr_linenumber" name="L246" href="#L246">246</a> <em class="jxr_javadoccomment">   * @throws IOException - io issues while persisting data.</em>
+<a class="jxr_linenumber" name="L247" href="#L247">247</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>   @JmxExport(value = <span class="jxr_string">"dumpToSpecificFile"</span>, description = <span class="jxr_string">"save stack samples to file"</span>)
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>   @Nullable
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>   @SuppressFBWarnings(<span class="jxr_string">"PATH_TRAVERSAL_IN"</span>) <em class="jxr_comment">// not possible the provided ID is validated for path separators.</em>
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> File dumpToFile(
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>           @JmxExport(value = <span class="jxr_string">"fileID"</span>, description = <span class="jxr_string">"the ID that will be part of the file name"</span>)
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>           @Nullable <strong class="jxr_keyword">final</strong> String id) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>     String fileName = filePrefix + CharSequences.validatedFileName(((id == <strong class="jxr_keyword">null</strong>) ? <span class="jxr_string">""</span> : '_' + id) + '_'
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>             + DateTimeFormats.TS_FORMAT.format(Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>             + '_' + DateTimeFormats.TS_FORMAT.format(Instant.now()));
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>     File file = <strong class="jxr_keyword">new</strong> File(fileName);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>     <strong class="jxr_keyword">return</strong> dumpToFile(file);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>   }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a> 
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>   @Nullable
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>   @SuppressFBWarnings(<span class="jxr_string">"PATH_TRAVERSAL_IN"</span>) <em class="jxr_comment">// not possible the provided ID is validated for path separators.</em>
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>   <strong class="jxr_keyword">public</strong> File dumpToFile(@Nonnull <strong class="jxr_keyword">final</strong> File pfile) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>     Map&lt;String, SampleNode&gt; collections;
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>     <strong class="jxr_keyword">synchronized</strong> (sync) {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>       collections = stackCollector.getCollectionsAndReset();
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>     <strong class="jxr_keyword">if</strong> (collections.isEmpty()) {
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>     }
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>     <strong class="jxr_keyword">if</strong> (collections.size() == 1) {
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>       Map.Entry&lt;String, SampleNode&gt; es = collections.entrySet().iterator().next();
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>       File file;
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>       <strong class="jxr_keyword">if</strong> (pfile.getName().endsWith(<span class="jxr_string">".ssdump2"</span>)) {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         file = pfile;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>         file = <strong class="jxr_keyword">new</strong> File(pfile.getName() + es.getKey()  + <span class="jxr_string">".ssdump2"</span>);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>       }
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>       Converter.save(file, es.getValue());
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>       <strong class="jxr_keyword">return</strong> file;
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>       File file;
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>       <strong class="jxr_keyword">if</strong> (pfile.getName().endsWith(<span class="jxr_string">".ssdump3"</span>)) {
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         file = pfile;
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         file = <strong class="jxr_keyword">new</strong> File(pfile.getName() + <span class="jxr_string">".ssdump3"</span>);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>       }
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>       Converter.saveLabeledDumps(file, collections);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>       <strong class="jxr_keyword">return</strong> file;
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     }
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>   }
+<a class="jxr_linenumber" name="L292" href="#L292">292</a> 
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>   @JmxExport(description = <span class="jxr_string">"stop stack sampling"</span>)
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> stop() <strong class="jxr_keyword">throws</strong> InterruptedException {
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>     <strong class="jxr_keyword">if</strong> (!stopped) {
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>       stopped = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         samplerFuture.get(STOP_FLAG_READ_MILLIS &lt;&lt; 2, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>       } <strong class="jxr_keyword">catch</strong> (TimeoutException ex) {
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         samplerFuture.cancel(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Spf4jProfilerException.html">Spf4jProfilerException</a>(ex);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>       } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/stackmonitor/Spf4jProfilerException.html">Spf4jProfilerException</a>(ex);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>       }
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     }
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>   }
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>   @JmxExport(description = <span class="jxr_string">"stack sample time in milliseconds"</span>)
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getSampleTimeMillis() {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>   }
+<a class="jxr_linenumber" name="L312" href="#L312">312</a> 
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>   @JmxExport
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setSampleTimeMillis(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> sampleTimeMillis) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>     <strong class="jxr_keyword">this</strong>.sampleTimeNanos = (<strong class="jxr_keyword">int</strong>) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>   }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> 
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>   @JmxExport(description = <span class="jxr_string">"is the stack sampling stopped"</span>)
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isStopped() {
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>     <strong class="jxr_keyword">return</strong> stopped;
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>   }
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>   @JmxExport(description = <span class="jxr_string">"clear in memory collected stack samples"</span>)
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> clear() {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     <strong class="jxr_keyword">synchronized</strong> (sync) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>       stackCollector.getCollectionsAndReset();
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>     }
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>   }
+<a class="jxr_linenumber" name="L329" href="#L329">329</a> 
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>   <strong class="jxr_keyword">public</strong> Map&lt;String, SampleNode&gt; getStackCollectionsAndReset() {
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>     <strong class="jxr_keyword">synchronized</strong> (sync) {
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>       <strong class="jxr_keyword">return</strong> stackCollector.getCollectionsAndReset();
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>     }
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>   }
+<a class="jxr_linenumber" name="L335" href="#L335">335</a> 
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>   <strong class="jxr_keyword">public</strong> Map&lt;String, SampleNode&gt; getStackCollections() {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>     <strong class="jxr_keyword">synchronized</strong> (sync) {
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>       <strong class="jxr_keyword">return</strong> stackCollector.getCollections();
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>     }
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>   }
+<a class="jxr_linenumber" name="L341" href="#L341">341</a> 
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>   @PreDestroy
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> dispose() <strong class="jxr_keyword">throws</strong> InterruptedException {
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>     stop();
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>     Registry.unregister(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>   }
+<a class="jxr_linenumber" name="L347" href="#L347">347</a> 
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>   @JmxExport(description = <span class="jxr_string">"interval in milliseconds to save stack stamples periodically"</span>)
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getDumpTimeMillis() {
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>     <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) TimeUnit.NANOSECONDS.toMillis(dumpTimeNanos);
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>   }
+<a class="jxr_linenumber" name="L352" href="#L352">352</a> 
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>   @JmxExport
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDumpTimeMillis(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> dumpTimeMillis) {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     <strong class="jxr_keyword">this</strong>.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>   }
+<a class="jxr_linenumber" name="L357" href="#L357">357</a> 
+<a class="jxr_linenumber" name="L358" href="#L358">358</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

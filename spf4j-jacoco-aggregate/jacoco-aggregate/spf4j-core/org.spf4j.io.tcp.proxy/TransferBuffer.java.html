@@ -136,27 +136,27 @@ public final class TransferBuffer {
     int nrWritten;
     try {
 <span class="fc" id="L138">      nrWritten = channel.write(buffer);</span>
-<span class="fc" id="L139">    } catch (IOException ex) {</span>
+<span class="nc" id="L139">    } catch (IOException ex) {</span>
       try {
-<span class="fc" id="L141">        channel.close();</span>
+<span class="nc" id="L141">        channel.close();</span>
 <span class="nc" id="L142">      } catch (IOException ex1) {</span>
 <span class="nc" id="L143">        ex.addSuppressed(ex1);</span>
-<span class="fc" id="L144">      }</span>
+<span class="nc" id="L144">      }</span>
 <span class="nc" id="L145">      LOG.debug(&quot;Exception while writing to {}&quot;, channel, ex);</span>
 <span class="nc" id="L146">      writeException = ex;</span>
 <span class="nc" id="L147">      nrWritten = 0;</span>
 <span class="fc" id="L148">    }</span>
 <span class="fc" id="L149">    final boolean hasRemaining = buffer.hasRemaining();</span>
 <span class="pc bpc" id="L150" title="1 of 2 branches missed.">    if (!hasRemaining) {</span>
-<span class="fc bfc" id="L151" title="All 2 branches covered.">      if (isEof) {</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">      if (isEof) {</span>
         try {
-<span class="fc" id="L153">          channel.socket().shutdownOutput();</span>
+<span class="nc" id="L153">          channel.socket().shutdownOutput();</span>
 <span class="nc" id="L154">        } catch (ClosedChannelException closed) {</span>
           //channel is closed already
 <span class="nc" id="L156">        } catch (IOException ex) {</span>
 <span class="nc" id="L157">          throw new UncheckedIOException(ex);</span>
-<span class="pc" id="L158">        }</span>
-<span class="fc" id="L159">        return nrWritten;</span>
+<span class="nc" id="L158">        }</span>
+<span class="nc" id="L159">        return nrWritten;</span>
 <span class="pc bpc" id="L160" title="1 of 2 branches missed.">      } else if (readException != null) {</span>
         try {
 <span class="nc" id="L162">          channel.socket().shutdownOutput();</span>

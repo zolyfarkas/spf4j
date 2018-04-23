@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -41,35 +42,36 @@ public final class EscapeJsonStringAppendableWrapper implements Appendable {
 
   private final Appendable wrapped;
 
-<span class="fc" id="L44">  public EscapeJsonStringAppendableWrapper(final Appendable wrapped) {</span>
-<span class="fc" id="L45">    this.wrapped = wrapped;</span>
-<span class="fc" id="L46">  }</span>
+<span class="fc" id="L45">  public EscapeJsonStringAppendableWrapper(final Appendable wrapped) {</span>
+<span class="fc" id="L46">    this.wrapped = wrapped;</span>
+<span class="fc" id="L47">  }</span>
 
   @Override
-  public Appendable append(final CharSequence csq) throws IOException {
-<span class="fc bfc" id="L50" title="All 2 branches covered.">    for (int i = 0, l = csq.length(); i &lt; l; i++) {</span>
-<span class="fc" id="L51">      AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
+  public Appendable append(@Nullable final CharSequence pcsq) throws IOException {
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">    CharSequence csq = pcsq == null ? &quot;null&quot; : pcsq;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">    for (int i = 0, l = csq.length(); i &lt; l; i++) {</span>
+<span class="fc" id="L53">      AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
     }
-<span class="fc" id="L53">    return this;</span>
+<span class="fc" id="L55">    return this;</span>
   }
 
   @Override
   public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
-<span class="fc bfc" id="L58" title="All 2 branches covered.">    for (int i = start; i &lt; end; i++) {</span>
-<span class="fc" id="L59">      AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">    for (int i = start; i &lt; end; i++) {</span>
+<span class="fc" id="L61">      AppendableUtils.appendJsonStringEscapedChar(csq.charAt(i), wrapped);</span>
     }
-<span class="fc" id="L61">    return this;</span>
+<span class="fc" id="L63">    return this;</span>
   }
 
   @Override
   public Appendable append(final char c) throws IOException {
-<span class="fc" id="L66">     AppendableUtils.appendJsonStringEscapedChar(c, wrapped);</span>
-<span class="fc" id="L67">     return this;</span>
+<span class="fc" id="L68">     AppendableUtils.appendJsonStringEscapedChar(c, wrapped);</span>
+<span class="fc" id="L69">     return this;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L72">    return &quot;EscapeJsonStringAppendableWrapper{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
+<span class="nc" id="L74">    return &quot;EscapeJsonStringAppendableWrapper{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
   }
 
 }

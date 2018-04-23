@@ -61,8 +61,8 @@ public final class GCUsageSampler {
 <span class="fc" id="L61">    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
       @Override
       public void doRun() {
-<span class="fc" id="L64">        stop();</span>
-<span class="fc" id="L65">      }</span>
+<span class="nc" id="L64">        stop();</span>
+<span class="nc" id="L65">      }</span>
     });
 <span class="fc" id="L67">    Registry.export(GCUsageSampler.class);</span>
 <span class="fc" id="L68">  }</span>
@@ -93,7 +93,7 @@ public final class GCUsageSampler {
 
   @JmxExport
   public static synchronized void stop() {
-<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (samplingFuture != null) {</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
 <span class="fc" id="L97">      samplingFuture.cancel(false);</span>
 <span class="fc" id="L98">      samplingFuture = null;</span>
     }
@@ -111,11 +111,11 @@ public final class GCUsageSampler {
   }
 
   public static long getGCTime(final List&lt;GarbageCollectorMXBean&gt; gcBeans) {
-<span class="fc" id="L114">    long gcTime = 0;</span>
-<span class="fc bfc" id="L115" title="All 2 branches covered.">    for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
-<span class="fc" id="L116">      gcTime += gcBean.getCollectionTime();</span>
-<span class="fc" id="L117">    }</span>
-<span class="fc" id="L118">    return gcTime;</span>
+<span class="nc" id="L114">    long gcTime = 0;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
+<span class="nc" id="L116">      gcTime += gcBean.getCollectionTime();</span>
+<span class="nc" id="L117">    }</span>
+<span class="nc" id="L118">    return gcTime;</span>
   }
 
   @JmxExport(description = &quot;Get the total GC time in millis since the JVM started&quot;)

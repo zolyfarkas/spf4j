@@ -104,26 +104,27 @@ public final class Monitor {
 <span class="nc" id="L104">            System.exit(SysExits.EX_USAGE.exitCode());</span>
 <span class="fc" id="L105">        }</span>
 
-<span class="fc" id="L107">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval, new SimpleStackCollector(),</span>
-<span class="fc" id="L108">                options.dumpFolder, options.dumpFilePrefix);</span>
-<span class="fc" id="L109">        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {</span>
+<span class="fc" id="L107">        final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval,</span>
+<span class="fc" id="L108">                (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}),</span>
+<span class="fc" id="L109">                options.dumpFolder, options.dumpFilePrefix);</span>
+<span class="fc" id="L110">        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {</span>
 
             @Override
             public void doRun() throws InterruptedException, IOException {
-<span class="nc" id="L113">                sampler.stop();</span>
-<span class="nc" id="L114">                sampler.dumpToFile();</span>
-<span class="nc" id="L115">                sampler.dispose();</span>
-<span class="nc" id="L116">            }</span>
+<span class="nc" id="L114">                sampler.stop();</span>
+<span class="nc" id="L115">                sampler.dumpToFile();</span>
+<span class="nc" id="L116">                sampler.dispose();</span>
+<span class="nc" id="L117">            }</span>
 
         }, &quot;Sampling report&quot;));
-<span class="fc" id="L119">        sampler.registerJmx();</span>
+<span class="fc" id="L120">        sampler.registerJmx();</span>
 
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
-<span class="fc" id="L122">            sampler.start();</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (options.startSampler) {</span>
+<span class="fc" id="L123">            sampler.start();</span>
         }
-<span class="fc" id="L124">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
-<span class="nc" id="L125">        System.exit(SysExits.OK.exitCode());</span>
-<span class="nc" id="L126">    }</span>
+<span class="fc" id="L125">        Class.forName(options.mainClass).getMethod(&quot;main&quot;, String[].class).invoke(null, (Object) newArgs);</span>
+<span class="nc" id="L126">        System.exit(SysExits.OK.exitCode());</span>
+<span class="nc" id="L127">    }</span>
 
 
 }
