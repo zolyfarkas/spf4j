@@ -164,12 +164,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     void onClose() throws SQLException;
 
   }
-
-  private JdbcHeartBeat(final DataSource dataSource, final long intervalMillis,
-          final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {
-    this(dataSource, HeartBeatTableDesc.DEFAULT, intervalMillis, jdbcTimeoutSeconds, 0.5);
-  }
-
+  
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
           final int jdbcTimeoutSeconds, final double missedHBRatio) throws InterruptedException, SQLException {
     if (intervalMillis < 1000) {
