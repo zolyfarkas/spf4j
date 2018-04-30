@@ -45,4 +45,15 @@ public class TrieImplTest {
     trie.forEach((k, v) -> {LOG.debug("k = {}; v = {}", k, v);});
   }
 
+  public static void addAllSuffixes() {
+
+  }
+
+
+  @Test
+  public void testTrieLongestCommon() {
+    TrieMap<Integer> trie = new TrieMap();
+  }
+
+
 }

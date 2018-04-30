@@ -37,6 +37,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
+import org.spf4j.base.MutableHolder;
 import org.spf4j.base.Pair;
 
 /**
@@ -61,7 +63,18 @@ public final class TrieMap<T> {
     return put(key, 0, key.length(), value);
   }
 
-  public Optional<T> put(final CharSequence key, final int pfrom, final int to, final T value) {
+  public Optional<T> put(final CharSequence key, final int pfrom, final int to,
+          final T value) {
+    MutableHolder<Optional<T>> result = new MutableHolder<>();
+    put(key, pfrom, to, (x) -> {
+      result.setValue(x);
+      return value;
+    });
+    return result.getValue();
+  }
+
+  public Optional<T> put(final CharSequence key, final int pfrom, final int to,
+          final Function<Optional<T>, T> value) {
     int from = pfrom;
     Node<T> node = root;
     while (from < to) {
@@ -83,11 +96,11 @@ public final class TrieMap<T> {
     }
     if (node.terminatesWord) {
       T existing = node.value;
-      node.value = value;
+      node.value = value.apply(Optional.of(existing));
       return Optional.of(existing);
     } else {
       node.terminatesWord = true;
-      node.value = value;
+      node.value = value.apply(Optional.empty());
       return Optional.empty();
     }
   }
