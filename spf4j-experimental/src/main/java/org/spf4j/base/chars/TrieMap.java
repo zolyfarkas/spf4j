@@ -37,7 +37,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import org.spf4j.base.Pair;
 
 /**
@@ -119,23 +118,22 @@ public final class TrieMap<T> {
   }
 
   public void forEach(final BiConsumer<CharSequence, T> consumer) {
-      Deque<Pair<String, Node<T>>> process = new ArrayDeque<>();
-      process.add(Pair.of("", root));
-      Pair<String, Node<T>> p;
-      while ((p = process.pollLast()) != null)  {
-        Node<T> node = p.getSecond();
-        if (node.terminatesWord) {
-          consumer.accept(p.getFirst(), node.value);
-        }
-        if (node.nodes != null) {
-          final String sf = p.getFirst();
-          node.nodes.forEachEntry((k, v) -> {
-            process.addLast(Pair.of(sf + k, v));
-            return true;
-          });
-        }
+    Deque<Pair<String, Node<T>>> process = new ArrayDeque<>();
+    process.add(Pair.of("", root));
+    Pair<String, Node<T>> p;
+    while ((p = process.pollLast()) != null) {
+      Node<T> node = p.getSecond();
+      if (node.terminatesWord) {
+        consumer.accept(p.getFirst(), node.value);
       }
+      if (node.nodes != null) {
+        final String sf = p.getFirst();
+        node.nodes.forEachEntry((k, v) -> {
+          process.addLast(Pair.of(sf + k, v));
+          return true;
+        });
+      }
+    }
   }
-
 
 }
