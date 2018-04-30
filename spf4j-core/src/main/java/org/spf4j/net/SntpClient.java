@@ -92,10 +92,13 @@ public final class SntpClient {
   public static Timing requestTimeHA(final int timeoutMillis,
           final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
+    if (hosts.length <= 0) {
+      throw new IllegalArgumentException("Must specify at least one host " + hosts);
+    }
     try (ExecutionContext ctx = ExecutionContexts.start("requestTimeHA", timeoutMillis, TimeUnit.MILLISECONDS)) {
       return  RetryPolicy.defaultPolicy().call(new Callable<Timing>() {
 
-        private int i = 0;
+        private int i = ThreadLocalRandom.current().nextInt(hosts.length);
 
         @Override
         public Timing call() throws IOException {
