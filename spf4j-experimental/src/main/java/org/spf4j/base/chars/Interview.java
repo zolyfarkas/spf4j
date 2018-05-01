@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /**
- *
+ * A set of interview questions for hands on phone screens.
  * @author Zoltan Farkas
  */
 public class Interview {
@@ -84,6 +84,9 @@ public class Interview {
     }
   }
 
+  /**
+   * return the second largest value from a BST.
+   */
   public static  <T extends Comparable> Optional<T> secondLargest(@Nullable TreeNode<T> tree) {
     if (tree == null) {
       return Optional.empty();
