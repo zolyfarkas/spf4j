@@ -15,6 +15,7 @@
  */
 package org.spf4j.base.chars;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,18 @@ public class InterviewTest {
     Interview.combinations("???", (x) -> {
       LOG.debug("{}", x);
     });
+  }
+
+  @Test
+  public void testSecondLargest() {
+    Interview.TreeNode<Integer> node = new Interview.TreeNode<>();
+    node.value = 4;
+    node.right = new Interview.TreeNode<>();
+    node.right.value = 5;
+    node.left = new Interview.TreeNode<>();
+    node.left.value = 3;
+    LOG.debug("second = {}", Interview.secondLargest(node));
+    Assert.assertEquals((Integer) 4, Interview.secondLargest(node).get());
   }
 
 }

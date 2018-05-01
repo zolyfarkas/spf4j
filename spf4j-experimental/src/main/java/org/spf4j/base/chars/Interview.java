@@ -17,7 +17,9 @@ package org.spf4j.base.chars;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -62,6 +64,37 @@ public class Interview {
       } while (j < nrQ);
       result.accept(sb);
     } while (!carry);
+  }
+
+
+  public static class TreeNode<T extends Comparable> {
+    T value;
+    TreeNode<T> left;
+    TreeNode<T> right;
+  }
+
+  public static  <T extends Comparable> Optional<T> largest(@Nullable TreeNode<T> tree) {
+    if (tree == null) {
+      return Optional.empty();
+    }
+    if (tree.right == null) {
+      return Optional.of(tree.value);
+    } else {
+      return largest(tree.right);
+    }
+  }
+
+  public static  <T extends Comparable> Optional<T> secondLargest(@Nullable TreeNode<T> tree) {
+    if (tree == null) {
+      return Optional.empty();
+    }
+    if (tree.right == null) {
+      return largest(tree.left);
+    } else if (tree.right.left == null && tree.right.right == null) {
+      return Optional.of(tree.value);
+    } else {
+      return secondLargest(tree);
+    }
   }
 
 
