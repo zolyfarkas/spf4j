@@ -31,7 +31,6 @@
  */
 package org.spf4j.recyclable;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +39,7 @@ import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.failsafe.RetryPolicy;
 
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES

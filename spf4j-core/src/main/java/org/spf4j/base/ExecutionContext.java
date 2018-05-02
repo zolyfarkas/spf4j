@@ -32,7 +32,6 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;

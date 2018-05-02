@@ -34,7 +34,6 @@ package org.spf4j.reflect;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.lang.reflect.Type;
@@ -43,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 /**

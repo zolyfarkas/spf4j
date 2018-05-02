@@ -31,7 +31,6 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.util.ArrayDeque;
@@ -54,6 +53,7 @@ import org.slf4j.Logger;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
+import org.spf4j.base.UncheckedExecutionException;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
