@@ -37,8 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
 
 /**
  * @author Zoltan Farkas
@@ -58,7 +58,7 @@ public final class LoggingProcessHandler implements ProcessHandler<Void, Void> {
     BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      log.debug(line);
+      log.fine(line);
     }
     return null;
   }
@@ -69,7 +69,7 @@ public final class LoggingProcessHandler implements ProcessHandler<Void, Void> {
     BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      log.error(line);
+      log.severe(line);
     }
     return null;
   }

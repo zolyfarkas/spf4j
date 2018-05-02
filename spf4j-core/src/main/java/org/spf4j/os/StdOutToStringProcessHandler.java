@@ -36,8 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 import org.spf4j.base.Strings;
 
 /**
@@ -46,7 +45,7 @@ import org.spf4j.base.Strings;
  */
 public final class StdOutToStringProcessHandler implements ProcessHandler<String, String> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(StdOutToStringProcessHandler.class);
+  private static final Logger LOG = Logger.getLogger(StdOutToStringProcessHandler.class.getName());
 
   @Override
   public String handleStdOut(final InputStream stdout) throws IOException {
@@ -54,10 +53,10 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
     BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      LOG.debug(line);
+      LOG.fine(line);
       result.append(line).append(Strings.EOL);
     }
-    LOG.debug("done with stdout");
+    LOG.fine("done with stdout");
     return result.toString();
   }
 
@@ -67,10 +66,10 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
     BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      LOG.error(line);
+      LOG.severe(line);
       result.append(line).append(Strings.EOL);
     }
-    LOG.debug("done with stderr");
+    LOG.fine("done with stderr");
     return result.toString();
   }
 

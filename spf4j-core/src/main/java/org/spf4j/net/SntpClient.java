@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +51,7 @@ import org.spf4j.failsafe.RetryPolicy;
  *
  * @author zoly
  */
+@SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class SntpClient {
 
   private static final int ORIGINATE_TIME_OFFSET = 24;
@@ -88,12 +90,11 @@ public final class SntpClient {
    * @throws IOException - thrown in case of time server connectivity issues.
    * @throws InterruptedException - thrown if exec interrupted.
    */
-  @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION") //findbugs nonsense
   public static Timing requestTimeHA(final int timeoutMillis,
           final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
     if (hosts.length <= 0) {
-      throw new IllegalArgumentException("Must specify at least one host " + hosts);
+      throw new IllegalArgumentException("Must specify at least one host " + Arrays.toString(hosts));
     }
     try (ExecutionContext ctx = ExecutionContexts.start("requestTimeHA", timeoutMillis, TimeUnit.MILLISECONDS)) {
       return  RetryPolicy.defaultPolicy().call(new Callable<Timing>() {

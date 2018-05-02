@@ -54,10 +54,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UIDGenerator;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
@@ -239,11 +239,6 @@ public final class Runtime {
     }
   }
 
-  private static class Lazy {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Lazy.class);
-  }
-
   private Runtime() {
   }
 
@@ -275,9 +270,13 @@ public final class Runtime {
         error(OS_NAME, t);
         Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first
         Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT); //getting more curageous :-)
-        Lazy.LOGGER.error("Error, going down with exit code {}", exitCode, t); //Now we are pushing it...
+        //Now we are pushing it...
+        Logger logger = Logger.getLogger(Runtime.class.getName());
+        logger.log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
+        logger.log(Level.SEVERE, "Exception detail", t);
       } else {
-        Lazy.LOGGER.error("Error, going down with exit code {}", exitCode);
+        Logger.getLogger(Runtime.class.getName())
+                .log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
       }
     } finally {
       java.lang.Runtime.getRuntime().halt(exitCode);
@@ -375,7 +374,7 @@ public final class Runtime {
   @Deprecated
   public static int killProcess(final Process proc, final long terminateTimeoutMillis,
           final long forceTerminateTimeoutMillis)
-          throws InterruptedException {
+          throws InterruptedException, TimeoutException {
     return OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);
   }
 

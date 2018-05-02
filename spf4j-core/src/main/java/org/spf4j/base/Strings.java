@@ -32,7 +32,6 @@
 package org.spf4j.base;
 
 
-import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -48,8 +47,6 @@ import java.nio.charset.CodingErrorAction;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import javax.annotation.Nonnull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 //CHECKSTYLE:OFF
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
@@ -57,6 +54,8 @@ import sun.nio.cs.ArrayEncoder;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 /**
@@ -65,8 +64,6 @@ import javax.annotation.Nullable;
  */
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class Strings {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
 
   private static final MethodHandle CHARS_FIELD_GET;
 
@@ -189,7 +186,8 @@ public final class Strings {
           charsField = String.class.getDeclaredField("value");
           charsField.setAccessible(true);
         } catch (NoSuchFieldException ex) {
-          LOG.info("char array stealing from String not supported", ex);
+          Logger.getLogger(Strings.class.getName()).log(Level.INFO,
+                  "char array stealing from String not supported", ex);
           charsField = null;
         }
         return charsField;
@@ -222,7 +220,8 @@ public final class Strings {
             constr.setAccessible(true);
           } catch (NoSuchMethodException ex2) {
             ex2.addSuppressed(ex);
-            LOG.info("building String from char[] fast not supported", ex2);
+            Logger.getLogger(Strings.class.getName()).log(Level.INFO,
+                    "building String from char[] fast not supported", ex2);
             constr = null;
           }
         }
@@ -527,13 +526,15 @@ public final class Strings {
   }
 
   @Nonnull
-  public static String commonPrefix(@Nonnull final String... strs) {
-    Preconditions.checkArgument(strs.length > 0, "Must have at least 1 string %s", strs);
-    String common = strs[0];
+  public static String commonPrefix(@Nonnull final CharSequence... strs) {
+    if (strs.length <= 0) {
+      throw new IllegalArgumentException("Must have at least 1 string " + java.util.Arrays.toString(strs));
+     }
+    CharSequence common = strs[0];
     for (int i = 1; i < strs.length; i++) {
       common = com.google.common.base.Strings.commonPrefix(common, strs[i]);
     }
-    return common;
+    return common.toString();
   }
 
 }

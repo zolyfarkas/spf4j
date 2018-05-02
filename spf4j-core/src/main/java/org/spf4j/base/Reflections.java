@@ -58,17 +58,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 @ParametersAreNonnullByDefault
 public final class Reflections {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Reflections.class);
 
   private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
 
@@ -84,7 +82,8 @@ public final class Reflections {
         f = Method.class.getDeclaredField("parameterTypes");
         f.setAccessible(true);
       } catch (NoSuchFieldException | SecurityException ex) {
-        LOG.info("Para type stealing from Method not supported", ex);
+        Logger.getLogger(Reflections.class.getName()).log(Level.INFO,
+                "Para type stealing from Method not supported", ex);
         f = null;
       }
       return f;
@@ -95,7 +94,8 @@ public final class Reflections {
         f = Constructor.class.getDeclaredField("parameterTypes");
         f.setAccessible(true);
       } catch (NoSuchFieldException | SecurityException ex) {
-        LOG.info("Para type stealing from Constructor not supported", ex);
+        Logger.getLogger(Reflections.class.getName()).log(Level.INFO,
+                "Para type stealing from Constructor not supported", ex);
         f = null;
       }
       return f;

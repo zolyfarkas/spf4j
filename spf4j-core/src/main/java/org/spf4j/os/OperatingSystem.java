@@ -31,8 +31,6 @@
  */
 package org.spf4j.os;
 
-import com.google.common.base.Joiner;
-import com.google.common.util.concurrent.UncheckedTimeoutException;
 import com.sun.management.UnixOperatingSystemMXBean;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -44,6 +42,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -51,9 +50,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Runtime;
 import org.spf4j.base.Throwables;
@@ -113,10 +114,6 @@ public final class OperatingSystem {
     }
   }
 
-  private static final class Lazy {
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
-
   private OperatingSystem() {
   }
 
@@ -143,10 +140,10 @@ public final class OperatingSystem {
           try {
             return Lsof.getNrOpenFiles();
           } catch (ExecutionException | TimeoutException ex) {
-            Lazy.LOG.warn("Unable to get nr of open files", ex);
+            Logger.getLogger(OperatingSystem.class.getName()).log(Level.WARNING, "Unable to get nr of open files", ex);
             return -1;
           } catch (InterruptedException ex) {
-            Lazy.LOG.warn("Unable to get nr of open files", ex);
+            Logger.getLogger(OperatingSystem.class.getName()).log(Level.WARNING, "Unable to get nr of open files", ex);
             Thread.currentThread().interrupt();
             return -1;
           }
@@ -170,7 +167,7 @@ public final class OperatingSystem {
         if (msg != null && msg.contains("Too many open files")) {
           return getMaxFileDescriptorCount();
         } else {
-          Lazy.LOG.warn("Unable to get nr of open files", ex);
+          Logger.getLogger(OperatingSystem.class.getName()).log(Level.WARNING, "Unable to get nr of open files", ex);
           return -1;
         }
       }
@@ -183,7 +180,7 @@ public final class OperatingSystem {
 
   public static int killProcess(final Process proc, final long terminateTimeoutMillis,
           final long forceTerminateTimeoutMillis)
-          throws InterruptedException {
+          throws InterruptedException, TimeoutException {
 
     proc.destroy();
     if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
@@ -191,7 +188,7 @@ public final class OperatingSystem {
     } else {
       proc.destroyForcibly();
       if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
-        throw new UncheckedTimeoutException("Cannot terminate " + proc);
+        throw new TimeoutException("Cannot terminate " + proc);
       } else {
         return proc.exitValue();
       }
@@ -328,7 +325,8 @@ public final class OperatingSystem {
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
     ProcessResponse<Void, Void> resp
             = forkExec(command,
-                    new LoggingProcessHandler(LoggerFactory.getLogger("fork." + Joiner.on('.').join(command))),
+                    new LoggingProcessHandler(Logger.getLogger("fork."
+                            + Arrays.stream(command).collect(Collectors.joining(".")))),
                     timeoutMillis, 60000);
     if (resp.getResponseExitCode() != SysExits.OK) {
       throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(command)
