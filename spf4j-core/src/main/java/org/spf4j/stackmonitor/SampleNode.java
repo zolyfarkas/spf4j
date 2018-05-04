@@ -228,6 +228,10 @@ public final class SampleNode implements Serializable, JsonWriteable {
 
   }
 
+  /**
+   * to do: have to remove recursion...
+   * @return the total number of nodes in this tree.
+   */
   public int getNrNodes() {
     if (subNodes == null) {
       return 1;
