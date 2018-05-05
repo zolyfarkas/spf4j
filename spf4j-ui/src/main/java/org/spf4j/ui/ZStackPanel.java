@@ -47,6 +47,7 @@ import org.spf4j.base.Pair;
 import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
+import org.spf4j.stackmonitor.AggGraph;
 import org.spf4j.stackmonitor.InvokedMethod;
 import org.spf4j.stackmonitor.SampleNode;
 import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
@@ -69,7 +70,7 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
 
   public ZStackPanel(final SampleNode samples) {
     super(samples);
-    completeGraph = SampleNode.toGraph(samples);
+    completeGraph = AggGraph.toGraph(samples);
     startFrom = InvokedMethod.ROOT;
   }
 
@@ -251,7 +252,7 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
   public void updateSamples(final Method m, final SampleNode n) {
     super.updateSamples(m, n);
     if (n != null) {
-      this.completeGraph = SampleNode.toGraph(n);
+      this.completeGraph = AggGraph.toGraph(n);
     } else {
       this.completeGraph = new HashMapGraph<>();
     }

@@ -19,11 +19,11 @@ package org.spf4j.ui;
  *
  * @author Zoltan Farkas
  */
-public class Rectangle {
-  public final int x;
-  public final int y;
-  public final int width;
-  public final int height;
+public final class Rectangle {
+  private final int x;
+  private final int y;
+  private final int width;
+  private final int height;
 
   public Rectangle(final int x, final int y, final int width, final int height) {
     this.x = x;
@@ -32,5 +32,25 @@ public class Rectangle {
     this.height = height;
   }
 
+  public int getX() {
+    return x;
+  }
+
+  public int getY() {
+    return y;
+  }
+
+  public int getWidth() {
+    return width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
+  @Override
+  public String toString() {
+    return "Rectangle{" + "x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + '}';
+  }
 
 }

@@ -31,6 +31,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.graph.ElementOrder;
@@ -47,12 +48,13 @@ import org.spf4j.base.Method;
  *
  * @author Zoltan Farkas
  */
-public class SampleGraph {
+@Beta
+public final class SampleGraph {
 
   public static final class SampleVertexKey {
     private final Method method;
     private int idxInHierarchy;
-    public SampleVertexKey(Method method, int idxInHierarchy) {
+    public SampleVertexKey(final Method method, final int idxInHierarchy) {
       this.method = method;
       this.idxInHierarchy = idxInHierarchy;
     }
@@ -88,7 +90,7 @@ public class SampleGraph {
     private final SampleVertexKey key;
     private int nrSamples;
 
-    public SampleVertex(SampleVertexKey key, int nrSamples) {
+    public SampleVertex(final SampleVertexKey key, final int nrSamples) {
       this.key = key;
       this.nrSamples = nrSamples;
     }
@@ -101,8 +103,6 @@ public class SampleGraph {
       return nrSamples;
     }
 
-    
-
   }
 
 
@@ -112,7 +112,7 @@ public class SampleGraph {
     private final Method method;
     private final SampleNode node;
 
-    public Traversal(SampleVertex parent, Method method, SampleNode node) {
+    Traversal(final SampleVertex parent, final Method method, final SampleNode node) {
       this.parent = parent;
       this.method = method;
       this.node = node;
@@ -137,8 +137,8 @@ public class SampleGraph {
     rootVertex = tree2Graph(m, node);
   }
 
-  public SampleGraph(SetMultimap<SampleVertexKey, SampleVertex> vertexMap,
-          MutableGraph<SampleVertex> sg, SampleVertex rootVertex) {
+  public SampleGraph(final SetMultimap<SampleVertexKey, SampleVertex> vertexMap,
+          final MutableGraph<SampleVertex> sg, final SampleVertex rootVertex) {
     this.vertexMap = vertexMap;
     this.sg = sg;
     this.rootVertex = rootVertex;
@@ -146,7 +146,14 @@ public class SampleGraph {
 
 
 
-  private int computeMethodIdx(SampleVertex from,  Method m) {
+  /**
+   * Compute a duplication occurrence from root index for a method.
+   * (number of occurrences of this method on a stack path.
+   * @param from
+   * @param m
+   * @return
+   */
+  private int computeMethodIdx(final SampleVertex from, final Method m) {
     if (from.key.method.equals(m)) {
       return from.key.idxInHierarchy + 1;
     } else {
@@ -165,8 +172,12 @@ public class SampleGraph {
 
   private SampleVertex tree2Graph(final Method m, final SampleNode node) {
     SampleVertex parentVertex = new SampleVertex(new SampleVertexKey(m, 0), node.getSampleCount());
-    sg.addNode(parentVertex);
-    vertexMap.put(parentVertex.key, parentVertex);
+    if (!sg.addNode(parentVertex)) {
+      throw new IllegalStateException();
+    }
+    if (!vertexMap.put(parentVertex.key, parentVertex)) {
+      throw new IllegalStateException();
+    }
     Deque<Traversal> dq = new ArrayDeque<>();
     TMap<Method, SampleNode> subNodes = node.getSubNodes();
     if (subNodes != null) {
@@ -179,9 +190,15 @@ public class SampleGraph {
     while ((t = dq.pollLast()) != null) {
       SampleVertex vtx = new SampleVertex(new SampleVertexKey(t.method, computeMethodIdx(t.parent, t.method)),
               t.node.getSampleCount());
-      sg.addNode(vtx);
-      sg.putEdge(t.parent, vtx);
-      vertexMap.put(vtx.key, vtx);
+      if (!sg.addNode(vtx)) {
+        throw new IllegalStateException();
+      }
+      if (!sg.putEdge(t.parent, vtx)) {
+        throw new IllegalStateException();
+      }
+      if (!vertexMap.put(vtx.key, vtx)) {
+        throw new IllegalStateException();
+      }
       TMap<Method, SampleNode> subNodes2 = t.node.getSubNodes();
       if (subNodes2 != null) {
         subNodes2.forEachEntry((k, v) -> {
@@ -204,6 +221,12 @@ public class SampleGraph {
   public SampleVertex getRootVertex() {
     return rootVertex;
   }
+
+  @Override
+  public String toString() {
+    return "SampleGraph{" + "vertexMap=" + vertexMap + ", sg=" + sg + ", rootVertex=" + rootVertex + '}';
+  }
+
 
 
 }

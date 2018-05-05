@@ -39,12 +39,10 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
@@ -53,8 +51,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
-import org.spf4j.ds.Graph;
-import org.spf4j.ds.HashMapGraph;
 
 /**
  * @author zoly
