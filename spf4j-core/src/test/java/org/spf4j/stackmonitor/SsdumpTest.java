@@ -40,8 +40,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.ds.Traversals;
-import org.spf4j.ds.Graph;
 import org.spf4j.ssdump2.Converter;
 
 public final class SsdumpTest {
@@ -98,12 +96,6 @@ public final class SsdumpTest {
     Map<String, SampleNode> loadedDumps = Converter.loadLabeledDumps(serializedFile);
     for (Map.Entry<String, SampleNode> entry : loadedDumps.entrySet()) {
       LOG.debug("Loaded {}", entry.getKey());
-      Graph<InvokedMethod, SampleNode.InvocationCount> graph = SampleNode.toGraph(entry.getValue());
-      Traversals.traverse(graph, InvokedMethod.ROOT,
-              (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
-                LOG.debug("Method: {} from {}", vertex, edges);
-              }, true);
-      Assert.assertNotNull(graph);
     }
     return collected;
   }

@@ -422,39 +422,6 @@ public final class SampleNode implements Serializable, JsonWriteable {
     }
   }
 
-  @Nonnull
-  public static Graph<InvokedMethod, InvocationCount> toGraph(final SampleNode rootNode) {
-    final HashMapGraph<InvokedMethod, InvocationCount> result = new HashMapGraph<>();
-
-    rootNode.forEach((final Method pfrom, final Method pto,
-            final int count, final Map<Method, Integer> ancestors) -> {
-      InvokedMethod from;
-      InvokedMethod to;
-      Integer val = ancestors.get(pfrom);
-      if (val != null) {
-        from = new InvokedMethod(pfrom, val - 1);
-      } else {
-        from = new InvokedMethod(pfrom, 0);
-      }
-      val = ancestors.get(pto);
-      if (val != null) {
-        to = new InvokedMethod(pto, val);
-      } else {
-        to = new InvokedMethod(pto, 0);
-      }
-
-      InvocationCount ic = result.getEdge(from, to);
-
-      if (ic == null) {
-        result.add(new InvocationCount(count), from, to);
-      } else {
-        ic.setValue(count + ic.getValue());
-      }
-    }, Method.ROOT, Method.ROOT, new HashMap<Method, Integer>());
-
-    return result;
-
-  }
 
   @Override
   public int hashCode() {
