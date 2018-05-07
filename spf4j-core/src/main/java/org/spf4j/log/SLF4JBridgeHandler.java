@@ -68,10 +68,6 @@ public final class SLF4JBridgeHandler extends Handler {
   private static final int INFO_LEVEL_THRESHOLD = Level.INFO.intValue();
   private static final int WARN_LEVEL_THRESHOLD = Level.WARNING.intValue();
 
-  private static final class Lazy {
-    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
-
   private static final boolean ALWAYS_TRY_INFER = Boolean.getBoolean("spf4j.jul2slf4jBridge.alwaysTryInferSource");
 
   @Nullable
@@ -86,7 +82,8 @@ public final class SLF4JBridgeHandler extends Handler {
           declaredField.setAccessible(true);
           return declaredField;
         } catch (NoSuchFieldException | SecurityException ex) {
-          Lazy.LOG.debug("jul to slf4j bridge will not differentiate between computed caller info and provided", ex);
+          LoggerFactory.getLogger(SLF4JBridgeHandler.class)
+                  .debug("jul to slf4j bridge will not differentiate between computed caller info and provided", ex);
           return null;
         }
       }
@@ -311,7 +308,7 @@ public final class SLF4JBridgeHandler extends Handler {
       try {
         message = MessageFormat.format(message, params);
       } catch (IllegalArgumentException e) {
-        Lazy.LOG.warn("Unable to format {} with {}", message, params, e);
+        LoggerFactory.getLogger(SLF4JBridgeHandler.class).warn("Unable to format {} with {}", message, params, e);
         return message;
       }
     }
@@ -327,7 +324,7 @@ public final class SLF4JBridgeHandler extends Handler {
         callPlainSLF4JLogger(slf4jLogger, record);
       }
     } catch (RuntimeException ex) {
-      Lazy.LOG.warn("Unable to publish {}", record, ex);
+      LoggerFactory.getLogger(SLF4JBridgeHandler.class).warn("Unable to publish {}", record, ex);
     }
   }
 
