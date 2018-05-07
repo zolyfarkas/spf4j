@@ -36,10 +36,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static org.spf4j.base.Runtime.PID;
 import static org.spf4j.base.Runtime.run;
 import org.spf4j.base.SysExits;
@@ -68,7 +68,7 @@ public final class Lsof {
       }
     }
     if (lsofFile == null) {
-      Lazy.LOG.warn("lsof unavailable on this system");
+      Logger.getLogger(Lsof.class.getName()).warning("lsof unavailable on this system");
     }
     LSOF = lsofFile;
   }
@@ -76,10 +76,6 @@ public final class Lsof {
   private static final String[] LSOF_CMD = (LSOF == null) ? null
           : new String[]{LSOF.getAbsolutePath(), "-p", Integer.toString(PID)};
 
-
-  private static final class Lazy {
-    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
 
   private Lsof() { }
 
@@ -105,7 +101,7 @@ public final class Lsof {
     try {
       return run(Lsof.LSOF_CMD, 60000);
     } catch (IOException | ExecutionException | TimeoutException ex) {
-      Lazy.LOG.warn("Unable to run lsof", ex);
+      Logger.getLogger(Lsof.class.getName()).log(Level.WARNING, "Unable to run lsof", ex);
       return null;
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
