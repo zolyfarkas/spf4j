@@ -31,9 +31,10 @@
  */
 package org.spf4j.base;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * @author zoly
@@ -43,7 +44,6 @@ public abstract class AbstractRunnable implements Runnable {
   @Deprecated
   public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);
 
   public static final Runnable NOP = new Runnable() {
 
@@ -105,7 +105,7 @@ public abstract class AbstractRunnable implements Runnable {
         Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
       }
       if (lenient) {
-        LOGGER.error("Exception in runnable: ", ex);
+        Logger.getLogger(AbstractRunnable.class.getName()).log(Level.SEVERE, "Exception in runnable: ", ex);
       } else {
         throw new RuntimeException(ex);
       }
