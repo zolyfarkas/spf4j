@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenType;
@@ -63,8 +65,6 @@ import static javax.management.openmbean.SimpleType.LONG;
 import static javax.management.openmbean.SimpleType.DOUBLE;
 import static javax.management.openmbean.SimpleType.VOID;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
 import org.spf4j.jmx.JMXBeanMapping;
 import org.spf4j.jmx.JMXBeanMappingSupplier;
@@ -78,7 +78,7 @@ import org.spf4j.reflect.GraphTypeMap;
  */
 public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.class);
+  private static final Logger LOG = Logger.getLogger(Spf4jOpenTypeMapper.class.getName());
 
   private static final ThreadLocal<Set<Type>> IN_PROGRESS = new ThreadLocal<Set<Type>>() {
     @Override
@@ -157,7 +157,7 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
         Set<Type> ip = IN_PROGRESS.get();
         if (ip.contains(t)) {
-           LOG.debug("No openType mapping for {} recorsive data structure", t);
+           LOG.log(Level.FINE, "No openType mapping for {0} recursive data structure", t);
            return null;
         }
         try {
@@ -171,7 +171,8 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
         } catch (NotSerializableException ex) {
           TypeToken<?> tt = TypeToken.of(t);
           if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {
-            LOG.debug("No mapping for type {}", t, ex);
+            LOG.log(Level.FINE, "No mapping for type {0}", t);
+            LOG.log(Level.FINEST, "Exception Detail", ex);
             return null;
           } else {
             throw ex;
@@ -179,7 +180,8 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
         } catch (RuntimeException ex) {
           TypeToken<?> tt = TypeToken.of(t);
           if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {
-            LOG.debug("No mapping for type {}", t, ex);
+            LOG.log(Level.FINE, "No mapping for type {0}", t);
+            LOG.log(Level.FINEST, "Exception Detail", ex);
             return null;
           } else {
             NotSerializableException nsex = new NotSerializableException("Type " + t + "  must be serializable");
