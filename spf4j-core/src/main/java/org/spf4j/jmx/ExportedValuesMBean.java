@@ -38,6 +38,8 @@ import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -56,8 +58,6 @@ import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.Reflections;
 import org.spf4j.base.Throwables;
 
@@ -65,7 +65,6 @@ import org.spf4j.base.Throwables;
 @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
 final class ExportedValuesMBean implements DynamicMBean {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ExportedValuesMBean.class);
 
   private static final Pattern INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_\\-\\.]");
 
@@ -155,7 +154,10 @@ final class ExportedValuesMBean implements DynamicMBean {
     try {
       return result.get();
     } catch (OpenDataException | RuntimeException ex) {
-      LOG.error("Exception while getting attr {}", name, ex);
+      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
+              "Exception while getting attr {0}", name);
+      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
+              "Exception detail", ex);
       throw new MBeanException(null, "Error getting attribute" + name + " detail:\n" + Throwables.toString(ex));
     }
   }
@@ -174,7 +176,10 @@ final class ExportedValuesMBean implements DynamicMBean {
     try {
       result.set(attribute.getValue());
     } catch (InvalidObjectException | RuntimeException ex) {
-      LOG.warn("Exception while setting attr {}", attribute, ex);
+      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
+              "Exception while setting attr {0}", attribute);
+      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
+              "Exception detail", ex);
       throw new InvalidAttributeValueException("Invalid value " + attribute
               + " detail:\n" + Throwables.toString(ex));
     }
@@ -194,7 +199,10 @@ final class ExportedValuesMBean implements DynamicMBean {
         }
         list.add(new Attribute(name, attr.get()));
       } catch (OpenDataException | RuntimeException ex) {
-          LOG.error("Exception getting attribute {}", name, ex);
+          Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
+                  "Exception getting attribute {0}", name);
+          Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
+              "Exception detail", ex);
           throw new JMRuntimeException("Exception while getting attributes " + Arrays.toString(names) + ", detail:\n"
                   + Throwables.toString(ex));
       }
@@ -215,8 +223,11 @@ final class ExportedValuesMBean implements DynamicMBean {
           eval.set(attr.getValue());
           result.add(attr);
         } catch (InvalidAttributeValueException | InvalidObjectException | RuntimeException ex) {
-            LOG.warn("Exception while setting attr {}", attr, ex);
-            throw new JMRuntimeException("Exception while setting attributes " + list + ", detail:\n"
+          Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
+                  "Exception while setting attr {}", attr);
+          Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
+              "Exception detail", ex);
+          throw new JMRuntimeException("Exception while setting attributes " + list + ", detail:\n"
                     + Throwables.toString(ex));
         }
       }
@@ -232,7 +243,10 @@ final class ExportedValuesMBean implements DynamicMBean {
     try {
       return exportedOperations.get(name).invoke(args);
     } catch (OpenDataException | InvalidObjectException | RuntimeException ex) {
-      LOG.warn("Exception while invoking operation {}({})", name, args, ex);
+      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
+              "Exception while invoking operation {0}({1})", new Object[] {name, args});
+      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
+              "Exception detail", ex);
       throw new MBeanException(null, "Exception invoking" + name + " with " +  Arrays.toString(args) + ", detail:\n"
               + Throwables.toString(ex));
     }
