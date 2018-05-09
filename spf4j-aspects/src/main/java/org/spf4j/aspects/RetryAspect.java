@@ -54,7 +54,7 @@ public final class RetryAspect {
 
   private static final ConcurrentMap<String, RetryPolicy> POLICIES = new ConcurrentHashMap<>();
 
-  @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(annot)",
+  @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(org.spf4j.annotations.Retry annot)",
           argNames = "pjp,annot")
   public Object retriedMethod(final ProceedingJoinPoint pjp, final Retry annot)
           throws Throwable {
