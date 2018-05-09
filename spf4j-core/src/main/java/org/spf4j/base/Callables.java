@@ -337,8 +337,8 @@ public final class Callables {
     public RetryDecision<R> getDecision(final T value, final Callable<R> callable) {
       long currentTime = currTimeSuplier.getAsLong();
       if (currentTime > deadline) {
-        return RetryDecision.abort(new TimeoutException("Deadline " + Instant.ofEpochMilli(deadline) + ' ' + tu
-                + " passed, current time is " + Instant.ofEpochMilli(currentTime) + ' ' + tu));
+        return RetryDecision.abort(new TimeoutException("Deadline " + Instant.ofEpochMilli(deadline)
+                + " passed, current time is " + Instant.ofEpochMilli(currentTime)));
       }
       if (retryRegistry == null) {
         retryRegistry = new HashMap<>();
