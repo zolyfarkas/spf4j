@@ -61,9 +61,8 @@ public final class PerformanceMonitorAspect {
             return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
         }
     });
-
     @Around(value = "execution(@org.spf4j.annotations.PerformanceMonitor * *(..))"
-            + " && @annotation(org.spf4j.annotations.PerformanceMonitor annot)",
+            + " && @annotation(annot)",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {
