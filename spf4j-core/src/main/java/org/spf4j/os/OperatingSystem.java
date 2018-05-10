@@ -215,6 +215,7 @@ public final class OperatingSystem {
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
     final Process proc = java.lang.Runtime.getRuntime().exec(command);
+    handler.started(proc);
     try (InputStream pos = proc.getInputStream();
             InputStream pes = proc.getErrorStream();
             OutputStream pis = proc.getOutputStream()) {

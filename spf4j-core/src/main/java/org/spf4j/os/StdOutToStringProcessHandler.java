@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.spf4j.base.Strings;
 
@@ -45,7 +46,17 @@ import org.spf4j.base.Strings;
  */
 public final class StdOutToStringProcessHandler implements ProcessHandler<String, String> {
 
-  private static final Logger LOG = Logger.getLogger(StdOutToStringProcessHandler.class.getName());
+  private Logger log;
+
+  public StdOutToStringProcessHandler() {
+    this.log = Logger.getLogger(StdOutToStringProcessHandler.class.getName());
+  }
+
+  public void started(final Process p) {
+    int pid = ProcessUtil.getPid(p);
+    log.log(Level.FINE, "Started {0} with pid={1} ", new Object[]{p, pid});
+    this.log = Logger.getLogger(log.getName() + '.' + pid);
+  }
 
   @Override
   public String handleStdOut(final InputStream stdout) throws IOException {
@@ -53,10 +64,10 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
     BufferedReader reader = new BufferedReader(new InputStreamReader(stdout, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      LOG.fine(line);
+      log.fine(line);
       result.append(line).append(Strings.EOL);
     }
-    LOG.fine("done with stdout");
+    log.fine("done with stdout");
     return result.toString();
   }
 
@@ -66,10 +77,10 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
     BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      LOG.severe(line);
+      log.severe(line);
       result.append(line).append(Strings.EOL);
     }
-    LOG.fine("done with stderr");
+    log.fine("done with stderr");
     return result.toString();
   }
 

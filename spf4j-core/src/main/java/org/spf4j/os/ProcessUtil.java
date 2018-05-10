@@ -31,59 +31,52 @@
  */
 package org.spf4j.os;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.WinNT;
+import java.lang.reflect.Field;
+import org.spf4j.base.UncheckedExecutionException;
 
 /**
+ * PID is exposed in jdk 9... this will go away.
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
-public final class LoggingProcessHandler implements ProcessHandler<Void, Void> {
+public final class ProcessUtil {
 
-  private Logger log;
+  private ProcessUtil() {}
 
-  public LoggingProcessHandler(final Logger log) {
-    this.log = log;
-  }
-
-  public void started(final Process p) {
-    int pid = ProcessUtil.getPid(p);
-    log.log(Level.FINE, "Started {0} with pid={1} ", new Object[]{p, pid});
-    this.log = Logger.getLogger(log.getName() + '.' + pid);
-  }  
-
-  @Override
-  @Nullable
-  public Void handleStdOut(final InputStream is) throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.defaultCharset()));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      log.fine(line);
+  public static int getPid(final Process p) {
+    if (org.spf4j.base.Runtime.isWindows()) {
+      return getWindowsPid(p);
     }
-    return null;
+    return getUnixPid(p);
   }
 
-  @Override
-  @Nullable
-  public Void handleStdErr(final InputStream stderr) throws IOException {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      log.severe(line);
+  private static int getUnixPid(final Process p) {
+    try {
+      Field pidF = p.getClass().getDeclaredField("pid");
+      pidF.setAccessible(true);
+      return pidF.getInt(p);
+    } catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {
+      throw new UncheckedExecutionException("Cannot get PID for " + p);
     }
-    return null;
   }
 
-  @Override
-  public String toString() {
-    return "LoggingProcessHandler{" + "log=" + log + '}';
+  private static int getWindowsPid(final Process p) {
+    Field f;
+    long lHandle;
+    try {
+      f = p.getClass().getDeclaredField("handle");
+      f.setAccessible(true);
+      lHandle = f.getLong(p);
+    } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
+      throw new UncheckedExecutionException("Cannot get PID for " + p);
+    }
+
+    Kernel32 kernel = Kernel32.INSTANCE;
+    WinNT.HANDLE handle = new WinNT.HANDLE();
+    handle.setPointer(Pointer.createConstant(lHandle));
+    return kernel.GetProcessId(handle);
   }
 
 }

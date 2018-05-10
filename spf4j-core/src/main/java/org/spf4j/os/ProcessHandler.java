@@ -54,4 +54,8 @@ public interface ProcessHandler<T, E> {
     // do nothing by default;
   }
 
+  default void started(Process p) {
+    // do nothing;
+  }
+
 }
