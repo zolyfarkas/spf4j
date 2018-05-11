@@ -43,7 +43,7 @@ import org.spf4j.base.UncheckedExecutionException;
  */
 public final class ProcessUtil {
 
-  private ProcessUtil() {}
+  private ProcessUtil() { }
 
   public static int getPid(final Process p) {
     if (org.spf4j.base.Runtime.isWindows()) {
@@ -58,7 +58,7 @@ public final class ProcessUtil {
       pidF.setAccessible(true);
       return pidF.getInt(p);
     } catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {
-      throw new UncheckedExecutionException("Cannot get PID for " + p);
+      throw new UncheckedExecutionException("Cannot get PID for " + p, ex);
     }
   }
 
@@ -70,7 +70,7 @@ public final class ProcessUtil {
       f.setAccessible(true);
       lHandle = f.getLong(p);
     } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
-      throw new UncheckedExecutionException("Cannot get PID for " + p);
+      throw new UncheckedExecutionException("Cannot get PID for " + p, ex);
     }
 
     Kernel32 kernel = Kernel32.INSTANCE;

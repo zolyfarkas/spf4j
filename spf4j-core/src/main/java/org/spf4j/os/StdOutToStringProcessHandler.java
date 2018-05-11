@@ -31,6 +31,7 @@
  */
 package org.spf4j.os;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,9 +42,9 @@ import java.util.logging.Logger;
 import org.spf4j.base.Strings;
 
 /**
- *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class StdOutToStringProcessHandler implements ProcessHandler<String, String> {
 
   private Logger log;
@@ -84,6 +85,9 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
     return result.toString();
   }
 
-
+  @Override
+  public String toString() {
+    return "StdOutToStringProcessHandler{" + "log=" + log + '}';
+  }
 
 }

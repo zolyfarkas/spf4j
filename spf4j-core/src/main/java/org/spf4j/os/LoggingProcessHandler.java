@@ -57,7 +57,7 @@ public final class LoggingProcessHandler implements ProcessHandler<Void, Void> {
     int pid = ProcessUtil.getPid(p);
     log.log(Level.FINE, "Started {0} with pid={1} ", new Object[]{p, pid});
     this.log = Logger.getLogger(log.getName() + '.' + pid);
-  }  
+  }
 
   @Override
   @Nullable
