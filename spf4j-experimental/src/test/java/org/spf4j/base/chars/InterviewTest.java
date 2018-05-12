@@ -53,4 +53,19 @@ public class InterviewTest {
     Assert.assertEquals((Integer) 4, Interview.secondLargest(node).get());
   }
 
+  @Test
+  public void testSubstract() {
+    CharSequence res = Interview.sub("123", "24");
+    Assert.assertEquals("99", res.toString());
+    res = Interview.sub("324123", "24");
+    Assert.assertEquals("324099", res.toString());
+    res = Interview.sub("0", "00");
+    Assert.assertEquals("0", res.toString());
+    res = Interview.sub("123", "123");
+    Assert.assertEquals("0", res.toString());
+    res = Interview.sub("24", "123");
+    Assert.assertEquals("-99", res.toString());
+  }
+
+
 }
