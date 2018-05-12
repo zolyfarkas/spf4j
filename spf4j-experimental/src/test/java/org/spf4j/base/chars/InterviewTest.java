@@ -15,6 +15,7 @@
  */
 package org.spf4j.base.chars;
 
+import java.math.BigDecimal;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -66,6 +67,26 @@ public class InterviewTest {
     res = Interview.sub("24", "123");
     Assert.assertEquals("-99", res.toString());
   }
+
+  @Test
+  public void testDivide() {
+    CharSequence res = Interview.divideInts("123", "24", 5);
+    LOG.debug("{}/{}={}", "123", "24", res);
+    Assert.assertEquals("5.125", res.toString());
+    res = Interview.divideInts("1", "3", 5);
+    LOG.debug("{}/{}={}", "1", "3", res);
+    Assert.assertEquals(".(3)", res.toString());
+    res = Interview.divideInts("100", "3", 5);
+    LOG.debug("{}/{}={}", "100", "3", res);
+    Assert.assertEquals("33.(3)", res.toString());
+    res = Interview.divideInts("1", "7", 10);
+    LOG.debug("{}/{}={}", "1", "7", res);
+    Assert.assertEquals(".(142857)", res.toString());
+    res = Interview.divideInts("7", "12", 10);
+    LOG.debug("{}/{}={}", "7", "12", res);
+    Assert.assertEquals(".58(3)", res.toString());
+  }
+
 
 
 }

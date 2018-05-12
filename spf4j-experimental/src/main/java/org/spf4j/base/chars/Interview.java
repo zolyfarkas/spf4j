@@ -20,16 +20,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
+import org.spf4j.base.CharSequences;
+import org.spf4j.base.Pair;
 
 /**
  * A set of interview questions for hands on phone screens.
+ *
  * @author Zoltan Farkas
  */
 public class Interview {
 
   /**
-   *  A string consists of ‘0’, ‘1’ and '?'. The question mark can be either '0' or '1'.
-   * Find all possible combinations for a string.
+   * A string consists of ‘0’, ‘1’ and '?'. The question mark can be either '0' or '1'. Find all possible combinations
+   * for a string.
+   * decent question for a 45 min interview.
+   *
    */
   public static void combinations(final CharSequence str, final Consumer<CharSequence> result) {
     StringBuilder sb = new StringBuilder(str);
@@ -66,14 +71,14 @@ public class Interview {
     } while (!carry);
   }
 
-
   public static class TreeNode<T extends Comparable> {
+
     T value;
     TreeNode<T> left;
     TreeNode<T> right;
   }
 
-  public static  <T extends Comparable> Optional<T> largest(@Nullable TreeNode<T> tree) {
+  public static <T extends Comparable> Optional<T> largest(@Nullable TreeNode<T> tree) {
     if (tree == null) {
       return Optional.empty();
     }
@@ -86,8 +91,10 @@ public class Interview {
 
   /**
    * return the second largest value from a BST.
+   * decent question for a 45 min interview.
+   *
    */
-  public static  <T extends Comparable> Optional<T> secondLargest(@Nullable TreeNode<T> tree) {
+  public static <T extends Comparable> Optional<T> secondLargest(@Nullable TreeNode<T> tree) {
     if (tree == null) {
       return Optional.empty();
     }
@@ -100,7 +107,6 @@ public class Interview {
     }
   }
 
-
   public static int trimLZeros(CharSequence a, int as, int ae) {
     int i = as;
     while (i < ae && a.charAt(i) == '0') {
@@ -109,6 +115,10 @@ public class Interview {
     return i;
   }
 
+  public static CharSequence trimLZeros(CharSequence a) {
+    int trimLZeros = trimLZeros(a, 0, a.length());
+    return a.subSequence(trimLZeros, a.length());
+  }
 
   /**
    * Compare 2 positive numbers.
@@ -136,6 +146,10 @@ public class Interview {
     }
   }
 
+  public static int comparePos(CharSequence a, CharSequence b) {
+    return comparePos(a, 0, a.length(), b, 0, b.length());
+  }
+
   /**
    * substract 2 positive integers where a > b
    */
@@ -146,13 +160,13 @@ public class Interview {
     for (int i = result.length() - 1, j = be - 1; i >= 0; i--, j--) {
       char c1 = result.charAt(i);
       char c2 = j >= bs ? b.charAt(j) : '0';
-      int val =  c1 - carry - c2;
+      int val = c1 - carry - c2;
       if (val < 0) {
         carry = 1;
-        result.setCharAt(i, (char)('0' + 10 + val));
+        result.setCharAt(i, (char) ('0' + 10 + val));
       } else {
         carry = 0;
-        result.setCharAt(i, (char)('0' + val));
+        result.setCharAt(i, (char) ('0' + val));
       }
     }
 
@@ -162,11 +176,16 @@ public class Interview {
 
   /**
    * Substract 2 positive numbers.
+   * decent question for a 45 min interview.
+   *
    * @param a
    * @param b
    * @return
    */
   public static CharSequence sub(final CharSequence a, final CharSequence b) {
+    if (CharSequences.equals(b, "0")) {
+      throw new IllegalArgumentException("divide by zero");
+    }
     int cmp = comparePos(a, 0, a.length(), b, 0, b.length());
     if (cmp > 0) {
       return subPosAB(a, 0, a.length(), b, 0, b.length());
@@ -177,18 +196,96 @@ public class Interview {
     }
   }
 
+  /**
+   * divide 2 positive integers where a > b and a < 10*b
+   */
+  private static Pair<Character, CharSequence>
+          divPosAB(CharSequence a, int as, int ae, CharSequence b, int bs, int be) {
+    CharSequence d = a;
+    int ds = as;
+    int de = ae;
+    int div = 0;
+    do {
+      d = subPosAB(d, ds, de, b, bs, be);
+      ds = 0;
+      de = d.length();
+      div++;
+    } while (comparePos(d, ds, de, b, bs, be) >= 0);
+    return Pair.of(Character.valueOf((char) ('0' + div)), d);
+  }
+
+  public static void divideInts(CharSequence pa,
+          CharSequence b, int maxPrec, boolean addDot,
+          List<Pair<CharSequence, Integer>> seq, final StringBuilder result) {
+    final CharSequence a = trimLZeros(pa);
+    b = trimLZeros(b);
+    if ("".equals(a)) {
+      return;
+    }
+    Optional<Pair<CharSequence, Integer>> first =
+            seq.stream().filter((p) -> CharSequences.equals(p.getFirst(), a)).findFirst();
+    if (first.isPresent()) {
+      result.insert(first.get().getSecond(), "(");
+      result.append(")");
+      return;
+    }
+    int bl = b.length();
+    int al = a.length();
+    if (al >= bl) {
+      int cmp = comparePos(a, 0, bl, b, 0, bl);
+      if (cmp > 0) {
+        if (!addDot) {
+          seq.add(Pair.of(a, result.length()));
+        }
+        Pair<Character, CharSequence> div = divPosAB(a, 0, bl, b, 0, bl);
+        result.append(div.getFirst());
+        divideInts(div.getSecond().toString() + a.subSequence(bl, al), b, maxPrec, addDot, seq, result);
+      } else {
+        if (al > bl) {
+          if (!addDot) {
+            seq.add(Pair.of(a, result.length()));
+          }
+          Pair<Character, CharSequence> div = divPosAB(a, 0, bl + 1, b, 0, bl);
+          result.append(div.getFirst());
+          divideInts(div.getSecond().toString() + a.subSequence(bl + 1, al), b, maxPrec, addDot, seq, result);
+        } else {
+          if (maxPrec <= 0) {
+            return;
+          }
+          if (addDot) {
+            result.append('.');
+          }
+          divideInts(a.toString() + "0", b, maxPrec - 1, false, seq, result);
+        }
+      }
+    } else {
+      if (maxPrec <= 0) {
+        return;
+      }
+      if (addDot) {
+        result.append('.');
+      }
+      divideInts(a.toString() + "0", b, maxPrec - 1, false, seq, result);
+    }
+  }
 
   /**
-   * divide 2 decimals.
+   * divide 2 decimals. detect repetitions and use parentheses.
+   * too much for a 45 min interview...
+   *
    * @param a
    * @param b
    * @return
    */
-  public static CharSequence divideInts(CharSequence a, CharSequence b) {
-    return null;
+  public static CharSequence divideInts(CharSequence a,
+          CharSequence b, int maxPrec) {
+    StringBuilder result = new StringBuilder(a.length());
+    return apppendDivideInts(a, b, maxPrec, result);
   }
 
-
-
+  public static CharSequence apppendDivideInts(CharSequence a, CharSequence b, int maxPrec, StringBuilder result) {
+    divideInts(a, b, maxPrec, true, new ArrayList<>(), result);
+    return result;
+  }
 
 }
