@@ -34,9 +34,15 @@ package org.spf4j.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.IntMath;
 import org.spf4j.base.Strings;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -100,29 +106,35 @@ public class PipedOutputStreamTest {
     Assert.assertEquals(testStr, sb.toString());
   }
 
-  @Test(expected = IOException.class)
-  public void testNoReaderBehaviour() throws IOException {
+  @Test
+  public void testNoReaderBehaviour() throws IOException, InterruptedException,
+          ExecutionException, TimeoutException {
     PipedOutputStream os = new PipedOutputStream(1024);
+    Future<Integer> nr;
+    int j = 0;
     try (PipedOutputStream pos = os) {
       pos.write(123);
-    } catch (IOException ex) {
-      throw new IOException("Stream=" + os, ex);
+      j++;
+      nr = DefaultExecutor.instance().submit(() -> {
+        try (InputStream is = pos.getInputStream()) {
+          int i = 0;
+          int val;
+          while ((val = is.read()) >= 0) {
+            Assert.assertEquals(123, val);
+            i++;
+          }
+          return i;
+        }
+      });
+      for (; j < 1999; j++) {
+        pos.write(123);
+      }
     }
+    Assert.assertEquals(j, nr.get(3, TimeUnit.SECONDS).intValue());
   }
 
-  @Test(expected = IOException.class)
-  public void testNoReaderBehaviourP() throws IOException {
-    PipedOutputStream pos = new PipedOutputStream(1024);
-    try {
-      pos.write(123);
-    } catch (IOException ex) {
-      throw new IOException("Stream=" + pos, ex);
-    } finally {
-      pos.close();
-    }
-  }
 
-  @Test(expected = IOException.class)
+  @Test
   public void testNoReaderBehaviour2() throws IOException {
     try (PipedOutputStream pos = new PipedOutputStream(1024)) {
       try (InputStream is = pos.getInputStream()) {
@@ -134,5 +146,18 @@ public class PipedOutputStreamTest {
       pos.write(123);
     }
   }
+
+  @Test(timeout = 2000, expected =IOTimeoutException.class)
+  public void testNoReaderTimeout() throws IOException {
+    try (ExecutionContext ctx = ExecutionContexts.start("tt", 1, TimeUnit.MILLISECONDS);
+            PipedOutputStream pos = new PipedOutputStream(10)) {
+      try (InputStream is = pos.getInputStream()) {
+        for (int i = 0; i < 11; i++) {
+          pos.write(123);
+        }
+      }
+    }
+  }
+
 
 }

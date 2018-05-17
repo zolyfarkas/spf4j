@@ -171,8 +171,6 @@ public final class PipedOutputStream extends OutputStream {
         }
         if (writerClosed) {
           throw new IOException("Cannot write, stream closed " + this);
-        } else if (nrReadStreams <= 0) {
-          throw new IOException("Broken pipe " + this);
         }
         a2w = Math.min(a2w, len - bytesWritten);
         int wrToEnd = Math.min(a2w, buffer.length - endIdx);
@@ -216,8 +214,6 @@ public final class PipedOutputStream extends OutputStream {
       }
       if (writerClosed) {
         throw new IOException("Cannot write stream closed " + this);
-      } else if (nrReadStreams <= 0) {
-        throw new IOException("Broken pipe " + this);
       }
       buffer[endIdx++] = (byte) b;
       if (endIdx >= buffer.length) {
