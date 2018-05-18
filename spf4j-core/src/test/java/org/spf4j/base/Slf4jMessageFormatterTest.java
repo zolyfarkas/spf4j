@@ -124,7 +124,19 @@ public class Slf4jMessageFormatterTest {
                     + "89012345678901234567890123456789012345678901234567890123456789");
     LOG.debug("formatted message: {}", sb);
     Assert.assertThat(sb.toString(), Matchers.containsString("...@"));
+  }
 
+  @Test
+  public void testFormatterRecursion() throws IOException {
+    StringBuilder builder = new StringBuilder();
+    Object[] arr = new Object[4];
+    arr[0] = "a";
+    arr[1] = arr;
+    arr[2] = "b";
+    arr[3] = arr;
+    Slf4jMessageFormatter.format(builder, "{} {}", (Object) arr, arr);
+    LOG.debug("", builder);
+    Assert.assertEquals("[a, [...], b, [...]] [a, [...], b, [...]]", builder.toString());
   }
 
 }
