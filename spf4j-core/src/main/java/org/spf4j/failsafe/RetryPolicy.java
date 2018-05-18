@@ -228,7 +228,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate) {
-      return withExceptionPartialPredicateSupplier((s, e) -> predicate);
+      return withExceptionPartialPredicateSupplier(TimedSupplier.constant(predicate));
     }
 
     @CheckReturnValue
@@ -292,7 +292,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     @CheckReturnValue
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate) {
-      resultPredicates.add((s, e) -> predicate);
+      resultPredicates.add(TimedSupplier.constant(predicate));
       return this;
     }
 

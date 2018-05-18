@@ -17,7 +17,7 @@ package org.spf4j.test.log;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,8 +35,10 @@ public class LogConfigImplTest {
     LogPrinter h3 = new LogPrinter(Level.DEBUG);
     LogPrinter h4 = new LogPrinter(Level.ERROR);
     LogPrinter h5 = new LogPrinter(Level.DEBUG);
-    LogConfigImpl cfg = new LogConfigImpl(ImmutableList.of(h1), ImmutableMap.of("a.b", Arrays.asList(h2),
-            "a.c", Arrays.asList(h3), "c.d", Arrays.asList(h4)));
+    LogConfigImpl cfg = new LogConfigImpl(ImmutableList.of(h1),
+            ImmutableMap.of("a.b", Collections.singletonList(h2),
+            "a.c", Collections.singletonList(h3),
+            "c.d", Collections.singletonList(h4)));
     LogConsumer handler = cfg.getLogConsumer("a", Level.DEBUG);
     Assert.assertNull(handler);
     List<LogHandler> handlers = ((CompositeLogHandler) cfg.getLogConsumer("a", Level.INFO)).logHandlers;

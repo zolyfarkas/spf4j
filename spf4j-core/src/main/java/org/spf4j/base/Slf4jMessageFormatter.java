@@ -264,8 +264,7 @@ public final class Slf4jMessageFormatter {
           final Object[] a, final Set<Object[]> seen,
           final ObjectAppenderSupplier appSupplier) throws IOException {
     sbuf.append('[');
-    if (!seen.contains(a)) {
-      seen.add(a);
+    if (seen.add(a)) {
       final int len = a.length;
       if (len > 0) {
         deeplyAppendParameter(exHandler, sbuf, a[0], seen, appSupplier);

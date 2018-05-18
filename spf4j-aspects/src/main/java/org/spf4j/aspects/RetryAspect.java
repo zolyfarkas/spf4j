@@ -32,6 +32,7 @@
 package org.spf4j.aspects;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -56,6 +57,7 @@ public final class RetryAspect {
 
   @Around(value = "execution(@org.spf4j.annotations.Retry * *(..)) && @annotation(org.spf4j.annotations.Retry annot)",
           argNames = "pjp,annot")
+  @SuppressFBWarnings("FII_USE_METHOD_REFERENCE")
   public Object retriedMethod(final ProceedingJoinPoint pjp, final Retry annot)
           throws Throwable {
     try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeout(), annot.units())) {

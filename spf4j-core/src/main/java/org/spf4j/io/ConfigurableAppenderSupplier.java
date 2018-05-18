@@ -60,7 +60,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   private final CachingTypeMapWrapper<ObjectAppender> appenderMap;
 
   public ConfigurableAppenderSupplier() {
-    this(true, x -> false);
+    this(true, (t) -> false);
   }
 
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")

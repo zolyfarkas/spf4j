@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.impl.chart;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -60,6 +61,7 @@ public final class Charts {
   private Charts() {
   }
 
+  @SuppressFBWarnings("CE_CLASS_ENVY")
   public static JFreeChart createHeatJFreeChart(final String[] dsNames, final double[][] values,
           final long startTimeMillis, final long stepMillis, final String uom, final String chartName) {
     final QuantizedXYZDatasetImpl dataSet = new QuantizedXYZDatasetImpl(dsNames, values,

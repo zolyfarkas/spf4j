@@ -48,7 +48,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -254,13 +254,13 @@ public final class CsvTest {
   @Test
   public void testCsvRowParsing() throws IOException, CsvParseException {
     List<String> readRow = Csv.readRow(new StringReader(""));
-    Assert.assertEquals(Arrays.asList(""), readRow);
+    Assert.assertEquals(Collections.singletonList(""), readRow);
   }
 
   @Test
   public void testCsvRowParsing2() throws IOException, CsvParseException {
     List<String> readRow = Csv.readRow(CharSource.wrap("").openStream());
-    Assert.assertEquals(Arrays.asList(""), readRow);
+    Assert.assertEquals(Collections.singletonList(""), readRow);
   }
 
   @Test

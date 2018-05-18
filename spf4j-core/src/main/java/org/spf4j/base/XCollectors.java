@@ -99,7 +99,7 @@ public final class XCollectors {
 
   @SuppressWarnings("unchecked")
   private static <I, R> Function<I, R> castingIdentity() {
-    return i -> (R) i;
+    return (Function<I, R>) Function.identity();
   }
 
   static final class CollectorImpl<T, A, R> implements Collector<T, A, R> {

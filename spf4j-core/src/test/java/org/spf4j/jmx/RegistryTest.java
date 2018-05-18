@@ -36,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +169,7 @@ public final class RegistryTest {
     public TableDef getTableDef() {
       return TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
               .setSampleTime(10)
-              .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+              .setColumns(Collections.singletonList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                       .setDescription("bla").setUnitOfMeasurement("um").build())).build();
 
     }

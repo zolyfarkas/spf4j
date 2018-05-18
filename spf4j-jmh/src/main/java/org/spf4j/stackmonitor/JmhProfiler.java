@@ -35,7 +35,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -58,134 +57,131 @@ import org.spf4j.ssdump2.Converter;
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class JmhProfiler implements InternalProfiler {
 
-    /**
-     * Sampling period
-     */
-    private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 10);
+  /**
+   * Sampling period
+   */
+  private static final int SAMPLE_PERIOD_MSEC = Integer.getInteger("jmh.stack.period", 10);
 
-    private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
+  private static final String DUMP_FOLDER = System.getProperty("jmh.stack.profiles", org.spf4j.base.Runtime.USER_DIR);
 
-    private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
-            (t) -> new FastStackCollector(false, true, new Thread[] {t}));
+  private static final Sampler SAMPLER = new Sampler(SAMPLE_PERIOD_MSEC, Integer.MAX_VALUE,
+          (t) -> new FastStackCollector(false, true, new Thread[]{t}));
 
-    private static volatile String benchmarkName;
+  private static volatile String benchmarkName;
 
-    public static Sampler getStackSampler() {
-        return SAMPLER;
+  public static Sampler getStackSampler() {
+    return SAMPLER;
+  }
+
+  public static String benchmarkName() {
+    return benchmarkName;
+  }
+
+  @Override
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+  public void beforeIteration(final BenchmarkParams benchmarkParams, final IterationParams iterationParams) {
+    benchmarkName = benchmarkParams.id();
+    SAMPLER.start();
+  }
+
+  @Override
+  @Nonnull
+  public Collection<? extends Result> afterIteration(final BenchmarkParams benchmarkParams,
+          final IterationParams iterationParams, final IterationResult ir) {
+    try {
+      SAMPLER.stop();
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      return Collections.EMPTY_LIST;
+    }
+    Map<String, SampleNode> c = SAMPLER.getStackCollectionsAndReset();
+    if (c.isEmpty()) {
+      return Collections.EMPTY_LIST;
+    }
+    SampleNode collected = c.values().iterator().next();
+    try {
+      return Collections.singletonList(new StackResult(collected, benchmarkParams.id(), true));
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  @Override
+  public String getDescription() {
+    return "spf4j stack sampler";
+  }
+
+  public static final class StackResult extends Result<StackResult> {
+
+    private static final long serialVersionUID = 1L;
+
+    private final SampleNode samples;
+    private final String benchmark;
+
+    public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
+            throws IOException {
+      super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
+      this.samples = samples;
+      this.benchmark = benchmark;
+      if (!isIteration) {
+        String fileName = DUMP_FOLDER + '/' + benchmark + ".ssdump2";
+        Converter.save(new File(fileName), samples);
+      }
     }
 
-    public static String benchmarkName() {
-        return benchmarkName;
+    public SampleNode getSamples() {
+      return samples;
+    }
+
+    public String getBenchmark() {
+      return benchmark;
     }
 
     @Override
-    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-    public void beforeIteration(final BenchmarkParams benchmarkParams, final IterationParams iterationParams) {
-        benchmarkName = benchmarkParams.id();
-        SAMPLER.start();
+    protected Aggregator<StackResult> getThreadAggregator() {
+      return new StackAggregator();
     }
 
     @Override
-    @Nonnull
-    public Collection<? extends Result> afterIteration(final BenchmarkParams benchmarkParams,
-            final IterationParams iterationParams, final IterationResult ir) {
-        try {
-            SAMPLER.stop();
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            return Collections.EMPTY_LIST;
-        }
-        Map<String, SampleNode> c = SAMPLER.getStackCollectionsAndReset();
-        if (c.isEmpty()) {
-          return Collections.EMPTY_LIST;
-        }
-        SampleNode collected = c.values().iterator().next();
-        try {
-            return Arrays.asList(new StackResult(collected, benchmarkParams.id(), true));
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+    protected Aggregator<StackResult> getIterationAggregator() {
+      return new StackAggregator();
     }
 
     @Override
-    public String getDescription() {
-        return "spf4j stack sampler";
+    public String toString() {
+      return "<delayed till summary>";
     }
 
-    public static final class StackResult extends Result<StackResult> {
+  }
 
-        private static final long serialVersionUID = 1L;
+  public static final class StackAggregator implements Aggregator<StackResult> {
 
-        private final SampleNode samples;
-        private final String benchmark;
-
-
-        public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
-        throws IOException {
-            super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
-            this.samples = samples;
-            this.benchmark = benchmark;
-            if (!isIteration) {
-                String fileName = DUMP_FOLDER + '/' + benchmark + ".ssdump2";
-                Converter.save(new File(fileName), samples);
-            }
+    @Override
+    public StackResult aggregate(final Collection<StackResult> results) {
+      if (results.isEmpty()) {
+        throw new IllegalArgumentException("Nothig to aggregate: " + results);
+      } else if (results.size() == 1) {
+        return results.iterator().next();
+      }
+      Iterator<StackResult> it = results.iterator();
+      StackResult result = it.next();
+      SampleNode agg = result.getSamples();
+      final String benchmark = result.getBenchmark();
+      while (it.hasNext()) {
+        result = it.next();
+        String obenchmark = result.getBenchmark();
+        if (!benchmark.equals(obenchmark)) {
+          throw new Spf4jProfilerException("Should not aggregate " + benchmark + " with " + obenchmark);
         }
-
-
-        public SampleNode getSamples() {
-            return samples;
-        }
-
-        public String getBenchmark() {
-            return benchmark;
-        }
-
-        @Override
-        protected Aggregator<StackResult> getThreadAggregator() {
-            return new StackAggregator();
-        }
-
-        @Override
-        protected Aggregator<StackResult> getIterationAggregator() {
-            return new StackAggregator();
-        }
-
-        @Override
-        public String toString() {
-            return "<delayed till summary>";
-        }
-
-
+        agg = SampleNode.aggregate(agg, result.getSamples());
+      }
+      try {
+        return new StackResult(agg, benchmark, false);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
     }
 
-    public static final class StackAggregator implements Aggregator<StackResult> {
-
-        @Override
-        public StackResult aggregate(final Collection<StackResult> results) {
-            if (results.isEmpty()) {
-                throw new IllegalArgumentException("Nothig to aggregate: " + results);
-          } else if (results.size() == 1) {
-            return results.iterator().next();
-          }
-            Iterator<StackResult> it = results.iterator();
-            StackResult result = it.next();
-            SampleNode agg = result.getSamples();
-            final String benchmark = result.getBenchmark();
-            while (it.hasNext()) {
-                result = it.next();
-                String obenchmark = result.getBenchmark();
-                if (!benchmark.equals(obenchmark)) {
-                    throw new Spf4jProfilerException("Should not aggregate " + benchmark + " with " + obenchmark);
-                }
-                agg = SampleNode.aggregate(agg, result.getSamples());
-            }
-            try {
-                return new StackResult(agg, benchmark, false);
-            } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
-            }
-        }
-
-    }
+  }
 
 }

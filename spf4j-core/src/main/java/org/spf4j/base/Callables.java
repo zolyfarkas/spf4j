@@ -46,7 +46,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.failsafe.PartialExceptionRetryPredicate;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -56,8 +55,6 @@ import org.spf4j.failsafe.PartialExceptionRetryPredicate;
 @ParametersAreNonnullByDefault
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Callables {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Callables.class);
 
   /**
    * @deprecated use RetryPolicy
@@ -79,16 +76,7 @@ public final class Callables {
    */
   @Deprecated
   public static final AdvancedRetryPredicate<Exception> DEFAULT_EXCEPTION_RETRY
-          = new AdvancedRetryPredicate<Exception>() {
-    @Override
-    public AdvancedAction apply(@Nonnull final Exception input) {
-      if (Throwables.isRetryable(input)) {
-        LOG.debug("Exception encountered, retrying...", input);
-        return AdvancedAction.RETRY;
-      }
-      return AdvancedAction.ABORT;
-    }
-  };
+          = new DefaultAdvancedRetryPredicateImpl();
 
   /**
    * @deprecated use RetryPolicy
@@ -107,30 +95,7 @@ public final class Callables {
 
   private Callables() { }
 
-  /**
-   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
-   */
-  @Deprecated
-  public static PartialExceptionRetryPredicate<?, ? extends Callable<?>> toFailsafePredicate(
-          final AdvancedRetryPredicate<Exception> oldStyle) {
-    return new PartialExceptionRetryPredicate<Object, Callable<? extends Object>>() {
-      @Override
-      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
-        AdvancedAction aa = oldStyle.apply(value);
-        switch (aa) {
-          case ABORT:
-            return org.spf4j.failsafe.RetryDecision.abort();
-          case RETRY:
-          case RETRY_DELAYED:
-            return org.spf4j.failsafe.RetryDecision.retryDefault(what);
-          case RETRY_IMMEDIATE:
-            return org.spf4j.failsafe.RetryDecision.retry(0, what);
-          default:
-            throw new IllegalStateException("Invalid enum value " + aa);
-        }
-      }
-    };
-  }
+
 
 
   /**
@@ -761,7 +726,7 @@ public final class Callables {
     };
   }
 
-  public static long overflowSafeAdd(final long currentTime, final long timeout) {
+  static long overflowSafeAdd(final long currentTime, final long timeout) {
     if (currentTime < 0) {
       throw new IllegalArgumentException("Time must be positive, not " + currentTime);
     }
@@ -775,5 +740,49 @@ public final class Callables {
       return Long.MAX_VALUE;
     }
   }
+
+  public static <V> Callable<V> memorized(final Callable<V> source) {
+    return new MemorizedCallable<>(source);
+  }
+
+  public static <V> Callable<V> constant(final V value) {
+    return new ConstCallable(value);
+  }
+
+  private static final class ConstCallable<V> implements Callable<V> {
+
+    private final V value;
+
+    ConstCallable(final V value) {
+      this.value = value;
+    }
+
+    @Override
+    public V call() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return "ConstCallable{" + value + '}';
+    }
+  }
+
+  @Deprecated
+  private static final class DefaultAdvancedRetryPredicateImpl implements AdvancedRetryPredicate<Exception> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAdvancedRetryPredicateImpl.class);
+
+    @Override
+    public AdvancedAction apply(@Nonnull final Exception input) {
+      if (Throwables.isRetryable(input)) {
+        LOG.debug("Exception encountered, retrying...", input);
+        return AdvancedAction.RETRY;
+      }
+      return AdvancedAction.ABORT;
+    }
+  }
+
+
 
 }

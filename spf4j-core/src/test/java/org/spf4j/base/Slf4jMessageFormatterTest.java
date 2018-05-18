@@ -127,6 +127,7 @@ public class Slf4jMessageFormatterTest {
   }
 
   @Test
+  @SuppressFBWarnings({ "LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS", "UCC_UNRELATED_COLLECTION_CONTENTS" })
   public void testFormatterRecursion() throws IOException {
     StringBuilder builder = new StringBuilder();
     Object[] arr = new Object[4];

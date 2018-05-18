@@ -35,11 +35,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 
 /**
- *
+ * use Callables.memorize to create a instance.
  * @author zoly
  */
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
-public final class MemorizedCallable<V> implements Callable<V> {
+final class MemorizedCallable<V> implements Callable<V> {
 
     private static final Object NOTHING = new Object();
 
@@ -47,7 +47,7 @@ public final class MemorizedCallable<V> implements Callable<V> {
 
     private final Callable<V> callable;
 
-    public MemorizedCallable(final Callable<V> callable) {
+    MemorizedCallable(final Callable<V> callable) {
         this.callable = callable;
         value = (V) NOTHING;
     }

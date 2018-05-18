@@ -15,6 +15,9 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.function.Supplier;
+
 /**
  * @author Zoltan Farkas
  */
@@ -22,5 +25,25 @@ package org.spf4j.failsafe;
 public interface TimedSupplier<T> {
 
   T get(long startTimeNanos, long deadlineNanos);
+
+  static <T> TimedSupplier<T> constant(T value) {
+    return new TimedSupplier<T>() {
+      @Override
+      public T get(final long startTimeNanos, final long deadlineNanos) {
+        return value;
+      }
+
+      @Override
+      public String toString() {
+        return "ConstTimedSupplier{" + value + '}';
+      }
+    };
+  }
+
+  @SuppressFBWarnings("FII_USE_METHOD_REFERENCE")
+  static <T> TimedSupplier<T> fromSupplier(Supplier<T> supplier) {
+       return (s, e) -> supplier.get();
+  }
+
 
 }

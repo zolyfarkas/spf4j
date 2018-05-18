@@ -16,6 +16,7 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import org.spf4j.base.Callables;
 
 /**
  *
@@ -24,5 +25,33 @@ import java.util.concurrent.Callable;
 @FunctionalInterface
 public interface PartialExceptionRetryPredicate<T, C extends Callable<? extends T>>
         extends PartialTypedExceptionRetryPredicate<T, C, Exception> {
+
+  /**
+   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
+   */
+  @Deprecated
+  static PartialExceptionRetryPredicate<?, ? extends Callable<?>> from(
+          final Callables.AdvancedRetryPredicate<Exception> oldStyle) {
+    return new PartialExceptionRetryPredicate<Object, Callable<? extends Object>>() {
+      @Override
+      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
+        Callables.AdvancedAction aa = oldStyle.apply(value);
+        switch (aa) {
+          case ABORT:
+            return org.spf4j.failsafe.RetryDecision.abort();
+          case RETRY:
+          case RETRY_DELAYED:
+            return org.spf4j.failsafe.RetryDecision.retryDefault(what);
+          case RETRY_IMMEDIATE:
+            return org.spf4j.failsafe.RetryDecision.retry(0, what);
+          default:
+            throw new IllegalStateException("Invalid enum value " + aa);
+        }
+      }
+    };
+  }
+
+
+
 
 }

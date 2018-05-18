@@ -39,7 +39,7 @@ import java.io.File;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -98,7 +98,7 @@ public class OpenTypeConverterTest {
     TableDef[] defs = new TableDef[]{
       TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
               .setSampleTime(10)
-              .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+              .setColumns(Collections.singletonList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                       .setDescription("bla").setUnitOfMeasurement("um").build())).build()
     };
     Object toOpenValue = mxBeanMapping2.toOpenValue(defs);
@@ -113,7 +113,7 @@ public class OpenTypeConverterTest {
     Object toOpenValue = mxBeanMapping2.toOpenValue(ImmutableSet.of(
             TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
                     .setSampleTime(10)
-                    .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                    .setColumns(Collections.singletonList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                             .setDescription("bla").setUnitOfMeasurement("um").build())).build()
     ));
     LOG.debug("OpenValue = {}", toOpenValue);
@@ -130,7 +130,7 @@ public class OpenTypeConverterTest {
     Object toOpenValue = mxBeanMapping2.toOpenValue(ImmutableSet.of(
             TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
                     .setSampleTime(10)
-                    .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+                    .setColumns(Collections.singletonList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                             .setDescription("bla").setUnitOfMeasurement("um").build())).build()
     ));
     LOG.debug("To open value: {}", toOpenValue);
@@ -144,7 +144,8 @@ public class OpenTypeConverterTest {
     JMXBeanMapping mxBeanMapping2 = conv.get((new TypeToken<List<ColumnDef>>() {
     }).getType());
     Assert.assertNotNull(mxBeanMapping2);
-    Object ov = mxBeanMapping2.toOpenValue(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+    Object ov = mxBeanMapping2.toOpenValue(Collections.singletonList(
+            ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
             .setDescription("bla").setUnitOfMeasurement("um").build()));
     LOG.debug("OpenValue = {}", ov);
     mxBeanMapping2.fromOpenValue(ov);
@@ -214,7 +215,7 @@ public class OpenTypeConverterTest {
     Object ov = mxBeanMapping2.toOpenValue(
             Pair.of(3, TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
             .setSampleTime(10)
-            .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+            .setColumns(Collections.singletonList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                     .setDescription("bla").setUnitOfMeasurement("um").build())).build()));
     ComparablePair<Integer, TableDef> pair
             = (ComparablePair<Integer, TableDef>) mxBeanMapping2.fromOpenValue(ov);
@@ -228,9 +229,9 @@ public class OpenTypeConverterTest {
             }).getType());
     Assert.assertNotNull(mxBeanMapping2);
     Object ov = mxBeanMapping2.toOpenValue(
-            Arrays.asList(Pair.of(3, TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
+            Collections.singletonList(Pair.of(3, TableDef.newBuilder().setId(4).setDescription("bla").setName("name")
             .setSampleTime(10)
-            .setColumns(Arrays.asList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
+            .setColumns(Collections.singletonList(ColumnDef.newBuilder().setName("bla").setType(Type.LONG)
                     .setDescription("bla").setUnitOfMeasurement("um").build())).build())));
     List<ComparablePair<Integer, TableDef>> res
             = (List<ComparablePair<Integer, TableDef>>) mxBeanMapping2.fromOpenValue(ov);

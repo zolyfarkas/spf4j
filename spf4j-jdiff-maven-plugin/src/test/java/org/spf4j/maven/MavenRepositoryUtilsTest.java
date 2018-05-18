@@ -16,7 +16,7 @@
 package org.spf4j.maven;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -42,21 +42,21 @@ public class MavenRepositoryUtilsTest {
           throws VersionRangeResolutionException, ArtifactResolutionException, DependencyResolutionException {
     File localRepo = new File(System.getProperty("user.home"), ".m2/repository");
     RemoteRepository mavenCentralRepository = MavenRepositoryUtils.getDefaultRepository();
-    List<Version> versions = MavenRepositoryUtils.getVersions(Arrays.asList(mavenCentralRepository), localRepo,
-            "org.spf4j", "spf4j-core", "[8.3,]");
+    List<Version> versions = MavenRepositoryUtils.getVersions(Collections.singletonList(mavenCentralRepository),
+            localRepo, "org.spf4j", "spf4j-core", "[8.3,]");
     LOG.debug("Versions = {}", versions);
     String oldest = versions.get(0).toString();
     Assert.assertEquals("8.3.1", oldest);
-    versions = MavenRepositoryUtils.getVersions(Arrays.asList(mavenCentralRepository), localRepo,
+    versions = MavenRepositoryUtils.getVersions(Collections.singletonList(mavenCentralRepository), localRepo,
             "org.spf4j", "spf4j-core", "[,8.3.9-SNAPSHOT)");
     LOG.debug("Versions = {}", versions);
-    File resolveArtifact = MavenRepositoryUtils.resolveArtifact(Arrays.asList(mavenCentralRepository), localRepo,
-            "org.spf4j", "spf4j-core", "sources", "jar", oldest);
+    File resolveArtifact = MavenRepositoryUtils.resolveArtifact(Collections.singletonList(mavenCentralRepository),
+            localRepo, "org.spf4j", "spf4j-core", "sources", "jar", oldest);
     LOG.debug("Artifact file = {}", resolveArtifact);
     Assert.assertTrue(resolveArtifact.canRead());
 
-    Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies(Arrays.asList(mavenCentralRepository),
-            localRepo, "compile",
+    Set<File> deps = MavenRepositoryUtils.resolveArtifactAndDependencies(
+            Collections.singletonList(mavenCentralRepository), localRepo, "compile",
             "jdiff", "jdiff", null, "jar", "1.0.9");
     LOG.debug("Dependency files = {}", deps);
   }

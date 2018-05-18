@@ -147,7 +147,7 @@ public class PipedOutputStreamTest {
     }
   }
 
-  @Test(timeout = 2000, expected =IOTimeoutException.class)
+  @Test(timeout = 2000, expected = IOTimeoutException.class)
   public void testNoReaderTimeout() throws IOException {
     try (ExecutionContext ctx = ExecutionContexts.start("tt", 1, TimeUnit.MILLISECONDS);
             PipedOutputStream pos = new PipedOutputStream(10)) {

@@ -297,6 +297,7 @@ final class ExportedValuesMBean implements DynamicMBean {
             attrs, null, operations, null);
   }
 
+  @SuppressFBWarnings("CE_CLASS_ENVY")
   private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
     final Type oClass = val.getValueType();
     Class<?> valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;

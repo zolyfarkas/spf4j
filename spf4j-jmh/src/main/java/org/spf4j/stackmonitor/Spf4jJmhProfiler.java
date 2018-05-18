@@ -34,7 +34,6 @@ package org.spf4j.stackmonitor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -124,7 +123,7 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
       default:
         throw new IllegalStateException("Unknown type of iteration " + itType);
     }
-    return Arrays.asList(new StackResult(collected, benchmarkParams.id(), iterationId));
+    return Collections.singletonList(new StackResult(collected, benchmarkParams.id(), iterationId));
   }
 
   @Override

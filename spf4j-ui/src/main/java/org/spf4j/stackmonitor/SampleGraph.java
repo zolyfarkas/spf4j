@@ -38,8 +38,10 @@ import com.google.common.graph.ElementOrder;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.spf4j.base.Method;
@@ -85,26 +87,39 @@ public final class SampleGraph {
 
   }
 
-  public static final class SampleVertex {
+  @SuppressWarnings("checkstyle:VisibilityModifier")
+  public static class SampleVertex {
 
     private final SampleVertexKey key;
-    private int nrSamples;
+    protected int nrSamples;
 
     public SampleVertex(final SampleVertexKey key, final int nrSamples) {
       this.key = key;
       this.nrSamples = nrSamples;
     }
 
-    public SampleVertexKey getKey() {
+    public final SampleVertexKey getKey() {
       return key;
     }
 
-    public int getNrSamples() {
+    public final int getNrSamples() {
       return nrSamples;
     }
 
   }
 
+  public static final class AggSampleVertex extends SampleVertex {
+
+    public AggSampleVertex(final SampleVertexKey key, final int nrSamples) {
+      super(key, nrSamples);
+    }
+
+    public int addSamples(final int pnrSamples) {
+     this.nrSamples += pnrSamples;
+     return this.nrSamples;
+    }
+
+  }
 
   private static final class Traversal {
 
@@ -121,28 +136,36 @@ public final class SampleGraph {
   }
 
   private final SetMultimap<SampleVertexKey, SampleVertex> vertexMap;
+  private final Map<SampleVertexKey, AggSampleVertex> aggregates;
 
+  /**
+   * A graph representation of the stack trace tree.
+   */
   private final MutableGraph<SampleVertex> sg;
+
+  /**
+   * An aggreagated representation of the stack trace tree;
+   */
+  private final MutableGraph<AggSampleVertex> aggGraph;
 
   private final SampleVertex rootVertex;
 
 
   public SampleGraph(final Method m, final SampleNode node) {
-    vertexMap = MultimapBuilder.hashKeys().hashSetValues(1).build();
     int nrNodes = node.getNrNodes();
+    vertexMap = MultimapBuilder.hashKeys(nrNodes).hashSetValues(1).build();
+    aggregates = new THashMap<>(nrNodes);
     sg = GraphBuilder.directed()
+            .nodeOrder(ElementOrder.unordered())
+            .expectedNodeCount(nrNodes)
+            .build();
+    aggGraph = GraphBuilder.directed()
             .nodeOrder(ElementOrder.unordered())
             .expectedNodeCount(nrNodes)
             .build();
     rootVertex = tree2Graph(m, node);
   }
 
-  public SampleGraph(final SetMultimap<SampleVertexKey, SampleVertex> vertexMap,
-          final MutableGraph<SampleVertex> sg, final SampleVertex rootVertex) {
-    this.vertexMap = vertexMap;
-    this.sg = sg;
-    this.rootVertex = rootVertex;
-  }
 
 
 
@@ -178,6 +201,9 @@ public final class SampleGraph {
     if (!vertexMap.put(parentVertex.key, parentVertex)) {
       throw new IllegalStateException();
     }
+    AggSampleVertex aggSampleVertex = new AggSampleVertex(parentVertex.key, parentVertex.nrSamples);
+    aggGraph.addNode(aggSampleVertex);
+    aggregates.put(parentVertex.key, aggSampleVertex);
     Deque<Traversal> dq = new ArrayDeque<>();
     TMap<Method, SampleNode> subNodes = node.getSubNodes();
     if (subNodes != null) {
@@ -188,15 +214,25 @@ public final class SampleGraph {
     }
     Traversal t;
     while ((t = dq.pollLast()) != null) {
-      SampleVertex vtx = new SampleVertex(new SampleVertexKey(t.method, computeMethodIdx(t.parent, t.method)),
-              t.node.getSampleCount());
+      SampleVertexKey vtxk = new SampleVertexKey(t.method, computeMethodIdx(t.parent, t.method));
+      SampleVertex vtx = new SampleVertex(vtxk, t.node.getSampleCount());
       if (!sg.addNode(vtx)) {
         throw new IllegalStateException();
       }
-      if (!sg.putEdge(t.parent, vtx)) {
+      if (!vertexMap.put(vtx.key, vtx)) {
         throw new IllegalStateException();
       }
-      if (!vertexMap.put(vtx.key, vtx)) {
+      AggSampleVertex aggParent = aggregates.get(t.parent.key);
+      AggSampleVertex current = aggregates.get(vtxk);
+      if (current == null) {
+        current = new AggSampleVertex(vtxk, vtx.nrSamples);
+        aggGraph.addNode(current);
+        aggregates.put(vtxk, current);
+      } else {
+        current.addSamples(vtx.nrSamples);
+      }
+      aggGraph.putEdge(aggParent, current);
+      if (!sg.putEdge(t.parent, vtx)) {
         throw new IllegalStateException();
       }
       TMap<Method, SampleNode> subNodes2 = t.node.getSubNodes();
@@ -210,13 +246,6 @@ public final class SampleGraph {
     return parentVertex;
   }
 
-  public SetMultimap<SampleVertexKey, SampleVertex> getVertexMap() {
-    return vertexMap;
-  }
-
-  public MutableGraph<SampleVertex> getSg() {
-    return sg;
-  }
 
   public SampleVertex getRootVertex() {
     return rootVertex;

@@ -182,7 +182,7 @@ public class RetryPolicyTest {
     AsyncRetryExecutor<Response, ServerCall> rp = buildRetryExecutor();
     Server server = new Server();
     Response response1 = new Response(Response.Type.OK, "");
-    server.setResponse("url1", (r) -> response1);
+    server.setResponse("url1", (x) -> response1);
     server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
     server.setResponse("url3", (r) -> new Response(Response.Type.ERROR, "boooo"));
     testSyncRetry(server, rp, response1);
@@ -193,7 +193,7 @@ public class RetryPolicyTest {
     AsyncRetryExecutor<Response, ServerCall> rp = buildRetryExecutor();
     Server server = new Server();
     Response response1 = new Response(Response.Type.OK, "");
-    server.setResponse("url1", (r) -> response1);
+    server.setResponse("url1", (x) -> response1);
     server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
     server.setResponse("url3", (r) -> new Response(Response.Type.ERROR, "boooo"));
     testASyncRetry(server, rp, response1);
