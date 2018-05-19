@@ -40,8 +40,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
@@ -54,8 +52,6 @@ import org.spf4j.concurrent.DefaultExecutor;
  * @author zoly
  */
 public class PipedOutputStreamTest {
-
-  private static final Logger LOG = LoggerFactory.getLogger(PipedOutputStreamTest.class);
 
   @Test
   public void testStreamPiping() throws IOException {
@@ -133,7 +129,6 @@ public class PipedOutputStreamTest {
       for (; j < 1999; j++) {
         pos.write(123);
       }
-      LOG.debug("PipedOutputStream = {}", pos);
     }
     Assert.assertEquals(j, nr.get(3, TimeUnit.SECONDS).intValue());
   }
