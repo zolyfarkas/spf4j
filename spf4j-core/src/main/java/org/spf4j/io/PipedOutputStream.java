@@ -293,6 +293,9 @@ public final class PipedOutputStream extends OutputStream {
   @DischargesObligation
   public void close(final Exception ex) {
     synchronized (sync) {
+      if (closedException != null) {
+        ex.addSuppressed(closedException);
+      }
       closedException = ex;
       close();
     }
