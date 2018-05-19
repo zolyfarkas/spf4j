@@ -99,7 +99,7 @@ public final class CALLREF extends Instruction {
                     case DETERMINISTIC:
                         nctx = context.getSyncSubProgramContext(p, parameters);
                         obj = context.getResultCache().getResult(p, Arrays.asList(parameters),
-                                () -> nctx.call());
+                                nctx::call);
 
                         break;
                     case NONDETERMINISTIC:

@@ -36,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nonnull;
@@ -237,7 +238,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   }
 
   public void suspend(final VMFuture<Object> future) throws SuspendedException {
-    suspendedAt = Arrays.asList(future);
+    suspendedAt = Collections.singletonList(future);
     throw SuspendedException.INSTANCE;
   }
 

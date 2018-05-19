@@ -66,7 +66,7 @@ public final class CALLA extends Instruction {
                     nctx = context.getSubProgramContext(p, nrParameters);
                     context.pop();
                     List<Object> params = CALL.getParameters(nctx, nrParameters);
-                    obj = context.getResultCache().getResult(p, params, () -> nctx.executeAsync());
+                    obj = context.getResultCache().getResult(p, params, nctx::executeAsync);
                     break;
                 case NONDETERMINISTIC:
                     nctx = context.getSubProgramContext(p, nrParameters);
