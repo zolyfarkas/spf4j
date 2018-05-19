@@ -86,6 +86,12 @@ public class InterviewTest {
     Assert.assertEquals(".58(3)", res.toString());
   }
 
+  @Test
+  public void testDivide2() {
+    CharSequence res = Interview.divideInts("1", "1000", 10);
+    Assert.assertEquals(".001", res.toString());
+  }
+
 
 
 }

@@ -240,6 +240,9 @@ public class Interview {
         Pair<Character, CharSequence> div = divPosAB(a, 0, bl, b, 0, bl);
         result.append(div.getFirst());
         divideInts(div.getSecond().toString() + a.subSequence(bl, al), b, maxPrec, addDot, seq, result);
+      } else if (cmp == 0) {
+        result.append('1');
+        divideInts(a.subSequence(bl, al), b, maxPrec, addDot, seq, result);
       } else {
         if (al > bl) {
           if (!addDot) {
@@ -255,7 +258,12 @@ public class Interview {
           if (addDot) {
             result.append('.');
           }
-          divideInts(a.toString() + "0", b, maxPrec - 1, false, seq, result);
+          String next = a.toString() + '0';
+          while (comparePos(next, b) < 0) {
+            next = next + '0';
+            result.append('0');
+          }
+          divideInts(next, b, maxPrec - 1, false, seq, result);
         }
       }
     } else {
@@ -265,7 +273,12 @@ public class Interview {
       if (addDot) {
         result.append('.');
       }
-      divideInts(a.toString() + "0", b, maxPrec - 1, false, seq, result);
+          String next = a.toString() + '0';
+          while (comparePos(next, b) < 0) {
+            next = next + '0';
+            result.append('0');
+          }
+      divideInts(next, b, maxPrec - 1, false, seq, result);
     }
   }
 
