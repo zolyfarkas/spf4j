@@ -35,7 +35,6 @@ package org.spf4j.jmx;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import java.io.InvalidObjectException;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -56,9 +55,7 @@ import javax.management.MBeanParameterInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
-import org.spf4j.base.Reflections;
 import org.spf4j.base.Throwables;
 
 // We att the ex history to the message string, since the client is not required to have the exception classes
@@ -277,7 +274,7 @@ final class ExportedValuesMBean implements DynamicMBean {
     MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];
     int i = 0;
     for (ExportedValue<?> val : exportedValues.values()) {
-      attrs[i++] = createAttributeInfo(val);
+      attrs[i++] = val.toAttributeInfo();
     }
     MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];
     i = 0;
@@ -295,34 +292,6 @@ final class ExportedValuesMBean implements DynamicMBean {
     }
     return new MBeanInfo(objectName.toString(), "spf4j exported",
             attrs, null, operations, null);
-  }
-
-  @SuppressFBWarnings("CE_CLASS_ENVY")
-  private static MBeanAttributeInfo createAttributeInfo(final ExportedValue<?> val) {
-    final Type oClass = val.getValueType();
-    Class<?> valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;
-    OpenType openType = val.getValueOpenType();
-    String description = val.getDescription();
-    if (description == null || description.isEmpty()) {
-      description = val.getName();
-    }
-    if (openType != null) {
-      try {
-        return new OpenMBeanAttributeInfoSupport(val.getName(), description,
-            openType, true, val.isWriteable(), valClass == Boolean.class);
-      } catch (IllegalArgumentException ex) {
-        throw new IllegalArgumentException("Cannot export " + val, ex);
-      }
-    } else {
-       return new MBeanAttributeInfo(
-            val.getName(),
-            oClass.getTypeName(),
-            val.getDescription(),
-            true, // isReadable
-            val.isWriteable(), // isWritable
-            valClass == Boolean.class);
-    }
-
   }
 
   @Override

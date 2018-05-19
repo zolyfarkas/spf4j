@@ -35,23 +35,54 @@ import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
 import javax.annotation.Nullable;
 import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
+import org.spf4j.base.Reflections;
 
 public interface ExportedValue<T> {
 
-    String getName();
+  String getName();
 
-    String getDescription();
+  String getDescription();
 
-    T get() throws OpenDataException;
+  T get() throws OpenDataException;
 
-    void set(T value) throws InvalidAttributeValueException, InvalidObjectException;
+  void set(T value) throws InvalidAttributeValueException, InvalidObjectException;
 
-    boolean isWriteable();
+  boolean isWriteable();
 
-    Type getValueType();
+  Type getValueType();
 
-    @Nullable
-    OpenType<?> getValueOpenType();
+  @Nullable
+  OpenType<?> getValueOpenType();
+
+  default MBeanAttributeInfo toAttributeInfo() {
+    final Type oClass = this.getValueType();
+    Class<?> valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;
+    OpenType openType = this.getValueOpenType();
+    String description = this.getDescription();
+    if (description == null || description.isEmpty()) {
+      description = this.getName();
+    }
+    if (openType != null) {
+      try {
+        return new OpenMBeanAttributeInfoSupport(this.getName(), description,
+                openType, true, this.isWriteable(), valClass == Boolean.class);
+      } catch (IllegalArgumentException ex) {
+        throw new IllegalArgumentException("Cannot export " + this, ex);
+      }
+    } else {
+      return new MBeanAttributeInfo(
+              this.getName(),
+              oClass.getTypeName(),
+              this.getDescription(),
+              true, // isReadable
+              this.isWriteable(), // isWritable
+              valClass == Boolean.class);
+    }
+
+  }
+
 }
