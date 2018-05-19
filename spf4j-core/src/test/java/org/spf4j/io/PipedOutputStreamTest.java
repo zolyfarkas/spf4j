@@ -159,5 +159,23 @@ public class PipedOutputStreamTest {
     }
   }
 
+  @Test
+  public void testCloseWithReason() throws IOException {
+    PipedOutputStream pos = new PipedOutputStream(10);
+    pos.write(123);
+    IOException ex = new IOException();
+    pos.close(ex);
+    try {
+      pos.write(123);
+      Assert.fail();
+    } catch(IOException ex2) {
+      Assert.assertEquals(ex, ex2.getCause());
+    }
+    try (InputStream is = pos.getInputStream()) {
+      Assert.assertEquals(123, is.read());
+    }
+  }
+
+
 
 }
