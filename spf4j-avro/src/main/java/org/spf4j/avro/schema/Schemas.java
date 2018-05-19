@@ -35,7 +35,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.function.Supplier;
@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
+import org.apache.avro.Schema.Field;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -111,12 +112,12 @@ public final class Schemas {
           Schema.Type type = schema.getType();
           switch (type) {
             case ARRAY:
-              terminate = visitNonTerminal(visitor, schema, dq, Arrays.asList(schema.getElementType()));
+              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getElementType()));
               visited.add(schema);
               break;
             case RECORD:
               terminate = visitNonTerminal(visitor, schema, dq,
-                      Lists.transform(Lists.reverse(schema.getFields()), (field) -> field.schema()));
+                      Lists.transform(Lists.reverse(schema.getFields()), Field::schema));
               visited.add(schema);
               break;
             case UNION:
@@ -124,7 +125,7 @@ public final class Schemas {
               visited.add(schema);
               break;
             case MAP:
-              terminate = visitNonTerminal(visitor, schema, dq, Arrays.asList(schema.getValueType()));
+              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getValueType()));
               visited.add(schema);
               break;
             case NULL:
