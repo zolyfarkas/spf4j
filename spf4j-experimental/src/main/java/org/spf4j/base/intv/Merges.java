@@ -24,50 +24,53 @@ import java.util.function.Consumer;
  */
 public class Merges {
 
-
   public static <T extends Comparable<T>> void merge(Iterable<T> a, Iterable<T> b, Consumer<T> res) {
     Iterator<T> ai = a.iterator();
     Iterator<T> bi = b.iterator();
-    boolean ab = true, bb = true;
     T an = null;
     T bn = null;
-    while (true) {
-      if (ab && ai.hasNext()) {
-        an = ai.next();
-        ab = false;
-      }
-      if (bb & bi.hasNext()) {
-        bn = bi.next();
-        bb = false;
-      }
-      if (!ab) {
-        if (!bb) {
-          int cmp = an.compareTo(bn);
-          if (cmp > 0) {
+    do {
+      if (an == null) {
+        if (ai.hasNext()) {
+          an = ai.next();
+        } else {
+          if (bn != null) {
             res.accept(bn);
-            bb = true;
-          } else if (cmp < 0){
-            res.accept(an);
-            ab = true;
-          } else {
-            res.accept(bn);
-            res.accept(an);
-            bb = true;
-            ab = true;
           }
-        } else {
-           res.accept(an);
-           ab = true;
-        }
-      } else {
-        if (!bb) {
-           res.accept(bn);
-           bb = true;
-        } else {
+          while (bi.hasNext()) {
+            res.accept(bi.next());
+          }
           break;
         }
       }
-    }
+      if (bn == null) {
+        if (bi.hasNext()) {
+          bn = bi.next();
+        } else {
+          if (an != null) {
+            res.accept(an);
+          }
+          while (ai.hasNext()) {
+            res.accept(ai.next());
+          }
+          break;
+        }
+      }
+      int cmp = an.compareTo(bn);
+      if (cmp > 0) {
+        res.accept(bn);
+        bn = null;
+      } else if (cmp < 0) {
+        res.accept(an);
+        an = null;
+      } else {
+        res.accept(an);
+        res.accept(bn);
+        an = null;
+        bn = null;
+      }
+    } while (true);
+
   }
 
 }

@@ -17,6 +17,8 @@ package org.spf4j.base.intv;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +37,23 @@ public class MergesTest {
     ArrayList<Integer> result = new ArrayList<>();
     Merges.merge(Arrays.asList(1, 3, 5, 7), Arrays.asList(2, 4), result::add);
     LOG.info("res={}", result);
+    Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 7), result);
+  }
 
+  @Test
+  public void testmerges2() {
+    ArrayList<Integer> result = new ArrayList<>();
+    Merges.merge(Arrays.asList(2, 4), Arrays.asList(1, 3, 5, 7), result::add);
+    LOG.info("res={}", result);
+    Assert.assertEquals(Arrays.asList(1, 2, 3, 4, 5, 7), result);
+  }
+
+  @Test
+  public void testmerges3() {
+    ArrayList<Integer> result = new ArrayList<>();
+    Merges.merge(Collections.EMPTY_LIST, Arrays.asList(1, 3, 5, 7), result::add);
+    LOG.info("res={}", result);
+    Assert.assertEquals(Arrays.asList(1, 3, 5, 7), result);
   }
 
 }
