@@ -75,6 +75,7 @@ public final class PipedOutputStream extends OutputStream {
   private int endIdx;
   private int readerPerceivedEndIdx;
   private boolean writerClosed;
+  private Exception closedException;
   private int nrReadStreams;
   private final SizedRecyclingSupplier<byte[]> bufferProvider;
   private final Long globalDeadlineNanos;
@@ -137,6 +138,7 @@ public final class PipedOutputStream extends OutputStream {
     readerPerceivedEndIdx = 0;
     writerClosed = false;
     nrReadStreams = 0;
+    closedException = null;
     this.globalDeadlineNanos = globalDeadlineNanos;
   }
 
@@ -171,7 +173,7 @@ public final class PipedOutputStream extends OutputStream {
           }
         }
         if (writerClosed) {
-          throw new IOException("Cannot write, stream closed " + this);
+          throw new IOException("Cannot write, stream closed " + this, closedException);
         }
         a2w = Math.min(a2w, len - bytesWritten);
         int wrToEnd = Math.min(a2w, buffer.length - endIdx);
@@ -214,7 +216,7 @@ public final class PipedOutputStream extends OutputStream {
         }
       }
       if (writerClosed) {
-        throw new IOException("Cannot write stream closed " + this);
+        throw new IOException("Cannot write stream closed " + this, closedException);
       }
       buffer[endIdx++] = (byte) b;
       if (endIdx >= buffer.length) {
@@ -279,129 +281,31 @@ public final class PipedOutputStream extends OutputStream {
     }
   }
 
+
+  /**
+   * Close this piped output stream, and provide a exception reason.
+   * Designed to propagate exception details from the consumer to the producer.
+   * A consumer that reads data from a InputStream connected to this PipedOutpuStream,
+   * can close this pipe, and provide a exception. THis exception will be used as cause for any
+   * exceptions thrown by subsequent attempteed write operations.
+   * @param ex the exception to use as root cause.
+   */
+  @DischargesObligation
+  public void close(final Exception ex) {
+    synchronized (sync) {
+      close();
+      closedException = ex;
+    }
+  }
+
+
   public InputStream getInputStream() {
     synchronized (sync) {
       if (writerClosed && availableToRead() == 0) {
         return EmptyInputStream.EMPTY;
       }
-
       nrReadStreams++;
-      return new InputStream() {
-
-        private boolean readerClosed = false;
-
-        @Override
-        public int read() throws IOException {
-          long deadline = getNanoDeadline();
-          return readUntil(deadline);
-        }
-
-        public int readUntil(final long deadline) throws IOException {
-          synchronized (sync) {
-            int availableToRead = 0;
-            while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-              long timeToWait = deadline - TimeSource.nanoTime();
-              if (timeToWait <= 0) {
-                throw new IOTimeoutException(deadline, -timeToWait);
-              }
-              try {
-                TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
-              } catch (InterruptedException ex) {
-                throw new IOException("Interrupted while reading from "
-                        + PipedOutputStream.this, ex);
-              }
-            }
-            if (readerClosed) {
-              throw new IOException("Reader is closed for " + PipedOutputStream.this);
-            }
-            if (availableToRead == 0) {
-              if (!writerClosed) {
-                throw new IllegalStateException("Stream must be closed " + PipedOutputStream.this);
-              }
-              return -1;
-            }
-            int result = buffer[startIdx];
-            startIdx++;
-            if (startIdx >= buffer.length) {
-              startIdx = 0;
-            }
-            sync.notifyAll();
-            return result;
-          }
-        }
-
-        @Override
-        public int read(final byte[] b, final int off, final int len) throws IOException {
-          long deadline = getNanoDeadline();
-          return readUntil(len, b, off, deadline);
-        }
-
-        public int readUntil(final int len, final byte[] b, final int off, final long deadline)
-                throws IOException {
-          int bytesWritten = 0;
-          synchronized (sync) {
-            int availableToRead = 0;
-            while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-              long timeToWait = deadline - TimeSource.nanoTime();
-              if (timeToWait <= 0) {
-                throw new IOTimeoutException(deadline, -timeToWait);
-              }
-              try {
-                TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
-              } catch (InterruptedException ex) {
-                throw new IOException("Interrupted while reading from " + PipedOutputStream.this, ex);
-              }
-            }
-            if (readerClosed) {
-              throw new IOException("Reader is closed for " + PipedOutputStream.this);
-            }
-            if (availableToRead == 0) {
-              if (!writerClosed) {
-                throw new IllegalStateException("Stream should be closed, " + PipedOutputStream.this);
-              }
-              return -1;
-            }
-            availableToRead = Math.min(availableToRead, len);
-            int readToEnd = Math.min(availableToRead, buffer.length - startIdx);
-            System.arraycopy(buffer, startIdx, b, off, readToEnd);
-            bytesWritten += readToEnd;
-            startIdx += readToEnd;
-            int remaining = availableToRead - readToEnd;
-            if (remaining > 0) {
-              System.arraycopy(buffer, 0, b, off + readToEnd, remaining);
-              bytesWritten += remaining;
-              startIdx = remaining;
-            } else if (startIdx >= buffer.length) {
-              startIdx = 0;
-            }
-            sync.notifyAll();
-            return bytesWritten;
-          }
-        }
-
-        @Override
-        public int available() {
-          synchronized (sync) {
-            if (readerClosed) {
-              throw new UncheckedIOException("Reader is closed for " + PipedOutputStream.this, null);
-            }
-            return availableToRead();
-          }
-        }
-
-        @Override
-        public void close() {
-          synchronized (sync) {
-            nrReadStreams--;
-            readerClosed = true;
-            if (writerClosed && nrReadStreams == 0 && availableToRead() == 0) {
-              bufferProvider.recycle(buffer);
-              buffer = null;
-            }
-            sync.notifyAll();
-          }
-        }
-      };
+      return new PipedInputStream();
     }
 
   }
@@ -426,12 +330,12 @@ public final class PipedOutputStream extends OutputStream {
   public String toString() {
     synchronized (sync) {
       if (buffer == null) {
-        return "PipedOutputStream{" + ", startIdx=" + startIdx
+        return "PipedOutputStream{readers=" + nrReadStreams + ", startIdx=" + startIdx
                 + ", endIdx=" + endIdx
                 + ", readerPerceivedEndIdx=" + readerPerceivedEndIdx
                 + ", closed=" + writerClosed + '}';
       } else {
-        return "PipedOutputStream{" + "bufferLength="
+        return "PipedOutputStream{readers=" + nrReadStreams + ", bufferLength="
                 + buffer.length + ", startIdx=" + startIdx
                 + ", endIdx=" + endIdx
                 + ", readerPerceivedEndIdx=" + readerPerceivedEndIdx
@@ -439,6 +343,130 @@ public final class PipedOutputStream extends OutputStream {
                         ? ", closed=" + writerClosed
                         : ", unread=" + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))
                 + '}';
+      }
+    }
+  }
+
+  public final class PipedInputStream extends InputStream {
+
+    private boolean readerClosed = false;
+
+    private PipedInputStream() {
+    }
+
+    public PipedOutputStream getOutputStream() {
+      return PipedOutputStream.this;
+    }
+
+    @Override
+    public int read() throws IOException {
+      long deadline = getNanoDeadline();
+      return readUntil(deadline);
+    }
+
+    public int readUntil(final long deadline) throws IOException {
+      synchronized (sync) {
+        int availableToRead = 0;
+        while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
+          long timeToWait = deadline - TimeSource.nanoTime();
+          if (timeToWait <= 0) {
+            throw new IOTimeoutException(deadline, -timeToWait);
+          }
+          try {
+            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+          } catch (InterruptedException ex) {
+            throw new IOException("Interrupted while reading from "
+                    + PipedOutputStream.this, ex);
+          }
+        }
+        if (readerClosed) {
+          throw new IOException("Reader is closed for " + PipedOutputStream.this);
+        }
+        if (availableToRead == 0) {
+          if (!writerClosed) {
+            throw new IllegalStateException("Stream must be closed " + PipedOutputStream.this);
+          }
+          return -1;
+        }
+        int result = buffer[startIdx];
+        startIdx++;
+        if (startIdx >= buffer.length) {
+          startIdx = 0;
+        }
+        sync.notifyAll();
+        return result;
+      }
+    }
+
+    @Override
+    public int read(final byte[] b, final int off, final int len) throws IOException {
+      long deadline = getNanoDeadline();
+      return readUntil(len, b, off, deadline);
+    }
+
+    public int readUntil(final int len, final byte[] b, final int off, final long deadline)
+            throws IOException {
+      int bytesWritten = 0;
+      synchronized (sync) {
+        int availableToRead = 0;
+        while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
+          long timeToWait = deadline - TimeSource.nanoTime();
+          if (timeToWait <= 0) {
+            throw new IOTimeoutException(deadline, -timeToWait);
+          }
+          try {
+            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+          } catch (InterruptedException ex) {
+            throw new IOException("Interrupted while reading from " + PipedOutputStream.this, ex);
+          }
+        }
+        if (readerClosed) {
+          throw new IOException("Reader is closed for " + PipedOutputStream.this);
+        }
+        if (availableToRead == 0) {
+          if (!writerClosed) {
+            throw new IllegalStateException("Stream should be closed, " + PipedOutputStream.this);
+          }
+          return -1;
+        }
+        availableToRead = Math.min(availableToRead, len);
+        int readToEnd = Math.min(availableToRead, buffer.length - startIdx);
+        System.arraycopy(buffer, startIdx, b, off, readToEnd);
+        bytesWritten += readToEnd;
+        startIdx += readToEnd;
+        int remaining = availableToRead - readToEnd;
+        if (remaining > 0) {
+          System.arraycopy(buffer, 0, b, off + readToEnd, remaining);
+          bytesWritten += remaining;
+          startIdx = remaining;
+        } else if (startIdx >= buffer.length) {
+          startIdx = 0;
+        }
+        sync.notifyAll();
+        return bytesWritten;
+      }
+    }
+
+    @Override
+    public int available() {
+      synchronized (sync) {
+        if (readerClosed) {
+          throw new UncheckedIOException("Reader is closed for " + PipedOutputStream.this, null);
+        }
+        return availableToRead();
+      }
+    }
+
+    @Override
+    public void close() {
+      synchronized (sync) {
+        nrReadStreams--;
+        readerClosed = true;
+        if (writerClosed && nrReadStreams == 0 && availableToRead() == 0) {
+          bufferProvider.recycle(buffer);
+          buffer = null;
+        }
+        sync.notifyAll();
       }
     }
   }
