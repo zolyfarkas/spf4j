@@ -95,8 +95,8 @@ public class RetryPolicyTest {
   @Test
   public void testDefaulPolicy() throws IOException, InterruptedException, TimeoutException {
     try (LogAssert expect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 2,
-            LogMatchers.hasMatchingMessage(
-                    Matchers.startsWith("Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest")))) {
+            LogMatchers.hasMessageWithPattern(
+                    "Result java.lang.RuntimeException.* for org.spf4j.failsafe.RetryPolicyTest.*"))) {
       try {
         RetryPolicy.defaultPolicy().run(() -> {
           throw new RuntimeException();
@@ -247,8 +247,8 @@ public class RetryPolicyTest {
     }
     server.breakException(new SocketException("Bla bla"));
     try (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
-            LogMatchers.hasMatchingMessage(
-                    Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")))) {
+            LogMatchers.hasMessageWithPattern(
+                    "Result java.net.SocketException for ServerCall.*"))) {
       try {
         rp.run(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
                 1000, TimeUnit.MILLISECONDS);
@@ -305,8 +305,8 @@ public class RetryPolicyTest {
     }
     server.breakException(new SocketException("Bla bla"));
     try (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
-            LogMatchers.hasMatchingMessage(
-                    Matchers.startsWith("Result java.net.SocketException: Bla bla for ServerCall")))) {
+            LogMatchers.hasMessageWithPattern(
+                    "Result java.net.SocketException for ServerCall.*"))) {
       try {
         rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
                 1000, TimeUnit.MILLISECONDS).get();
