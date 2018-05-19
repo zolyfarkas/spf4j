@@ -37,6 +37,7 @@ import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -373,7 +374,6 @@ public final class PipedOutputStream extends OutputStream {
             } else if (startIdx >= buffer.length) {
               startIdx = 0;
             }
-
             sync.notifyAll();
             return bytesWritten;
           }
@@ -382,6 +382,9 @@ public final class PipedOutputStream extends OutputStream {
         @Override
         public int available() {
           synchronized (sync) {
+            if (readerClosed) {
+              throw new UncheckedIOException("Reader is closed for " + PipedOutputStream.this, null);
+            }
             return availableToRead();
           }
         }
