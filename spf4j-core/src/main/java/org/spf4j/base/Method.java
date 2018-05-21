@@ -49,7 +49,7 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 // using racy single check idiom makes findbugs think the Method obejct is mutable...
 @SuppressFBWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
-public final class Method implements Serializable, Writeable {
+public final class Method implements Comparable<Method>, Serializable, Writeable {
 
   private static final long serialVersionUID = 1L;
 
@@ -170,6 +170,16 @@ public final class Method implements Serializable, Writeable {
       throw new IllegalArgumentException("Invalid method representation: " + cs);
     }
     return getMethod(cs.subSequence(idx + 1, end).toString(), cs.subSequence(start, idx).toString());
+  }
+
+  @Override
+  public int compareTo(final Method o) {
+    int cmp = this.declaringClass.compareTo(o.declaringClass);
+    if (cmp == 0) {
+      return this.methodName.compareTo(o.methodName);
+    } else {
+      return cmp;
+    }
   }
 
 }

@@ -70,7 +70,8 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
   private void setViewType(final boolean isgraph) {
     if (isgraph) {
       graphToggle.setSelected(true);
-      ssScrollPanel.setViewportView(new ZStackPanel(this.samples));
+      //ssScrollPanel.setViewportView(new ZStackPanel(this.samples));
+      ssScrollPanel.setViewportView(new HotFlameStackPanel(this.samples));
     } else {
       graphToggle.setSelected(false);
       ssScrollPanel.setViewportView(new FlameStackPanel(this.samples));

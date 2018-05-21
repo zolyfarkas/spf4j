@@ -73,7 +73,7 @@ public abstract class StackPanelBase<T> extends JPanel
   //CHECKSTYLE:OFF
   private SampleNode samples;
   private Method method;
-  private RTree<Sampled<T>> samplesRTree = new RTree<>();
+  private RTree<T> samplesRTree = new RTree<>();
   protected int xx;
   protected int yy;
   //CHECKSTYLE:ON
@@ -94,21 +94,27 @@ public abstract class StackPanelBase<T> extends JPanel
     addMouseListener(this);
   }
 
-  public final List<Sampled<T>> search(final int x, final int y, final int w, final int h) {
+  public final List<T> search(final int x, final int y, final int w, final int h) {
     return samplesRTree.search(new float[]{x, y}, new float[]{w, h});
   }
 
-  public final List<Sampled<T>> search(final double x, final double y, final double w, final double h) {
+  public final List<T> search(final double x, final double y, final double w, final double h) {
     return samplesRTree.search(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h});
   }
 
-  public final void insert(final int x, final int y, final int w, final int h, final Sampled sampled) {
+  public final void insert(final int x, final int y, final int w, final int h, final T sampled) {
     samplesRTree.insert(new float[]{x, y}, new float[]{w, h}, sampled);
   }
 
-  public final void insert(final double x, final double y, final double w, final double h, final Sampled sampled) {
+  public final void insert(final double x, final double y, final double w, final double h, final T sampled) {
     samplesRTree.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
   }
+
+  public final void insert(final Rectangle2D.Float rect, final T sampled) {
+    samplesRTree.insert(new float[]{(float) rect.getX(), (float) rect.getY()},
+            new float[]{(float) rect.getWidth(), (float) rect.getHeight()}, sampled);
+  }
+  
 
   // disable finbugs since I don't care about internationalization for now.
   @SuppressFBWarnings("S508C_NON_TRANSLATABLE_STRING")

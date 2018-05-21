@@ -48,30 +48,33 @@ import org.spf4j.ds.Traversals;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
 import org.spf4j.stackmonitor.AggGraph;
-import org.spf4j.stackmonitor.InvokedMethod;
+import org.spf4j.stackmonitor.SampleGraph.Sample;
+import org.spf4j.stackmonitor.SampleGraph.SampleKey;
 import org.spf4j.stackmonitor.SampleNode;
 import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
 
 /**
  * Stack panel implementation that visualizes the profile data via a "flame real graph".
  *
+ * @deprecated  HotFlameStackPanel is a better implementation.
  * @author zoly
  */
 @SuppressFBWarnings("SE_BAD_FIELD")
-public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
+@Deprecated
+public final class ZStackPanel extends StackPanelBase<Sample> {
 
   private static final long serialVersionUID = 1L;
 
-  private Graph<InvokedMethod, SampleNode.InvocationCount> completeGraph;
-  private Map<InvokedMethod, Rectangle2D> methodLocations;
+  private Graph<SampleKey, SampleNode.InvocationCount> completeGraph;
+  private Map<SampleKey, Rectangle2D> methodLocations;
   private double totalHeight = 0;
-  private InvokedMethod startFrom;
+  private SampleKey startFrom;
 
 
   public ZStackPanel(final SampleNode samples) {
     super(samples);
     completeGraph = AggGraph.toGraph(samples);
-    startFrom = InvokedMethod.ROOT;
+    startFrom = new SampleKey(Method.ROOT, 0);
   }
 
   @Override
@@ -83,29 +86,29 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
   private void paintGraph(
           final Graphics2D g2, final int x, final int y, final double areaWidth, final double rowHeight) {
 
-    final Graph<InvokedMethod, SampleNode.InvocationCount> graph = completeGraph.copy();
+    final Graph<SampleKey, SampleNode.InvocationCount> graph = completeGraph.copy();
     int rootSamples = graph.getEdges(startFrom).getIncomming().keySet().iterator().next().getValue();
     final double pps = areaWidth / rootSamples;
-    methodLocations = new HashMap<InvokedMethod, Rectangle2D>();
-    final Traversals.TraversalCallback<InvokedMethod, SampleNode.InvocationCount> traversalCallback
-            = new Traversals.TraversalCallback<InvokedMethod, SampleNode.InvocationCount>() {
+    methodLocations = new HashMap<SampleKey, Rectangle2D>();
+    final Traversals.TraversalCallback<SampleKey, SampleNode.InvocationCount> traversalCallback
+            = new Traversals.TraversalCallback<SampleKey, SampleNode.InvocationCount>() {
       private int counter = 0;
 
       @Override
-      public void handle(final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) {
+      public void handle(final SampleKey vertex, final Map<SampleNode.InvocationCount, SampleKey> edges) {
         if (edges.size() == 1) {
           if (vertex.equals(startFrom)) {
             int nrSamples = edges.keySet().iterator().next().getValue();
             drawMethod(vertex, nrSamples, (double) x, (double) y, (double) areaWidth,
                     (double) rowHeight);
           } else {
-            Map.Entry<SampleNode.InvocationCount, InvokedMethod> fromEntry = edges.entrySet().iterator().next();
-            InvokedMethod fromMethod = fromEntry.getValue();
+            Map.Entry<SampleNode.InvocationCount, SampleKey> fromEntry = edges.entrySet().iterator().next();
+            SampleKey fromMethod = fromEntry.getValue();
             Rectangle2D fromMethodLocation = methodLocations.get(fromMethod);
             int relativeSamples = 0;
-            for (Map.Entry<SampleNode.InvocationCount, InvokedMethod> ens
+            for (Map.Entry<SampleNode.InvocationCount, SampleKey> ens
                     : graph.getEdges(fromMethod).getOutgoing().entrySet()) {
-              InvokedMethod slm = ens.getValue();
+              SampleKey slm = ens.getValue();
               if (methodLocations.containsKey(slm) && graph.getEdges(slm).getIncomming().size() == 1
                       && !fromMethod.equals(slm)) {
                 relativeSamples += ens.getKey().getValue();
@@ -126,12 +129,12 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
       }
 
       @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
-      private void drawMethod(final InvokedMethod vertex, final int nrSamples,
+      private void drawMethod(final SampleKey vertex, final int nrSamples,
               final double x, final double y, final double width, final double height,
               final Point... fromLinks) {
         Rectangle2D.Double location = new Rectangle2D.Double(x, y, width, height);
         methodLocations.put(vertex, location);
-        insert(x, y, width, height, new Sampled<>(vertex, nrSamples));
+        insert(x, y, width, height, new Sample(vertex, nrSamples, 0));
         double newHeight = y + height;
         if (totalHeight < newHeight) {
           totalHeight = newHeight;
@@ -152,15 +155,15 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
         g2.drawRect((int) x, (int) y, (int) width, (int) height);
       }
 
-      private void renderMethodLinked(final Map<SampleNode.InvocationCount, InvokedMethod> edges,
-              final InvokedMethod vertex) {
+      private void renderMethodLinked(final Map<SampleNode.InvocationCount, SampleKey> edges,
+              final SampleKey vertex) {
         List<Point> fromPoints = new ArrayList<>(edges.size());
         double newYBase = 0;
         double newXBase = Double.MAX_VALUE;
         double newWidth = 0;
         double maxX = Double.MIN_VALUE;
         int nrSamples = 0;
-        for (Map.Entry<SampleNode.InvocationCount, InvokedMethod> fromEntry : edges.entrySet()) {
+        for (Map.Entry<SampleNode.InvocationCount, SampleKey> fromEntry : edges.entrySet()) {
           Rectangle2D fromRect = methodLocations.get(fromEntry.getValue());
           newWidth += fromEntry.getKey().getValue() * pps;
           nrSamples += fromEntry.getKey().getValue();
@@ -182,7 +185,7 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
           fromPoints.add(new Point((int) fromRect.getCenterX(), (int) fromRect.getMaxY()));
         }
 
-        Pair<List<Sampled<InvokedMethod>>, Double> result = findEmptySpace(newXBase, newYBase, newWidth, maxX);
+        Pair<List<Sample>, Double> result = findEmptySpace(newXBase, newYBase, newWidth, maxX);
         while (!result.getFirst().isEmpty()) {
           // TODO: optimize this to increment with a better value
           newYBase += rowHeight;
@@ -193,12 +196,12 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
       }
 
       @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-      private Pair<List<Sampled<InvokedMethod>>, Double> findEmptySpace(
+      private Pair<List<Sample>, Double> findEmptySpace(
               final double newXBase, final double newYBase,
               final double newWidth, final double maxX) {
         double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
         tryx = fitToViewableArea(tryx, newWidth);
-        List<Sampled<InvokedMethod>> methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);
+        List<Sample> methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE);
         if (!methods.isEmpty()) {
           tryx = newXBase;
           tryx = fitToViewableArea(tryx, newWidth);
@@ -230,17 +233,17 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
   @Override
   @Nullable
   public String getDetail(final Point location) {
-    List<Sampled<InvokedMethod>> tips = search(location.x, location.y, 0, 0);
+    List<Sample> tips = search(location.x, location.y, 0, 0);
     if (tips.size() >= 1) {
-      final Sampled<InvokedMethod> node = tips.get(0);
-      final InvokedMethod method = node.getObj();
-      final Map<SampleNode.InvocationCount, InvokedMethod> incomming = completeGraph.getEdges(method).getIncomming();
+      final Sample node = tips.get(0);
+      final SampleKey method = node.getKey();
+      final Map<SampleNode.InvocationCount, SampleKey> incomming = completeGraph.getEdges(method).getIncomming();
       StringBuilder sb = new StringBuilder();
       sb.append(method).append('-').append(node.getNrSamples())
               .append("\n invoked from: ");
       appendEdgeInfo(incomming, sb);
       sb.append("\n invoking: ");
-      final Map<SampleNode.InvocationCount, InvokedMethod> outgoing = completeGraph.getEdges(method).getOutgoing();
+      final Map<SampleNode.InvocationCount, SampleKey> outgoing = completeGraph.getEdges(method).getOutgoing();
       appendEdgeInfo(outgoing, sb);
       return sb.toString();
     } else {
@@ -261,9 +264,9 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
 
   @Override
   public void filter() {
-    List<Sampled<InvokedMethod>> tips = search(xx, yy, 0, 0);
+    List<Sample> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
-      final InvokedMethod value = tips.get(0).getObj();
+      final SampleKey value = tips.get(0).getKey();
       updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate<>(value.getMethod())));
       repaint();
     }
@@ -271,19 +274,19 @@ public final class ZStackPanel extends StackPanelBase<InvokedMethod> {
 
   @Override
   public void drill() {
-    List<Sampled<InvokedMethod>> tips = search(xx, yy, 0, 0);
+    List<Sample> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
-      final InvokedMethod value = tips.get(0).getObj();
+      final SampleKey value = tips.get(0).getKey();
       startFrom = value;
       repaint();
     }
   }
 
-  private static void appendEdgeInfo(final Map<SampleNode.InvocationCount, InvokedMethod> incomming,
+  private static void appendEdgeInfo(final Map<SampleNode.InvocationCount, SampleKey> incomming,
           final StringBuilder sb) {
-    for (Map.Entry<SampleNode.InvocationCount, InvokedMethod> entry : incomming.entrySet()) {
+    for (Map.Entry<SampleNode.InvocationCount, SampleKey> entry : incomming.entrySet()) {
       int ic = entry.getKey().getValue();
-      InvokedMethod method = entry.getValue();
+      SampleKey method = entry.getValue();
       sb.append(method).append('-').append(ic).append("; ");
     }
   }

@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import org.spf4j.base.Method;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.HashMapGraph;
+import org.spf4j.stackmonitor.SampleGraph.SampleKey;
 
 /**
  *
@@ -31,24 +32,24 @@ public final class AggGraph {
   private AggGraph() { }
 
     @Nonnull
-  public static Graph<InvokedMethod, SampleNode.InvocationCount> toGraph(final SampleNode rootNode) {
-    final HashMapGraph<InvokedMethod, SampleNode.InvocationCount> result = new HashMapGraph<>();
+  public static Graph<SampleKey, SampleNode.InvocationCount> toGraph(final SampleNode rootNode) {
+    final HashMapGraph<SampleKey, SampleNode.InvocationCount> result = new HashMapGraph<>();
 
     rootNode.forEach((final Method pfrom, final Method pto,
             final int count, final Map<Method, Integer> ancestors) -> {
-      InvokedMethod from;
-      InvokedMethod to;
+      SampleKey from;
+      SampleKey to;
       Integer val = ancestors.get(pfrom);
       if (val != null) {
-        from = new InvokedMethod(pfrom, val - 1);
+        from = new SampleKey(pfrom, val - 1);
       } else {
-        from = new InvokedMethod(pfrom, 0);
+        from = new SampleKey(pfrom, 0);
       }
       val = ancestors.get(pto);
       if (val != null) {
-        to = new InvokedMethod(pto, val);
+        to = new SampleKey(pto, val);
       } else {
-        to = new InvokedMethod(pto, 0);
+        to = new SampleKey(pto, 0);
       }
 
       SampleNode.InvocationCount ic = result.getEdge(from, to);

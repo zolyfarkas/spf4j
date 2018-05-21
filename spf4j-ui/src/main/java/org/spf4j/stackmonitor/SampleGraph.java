@@ -39,6 +39,7 @@ import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -53,10 +54,10 @@ import org.spf4j.base.Method;
 @Beta
 public final class SampleGraph {
 
-  public static final class SampleVertexKey {
+  public static final class SampleKey {
     private final Method method;
     private int idxInHierarchy;
-    public SampleVertexKey(final Method method, final int idxInHierarchy) {
+    public SampleKey(final Method method, final int idxInHierarchy) {
       this.method = method;
       this.idxInHierarchy = idxInHierarchy;
     }
@@ -78,27 +79,38 @@ public final class SampleGraph {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final SampleVertexKey other = (SampleVertexKey) obj;
+      final SampleKey other = (SampleKey) obj;
       if (this.idxInHierarchy != other.idxInHierarchy) {
         return false;
       }
       return Objects.equals(this.method, other.method);
     }
 
+    public Method getMethod() {
+      return method;
+    }
+
+    @Override
+    public String toString() {
+      return "SampleKey{" + "method=" + method + ", idxInHierarchy=" + idxInHierarchy + '}';
+    }
+
   }
 
   @SuppressWarnings("checkstyle:VisibilityModifier")
-  public static class SampleVertex {
+  public static class Sample {
 
-    private final SampleVertexKey key;
+    private final SampleKey key;
     protected int nrSamples;
+    protected int level;
 
-    public SampleVertex(final SampleVertexKey key, final int nrSamples) {
+    public Sample(final SampleKey key, final int nrSamples, final int level) {
       this.key = key;
       this.nrSamples = nrSamples;
+      this.level = level;
     }
 
-    public final SampleVertexKey getKey() {
+    public final SampleKey getKey() {
       return key;
     }
 
@@ -106,28 +118,47 @@ public final class SampleGraph {
       return nrSamples;
     }
 
-  }
-
-  public static final class AggSampleVertex extends SampleVertex {
-
-    public AggSampleVertex(final SampleVertexKey key, final int nrSamples) {
-      super(key, nrSamples);
+    public final int getLevel() {
+      return level;
     }
 
-    public int addSamples(final int pnrSamples) {
-     this.nrSamples += pnrSamples;
-     return this.nrSamples;
+    /**
+     * string for debug..
+     */
+    @Override
+    public String toString() {
+      return "Sample{" + "key=" + key + ", nrSamples=" + nrSamples + ", level=" + level + '}';
+    }
+
+
+
+  }
+
+  public static final class AggSample extends Sample {
+
+    public AggSample(final Sample sample) {
+      super(sample.key, sample.nrSamples, sample.level);
+    }
+
+    public void add(final Sample sample) {
+     this.nrSamples += sample.nrSamples;
+     this.level = Math.max(sample.level, level);
+    }
+
+    @Override
+    public String toString() {
+      return "AggSample{" + "key=" + getKey() + ", nrSamples=" + nrSamples + ", level=" + level + '}';
     }
 
   }
 
-  private static final class Traversal {
+  private static final class TraversalData {
 
-    private final SampleVertex parent;
+    private final Sample parent;
     private final Method method;
     private final SampleNode node;
 
-    Traversal(final SampleVertex parent, final Method method, final SampleNode node) {
+    TraversalData(final Sample parent, final Method method, final SampleNode node) {
       this.parent = parent;
       this.method = method;
       this.node = node;
@@ -135,20 +166,30 @@ public final class SampleGraph {
 
   }
 
-  private final SetMultimap<SampleVertexKey, SampleVertex> vertexMap;
-  private final Map<SampleVertexKey, AggSampleVertex> aggregates;
+  /**
+   * index of Method -> Sample information.
+   */
+  private final SetMultimap<SampleKey, Sample> vertexMap;
+
+  /**
+   * index of Method -> Agregated sample information.
+   */
+  private final Map<SampleKey, AggSample> aggregates;
 
   /**
    * A graph representation of the stack trace tree.
    */
-  private final MutableGraph<SampleVertex> sg;
+  private final MutableGraph<Sample> sg;
 
   /**
    * An aggreagated representation of the stack trace tree;
    */
-  private final MutableGraph<AggSampleVertex> aggGraph;
+  private final MutableGraph<AggSample> aggGraph;
 
-  private final SampleVertex rootVertex;
+  /**
+   * The root vertex.
+   */
+  private final Sample rootVertex;
 
 
   public SampleGraph(final Method m, final SampleNode node) {
@@ -176,11 +217,11 @@ public final class SampleGraph {
    * @param m
    * @return
    */
-  private int computeMethodIdx(final SampleVertex from, final Method m) {
+  private int computeMethodIdx(final Sample from, final Method m) {
     if (from.key.method.equals(m)) {
       return from.key.idxInHierarchy + 1;
     } else {
-      Set<SampleVertex> predecessors = sg.predecessors(from);
+      Set<Sample> predecessors = sg.predecessors(from);
       int size = predecessors.size();
       if (size == 1) {
         return computeMethodIdx(predecessors.iterator().next(), m);
@@ -193,43 +234,43 @@ public final class SampleGraph {
   }
 
 
-  private SampleVertex tree2Graph(final Method m, final SampleNode node) {
-    SampleVertex parentVertex = new SampleVertex(new SampleVertexKey(m, 0), node.getSampleCount());
+  private Sample tree2Graph(final Method m, final SampleNode node) {
+    Sample parentVertex = new Sample(new SampleKey(m, 0), node.getSampleCount(), 0);
     if (!sg.addNode(parentVertex)) {
       throw new IllegalStateException();
     }
     if (!vertexMap.put(parentVertex.key, parentVertex)) {
       throw new IllegalStateException();
     }
-    AggSampleVertex aggSampleVertex = new AggSampleVertex(parentVertex.key, parentVertex.nrSamples);
+    AggSample aggSampleVertex = new AggSample(parentVertex);
     aggGraph.addNode(aggSampleVertex);
     aggregates.put(parentVertex.key, aggSampleVertex);
-    Deque<Traversal> dq = new ArrayDeque<>();
+    Deque<TraversalData> dq = new ArrayDeque<>();
     TMap<Method, SampleNode> subNodes = node.getSubNodes();
     if (subNodes != null) {
       subNodes.forEachEntry((k, v) -> {
-        dq.add(new Traversal(parentVertex, k, v));
+        dq.add(new TraversalData(parentVertex, k, v));
         return true;
       });
     }
-    Traversal t;
+    TraversalData t;
     while ((t = dq.pollLast()) != null) {
-      SampleVertexKey vtxk = new SampleVertexKey(t.method, computeMethodIdx(t.parent, t.method));
-      SampleVertex vtx = new SampleVertex(vtxk, t.node.getSampleCount());
+      SampleKey vtxk = new SampleKey(t.method, computeMethodIdx(t.parent, t.method));
+      Sample vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1);
       if (!sg.addNode(vtx)) {
         throw new IllegalStateException();
       }
       if (!vertexMap.put(vtx.key, vtx)) {
         throw new IllegalStateException();
       }
-      AggSampleVertex aggParent = aggregates.get(t.parent.key);
-      AggSampleVertex current = aggregates.get(vtxk);
+      AggSample aggParent = aggregates.get(t.parent.key);
+      AggSample current = aggregates.get(vtxk);
       if (current == null) {
-        current = new AggSampleVertex(vtxk, vtx.nrSamples);
+        current = new AggSample(vtx);
         aggGraph.addNode(current);
         aggregates.put(vtxk, current);
       } else {
-        current.addSamples(vtx.nrSamples);
+        current.add(vtx);
       }
       aggGraph.putEdge(aggParent, current);
       if (!sg.putEdge(t.parent, vtx)) {
@@ -238,7 +279,7 @@ public final class SampleGraph {
       TMap<Method, SampleNode> subNodes2 = t.node.getSubNodes();
       if (subNodes2 != null) {
         subNodes2.forEachEntry((k, v) -> {
-          dq.add(new Traversal(vtx, k, v));
+          dq.add(new TraversalData(vtx, k, v));
           return true;
         });
       }
@@ -246,10 +287,48 @@ public final class SampleGraph {
     return parentVertex;
   }
 
-
-  public SampleVertex getRootVertex() {
+  public Sample getRootVertex() {
     return rootVertex;
   }
+
+  public AggSample getAggRootVertex() {
+    return aggregates.get(rootVertex.key);
+  }
+
+  public int getAggNodesNr() {
+    return this.aggregates.size();
+  }
+
+  public boolean haveCommonChild(final AggSample a, final AggSample b) {
+    if (a.getKey().equals(b.getKey())) {
+      return true;
+    }
+    Set<SampleKey> traversed = new THashSet<>();
+    ArrayDeque<AggSample> trq = new ArrayDeque<>();
+    trq.add(a);
+    trq.add(b);
+    AggSample curr;
+    while ((curr = trq.pollFirst()) != null) {
+      if (!traversed.add(curr.getKey())) {
+        return true;
+      }
+      aggGraph.successors(curr).forEach((n) -> traversed.add(n.getKey()));
+    }
+    return false;
+  }
+
+  public Set<AggSample> getParents(final AggSample node) {
+    return aggGraph.predecessors(node);
+  }
+
+  public Set<AggSample> getChildren(final AggSample node) {
+    return aggGraph.successors(node);
+  }
+
+  public AggSample getAggNode(final SampleKey key) {
+    return this.aggregates.get(key);
+  }
+
 
   @Override
   public String toString() {

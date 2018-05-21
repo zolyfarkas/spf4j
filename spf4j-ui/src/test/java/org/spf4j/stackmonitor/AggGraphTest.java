@@ -20,8 +20,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Method;
 import org.spf4j.ds.Graph;
 import org.spf4j.ds.Traversals;
+import org.spf4j.stackmonitor.SampleGraph.SampleKey;
 
 /**
  *
@@ -46,9 +48,9 @@ public class AggGraphTest {
     st3[1] = new StackTraceElement("C2", "m2", "C2.java", 11);
     st3[2] = new StackTraceElement("C2", "m3", "C2.java", 12);
     SampleNode.addToSampleNode(node1, st3);
-    Graph<InvokedMethod, SampleNode.InvocationCount> graph = AggGraph.toGraph(node1);
-    Traversals.traverse(graph, InvokedMethod.ROOT,
-            (final InvokedMethod vertex, final Map<SampleNode.InvocationCount, InvokedMethod> edges) -> {
+    Graph<SampleKey, SampleNode.InvocationCount> graph = AggGraph.toGraph(node1);
+    Traversals.traverse(graph, new SampleGraph.SampleKey(Method.ROOT, 0),
+            (final SampleKey vertex, final Map<SampleNode.InvocationCount, SampleKey> edges) -> {
               LOG.debug("Method: {} from {}", vertex, edges);
             }, true);
     Assert.assertNotNull(node1);

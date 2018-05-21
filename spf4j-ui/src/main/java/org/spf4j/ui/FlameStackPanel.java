@@ -71,7 +71,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
     setElementColor(depth, g2);
     g2.setClip(x, y, width, height);
     g2.fillRect(x, y, width, height);
-    insert(x, y, width, height, new Sampled<>(Pair.of(method, node), sampleCount));
+    insert(x, y, width, height, Pair.of(method, node));
     g2.setPaint(Color.BLACK);
     g2.drawString(val, x, y + height - 1);
     g2.setClip(null);
@@ -103,10 +103,10 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
   @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
   @Nullable
   public String getDetail(final Point location) {
-    List<Sampled<Pair<Method, SampleNode>>> tips = search(location.x, location.y, 0, 0);
+    List<Pair<Method, SampleNode>> tips = search(location.x, location.y, 0, 0);
     if (tips.size() >= 1) {
-      final Sampled<Pair<Method, SampleNode>> m = tips.get(0);
-      return m.getObj().toString() + '-' + m.getNrSamples();
+      final Pair<Method, SampleNode> m = tips.get(0);
+      return m.getFirst().toString() + '-' + m.getSecond().getSampleCount();
     } else {
       return null;
     }
@@ -114,9 +114,9 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
 
   @Override
   public void filter() {
-    List<Sampled<Pair<Method, SampleNode>>> tips = search(xx, yy, 0, 0);
+    List<Pair<Method, SampleNode>> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
-      final Method value = tips.get(0).getObj().getFirst();
+      final Method value = tips.get(0).getFirst();
       updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate<Method>(value)));
       repaint();
     }
@@ -124,9 +124,9 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
 
   @Override
   public void drill() {
-    List<Sampled<Pair<Method, SampleNode>>> tips = search(xx, yy, 0, 0);
+    List<Pair<Method, SampleNode>> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
-      Pair<Method, SampleNode> sample = tips.get(0).getObj();
+      Pair<Method, SampleNode> sample = tips.get(0);
       updateSamples(sample.getFirst(), sample.getSecond());
       repaint();
     }
