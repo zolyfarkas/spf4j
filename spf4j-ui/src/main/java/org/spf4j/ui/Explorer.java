@@ -351,7 +351,7 @@ public class Explorer extends javax.swing.JFrame {
   }
 
   private void setFrames(SampleNode samples, String fileName) throws IOException {
-    JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, true);
+    JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, false);
     frame.setVisible(true);
     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
   }
