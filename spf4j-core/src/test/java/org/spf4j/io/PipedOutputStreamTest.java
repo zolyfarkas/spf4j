@@ -118,6 +118,7 @@ public class PipedOutputStreamTest {
     int j = 0;
     try (PipedOutputStream pos = os) {
       pos.write(123);
+      LOG.debug("write {}", j);
       j++;
       nr = DefaultExecutor.instance().submit(() -> {
         try (InputStream is = pos.getInputStream()) {
@@ -125,18 +126,22 @@ public class PipedOutputStreamTest {
           int val;
           while ((val = is.read()) >= 0) {
             Assert.assertEquals(123, val);
+            LOG.debug("read {}", i);
             i++;
           }
           return i;
         }
       });
-      for (; j < 1999; j++) {
+      for (; j < 2000; j++) {
         pos.write(123);
+        LOG.debug("write {}", j);
       }
     }
     LOG.debug("os = {}", os);
     Assert.assertEquals(j, nr.get(3, TimeUnit.SECONDS).intValue());
   }
+
+
 
   @Test
   public void testNoReaderBehaviour2() throws IOException {
