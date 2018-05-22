@@ -23,6 +23,15 @@ import java.util.List;
 public final class TestUtils {
   private TestUtils() { }
 
+  public static boolean isExecutedInCI() {
+    return isExecutedInTravis();
+  }
+
+  public static boolean isExecutedInTravis() {
+    return "true".equalsIgnoreCase(System.getenv("TRAVIS"));
+  }
+
+
   public static boolean isExecutedFromNetbeans() {
     String mvnNetbeansCP = System.getProperty("maven.ext.class.path");
     return mvnNetbeansCP != null && mvnNetbeansCP.contains("netbeans");

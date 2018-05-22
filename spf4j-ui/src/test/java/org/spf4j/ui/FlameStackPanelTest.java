@@ -15,10 +15,10 @@
  */
 package org.spf4j.ui;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.io.Resources;
 import java.awt.BorderLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JFrame;
@@ -26,26 +26,50 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.ssdump2.Converter;
+import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.test.log.TestUtils;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public class Arrow2DTest {
+
+public class FlameStackPanelTest {
+
+
+  private static final SampleNode NODES;
+
+  static {
+    try (InputStream is = Resources.getResource(
+            "com.google.common.io.AppendableWriterBenchmark.spf4jAppendable-Throughput.ssdump2").openStream()) {
+      NODES = Converter.load(is);
+    } catch (IOException ex) {
+      throw new ExceptionInInitializerError(ex);
+    }
+  }
+
+
 
   @Test
-  public void testArrowDraw() throws InterruptedException {
+  public void testLoadingHotStackPanel() throws IOException, InterruptedException {
+    HotFlameStackPanel panel = new HotFlameStackPanel(NODES);
+    testPanel(panel);
+  }
+
+  @Test
+  public void testLoadingStackPanel() throws IOException, InterruptedException {
+    FlameStackPanel panel = new FlameStackPanel(NODES);
+    testPanel(panel);
+  }
+
+  public final void testPanel(final JPanel panel) throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     CountDownLatch closeLatch = new CountDownLatch(1);
     SwingUtilities.invokeLater(() -> {
       JFrame frame = new JFrame("Bevel Arrows");
 
-      frame.add(new JPanel() {
-        @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-        public void paintComponent(final Graphics g) {
-          new Arrow2D(0, 0, 100, 100).draw((Graphics2D) g);
-        }
-      }, BorderLayout.CENTER);
+      frame.add(panel, BorderLayout.CENTER);
       frame.setSize(800, 400);
       frame.addWindowListener(new LatchWindowCloseListener(closeLatch));
       frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
 import org.spf4j.stackmonitor.Spf4jJmhProfiler;
+import org.spf4j.test.log.TestUtils;
 
 /**
  * @author zoly
@@ -52,7 +53,7 @@ public final class JmhTest {
 
   @Test
   public void runJmh() throws RunnerException, IOException {
-    if ("true".equalsIgnoreCase(System.getenv("TRAVIS"))
+    if (TestUtils.isExecutedInCI()
             || "true".equalsIgnoreCase(System.getProperty("is.release", "false"))) {
       LOG.info("Benchmarks disabled in travis, not enough resources for this...");
       return;

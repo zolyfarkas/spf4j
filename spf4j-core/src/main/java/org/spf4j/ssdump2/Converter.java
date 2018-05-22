@@ -39,6 +39,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import javax.annotation.WillNotClose;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DecoderFactory;
@@ -169,8 +171,14 @@ public final class Converter {
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   public static SampleNode load(final File file) throws IOException {
+    try (InputStream fis = Files.newInputStream(file.toPath())) {
+      return load(fis);
+    }
+  }
+
+  public static SampleNode load(@WillNotClose final InputStream fis) throws IOException {
     try (MemorizingBufferedInputStream bis
-            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
+            = new MemorizingBufferedInputStream(fis)) {
       final PushbackInputStream pis = new PushbackInputStream(bis);
       final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
       final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);
