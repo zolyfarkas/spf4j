@@ -161,7 +161,7 @@ public final class PipedOutputStream extends OutputStream {
     while (bytesWritten < len) {
       synchronized (sync) {
         int a2w = 0;
-        while (!writerClosed && nrReadStreams > 0 && (a2w = availableToWrite()) < 1) {
+        while (!writerClosed && (a2w = availableToWrite()) < 1) {
           long timeToWait = deadline - TimeSource.nanoTime();
           if (timeToWait <= 0) {
             throw new IOTimeoutException(deadline, -timeToWait);
@@ -204,7 +204,7 @@ public final class PipedOutputStream extends OutputStream {
   public void writeUntil(final int b, final long deadline) throws IOException {
     synchronized (sync) {
       int a2w = 0;
-      while (!writerClosed && nrReadStreams > 0 && (a2w = availableToWrite()) < 1) {
+      while (!writerClosed && (a2w = availableToWrite()) < 1) {
         try {
           long timeToWait = deadline - TimeSource.nanoTime();
           if (timeToWait <= 0) {
