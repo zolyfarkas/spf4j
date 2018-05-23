@@ -201,7 +201,7 @@ public class TcpServerTest {
             1979, 10)) {
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       server.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-      server.startAsync().awaitRunning(30, TimeUnit.SECONDS);
+      server.startAsync().awaitRunning(60, TimeUnit.SECONDS);
       Assert.assertTrue(server.isRunning());
     }
   }
