@@ -78,7 +78,7 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
 
   @Override
   public int paint(final Graphics2D gr, final double width, final double rowHeight) {
-    paintGraph(gr, (float) width, (float) rowHeight);
+    paintGraph(gr, width, rowHeight);
     return (int) totalHeight;
   }
 
@@ -119,12 +119,12 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
    * @param graph
    */
   private void drawMethod(final Graphics2D g2, final AggSample sample, final SampleGraph graph,
-          final float pps, final float rowHeight) {
+          final double pps, final double rowHeight) {
     Set<AggSample> parents = graph.getParents(sample);
-    Rectangle2D.Float location;
+    Rectangle2D.Double location;
     final List<Point2D> fromLinks;
     if (sample.getKey().equals(startFrom) || parents.isEmpty()) { // this is the root node.
-      location = new Rectangle2D.Float(0, 0, pps * sample.getNrSamples(), rowHeight);
+      location = new Rectangle2D.Double(0, 0, pps * sample.getNrSamples(), rowHeight);
       fromLinks = Collections.EMPTY_LIST;
     } else if (parents.size() == 1) { // single parent
       location = getLocationSingleParent(parents, graph, rowHeight, pps, sample);
@@ -147,14 +147,14 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
         y = Math.max(y, pr.getMaxY());
       }
       y += rowHeight;
-      float width = pps * sample.getNrSamples();
+      double width = pps * sample.getNrSamples();
       Double result = findEmptySpace(x1, y, width, x2);
       while (result == null) {
         // TODO: optimize this to increment with a better value
         y += rowHeight;
         result = findEmptySpace(x1, y, width, x2);
       }
-      location = new Rectangle2D.Float(result.floatValue(), (float) y, width, rowHeight);
+      location = new Rectangle2D.Double(result.floatValue(),  y, width, rowHeight);
     }
     methodLocations.put(sample.getKey(), location);
     insert(location, sample.getKey());
@@ -162,8 +162,8 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
 
   }
 
-  public Rectangle2D.Float getLocationSingleParent(final Set<AggSample> parents,
-          final SampleGraph graph, final float rowHeight, final float pps, final AggSample sample) {
+  public Rectangle2D.Double getLocationSingleParent(final Set<AggSample> parents,
+          final SampleGraph graph, final double rowHeight, final double pps, final AggSample sample) {
     // single parent, will be drawed attached.
     AggSample parent = parents.iterator().next();
     Rectangle2D pRect = methodLocations.get(parent.getKey());
@@ -180,12 +180,12 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
         }
       }
     }
-    return new Rectangle2D.Float((float) px, (float) pRect.getY() + rowHeight,
+    return new Rectangle2D.Double(px, pRect.getY() + rowHeight,
             pps * sample.getNrSamples(), rowHeight);
   }
 
 
-  private void drawMethodRectangle(final Graphics2D g2, final Rectangle2D.Float location,
+  private void drawMethodRectangle(final Graphics2D g2, final Rectangle2D.Double location,
           final AggSample sample, final List<Point2D> fromLinks) {
     double x = location.getX();
     double y = location.getY();
@@ -209,17 +209,18 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
               tx, (int) y);
     }
     g2.drawRect((int) x, (int) y, (int) width, (int) height);
+    totalHeight = y + height;
   }
 
 
   private void paintGraph(
-          final Graphics2D g2, final float areaWidth, final float rowHeight) {
+          final Graphics2D g2, final double areaWidth, final double rowHeight) {
 
     final SampleGraph graph = new SampleGraph(Method.ROOT, getSamples());
     this.completeGraph = graph;
     AggSample aggRoot =  startFrom == null ? graph.getAggRootVertex() : graph.getAggNode(startFrom);
     int rootSamples = aggRoot.getNrSamples();
-    final float pps = areaWidth / rootSamples; // calculate pixe/sample
+    final double pps = (areaWidth - 1)/ rootSamples; // calculate pixe/sample
     methodLocations = new HashMap<>();
     PriorityQueue<AggSample> traversal = new PriorityQueue<>(new SComparator(graph));
     traversal.add(aggRoot);

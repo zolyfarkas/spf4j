@@ -31,12 +31,14 @@
  */
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Map;
@@ -342,11 +344,16 @@ public class Explorer extends javax.swing.JFrame {
   }
 
   private static SampleNode loadLegacyFormat(final File file) throws IOException {
-    try (BufferedInputStream bis = new BufferedInputStream(
-            Files.newInputStream(file.toPath()))) {
+    InputStream fis = Files.newInputStream(file.toPath());
+    return loadLegacyFormat(fis);
+  }
+
+  @VisibleForTesting
+  static SampleNode loadLegacyFormat(InputStream fis) throws IOException {
+    try (BufferedInputStream bis = new BufferedInputStream(fis)) {
       final CodedInputStream is = CodedInputStream.newInstance(bis);
       is.setRecursionLimit(Short.MAX_VALUE);
-     return Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
+      return Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
     }
   }
 

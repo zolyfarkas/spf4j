@@ -42,7 +42,7 @@ public class Arrow2DUnitTest {
   public void testArrowDraw() throws InterruptedException {
 
     JFrame tFrame = GuiActionRunner.execute(() -> {
-      JFrame frame = new JFrame("Bevel Arrows");
+      JFrame frame = new JFrame("Arrow");
 
       frame.add(new JPanel() {
         @SuppressFBWarnings("BC_UNCONFIRMED_CAST")

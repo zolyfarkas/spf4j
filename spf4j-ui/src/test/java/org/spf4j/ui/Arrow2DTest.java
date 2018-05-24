@@ -38,7 +38,7 @@ public class Arrow2DTest {
     CountDownLatch latch = new CountDownLatch(1);
     CountDownLatch closeLatch = new CountDownLatch(1);
     SwingUtilities.invokeLater(() -> {
-      JFrame frame = new JFrame("Bevel Arrows");
+      JFrame frame = new JFrame("Arrow");
 
       frame.add(new JPanel() {
         @SuppressFBWarnings("BC_UNCONFIRMED_CAST")

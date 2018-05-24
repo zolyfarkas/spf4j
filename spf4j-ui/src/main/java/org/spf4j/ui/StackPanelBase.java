@@ -110,11 +110,11 @@ public abstract class StackPanelBase<T> extends JPanel
     samplesRTree.insert(new float[]{(float) x, (float) y}, new float[]{(float) w, (float) h}, sampled);
   }
 
-  public final void insert(final Rectangle2D.Float rect, final T sampled) {
+  public final void insert(final Rectangle2D.Double rect, final T sampled) {
     samplesRTree.insert(new float[]{(float) rect.getX(), (float) rect.getY()},
             new float[]{(float) rect.getWidth(), (float) rect.getHeight()}, sampled);
   }
-  
+
 
   // disable finbugs since I don't care about internationalization for now.
   @SuppressFBWarnings("S508C_NON_TRANSLATABLE_STRING")

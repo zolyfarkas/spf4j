@@ -26,7 +26,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.Method;
 import org.spf4j.ssdump2.Converter;
+import org.spf4j.stackmonitor.SampleGraph;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.test.log.TestUtils;
 
@@ -34,26 +38,53 @@ import org.spf4j.test.log.TestUtils;
  *
  * @author Zoltan Farkas
  */
-
 public class FlameStackPanelTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(FlameStackPanelTest.class);
 
-  private static final SampleNode NODES;
+  private static final SampleNode NODES
+          = loadSsdump2("com.google.common.io.AppendableWriterBenchmark.spf4jAppendable-Throughput.ssdump2");
 
-  static {
-    try (InputStream is = Resources.getResource(
-            "com.google.common.io.AppendableWriterBenchmark.spf4jAppendable-Throughput.ssdump2").openStream()) {
-      NODES = Converter.load(is);
+  private static final SampleNode NODES2
+          = loadSsdump("61160@ZMacBookPro.local_20130826T204120-0400_20130826T204128-0400.ssdump");
+
+  public static SampleNode loadSsdump2(final String resourceName) {
+    try (InputStream is = Resources.getResource(resourceName).openStream()) {
+      return Converter.load(is);
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }
   }
 
-
+  public static SampleNode loadSsdump(final String resourceName) {
+    try (InputStream is = Resources.getResource(resourceName).openStream()) {
+      return Explorer.loadLegacyFormat(is);
+    } catch (IOException ex) {
+      throw new ExceptionInInitializerError(ex);
+    }
+  }
 
   @Test
   public void testLoadingHotStackPanel() throws IOException, InterruptedException {
     HotFlameStackPanel panel = new HotFlameStackPanel(NODES);
+    testPanel(panel);
+  }
+
+
+  @Test
+  public void testSampleGraph() throws IOException, InterruptedException {
+    LOG.debug("Graph = {}", NODES2);
+    SampleGraph sg = new SampleGraph(Method.ROOT, NODES2);
+    SampleGraph.AggSample aggRootVertex = sg.getAggRootVertex();
+    SampleGraph.AggSample child = sg.getChildren(aggRootVertex).iterator().next();
+    Assert.assertTrue(sg.isParentDescendant(aggRootVertex, child));
+  }
+
+
+  @Test
+  public void testLoadingHotStackPanel2() throws IOException, InterruptedException {
+    LOG.debug("Graph = {}", NODES2);
+    HotFlameStackPanel panel = new HotFlameStackPanel(NODES2);
     testPanel(panel);
   }
 
@@ -67,7 +98,7 @@ public class FlameStackPanelTest {
     CountDownLatch latch = new CountDownLatch(1);
     CountDownLatch closeLatch = new CountDownLatch(1);
     SwingUtilities.invokeLater(() -> {
-      JFrame frame = new JFrame("Bevel Arrows");
+      JFrame frame = new JFrame("CallGraphs");
 
       frame.add(panel, BorderLayout.CENTER);
       frame.setSize(800, 400);
