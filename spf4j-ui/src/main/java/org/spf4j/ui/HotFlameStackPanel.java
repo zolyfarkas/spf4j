@@ -220,7 +220,7 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
     this.completeGraph = graph;
     AggSample aggRoot =  startFrom == null ? graph.getAggRootVertex() : graph.getAggNode(startFrom);
     int rootSamples = aggRoot.getNrSamples();
-    final double pps = (areaWidth - 1)/ rootSamples; // calculate pixe/sample
+    final double pps = (areaWidth - 1) / rootSamples; // calculate pixe/sample
     methodLocations = new HashMap<>();
     PriorityQueue<AggSample> traversal = new PriorityQueue<>(new SComparator(graph));
     traversal.add(aggRoot);
