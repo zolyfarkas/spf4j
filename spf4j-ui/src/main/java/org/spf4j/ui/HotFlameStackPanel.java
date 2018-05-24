@@ -97,17 +97,17 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
       } else if (a.getLevel() > b.getLevel()) {
         return 1;
       }
-      int cd = graph.getChildren(a).size() - graph.getChildren(b).size();
+      int cd = graph.getParents(a).size() - graph.getParents(b).size();
       if (cd < 0) {
         return -1;
       } else if (cd > 0) {
         return 1;
       }
-      if (graph.haveCommonChild(a, b)) {
-        return 0;
-      } else {
+//      if (graph.haveCommonChild(a, b)) {
+//        return 0;
+//      } else {
         return a.getKey().getMethod().compareTo(b.getKey().getMethod());
-      }
+//      }
 
     }
   }

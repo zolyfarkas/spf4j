@@ -155,7 +155,7 @@ public abstract class StackPanelBase<T> extends JPanel
             size.getHeight() - insets.top - insets.bottom);
     Graphics2D g2 = (Graphics2D) g.create();
     try {
-      double rowHeight = g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight();
+      double rowHeight = g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight() + 2;
 
       GraphicsConfiguration gc = g2.getDeviceConfiguration();
       BufferedImage img = gc.createCompatibleImage(
@@ -168,7 +168,8 @@ public abstract class StackPanelBase<T> extends JPanel
       gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
       int height = paint(gr, width, rowHeight);
       g2.drawImage(img, insets.left, insets.top, this);
-      final Dimension dimension = new Dimension((int) size.getWidth(), height + 10);
+      gr.dispose();
+      final Dimension dimension = new Dimension((int) size.getWidth(), height + 20);
       setPreferredSize(dimension);
     } finally {
       g2.dispose();
