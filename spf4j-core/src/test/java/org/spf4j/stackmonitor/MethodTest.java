@@ -49,7 +49,7 @@ public final class MethodTest {
     public void testSomeMethod() {
         Method m1 = Method.getMethod("a", "b");
         Method m2 = Method.getMethod("a", "b");
-        Assert.assertTrue(m1 == m2);
+        Assert.assertSame(m1, m2);
         Assert.assertEquals(m2, m1);
         Assert.assertEquals("a", m1.getDeclaringClass());
         Assert.assertEquals("b", m1.getMethodName());
