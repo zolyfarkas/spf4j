@@ -357,68 +357,6 @@ public final class SampleNode implements Serializable, JsonWriteable {
     }
   }
 
-  public interface InvocationHandler {
-
-    /**
-     * handler for SampleNode tree traversal for each invocation.
-     * @param from method
-     * @param to method
-     * @param sampleCount number of samples
-     * @param ancestors
-     */
-    void handle(Method from, Method to, int sampleCount, Map<Method, Integer> ancestors);
-  }
-
-  public void forEach(final InvocationHandler handler, final Method from,
-          final Method to, final Map<Method, Integer> ancestors) {
-
-    handler.handle(from, to, sampleCount, ancestors);
-
-    if (subNodes != null) {
-      Integer val = ancestors.get(to);
-      if (val != null) {
-        val = val + 1;
-      } else {
-        val = 1;
-      }
-      ancestors.put(to, val);
-      for (Map.Entry<Method, SampleNode> subs : subNodes.entrySet()) {
-        Method toKey = subs.getKey();
-        subs.getValue().forEach(handler, to, toKey, ancestors);
-      }
-      val = ancestors.get(to);
-      if (val == 1) {
-        ancestors.remove(to);
-      } else {
-        val = val - 1;
-        ancestors.put(to, val);
-      }
-    }
-  }
-
-  public static final class InvocationCount {
-
-    private int value;
-
-    public InvocationCount(final int value) {
-      this.value = value;
-    }
-
-    public int getValue() {
-      return value;
-    }
-
-    public void setValue(final int value) {
-      this.value = value;
-    }
-
-    @Override
-    public String toString() {
-      return "InvocationCount{" + "value=" + value + '}';
-    }
-  }
-
-
   @Override
   public int hashCode() {
     return 89 * this.sampleCount + Objects.hashCode(this.subNodes);
