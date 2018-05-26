@@ -88,8 +88,9 @@ public final class ZExecutionException extends ExecutionException {
     result.append(msg);
     result.append('\n');
     result.append("Zel trace:\n");
-    Set<String> sourceIds = new THashSet<>(zelframes.size());
-    for (ZelFrame frame : zelframes) {
+    List<ZelFrame> zf = getZelframes();
+    Set<String> sourceIds = new THashSet<>(zf.size());
+    for (ZelFrame frame : zf) {
       result.append(frame);
       result.append('\n');
       sourceIds.add(frame.getSource());
