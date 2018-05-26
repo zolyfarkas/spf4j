@@ -79,10 +79,14 @@ public abstract class StackPanelBase<T> extends JPanel
   //CHECKSTYLE:ON
   private final JPopupMenu menu;
   private final LinkedList<Pair<Method, SampleNode>> history;
+  private volatile BufferedImage img;
+  private volatile int height;
+  private volatile Dimension imgSize;
 
   public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
   public StackPanelBase(final SampleNode samples) {
+    this.imgSize = new Dimension(0, 0);
     this.samples = samples;
     this.method = Method.ROOT;
     history = new LinkedList<>();
@@ -114,7 +118,6 @@ public abstract class StackPanelBase<T> extends JPanel
     samplesRTree.insert(new float[]{(float) rect.getX(), (float) rect.getY()},
             new float[]{(float) rect.getWidth(), (float) rect.getHeight()}, sampled);
   }
-
 
   // disable finbugs since I don't care about internationalization for now.
   @SuppressFBWarnings("S508C_NON_TRANSLATABLE_STRING")
@@ -149,6 +152,10 @@ public abstract class StackPanelBase<T> extends JPanel
   public final void paintComponent(final Graphics g) {
     super.paintComponent(g);
     Dimension size = getSize();
+    if (size.getWidth() != imgSize.getWidth()) {
+      img = null;
+      imgSize = size;
+    }
     Insets insets = getInsets();
     Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,
             size.getWidth() - insets.left - insets.right,
@@ -156,19 +163,20 @@ public abstract class StackPanelBase<T> extends JPanel
     Graphics2D g2 = (Graphics2D) g.create();
     try {
       double rowHeight = g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight() + 2;
+      if (img == null) {
+        GraphicsConfiguration gc = g2.getDeviceConfiguration();
+        img = gc.createCompatibleImage(
+                (int) available.getWidth(), (int) available.getHeight(),
+                Transparency.TRANSLUCENT);
 
-      GraphicsConfiguration gc = g2.getDeviceConfiguration();
-      BufferedImage img = gc.createCompatibleImage(
-              (int) available.getWidth(), (int) available.getHeight(),
-              Transparency.TRANSLUCENT);
-
-      double width = available.getWidth();
-      samplesRTree.clear();
-      Graphics2D gr = img.createGraphics();
-      gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-      int height = paint(gr, width, rowHeight);
+        double width = available.getWidth();
+        samplesRTree.clear();
+        Graphics2D gr = img.createGraphics();
+        gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        height = paint(gr, width, rowHeight);
+        gr.dispose();
+      }
       g2.drawImage(img, insets.left, insets.top, this);
-      gr.dispose();
       final Dimension dimension = new Dimension((int) size.getWidth(), height + 20);
       setPreferredSize(dimension);
     } finally {
@@ -277,7 +285,14 @@ public abstract class StackPanelBase<T> extends JPanel
     //CHECKSTYLE:ON
     this.samples = n;
     this.method = m;
+    this.img = null;
   }
+
+  public void updateImg() {
+    this.img = null;
+  }
+
+
 
   public final SampleNode getSamples() {
     return samples;

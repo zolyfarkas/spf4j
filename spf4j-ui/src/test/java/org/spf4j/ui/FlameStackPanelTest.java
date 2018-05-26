@@ -101,7 +101,7 @@ public class FlameStackPanelTest {
       JFrame frame = new JFrame("CallGraphs");
 
       frame.add(panel, BorderLayout.CENTER);
-      frame.setSize(800, 400);
+      frame.setSize(800, 1600);
       frame.addWindowListener(new LatchWindowCloseListener(closeLatch));
       frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
       frame.setVisible(true);

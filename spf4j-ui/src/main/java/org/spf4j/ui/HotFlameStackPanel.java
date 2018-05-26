@@ -92,22 +92,34 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
     }
 
     public int compare(final AggSample a, final AggSample b) {
-      if (a.getLevel() < b.getLevel()) {
-        return -1;
-      } else if (a.getLevel() > b.getLevel()) {
-        return 1;
+      int as = graph.getParents(a).size();
+      int bs = graph.getParents(b).size();
+      if (as == 1) {
+        if (bs == 1) {
+          if (a.getLevel() < b.getLevel()) {
+            return -1;
+          } else if (a.getLevel() > b.getLevel()) {
+            return 1;
+          }
+        } else {
+          return -1;
+        }
+      } else {
+         if (bs == 1) {
+           return 1;
+         } else {
+          if (a.getLevel() < b.getLevel()) {
+            return -1;
+          } else if (a.getLevel() > b.getLevel()) {
+            return 1;
+          }
+         }
       }
-      int cd = graph.getParents(a).size() - graph.getParents(b).size();
-      if (cd < 0) {
-        return -1;
-      } else if (cd > 0) {
-        return 1;
-      }
-//      if (graph.haveCommonChild(a, b)) {
-//        return 0;
-//      } else {
+      if (graph.haveCommonChild(a, b)) {
+        return 0;
+      } else {
         return a.getKey().getMethod().compareTo(b.getKey().getMethod());
-//      }
+      }
 
     }
   }
@@ -288,6 +300,7 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
     List<SampleKey> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
       startFrom = tips.get(0);
+      updateImg();
       repaint();
     }
   }
