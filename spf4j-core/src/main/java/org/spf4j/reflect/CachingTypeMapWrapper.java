@@ -103,10 +103,8 @@ public final class CachingTypeMapWrapper<H> implements TypeMap<H> {
   public void replace(final Type t, final Function<H, H> f) {
     synchronized (wrapped) {
       H exact = wrapped.getExact(t);
-      if (exact != null) {
-        if (!wrapped.remove(t)) {
-          throw new IllegalStateException("Illegal Stat, type = " + t + " wrapped =  " + wrapped);
-        }
+      if (exact != null && !wrapped.remove(t)) {
+        throw new IllegalStateException("Illegal Stat, type = " + t + " wrapped =  " + wrapped);
       }
       wrapped.safePut(t, f.apply(exact));
      }
