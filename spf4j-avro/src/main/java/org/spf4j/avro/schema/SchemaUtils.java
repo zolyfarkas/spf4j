@@ -126,6 +126,7 @@ public final class SchemaUtils {
         for (String alias : aliases) {
           to.addAlias(alias);
         }
+        break;
       default:
       //ignore unnamed one's
     }
