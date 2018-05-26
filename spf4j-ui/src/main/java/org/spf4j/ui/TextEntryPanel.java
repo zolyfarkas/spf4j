@@ -22,8 +22,9 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
@@ -137,7 +138,8 @@ public class TextEntryPanel extends javax.swing.JPanel {
       try {
         data = (String) support.getTransferable().getTransferData(
                 DataFlavor.stringFlavor);
-      } catch (UnsupportedFlavorException | java.io.IOException e) {
+      } catch (UnsupportedFlavorException | IOException e) {
+        Logger.getLogger(TextEntryPanel.class.getName()).log(Level.WARNING, "Exception encountered", e);
         return false;
       }
 
