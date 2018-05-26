@@ -45,14 +45,7 @@ public abstract class AbstractRunnable implements Runnable {
   public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
 
 
-  public static final Runnable NOP = new Runnable() {
-
-    @Override
-    public void run() {
-      //The nop runnable should do nothing...
-    }
-
-  };
+  public static final Runnable NOP = () -> { };
 
   private final boolean lenient;
 
@@ -107,7 +100,7 @@ public abstract class AbstractRunnable implements Runnable {
       if (lenient) {
         Logger.getLogger(AbstractRunnable.class.getName()).log(Level.SEVERE, "Exception in runnable: ", ex);
       } else {
-        throw new RuntimeException(ex);
+        throw new UncheckedExecutionException(ex);
       }
     } catch (Throwable ex) {
       if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
