@@ -38,8 +38,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -226,6 +228,7 @@ public final class SampleNode implements Serializable, JsonWriteable {
 
   /**
    * to do: have to remove recursion...
+   *
    * @return the total number of nodes in this tree.
    */
   public int getNrNodes() {
@@ -317,6 +320,7 @@ public final class SampleNode implements Serializable, JsonWriteable {
   }
 
   private static final class Lazy {
+
     private static final JsonFactory JSON = new JsonFactory();
   }
 
@@ -325,7 +329,6 @@ public final class SampleNode implements Serializable, JsonWriteable {
     consume(jsonP, JsonToken.START_OBJECT);
     return parse(jsonP);
   }
-
 
   private static Pair<Method, SampleNode> parse(final JsonParser jsonP) throws IOException {
     consume(jsonP, JsonToken.FIELD_NAME);
