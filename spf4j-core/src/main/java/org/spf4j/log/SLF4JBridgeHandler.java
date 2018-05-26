@@ -145,7 +145,7 @@ public final class SLF4JBridgeHandler extends Handler {
    */
   public static void removeHandlersForRootLogger() {
     java.util.logging.Logger rootLogger = getRootLogger();
-    java.util.logging.Handler[] handlers = rootLogger.getHandlers();
+    Handler[] handlers = rootLogger.getHandlers();
     for (int i = 0; i < handlers.length; i++) {
       rootLogger.removeHandler(handlers[i]);
     }
@@ -270,7 +270,7 @@ public final class SLF4JBridgeHandler extends Handler {
 
   @Nullable
   public static Method getSourceMethodInfo(final LogRecord record) {
-    org.spf4j.base.Method m;
+    Method m;
     try {
       if (ALWAYS_TRY_INFER || (NEED_INFER != null && !NEED_INFER.getBoolean(record))) {
         m = new Method(record.getSourceClassName(), record.getSourceMethodName());
