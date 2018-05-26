@@ -87,28 +87,24 @@ public final class LogPrinter implements LogHandler {
       writerEscaper = new EscapeJsonStringAppendableWrapper(writer);
     }
 
-    void clear() {
+    private void clear() {
       bab.reset();
     }
 
-    ByteArrayBuilder getBab() {
-      return bab;
-    }
-
-    Writer getWriter() {
+    private Writer getWriter() {
       return writer;
     }
 
-    EscapeJsonStringAppendableWrapper getWriterEscaper() {
+    private EscapeJsonStringAppendableWrapper getWriterEscaper() {
       return writerEscaper;
     }
 
-    byte[] getBytes() throws IOException {
+    private byte[] getBytes() throws IOException {
       writer.flush();
       return bab.getBuffer();
     }
 
-    int size() {
+    private int size() {
       return bab.size();
     }
 
@@ -280,8 +276,5 @@ public final class LogPrinter implements LogHandler {
   public String toString() {
     return "LogPrinter{" + "minLogged=" + minLogged + '}';
   }
-
-
-
 
 }
