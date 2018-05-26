@@ -196,8 +196,8 @@ public final class ObjectPoolBuilderTest {
           throws ObjectCreationException, ObjectBorrowException, InterruptedException,
           TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
     final RecyclingSupplier<ExpensiveTestObject> pool =
-            new RecyclingSupplierBuilder(10, new ExpensiveTestObjectFactory())
-            .withMaintenance(org.spf4j.concurrent.DefaultScheduler.INSTANCE, 10, true).build();
+            new RecyclingSupplierBuilder<>(10, new ExpensiveTestObjectFactory())
+            .withMaintenance(DefaultScheduler.INSTANCE, 10, true).build();
     runTest(pool, 5, 20000);
     try {
       pool.dispose();
