@@ -17,17 +17,12 @@ package org.spf4j.test.log;
 
 import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
 
 /**
  * @author Zoltan Farkas
  */
 abstract class UncaughtExceptionAsserter implements AsyncObservationAssert, UncaughtExceptionConsumer {
-
-
-  private static final Logger LOG = LoggerFactory.getLogger(UncaughtExceptionAsserter.class);
 
   private final Matcher<UncaughtExceptionDetail> matcher;
 
