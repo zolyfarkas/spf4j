@@ -106,11 +106,13 @@ public final class SampleGraph {
     private final SampleKey key;
     protected int nrSamples;
     protected int level;
+    private final SampleNode node;
 
-    public Sample(final SampleKey key, final int nrSamples, final int level) {
+    public Sample(final SampleKey key, final int nrSamples, final int level, final SampleNode node) {
       this.key = key;
       this.nrSamples = nrSamples;
       this.level = level;
+      this.node = node;
     }
 
     public final SampleKey getKey() {
@@ -123,6 +125,10 @@ public final class SampleGraph {
 
     public final int getLevel() {
       return level;
+    }
+
+    public final SampleNode getNode() {
+      return node;
     }
 
     /**
@@ -138,7 +144,7 @@ public final class SampleGraph {
   public static final class AggSample extends Sample {
 
     public AggSample(final Sample sample) {
-      super(sample.key, sample.nrSamples, sample.level);
+      super(sample.key, sample.nrSamples, sample.level, sample.node);
     }
 
     public void add(final Sample sample) {
@@ -237,7 +243,7 @@ public final class SampleGraph {
   }
 
   private Sample tree2Graph(final Method m, final SampleNode node) {
-    Sample parentVertex = new Sample(new SampleKey(m, 0), node.getSampleCount(), 0);
+    Sample parentVertex = new Sample(new SampleKey(m, 0), node.getSampleCount(), 0, node);
     if (!sampleTree.addNode(parentVertex)) {
       throw new IllegalStateException();
     }
@@ -258,7 +264,7 @@ public final class SampleGraph {
     TraversalData t;
     while ((t = dq.pollFirst()) != null) {
       SampleKey vtxk = new SampleKey(t.method, computeMethodIdx(t.parent, t.method));
-      Sample vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1);
+      Sample vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);
       AggSample aggParent = aggregates.get(t.parent.key);
       AggSample current;
       do {
@@ -270,7 +276,7 @@ public final class SampleGraph {
         } else {
           if (isParentDescendant(current, aggParent)) {
             vtxk = new SampleKey(vtxk.method, vtxk.idxInHierarchy + 1);
-            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1);
+            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);
             continue;
           }
           current.add(vtx);
@@ -370,6 +376,10 @@ public final class SampleGraph {
 
   public AggSample getAggNode(final SampleKey key) {
     return this.aggregates.get(key);
+  }
+
+  public Set<Sample> getSamples(final SampleKey key) {
+    return this.vertexMap.get(key);
   }
 
   @Override

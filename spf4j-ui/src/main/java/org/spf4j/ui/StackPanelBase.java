@@ -149,6 +149,7 @@ public abstract class StackPanelBase<T> extends JPanel
   }
 
   @Override
+  @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY") //its ok in this case, since I am detecting changes.
   public final void paintComponent(final Graphics g) {
     super.paintComponent(g);
     Dimension size = getSize();
@@ -287,12 +288,6 @@ public abstract class StackPanelBase<T> extends JPanel
     this.method = m;
     this.img = null;
   }
-
-  public void updateImg() {
-    this.img = null;
-  }
-
-
 
   public final SampleNode getSamples() {
     return samples;

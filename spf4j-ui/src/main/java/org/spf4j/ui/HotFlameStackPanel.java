@@ -49,9 +49,9 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.spf4j.base.EqualsPredicate;
-import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleGraph;
 import org.spf4j.stackmonitor.SampleGraph.AggSample;
+import org.spf4j.stackmonitor.SampleGraph.Sample;
 import org.spf4j.stackmonitor.SampleGraph.SampleKey;
 import org.spf4j.stackmonitor.SampleNode;
 import static org.spf4j.ui.StackPanelBase.LINK_COLOR;
@@ -69,7 +69,6 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
   private SampleGraph completeGraph;
   private Map<SampleKey, Rectangle2D> methodLocations;
   private double totalHeight = 0;
-  private SampleKey startFrom = null;
 
 
   public HotFlameStackPanel(final SampleNode samples) {
@@ -80,6 +79,28 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
   public int paint(final Graphics2D gr, final double width, final double rowHeight) {
     paintGraph(gr, width, rowHeight);
     return (int) totalHeight;
+  }
+
+
+  private void paintGraph(
+          final Graphics2D g2, final double areaWidth, final double rowHeight) {
+
+    final SampleGraph graph = new SampleGraph(getMethod(), getSamples());
+    this.completeGraph = graph;
+    AggSample aggRoot = graph.getAggRootVertex();
+    int rootSamples = aggRoot.getNrSamples();
+    final double pps = (areaWidth - 1) / rootSamples; // calculate pixe/sample
+    methodLocations = new HashMap<>();
+    PriorityQueue<AggSample> traversal = new PriorityQueue<>(new SComparator(graph));
+    traversal.add(aggRoot);
+    Set<AggSample> drawed = new HashSet<>(graph.getAggNodesNr());
+    AggSample next;
+    while ((next = traversal.poll()) != null) {
+      if (drawed.add(next)) {
+        drawMethod(g2, next, graph, pps, rowHeight);
+        traversal.addAll(graph.getChildren(next));
+      }
+    }
   }
 
   @SuppressFBWarnings("SE_COMPARATOR_SHOULD_BE_SERIALIZABLE")
@@ -135,7 +156,7 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
     Set<AggSample> parents = graph.getParents(sample);
     Rectangle2D.Double location;
     final List<Point2D> fromLinks;
-    if (sample.getKey().equals(startFrom) || parents.isEmpty()) { // this is the root node.
+    if (parents.isEmpty()) { // this is the root node.
       location = new Rectangle2D.Double(0, 0, pps * sample.getNrSamples(), rowHeight);
       fromLinks = Collections.EMPTY_LIST;
     } else if (parents.size() == 1) { // single parent
@@ -221,30 +242,8 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
               tx, (int) y);
     }
     g2.drawRect((int) x, (int) y, (int) width, (int) height);
-    totalHeight = y + height;
   }
 
-
-  private void paintGraph(
-          final Graphics2D g2, final double areaWidth, final double rowHeight) {
-
-    final SampleGraph graph = new SampleGraph(Method.ROOT, getSamples());
-    this.completeGraph = graph;
-    AggSample aggRoot =  startFrom == null ? graph.getAggRootVertex() : graph.getAggNode(startFrom);
-    int rootSamples = aggRoot.getNrSamples();
-    final double pps = (areaWidth - 1) / rootSamples; // calculate pixe/sample
-    methodLocations = new HashMap<>();
-    PriorityQueue<AggSample> traversal = new PriorityQueue<>(new SComparator(graph));
-    traversal.add(aggRoot);
-    Set<AggSample> drawed = new HashSet<>(graph.getAggNodesNr());
-    AggSample next;
-    while ((next = traversal.poll()) != null) {
-      if (drawed.add(next)) {
-        drawMethod(g2, next, graph, pps, rowHeight);
-        traversal.addAll(graph.getChildren(next));
-      }
-    }
-  }
 
   @Nullable
   private Double findEmptySpace(final double newXBase, final double newYBase,
@@ -299,8 +298,14 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
   public void drill() {
     List<SampleKey> tips = search(xx, yy, 0, 0);
     if (tips.size() >= 1) {
-      startFrom = tips.get(0);
-      updateImg();
+      SampleKey sample = tips.get(0);
+      Set<Sample> samples = completeGraph.getSamples(sample);
+      Iterator<SampleGraph.Sample> iterator = samples.iterator();
+      SampleNode agg = iterator.next().getNode();
+      while (iterator.hasNext()) {
+        agg = SampleNode.aggregate(agg, iterator.next().getNode());
+      }
+      updateSamples(sample.getMethod(), agg);
       repaint();
     }
   }
