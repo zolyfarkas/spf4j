@@ -316,7 +316,7 @@ public final class OperatingSystem {
     ProcessResponse<String, String> resp
             = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);
     if (resp.getResponseExitCode() != SysExits.OK) {
-      throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(command)
+      throw new ExecutionException("Failed to execute " + Arrays.toString(command)
               + ", returned" + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
     }
     return resp.getOutput();
