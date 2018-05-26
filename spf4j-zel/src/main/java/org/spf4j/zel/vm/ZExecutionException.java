@@ -33,72 +33,72 @@ package org.spf4j.zel.vm;
 
 import gnu.trove.set.hash.THashSet;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public final class ZExecutionException extends ExecutionException {
 
-    private static final long serialVersionUID = 8823469923479284L;
+  private static final long serialVersionUID = 8823469923479284L;
 
-    private final List<ZelFrame> zelframes = new ArrayList<>();
+  private List<ZelFrame> zelframes;
 
-    public ZExecutionException(final String message, final Exception e) {
-        super(message, e);
-        this.payload = null;
+  private final Object payload;
+
+  public ZExecutionException(final String message, final Exception e) {
+    super(message, e);
+    this.payload = null;
+  }
+
+  public ZExecutionException(final Exception e) {
+    super(e);
+    this.payload = null;
+  }
+
+  public ZExecutionException(final String msg) {
+    super(msg);
+    this.payload = null;
+  }
+
+  public ZExecutionException(final Object object) {
+    super();
+    this.payload = object;
+  }
+
+  public Object getPayload() {
+    return payload;
+  }
+
+  public void addZelFrame(final ZelFrame frame) {
+    if (zelframes == null) {
+      zelframes = new ArrayList<>();
     }
+    zelframes.add(frame);
+  }
 
+  public List<ZelFrame> getZelframes() {
+    return zelframes == null ? Collections.EMPTY_LIST : zelframes;
+  }
 
-    public ZExecutionException(final Exception e) {
-        super(e);
-        this.payload = null;
+  @Override
+  public String toString() {
+    String msg = super.toString();
+    StringBuilder result = new StringBuilder(1024);
+    result.append(msg);
+    result.append('\n');
+    result.append("Zel trace:\n");
+    Set<String> sourceIds = new THashSet<>(zelframes.size());
+    for (ZelFrame frame : zelframes) {
+      result.append(frame);
+      result.append('\n');
+      sourceIds.add(frame.getSource());
     }
-
-    public ZExecutionException(final String msg) {
-        super(msg);
-        this.payload = null;
+    for (String sourceId : sourceIds) {
+      result.append(sourceId).append(":\n");
+      result.append(ZelFrame.getDetail(sourceId)).append('\n');
     }
-
-    public ZExecutionException(final Object object) {
-        super();
-        this.payload = object;
-    }
-
-
-    private final Object payload;
-
-    public Object getPayload() {
-        return payload;
-    }
-
-
-    public void addZelFrame(final ZelFrame frame) {
-        zelframes.add(frame);
-    }
-
-    public List<ZelFrame> getZelframes() {
-        return zelframes;
-    }
-
-    @Override
-    public String toString() {
-        String msg = super.toString();
-        StringBuilder result = new StringBuilder(1024);
-        result.append(msg);
-        result.append('\n');
-        result.append("Zel trace:\n");
-        Set<String> sourceIds = new THashSet<>(zelframes.size());
-        for (ZelFrame frame : zelframes) {
-            result.append(frame);
-            result.append('\n');
-            sourceIds.add(frame.getSource());
-        }
-        for (String sourceId : sourceIds) {
-            result.append(sourceId).append(":\n");
-            result.append(ZelFrame.getDetail(sourceId)).append('\n');
-        }
-        return result.toString();
-    }
-
+    return result.toString();
+  }
 
 }
