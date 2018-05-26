@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -39,6 +40,7 @@ import javax.annotation.Nullable;
 /**
  * @author zoly
  */
+@SuppressFBWarnings("ACEM_ABSTRACT_CLASS_EMPTY_METHODS")
 public abstract class AbstractRunnable implements Runnable {
 
   @Deprecated
