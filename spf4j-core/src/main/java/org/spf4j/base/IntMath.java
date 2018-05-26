@@ -84,14 +84,13 @@ public final class IntMath {
     @Deprecated
     public static final class XorShift32ThreadSafe implements IntSequence {
 
+      private final ThreadLocal<XorShift32> rnd = new ThreadLocalRandom();
 
       public static final class Singleton {
 
         public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();
 
       }
-
-      private final ThreadLocal<XorShift32> rnd = new ThreadLocalRandom();
 
       @Override
       public int nextInt() {
