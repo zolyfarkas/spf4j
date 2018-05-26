@@ -54,12 +54,12 @@ public final class ExecutionContexts {
   public static final long DEFAULT_TIMEOUT_NANOS
           = Long.getLong("spf4j.execContext.defaultTimeoutNanos", TimeUnit.HOURS.toNanos(8));
 
-  private ExecutionContexts() {
-  }
-
   private static final ThreadLocal<ExecutionContext> EXEC_CTX = new ThreadLocal<ExecutionContext>();
 
   private static final ExecutionContextFactory<ExecutionContext> CTX_FACTORY = initFactory();
+
+  private ExecutionContexts() {
+  }
 
   private static ExecutionContextFactory<ExecutionContext> initFactory() {
     String factoryClass = System.getProperty("spf4j.execContentFactoryClass");
