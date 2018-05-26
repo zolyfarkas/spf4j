@@ -33,15 +33,6 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
     private static final StaticLoggerBinder SINGLETON = new StaticLoggerBinder();
 
     /**
-     * Return the singleton of this class.
-     *
-     * @return the StaticLoggerBinder singleton
-     */
-    public static StaticLoggerBinder getSingleton() {
-        return SINGLETON;
-    }
-
-    /**
      * Declare the version of the SLF4J API this implementation is compiled against.
      * The value of this field is modified with each major release.
      */
@@ -60,6 +51,15 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
 
     private StaticLoggerBinder() {
         loggerFactory = TestLoggers.sys();
+    }
+
+    /**
+     * Return the singleton of this class.
+     *
+     * @return the StaticLoggerBinder singleton
+     */
+    public static StaticLoggerBinder getSingleton() {
+        return SINGLETON;
     }
 
     public ILoggerFactory getLoggerFactory() {
