@@ -89,16 +89,14 @@ public final class JVMArguments {
     int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
-      if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, nl)) {
-          int l = nl + 2;
-          if (s.length() == l) {
-            itr.remove();
-            return "";
-          } else if (s.charAt(l) == '=') {
-            itr.remove();
-            return s.substring(l + 1);
-          }
+      if (s.startsWith("-D") && s.regionMatches(2, pname, 0, nl)) {
+        int l = nl + 2;
+        if (s.length() == l) {
+          itr.remove();
+          return "";
+        } else if (s.charAt(l) == '=') {
+          itr.remove();
+          return s.substring(l + 1);
         }
       }
     }
