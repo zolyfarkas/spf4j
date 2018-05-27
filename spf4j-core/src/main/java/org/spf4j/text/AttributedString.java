@@ -31,6 +31,7 @@
  */
 package org.spf4j.text;
 //CHECKSTYLE:OFF
+import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.text.Annotation;
 import java.text.AttributedCharacterIterator;
@@ -94,7 +95,6 @@ public final class AttributedString {
      * AttributedString from.
      * @throws NullPointerException if iterators is null
      */
-    @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
     AttributedString(@Nonnull AttributedCharacterIterator[] iterators) {
         if (iterators.length == 0) {
             text = "";
@@ -264,13 +264,18 @@ public final class AttributedString {
             return;
 
         // Select attribute keys to be taken care of
-        HashSet<Attribute> keys = new HashSet<>();
+        HashSet<Attribute> keys;
+        Set<Attribute> allAttributeKeys = text.getAllAttributeKeys();
         if (attributes == null) {
-            keys.addAll(text.getAllAttributeKeys());
+            keys = new HashSet<>(allAttributeKeys);
         } else {
-            for (int i = 0; i < attributes.length; i++)
-                keys.add(attributes[i]);
-            keys.retainAll(text.getAllAttributeKeys());
+            keys = Sets.newHashSetWithExpectedSize(allAttributeKeys.size());
+            for (int i = 0, l = attributes.length; i < l; i++) {
+                Attribute attribute = attributes[i];
+                if (allAttributeKeys.contains(attribute)) {
+                  keys.add(attribute);
+                }
+            }
         }
         if (keys.isEmpty())
             return;
@@ -491,11 +496,12 @@ public final class AttributedString {
         ArrayList<Object> newRunAttributeValues = null;
 
         if (copyAttrs) {
-            ArrayList<Attribute> oldRunAttributes = runAttributes[runIndex - 1];
-            ArrayList<Object> oldRunAttributeValues = runAttributeValues[runIndex - 1];
+            int rim1 = runIndex - 1;
+            ArrayList<Attribute> oldRunAttributes = runAttributes[rim1];
             if (oldRunAttributes != null) {
                 newRunAttributes = new ArrayList<>(oldRunAttributes);
             }
+            ArrayList<Object> oldRunAttributeValues = runAttributeValues[rim1];
             if (oldRunAttributeValues != null) {
                 newRunAttributeValues =  new ArrayList<>(oldRunAttributeValues);
             }
@@ -522,23 +528,22 @@ public final class AttributedString {
         for (int i = beginRunIndex; i < endRunIndex; i++) {
             int keyValueIndex = -1; // index of key and value in our vectors; assume we don't have an entry yet
            ArrayList<Attribute> runAttribute = runAttributes[i];
-            if (runAttribute == null) {
-                ArrayList<Attribute> newRunAttributes = new ArrayList<>();
-                ArrayList<Object> newRunAttributeValues = new ArrayList<>();
-                runAttributes[i] = runAttribute = newRunAttributes;
-                runAttributeValues[i] = newRunAttributeValues;
+           ArrayList<Object> runAttributeValue = runAttributeValues[i];
+           if (runAttribute == null) {
+                runAttributes[i] = runAttribute = new ArrayList<>();
+                runAttributeValues[i] = runAttributeValue = new ArrayList<>();
             } else {
                 // check whether we have an entry already
-                keyValueIndex = runAttributes[i].indexOf(attribute);
+                keyValueIndex = runAttribute.indexOf(attribute);
             }
 
             if (keyValueIndex == -1) {
                 // create new entry
                 runAttribute.add(attribute);
-                runAttributeValues[i].add(value);
+                runAttributeValue.add(value);
             } else {
                 // update existing entry
-                runAttributeValues[i].set(keyValueIndex, value);
+                runAttributeValue.set(keyValueIndex, value);
             }
         }
     }
@@ -558,7 +563,7 @@ public final class AttributedString {
 
     // length is package private so that CharacterIteratorFieldDelegate can
     // access it without creating an AttributedCharacterIterator.
-    int length() {
+    private int length() {
         return text.length();
     }
 
@@ -1056,10 +1061,10 @@ public final class AttributedString {
 
 }
 
-class AttributeEntry implements Map.Entry<Attribute,Object> {
+final class AttributeEntry implements Map.Entry<Attribute,Object> {
 
-    private Attribute key;
-    private Object value;
+    private final Attribute key;
+    private final Object value;
 
     AttributeEntry(Attribute key, Object value) {
         this.key = key;
