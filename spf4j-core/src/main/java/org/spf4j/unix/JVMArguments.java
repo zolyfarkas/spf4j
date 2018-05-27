@@ -110,20 +110,17 @@ public final class JVMArguments {
     int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
-      if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, nl)) {
-          int l = nl + 2;
-          if (s.length() == l) {
-            return "";
-          } else if (s.charAt(l) == '=') {
-            return s.substring(l + 1);
-          }
+      if (s.startsWith("-D") && s.regionMatches(2, pname, 0, nl)) {
+        int l = nl + 2;
+        if (s.length() == l) {
+          return "";
+        } else if (s.charAt(l) == '=') {
+          return s.substring(l + 1);
         }
       }
     }
     return null;
   }
-
 
   @Nullable
   public void createOrUpdateSystemProperty(final String pname, final Function<String, String> replacer) {
@@ -132,16 +129,14 @@ public final class JVMArguments {
     int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
-      if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, nl)) {
-          int l = nl + 2;
-          if (s.length() == l) {
-            itr.set("-D" + pname + '=' + replacer.apply(""));
-            return;
-          } else if (s.charAt(l) == '=') {
-            itr.set("-D" + pname + '=' + replacer.apply(s.substring(l + 1)));
-            return;
-          }
+      if (s.startsWith("-D") && s.regionMatches(2, pname, 0, nl)) {
+        int l = nl + 2;
+        if (s.length() == l) {
+          itr.set("-D" + pname + '=' + replacer.apply(""));
+          return;
+        } else if (s.charAt(l) == '=') {
+          itr.set("-D" + pname + '=' + replacer.apply(s.substring(l + 1)));
+          return;
         }
       }
     }
@@ -155,14 +150,12 @@ public final class JVMArguments {
     int nl = pname.length();
     while (itr.hasNext()) {
       String s = itr.next();
-      if (s.startsWith("-D")) {
-        if (s.regionMatches(2, pname, 0, nl)) {
-          int l = nl + 2;
-          if (s.length() == l) {
-            return true;
-          } else if (s.charAt(l) == '=') {
-            return true;
-          }
+      if (s.startsWith("-D") && s.regionMatches(2, pname, 0, nl)) {
+        int l = nl + 2;
+        if (s.length() == l) {
+          return true;
+        } else if (s.charAt(l) == '=') {
+          return true;
         }
       }
     }
