@@ -69,8 +69,7 @@ final class FormatInfo implements Serializable, Cloneable {
 
   @Override
   public int hashCode() {
-    int hash = 7;
-    hash = 31 * hash + Objects.hashCode(this.format);
+    int hash = Objects.hashCode(this.format);
     hash = 31 * hash + this.offset;
     return 31 * hash + this.argumentNumber;
   }

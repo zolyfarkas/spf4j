@@ -1424,10 +1424,10 @@ public final class MessageFormat extends Format {
     }
 
     // Try trimmed lowercase.
-    String ls = s.trim().toLowerCase(Locale.ROOT);
+    String ls = s.trim();
     if (ls != s) {
       for (int i = 0; i < list.length; ++i) {
-        if (ls.equals(list[i])) {
+        if (ls.equalsIgnoreCase(list[i])) {
           return i;
         }
       }
