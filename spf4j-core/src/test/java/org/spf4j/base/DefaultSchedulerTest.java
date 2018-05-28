@@ -57,7 +57,7 @@ public final class DefaultSchedulerTest {
   public void testScheduleAllignedAtFixedRateMillis() throws InterruptedException {
 
     Runnable command = new Runnable() {
-      private boolean first = true;
+      private volatile boolean first = true;
 
       @Override
       public void run() {
