@@ -91,10 +91,10 @@ public final class DefaultScheduler {
     long nextScheduleDelay;
     if (millisInterval < HOUR_MILLIS) {
       long millisPastHour = currentTime % HOUR_MILLIS;
-      nextScheduleDelay = (millisPastHour / millisInterval + 1) * millisInterval - millisPastHour;
+      nextScheduleDelay =  millisInterval - millisPastHour % millisInterval;
     } else {
       long millisPastDay = currentTime % DAY_MILLIS;
-      nextScheduleDelay = (millisPastDay / millisInterval + 1) * millisInterval - millisPastDay;
+      nextScheduleDelay =  millisInterval - millisPastDay % millisInterval;
     }
     return INSTANCE.scheduleAtFixedRate(
             command, nextScheduleDelay, millisInterval, TimeUnit.MILLISECONDS);
