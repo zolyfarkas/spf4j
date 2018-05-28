@@ -63,7 +63,7 @@ public class ExplorerTest {
             UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
     JFrame tFrame = GuiActionRunner.execute(() -> new Explorer());
     FrameFixture window = new FrameFixture(tFrame);
-    window.robot().settings().delayBetweenEvents(200);
+    window.robot().settings().delayBetweenEvents(100);
     window.show(); // shows the frame to test
     Assert.assertTrue(window.isEnabled());
     JMenuItemFixture openFileMenuItem = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
@@ -91,6 +91,17 @@ public class ExplorerTest {
     fileChooser.approve();
     Assert.assertNotNull(window.internalFrame(
             "19156@ZMacBookPro.local.tsdb"));
+
+    openFileMenuItem.click();
+    fileChooser = window.fileChooser("openFileDialog");
+    fileChooser.setCurrentDirectory(new File("src/test/resources"));
+    Thread.sleep(100);
+    fileChooser.selectFile(new File("src/test/resources/"
+                    + "test8381720042200787335.tsdb2").getAbsoluteFile());
+    fileChooser.approve();
+    Assert.assertNotNull(window.internalFrame(
+            "test8381720042200787335.tsdb2"));
+
     window.close();
     window.cleanUp();
     expectation.assertObservation(2, TimeUnit.SECONDS);
