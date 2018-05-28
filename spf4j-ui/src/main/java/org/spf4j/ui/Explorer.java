@@ -208,8 +208,13 @@ public class Explorer extends javax.swing.JFrame {
   /**
    * Creates new form Explorer
    */
+  @SuppressFBWarnings("PATH_TRAVERSAL_IN")
   public Explorer(final File... openFiles) throws IOException {
-    folder = null;
+    if (openFiles.length == 0) {
+      folder = new File(org.spf4j.base.Runtime.USER_DIR);
+    } else {
+      folder = openFiles[0].getParentFile();
+    }
     initComponents();
     for (File file : openFiles) {
       openFile(file);
@@ -222,7 +227,10 @@ public class Explorer extends javax.swing.JFrame {
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
       JFileChooser chooser = new JFileChooser();
+      chooser.setName("openFileDialog");
+      chooser.setMultiSelectionEnabled(true);
       chooser.setDialogType(JFileChooser.OPEN_DIALOG);
+      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
       chooser.setFileFilter(new Spf4jFileFilter());
       if (folder != null) {
         chooser.setCurrentDirectory(folder);
@@ -231,12 +239,13 @@ public class Explorer extends javax.swing.JFrame {
       int returnVal = chooser.showOpenDialog(this);
 
       if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = chooser.getSelectedFile();
-        folder = file.getParentFile();
-        try {
-          openFile(file);
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
+        File [] files = chooser.getSelectedFiles();
+        for (File file : files) {
+          try {
+            openFile(file);
+          } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+          }
         }
       }
     }//GEN-LAST:event_openMenuItemActionPerformed

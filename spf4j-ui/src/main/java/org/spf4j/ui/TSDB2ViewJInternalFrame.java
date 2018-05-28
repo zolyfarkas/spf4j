@@ -79,6 +79,7 @@ public class TSDB2ViewJInternalFrame extends javax.swing.JInternalFrame {
     @SuppressForbiden
     public TSDB2ViewJInternalFrame(final File tsDb) throws IOException {
         super(tsDb.getPath());
+        setName(tsDb.getName());
         this.tsDb = tsDb;
         initComponents();
         Multimap<String, TableDefEx> columnsInfo = TSDBQuery.getAllTablesWithDataRanges(tsDb);

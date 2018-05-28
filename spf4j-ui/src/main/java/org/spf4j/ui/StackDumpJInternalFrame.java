@@ -56,6 +56,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
   public StackDumpJInternalFrame(final SampleNode samples,
           final String title, final boolean isgraph) {
     super(title);
+    setName(title);
     initComponents();
     if (samples == null) {
       this.samples = new SampleNode(new StackTraceElement[]{new StackTraceElement("NO SAMPLES", "", "", -1)}, 0);

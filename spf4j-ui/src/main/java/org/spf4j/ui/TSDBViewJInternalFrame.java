@@ -74,6 +74,7 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     @SuppressForbiden
     public TSDBViewJInternalFrame(final File databaseFile) throws IOException {
         super(databaseFile.getAbsolutePath());
+        setName(databaseFile.getName());
         initComponents();
         tsDb = new TimeSeriesDatabase(databaseFile, null);
         Collection<TSTable> columnsInfo = tsDb.getTSTables();
