@@ -185,7 +185,7 @@ public class RetryPolicyTest {
     server.setResponse("url1", (x) -> response1);
     server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
     server.setResponse("url3", (r) -> new Response(Response.Type.ERROR, "boooo"));
-    testSyncRetry(server, rp, response1);
+    assertSyncRetry(server, rp, response1);
   }
 
   @Test
@@ -196,7 +196,7 @@ public class RetryPolicyTest {
     server.setResponse("url1", (x) -> response1);
     server.setResponse("url2", (r) -> new Response(Response.Type.REDIRECT, "url1"));
     server.setResponse("url3", (r) -> new Response(Response.Type.ERROR, "boooo"));
-    testASyncRetry(server, rp, response1);
+    assertASyncRetry(server, rp, response1);
   }
 
   public final  AsyncRetryExecutor<Response, ServerCall> buildRetryExecutor() {
@@ -230,7 +230,7 @@ public class RetryPolicyTest {
   }
 
   @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-  public final void testSyncRetry(final Server server, final AsyncRetryExecutor<Response, ServerCall> rp,
+  public final void assertSyncRetry(final Server server, final AsyncRetryExecutor<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;
@@ -288,7 +288,7 @@ public class RetryPolicyTest {
   }
 
   @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-  public final void testASyncRetry(final Server server, final AsyncRetryExecutor<Response, ServerCall> rp,
+  public final void assertASyncRetry(final Server server, final AsyncRetryExecutor<Response, ServerCall> rp,
           final Response response1)
           throws InterruptedException, TimeoutException, ExecutionException, IOException {
     long deadlineMillis = System.currentTimeMillis() + 1000;
