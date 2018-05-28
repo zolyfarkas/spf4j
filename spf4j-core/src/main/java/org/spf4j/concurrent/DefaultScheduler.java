@@ -88,15 +88,15 @@ public final class DefaultScheduler {
   public static ScheduledFuture<?> scheduleAllignedAtFixedRateMillis(
           final Runnable command, final long millisInterval) {
     long currentTime = System.currentTimeMillis();
-    long nextScheduleTime;
+    long nextScheduleDelay;
     if (millisInterval < HOUR_MILLIS) {
       long millisPastHour = currentTime % HOUR_MILLIS;
-      nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;
+      nextScheduleDelay = (millisPastHour / millisInterval + 1) * millisInterval - millisPastHour;
     } else {
       long millisPastDay = currentTime % DAY_MILLIS;
-      nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;
+      nextScheduleDelay = (millisPastDay / millisInterval + 1) * millisInterval - millisPastDay;
     }
     return INSTANCE.scheduleAtFixedRate(
-            command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
+            command, nextScheduleDelay, millisInterval, TimeUnit.MILLISECONDS);
   }
 }
