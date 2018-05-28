@@ -574,8 +574,8 @@ public final class CharSequences {
    * @return
    */
   public CharSequence getJavaRegexpStr(final CharSequence wildcard) {
-    final StringBuilder buff = new StringBuilder();
     final int length = wildcard.length();
+    final StringBuilder buff = new StringBuilder(length + 4);
     for (int i = 0; i < length; i++) {
       final char c = wildcard.charAt(i);
       switch (c) {
