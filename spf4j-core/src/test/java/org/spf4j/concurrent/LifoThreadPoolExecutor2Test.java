@@ -65,7 +65,7 @@ public class LifoThreadPoolExecutor2Test {
   public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 1000, 0);
-    testPoolThreadDynamics(executor);
+    assertPoolThreadDynamics(executor);
   }
 
   /**
@@ -81,7 +81,7 @@ public class LifoThreadPoolExecutor2Test {
     final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
     ThreadPoolExecutor executor = new ThreadPoolExecutor(4, 8, 1000, TimeUnit.MILLISECONDS,
             linkedBlockingQueue);
-    testPoolThreadDynamics(executor);
+    assertPoolThreadDynamics(executor);
   }
 
   private static final Runnable NOP = new Runnable() {
@@ -92,7 +92,7 @@ public class LifoThreadPoolExecutor2Test {
   };
 
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "ITC_INHERITANCE_TYPE_CHECKING"})
-  public static void testPoolThreadDynamics(final ExecutorService executor)
+  public static void assertPoolThreadDynamics(final ExecutorService executor)
           throws InterruptedException, IOException, ExecutionException {
     testMaxParallel(executor, 4, 4, TimeUnit.SECONDS);
     if (executor instanceof LifoThreadPoolExecutorSQP) {
