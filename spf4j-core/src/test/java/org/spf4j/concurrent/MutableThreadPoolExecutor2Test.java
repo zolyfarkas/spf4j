@@ -49,11 +49,11 @@ public class MutableThreadPoolExecutor2Test {
     public void testLifoExecSQ() throws InterruptedException, IOException, ExecutionException {
         MutableLifoThreadPoolExecutorSQP executor
                 = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 60000, 1024, 1024);
-        testPoolThreadDynamics(executor);
+        assertTestPoolThreadDynamics(executor);
     }
 
     @SuppressFBWarnings("MDM_THREAD_YIELD")
-    public static void testPoolThreadDynamics(final MutableLifoThreadPoolExecutorSQP le) throws InterruptedException {
+    public static void assertTestPoolThreadDynamics(final MutableLifoThreadPoolExecutorSQP le) throws InterruptedException {
         le.setMaxIdleTimeMillis(1000);
         LifoThreadPoolExecutor2Test.testMaxParallel(le, 10, 3, TimeUnit.SECONDS);
 

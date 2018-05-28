@@ -64,7 +64,7 @@ public class LifoThreadPoolExecutorTest {
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 8, 8, 60000, 1024);
-    testPool(executor);
+    assertPoolBehavior(executor);
   }
 
   @Test
@@ -75,7 +75,7 @@ public class LifoThreadPoolExecutorTest {
                      .withQueueSizeLimit(0).withRejectionHandler((a, b) -> {
                      throw ex;
                      }).build();
-       testPool(executor);
+       assertPoolBehavior(executor);
   }
 
   @Test(timeout = 60000)
@@ -88,7 +88,7 @@ public class LifoThreadPoolExecutorTest {
                      })
                      .withSpinLockCount(1024)
                      .buildMutable();
-    testPool(executor);
+    assertPoolBehavior(executor);
   }
 
 
@@ -167,17 +167,17 @@ public class LifoThreadPoolExecutorTest {
     final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
     ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
             linkedBlockingQueue);
-    testPool(executor);
+    assertPoolBehavior(executor);
   }
 
   @Test
   @Ignore
   public void testJdkFJPExec() throws InterruptedException, IOException {
     ExecutorService executor = new ForkJoinPool(8);
-    testPool(executor);
+    assertPoolBehavior(executor);
   }
 
-  public static void testPool(final ExecutorService executor)
+  public static void assertPoolBehavior(final ExecutorService executor)
           throws InterruptedException, IOException {
     final LongAdder adder = new LongAdder();
     final int testCount = 10000000;

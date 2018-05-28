@@ -61,7 +61,7 @@ public class LifoThreadPoolExecutorSTest {
   public void testLifoExecSQ() throws Exception {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 10000, 1024);
-    testPool(executor);
+    assertTestPoolBehavior(executor);
   }
 
   @Test
@@ -71,10 +71,10 @@ public class LifoThreadPoolExecutorSTest {
     final LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue(1024);
     ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
             linkedBlockingQueue);
-    testPool(executor);
+    assertTestPoolBehavior(executor);
   }
 
-  public static void testPool(final ExecutorService executor)
+  public static void assertTestPoolBehavior(final ExecutorService executor)
           throws Exception {
     final java.util.concurrent.atomic.LongAdder adder = new java.util.concurrent.atomic.LongAdder();
     final int testCount = 20000;
