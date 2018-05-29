@@ -54,9 +54,9 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
     private final MeasurementStore measurementStore;
     private final long tableId;
 
-    private volatile long lastRecordedTS;
+    private long lastRecordedTS;
 
-    private volatile long lastRecordedValue;
+    private long lastRecordedValue;
 
     public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final int sampleTimeMillis, final MeasurementStore measurementStore) {
@@ -122,7 +122,7 @@ public final class DirectStoreAccumulator implements MeasurementRecorder, Closea
     }
 
     @JmxExport(description = "Last recorded value")
-    public RecordedValue getLastRecorded() {
+    public synchronized RecordedValue getLastRecorded() {
         return new RecordedValue(lastRecordedTS, lastRecordedValue);
     }
 
