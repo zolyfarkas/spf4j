@@ -39,6 +39,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.After;
@@ -103,10 +104,11 @@ public final class MonitorTest {
         Thread t;
         t = new Thread(new AbstractRunnable() {
           @Override
+          @SuppressFBWarnings("PREDICTABLE_RANDOM")
           public void doRun() throws InterruptedException {
             try (ExecutionContext tctx = ExecutionContexts.start("testThread", ctx, 10, TimeUnit.MINUTES)) {
               while (!stopped) {
-                double rnd = Math.random();
+                double rnd = ThreadLocalRandom.current().nextDouble();
                 if (rnd < 0.33) {
                   doStuff1(rnd, 50);
                 } else if (rnd < 0.66) {
