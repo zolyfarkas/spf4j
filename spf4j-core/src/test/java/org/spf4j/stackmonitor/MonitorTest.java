@@ -51,7 +51,6 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.ExitException;
 import org.spf4j.base.NoExitSecurityManager;
 
-@SuppressFBWarnings("PREDICTABLE_RANDOM")
 @NotThreadSafe
 public final class MonitorTest {
 
