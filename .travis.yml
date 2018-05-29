@@ -1,3 +1,5 @@
+dist: trusty
+
 language: java
 
 jdk:
@@ -6,7 +8,7 @@ jdk:
 before_script:
   - "export DISPLAY=:99.0"
 
-script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install
+script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install sonar:sonar
 
 before_install: 
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
@@ -22,7 +24,10 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "yxnf476UfIBJvx/Sd+YQ9JMGBpEQy2Qp3+N4DfP9WvsKoSMgVTnvbIey5iJxeE6g+bElABd2OoPqoyrpsPYme8saZ8tAr9Mk8cvGRbCqMXUecnaBKqubjXoGPudc45L1RKikqhTz7qHwmmv9/tIMQoTma6mhYKkfBhYxE5ttMb6AyU16ubU+Y42mVC9gJ+NwrBD69qm4auGbzf1fMu1cvZ8sehMUOld/TmDmjRxLWwB3GGYT2SFzGIFO4EMHdPDjUGEpt6YTzIxAnFjhSkNDV8onyrQZcm4Q8tw84DAEOJy2CAsA2cG81EPKl8VrMNUJvNFU4Cr9qk1mkkeMtGz0A/N2lon5jU7lyY+qhnmPQLhg1y14qLky1PIXowJ/LAisRgXNaRSE5u07wzvfwM7s9AwXqjRz1wI97fbDfvZtca/BH9cAnnoT54MIzv5sQGdPjjtYE5E1gigIg5WptDbtgSt9/ocIJQthMhm55j6dA+9Be7Kotzh5ieuUkuGeK+LvViNly2/LtFcSv739marifTUmuJg7WFtFZ7d0OYCm5BYfCX7sgb5ecABW8qZIQ+UVEImIHwwpWWxfaQ+4lqVnFz17cGCaKwPEfSyFB1c75ypvPduY5GYMJXwbOiILecrkpGeL+PYMZKVPxZX8GuSUvq9vNGg6pFOjVlOEo9OQrGQ="
-#addons:
+
+addons:
+  sonarcloud:
+    organization: "spfforj"
 #  coverity_scan:
 #    project:
 #      name: "zolyfarkas/spf4j"
