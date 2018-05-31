@@ -75,6 +75,14 @@ public final class DefaultScheduler {
     });
   }
 
+  public static ScheduledExecutorService instance() {
+    return INSTANCE;
+  }
+
+  public static ListeningScheduledExecutorService listenableInstance() {
+    return LISTENABLE_INSTANCE;
+  }
+
   private DefaultScheduler() {
   }
 
