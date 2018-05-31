@@ -32,14 +32,6 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
      */
     private static final StaticLoggerBinder SINGLETON = new StaticLoggerBinder();
 
-    /**
-     * Declare the version of the SLF4J API this implementation is compiled against.
-     * The value of this field is modified with each major release.
-     */
-    // to avoid constant folding by the compiler, this field must *not* be final
-    //CHECKSTYLE:OFF
-    public static String REQUESTED_API_VERSION = "1.6.99"; // !final
-    //CHECKSTYLE:ON
 
     private static final String LOGGER_FACTORY_CLASS_STR = TestLoggers.class.getName();
 
