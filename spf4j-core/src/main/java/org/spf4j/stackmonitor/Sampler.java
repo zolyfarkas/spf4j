@@ -34,6 +34,7 @@ package org.spf4j.stackmonitor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
 import java.util.Map;
@@ -99,11 +100,13 @@ public final class Sampler {
 
   private final String filePrefix;
 
+  private final File dumpFolder;
+
   @Override
   public String toString() {
     return "Sampler{" + "stopped=" + stopped + ", sampleTimeNanos="
             + sampleTimeNanos + ", dumpTimeNanos=" + dumpTimeNanos + ", lastDumpTimeNanos="
-            + lastDumpTimeNanos + ", filePrefix=" + filePrefix + '}';
+            + lastDumpTimeNanos + ", dumpFolder=" + dumpFolder + ", filePrefix=" + filePrefix + '}';
   }
 
   public Sampler() {
@@ -122,18 +125,27 @@ public final class Sampler {
     this(10, 3600000, collector);
   }
 
+  @SuppressFBWarnings("PATH_TRAVERSAL_IN")
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis) {
     this(sampleTimeMillis, dumpTimeMillis, (t) -> new FastStackCollector(false, true, new Thread[]{t}),
             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
   }
 
+  @SuppressFBWarnings("PATH_TRAVERSAL_IN")
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector) {
     this(sampleTimeMillis, dumpTimeMillis, collector,
             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
   }
 
+
+  @SuppressFBWarnings("PATH_TRAVERSAL_IN")
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
           final String dumpFolder, final String dumpFilePrefix) {
+    this(sampleTimeMillis, dumpTimeMillis, collector, new File(dumpFolder), dumpFilePrefix);
+  }
+
+  public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
+          final File dumpFolder, final String dumpFilePrefix) {
     CharSequences.validatedFileName(dumpFilePrefix);
     stopped = true;
     if (sampleTimeMillis < 1) {
@@ -145,7 +157,8 @@ public final class Sampler {
     }
     this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
     this.stackCollectorSupp = collector;
-    this.filePrefix = dumpFolder + File.separator + dumpFilePrefix;
+    this.filePrefix = dumpFilePrefix;
+    this.dumpFolder = dumpFolder;
   }
 
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
@@ -159,14 +172,22 @@ public final class Sampler {
           final int dumpTimeMillis, final SamplerSupplier collector,
           final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
     if (instance == null) {
-      instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
-              dumpFolder.getAbsolutePath(), dumpFilePrefix);
+      try {
+        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
+                dumpFolder.getCanonicalFile(), dumpFilePrefix);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
       instance.registerJmx();
       return instance;
     } else {
       instance.dispose();
-      instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
-              dumpFolder.getAbsolutePath(), dumpFilePrefix);
+      try {
+        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
+                dumpFolder.getCanonicalFile(), dumpFilePrefix);
+      } catch (IOException ex) {
+       throw new UncheckedIOException(ex);
+      }
       instance.registerJmx();
       return instance;
     }
@@ -254,7 +275,7 @@ public final class Sampler {
     String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
             + DateTimeFormats.TS_FORMAT.format(Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
             + '_' + DateTimeFormats.TS_FORMAT.format(Instant.now()));
-    File file = new File(fileName);
+    File file = new File(dumpFolder, fileName);
     return dumpToFile(file);
   }
 
@@ -274,7 +295,7 @@ public final class Sampler {
       if (pfile.getName().endsWith(".ssdump2")) {
         file = pfile;
       } else {
-        file = new File(pfile.getName() + es.getKey()  + ".ssdump2");
+        file = new File(pfile.getParentFile(), pfile.getName() + es.getKey()  + ".ssdump2");
       }
       Converter.save(file, es.getValue());
       return file;
@@ -283,7 +304,7 @@ public final class Sampler {
       if (pfile.getName().endsWith(".ssdump3")) {
         file = pfile;
       } else {
-        file = new File(pfile.getName() + ".ssdump3");
+        file = new File(pfile.getParentFile(), pfile.getName() + ".ssdump3");
       }
       Converter.saveLabeledDumps(file, collections);
       return file;

@@ -55,8 +55,8 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
   public void testLifoExecSQ() throws InterruptedException, IOException {
     LifoThreadPoolExecutorSQP executor
             = new LifoThreadPoolExecutorSQP("test", 2, 8, 20, 0);
-    Sampler s = Sampler.getSampler(20, 10000,
-            new File(org.spf4j.base.Runtime.TMP_FOLDER),
+    File destFolder = new File(org.spf4j.base.Runtime.TMP_FOLDER);
+    Sampler s = Sampler.getSampler(20, 10000, destFolder,
             "lifeTest1");
     s.start();
     org.spf4j.base.Runtime.gc(5000);
@@ -64,7 +64,9 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     long time = CpuUsageSampler.getProcessCpuTimeNanos();
     Thread.sleep(3000);
     long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
-    LOG.info("Cpu profile saved to {}", s.dumpToFile());
+    File dumpToFile = s.dumpToFile();
+    Assert.assertEquals(destFolder.getCanonicalFile(), dumpToFile.getParentFile().getCanonicalFile());
+    LOG.info("Cpu profile saved to {}", dumpToFile);
     LOG.debug("CPU time = {} ns", cpuTime);
     s.stop();
     Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 1500000000);
