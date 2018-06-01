@@ -31,6 +31,8 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -64,6 +66,32 @@ public class RateLimiterTest {
     } catch (RejectedExecutionException ex) {
       expect.assertObservation();
     }
+  }
+
+  @Test
+  public void testRateLimit2() throws Exception {
+    LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG, 10,
+            LogMatchers.hasFormat("executed nr {}"));
+    try (RateLimiter limiter = new RateLimiter(100, 10, 10, new RateLimiter.RejectedExecutionHandler() {
+      @Override
+      @SuppressFBWarnings("MDM_THREAD_YIELD")
+      public <T> T reject(final RateLimiter limiter, final Callable<T> callable,
+              final long msAfterWhichResourceAvailable)
+              throws Exception {
+        Thread.sleep(msAfterWhichResourceAvailable);
+        return limiter.execute(callable);
+      }
+    }
+    )) {
+      for (int i = 0; i < 10; i++) {
+        final int val = i;
+        limiter.execute(() -> {
+          LOG.debug("executed nr {}", val);
+          return null;
+        });
+      }
+    }
+    expect.assertObservation();
   }
 
 }

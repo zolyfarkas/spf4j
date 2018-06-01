@@ -36,10 +36,13 @@ import com.google.common.util.concurrent.AtomicDouble;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.Callables;
+import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.concurrent.Atomics;
 import org.spf4j.concurrent.DefaultScheduler;
 
@@ -49,7 +52,7 @@ import org.spf4j.concurrent.DefaultScheduler;
  * @author Zoltan Farkas
  */
 @Beta
-public final class RateLimiter implements Closeable {
+public final class RateLimiter implements Closeable, Executor {
 
   private final AtomicDouble permits;
 
@@ -57,17 +60,24 @@ public final class RateLimiter implements Closeable {
 
   private final ScheduledFuture<?> replenisher;
 
+  private final double permitsPerReplenishInterval;
+
+  private final long tokenRefreshIntervalMillis;
+
+  @FunctionalInterface
   public interface RejectedExecutionHandler {
 
-    <T> T reject(Callable<T> callable);
+    <T> T reject(RateLimiter limiter, Callable<T> callable, long msAfterWhichResourceAvailable) throws Exception;
   }
 
   public RateLimiter(final long tokenRefreshIntervalMillis, final int maxReqPerSecond,
           final int maxBurstSize) {
     this(tokenRefreshIntervalMillis, maxReqPerSecond, maxBurstSize, new RejectedExecutionHandler() {
       @Override
-      public <T> T reject(final Callable<T> callable) {
-       throw new RejectedExecutionException("No buckets available for " + callable);
+      public <T> T reject(final RateLimiter limiter, final Callable<T> callable,
+              final long msAfterWhichResourceAvailable) {
+       throw new RejectedExecutionException("No buckets available for " + callable + ", resources avail after "
+               + msAfterWhichResourceAvailable + "ms");
       }
     });
   }
@@ -89,17 +99,18 @@ public final class RateLimiter implements Closeable {
           final RejectedExecutionHandler rejectionHandler,
           final ScheduledExecutorService scheduler) {
     this.rejectHandler = rejectionHandler;
-    double reqPerReplenishInterval = maxReqPerSecond * tokenRefreshIntervalMillis / 1000;
-    if (maxBurstSize < reqPerReplenishInterval) {
+    this.tokenRefreshIntervalMillis = tokenRefreshIntervalMillis;
+    this.permitsPerReplenishInterval = maxReqPerSecond * tokenRefreshIntervalMillis / 1000;
+    if (maxBurstSize < permitsPerReplenishInterval) {
       throw new IllegalArgumentException("Invalid paramters: " + tokenRefreshIntervalMillis
               + ", " + maxReqPerSecond + ", " + maxBurstSize + ", lower tokenRefreshIntervalMillis,"
                       + "or increase maxBurstSize");
     }
-    this.permits = new AtomicDouble(reqPerReplenishInterval);
+    this.permits = new AtomicDouble(permitsPerReplenishInterval);
     this.replenisher = scheduler.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
-        Atomics.getAndAccumulate(permits, reqPerReplenishInterval, (left, right) -> {
+        Atomics.getAndAccumulate(permits, permitsPerReplenishInterval, (left, right) -> {
           double result = left + right;
           return (result > maxBurstSize) ? maxBurstSize : result;
         });
@@ -118,7 +129,21 @@ public final class RateLimiter implements Closeable {
     if (nrbAvail >= 1.0) {
       return callable.call();
     } else {
-      return rejectHandler.reject(callable);
+      double dtrm = (double) tokenRefreshIntervalMillis;
+      double msFor1Permit = dtrm / permitsPerReplenishInterval;
+      if (msFor1Permit < dtrm) {
+        msFor1Permit = dtrm;
+      }
+      return rejectHandler.reject(this, callable, (long) msFor1Permit);
+    }
+  }
+
+  @Override
+  public void execute(final Runnable command) {
+    try {
+      execute(Callables.from(command));
+    } catch (Exception ex) {
+      throw new UncheckedExecutionException(ex);
     }
   }
 

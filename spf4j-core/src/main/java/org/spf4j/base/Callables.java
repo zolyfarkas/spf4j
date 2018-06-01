@@ -749,6 +749,13 @@ public final class Callables {
     return new ConstCallable(value);
   }
 
+  public static Callable<Void> from(final Runnable value) {
+    return () -> {
+      value.run();
+      return null;
+    };
+  }
+
   private static final class ConstCallable<V> implements Callable<V> {
 
     private final V value;
