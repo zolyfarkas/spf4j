@@ -34,10 +34,12 @@ package org.spf4j.failsafe;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.TimeSource;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogMatchers;
@@ -77,10 +79,15 @@ public class RateLimiterTest {
     try (RateLimiter<?, Callable<?>> limiter = new RateLimiter<>(10, 10, new RateLimiter.RejectedExecutionHandler() {
       @Override
       @SuppressFBWarnings("MDM_THREAD_YIELD")
-      public Object reject(final RateLimiter limiter, final Callable callable,
-              final long msAfterWhichResourceAvailable)
+      public Object reject(final RateLimiter limiter, final Callable callable)
               throws Exception {
-        Thread.sleep(msAfterWhichResourceAvailable);
+        long waitMs = limiter.getPermitReplenishIntervalMillis()
+                - TimeUnit.NANOSECONDS.toMillis(TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
+        if (waitMs >= 0) {
+          Thread.sleep(waitMs);
+        } else {
+          LOG.debug("negative wait time {}", waitMs);
+        }
         return limiter.execute(callable);
       }
     }
@@ -99,6 +106,14 @@ public class RateLimiterTest {
   @Test(expected = IllegalArgumentException.class)
   public void testRateLimitInvalid() {
     new RateLimiter(1000, 9);
+  }
+
+  @Test
+  public void testRateLimitArgs() {
+    try (RateLimiter rateLimiter = new RateLimiter(17, 10)) {
+    LOG.debug("Rate Limiter = {}", rateLimiter);
+    Assert.assertEquals(1d, rateLimiter.getPermitsPerReplenishInterval(), 0.001);
+    }
   }
 
 
