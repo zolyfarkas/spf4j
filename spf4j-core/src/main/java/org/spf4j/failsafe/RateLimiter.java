@@ -52,7 +52,7 @@ import org.spf4j.concurrent.DefaultScheduler;
  * @author Zoltan Farkas
  */
 @Beta
-public final class RateLimiter implements Closeable, Executor {
+public final class RateLimiter<T, C extends Callable<? extends T>> implements Closeable, Executor {
 
   private final AtomicDouble permits;
 
@@ -62,19 +62,19 @@ public final class RateLimiter implements Closeable, Executor {
 
   private final double permitsPerReplenishInterval;
 
-  private final long tokenRefreshIntervalMillis;
+  private final long permitReplenishIntervalMillis;
 
   @FunctionalInterface
-  public interface RejectedExecutionHandler {
+  public interface RejectedExecutionHandler<T, C extends Callable<? extends T>> {
 
-    <T> T reject(RateLimiter limiter, Callable<T> callable, long msAfterWhichResourceAvailable) throws Exception;
+     T reject(RateLimiter limiter, C callable, long msAfterWhichResourceAvailable) throws Exception;
   }
 
-  public RateLimiter(final long tokenRefreshIntervalMillis, final int maxReqPerSecond,
+  public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize) {
-    this(tokenRefreshIntervalMillis, maxReqPerSecond, maxBurstSize, new RejectedExecutionHandler() {
+    this(maxReqPerSecond, maxBurstSize, new RejectedExecutionHandler<T, C>() {
       @Override
-      public <T> T reject(final RateLimiter limiter, final Callable<T> callable,
+      public T reject(final RateLimiter limiter, final C callable,
               final long msAfterWhichResourceAvailable) {
        throw new RejectedExecutionException("No buckets available for " + callable + ", resources avail after "
                + msAfterWhichResourceAvailable + "ms");
@@ -82,29 +82,29 @@ public final class RateLimiter implements Closeable, Executor {
     });
   }
 
-  public RateLimiter(final int maxReqPerSecond,
+    public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize,
           final RejectedExecutionHandler rejectionHandler) {
-    this(100, maxReqPerSecond, maxBurstSize, rejectionHandler);
-  }
+      this(maxReqPerSecond, maxBurstSize, rejectionHandler, DefaultScheduler.INSTANCE);
+    }
 
-  public RateLimiter(final long tokenRefreshIntervalMillis, final double maxReqPerSecond,
-          final int maxBurstSize,
-          final RejectedExecutionHandler rejectionHandler) {
-    this(tokenRefreshIntervalMillis, maxReqPerSecond, maxBurstSize, rejectionHandler, DefaultScheduler.INSTANCE);
-  }
 
-  public RateLimiter(final long tokenRefreshIntervalMillis, final double maxReqPerSecond,
+  public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize,
           final RejectedExecutionHandler rejectionHandler,
           final ScheduledExecutorService scheduler) {
     this.rejectHandler = rejectionHandler;
-    this.tokenRefreshIntervalMillis = tokenRefreshIntervalMillis;
-    this.permitsPerReplenishInterval = maxReqPerSecond * tokenRefreshIntervalMillis / 1000;
+    double msPerReq =  1000d / maxReqPerSecond;
+    if (msPerReq < 10) {
+      msPerReq = 10d;
+    }
+    this.permitReplenishIntervalMillis = (long) msPerReq;
+    this.permitsPerReplenishInterval = maxReqPerSecond * msPerReq / 1000;
     if (maxBurstSize < permitsPerReplenishInterval) {
-      throw new IllegalArgumentException("Invalid paramters: " + tokenRefreshIntervalMillis
-              + ", " + maxReqPerSecond + ", " + maxBurstSize + ", lower tokenRefreshIntervalMillis,"
-                      + "or increase maxBurstSize");
+      throw new IllegalArgumentException("Invalid max burst size: " + maxBurstSize
+              + ",  increase maxBurstSize to something larger than " + permitsPerReplenishInterval
+              + " we assume a clock resolution of " + permitReplenishIntervalMillis
+              + " and that is the minimum replenish inteval");
     }
     this.permits = new AtomicDouble(permitsPerReplenishInterval);
     this.replenisher = scheduler.scheduleAtFixedRate(new Runnable() {
@@ -115,10 +115,10 @@ public final class RateLimiter implements Closeable, Executor {
           return (result > maxBurstSize) ? maxBurstSize : result;
         });
       }
-    }, tokenRefreshIntervalMillis, tokenRefreshIntervalMillis, TimeUnit.MILLISECONDS);
+    }, permitReplenishIntervalMillis, permitReplenishIntervalMillis, TimeUnit.MILLISECONDS);
   }
 
-  public <T> T execute(final Callable<T> callable) throws Exception {
+  public <T> T execute(final C callable) throws Exception {
     if (replenisher.isCancelled()) {
       throw new IllegalStateException("RateLimiter is closed, cannot execute " + callable);
     }
@@ -127,33 +127,41 @@ public final class RateLimiter implements Closeable, Executor {
       return (result < 0) ? 0 : result;
     });
     if (nrbAvail >= 1.0) {
-      return callable.call();
+      return (T) callable.call();
     } else {
-      double dtrm = (double) tokenRefreshIntervalMillis;
+      double dtrm = (double) permitReplenishIntervalMillis;
       double msFor1Permit = dtrm / permitsPerReplenishInterval;
       if (msFor1Permit < dtrm) {
         msFor1Permit = dtrm;
       }
-      return rejectHandler.reject(this, callable, (long) msFor1Permit);
+      return (T) rejectHandler.reject(this, callable, (long) msFor1Permit);
     }
   }
 
   @Override
   public void execute(final Runnable command) {
     try {
-      execute(Callables.from(command));
+      execute((C) Callables.from(command));
     } catch (Exception ex) {
       throw new UncheckedExecutionException(ex);
     }
   }
 
-  public <T> Callable<T> toLimitedCallable(final Callable<T> callable) {
+  public Callable<T> toLimitedCallable(final C callable) {
     return () -> this.execute(callable);
   }
 
   @Override
   public void close() throws IOException {
     replenisher.cancel(false);
+  }
+
+  public double getPermitsPerReplenishInterval() {
+    return permitsPerReplenishInterval;
+  }
+
+  public long getPermitReplenishIntervalMillis() {
+    return permitReplenishIntervalMillis;
   }
 
   @Override

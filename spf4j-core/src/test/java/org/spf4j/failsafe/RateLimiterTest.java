@@ -54,7 +54,9 @@ public class RateLimiterTest {
   public void testRateLimit() throws Exception {
     LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG,
             LogMatchers.hasFormat("executed nr {}"));
-    try (RateLimiter limiter = new RateLimiter(100, 10, 10)) {
+    try (RateLimiter<?, Callable<?>> limiter = new RateLimiter<>(10, 10)) {
+      Assert.assertEquals(1d, limiter.getPermitsPerReplenishInterval(), 0.001);
+      Assert.assertEquals(100, limiter.getPermitReplenishIntervalMillis(), 0.001);
       for (int i = 0; i < 10; i++) {
         final int val = i;
         limiter.execute(() -> {
@@ -72,10 +74,10 @@ public class RateLimiterTest {
   public void testRateLimit2() throws Exception {
     LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG, 10,
             LogMatchers.hasFormat("executed nr {}"));
-    try (RateLimiter limiter = new RateLimiter(100, 10, 10, new RateLimiter.RejectedExecutionHandler() {
+    try (RateLimiter<?, Callable<?>> limiter = new RateLimiter<>(10, 10, new RateLimiter.RejectedExecutionHandler() {
       @Override
       @SuppressFBWarnings("MDM_THREAD_YIELD")
-      public <T> T reject(final RateLimiter limiter, final Callable<T> callable,
+      public Object reject(final RateLimiter limiter, final Callable callable,
               final long msAfterWhichResourceAvailable)
               throws Exception {
         Thread.sleep(msAfterWhichResourceAvailable);
@@ -93,5 +95,11 @@ public class RateLimiterTest {
     }
     expect.assertObservation();
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testRateLimitInvalid() {
+    new RateLimiter(1000, 9);
+  }
+
 
 }
