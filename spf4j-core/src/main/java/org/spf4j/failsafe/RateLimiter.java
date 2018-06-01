@@ -37,6 +37,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.Atomics;
@@ -74,24 +75,31 @@ public final class RateLimiter implements Closeable {
   public RateLimiter(final int maxReqPerSecond,
           final int maxBurstSize,
           final RejectedExecutionHandler rejectionHandler) {
-    this(10, maxReqPerSecond, maxBurstSize, rejectionHandler);
+    this(100, maxReqPerSecond, maxBurstSize, rejectionHandler);
   }
 
   public RateLimiter(final long tokenRefreshIntervalMillis, final double maxReqPerSecond,
           final int maxBurstSize,
           final RejectedExecutionHandler rejectionHandler) {
+    this(tokenRefreshIntervalMillis, maxReqPerSecond, maxBurstSize, rejectionHandler, DefaultScheduler.INSTANCE);
+  }
+
+  public RateLimiter(final long tokenRefreshIntervalMillis, final double maxReqPerSecond,
+          final int maxBurstSize,
+          final RejectedExecutionHandler rejectionHandler,
+          final ScheduledExecutorService scheduler) {
     this.rejectHandler = rejectionHandler;
-    double reqPerRefreshInterval = maxReqPerSecond * tokenRefreshIntervalMillis / 1000;
-    if (maxBurstSize < reqPerRefreshInterval) {
-      throw new IllegalArgumentException("Invalid paramters " + tokenRefreshIntervalMillis
-              + ", " + maxReqPerSecond + ", " + maxBurstSize + " lower tokenRefreshIntervalMillis,"
+    double reqPerReplenishInterval = maxReqPerSecond * tokenRefreshIntervalMillis / 1000;
+    if (maxBurstSize < reqPerReplenishInterval) {
+      throw new IllegalArgumentException("Invalid paramters: " + tokenRefreshIntervalMillis
+              + ", " + maxReqPerSecond + ", " + maxBurstSize + ", lower tokenRefreshIntervalMillis,"
                       + "or increase maxBurstSize");
     }
-    this.permits = new AtomicDouble(reqPerRefreshInterval);
-    this.replenisher = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new Runnable() {
+    this.permits = new AtomicDouble(reqPerReplenishInterval);
+    this.replenisher = scheduler.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
-        Atomics.getAndAccumulate(permits, reqPerRefreshInterval, (left, right) -> {
+        Atomics.getAndAccumulate(permits, reqPerReplenishInterval, (left, right) -> {
           double result = left + right;
           return (result > maxBurstSize) ? maxBurstSize : result;
         });
@@ -101,17 +109,21 @@ public final class RateLimiter implements Closeable {
 
   public <T> T execute(final Callable<T> callable) throws Exception {
     if (replenisher.isCancelled()) {
-      throw new RejectedExecutionException("RateLimiter is closed, cannot execute " + callable);
+      throw new IllegalStateException("RateLimiter is closed, cannot execute " + callable);
     }
     double nrbAvail = Atomics.getAndAccumulate(permits, -1, (left, right) -> {
       double result = left + right;
       return (result < 0) ? 0 : result;
     });
-    if (nrbAvail > 1) {
+    if (nrbAvail >= 1.0) {
       return callable.call();
     } else {
       return rejectHandler.reject(callable);
     }
+  }
+
+  public <T> Callable<T> toLimitedCallable(final Callable<T> callable) {
+    return () -> this.execute(callable);
   }
 
   @Override
