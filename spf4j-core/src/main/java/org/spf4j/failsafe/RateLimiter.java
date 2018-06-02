@@ -73,11 +73,9 @@ public final class RateLimiter<T, C extends Callable<? extends T>> implements Au
 
   public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize) {
-    this(maxReqPerSecond, maxBurstSize, new RejectedExecutionHandler<T, C>() {
-      @Override
-      public T reject(final RateLimiter limiter, final C callable) {
-        throw new RejectedExecutionException("No buckets available for " + callable + " in limiter " + limiter);
-      }
+    this(maxReqPerSecond, maxBurstSize,
+            (RejectedExecutionHandler<T, C>) (final RateLimiter limiter, final C callable) -> {
+      throw new RejectedExecutionException("No buckets available for " + callable + " in limiter " + limiter);
     });
   }
 
@@ -107,15 +105,12 @@ public final class RateLimiter<T, C extends Callable<? extends T>> implements Au
     }
     this.permits = new AtomicDouble(permitsPerReplenishInterval);
     lastReplenishmentNanos = TimeSource.nanoTime();
-    this.replenisher = scheduler.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        Atomics.getAndAccumulate(permits, permitsPerReplenishInterval, (left, right) -> {
-          double result = left + right;
-          return (result > maxBurstSize) ? maxBurstSize : result;
-        });
-        lastReplenishmentNanos = TimeSource.nanoTime();
-      }
+    this.replenisher = scheduler.scheduleAtFixedRate(() -> {
+      Atomics.getAndAccumulate(permits, permitsPerReplenishInterval, (left, right) -> {
+        double result = left + right;
+        return (result > maxBurstSize) ? maxBurstSize : result;
+      });
+      lastReplenishmentNanos = TimeSource.nanoTime();
     }, permitReplenishIntervalMillis, permitReplenishIntervalMillis, TimeUnit.MILLISECONDS);
   }
 
