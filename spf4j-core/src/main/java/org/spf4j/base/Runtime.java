@@ -179,11 +179,13 @@ public final class Runtime {
               try {
                 thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
               } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
                 if (rex == null) {
                   rex = ex;
                 } else {
                   rex.addSuppressed(ex);
                 }
+                break;
               }
             }
           } else {
@@ -194,7 +196,15 @@ public final class Runtime {
             for (Future<?> future : futures) {
               try {
                 future.get();
-              } catch (InterruptedException | ExecutionException | RuntimeException ex) {
+              }  catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                if (rex == null) {
+                  rex = ex;
+                } else {
+                  rex.addSuppressed(ex);
+                }
+                break;
+              } catch (ExecutionException | RuntimeException ex) {
                 if (rex == null) {
                   rex = ex;
                 } else {
