@@ -165,6 +165,7 @@ public class LifoThreadPoolExecutor2Test {
     Assert.assertEquals(nrExCaught, exNr.sum());
   }
 
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
   public static int consume(final List<Future<?>> futures) throws InterruptedException {
     int nrEx = 0;
     for (Future fut : futures) {
@@ -175,6 +176,7 @@ public class LifoThreadPoolExecutor2Test {
       }
     }
     futures.clear();
+    Thread.sleep(1);
     return nrEx;
   }
 
