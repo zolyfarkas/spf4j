@@ -32,7 +32,7 @@ public class RateLimiterTest {
 
   @Test(expected = RejectedExecutionException.class)
   public void testRateLimiter() throws Exception {
-    RateLimiter resourceLimiter = RateLimiter.getResourceLimiter("testRes", 10, 1, TimeUnit.SECONDS);
+    RateLimiter resourceLimiter = new RateLimiter.Source(10, 1, TimeUnit.SECONDS).getResourceLimiter("testRes");
     for (int i = 0; i < 11; i++) {
       int v = i;
       resourceLimiter.execute(() -> {
@@ -44,7 +44,7 @@ public class RateLimiterTest {
 
   @Test
   public void testRateLimiter2() throws Exception {
-    RateLimiter resourceLimiter = RateLimiter.getResourceLimiter("testRes", 10, 1, TimeUnit.SECONDS);
+    RateLimiter resourceLimiter = new RateLimiter.Source(10, 1, TimeUnit.SECONDS).getResourceLimiter("testRes");
     long time = System.nanoTime();
     for (int i = 0; i < 10; i++) {
       int v = i;

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * build a Limiter utility to limit access to a set of resources.
+ *
  * @author Zoltan Farkas
  */
 public final class RateLimiter {
@@ -34,9 +35,9 @@ public final class RateLimiter {
 
   private final TLongArrayList list;
 
-  public RateLimiter(int maxNrRequests, long interval, TimeUnit intervalUnit) {
+  public RateLimiter(int maxNrRequests, long intervalNanos) {
     this.maxNrRequests = maxNrRequests;
-    this.intervalNanos = intervalUnit.toNanos(interval);
+    this.intervalNanos = intervalNanos;
     this.list = new TLongArrayList(maxNrRequests);
   }
 
@@ -47,7 +48,6 @@ public final class RateLimiter {
   public long getIntervalNanos() {
     return intervalNanos;
   }
-
 
   public synchronized <T> T execute(Callable<T> c) throws Exception {
     long currTime = System.nanoTime();
@@ -72,17 +72,25 @@ public final class RateLimiter {
             + ", intervalNanos=" + intervalNanos + ", list=" + list + '}';
   }
 
+  public static final class Source {
 
-  private static final ConcurrentMap<Object, RateLimiter> RES_LIMITERS = new ConcurrentHashMap<>();
+    private final int maxNrRequests;
 
-  public static RateLimiter getResourceLimiter(Object resource, int maxNrRequests, long interval, TimeUnit intervalUnit) {
-    RateLimiter lim = RES_LIMITERS.computeIfAbsent(resource,
-            (x) -> new RateLimiter(maxNrRequests, interval, intervalUnit));
-    if (lim.getMaxNrRequests() != maxNrRequests || lim.getIntervalNanos() != intervalUnit.toNanos(interval)) {
-      throw new IllegalArgumentException("Different rate limiter already in us for object " + resource);
+    private final long intervalNanos;
+
+    private final ConcurrentMap<Object, RateLimiter> limiters;
+
+    public Source(int maxNrRequests, long interval, TimeUnit intervalUnit) {
+      this.maxNrRequests = maxNrRequests;
+      this.intervalNanos = intervalUnit.toNanos(interval);
+      this.limiters = new ConcurrentHashMap<>();
     }
-    return lim;
-  }
 
+    public RateLimiter getResourceLimiter(Object resource) {
+      return limiters.computeIfAbsent(resource,
+              (x) -> new RateLimiter(maxNrRequests, intervalNanos));
+    }
+
+  }
 
 }
