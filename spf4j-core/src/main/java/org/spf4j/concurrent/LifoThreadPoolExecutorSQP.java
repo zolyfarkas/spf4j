@@ -435,7 +435,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     public void run() {
       if (toRun != null) {
         try {
-          run(toRun);
+          execute(toRun);
         } finally {
           toRun = null;
         }
@@ -451,7 +451,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
           Runnable poll = taskQueue.poll();
           if (poll != null) {
             poolStateLock.unlock();
-            run(poll);
+            execute(poll);
           } else { // nothing in the queue, will put the thread to thread queue.
             if (state.isShutdown()) {
               removeThread();
@@ -479,7 +479,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             if (toRun != null) {
                 poolStateLock.unlock();
                 try {
-                  run(toRun);
+                  execute(toRun);
                 } finally {
                   toRun = null;
                 }
@@ -512,7 +512,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       poolStateLock.unlock();
     }
 
-    private void run(final Runnable runnable) {
+    private void execute(final Runnable runnable) {
       try {
         runnable.run();
       }  catch (Throwable e) {
