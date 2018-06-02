@@ -31,7 +31,6 @@
  */
 package org.spf4j.base;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
@@ -100,24 +99,23 @@ public final class Threads {
     return stackDump;
   }
 
-  @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // jdk printstreams are sync I don't want interleaving.
   public static void dumpToPrintStream(final PrintStream stream) {
-    synchronized (stream) {
-      Thread[] threads = getThreads();
-      StackTraceElement[][] stackTraces = getStackTraces(threads);
-      for (int i = 0; i < threads.length; i++) {
-        StackTraceElement[] stackTrace = stackTraces[i];
-        if (stackTrace != null && stackTrace.length > 0) {
-          Thread thread = threads[i];
-          stream.println("Thread " + thread.getName());
-          try {
-            Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);
-          } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-          }
+    StringBuilder sb = new StringBuilder(1024);
+    Thread[] threads = getThreads();
+    StackTraceElement[][] stackTraces = getStackTraces(threads);
+    for (int i = 0; i < threads.length; i++) {
+      StackTraceElement[] stackTrace = stackTraces[i];
+      if (stackTrace != null && stackTrace.length > 0) {
+        Thread thread = threads[i];
+        sb.append("Thread ").append(thread.getName()).append('\n');
+        try {
+          Throwables.writeTo(stackTrace, sb, Throwables.PackageDetail.SHORT, true);
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
         }
       }
     }
+    stream.append(sb);
   }
 
 }
