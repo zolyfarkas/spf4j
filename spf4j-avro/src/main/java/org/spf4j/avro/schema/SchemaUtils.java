@@ -194,21 +194,27 @@ public final class SchemaUtils {
   public static void writeIdl(final Appendable appendable,
           final Set<String> alreadyDeclared, final String protocolNameSpace, final Schema ... pschemas)
           throws IOException {
+    try(JsonGenerator jsonGen = createJsonGenerator(appendable)) {
+      final Set<Schema> toDeclare = new HashSet<>(4);
+      toDeclare.addAll(Arrays.asList(pschemas));
+      while (!toDeclare.isEmpty()) {
+        Iterator<Schema> iterator = toDeclare.iterator();
+        Schema schema = iterator.next();
+        iterator.remove();
+        writeSchema(schema, appendable, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
+        appendable.append('\n');
+      }
+    }
+  }
+
+  public static JsonGenerator createJsonGenerator(final Appendable appendable) throws IOException {
     JsonGenerator jsonGen;
     if (appendable instanceof Writer) {
       jsonGen = JSON_FACT.createJsonGenerator((Writer) appendable);
     } else {
       jsonGen = JSON_FACT.createJsonGenerator(new AppendableWriter(appendable));
     }
-    final Set<Schema> toDeclare = new HashSet<>(4);
-    toDeclare.addAll(Arrays.asList(pschemas));
-    while (!toDeclare.isEmpty()) {
-      Iterator<Schema> iterator = toDeclare.iterator();
-      Schema schema = iterator.next();
-      iterator.remove();
-      writeSchema(schema, appendable, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
-      appendable.append('\n');
-    }
+    return jsonGen;
   }
 
   @Beta
