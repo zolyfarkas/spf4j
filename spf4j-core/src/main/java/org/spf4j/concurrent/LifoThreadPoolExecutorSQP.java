@@ -471,6 +471,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             try {
               timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
             } catch (InterruptedException ex) {
+              this.interrupt();
               if (state.isShutdown()) {
                 removeThread();
                 break;
