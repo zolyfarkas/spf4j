@@ -160,20 +160,12 @@ public final class Slf4jMessageFormatter {
           throws IOException {
     int i = 0;
     final int len = argArray.length;
-    for (int k = firstArgIdx; k < len; k++) {
-
+    int k = firstArgIdx;
+    for (; k < len; k++) {
       int j = messagePattern.indexOf(DELIM_STR, i);
-
       if (j == -1) {
         // no more variables
-        if (i == 0) { // this is a simple string
-          to.append(messagePattern, i, messagePattern.length());
-          return k;
-        } else { // add the tail string which contains no variables and return
-          // the result.
-          to.append(messagePattern, i, messagePattern.length());
-          return k;
-        }
+        break;
       } else {
         if (isEscapedDelimeter(messagePattern, j)) {
           if (!isDoubleEscaped(messagePattern, j)) {
@@ -199,7 +191,7 @@ public final class Slf4jMessageFormatter {
     }
     // append the characters following the last {} pair.
     to.append(messagePattern, i, messagePattern.length());
-    return len;
+    return k;
   }
 
   private static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
