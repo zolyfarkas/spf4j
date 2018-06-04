@@ -79,11 +79,13 @@ import sun.misc.Contended;
  * this queue 2) Available Thread Queue - a classic LIFO queue, a thread end up here when there is nothing to process.
  * 3) A "UnitQueue", is a queue with a capacity on 1, which a thread will listen on while in the available thread queue.
  *
+ * @deprecated in favor of LifoThreadPoolExecutorSQP
  * @author zoly
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings({ "MDM_THREAD_PRIORITIES", "MDM_WAIT_WITHOUT_TIMEOUT" })
 @Beta
+@Deprecated
 public final class MutableLifoThreadPoolExecutorSQP extends AbstractExecutorService implements  MutableLifoThreadPool {
 
 

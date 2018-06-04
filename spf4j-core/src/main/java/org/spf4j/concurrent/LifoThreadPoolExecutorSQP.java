@@ -81,7 +81,7 @@ import sun.misc.Contended;
  */
 @ParametersAreNonnullByDefault
 @SuppressFBWarnings({"MDM_THREAD_PRIORITIES", "MDM_WAIT_WITHOUT_TIMEOUT"})
-public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService implements LifoThreadPool {
+public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService implements MutableLifoThreadPool {
 
 
   private static final Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorSQP.class);
@@ -102,9 +102,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @GuardedBy("stateLock")
   private final ZArrayDequeue<QueuedThread> threadQueue;
 
-  private final int maxIdleTimeMillis;
+  private int maxIdleTimeMillis;
 
-  private final int maxThreadCount;
+  private int maxThreadCount;
 
   @GuardedBy("stateLock")
   private final PoolState state;
@@ -113,15 +113,15 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
   private final Condition stateCondition;
 
-  private final int queueSizeLimit;
+  private int queueSizeLimit;
 
   private final String poolName;
 
   private final RejectedExecutionHandler rejectionHandler;
 
-  private final boolean daemonThreads;
+  private boolean daemonThreads;
 
-  private final int threadPriority;
+  private int threadPriority;
 
   public LifoThreadPoolExecutorSQP(final int maxNrThreads, final String name) {
     this(name, 0, maxNrThreads, 5000, 0);
@@ -370,6 +370,36 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @Override
   public void unregisterJmx() {
     Registry.unregister(LifoThreadPoolExecutorSQP.class.getName(), poolName);
+  }
+
+  @Override
+  @JmxExport
+  public void setDaemonThreads(final boolean daemonThreads) {
+    this.daemonThreads = daemonThreads;
+  }
+
+  @Override
+  @JmxExport
+  public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
+    this.maxIdleTimeMillis = maxIdleTimeMillis;
+  }
+
+  @Override
+  @JmxExport
+  public void setMaxThreadCount(final int maxThreadCount) {
+    this.maxThreadCount = maxThreadCount;
+  }
+
+  @Override
+  @JmxExport
+  public void setQueueSizeLimit(final int queueSizeLimit) {
+    this.queueSizeLimit = queueSizeLimit;
+  }
+
+  @Override
+  @JmxExport
+  public void setThreadPriority(final int threadPriority) {
+    this.threadPriority = threadPriority;
   }
 
   @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
