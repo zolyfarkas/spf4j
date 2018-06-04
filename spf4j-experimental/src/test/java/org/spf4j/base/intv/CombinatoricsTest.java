@@ -44,4 +44,11 @@ public class CombinatoricsTest {
     Assert.assertEquals(24, res.size());
   }
 
+  @Test
+  public void testConbinations() {
+    Combinatorics.combination(new Integer[] {1, 2, 3, 4, 5}, 3, (a) -> {
+      LOG.debug("{}", (Object) a);
+    });
+  }
+
 }

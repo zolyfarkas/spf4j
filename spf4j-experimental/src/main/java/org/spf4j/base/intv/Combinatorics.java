@@ -15,6 +15,7 @@
  */
 package org.spf4j.base.intv;
 
+import java.util.BitSet;
 import java.util.function.Consumer;
 
 /**
@@ -43,5 +44,57 @@ public final class Combinatorics {
     }
   }
 
+
+    public static <T> void combination(T[] array, int of, Consumer<T[]> result) {
+      BitSet bs = new BitSet(array.length);
+      for (int i = 0; i < of; i++) {
+        bs.set(i);
+      }
+      T[] ca = (T[]) java.lang.reflect.Array.newInstance(array.getClass().getComponentType(), of);
+      do {
+        for (int i = 0, j = 0; i < array.length; i++) {
+          if (bs.get(i)) {
+            ca[j] = array[i];
+            j++;
+          }
+        }
+        result.accept(ca);
+      } while(!increment(bs, array.length));
+    }
+
+    private static  boolean increment(BitSet bs, int size) {
+      int length = bs.length();
+      if (length == 0) {
+        return true;
+      }
+      if (length < size) {
+        bs.set(length);
+        bs.clear(length - 1);
+        return false;
+      } else {
+        int i = length - 2;
+        int nrb = 1;
+        while (i >= 0 && (!bs.get(i) || bs.get(i + 1))) {
+          if (bs.get(i)) {
+            nrb++;
+          }
+          i--;
+        }
+        if (i < 0) {
+          return true;
+        } else {
+          bs.set(i + 1);
+          bs.clear(i);
+          int l = i + 2 + nrb;
+          for (int j = i + 2; j < l; j++) {
+            bs.set(j);
+          }
+          for (int j = l; j < size; j++) {
+            bs.clear(j);
+          }
+          return false;
+        }
+      }
+    }
 
 }
