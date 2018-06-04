@@ -135,24 +135,12 @@ public final class LifoThreadPoolBuilder {
   }
 
   public LifoThreadPool build() {
-    MutableLifoThreadPool result;
-    if (mutable) {
-      result = new LifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,
-              taskQueue, queueSizeLimit, daemonThreads, rejectionHandler, threadPriority);
-    } else {
-      result = new LifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,
-              taskQueue, queueSizeLimit, daemonThreads, rejectionHandler, threadPriority);
-    }
-    if (jmxEnabled) {
-      result.exportJmx();
-    }
-    return result;
+    return buildMutable();
   }
 
   public MutableLifoThreadPool buildMutable() {
     MutableLifoThreadPool result = new LifoThreadPoolExecutorSQP(poolName, coreSize, maxSize, maxIdleTimeMillis,
             taskQueue, queueSizeLimit, daemonThreads, rejectionHandler, threadPriority);
-
     if (jmxEnabled) {
       result.exportJmx();
     }
