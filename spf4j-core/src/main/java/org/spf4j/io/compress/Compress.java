@@ -51,6 +51,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
@@ -110,20 +111,22 @@ public final class Compress {
       }
       try (BufferedOutputStream fos = new BufferedOutputStream(Files.newOutputStream(tmpFile));
               ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-          Files.walk(fileOrFolderToCompress).forEach((path) -> {
-            if (Files.isDirectory(path)) {
-              return;
-            }
-            String fileName = relativePath.relativize(path).toString();
-            try (InputStream in = new BufferedInputStream(Files.newInputStream(path),
-                    8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
-              ZipEntry ze = new ZipEntry(fileName);
-              zos.putNextEntry(ze);
-              Streams.copy(in, zos);
-            } catch (IOException ex) {
-              throw new UncheckedIOException("Error compressing " + path, ex);
-            }
-          });
+          try (Stream<Path> ws = Files.walk(fileOrFolderToCompress)) {
+            ws.forEach((path) -> {
+              if (Files.isDirectory(path)) {
+                return;
+              }
+              String fileName = relativePath.relativize(path).toString();
+              try (InputStream in = new BufferedInputStream(Files.newInputStream(path),
+                      8192, ArraySuppliers.Bytes.TL_SUPPLIER)) {
+                ZipEntry ze = new ZipEntry(fileName);
+                zos.putNextEntry(ze);
+                Streams.copy(in, zos);
+              } catch (IOException ex) {
+                throw new UncheckedIOException("Error compressing " + path, ex);
+              }
+            });
+          }
       }
       Files.move(tmpFile, destFile,
               StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
