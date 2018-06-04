@@ -127,6 +127,7 @@ public final class JdbcTemplate {
     try {
       return transactOnConnection(handler, timeout, tu);
     } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
       throw new SQLException(ex);
     }
   }
