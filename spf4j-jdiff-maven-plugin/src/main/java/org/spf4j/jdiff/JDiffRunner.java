@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecution;
@@ -305,21 +306,22 @@ public final class JDiffRunner {
               + "<table summary=\"Api Difference Reports\""
               + " width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">");
       Path reportPath = reportOutputDirectory.toPath();
-      Files.walk(reportPath, 2)
-              .map((p) -> reportPath.relativize(p))
-              .filter((p) -> p.getNameCount() > 1 && p.endsWith("changes.html"))
-              .forEach((p) -> {
-                try {
-                  writer.append("  <tr>\n"
-                          + "  <td bgcolor=\"#FFFFCC\">\n"
-                          + "    <font size=\"+1\"><a href=\"" + p + "\"> "
-                          + p.getName(0).toString().replace("_", " to ") + " </a></font>\n"
-                          + "  </td>\n"
-                          + "  </tr>");
-                } catch (IOException ex) {
-                  throw new UncheckedIOException(ex);
-                }
-              });
+      try (Stream<Path> stream = Files.walk(reportPath, 2)) {
+        stream.map((p) -> reportPath.relativize(p))
+                .filter((p) -> p.getNameCount() > 1 && p.endsWith("changes.html"))
+                .forEach((p) -> {
+                  try {
+                    writer.append("  <tr>\n"
+                            + "  <td bgcolor=\"#FFFFCC\">\n"
+                            + "    <font size=\"+1\"><a href=\"" + p + "\"> "
+                            + p.getName(0).toString().replace("_", " to ") + " </a></font>\n"
+                            + "  </td>\n"
+                            + "  </tr>");
+                  } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                  }
+                });
+      }
       writer.append("</TABLE>\n"
               + "</BODY>\n"
               + "</HTML>");
