@@ -508,7 +508,7 @@ public final class Callables {
   public static <T, EX extends Exception> T executeWithRetry(final TimeoutCallable<T, EX> what,
           final TimeoutRetryPredicate<Exception, T> retryOnException, final Class<EX> exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-    return (T) executeWithRetry(what, (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
+    return executeWithRetry(what, (TimeoutRetryPredicate<T, T>) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
 
