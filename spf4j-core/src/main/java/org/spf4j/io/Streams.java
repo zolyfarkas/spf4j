@@ -85,7 +85,7 @@ public final class Streams {
         try {
             boolean done = false;
             long bytesCopiedSinceLastFlush = 0;
-            while (!done) {
+            while (true) {
                 // non-blocking(if input is implemented correctly) read+write as long as data is available.
                 while (is.available() > 0) {
                     int nrRead = is.read(buffer, 0, buffSize);
@@ -122,7 +122,7 @@ public final class Streams {
         }
         return total;
     }
-    
+
     /**
      * faster variant than guava CharStreams.asWriter.
      * @param appendable - the appendable to transform.
