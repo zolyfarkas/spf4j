@@ -231,9 +231,6 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @throws NullPointerException if the specified element is null
    */
   public void addFirst(@Nonnull E e) {
-    if (e == null) {
-      throw new IllegalArgumentException("Argument cannot be " + e);
-    }
     elements[head = (head - 1) & (elements.length - 1)] = e;
     if (head == tail) {
       doubleCapacity();
@@ -249,10 +246,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @param e the element to add
    * @throws IllegalArgumentException if the specified element is null
    */
-  public void addLast(E e) {
-    if (e == null) {
-      throw new IllegalArgumentException("Argument cannot be " + e);
-    }
+  public void addLast(@Nonnull E e) {
     elements[tail] = e;
     if ((tail = (tail + 1) & (elements.length - 1)) == head) {
       doubleCapacity();
@@ -260,9 +254,6 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
   }
 
   public int addLastAndGetPtr(@Nonnull final E e) {
-    if (e == null) {
-      throw new IllegalArgumentException("Argument cannot be " + e);
-    }
     elements[tail] = e;
     int result = tail;
     if ((tail = (tail + 1) & (elements.length - 1)) == head) {
@@ -278,7 +269,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @return <tt>true</tt> (as specified by {@link Deque#offerFirst})
    * @throws NullPointerException if the specified element is null
    */
-  public boolean offerFirst(E e) {
+  public boolean offerFirst(@Nonnull E e) {
     addFirst(e);
     return true;
   }
@@ -290,7 +281,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @return <tt>true</tt> (as specified by {@link Deque#offerLast})
    * @throws NullPointerException if the specified element is null
    */
-  public boolean offerLast(E e) {
+  public boolean offerLast(@Nonnull E e) {
     addLast(e);
     return true;
   }
@@ -381,10 +372,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @param o element to be removed from this deque, if present
    * @return <tt>true</tt> if the deque contained the specified element
    */
-  public boolean removeFirstOccurrence(Object o) {
-    if (o == null) {
-      return false;
-    }
+  public boolean removeFirstOccurrence(@Nonnull Object o) {
     int mask = elements.length - 1;
     int i = head;
     E x;
@@ -408,10 +396,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @param o element to be removed from this deque, if present
    * @return <tt>true</tt> if the deque contained the specified element
    */
-  public boolean removeLastOccurrence(Object o) {
-    if (o == null) {
-      return false;
-    }
+  public boolean removeLastOccurrence(@Nonnull Object o) {
     int mask = elements.length - 1;
     int i = (tail - 1) & mask;
     E x;
@@ -551,7 +536,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
     assert elements[(head - 1) & (elements.length - 1)] == null;
   }
 
-  public void delete(int i, E elem) {
+  public void delete(int i, @Nonnull E elem) {
     if (elem.equals(elements[i])) {
       delete(i);
     } else {
@@ -738,10 +723,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @param o object to be checked for containment in this deque
    * @return <tt>true</tt> if this deque contains the specified element
    */
-  public boolean contains(Object o) {
-    if (o == null) {
-      return false;
-    }
+  public boolean contains(@Nonnull Object o) {
     int mask = elements.length - 1;
     int i = head;
     E x;
@@ -766,7 +748,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @param o element to be removed from this deque, if present
    * @return <tt>true</tt> if this deque contained the specified element
    */
-  public boolean remove(Object o) {
+  public boolean remove(@Nonnull Object o) {
     return removeFirstOccurrence(o);
   }
 
