@@ -247,9 +247,9 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * This method is equivalent to {@link #add}.
    *
    * @param e the element to add
-   * @throws NullPointerException if the specified element is null
+   * @throws IllegalArgumentException if the specified element is null
    */
-  public void addLast(@Nonnull E e) {
+  public void addLast(E e) {
     if (e == null) {
       throw new IllegalArgumentException("Argument cannot be " + e);
     }
