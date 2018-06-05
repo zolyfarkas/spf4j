@@ -55,6 +55,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
+import org.spf4j.pool.jdbc.PooledDataSource;
+import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.recyclable.ObjectDisposeException;
+import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.stackmonitor.Sampler;
 
 /**
@@ -90,13 +94,44 @@ public class JdbcSemaphoreTest {
     }
   }
 
-  @Test
-  public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException {
+  static PooledDataSource createPooledDS(final JdbcDataSource ds) throws ObjectCreationException {
 
-    JdbcDataSource ds = new JdbcDataSource();
-    ds.setURL("jdbc:h2:mem:test");
-    ds.setUser("sa");
-    ds.setPassword("sa");
+    return new PooledDataSource(0, 4, new RecyclingSupplier.Factory<Connection>() {
+      @Override
+      public Connection create() throws ObjectCreationException {
+        try {
+          return ds.getConnection();
+        } catch (SQLException ex) {
+          throw new ObjectCreationException(ex);
+        }
+      }
+
+      @Override
+      public void dispose(final Connection object) throws ObjectDisposeException {
+        try {
+          object.close();
+        } catch (SQLException ex) {
+          throw new ObjectDisposeException(ex);
+        }
+      }
+
+      @Override
+      public boolean validate(final Connection object, final Exception e) throws SQLException {
+        return object.isValid(60);
+      }
+    });
+
+  }
+
+  @Test
+  public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException,
+          ObjectCreationException, ObjectDisposeException {
+
+    JdbcDataSource hds = new JdbcDataSource();
+    hds.setURL("jdbc:h2:mem:test");
+    hds.setUser("sa");
+    hds.setPassword("sa");
+    PooledDataSource ds = createPooledDS(hds);
     try (Connection conn = ds.getConnection()) { // only to keep the schema arround in thsi section
       createSchemaObjects(ds);
 
@@ -110,6 +145,7 @@ public class JdbcSemaphoreTest {
       testReleaseAck(ds, "testSem2", 2);
       heartbeat.close();
     }
+    ds.close();
 
   }
 

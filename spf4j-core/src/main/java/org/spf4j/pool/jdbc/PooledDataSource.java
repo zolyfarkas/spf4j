@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 
@@ -61,8 +62,11 @@ public final class PooledDataSource implements DataSource, AutoCloseable {
   public PooledDataSource(final int initialSize, final int maxSize,
           final String driverName, final String url, final String user, final String password)
           throws ObjectCreationException {
-    final JdbcConnectionFactory jdbcConnectionFactory
-            = new JdbcConnectionFactory(driverName, url, user, password);
+    this(initialSize, maxSize, new JdbcConnectionFactory(driverName, url, user, password));
+  }
+
+  public PooledDataSource(final int initialSize, final int maxSize,
+          final RecyclingSupplier.Factory<Connection> jdbcConnectionFactory) throws ObjectCreationException {
     RecyclingSupplierBuilder<Connection> builder
             = new RecyclingSupplierBuilder<>(maxSize, jdbcConnectionFactory);
     builder.withInitialSize(initialSize);
@@ -163,7 +167,7 @@ public final class PooledDataSource implements DataSource, AutoCloseable {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() throws ObjectDisposeException, InterruptedException {
     pool.dispose();
   }
 
