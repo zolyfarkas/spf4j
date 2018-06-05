@@ -57,7 +57,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.recyclable.ObjectCreationException;
 
 /**
@@ -117,7 +117,7 @@ public final class GraphiteUdpStoreTest {
   @SuppressFBWarnings("MDM_THREAD_YIELD")
   public void testStore() throws InterruptedException, IOException {
 
-    MeasurementRecorder recorder = RecorderFactory.createScalableQuantizedRecorder("test measurement",
+    CloseableMeasurementRecorder recorder = RecorderFactory.createScalableQuantizedRecorder2("test measurement",
             "ms", 1000, 10, 0, 6, 10);
 
     for (int i = 0; i < 100; i++) {

@@ -33,20 +33,19 @@ package org.spf4j.perf.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
-import org.spf4j.perf.MeasurementRecorder;
 
 /**
  *
  * @author zoly
  */
-public final class DirectStoreAccumulator implements MeasurementRecorder, Closeable {
+public final class DirectStoreAccumulator implements CloseableMeasurementRecorder {
 
     private static final String[] MEASUREMENTS = {"value"};
 

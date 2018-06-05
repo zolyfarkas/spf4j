@@ -32,11 +32,9 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.Closeable;
 import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +45,7 @@ import org.spf4j.base.Runtime;
 import org.spf4j.base.SysExits;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.unix.Lsof;
 
 /**
@@ -121,11 +120,8 @@ public final class OpenFilesSampler {
     if (samplingFuture != null) {
       samplingFuture.cancel(false);
       samplingFuture = null;
-      try {
-        accumulator.close();
-      } finally {
-        accumulator = null;
-      }
+      accumulator.close();
+      accumulator = null;
     }
   }
 
@@ -167,19 +163,19 @@ public final class OpenFilesSampler {
   }
 
 
-  private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
+  private static class AccumulatorRunnable extends AbstractRunnable implements AutoCloseable {
 
     private final long errorThreshold;
     private final boolean shutdownOnError;
     private final long warnThreshold;
-    private final MeasurementRecorder nrOpenFiles;
+    private final CloseableMeasurementRecorder nrOpenFiles;
 
     AccumulatorRunnable(final long errorThreshold, final boolean shutdownOnError,
             final long warnThreshold, final int aggMillis) {
       this.errorThreshold = errorThreshold;
       this.shutdownOnError = shutdownOnError;
       this.warnThreshold = warnThreshold;
-      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder("nr-open-files", "count", aggMillis);
+      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder2("nr-open-files", "count", aggMillis);
     }
 
     @Override
@@ -208,11 +204,6 @@ public final class OpenFilesSampler {
       this.nrOpenFiles.recordAt(time, nrOf);
     }
 
-    @Override
-    public void close() throws IOException {
-        this.nrOpenFiles.close();
-    }
-
     public long getErrorThreshold() {
       return errorThreshold;
     }
@@ -224,6 +215,13 @@ public final class OpenFilesSampler {
     public long getWarnThreshold() {
       return warnThreshold;
     }
+
+    @Override
+    public void close() {
+      nrOpenFiles.close();
+    }
+
+
 
   }
 

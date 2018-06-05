@@ -41,9 +41,9 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.jmx.Client;
+import org.spf4j.perf.CloseableMeasurementRecorder;
+import org.spf4j.perf.CloseableMeasurementRecorderSource;
 import org.spf4j.perf.MeasurementRecorder;
-import org.spf4j.perf.MeasurementRecorderSource;
-
 
 /**
  *
@@ -51,59 +51,55 @@ import org.spf4j.perf.MeasurementRecorderSource;
  */
 public class RecorderFactoryTest {
 
-
-    @Test
-    public void testRecorderFactory() throws InterruptedException, IOException,
-            InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
-        MeasurementRecorder rec = RecorderFactory.createScalableQuantizedRecorder(RecorderFactoryTest.class,
-                "ms", 100000000, 10, 0, 6, 10);
-        rec.record(1);
-        int sum = 1;
-        for (int i = 0; i < 10; i++) {
-            rec.record(i);
-            sum += i;
-        }
-       String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
-       Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
-       rec.close();
+  @Test
+  public void testRecorderFactory() throws InterruptedException, IOException,
+          InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
+    CloseableMeasurementRecorder rec = RecorderFactory.createScalableQuantizedRecorder2(RecorderFactoryTest.class,
+            "ms", 100000000, 10, 0, 6, 10);
+    rec.record(1);
+    int sum = 1;
+    for (int i = 0; i < 10; i++) {
+      rec.record(i);
+      sum += i;
     }
+    String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+            "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
+    Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
+    rec.close();
+  }
 
+  @Test
+  public void testRecorderFactory2() throws InterruptedException, IOException,
+          InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
+    CloseableMeasurementRecorder rec = RecorderFactory.createScalableQuantizedRecorder2(RecorderFactoryTest.class,
+            "ms", 100000000, 10, 0, 6, 10);
+    CompositeData ret3 = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+            "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurements");
+    Assert.assertNull(ret3);
+    rec.close();
+  }
 
-    @Test
-    public void testRecorderFactory2() throws InterruptedException, IOException,
-            InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
-      MeasurementRecorder rec = RecorderFactory.createScalableQuantizedRecorder(RecorderFactoryTest.class,
-              "ms", 100000000, 10, 0, 6, 10);
-       CompositeData ret3 = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurements");
-       Assert.assertNull(ret3);
-       rec.close();
+  private static final class RsTest {
+
+  }
+
+  @Test
+  public void testRecorderFactoryDyna() throws InterruptedException, IOException,
+          InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
+    CloseableMeasurementRecorderSource rec = RecorderFactory.createScalableQuantizedRecorderSource2(RsTest.class,
+            "ms", 100000000, 10, 0, 6, 10);
+    MeasurementRecorder recorder = rec.getRecorder("test");
+    recorder.record(1);
+    int sum = 1;
+    for (int i = 0; i < 10; i++) {
+      recorder.record(i);
+      sum += i;
     }
-
-    private static final class RsTest {
-
-    }
-
-
-    @Test
-    public void testRecorderFactoryDyna() throws InterruptedException, IOException,
-            InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
-        MeasurementRecorderSource rec = RecorderFactory.createScalableQuantizedRecorderSource(RsTest.class,
-                "ms", 100000000, 10, 0, 6, 10);
-        MeasurementRecorder recorder = rec.getRecorder("test");
-        recorder.record(1);
-        int sum = 1;
-        for (int i = 0; i < 10; i++) {
-            recorder.record(i);
-            sum += i;
-        }
-       String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-                "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName() + "_RsTest",
-                "measurementsAsString");
-       Assert.assertThat(ret3, Matchers.containsString("test," + sum + "," + 11));
-       rec.close();
-    }
-
+    String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+            "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName() + "_RsTest",
+            "measurementsAsString");
+    Assert.assertThat(ret3, Matchers.containsString("test," + sum + "," + 11));
+    rec.close();
+  }
 
 }

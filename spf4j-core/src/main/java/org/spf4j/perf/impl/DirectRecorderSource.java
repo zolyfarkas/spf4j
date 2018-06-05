@@ -73,9 +73,6 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
         return recorders.getUnchecked(forWhat);
     }
 
-    @Override
-    public void close() {
-    }
 
     private static final class CreateDirectRecorder extends CacheLoader<Object, MeasurementRecorder> {
 

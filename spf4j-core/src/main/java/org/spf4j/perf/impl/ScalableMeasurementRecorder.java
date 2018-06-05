@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +52,7 @@ import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.DynamicMBeanBuilder;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorder;
 
 /**
  *
@@ -61,7 +61,8 @@ import org.spf4j.jmx.Registry;
 @ThreadSafe
 // a recorder instance is tipically alive for the entire life of the process
 @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
-public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator {
+public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator
+  implements CloseableMeasurementRecorder {
 
   private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
 
@@ -70,11 +71,10 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
   private final ScheduledFuture<?> samplingFuture;
   private final MeasurementAccumulator processorTemplate;
   private final Persister persister;
-  @Nonnull
   private final Runnable shutdownHook;
 
   ScalableMeasurementRecorder(final MeasurementAccumulator processor, final int sampleTimeMillis,
-          final MeasurementStore measurementStore) {
+          final MeasurementStore measurementStore, final boolean closeOnShutdown) {
     if (sampleTimeMillis < 1000) {
       throw new IllegalArgumentException("sample time needs to be at least 1000 and not " + sampleTimeMillis);
     }
@@ -99,10 +99,14 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     }
     persister = new Persister(measurementStore, tableId, processor);
     samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-    shutdownHook = closeOnShutdown();
+    if (closeOnShutdown) {
+      shutdownHook = closeOnShutdown();
+    } else {
+      shutdownHook = null;
+    }
   }
 
-  private Runnable closeOnShutdown() {
+  public Runnable closeOnShutdown() {
     final AbstractRunnable runnable = new AbstractRunnable(true) {
 
       @Override
@@ -159,12 +163,12 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 
   @Override
   public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-    throw new UnsupportedOperationException("Aggregating Scalable Recorders not supported");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public MeasurementAccumulator createClone() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    throw new UnsupportedOperationException();
   }
 
   @SuppressWarnings("unchecked")
@@ -176,12 +180,13 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
             .register("org.spf4j.perf.recorders", info.getMeasuredEntity().toString());
   }
 
-  @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void close() {
-    synchronized (shutdownHook) {
+    synchronized (persister) {
       if (!samplingFuture.isCancelled()) {
-        org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
+        if (shutdownHook != null) {
+          org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
+        }
         samplingFuture.cancel(false);
         try {
           persister.persist(false);
@@ -202,7 +207,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 
   @Override
   public MeasurementAccumulator createLike(final Object entity) {
-    throw new UnsupportedOperationException("Not supported yet.");
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -212,7 +217,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 
   @Override
   public MeasurementAccumulator reset() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    throw new UnsupportedOperationException();
   }
 
   @Override

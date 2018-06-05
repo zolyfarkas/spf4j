@@ -33,7 +33,6 @@ package org.spf4j.perf;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.impl.RecorderFactory;
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -57,7 +56,7 @@ public final class RecorderFactoryTest {
    * Test of createScalableQuantizedRecorder method, of class RecorderFactory.
    */
   @Test
-  public void testCreateScalableQuantizedRecorder() throws IOException, InterruptedException {
+  public void testCreateScalableQuantizedRecorder() throws  IOException, InterruptedException {
     String forWhat = "test1";
     String unitOfMeasurement = "ms";
     int sampleTime = 1000;
@@ -65,7 +64,7 @@ public final class RecorderFactoryTest {
     int lowerMagnitude = 0;
     int higherMagnitude = 3;
     int quantasPerMagnitude = 10;
-    MeasurementRecorder result = RecorderFactory.createScalableQuantizedRecorder(
+    CloseableMeasurementRecorder result = RecorderFactory.createScalableQuantizedRecorder2(
             forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     for (int i = 0; i < 500; i++) {
       result.record(i);
@@ -87,7 +86,7 @@ public final class RecorderFactoryTest {
     int lowerMagnitude = 0;
     int higherMagnitude = 3;
     int quantasPerMagnitude = 10;
-    MeasurementRecorderSource result = RecorderFactory.createScalableQuantizedRecorderSource(
+    CloseableMeasurementRecorderSource result = RecorderFactory.createScalableQuantizedRecorderSource2(
             forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     for (int i = 0; i < 5000; i++) {
       result.getRecorder("X" + i % 2).record(1);
@@ -106,13 +105,13 @@ public final class RecorderFactoryTest {
     int lowerMagnitude = 0;
     int higherMagnitude = 3;
     int quantasPerMagnitude = 10;
-    MeasurementRecorder result = RecorderFactory.createScalableQuantizedRecorder(
+    CloseableMeasurementRecorder result = RecorderFactory.createScalableQuantizedRecorder2(
             forWhat, unitOfMeasurement, sampleTime, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude);
     for (int i = 0; i < 500; i++) {
       result.record(10000);
       Thread.sleep(20);
     }
-    ((Closeable) result).close();
+    result.close();
     assertData(forWhat, 5000000);
 
   }
@@ -125,13 +124,13 @@ public final class RecorderFactoryTest {
     String forWhat = "counters";
     String unitOfMeasurement = "counts";
     int sampleTime = 1000;
-    MeasurementRecorderSource result = RecorderFactory.createScalableCountingRecorderSource(
+    CloseableMeasurementRecorderSource result = RecorderFactory.createScalableCountingRecorderSource2(
             forWhat, unitOfMeasurement, sampleTime);
     for (int i = 0; i < 5000; i++) {
       result.getRecorder("X" + i % 2).record(1);
       Thread.sleep(1);
     }
-    ((Closeable) result).close();
+    result.close();
     assertData(forWhat + ",X1", 2500);
   }
 

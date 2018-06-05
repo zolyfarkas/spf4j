@@ -51,9 +51,4 @@ public final class NopMeasurementRecorderSource implements MeasurementRecorderSo
        return NopMeasurementRecorder.INSTANCE;
     }
 
-    @Override
-    public void close() {
-      //nothing to close for NOP
-    }
-
 }

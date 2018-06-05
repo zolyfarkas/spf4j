@@ -34,7 +34,6 @@ package org.spf4j.perf.impl;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
@@ -58,6 +57,7 @@ import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.DynamicMBeanBuilder;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorderSource;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementsSource;
@@ -69,7 +69,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 // a recorder instance is tipically alive for the entire life of the process
 @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorderSource implements
-        MeasurementRecorderSource, MeasurementsSource, Closeable {
+        MeasurementRecorderSource, MeasurementsSource, CloseableMeasurementRecorderSource {
 
   private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);
 
@@ -86,7 +86,7 @@ public final class ScalableMeasurementRecorderSource implements
   private final Runnable shutdownHook;
 
   ScalableMeasurementRecorderSource(final MeasurementAccumulator processor,
-          final int sampleTimeMillis, final MeasurementStore database) {
+          final int sampleTimeMillis, final MeasurementStore database, final boolean closeOnShutdown) {
     if (sampleTimeMillis < 1000) {
       throw new IllegalArgumentException("sample time needs to be at least 1000 and not " + sampleTimeMillis);
     }
@@ -107,7 +107,11 @@ public final class ScalableMeasurementRecorderSource implements
     tableIds = new TObjectLongHashMap<>();
     persister = new Persister(database, sampleTimeMillis, processor);
     samplingFuture = DefaultScheduler.scheduleAllignedAtFixedRateMillis(persister, sampleTimeMillis);
-    shutdownHook = closeOnShutdown();
+    if (closeOnShutdown) {
+      shutdownHook = closeOnShutdown();
+    } else {
+      shutdownHook = null;
+    }
   }
 
   private Runnable closeOnShutdown() {
@@ -220,9 +224,11 @@ public final class ScalableMeasurementRecorderSource implements
   @Override
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void close() {
-    synchronized (shutdownHook) {
+    synchronized (persister) {
       if (!samplingFuture.isCancelled()) {
-        org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
+        if (shutdownHook != null) {
+          org.spf4j.base.Runtime.removeQueuedShutdownHook(shutdownHook);
+        }
         samplingFuture.cancel(false);
         try {
           persister.persist(false);

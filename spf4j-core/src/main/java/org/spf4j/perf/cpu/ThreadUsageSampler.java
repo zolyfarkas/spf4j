@@ -42,6 +42,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Threads;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -73,10 +75,12 @@ public final class ThreadUsageSampler {
         String pto = System.getProperty("spf4j.threadUsageSampler.peakThreadsOnShutdown", "out");
         switch (pto) {
           case "out":
-            writePeakThreadInfo(System.out);
+          case "info":
+            logPeakThreadInfo(Level.INFO);
             break;
           case "err":
-            writePeakThreadInfo(System.err);
+          case "warn":
+            logPeakThreadInfo(Level.WARNING);
             break;
           case "none":
             break;
@@ -112,6 +116,19 @@ public final class ThreadUsageSampler {
       }
     }
   }
+
+  public static void logPeakThreadInfo(final Level level) {
+    if (!PEAK_THREAD_NAMES.isEmpty()) {
+      Logger logger = Logger.getLogger(ThreadUsageSampler.class.getName());
+      int i = 0;
+      for (String tname : PEAK_THREAD_NAMES) {
+        logger.log(level, "PeakThread({0}), daemon={1}, trace -> {2}",
+                new Object[] {tname, PEAK_THREAD_DAEMON.get(i), Arrays.toString(PEAK_THREAD_TRACES.get(i))});
+        i++;
+      }
+    }
+  }
+
 
   @JmxExport
   @SuppressFBWarnings({"DM_DEFAULT_ENCODING", "NP_LOAD_OF_KNOWN_NULL_VALUE"})
@@ -156,42 +173,8 @@ public final class ThreadUsageSampler {
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime,
           @JmxExport("withStackTraces") final boolean withStackTraces) {
     if (samplingFuture == null) {
-      final MeasurementRecorder cpuUsage
-              = RecorderFactory.createDirectRecorder("peak-thread-count", "count", sampleTime);
-      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
-
-        private int maxThreadsNr = 0;
-
-        @Override
-        public void doRun() {
-          final int peakThreadCount = TH_BEAN.getPeakThreadCount();
-          cpuUsage.record(peakThreadCount);
-          if (peakThreadCount > maxThreadsNr) {
-            Thread[] ths = Threads.getThreads();
-            if (ths.length > PEAK_THREAD_NAMES.size()) {
-              if (withStackTraces) {
-                StackTraceElement[][] stackTraces = Threads.getStackTraces(ths);
-                PEAK_THREAD_TRACES.clear();
-                PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));
-              }
-
-              PEAK_THREAD_NAMES.clear();
-              int i = 0;
-              for (Thread th : ths) {
-                PEAK_THREAD_NAMES.add(th.getName());
-                if (th.isDaemon()) {
-                  PEAK_THREAD_DAEMON.set(i);
-                } else {
-                  PEAK_THREAD_DAEMON.clear(i);
-                }
-                i++;
-              }
-            }
-            maxThreadsNr = peakThreadCount;
-          }
-          TH_BEAN.resetPeakThreadCount();
-        }
-      }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
+      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(
+              new ThreadStateRecorder(sampleTime, withStackTraces), sampleTime, sampleTime, TimeUnit.MILLISECONDS);
     } else {
       throw new IllegalStateException("Thread sampling already started " + samplingFuture);
     }
@@ -208,6 +191,49 @@ public final class ThreadUsageSampler {
   @JmxExport
   public static synchronized boolean isStarted() {
     return samplingFuture != null;
+  }
+
+  private static final class ThreadStateRecorder extends AbstractRunnable {
+
+    private final MeasurementRecorder cpuUsage;
+    private final boolean withStackTraces;
+
+    ThreadStateRecorder(final int sampleTime, final boolean withStackTraces) {
+      this.cpuUsage
+              = RecorderFactory.createDirectRecorder("peak-thread-count", "count", sampleTime);
+      this.withStackTraces = withStackTraces;
+    }
+    private int maxThreadsNr = 0;
+
+    @Override
+    public void doRun() {
+      final int peakThreadCount = TH_BEAN.getPeakThreadCount();
+      cpuUsage.record(peakThreadCount);
+      if (peakThreadCount > maxThreadsNr) {
+        Thread[] ths = Threads.getThreads();
+        if (ths.length > PEAK_THREAD_NAMES.size()) {
+          if (withStackTraces) {
+            StackTraceElement[][] stackTraces = Threads.getStackTraces(ths);
+            PEAK_THREAD_TRACES.clear();
+            PEAK_THREAD_TRACES.addAll(Arrays.asList(stackTraces));
+          }
+
+          PEAK_THREAD_NAMES.clear();
+          int i = 0;
+          for (Thread th : ths) {
+            PEAK_THREAD_NAMES.add(th.getName());
+            if (th.isDaemon()) {
+              PEAK_THREAD_DAEMON.set(i);
+            } else {
+              PEAK_THREAD_DAEMON.clear(i);
+            }
+            i++;
+          }
+        }
+        maxThreadsNr = peakThreadCount;
+      }
+      TH_BEAN.resetPeakThreadCount();
+    }
   }
 
 }

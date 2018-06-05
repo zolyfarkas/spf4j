@@ -54,9 +54,5 @@ public final class NopMeasurementRecorder implements MeasurementRecorder {
         //NOP
     }
 
-    @Override
-    public void close() {
-        //Default do nothing
-    }
 
 }

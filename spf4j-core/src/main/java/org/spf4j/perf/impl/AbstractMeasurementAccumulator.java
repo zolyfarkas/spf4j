@@ -31,7 +31,6 @@
  */
 package org.spf4j.perf.impl;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementAccumulator;
 
 /**
@@ -65,12 +64,6 @@ public abstract class AbstractMeasurementAccumulator implements MeasurementAccum
 
     public final long getMaxTime() {
         return maxTime;
-    }
-
-    @Override
-    @SuppressFBWarnings
-    public void close() {
-        // Default do nothing;
     }
 
 }

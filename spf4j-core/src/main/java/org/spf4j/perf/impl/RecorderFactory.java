@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.CharSequences;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
+import org.spf4j.perf.CloseableMeasurementRecorder;
+import org.spf4j.perf.CloseableMeasurementRecorderSource;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
@@ -176,7 +178,18 @@ public final class RecorderFactory {
           final int higherMagnitude, final int quantasPerMagnitude) {
     ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedAccumulator(forWhat, "",
             unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
-            quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE);
+            quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE, true);
+    mr.registerJmx();
+    return mr;
+  }
+
+  public static CloseableMeasurementRecorder createScalableQuantizedRecorder2(
+          final Object forWhat, final String unitOfMeasurement, final int factor,
+          final int lowerMagnitude, final int higherMagnitude,
+          final int quantasPerMagnitude, final int sampleTimeMillis) {
+    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedAccumulator(forWhat, "",
+            unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
+            quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE, false);
     mr.registerJmx();
     return mr;
   }
@@ -184,7 +197,7 @@ public final class RecorderFactory {
   public static MeasurementRecorder createScalableCountingRecorder(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new CountingAccumulator(forWhat, "",
-            unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
+            unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
     mr.registerJmx();
     return mr;
   }
@@ -192,7 +205,15 @@ public final class RecorderFactory {
   public static MeasurementRecorder createScalableMinMaxAvgRecorder(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgAccumulator(forWhat, "",
-            unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
+            unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
+    mr.registerJmx();
+    return mr;
+  }
+
+  public static CloseableMeasurementRecorder createScalableMinMaxAvgRecorder2(
+          final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgAccumulator(forWhat, "",
+            unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, false);
     mr.registerJmx();
     return mr;
   }
@@ -204,7 +225,18 @@ public final class RecorderFactory {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
             new QuantizedAccumulator(forWhat, "",
                     unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
-            sampleTimeMillis, MEASUREMENT_STORE);
+            sampleTimeMillis, MEASUREMENT_STORE, true);
+    mrs.registerJmx();
+    return mrs;
+  }
+
+  public static CloseableMeasurementRecorderSource createScalableQuantizedRecorderSource2(final Object forWhat,
+          final String unitOfMeasurement, final int factor, final int lowerMagnitude, final int higherMagnitude,
+          final int quantasPerMagnitude, final int sampleTimeMillis) {
+    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
+            new QuantizedAccumulator(forWhat, "",
+                    unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
+            sampleTimeMillis, MEASUREMENT_STORE, false);
     mrs.registerJmx();
     return mrs;
   }
@@ -213,7 +245,16 @@ public final class RecorderFactory {
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
             new CountingAccumulator(forWhat, "",
-                    unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
+                    unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
+    mrs.registerJmx();
+    return mrs;
+  }
+
+  public static CloseableMeasurementRecorderSource createScalableCountingRecorderSource2(
+          final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
+            new CountingAccumulator(forWhat, "",
+                    unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, false);
     mrs.registerJmx();
     return mrs;
   }
@@ -222,7 +263,7 @@ public final class RecorderFactory {
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
             new MinMaxAvgAccumulator(forWhat, "",
-                    unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE);
+                    unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
     mrs.registerJmx();
     return mrs;
   }

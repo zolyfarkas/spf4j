@@ -38,7 +38,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -46,9 +45,9 @@ import java.lang.management.MemoryUsage;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.management.MBeanServer;
-import org.spf4j.base.Closeables;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorder;
 
 /**
  * This class allows you to poll and recordAt to a file the heap committed and heap used for your java process. start
@@ -117,7 +116,6 @@ public final class MemoryUsageSampler {
     if (samplingFuture != null) {
       samplingFuture.cancel(false);
       samplingFuture = null;
-      accumulatorRunnable.close();
     }
   }
 
@@ -126,16 +124,16 @@ public final class MemoryUsageSampler {
     return samplingFuture != null;
   }
 
-  private static class AccumulatorRunnable extends AbstractRunnable {
+  private static class AccumulatorRunnable extends AbstractRunnable implements AutoCloseable {
 
-    private final MeasurementRecorder heapCommited;
-    private final MeasurementRecorder heapUsed;
+    private final CloseableMeasurementRecorder heapCommited;
+    private final CloseableMeasurementRecorder heapUsed;
 
     AccumulatorRunnable(final int accumulationIntervalMillis) {
       heapCommited
-              = RecorderFactory.createScalableMinMaxAvgRecorder("heap-commited", "bytes", accumulationIntervalMillis);
+              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap-commited", "bytes", accumulationIntervalMillis);
       heapUsed
-              = RecorderFactory.createScalableMinMaxAvgRecorder("heap-used", "bytes", accumulationIntervalMillis);
+              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap-used", "bytes", accumulationIntervalMillis);
     }
 
     @Override
@@ -145,11 +143,10 @@ public final class MemoryUsageSampler {
       heapUsed.record(usage.getUsed());
     }
 
-    public void close() throws IOException {
-      IOException ex = Closeables.closeAll(heapCommited, heapUsed);
-      if (ex != null) {
-        throw ex;
-      }
+    @Override
+    public void close() {
+      heapUsed.close();
+      heapCommited.close();
     }
   }
 
