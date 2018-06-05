@@ -96,12 +96,12 @@ public final class RateLimiter<T, C extends Callable<? extends T>> implements Au
     }
     this.permitReplenishIntervalMillis = (long) msPerReq;
     this.permitsPerReplenishInterval = maxReqPerSecond * msPerReq / 1000;
-    assert permitReplenishIntervalMillis >= 1;
+    assert permitsPerReplenishInterval >= 1;
     if (maxBurstSize < permitsPerReplenishInterval) {
       throw new IllegalArgumentException("Invalid max burst size: " + maxBurstSize
               + ",  increase maxBurstSize to something larger than " + permitsPerReplenishInterval
               + " we assume a clock resolution of " + permitReplenishIntervalMillis
-              + " and that is the minimum replenish inteval");
+              + " and that is the minimum replenish interval");
     }
     this.permits = new AtomicDouble(permitsPerReplenishInterval);
     lastReplenishmentNanos = TimeSource.nanoTime();
