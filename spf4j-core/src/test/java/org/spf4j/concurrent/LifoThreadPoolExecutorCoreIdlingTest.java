@@ -74,26 +74,5 @@ public class LifoThreadPoolExecutorCoreIdlingTest {
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
   }
-
-  @Test
-  public void testLifoExecSQMutable() throws InterruptedException, IOException {
-    MutableLifoThreadPoolExecutorSQP executor
-            = new MutableLifoThreadPoolExecutorSQP("test", 2, 8, 20, 1024, 0);
-    Sampler s = Sampler.getSampler(20, 10000,
-            new File(org.spf4j.base.Runtime.TMP_FOLDER),
-            "lifeTest1");
-    s.start();
-    org.spf4j.base.Runtime.gc(5000);
-    Thread.sleep(100);
-    long time = CpuUsageSampler.getProcessCpuTimeNanos();
-    Thread.sleep(3000);
-    long cpuTime = CpuUsageSampler.getProcessCpuTimeNanos() - time;
-    LOG.info("Cpu profile saved to {}", s.dumpToFile());
-    LOG.debug("CPU time = {} ns", cpuTime);
-    s.stop();
-    Assert.assertTrue("CPU Time = " + cpuTime, cpuTime < 1500000000); // 6069497000 with bug  53945000 without bug
-    executor.shutdown();
-    executor.awaitTermination(1, TimeUnit.SECONDS);
-  }
-
+  
 }

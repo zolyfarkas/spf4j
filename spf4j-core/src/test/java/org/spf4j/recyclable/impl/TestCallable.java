@@ -45,23 +45,24 @@ import org.spf4j.failsafe.RetryPolicy;
  * @author zoly
  */
 public final class TestCallable implements Callable<Integer> {
-    private final RecyclingSupplier<ExpensiveTestObject> pool;
-    private final int testNr;
 
-    public TestCallable(final RecyclingSupplier<ExpensiveTestObject> pool, final int testNr) {
-        this.pool = pool;
-        this.testNr = testNr;
-    }
+  private final RecyclingSupplier<ExpensiveTestObject> pool;
+  private final int testNr;
 
-    @Override
-    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
-    public Integer call() throws IOException, InterruptedException, TimeoutException {
-        Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
-          object.doStuff();
-          return null;
-        }, 1, TimeUnit.MINUTES, pool,  RetryPolicy.defaultPolicy(), IOException.class);
-        return testNr;
-    }
+  public TestCallable(final RecyclingSupplier<ExpensiveTestObject> pool, final int testNr) {
+    this.pool = pool;
+    this.testNr = testNr;
+  }
+
+  @Override
+  @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
+  public Integer call() throws IOException, InterruptedException, TimeoutException {
+    Template.doOnSupplied((final ExpensiveTestObject object, final long deadline) -> {
+      object.doStuff();
+      return null;
+    }, 1, TimeUnit.MINUTES, pool, RetryPolicy.defaultPolicy(), IOException.class);
+    return this.testNr;
+  }
 
   @Override
   public String toString() {
