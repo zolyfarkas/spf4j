@@ -91,7 +91,7 @@ public final class PooledDataSource implements DataSource, AutoCloseable {
         String mName = method.getName();
         if ("close".equals(mName)) {
           if (!closed) {
-            pool.recycle((Connection) proxy, ex);
+            pool.recycle(raw, ex);
             ex = null;
             closed = true;
           }
