@@ -41,11 +41,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -778,12 +778,11 @@ public final class Callables {
   @Deprecated
   private static final class DefaultAdvancedRetryPredicateImpl implements AdvancedRetryPredicate<Exception> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultAdvancedRetryPredicateImpl.class);
-
     @Override
     public AdvancedAction apply(@Nonnull final Exception input) {
       if (Throwables.isRetryable(input)) {
-        LOG.debug("Exception encountered, retrying...", input);
+        Logger.getLogger(DefaultAdvancedRetryPredicateImpl.class.getName())
+                .log(Level.FINE, "Exception encountered, retrying...", input);
         return AdvancedAction.RETRY;
       }
       return AdvancedAction.ABORT;
