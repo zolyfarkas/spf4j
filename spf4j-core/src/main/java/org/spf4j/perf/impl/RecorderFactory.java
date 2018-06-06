@@ -184,9 +184,9 @@ public final class RecorderFactory {
   }
 
   public static CloseableMeasurementRecorder createScalableQuantizedRecorder2(
-          final Object forWhat, final String unitOfMeasurement, final int factor,
-          final int lowerMagnitude, final int higherMagnitude,
-          final int quantasPerMagnitude, final int sampleTimeMillis) {
+          final Object forWhat, final String unitOfMeasurement,  final int sampleTimeMillis,
+          final int factor, final int lowerMagnitude, final int higherMagnitude,
+          final int quantasPerMagnitude) {
     ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new QuantizedAccumulator(forWhat, "",
             unitOfMeasurement, factor, lowerMagnitude, higherMagnitude,
             quantasPerMagnitude), sampleTimeMillis, MEASUREMENT_STORE, false);
@@ -231,8 +231,9 @@ public final class RecorderFactory {
   }
 
   public static CloseableMeasurementRecorderSource createScalableQuantizedRecorderSource2(final Object forWhat,
-          final String unitOfMeasurement, final int factor, final int lowerMagnitude, final int higherMagnitude,
-          final int quantasPerMagnitude, final int sampleTimeMillis) {
+          final String unitOfMeasurement,  final int sampleTimeMillis,
+          final int factor, final int lowerMagnitude, final int higherMagnitude,
+          final int quantasPerMagnitude) {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
             new QuantizedAccumulator(forWhat, "",
                     unitOfMeasurement, factor, lowerMagnitude, higherMagnitude, quantasPerMagnitude),
