@@ -32,34 +32,38 @@
 package org.spf4j.perf.memory;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public final class GCUsageSamplerTest {
+public class MemoryUsageSamplerTest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(GCUsageSamplerTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MemoryUsageSamplerTest.class);
 
   @Test
-  public void testSomeMethod() throws InterruptedException {
+  public void testMemoryUsageSampler() throws InterruptedException, IOException {
+    System.setProperty("perf.memory.sampleAggMillis", "1000");
     assertSamplerBehavior();
     assertSamplerBehavior();
   }
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
-  private void assertSamplerBehavior() throws InterruptedException {
-    GCUsageSampler.start(100);
+  private void assertSamplerBehavior() throws InterruptedException, IOException {
+    MemoryUsageSampler.start(100);
     String str = "";
     for (int i = 0; i < 100000; i++) {
       str = Integer.toString(i);
     }
     LOG.debug("lastNr = {}", str);
     Thread.sleep(1000);
-    GCUsageSampler.stop();
-    Assert.assertFalse(GCUsageSampler.isStarted());
+    MemoryUsageSampler.stop();
+    Assert.assertFalse(MemoryUsageSampler.isStarted());
   }
+
 }
