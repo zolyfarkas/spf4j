@@ -115,6 +115,7 @@ public final class MemoryUsageSampler {
   public static synchronized void stop() throws IOException {
     if (samplingFuture != null) {
       samplingFuture.cancel(false);
+      accumulatorRunnable.close();
       samplingFuture = null;
     }
   }
