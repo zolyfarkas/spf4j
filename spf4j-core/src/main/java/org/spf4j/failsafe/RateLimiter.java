@@ -115,7 +115,7 @@ public final class RateLimiter<T, C extends Callable<? extends T>> implements Au
   }
 
   /**
-   * invocation will consume a exec permit.
+   * invocation will consume a exec permit if available.
    * @return true if permit acquired. false otherwise.
    */
   public boolean canExecute() {
@@ -130,14 +130,7 @@ public final class RateLimiter<T, C extends Callable<? extends T>> implements Au
   }
 
   public <T> T execute(final C callable) throws Exception {
-    if (replenisher.isCancelled()) {
-      throw new IllegalStateException("RateLimiter is closed, cannot execute " + callable);
-    }
-    double nrbAvail = Atomics.getAndAccumulate(permits, -1, (left, right) -> {
-      double result = left + right;
-      return (result < 0) ? 0 : result;
-    });
-    if (nrbAvail >= 1.0) {
+    if (canExecute()) {
       return (T) callable.call();
     } else {
 
