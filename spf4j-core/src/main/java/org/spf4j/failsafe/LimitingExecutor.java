@@ -100,6 +100,14 @@ public final class LimitingExecutor<T, C extends Callable<? extends T>> implemen
     return () -> this.execute(callable);
   }
 
+  public RejectedExecutionHandler getRejectHandler() {
+    return rejectHandler;
+  }
+
+  public Semaphore getSemaphore() {
+    return semaphore;
+  }
+
   @Override
   public String toString() {
     return "LimitedExecutor{" + "rejectHandler=" + rejectHandler + ", semaphore=" + semaphore + '}';
