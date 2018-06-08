@@ -18,7 +18,7 @@ package org.spf4j.base.intv;
 /**
  * @author Zoltan Farkas
  */
-public class Misc {
+public class RainyIslands {
 
   /**
    * Island rain and stuff...

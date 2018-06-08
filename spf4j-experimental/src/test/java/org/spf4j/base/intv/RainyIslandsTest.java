@@ -21,21 +21,21 @@ import org.junit.Test;
 /**
  * @author Zoltan Farkas
  */
-public class MiscTest {
+public class RainyIslandsTest {
 
 
   @Test
   public void testWaterVolume() {
-    Assert.assertEquals(0, Misc.waterVolume(new int[] {}));
-    Assert.assertEquals(0, Misc.waterVolume(new int[] {1}));
-    Assert.assertEquals(0, Misc.waterVolume(new int[] {1, 1}));
-    Assert.assertEquals(0, Misc.waterVolume(new int[] {1, 2, 3}));
-    Assert.assertEquals(0, Misc.waterVolume(new int[] {3, 2, 1}));
+    Assert.assertEquals(0, RainyIslands.waterVolume(new int[] {}));
+    Assert.assertEquals(0, RainyIslands.waterVolume(new int[] {1}));
+    Assert.assertEquals(0, RainyIslands.waterVolume(new int[] {1, 1}));
+    Assert.assertEquals(0, RainyIslands.waterVolume(new int[] {1, 2, 3}));
+    Assert.assertEquals(0, RainyIslands.waterVolume(new int[] {3, 2, 1}));
   }
 
   @Test
   public void testWaterVolume2() {
-    Assert.assertEquals(7, Misc.waterVolume(new int[] {1, 3, 2, 1, 2, 0, 5, 1}));
+    Assert.assertEquals(7, RainyIslands.waterVolume(new int[] {1, 3, 2, 1, 2, 0, 5, 1}));
   }
 
 }
