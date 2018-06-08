@@ -51,6 +51,8 @@ import org.spf4j.concurrent.PermitSupplier;
 /**
  * Token bucket algorithm base call rate limiter. see https://en.wikipedia.org/wiki/Token_bucket for more detail. Unlike
  * the Guava implementation this limiter the token replenishment is done in a separate thread.
+ * As such permit acquisition methods are lower overhead,
+ * at the cost of increasing the cost of RateLimiter object instance. (a scheduled runnable)
  *
  * @author Zoltan Farkas
  */
