@@ -56,7 +56,7 @@ public class LimitingExecutorTest {
 
   @Test
   public void testRateLimit() throws Exception {
-    LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG,
+    LogAssert expect = TestLoggers.sys().expect(LimitingExecutorTest.class.getName(), Level.DEBUG,
             LogMatchers.hasFormat("executed nr {}"));
     try (RateLimiter limiter = new RateLimiter(10, 10)) {
       LimitingExecutor<?, Callable<?>> executor = new LimitingExecutor<>(limiter);
@@ -77,7 +77,7 @@ public class LimitingExecutorTest {
 
   @Test
   public void testRateLimit2() throws Exception {
-    LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG, 10,
+    LogAssert expect = TestLoggers.sys().expect(LimitingExecutorTest.class.getName(), Level.DEBUG, 10,
             LogMatchers.hasFormat("executed nr {}"));
     try (RateLimiter limiter = new RateLimiter(10, 10)) {
       LimitingExecutor.RejectedExecutionHandler rejectedExecutionHandler
