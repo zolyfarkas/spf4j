@@ -34,16 +34,11 @@ package org.spf4j.failsafe;
 import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.AtomicDouble;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleUnaryOperator;
-import org.spf4j.base.Callables;
 import org.spf4j.base.TimeSource;
-import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.concurrent.Atomics;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.concurrent.PermitSupplier;
@@ -57,12 +52,10 @@ import org.spf4j.concurrent.PermitSupplier;
  * @author Zoltan Farkas
  */
 @Beta
-public final class RateLimiter<T, C extends Callable<? extends T>>
-        implements AutoCloseable, Executor, PermitSupplier {
+public final class RateLimiter
+        implements AutoCloseable, PermitSupplier {
 
   private final AtomicDouble permits;
-
-  private final RejectedExecutionHandler rejectHandler;
 
   private final ScheduledFuture<?> replenisher;
 
@@ -72,31 +65,14 @@ public final class RateLimiter<T, C extends Callable<? extends T>>
 
   private volatile long lastReplenishmentNanos;
 
-  @FunctionalInterface
-  public interface RejectedExecutionHandler<T, C extends Callable<? extends T>> {
-
-    T reject(RateLimiter limiter, C callable) throws Exception;
-  }
-
   public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize) {
-    this(maxReqPerSecond, maxBurstSize,
-            (RejectedExecutionHandler<T, C>) (final RateLimiter limiter, final C callable) -> {
-              throw new RejectedExecutionException("No buckets available for " + callable + " in limiter " + limiter);
-            });
+    this(maxReqPerSecond, maxBurstSize, DefaultScheduler.INSTANCE);
   }
 
   public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize,
-          final RejectedExecutionHandler rejectionHandler) {
-    this(maxReqPerSecond, maxBurstSize, rejectionHandler, DefaultScheduler.INSTANCE);
-  }
-
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize,
-          final RejectedExecutionHandler rejectionHandler,
           final ScheduledExecutorService scheduler) {
-    this.rejectHandler = rejectionHandler;
     double msPerReq = 1000d / maxReqPerSecond;
     if (msPerReq < 10) {
       msPerReq = 10d;
@@ -222,26 +198,6 @@ public final class RateLimiter<T, C extends Callable<? extends T>>
     }
   }
 
-  public <T> T execute(final C callable) throws Exception {
-    if (tryAcquire()) {
-      return (T) callable.call();
-    } else {
-      return (T) rejectHandler.reject(this, callable);
-    }
-  }
-
-  @Override
-  public void execute(final Runnable command) {
-    try {
-      execute((C) Callables.from(command));
-    } catch (Exception ex) {
-      throw new UncheckedExecutionException(ex);
-    }
-  }
-
-  public Callable<T> toLimitedCallable(final C callable) {
-    return () -> this.execute(callable);
-  }
 
   @Override
   public void close() {
@@ -262,7 +218,7 @@ public final class RateLimiter<T, C extends Callable<? extends T>>
 
   @Override
   public String toString() {
-    return "RateLimiter{" + "permits=" + permits + ", rejectHandler=" + rejectHandler
+    return "RateLimiter{" + "permits=" + permits
             + ", replenisher=" + replenisher + ", permitsPerReplenishInterval="
             + permitsPerReplenishInterval + ", permitReplenishIntervalMillis=" + permitReplenishIntervalMillis + '}';
   }

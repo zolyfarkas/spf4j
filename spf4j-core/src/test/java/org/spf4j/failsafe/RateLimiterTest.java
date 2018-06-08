@@ -31,19 +31,12 @@
  */
 package org.spf4j.failsafe;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.concurrent.Callable;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
-import org.spf4j.test.log.Level;
-import org.spf4j.test.log.LogAssert;
-import org.spf4j.test.log.LogMatchers;
-import org.spf4j.test.log.TestLoggers;
 
 /**
  * @author Zoltan Farkas
@@ -51,57 +44,6 @@ import org.spf4j.test.log.TestLoggers;
 public class RateLimiterTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(RateLimiterTest.class);
-
-  @Test
-  public void testRateLimit() throws Exception {
-    LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG,
-            LogMatchers.hasFormat("executed nr {}"));
-    try (RateLimiter<?, Callable<?>> limiter = new RateLimiter<>(10, 10)) {
-      Assert.assertEquals(1d, limiter.getPermitsPerReplenishInterval(), 0.001);
-      Assert.assertEquals(100, limiter.getPermitReplenishIntervalMillis(), 0.001);
-      for (int i = 0; i < 10; i++) {
-        final int val = i;
-        limiter.execute(() -> {
-          LOG.debug("executed nr {}", val);
-          return null;
-        });
-      }
-      Assert.fail();
-    } catch (RejectedExecutionException ex) {
-      expect.assertObservation();
-    }
-  }
-
-  @Test
-  public void testRateLimit2() throws Exception {
-    LogAssert expect = TestLoggers.sys().expect(RateLimiterTest.class.getName(), Level.DEBUG, 10,
-            LogMatchers.hasFormat("executed nr {}"));
-    try (RateLimiter<?, Callable<?>> limiter = new RateLimiter<>(10, 10, new RateLimiter.RejectedExecutionHandler() {
-      @Override
-      @SuppressFBWarnings("MDM_THREAD_YIELD")
-      public Object reject(final RateLimiter limiter, final Callable callable)
-              throws Exception {
-        long waitMs = limiter.getPermitReplenishIntervalMillis()
-                - TimeUnit.NANOSECONDS.toMillis(TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
-        if (waitMs >= 0) {
-          Thread.sleep(waitMs);
-        } else {
-          LOG.debug("negative wait time {}", waitMs);
-        }
-        return limiter.execute(callable);
-      }
-    }
-    )) {
-      for (int i = 0; i < 10; i++) {
-        final int val = i;
-        limiter.execute(() -> {
-          LOG.debug("executed nr {}", val);
-          return null;
-        });
-      }
-    }
-    expect.assertObservation();
-  }
 
   @Test(expected = IllegalArgumentException.class)
   public void testRateLimitInvalid() {
