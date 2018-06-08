@@ -34,7 +34,7 @@ public class JDiffRunnerTest {
           ArtifactResolutionException, DependencyResolutionException, JavadocExecutionException, IOException {
     JDiffRunner jDiffRunner = new JDiffRunner();
     File destination = new File("target/jdiff");
-    jDiffRunner.runDiffBetweenReleases("org.spf4j", "spf4j-core", "[8.3,]", destination,  10);
+    jDiffRunner.runDiffBetweenReleases("org.spf4j", "spf4j-core", "[8.4.0,8.4.4]", destination,  10);
     jDiffRunner.writeChangesIndexHtml(destination, "changes.html");
     Assert.assertTrue(new File(destination, "changes.html").exists());
   }
