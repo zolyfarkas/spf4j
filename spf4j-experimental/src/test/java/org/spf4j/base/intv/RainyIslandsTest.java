@@ -36,6 +36,7 @@ public class RainyIslandsTest {
   @Test
   public void testWaterVolume2() {
     Assert.assertEquals(7, RainyIslands.waterVolume(new int[] {1, 3, 2, 1, 2, 0, 5, 1}));
+    Assert.assertEquals(10, RainyIslands.waterVolume(new int[] {0, 2, 1, 3, 2, 1, 2, 0, 5, 1, 3, 1}));
   }
 
 }
