@@ -32,9 +32,11 @@
 package org.spf4j.concurrent;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.UnaryOperator;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -63,14 +65,52 @@ public final class Atomics {
     return UpdateResult.updated(newObj);
   }
 
-  public static double getAndAccumulate(final AtomicDouble dval, final double x,
+  @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
+  public static boolean maybeAccumulate(final AtomicDouble dval, final double x,
+          final DoubleBinaryOperator accumulatorFunction) {
+    double prev, next;
+    do {
+      prev = dval.get();
+      next = accumulatorFunction.applyAsDouble(prev, x);
+      if (prev == next) {
+        return false;
+      }
+    } while (!dval.compareAndSet(prev, next));
+    return true;
+  }
+
+  public static void accumulate(final AtomicDouble dval, final double x,
           final DoubleBinaryOperator accumulatorFunction) {
     double prev, next;
     do {
       prev = dval.get();
       next = accumulatorFunction.applyAsDouble(prev, x);
     } while (!dval.compareAndSet(prev, next));
+  }
+
+  @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
+  public static boolean maybeAccumulate(final AtomicDouble dval,
+          final DoubleUnaryOperator accumulatorFunction) {
+    double prev, next;
+    do {
+      prev = dval.get();
+      next = accumulatorFunction.applyAsDouble(prev);
+      if (prev == next) {
+        return false;
+      }
+    } while (!dval.compareAndSet(prev, next));
+    return true;
+  }
+
+  public static double getAndAccumulate(final AtomicDouble dval,
+          final DoubleUnaryOperator accumulatorFunction) {
+    double prev, next;
+    do {
+      prev = dval.get();
+      next = accumulatorFunction.applyAsDouble(prev);
+    } while (!dval.compareAndSet(prev, next));
     return prev;
   }
+
 
 }

@@ -116,5 +116,17 @@ public class RateLimiterTest {
     }
   }
 
+  @Test
+  public void testRateLimitTryAcquisition() throws InterruptedException {
+    try (RateLimiter rateLimiter = new RateLimiter(10, 10)) {
+      LOG.debug("Rate Limiter = {}", rateLimiter);
+      Assert.assertFalse(rateLimiter.tryAcquire(20, 0, TimeUnit.MILLISECONDS));
+      long startTime = TimeSource.nanoTime();
+      boolean tryAcquire = rateLimiter.tryAcquire(20, 2, TimeUnit.SECONDS);
+      LOG.debug("waited {} ns for {}", (TimeSource.nanoTime() - startTime), rateLimiter);
+      Assert.assertTrue(tryAcquire);
+    }
+  }
+
 
 }

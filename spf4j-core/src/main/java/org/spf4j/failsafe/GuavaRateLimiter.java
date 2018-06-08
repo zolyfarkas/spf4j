@@ -29,47 +29,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.concurrent;
+package org.spf4j.failsafe;
 
+import com.google.common.util.concurrent.RateLimiter;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.concurrent.PermitSupplier;
 
 /**
- * A interface that abstracts a semaphore.
- * @author zoly
+ * @author Zoltan Farkas
  */
-@ParametersAreNonnullByDefault
-@ThreadSafe
-public interface Semaphore extends PermitSupplier {
+public final class GuavaRateLimiter implements PermitSupplier {
 
-  /**
-   * release 1 permit.
-   */
-  default void release() {
-    release(1);
+  private final RateLimiter limiter;
+
+  public GuavaRateLimiter(final RateLimiter limiter) {
+    this.limiter = limiter;
   }
 
-  /**
-   * release a number of permits.
-   * @param nrPermits  the number of permits to release.
-   */
-  void release(int nrPermits);
+  @Override
+  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {
+    // guava rate limiter is interruptible
+    // however they made the decision to return false and set the thread state to interrupted....
+    // which only prolongs the inevitable...
+    boolean result = this.limiter.tryAcquire(nrPermits, timeout, unit);
+    if (Thread.interrupted()) {
+      throw new InterruptedException();
+    }
+    return result;
+  }
 
-
-  static Semaphore from(final PermitSupplier supplier) {
-    return new Semaphore() {
-      @Override
-      public void release(final int nrPermits) {
-        // nothing to release.
-      }
-
-      @Override
-      public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
-              throws InterruptedException {
-        return supplier.tryAcquire(nrPermits, timeout, unit);
-      }
-    };
+  @Override
+  public String toString() {
+    return "GuavaRateLimiter{" + "limiter=" + limiter + '}';
   }
 
 }
