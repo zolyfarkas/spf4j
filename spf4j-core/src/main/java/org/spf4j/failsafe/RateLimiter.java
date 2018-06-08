@@ -114,6 +114,21 @@ public final class RateLimiter<T, C extends Callable<? extends T>> implements Au
     }, permitReplenishIntervalMillis, permitReplenishIntervalMillis, TimeUnit.MILLISECONDS);
   }
 
+  /**
+   * invocation will consume a exec permit.
+   * @return true if permit acquired. false otherwise.
+   */
+  public boolean canExecute() {
+    if (replenisher.isCancelled()) {
+      throw new IllegalStateException("RateLimiter is closed: " + this);
+    }
+    double nrbAvail = Atomics.getAndAccumulate(permits, -1, (left, right) -> {
+      double result = left + right;
+      return (result < 0) ? 0 : result;
+    });
+    return nrbAvail >= 1.0;
+  }
+
   public <T> T execute(final C callable) throws Exception {
     if (replenisher.isCancelled()) {
       throw new IllegalStateException("RateLimiter is closed, cannot execute " + callable);
