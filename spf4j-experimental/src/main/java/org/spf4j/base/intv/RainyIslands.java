@@ -59,4 +59,38 @@ public class RainyIslands {
   }
 
 
+  /**
+   * a more optimal implementation.
+   */
+  public static  int waterVolume2(int[] topology) {
+    if (topology.length <= 0) {
+      return 0;
+    }
+    int result = 0;
+    int max = topology[0];
+    for (int i = 1; i < topology.length; i++) {
+      int h = topology[i];
+      boolean isSmaller = max <= h;
+      max = Math.max(max, h);
+      if (isSmaller) {
+        continue;
+      }
+      int lh = max;
+      int rh = h;
+      for (int j = i + 1; j < topology.length; j++) {
+        int v = topology[j];
+        if (v > rh) {
+          rh = v;
+        }
+      }
+      if (rh <= h) {
+        continue;
+      }
+     result += Math.min(lh, rh) - h;
+    }
+    return result;
+  }
+
+
+
 }

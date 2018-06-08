@@ -39,4 +39,21 @@ public class RainyIslandsTest {
     Assert.assertEquals(10, RainyIslands.waterVolume(new int[] {0, 2, 1, 3, 2, 1, 2, 0, 5, 1, 3, 1}));
   }
 
+
+  @Test
+  public void testWaterVolumeO() {
+    Assert.assertEquals(0, RainyIslands.waterVolume2(new int[] {}));
+    Assert.assertEquals(0, RainyIslands.waterVolume2(new int[] {1}));
+    Assert.assertEquals(0, RainyIslands.waterVolume2(new int[] {1, 1}));
+    Assert.assertEquals(0, RainyIslands.waterVolume2(new int[] {1, 2, 3}));
+    Assert.assertEquals(0, RainyIslands.waterVolume2(new int[] {3, 2, 1}));
+  }
+
+  @Test
+  public void testWaterVolumeO2() {
+    Assert.assertEquals(7, RainyIslands.waterVolume2(new int[] {1, 3, 2, 1, 2, 0, 5, 1}));
+    Assert.assertEquals(10, RainyIslands.waterVolume2(new int[] {0, 2, 1, 3, 2, 1, 2, 0, 5, 1, 3, 1}));
+  }
+
+
 }
