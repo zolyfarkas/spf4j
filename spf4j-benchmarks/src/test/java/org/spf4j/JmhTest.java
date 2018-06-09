@@ -41,7 +41,6 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
-import org.spf4j.stackmonitor.Spf4jJmhProfiler;
 import org.spf4j.test.log.TestUtils;
 
 /**
