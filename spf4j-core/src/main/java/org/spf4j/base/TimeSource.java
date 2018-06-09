@@ -58,6 +58,10 @@ public final class TimeSource {
     return TIMESUPP.getAsLong();
   }
 
+  public static LongSupplier nanoTimeSupplier() {
+    return TIMESUPP;
+  }
+
   public static long getDeadlineNanos(final long timeout, final TimeUnit timeUnit) {
     if (timeout < 0) {
       throw new IllegalArgumentException("Invalid timeout " + timeout + " " + timeUnit);
