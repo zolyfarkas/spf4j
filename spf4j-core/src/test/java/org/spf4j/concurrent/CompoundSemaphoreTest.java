@@ -33,6 +33,7 @@ package org.spf4j.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.failsafe.RateLimiter;
 
@@ -52,6 +53,7 @@ public class CompoundSemaphoreTest {
       sem.release(2);
       sem.acquire(2, 4, TimeUnit.SECONDS);
       sem.release(2);
+      Assert.assertEquals(2, sem.getSemaphores().length); // more assertions needed this is a cheat.
     }
   }
 

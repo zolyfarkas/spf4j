@@ -92,6 +92,10 @@ public final class CompoundSemaphore implements Semaphore {
     return true;
   }
 
+  public Semaphore[] getSemaphores() {
+    return semaphores.clone();
+  }
+
   @Override
   public String toString() {
     return "CompoundSemaphore{" + "semaphores=" + Arrays.toString(semaphores) + '}';
