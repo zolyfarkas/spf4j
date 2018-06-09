@@ -34,6 +34,8 @@ package org.spf4j.concurrent;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnegative;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -41,6 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author Zoltan Farkas
  */
 @ThreadSafe
+@ParametersAreNonnullByDefault
 public interface PermitSupplier {
 
   /**
@@ -65,7 +68,7 @@ public interface PermitSupplier {
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
-  default void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
+  default void acquire(final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException, TimeoutException {
     if (!tryAcquire(nrPermits, timeout, unit)) {
       throw new TimeoutException("Cannot acquire timeout after " + timeout + " " + unit);
@@ -81,7 +84,7 @@ public interface PermitSupplier {
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
-  default boolean tryAcquire(final long timeout, final TimeUnit unit)
+  default boolean tryAcquire(@Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException {
     return tryAcquire(1, timeout, unit);
   }
@@ -95,7 +98,7 @@ public interface PermitSupplier {
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
-  boolean tryAcquire(int nrPermits, long timeout, TimeUnit unit)
+  boolean tryAcquire(int nrPermits, @Nonnegative long timeout, TimeUnit unit)
           throws InterruptedException;
 
   default Semaphore toSemaphore() {
