@@ -97,5 +97,25 @@ public class RateLimiterTest {
   }
 
 
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testRateLimitTryAcquisition3() throws InterruptedException {
+    ScheduledExecutorService mockExec = Mockito.mock(ScheduledExecutorService.class);
+    ScheduledFuture mockFut = Mockito.mock(ScheduledFuture.class);
+    Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000L), Mockito.eq(10000L),
+            Mockito.eq(TimeUnit.MILLISECONDS))).thenReturn(mockFut);
+    try (RateLimiter rateLimiter = new RateLimiter(0.1, 10, mockExec, () -> 0L)) {
+      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(2, 10, TimeUnit.SECONDS);
+      LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayMs);
+      Assert.assertEquals(10000, tryAcquireGetDelayMs);
+      Assert.assertEquals(-1, rateLimiter.getNrPermits(), 0.0001);
+      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, 10, TimeUnit.MILLISECONDS);
+      Assert.assertTrue(tryAcquireGetDelayMs < 0);
+    }
+    Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000L), Mockito.eq(10000L),
+            Mockito.eq(TimeUnit.MILLISECONDS));
+    Mockito.verify(mockFut).cancel(false);
+  }
+
 
 }

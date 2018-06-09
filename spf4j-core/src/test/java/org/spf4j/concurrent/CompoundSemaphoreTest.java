@@ -31,33 +31,28 @@
  */
 package org.spf4j.concurrent;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.junit.Test;
+import org.spf4j.failsafe.RateLimiter;
 
 /**
- * A interface that abstracts a semaphore.
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-@ParametersAreNonnullByDefault
-@ThreadSafe
-public interface Semaphore extends PermitSupplier {
+public class CompoundSemaphoreTest {
 
-  /**
-   * release 1 permit.
-   */
-  default void release() {
-    release(1);
-  }
-
-  /**
-   * release a number of permits.
-   * @param nrPermits  the number of permits to release.
-   */
-  void release(int nrPermits);
-
-  @Override
-  default Semaphore toSemaphore() {
-    return this;
+  @Test
+  public void testCompoundSemaphore() throws InterruptedException, TimeoutException {
+    try (RateLimiter rateLimiter = new RateLimiter(1, 2)) {
+      CompoundSemaphore sem = new CompoundSemaphore(rateLimiter.toSemaphore(), new LocalSemaphore(2, false));
+      sem.acquire(2, 4, TimeUnit.SECONDS);
+      sem.release(2);
+      sem.acquire(2, 4, TimeUnit.SECONDS);
+      sem.release(2);
+      sem.acquire(2, 4, TimeUnit.SECONDS);
+      sem.release(2);
+    }
   }
 
 }

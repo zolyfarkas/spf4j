@@ -58,7 +58,7 @@ public final class LimitingExecutor<T, C extends Callable<? extends T>> implemen
   }
 
   public LimitingExecutor(final PermitSupplier permitSupplier) {
-    this(Semaphore.from(permitSupplier));
+    this(permitSupplier.toSemaphore());
   }
 
   public LimitingExecutor(final Semaphore semaphore) {

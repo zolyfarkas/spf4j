@@ -42,10 +42,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface PermitSupplier {
+
   /**
    * Acquire one permit.
-   * @param timeout  time to wait for permit to become available.
-   * @param unit  units of time.
+   *
+   * @param timeout time to wait for permit to become available.
+   * @param unit units of time.
    * @throws InterruptedException - operation interrupted.
    * @throws TimeoutException - timed out.
    */
@@ -54,9 +56,9 @@ public interface PermitSupplier {
     acquire(1, timeout, unit);
   }
 
-
   /**
    * Acquire a arbitrary number of permits.
+   *
    * @param nrPermits - numer of permits to acquire.
    * @param timeout - time to wait for permit to become available.
    * @param unit - units of time.
@@ -72,16 +74,17 @@ public interface PermitSupplier {
 
   /**
    * try to acquire a permit.
-   * @param timeout  time to wait for permit to become available.
-   * @param unit  units of time.
-   * @return  true if permit acquired, false if timed out.
+   *
+   * @param timeout time to wait for permit to become available.
+   * @param unit units of time.
+   * @return true if permit acquired, false if timed out.
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
   default boolean tryAcquire(final long timeout, final TimeUnit unit)
           throws InterruptedException {
     return tryAcquire(1, timeout, unit);
-  };
+  }
 
   /**
    * try to acquire a number of permits.
@@ -94,5 +97,37 @@ public interface PermitSupplier {
   @CheckReturnValue
   boolean tryAcquire(int nrPermits, long timeout, TimeUnit unit)
           throws InterruptedException;
+
+  default Semaphore toSemaphore() {
+    return new Semaphore() {
+      @Override
+      public void release(final int nrPermits) {
+        // nothing to release.
+      }
+
+      @Override
+      public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
+              throws InterruptedException {
+        return PermitSupplier.this.tryAcquire(nrPermits, timeout, unit);
+      }
+
+      @Override
+      public boolean tryAcquire(final long timeout, final TimeUnit unit) throws InterruptedException {
+        return PermitSupplier.this.tryAcquire(timeout, unit);
+      }
+
+      @Override
+      public void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
+              throws InterruptedException, TimeoutException {
+        PermitSupplier.this.acquire(nrPermits, timeout, unit);
+      }
+
+      @Override
+      public void acquire(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
+        PermitSupplier.this.acquire(timeout, unit);
+      }
+
+    };
+  }
 
 }

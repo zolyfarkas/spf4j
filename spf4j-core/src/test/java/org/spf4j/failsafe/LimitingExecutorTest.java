@@ -40,7 +40,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
-import org.spf4j.concurrent.Semaphore;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogMatchers;
@@ -97,7 +96,7 @@ public class LimitingExecutorTest {
         }
       };
       LimitingExecutor<?, Callable<?>> executor
-              = new LimitingExecutor<>(rejectedExecutionHandler, Semaphore.from(limiter));
+              = new LimitingExecutor<>(rejectedExecutionHandler, limiter.toSemaphore());
       for (int i = 0; i < 10; i++) {
         final int val = i;
         executor.execute(() -> {
