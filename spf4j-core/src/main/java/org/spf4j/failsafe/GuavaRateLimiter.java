@@ -58,6 +58,10 @@ public final class GuavaRateLimiter implements PermitSupplier {
     return result;
   }
 
+  public RateLimiter getLimiter() {
+    return limiter;
+  }
+
   @Override
   public String toString() {
     return "GuavaRateLimiter{" + "limiter=" + limiter + '}';
