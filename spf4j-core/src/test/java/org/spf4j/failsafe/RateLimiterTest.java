@@ -31,9 +31,13 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
@@ -72,21 +76,25 @@ public class RateLimiterTest {
   }
 
 
-//  @Test
-//  public void testRateLimitTryAcquisition2() throws InterruptedException {
-//    ScheduledExecutorService mockExec = Mockito.mock(ScheduledExecutorService.class);
-//    Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(),
-//            Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(LOG)
-//    try (RateLimiter rateLimiter = new RateLimiter(10, 10)) {
-//      LOG.debug("Rate Limiter = {}", rateLimiter);
-//      Assert.assertFalse(rateLimiter.tryAcquire(20, 0, TimeUnit.MILLISECONDS));
-//      long startTime = TimeSource.nanoTime();
-//      boolean tryAcquire = rateLimiter.tryAcquire(20, 2, TimeUnit.SECONDS);
-//      LOG.debug("waited {} ns for {}", (TimeSource.nanoTime() - startTime), rateLimiter);
-//      Assert.assertTrue(tryAcquire);
-//      Assert.assertFalse(rateLimiter.tryAcquire(20, 1, TimeUnit.SECONDS));
-//    }
-//  }
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testRateLimitTryAcquisition2() throws InterruptedException {
+    ScheduledExecutorService mockExec = Mockito.mock(ScheduledExecutorService.class);
+    ScheduledFuture mockFut = Mockito.mock(ScheduledFuture.class);
+    Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
+            Mockito.eq(TimeUnit.MILLISECONDS))).thenReturn(mockFut);
+    try (RateLimiter rateLimiter = new RateLimiter(10, 10, mockExec, () -> 0L)) {
+      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, 10, TimeUnit.SECONDS);
+      LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayMs);
+      Assert.assertEquals(900, tryAcquireGetDelayMs);
+      Assert.assertEquals(-9, rateLimiter.getNrPermits(), 0.0001);
+      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, 10, TimeUnit.MILLISECONDS);
+      Assert.assertTrue(tryAcquireGetDelayMs < 0);
+    }
+    Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
+            Mockito.eq(TimeUnit.MILLISECONDS));
+    Mockito.verify(mockFut).cancel(false);
+  }
 
 
 

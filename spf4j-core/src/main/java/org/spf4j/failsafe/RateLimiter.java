@@ -38,6 +38,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.LongSupplier;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.Atomics;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -66,6 +67,8 @@ public final class RateLimiter
 
   private final long permitReplenishIntervalMillis;
 
+  private final LongSupplier nanoTimeSupplier;
+
   private volatile long lastReplenishmentNanos;
 
   public RateLimiter(final double maxReqPerSecond,
@@ -76,6 +79,14 @@ public final class RateLimiter
   public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize,
           final ScheduledExecutorService scheduler) {
+    this(maxReqPerSecond, maxBurstSize, scheduler, TimeSource.nanoTimeSupplier());
+  }
+
+  public RateLimiter(final double maxReqPerSecond,
+          final int maxBurstSize,
+          final ScheduledExecutorService scheduler,
+          final LongSupplier nanoTimeSupplier) {
+    this.nanoTimeSupplier = nanoTimeSupplier;
     double msPerReq = 1000d / maxReqPerSecond;
     if (msPerReq < MIN_REPLENISH_INTERVAL_MS) {
       msPerReq = MIN_REPLENISH_INTERVAL_MS;
@@ -90,13 +101,13 @@ public final class RateLimiter
               + " and that is the minimum replenish interval");
     }
     this.permits = new AtomicDouble(permitsPerReplenishInterval);
-    lastReplenishmentNanos = TimeSource.nanoTime();
+    lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
     this.replenisher = scheduler.scheduleAtFixedRate(() -> {
       Atomics.accumulate(permits, permitsPerReplenishInterval, (left, right) -> {
         double result = left + right;
         return (result > maxBurstSize) ? maxBurstSize : result;
       });
-      lastReplenishmentNanos = TimeSource.nanoTime();
+      lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
     }, permitReplenishIntervalMillis, permitReplenishIntervalMillis, TimeUnit.MILLISECONDS);
   }
 
@@ -141,7 +152,7 @@ public final class RateLimiter
         return -permitsNeeded;
       }
       long lut = lastReplenishmentNanos;
-      long currTime = TimeSource.nanoTime();
+      long currTime = nanoTimeSupplier.getAsLong();
       long timeoutMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - currTime);
       if (timeoutMs <= 0) {
         return prev;
@@ -193,7 +204,7 @@ public final class RateLimiter
     if (tryAcquire) {
       return true;
     } else { // no curent permits available, reserve some slots and wait for them.
-      ReservationHandler rh = new ReservationHandler(TimeSource.nanoTime() + unit.toNanos(timeout), nrPermits);
+      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong() + unit.toNanos(timeout), nrPermits);
       boolean accd = Atomics.maybeAccumulate(permits, rh);
       if (accd) {
         Thread.sleep(rh.getMsUntilResourcesAvailable());
@@ -204,13 +215,13 @@ public final class RateLimiter
     }
   }
 
-  long tryAcquireGetDelay(final int nrPermits, final long timeout, final TimeUnit unit)
+  long tryAcquireGetDelayMillis(final int nrPermits, final long timeout, final TimeUnit unit)
           throws InterruptedException {
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
       return 0L;
     } else { // no curent permits available, reserve some slots and wait for them.
-      ReservationHandler rh = new ReservationHandler(TimeSource.nanoTime() + unit.toNanos(timeout), nrPermits);
+      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong() + unit.toNanos(timeout), nrPermits);
       boolean accd = Atomics.maybeAccumulate(permits, rh);
       if (accd) {
         return rh.getMsUntilResourcesAvailable();
