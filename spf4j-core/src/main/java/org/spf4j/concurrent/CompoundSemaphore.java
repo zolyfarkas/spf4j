@@ -71,7 +71,8 @@ public final class CompoundSemaphore implements Semaphore {
   }
 
   @Override
-  public boolean tryAcquire(int nrPermits, long timeout, TimeUnit unit) throws InterruptedException {
+  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException {
     Semaphore[] acquired = new Semaphore[semaphores.length];
     int i = 0;
     for (Semaphore sem : semaphores) {
