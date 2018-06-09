@@ -67,8 +67,27 @@ public class RateLimiterTest {
       boolean tryAcquire = rateLimiter.tryAcquire(20, 2, TimeUnit.SECONDS);
       LOG.debug("waited {} ns for {}", (TimeSource.nanoTime() - startTime), rateLimiter);
       Assert.assertTrue(tryAcquire);
+      Assert.assertFalse(rateLimiter.tryAcquire(20, 1, TimeUnit.SECONDS));
     }
   }
+
+
+//  @Test
+//  public void testRateLimitTryAcquisition2() throws InterruptedException {
+//    ScheduledExecutorService mockExec = Mockito.mock(ScheduledExecutorService.class);
+//    Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(),
+//            Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(LOG)
+//    try (RateLimiter rateLimiter = new RateLimiter(10, 10)) {
+//      LOG.debug("Rate Limiter = {}", rateLimiter);
+//      Assert.assertFalse(rateLimiter.tryAcquire(20, 0, TimeUnit.MILLISECONDS));
+//      long startTime = TimeSource.nanoTime();
+//      boolean tryAcquire = rateLimiter.tryAcquire(20, 2, TimeUnit.SECONDS);
+//      LOG.debug("waited {} ns for {}", (TimeSource.nanoTime() - startTime), rateLimiter);
+//      Assert.assertTrue(tryAcquire);
+//      Assert.assertFalse(rateLimiter.tryAcquire(20, 1, TimeUnit.SECONDS));
+//    }
+//  }
+
 
 
 }

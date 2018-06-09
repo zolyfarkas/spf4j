@@ -55,6 +55,9 @@ import org.spf4j.concurrent.PermitSupplier;
 public final class RateLimiter
         implements AutoCloseable, PermitSupplier {
 
+  private static final double MIN_REPLENISH_INTERVAL_MS
+          = Double.parseDouble(System.getProperty("spf4j.schedule.minIntervalMs", "10"));
+
   private final AtomicDouble permits;
 
   private final ScheduledFuture<?> replenisher;
@@ -74,8 +77,8 @@ public final class RateLimiter
           final int maxBurstSize,
           final ScheduledExecutorService scheduler) {
     double msPerReq = 1000d / maxReqPerSecond;
-    if (msPerReq < 10) {
-      msPerReq = 10d;
+    if (msPerReq < MIN_REPLENISH_INTERVAL_MS) {
+      msPerReq = MIN_REPLENISH_INTERVAL_MS;
     }
     this.permitReplenishIntervalMillis = (long) msPerReq;
     this.permitsPerReplenishInterval = maxReqPerSecond * msPerReq / 1000;
@@ -183,6 +186,9 @@ public final class RateLimiter
   @Override
   @SuppressFBWarnings("MDM_THREAD_YIELD") //fb has a point here...
   public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {
+    if (timeout < 0) {
+      return false;
+    }
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
       return true;
@@ -198,6 +204,21 @@ public final class RateLimiter
     }
   }
 
+  long tryAcquireGetDelay(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    boolean tryAcquire = tryAcquire(nrPermits);
+    if (tryAcquire) {
+      return 0L;
+    } else { // no curent permits available, reserve some slots and wait for them.
+      ReservationHandler rh = new ReservationHandler(TimeSource.nanoTime() + unit.toNanos(timeout), nrPermits);
+      boolean accd = Atomics.maybeAccumulate(permits, rh);
+      if (accd) {
+        return rh.getMsUntilResourcesAvailable();
+      } else {
+        return -1L;
+      }
+    }
+  }
 
   @Override
   public void close() {
