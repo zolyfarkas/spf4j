@@ -63,13 +63,13 @@ public final class JmhTest {
     final String profile = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
-            //.include(".*Timing.*")
+            .include("Spf4jRateLimiter.*")
 //                           .include(".*ThreadPoolBenchmark")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
             .addProfiler(JmhFlightRecorderProfiler.class)
-            .addProfiler(Spf4jJmhProfiler.class)
+//            .addProfiler(Spf4jJmhProfiler.class)
             //                .addProfiler(GCProfiler.class)
             //"-XX:+PrintCompilation", "-XX:+UseG1GC", "-XX:MinTLABSize=1m", "-XX:MaxInlineLevel=12"
             // "-XX:+PrintInlining", "-XX:+TraceDeoptimization", "-XX:+DebugDeoptimization", "-XX:+LogEvents"
