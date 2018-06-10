@@ -55,8 +55,16 @@ import org.spf4j.concurrent.PermitSupplier;
  * there is a backoff to handle high contention better as well
  * (see https://dzone.com/articles/wanna-get-faster-wait-bit)
  *
+ * The different in performance can be observed in a benchmark where we try to limit 10000000 ops/s:
+ *
+ * Benchmark                                                                 Mode  Cnt        Score        Error  Units
+ * com.google.common.util.concurrent.GuavaRateLimiterBenchmark.acquire      thrpt   10  8197739.576 ± 163437.214  ops/s
+ * org.spf4j.failsafe.Spf4jRateLimiterBenchmark.acquire                     thrpt   10  9791489.540 ±  89480.010  ops/s
+ *
+ * The Guava implementation cannot really get as close to the desired rate as the spf4j implementation.
+ *
  * Rate Limiter also implements the PermitSupplier abstraction along with GuavaRateLimiter allowing interchangeability
- * between the 2 implementations based on what tradeof work better for you.
+ * between the 2 implementations based on what trade-of work better for you.
  *
  * @author Zoltan Farkas
  */

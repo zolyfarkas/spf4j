@@ -62,7 +62,7 @@ public final class JmhTest {
     final String profile = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
-            .include("Spf4jRateLimiter.*")
+            .include("RateLimiter.*")
 //                           .include(".*ThreadPoolBenchmark")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)

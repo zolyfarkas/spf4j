@@ -54,7 +54,7 @@ public class Spf4jRateLimiterBenchmark {
 
   @Setup
   public static void init() {
-    limiter = new RateLimiter(1000, 100);
+    limiter = new RateLimiter(10000000, 1000000);
   }
 
   @TearDown
@@ -64,12 +64,12 @@ public class Spf4jRateLimiterBenchmark {
   }
 
 
-//  @Benchmark
+  @Benchmark
   public final boolean acquire() throws InterruptedException {
-    return limiter.tryAcquire(1, TimeUnit.SECONDS);
+     return limiter.tryAcquire(1, TimeUnit.SECONDS);
   }
 
-  @Benchmark
+//  @Benchmark
   public final long acquireOverhead() throws InterruptedException {
     return limiter.tryAcquireGetDelayMillis(1, 1, TimeUnit.SECONDS);
   }

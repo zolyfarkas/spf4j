@@ -53,7 +53,7 @@ public class GuavaRateLimiterBenchmark {
 
   @Setup
   public static void init() {
-    limiter = new GuavaRateLimiter(com.google.common.util.concurrent.RateLimiter.create(1000));
+    limiter = new GuavaRateLimiter(com.google.common.util.concurrent.RateLimiter.create(10000000));
   }
 
   @Benchmark
