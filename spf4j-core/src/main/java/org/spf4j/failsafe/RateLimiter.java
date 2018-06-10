@@ -48,8 +48,9 @@ import org.spf4j.concurrent.PermitSupplier;
 
 /**
  * Token bucket algorithm base call rate limiter. see https://en.wikipedia.org/wiki/Token_bucket for more detail.
- * Unlike the Guava implementation, this limiter the token replenishment is done in a separate thread.
- * As such permit acquisition methods have lower overhead (not System.nanotime invocation when permits available),
+ * Unlike the Guava implementation, the token replenishment is done in a separate thread.
+ * As such permit acquisition methods have lower overhead
+ * (no System.nanotime invocation is made when permits available),
  * This lower overhead comes at the cost of increasing the cost of RateLimiter object instance. (a scheduled runnable)
  * This implementation also uses CAS to update the permit bucket which should yield better concurrency characteristics.
  * there is a backoff to handle high contention better as well
@@ -65,6 +66,7 @@ import org.spf4j.concurrent.PermitSupplier;
  *
  * Rate Limiter also implements the PermitSupplier abstraction along with GuavaRateLimiter allowing interchangeability
  * between the 2 implementations based on what trade-of work better for you.
+ * PermitSupplier allows interchangeability and combination with Semaphore (extends PermitSupplier) implementations.
  *
  * @author Zoltan Farkas
  */
