@@ -52,6 +52,8 @@ import org.spf4j.concurrent.PermitSupplier;
  * As such permit acquisition methods have lower overhead (not System.nanotime invocation when permits available),
  * This lower overhead comes at the cost of increasing the cost of RateLimiter object instance. (a scheduled runnable)
  * This implementation also uses CAS to update the permit bucket which should yield better concurrency characteristics.
+ * there is a backoff to handle high contention better as well
+ * (see https://dzone.com/articles/wanna-get-faster-wait-bit)
  *
  * Rate Limiter also implements the PermitSupplier abstraction along with GuavaRateLimiter allowing interchangeability
  * between the 2 implementations based on what tradeof work better for you.

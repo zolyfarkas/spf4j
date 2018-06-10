@@ -31,9 +31,11 @@
  */
 package org.spf4j.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.UnaryOperator;
@@ -44,6 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class Atomics {
 
   private Atomics() {
@@ -73,8 +76,11 @@ public final class Atomics {
       if (prev == next) {
         return false;
       }
-    } while (!dval.compareAndSet(prev, next));
-    return true;
+      if (dval.compareAndSet(prev, next)) {
+        return true;
+      }
+      LockSupport.parkNanos(getBackoffNanos()); // backoff
+    } while (true);
   }
 
   public static void accumulate(final AtomicLong dval, final double x,
@@ -86,7 +92,15 @@ public final class Atomics {
       if (next == prev) {
         return;
       }
-    } while (!dval.compareAndSet(prev, next));
+      if (dval.compareAndSet(prev, next)) {
+        return;
+      }
+      LockSupport.parkNanos(getBackoffNanos()); // backoff
+    } while (true);
+  }
+
+  private  static long getBackoffNanos() {
+    return Thread.currentThread().getId() % 2;
   }
 
   public static boolean maybeAccumulate(final AtomicLong dval,
@@ -98,8 +112,11 @@ public final class Atomics {
       if (prev == next) {
         return false;
       }
-    } while (!dval.compareAndSet(prev, next));
-    return true;
+      if (dval.compareAndSet(prev, next)) {
+        return true;
+      }
+      LockSupport.parkNanos(getBackoffNanos()); // backoff
+    } while (true);
   }
 
 
