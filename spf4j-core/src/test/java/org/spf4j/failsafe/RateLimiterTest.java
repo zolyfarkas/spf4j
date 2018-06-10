@@ -56,9 +56,13 @@ public class RateLimiterTest {
 
   @Test
   public void testRateLimitArgs() {
-    try (RateLimiter rateLimiter = new RateLimiter(17, 10)) {
+    try (RateLimiter rateLimiter = new RateLimiter(17, 10, 10)) {
     LOG.debug("Rate Limiter = {}", rateLimiter);
     Assert.assertEquals(1d, rateLimiter.getPermitsPerReplenishInterval(), 0.001);
+    }
+    try (RateLimiter rateLimiter = new RateLimiter(10000000, 5000000, 500)) {
+    LOG.debug("Rate Limiter = {}", rateLimiter);
+    Assert.assertEquals(500, rateLimiter.getPermitReplenishIntervalMillis());
     }
   }
 

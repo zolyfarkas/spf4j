@@ -31,9 +31,8 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.util.concurrent.AtomicDouble;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
@@ -65,13 +64,12 @@ public final class Atomics {
     return UpdateResult.updated(newObj);
   }
 
-  @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
-  public static boolean maybeAccumulate(final AtomicDouble dval, final double x,
+  public static boolean maybeAccumulate(final AtomicLong dval, final double x,
           final DoubleBinaryOperator accumulatorFunction) {
-    double prev, next;
+    long prev, next;
     do {
       prev = dval.get();
-      next = accumulatorFunction.applyAsDouble(prev, x);
+      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev), x));
       if (prev == next) {
         return false;
       }
@@ -79,22 +77,24 @@ public final class Atomics {
     return true;
   }
 
-  public static void accumulate(final AtomicDouble dval, final double x,
+  public static void accumulate(final AtomicLong dval, final double x,
           final DoubleBinaryOperator accumulatorFunction) {
-    double prev, next;
+    long prev, next;
     do {
       prev = dval.get();
-      next = accumulatorFunction.applyAsDouble(prev, x);
+      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev), x));
+      if (next == prev) {
+        return;
+      }
     } while (!dval.compareAndSet(prev, next));
   }
 
-  @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
-  public static boolean maybeAccumulate(final AtomicDouble dval,
+  public static boolean maybeAccumulate(final AtomicLong dval,
           final DoubleUnaryOperator accumulatorFunction) {
-    double prev, next;
+    long prev, next;
     do {
       prev = dval.get();
-      next = accumulatorFunction.applyAsDouble(prev);
+      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev)));
       if (prev == next) {
         return false;
       }
@@ -102,15 +102,6 @@ public final class Atomics {
     return true;
   }
 
-  public static double getAndAccumulate(final AtomicDouble dval,
-          final DoubleUnaryOperator accumulatorFunction) {
-    double prev, next;
-    do {
-      prev = dval.get();
-      next = accumulatorFunction.applyAsDouble(prev);
-    } while (!dval.compareAndSet(prev, next));
-    return prev;
-  }
 
 
 }
