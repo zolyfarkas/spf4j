@@ -64,6 +64,14 @@ import org.spf4j.concurrent.PermitSupplier;
  *
  * The Guava implementation cannot really get as close to the desired rate as the spf4j implementation.
  *
+ * The spf4j implementation tops of at about:
+ *
+ * Benchmark                               Mode  Cnt         Score        Error  Units
+ * Spf4jRateLimiterBenchmark.acquire      thrpt   10  15270385.653 ± 507217.444  ops/s
+ *
+ * these benchmarks are artificial and really measure the overhead of permit acquisition alone without doing anything
+ * else, real use cases will accompany a permit acquision with some work which impacts the CAS/lock acquisition perf...
+ *
  * Rate Limiter also implements the PermitSupplier abstraction along with GuavaRateLimiter allowing interchangeability
  * between the 2 implementations based on what trade-of work better for you.
  * PermitSupplier allows interchangeability and combination with Semaphore (extends PermitSupplier) implementations.

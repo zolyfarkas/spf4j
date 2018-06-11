@@ -49,6 +49,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class Atomics {
 
+  private static final int MAX_BACKOFF_NANOS = Integer.getInteger("spf4j.atomics.maxBackoffNanos", 3);
+
   private Atomics() {
   }
 
@@ -100,7 +102,7 @@ public final class Atomics {
   }
 
   private  static long getBackoffNanos() {
-    return Thread.currentThread().getId() % 2;
+    return Thread.currentThread().getId() % MAX_BACKOFF_NANOS;
   }
 
   public static boolean maybeAccumulate(final AtomicLong dval,
