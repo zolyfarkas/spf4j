@@ -201,9 +201,9 @@ public final class RateLimiter
 
     @Override
     public double applyAsDouble(final double prev) {
-      double permitsNeeded = permits - prev;
-      if (permitsNeeded <= 0) {
-        return -permitsNeeded;
+      double remaimingPermits = prev - permits;
+      if (remaimingPermits >= 0) {
+        return remaimingPermits;
       }
       if (reTimeCount > 0) {
         reTimeCount--;
@@ -221,16 +221,17 @@ public final class RateLimiter
       if (timeoutMs < msUntilNextReplenishment) {
           return prev; // not enough time to wait.
       }
-      int numberOfReplenishMentsNeed = (int) Math.ceil(permitsNeeded / permitsPerReplenishInterval);
-      if (numberOfReplenishMentsNeed <= 1) {
+      double permitsNeeded = -remaimingPermits;
+      if (permitsNeeded <= permitsPerReplenishInterval) {
         msUntilResourcesAvailable = msUntilNextReplenishment;
-        return prev - permits;
+        return remaimingPermits;
       } else {
+        int numberOfReplenishMentsNeed = (int) Math.ceil(permitsNeeded / permitsPerReplenishInterval);
         long msNeeded = msUntilNextReplenishment
                 + (numberOfReplenishMentsNeed - 1) * permitReplenishIntervalMillis;
         if (msNeeded <= timeoutMs) {
           msUntilResourcesAvailable = msNeeded;
-          return prev - permits;
+          return remaimingPermits;
         } else {
           return prev;
         }
