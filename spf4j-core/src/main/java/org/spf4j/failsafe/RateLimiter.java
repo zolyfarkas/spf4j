@@ -82,8 +82,10 @@ import org.spf4j.concurrent.PermitSupplier;
 public final class RateLimiter
         implements AutoCloseable, PermitSupplier {
 
+  private static final int RE_READ_TIME_AFTER_RETRIES = Integer.getInteger("spf4j.rateLimiter.reReadTimeAfterTries", 5);
+
   private static final long DEFAULT_MIN_REPLENISH_INTERVAL_MS
-          = Long.getLong("spf4j.schedule.defaultMinIntervalMs", 10L);
+          = Long.getLong("spf4j.rateLimiter.defaultMinReplenishIntervalMs", 10L);
 
   private final AtomicLong permits;
 
@@ -179,7 +181,7 @@ public final class RateLimiter
 
   private final class ReservationHandler implements DoubleUnaryOperator {
 
-    private final long currTimeNanos;
+    private long currTimeNanos;
 
     private final long deadlineNanos;
 
@@ -187,13 +189,14 @@ public final class RateLimiter
 
     private long msUntilResourcesAvailable;
 
-    private boolean first = true;
+    private int reTimeCount;
 
     ReservationHandler(final long currTimeNanos, final long timeoutMillis, final int permits) {
       this.currTimeNanos = currTimeNanos;
       this.deadlineNanos = currTimeNanos + timeoutMillis;
       this.permits = permits;
       this.msUntilResourcesAvailable = -1;
+      this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;
     }
 
     @Override
@@ -202,27 +205,26 @@ public final class RateLimiter
       if (permitsNeeded <= 0) {
         return -permitsNeeded;
       }
-      long currTime;
-      if (first) {
-        currTime = currTimeNanos;
-        first = false;
+      if (reTimeCount > 0) {
+        reTimeCount--;
       } else {
-        currTime = nanoTimeSupplier.getAsLong();
+        // re-reading current time on every try is pointless since System.nanotime can take 30ns to exec...
+        reTimeCount = RE_READ_TIME_AFTER_RETRIES;
+        currTimeNanos = nanoTimeSupplier.getAsLong();
       }
-      long timeoutMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - currTime);
+      long timeoutMs = TimeUnit.NANOSECONDS.toMillis(deadlineNanos - currTimeNanos);
       if (timeoutMs <= 0) {
         return prev;
       }
       long msUntilNextReplenishment
-              = permitReplenishIntervalMillis - TimeUnit.NANOSECONDS.toMillis(currTime - lastReplenishmentNanos);
+              = permitReplenishIntervalMillis - TimeUnit.NANOSECONDS.toMillis(currTimeNanos - lastReplenishmentNanos);
+      if (timeoutMs < msUntilNextReplenishment) {
+          return prev; // not enough time to wait.
+      }
       int numberOfReplenishMentsNeed = (int) Math.ceil(permitsNeeded / permitsPerReplenishInterval);
       if (numberOfReplenishMentsNeed <= 1) {
-        if (timeoutMs < msUntilNextReplenishment) {
-          return prev;
-        } else {
-          msUntilResourcesAvailable = msUntilNextReplenishment;
-          return prev - permits;
-        }
+        msUntilResourcesAvailable = msUntilNextReplenishment;
+        return prev - permits;
       } else {
         long msNeeded = msUntilNextReplenishment
                 + (numberOfReplenishMentsNeed - 1) * permitReplenishIntervalMillis;
