@@ -94,6 +94,8 @@ public class RateLimiterTest {
       Assert.assertEquals(-9, rateLimiter.getNrPermits(), 0.0001);
       tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, 10, TimeUnit.MILLISECONDS);
       Assert.assertTrue(tryAcquireGetDelayMs < 0);
+      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, 2000, TimeUnit.MILLISECONDS);
+      Assert.assertEquals(1000, tryAcquireGetDelayMs);
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
             Mockito.eq(TimeUnit.MILLISECONDS));
