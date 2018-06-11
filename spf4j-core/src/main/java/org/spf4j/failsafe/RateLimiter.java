@@ -75,7 +75,7 @@ public final class RateLimiter
         implements AutoCloseable, PermitSupplier {
 
   private static final long MIN_REPLENISH_INTERVAL_MS
-          = Long.getLong("spf4j.schedule.minIntervalMs", 100L);
+          = Long.getLong("spf4j.schedule.minIntervalMs", 10L);
 
   private final AtomicLong permits;
 
