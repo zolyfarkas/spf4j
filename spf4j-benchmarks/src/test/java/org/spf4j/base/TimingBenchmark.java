@@ -46,12 +46,12 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(value = 4)
 public class TimingBenchmark {
 
-  @Benchmark
+//  @Benchmark
   public final long getCurrentTimeMillis() {
     return System.currentTimeMillis();
   }
 
-  @Benchmark
+//  @Benchmark
   public final long getNanoTime() {
     return TimeSource.nanoTime();
   }

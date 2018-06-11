@@ -72,10 +72,10 @@ public class BenchmarkStackCollectors {
     DemoTest.stopTestThreads(testThreads);
   }
 
-  @Benchmark
-  public final void testSimple() {
-    SIMPLE.sample();
-  }
+//  @Benchmark
+//  public final void testSimple() {
+//    SIMPLE.sample();
+//  }
 
   @Benchmark
   public final void testFast() {

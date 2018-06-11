@@ -62,7 +62,6 @@ public final class JmhTest {
     final String profile = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
-            .include("RateLimiter.*")
 //                           .include(".*ThreadPoolBenchmark")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
@@ -84,7 +83,7 @@ public final class JmhTest {
                     "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
             .result(destinationFolder + "/" + "benchmarkResults.csv")
             .resultFormat(ResultFormatType.CSV)
-            .warmupIterations(10)
+            .warmupIterations(5)
             .measurementIterations(10)
             .forks(1)
             .build();
