@@ -32,7 +32,7 @@ public final class TimeSource {
     if (cfgTimeSource == null) {
       TIMESUPP = () -> System.nanoTime();
     } else if ("systemTime".equals(cfgTimeSource)) {
-      // System time is about 3 times faster on macOSX:
+      // System time is about 3 times faster on macOSX (30ns vs 10ns):
       // and worth considerign is more than millisecond precission is not needed:
       // TimingBenchmark.getCurrentTimeMillis         thrpt   10  108291306.615 ± 3493136.191  ops/s
       // TimingBenchmark.getNanoTime                  thrpt   10  31056232.360 ± 1804247.295  ops/s
