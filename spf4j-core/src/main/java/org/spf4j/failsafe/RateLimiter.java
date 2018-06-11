@@ -74,8 +74,8 @@ import org.spf4j.concurrent.PermitSupplier;
 public final class RateLimiter
         implements AutoCloseable, PermitSupplier {
 
-  private static final long MIN_REPLENISH_INTERVAL_MS
-          = Long.getLong("spf4j.schedule.minIntervalMs", 10L);
+  private static final long DEFAULT_MIN_REPLENISH_INTERVAL_MS
+          = Long.getLong("spf4j.schedule.defaultMinIntervalMs", 10L);
 
   private final AtomicLong permits;
 
@@ -113,7 +113,7 @@ public final class RateLimiter
           final int maxBurstSize,
           final ScheduledExecutorService scheduler,
           final LongSupplier nanoTimeSupplier) {
-    this(maxReqPerSecond, maxBurstSize, MIN_REPLENISH_INTERVAL_MS, scheduler, nanoTimeSupplier);
+    this(maxReqPerSecond, maxBurstSize, DEFAULT_MIN_REPLENISH_INTERVAL_MS, scheduler, nanoTimeSupplier);
   }
 
   public RateLimiter(final double maxReqPerSecond,
