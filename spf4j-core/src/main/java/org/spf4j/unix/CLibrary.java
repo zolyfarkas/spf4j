@@ -67,8 +67,18 @@ public interface CLibrary extends LibCAPI, Library {
 
   int umask(int mask);
 
+  /**
+   * Get current process id.
+   * https://www.systutorials.com/docs/linux/man/2-getppid/
+   * @return current process id.
+   */
   int getpid();
 
+  /**
+   * get parent process id.
+   * https://www.systutorials.com/docs/linux/man/2-getppid/
+   * @return parent process id.
+   */
   int getppid();
 
   int chdir(String dir);
