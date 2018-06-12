@@ -119,7 +119,7 @@ public final class TimeSeriesDatabase implements Closeable {
           throws IOException {
     file = new RandomAccessFile(pathToDatabaseFile, isWrite ? "rw" : "r");
     // uniques per process string for sync purposes.
-    this.path = INTERNER.intern(pathToDatabaseFile.getPath());
+    this.path = INTERNER.intern(pathToDatabaseFile.getCanonicalPath());
     tables = new ConcurrentHashMap<>();
     writeDataFragments = new HashMap<>();
     // read or create header
