@@ -104,9 +104,14 @@ public final class Ulimit {
           mfiles = Integer.MAX_VALUE;
         }
       }
-    } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {
+    } catch (TimeoutException | IOException | ExecutionException ex) {
       Logger.getLogger(Ulimit.class.getName()).log(Level.WARNING,
               "Error while parsing ulimit output, assuming no limit", ex);
+      mfiles = Integer.MAX_VALUE;
+    } catch (InterruptedException ex) {
+      Logger.getLogger(Ulimit.class.getName()).log(Level.WARNING,
+              "Ulimit interrupted, assuming no limit", ex);
+      Thread.currentThread().interrupt();
       mfiles = Integer.MAX_VALUE;
     }
     return mfiles;

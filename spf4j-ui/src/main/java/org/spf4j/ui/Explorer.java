@@ -304,6 +304,7 @@ public class Explorer extends javax.swing.JFrame {
       sampler = Sampler.getSampler(10, 100000, new File("."), "dump");
       sampler.start();
     } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
       throw new RuntimeException(ex);
     }
   }//GEN-LAST:event_jMenuItem1ActionPerformed
@@ -313,6 +314,7 @@ public class Explorer extends javax.swing.JFrame {
       try {
         sampler.stop();
       } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
         throw new RuntimeException(ex);
       }
       Map<String, SampleNode> samples = sampler.getStackCollectionsAndReset();
