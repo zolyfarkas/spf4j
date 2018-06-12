@@ -41,6 +41,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
+import org.spf4j.stackmonitor.Spf4jJmhProfiler;
 import org.spf4j.test.log.TestUtils;
 
 /**
@@ -67,7 +68,7 @@ public final class JmhTest {
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
             .addProfiler(JmhFlightRecorderProfiler.class)
-//            .addProfiler(Spf4jJmhProfiler.class)
+            .addProfiler(Spf4jJmhProfiler.class)
             //                .addProfiler(GCProfiler.class)
             //"-XX:+PrintCompilation", "-XX:+UseG1GC", "-XX:MinTLABSize=1m", "-XX:MaxInlineLevel=12"
             // "-XX:+PrintInlining", "-XX:+TraceDeoptimization", "-XX:+DebugDeoptimization", "-XX:+LogEvents"
