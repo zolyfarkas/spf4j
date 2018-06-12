@@ -78,6 +78,11 @@ public final class ImmutableSchema extends Schema {
   }
 
   @Override
+  int computeHash() {
+    return wrapped.hashCode();
+  }
+
+  @Override
   public String toString() {
     return wrapped.toString();
   }
