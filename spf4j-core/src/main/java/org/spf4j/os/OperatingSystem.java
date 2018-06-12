@@ -52,7 +52,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
@@ -326,8 +325,7 @@ public final class OperatingSystem {
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
     ProcessResponse<Void, Void> resp
             = forkExec(command,
-                    new LoggingProcessHandler(Logger.getLogger("fork."
-                            + Arrays.stream(command).collect(Collectors.joining(".")))),
+                    new LoggingProcessHandler(Logger.getLogger("fork." + command[0])),
                     timeoutMillis, 60000);
     if (resp.getResponseExitCode() != SysExits.OK) {
       throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(command)
