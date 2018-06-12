@@ -92,9 +92,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
    * the CPU. this value is used only when the max idle time of the pool is smaller, and it interferes with thread
    * retirement in that case... I do not see that case as a useful pooling case to be worth trying to optimize it...
    */
-  static final long CORE_MINWAIT_NANOS = Long.getLong("spf4j.lifoTp.coreMaxWaitNanos", 1000000000);
+  private static final long CORE_MINWAIT_NANOS = Long.getLong("spf4j.lifoTp.coreMaxWaitNanos", 1000000000);
 
-  static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
+  private static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
 
   @GuardedBy("stateLock")
   private final Queue<Runnable> taskQueue;
