@@ -102,6 +102,8 @@ public final class RateLimiter
 
   private final Object sync;
 
+  private final int concurrencyLevel;
+
   public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize, final long minReplenishIntervalMillis) {
     this(maxReqPerSecond, maxBurstSize, minReplenishIntervalMillis,
@@ -131,6 +133,16 @@ public final class RateLimiter
           final long minReplenishIntervalMillis,
           final ScheduledExecutorService scheduler,
           final LongSupplier nanoTimeSupplier) {
+    this(maxReqPerSecond, maxBurstSize, minReplenishIntervalMillis,
+            scheduler, nanoTimeSupplier, Atomics.MAX_BACKOFF_NANOS);
+  }
+
+  public RateLimiter(final double maxReqPerSecond,
+          final int maxBurstSize,
+          final long minReplenishIntervalMillis,
+          final ScheduledExecutorService scheduler,
+          final LongSupplier nanoTimeSupplier, final int concurrencyLevel) {
+    this.concurrencyLevel = concurrencyLevel;
     this.sync = new Object();
     this.nanoTimeSupplier = nanoTimeSupplier;
     double msPerReq = 1000d / maxReqPerSecond;
@@ -153,7 +165,7 @@ public final class RateLimiter
         Atomics.accumulate(permits, permitsPerReplenishInterval, (left, right) -> {
           double result = left + right;
           return (result > maxBurstSize) ? maxBurstSize : result;
-        });
+        }, concurrencyLevel);
         lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
       }
     }, permitReplenishIntervalMillis, permitReplenishIntervalMillis, TimeUnit.MILLISECONDS);
@@ -176,7 +188,7 @@ public final class RateLimiter
       double dif = prev - x;
       // right will be -1d.
       return (dif < 0) ? prev : dif;
-    });
+    }, concurrencyLevel);
   }
 
   private final class ReservationHandler implements DoubleUnaryOperator {
@@ -286,7 +298,7 @@ public final class RateLimiter
       ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), unit.toNanos(timeout), nrPermits);
       boolean accd;
       synchronized (sync) {
-        accd = Atomics.maybeAccumulate(permits, rh);
+        accd = Atomics.maybeAccumulate(permits, rh, concurrencyLevel);
       }
       if (accd) {
         return rh.getMsUntilResourcesAvailable();

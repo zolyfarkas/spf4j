@@ -49,7 +49,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class Atomics {
 
-  private static final int MAX_BACKOFF_NANOS = Integer.getInteger("spf4j.atomics.maxBackoffNanos", 3);
+  public static final int MAX_BACKOFF_NANOS = Integer.getInteger("spf4j.atomics.maxBackoffNanos", 3);
 
   private Atomics() {
   }
@@ -70,7 +70,7 @@ public final class Atomics {
   }
 
   public static boolean maybeAccumulate(final AtomicLong dval, final double x,
-          final DoubleBinaryOperator accumulatorFunction) {
+          final DoubleBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
       prev = dval.get();
@@ -81,12 +81,12 @@ public final class Atomics {
       if (dval.compareAndSet(prev, next)) {
         return true;
       }
-      LockSupport.parkNanos(getBackoffNanos()); // backoff
+      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff
     } while (true);
   }
 
   public static void accumulate(final AtomicLong dval, final double x,
-          final DoubleBinaryOperator accumulatorFunction) {
+          final DoubleBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
       prev = dval.get();
@@ -97,16 +97,16 @@ public final class Atomics {
       if (dval.compareAndSet(prev, next)) {
         return;
       }
-      LockSupport.parkNanos(getBackoffNanos()); // backoff
+      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff
     } while (true);
   }
 
-  private  static long getBackoffNanos() {
-    return Thread.currentThread().getId() % MAX_BACKOFF_NANOS;
+  private  static long getBackoffNanos(final int maxBackoffNanos) {
+    return maxBackoffNanos > 0 ? Thread.currentThread().getId() % maxBackoffNanos : 0;
   }
 
   public static boolean maybeAccumulate(final AtomicLong dval,
-          final DoubleUnaryOperator accumulatorFunction) {
+          final DoubleUnaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
       prev = dval.get();
@@ -117,7 +117,7 @@ public final class Atomics {
       if (dval.compareAndSet(prev, next)) {
         return true;
       }
-      LockSupport.parkNanos(getBackoffNanos()); // backoff
+      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff
     } while (true);
   }
 
