@@ -31,11 +31,12 @@
  */
 package org.spf4j.tsdb2;
 
+import com.google.common.io.ByteStreams;
 import com.google.common.io.CountingInputStream;
+import com.google.common.primitives.Longs;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,8 +90,9 @@ public final  class TSDBReader implements Closeable {
         SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
         decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
         TSDBWriter.validateType(bis);
-        DataInputStream dis = new DataInputStream(bis);
-        size = dis.readLong();
+        byte[] buff = new byte[8];
+        ByteStreams.readFully(bis, buff);
+        size = Longs.fromByteArray(buff);
         header = reader.read(null, decoder);
         recordReader = new SpecificDatumReader<>(
                 new Schema.Parser().parse(header.getContentSchema()),
