@@ -32,7 +32,6 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
-import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.concurrent.TimeUnit;
@@ -66,39 +65,39 @@ public interface ExecutionContext extends AutoCloseable {
 
   @Nonnegative
   default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L69">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L71">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="nc" id="L68">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L70">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L73">     return result;</span>
+<span class="nc" id="L72">     return result;</span>
   }
 
   @Nonnegative
   default long getUncheckedTimeToDeadline(final TimeUnit unit) {
-<span class="fc" id="L78">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L80">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="nc" id="L77">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L79">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L82">     return result;</span>
+<span class="nc" id="L81">     return result;</span>
   }
 
   @Signed
   default long getTimeRelativeToDeadline(final TimeUnit unit)  {
-<span class="fc" id="L87">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L86">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
   @Nonnegative
   default long getMillisToDeadline() throws TimeoutException {
-<span class="nc" id="L92">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L91">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   @Nonnegative
   default int getSecondsToDeadline() throws TimeoutException {
-<span class="nc" id="L97">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L99">      return Integer.MAX_VALUE;</span>
+<span class="nc" id="L96">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L98">      return Integer.MAX_VALUE;</span>
     } else {
-<span class="nc" id="L101">      return (int) secondsToDeadline;</span>
+<span class="nc" id="L100">      return (int) secondsToDeadline;</span>
     }
   }
 
@@ -114,7 +113,7 @@ public interface ExecutionContext extends AutoCloseable {
   @Nullable
   @Beta
   default &lt;T&gt; T get(Object key, Class&lt;T&gt; clasz) {
-<span class="fc" id="L117">    return (T) get(key);</span>
+<span class="nc" id="L116">    return (T) get(key);</span>
   }
 
 
@@ -152,12 +151,12 @@ public interface ExecutionContext extends AutoCloseable {
   @Nullable
   @Beta
   default &lt;T&gt; T putToRoot(final Object key, final T data) {
-<span class="nc" id="L155">    ExecutionContext curr = this;</span>
+<span class="nc" id="L154">    ExecutionContext curr = this;</span>
     ExecutionContext parent;
-<span class="nc bnc" id="L157" title="All 2 branches missed.">    while ((parent = curr.getParent()) != null) {</span>
-<span class="nc" id="L158">      curr = parent;</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">    while ((parent = curr.getParent()) != null) {</span>
+<span class="nc" id="L157">      curr = parent;</span>
     }
-<span class="nc" id="L160">    return curr.put(key, data);</span>
+<span class="nc" id="L159">    return curr.put(key, data);</span>
   }
 
   /**

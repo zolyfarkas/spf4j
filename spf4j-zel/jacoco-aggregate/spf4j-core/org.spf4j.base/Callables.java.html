@@ -31,7 +31,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.util.HashMap;
@@ -42,12 +41,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.failsafe.PartialExceptionRetryPredicate;
 
 /**
  * Utility class for executing stuff with retry logic.
@@ -58,16 +56,14 @@ import org.spf4j.failsafe.PartialExceptionRetryPredicate;
 //CHECKSTYLE IGNORE RedundantThrows FOR NEXT 2000 LINES
 public final class Callables {
 
-<span class="fc" id="L61">  private static final Logger LOG = LoggerFactory.getLogger(Callables.class);</span>
-
   /**
    * @deprecated use RetryPolicy
    */
   @Deprecated
-<span class="fc" id="L67">  public static final SimpleRetryPredicate&lt;?&gt; RETRY_FOR_NULL_RESULT = new SimpleRetryPredicate&lt;Object&gt;() {</span>
+<span class="fc" id="L63">  public static final SimpleRetryPredicate&lt;?&gt; RETRY_FOR_NULL_RESULT = new SimpleRetryPredicate&lt;Object&gt;() {</span>
     @Override
     public SimpleAction apply(final Object input) {
-<span class="nc bnc" id="L70" title="All 2 branches missed.">      return (input != null) ? SimpleAction.ABORT : SimpleAction.RETRY;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">      return (input != null) ? SimpleAction.ABORT : SimpleAction.RETRY;</span>
     }
   };
 
@@ -79,59 +75,27 @@ public final class Callables {
    * @deprecated use RetryPolicy
    */
   @Deprecated
-<span class="fc" id="L82">  public static final AdvancedRetryPredicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY</span>
-<span class="fc" id="L83">          = new AdvancedRetryPredicate&lt;Exception&gt;() {</span>
-    @Override
-    public AdvancedAction apply(@Nonnull final Exception input) {
-<span class="fc bfc" id="L86" title="All 2 branches covered.">      if (Throwables.isRetryable(input)) {</span>
-<span class="fc" id="L87">        LOG.debug(&quot;Exception encountered, retrying...&quot;, input);</span>
-<span class="fc" id="L88">        return AdvancedAction.RETRY;</span>
-      }
-<span class="fc" id="L90">      return AdvancedAction.ABORT;</span>
-    }
-  };
+<span class="fc" id="L78">  public static final AdvancedRetryPredicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY</span>
+          = new DefaultAdvancedRetryPredicateImpl();
 
   /**
    * @deprecated use RetryPolicy
    */
   @Deprecated
-<span class="fc" id="L98">  public static final Predicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY_PREDICATE</span>
-<span class="fc" id="L99">          = new Predicate&lt;Exception&gt;() {</span>
+<span class="fc" id="L85">  public static final Predicate&lt;Exception&gt; DEFAULT_EXCEPTION_RETRY_PREDICATE</span>
+<span class="fc" id="L86">          = new Predicate&lt;Exception&gt;() {</span>
 
     @Override
     @SuppressFBWarnings(&quot;NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE&quot;)
     public boolean test(final Exception t) {
-<span class="nc bnc" id="L104" title="All 2 branches missed.">      return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">      return DEFAULT_EXCEPTION_RETRY.apply(t) != AdvancedAction.ABORT;</span>
     }
 
   };
 
   private Callables() { }
 
-  /**
-   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
-   */
-  @Deprecated
-  public static PartialExceptionRetryPredicate&lt;?, ? extends Callable&lt;?&gt;&gt; toFailsafePredicate(
-          final AdvancedRetryPredicate&lt;Exception&gt; oldStyle) {
-<span class="nc" id="L117">    return new PartialExceptionRetryPredicate&lt;Object, Callable&lt;? extends Object&gt;&gt;() {</span>
-      @Override
-      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
-<span class="nc" id="L120">        AdvancedAction aa = oldStyle.apply(value);</span>
-<span class="pc bnc" id="L121" title="All 4 branches missed.">        switch (aa) {</span>
-          case ABORT:
-<span class="nc" id="L123">            return org.spf4j.failsafe.RetryDecision.abort();</span>
-          case RETRY:
-          case RETRY_DELAYED:
-<span class="nc" id="L126">            return org.spf4j.failsafe.RetryDecision.retryDefault(what);</span>
-          case RETRY_IMMEDIATE:
-<span class="nc" id="L128">            return org.spf4j.failsafe.RetryDecision.retry(0, what);</span>
-          default:
-<span class="nc" id="L130">            throw new IllegalStateException(&quot;Invalid enum value &quot; + aa);</span>
-        }
-      }
-    };
-  }
+
 
 
   /**
@@ -143,7 +107,7 @@ public final class Callables {
           final int nrImmediateRetries,
           final int maxRetryWaitMillis, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L146">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
+<span class="fc" id="L110">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
             (TimeoutRetryPredicate&lt;? super T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, exceptionClass);
   }
@@ -156,7 +120,7 @@ public final class Callables {
   public static &lt;T&gt; T executeWithRetry(final TimeoutCallable&lt;T, RuntimeException&gt; what,
           final int nrImmediateRetries, final int maxRetryWaitMillis)
           throws InterruptedException, TimeoutException {
-<span class="nc" id="L159">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
+<span class="nc" id="L123">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
             (TimeoutRetryPredicate&lt;? super T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             DEFAULT_EXCEPTION_RETRY, RuntimeException.class);
   }
@@ -173,7 +137,7 @@ public final class Callables {
           final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L176">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
+<span class="fc" id="L140">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
             (TimeoutRetryPredicate&lt;? super T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, exceptionClass);
   }
@@ -187,7 +151,7 @@ public final class Callables {
           final int nrImmediateRetries, final int maxRetryWaitMillis,
           final AdvancedRetryPredicate&lt;Exception&gt; retryOnException)
           throws InterruptedException, TimeoutException {
-<span class="nc" id="L190">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
+<span class="nc" id="L154">    return executeWithRetry(what, nrImmediateRetries, maxRetryWaitMillis,</span>
             (TimeoutRetryPredicate&lt;? super T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,
             retryOnException, RuntimeException.class);
   }
@@ -216,11 +180,11 @@ public final class Callables {
           final AdvancedRetryPredicate&lt;Exception&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="fc" id="L219">    long deadline = what.getDeadline();</span>
-<span class="fc" id="L220">    return executeWithRetry(what,  new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
+<span class="fc" id="L183">    long deadline = what.getDeadline();</span>
+<span class="fc" id="L184">    return executeWithRetry(what,  new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),</span>
             new FibonacciBackoffRetryPredicate&lt;&gt;(retryOnException, nrImmediateRetries,
                     maxWaitMillis / 100, maxWaitMillis, Callables::rootClass, deadline,
-<span class="fc" id="L223">                    () -&gt; System.currentTimeMillis(), TimeUnit.MILLISECONDS),</span>
+<span class="fc" id="L187">                    () -&gt; System.currentTimeMillis(), TimeUnit.MILLISECONDS),</span>
     exceptionClass);
   }
 
@@ -238,29 +202,29 @@ public final class Callables {
 
     private final long maxDelay;
 
-<span class="fc" id="L241">    RetryData(final int immediateLeft, final long p1, final long maxDelay) {</span>
-<span class="fc" id="L242">      this.immediateLeft = immediateLeft;</span>
-<span class="fc bfc" id="L243" title="All 2 branches covered.">      if (p1 &lt; 1) {</span>
-<span class="fc" id="L244">        this.p1 = 0;</span>
-<span class="fc" id="L245">        this.p2 = 1;</span>
+<span class="fc" id="L205">    RetryData(final int immediateLeft, final long p1, final long maxDelay) {</span>
+<span class="fc" id="L206">      this.immediateLeft = immediateLeft;</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">      if (p1 &lt; 1) {</span>
+<span class="fc" id="L208">        this.p1 = 0;</span>
+<span class="fc" id="L209">        this.p2 = 1;</span>
       } else {
-<span class="fc" id="L247">        this.p1 = p1;</span>
-<span class="fc" id="L248">        this.p2 = p1;</span>
+<span class="fc" id="L211">        this.p1 = p1;</span>
+<span class="fc" id="L212">        this.p2 = p1;</span>
       }
-<span class="fc" id="L250">      this.maxDelay = maxDelay;</span>
-<span class="fc" id="L251">    }</span>
+<span class="fc" id="L214">      this.maxDelay = maxDelay;</span>
+<span class="fc" id="L215">    }</span>
 
     private long nextDelay() {
-<span class="fc bfc" id="L254" title="All 2 branches covered.">      if (immediateLeft &gt; 0) {</span>
-<span class="fc" id="L255">        immediateLeft--;</span>
-<span class="fc" id="L256">        return 0;</span>
-<span class="fc bfc" id="L257" title="All 2 branches covered.">      } else if (p2 &gt; maxDelay) {</span>
-<span class="fc" id="L258">        return maxDelay;</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">      if (immediateLeft &gt; 0) {</span>
+<span class="fc" id="L219">        immediateLeft--;</span>
+<span class="fc" id="L220">        return 0;</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">      } else if (p2 &gt; maxDelay) {</span>
+<span class="fc" id="L222">        return maxDelay;</span>
       } else {
-<span class="fc" id="L260">        long result = p2;</span>
-<span class="fc" id="L261">        p2 = p1 + p2;</span>
-<span class="fc" id="L262">        p1 = result;</span>
-<span class="fc" id="L263">        return result;</span>
+<span class="fc" id="L224">        long result = p2;</span>
+<span class="fc" id="L225">        p2 = p1 + p2;</span>
+<span class="fc" id="L226">        p1 = result;</span>
+<span class="fc" id="L227">        return result;</span>
       }
     }
 
@@ -271,7 +235,7 @@ public final class Callables {
    */
   @Deprecated
   public static Class rootClass(final Exception f) {
-<span class="fc" id="L274">    return com.google.common.base.Throwables.getRootCause(f).getClass();</span>
+<span class="fc" id="L238">    return com.google.common.base.Throwables.getRootCause(f).getClass();</span>
   }
 
   /**
@@ -303,69 +267,69 @@ public final class Callables {
     public FibonacciBackoffRetryPredicate(final AdvancedRetryPredicate&lt;T&gt; arp,
             final int nrImmediateRetries, final long minWaitUnits, final long maxWaitUnits,
             final Function&lt;T, ?&gt; mapper, final long deadline, final LongSupplier currTimeSuplier,
-<span class="fc" id="L306">            final TimeUnit tu) {</span>
-<span class="fc" id="L307">      this.arp = arp;</span>
-<span class="fc" id="L308">      this.nrImmediateRetries = nrImmediateRetries;</span>
-<span class="fc" id="L309">      this.maxWaitUnits = maxWaitUnits;</span>
-<span class="fc" id="L310">      this.minWaitUnits = minWaitUnits;</span>
-<span class="fc" id="L311">      retryRegistry = null;</span>
-<span class="fc" id="L312">      this.mapper = mapper;</span>
-<span class="fc" id="L313">      this.random = new IntMath.XorShift32();</span>
-<span class="fc" id="L314">      this.deadline = deadline;</span>
-<span class="fc" id="L315">      this.currTimeSuplier = currTimeSuplier;</span>
-<span class="fc" id="L316">      this.tu = tu;</span>
-<span class="fc" id="L317">    }</span>
+<span class="fc" id="L270">            final TimeUnit tu) {</span>
+<span class="fc" id="L271">      this.arp = arp;</span>
+<span class="fc" id="L272">      this.nrImmediateRetries = nrImmediateRetries;</span>
+<span class="fc" id="L273">      this.maxWaitUnits = maxWaitUnits;</span>
+<span class="fc" id="L274">      this.minWaitUnits = minWaitUnits;</span>
+<span class="fc" id="L275">      retryRegistry = null;</span>
+<span class="fc" id="L276">      this.mapper = mapper;</span>
+<span class="fc" id="L277">      this.random = new IntMath.XorShift32();</span>
+<span class="fc" id="L278">      this.deadline = deadline;</span>
+<span class="fc" id="L279">      this.currTimeSuplier = currTimeSuplier;</span>
+<span class="fc" id="L280">      this.tu = tu;</span>
+<span class="fc" id="L281">    }</span>
 
     private RetryData getRetryData(final T value, final AdvancedAction action) {
-<span class="fc" id="L320">      Object rootCauseClass = mapper.apply(value);</span>
-<span class="fc" id="L321">      RetryData data = retryRegistry.get(rootCauseClass);</span>
-<span class="fc bfc" id="L322" title="All 2 branches covered.">      if (data == null) {</span>
-<span class="fc" id="L323">        data = createRetryData(action);</span>
-<span class="fc" id="L324">        retryRegistry.put(rootCauseClass, data);</span>
+<span class="fc" id="L284">      Object rootCauseClass = mapper.apply(value);</span>
+<span class="fc" id="L285">      RetryData data = retryRegistry.get(rootCauseClass);</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">      if (data == null) {</span>
+<span class="fc" id="L287">        data = createRetryData(action);</span>
+<span class="fc" id="L288">        retryRegistry.put(rootCauseClass, data);</span>
       }
-<span class="fc" id="L326">      return data;</span>
+<span class="fc" id="L290">      return data;</span>
     }
 
     private RetryData createRetryData(final AdvancedAction action) {
-<span class="pc bpc" id="L330" title="1 of 2 branches missed.">      if (action == AdvancedAction.RETRY_DELAYED) {</span>
-<span class="nc" id="L331">        return new RetryData(0, minWaitUnits, maxWaitUnits);</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">      if (action == AdvancedAction.RETRY_DELAYED) {</span>
+<span class="nc" id="L295">        return new RetryData(0, minWaitUnits, maxWaitUnits);</span>
       } else {
-<span class="fc" id="L333">        return new RetryData(nrImmediateRetries, minWaitUnits, maxWaitUnits);</span>
+<span class="fc" id="L297">        return new RetryData(nrImmediateRetries, minWaitUnits, maxWaitUnits);</span>
       }
     }
 
     @Override
     public RetryDecision&lt;R&gt; getDecision(final T value, final Callable&lt;R&gt; callable) {
-<span class="fc" id="L339">      long currentTime = currTimeSuplier.getAsLong();</span>
-<span class="fc bfc" id="L340" title="All 2 branches covered.">      if (currentTime &gt; deadline) {</span>
-<span class="fc" id="L341">        return RetryDecision.abort(new TimeoutException(&quot;Deadline &quot; + Instant.ofEpochMilli(deadline) + ' ' + tu</span>
-<span class="fc" id="L342">                + &quot; passed, current time is &quot; + Instant.ofEpochMilli(currentTime) + ' ' + tu));</span>
+<span class="fc" id="L303">      long currentTime = currTimeSuplier.getAsLong();</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">      if (currentTime &gt; deadline) {</span>
+<span class="fc" id="L305">        return RetryDecision.abort(new TimeoutException(&quot;Deadline &quot; + Instant.ofEpochMilli(deadline)</span>
+<span class="fc" id="L306">                + &quot; passed, current time is &quot; + Instant.ofEpochMilli(currentTime)));</span>
       }
-<span class="fc bfc" id="L344" title="All 2 branches covered.">      if (retryRegistry == null) {</span>
-<span class="fc" id="L345">        retryRegistry = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">      if (retryRegistry == null) {</span>
+<span class="fc" id="L309">        retryRegistry = new HashMap&lt;&gt;();</span>
       }
-<span class="fc" id="L347">      AdvancedAction action = arp.apply(value, deadline);</span>
-<span class="pc bpc" id="L348" title="2 of 4 branches missed.">      switch (action) {</span>
+<span class="fc" id="L311">      AdvancedAction action = arp.apply(value, deadline);</span>
+<span class="pc bpc" id="L312" title="2 of 4 branches missed.">      switch (action) {</span>
         case ABORT:
-<span class="fc" id="L350">          return RetryDecision.abort();</span>
+<span class="fc" id="L314">          return RetryDecision.abort();</span>
         case RETRY_IMMEDIATE:
-<span class="nc" id="L352">          return RetryDecision.retry(0, callable);</span>
+<span class="nc" id="L316">          return RetryDecision.retry(0, callable);</span>
         case RETRY_DELAYED:
         case RETRY:
-<span class="fc" id="L355">          RetryData retryData = getRetryData(value, action);</span>
-<span class="fc" id="L356">          final long nextDelay = retryData.nextDelay();</span>
-<span class="fc" id="L357">          long delay = Math.min(nextDelay, deadline - currentTime);</span>
-<span class="fc bfc" id="L358" title="All 2 branches covered.">          if (delay &gt; 0) {</span>
-<span class="fc" id="L359">            delay = Math.abs(random.nextInt()) % delay;</span>
+<span class="fc" id="L319">          RetryData retryData = getRetryData(value, action);</span>
+<span class="fc" id="L320">          final long nextDelay = retryData.nextDelay();</span>
+<span class="fc" id="L321">          long delay = Math.min(nextDelay, deadline - currentTime);</span>
+<span class="fc bfc" id="L322" title="All 2 branches covered.">          if (delay &gt; 0) {</span>
+<span class="fc" id="L323">            delay = Math.abs(random.nextInt()) % delay;</span>
           }
-<span class="pc bpc" id="L361" title="1 of 2 branches missed.">          if (currentTime + delay &gt; deadline) {</span>
-<span class="nc" id="L362">            return RetryDecision.abort(new TimeoutException(&quot;No time left for retry &quot;</span>
-<span class="nc" id="L363">                    + Instant.ofEpochMilli(deadline) + ' ' + tu</span>
-<span class="nc" id="L364">                + &quot; passed, current time is &quot; + Instant.ofEpochMilli(currentTime) + ' ' + tu));</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">          if (currentTime + delay &gt; deadline) {</span>
+<span class="nc" id="L326">            return RetryDecision.abort(new TimeoutException(&quot;No time left for retry &quot;</span>
+<span class="nc" id="L327">                    + Instant.ofEpochMilli(deadline) + ' ' + tu</span>
+<span class="nc" id="L328">                + &quot; passed, current time is &quot; + Instant.ofEpochMilli(currentTime) + ' ' + tu));</span>
           }
-<span class="fc" id="L366">          return RetryDecision.retry(tu.toMillis(delay), callable);</span>
+<span class="fc" id="L330">          return RetryDecision.retry(tu.toMillis(delay), callable);</span>
         default:
-<span class="nc" id="L368">          throw new UnsupportedOperationException(&quot;Unsupperted Retry Action &quot; + action);</span>
+<span class="nc" id="L332">          throw new UnsupportedOperationException(&quot;Unsupperted Retry Action &quot; + action);</span>
 
       }
     }
@@ -381,8 +345,8 @@ public final class Callables {
           final TimeoutRetryPredicate&lt;? super T, T&gt; retryOnReturnVal,
           final TimeoutRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L384">    final long deadline = what.getDeadline();</span>
-<span class="nc" id="L385">    return executeWithRetry(what,</span>
+<span class="nc" id="L348">    final long deadline = what.getDeadline();</span>
+<span class="nc" id="L349">    return executeWithRetry(what,</span>
             new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnReturnVal),
             new TimeoutRetryPredicate2RetryPredicate&lt;&gt;(deadline, retryOnException), exceptionClass);
   }
@@ -396,18 +360,18 @@ public final class Callables {
     private final long mdeadline;
 
 
-<span class="fc" id="L399">    public TimeoutCallable(final int timeoutMillis) {</span>
-<span class="fc" id="L400">      mdeadline = overflowSafeAdd(System.currentTimeMillis(), timeoutMillis);</span>
-<span class="fc" id="L401">    }</span>
+<span class="fc" id="L363">    public TimeoutCallable(final int timeoutMillis) {</span>
+<span class="fc" id="L364">      mdeadline = overflowSafeAdd(System.currentTimeMillis(), timeoutMillis);</span>
+<span class="fc" id="L365">    }</span>
 
-<span class="nc" id="L403">    public TimeoutCallable(final long deadline) {</span>
-<span class="nc" id="L404">      mdeadline = deadline;</span>
+<span class="nc" id="L367">    public TimeoutCallable(final long deadline) {</span>
+<span class="nc" id="L368">      mdeadline = deadline;</span>
 
-<span class="nc" id="L406">    }</span>
+<span class="nc" id="L370">    }</span>
 
     @Override
     public final T call() throws EX, InterruptedException, TimeoutException {
-<span class="fc" id="L410">      return call(mdeadline);</span>
+<span class="fc" id="L374">      return call(mdeadline);</span>
     }
 
     /**
@@ -416,7 +380,7 @@ public final class Callables {
     public abstract T call(long deadline) throws EX, InterruptedException, TimeoutException;
 
     public final long getDeadline() {
-<span class="fc" id="L419">      return mdeadline;</span>
+<span class="fc" id="L383">      return mdeadline;</span>
     }
 
   }
@@ -424,12 +388,12 @@ public final class Callables {
   /**
    * @deprecated use RetryPolicy
    */
-<span class="fc" id="L427">  @Deprecated</span>
-<span class="fc" id="L428">  public enum AdvancedAction {</span>
-<span class="fc" id="L429">    RETRY, // Retry based on default policy. (can be immediate or delayed)</span>
-<span class="fc" id="L430">    RETRY_IMMEDIATE, // Do immediate retry</span>
-<span class="fc" id="L431">    RETRY_DELAYED, // Do delayed retry</span>
-<span class="fc" id="L432">    ABORT // Abort, no retry, return last value/exception</span>
+<span class="fc" id="L391">  @Deprecated</span>
+<span class="fc" id="L392">  public enum AdvancedAction {</span>
+<span class="fc" id="L393">    RETRY, // Retry based on default policy. (can be immediate or delayed)</span>
+<span class="fc" id="L394">    RETRY_IMMEDIATE, // Do immediate retry</span>
+<span class="fc" id="L395">    RETRY_DELAYED, // Do delayed retry</span>
+<span class="fc" id="L396">    ABORT // Abort, no retry, return last value/exception</span>
   }
 
   /**
@@ -439,15 +403,15 @@ public final class Callables {
   public interface AdvancedRetryPredicate&lt;T&gt; {
 
     default AdvancedAction apply(final T value, final long deadline) {
-<span class="fc" id="L442">      return apply(value);</span>
+<span class="fc" id="L406">      return apply(value);</span>
     }
 
     AdvancedAction apply(T value);
 
-<span class="fc" id="L447">    AdvancedRetryPredicate&lt;?&gt; NO_RETRY = new AdvancedRetryPredicate&lt;Object&gt;() {</span>
+<span class="fc" id="L411">    AdvancedRetryPredicate&lt;?&gt; NO_RETRY = new AdvancedRetryPredicate&lt;Object&gt;() {</span>
       @Override
       public AdvancedAction apply(final Object value) {
-<span class="nc" id="L450">        return AdvancedAction.ABORT;</span>
+<span class="nc" id="L414">        return AdvancedAction.ABORT;</span>
       }
     };
 
@@ -459,10 +423,10 @@ public final class Callables {
   @Deprecated
   public static final class RetryDecision&lt;R&gt; {
 
-<span class="fc" id="L462">    private static final RetryDecision ABORT = new RetryDecision(Type.Abort, -1, null, null);</span>
+<span class="fc" id="L426">    private static final RetryDecision ABORT = new RetryDecision(Type.Abort, -1, null, null);</span>
 
-<span class="fc" id="L464">    public enum Type {</span>
-<span class="fc" id="L465">      Abort, Retry</span>
+<span class="fc" id="L428">    public enum Type {</span>
+<span class="fc" id="L429">      Abort, Retry</span>
     }
 
     private final Type decisionType;
@@ -474,40 +438,40 @@ public final class Callables {
     private final Callable&lt;R&gt; newCallable;
 
     private RetryDecision(final Type decisionType, final long delayMillis,
-<span class="fc" id="L477">            final Exception exception, final Callable&lt;R&gt; newCallable) {</span>
-<span class="fc" id="L478">      this.decisionType = decisionType;</span>
-<span class="fc" id="L479">      this.delayMillis = delayMillis;</span>
-<span class="fc" id="L480">      this.exception = exception;</span>
-<span class="fc" id="L481">      this.newCallable = newCallable;</span>
-<span class="fc" id="L482">    }</span>
+<span class="fc" id="L441">            final Exception exception, final Callable&lt;R&gt; newCallable) {</span>
+<span class="fc" id="L442">      this.decisionType = decisionType;</span>
+<span class="fc" id="L443">      this.delayMillis = delayMillis;</span>
+<span class="fc" id="L444">      this.exception = exception;</span>
+<span class="fc" id="L445">      this.newCallable = newCallable;</span>
+<span class="fc" id="L446">    }</span>
 
     public static RetryDecision abort(final Exception exception) {
-<span class="fc" id="L485">      return new RetryDecision(Type.Abort, -1, exception, null);</span>
+<span class="fc" id="L449">      return new RetryDecision(Type.Abort, -1, exception, null);</span>
     }
 
     public static &lt;R&gt; RetryDecision&lt;R&gt; retry(final long retryMillis, @Nonnull final Callable&lt;R&gt; callable) {
-<span class="fc" id="L489">      return new RetryDecision(Type.Retry, retryMillis, null, callable);</span>
+<span class="fc" id="L453">      return new RetryDecision(Type.Retry, retryMillis, null, callable);</span>
     }
 
     public static RetryDecision abort() {
-<span class="fc" id="L493">      return ABORT;</span>
+<span class="fc" id="L457">      return ABORT;</span>
     }
 
     public Type getDecisionType() {
-<span class="fc" id="L497">      return decisionType;</span>
+<span class="fc" id="L461">      return decisionType;</span>
     }
 
     public long getDelayMillis() {
-<span class="fc" id="L501">      return delayMillis;</span>
+<span class="fc" id="L465">      return delayMillis;</span>
     }
 
     public Exception getException() {
-<span class="fc" id="L505">      return exception;</span>
+<span class="fc" id="L469">      return exception;</span>
     }
 
     @Nonnull
     public Callable&lt;R&gt; getNewCallable() {
-<span class="fc" id="L510">      return newCallable;</span>
+<span class="fc" id="L474">      return newCallable;</span>
     }
 
   }
@@ -527,10 +491,10 @@ public final class Callables {
     @Nonnull
     RetryDecision&lt;R&gt; getDecision(T value, @Nonnull Callable&lt;R&gt; callable);
 
-<span class="nc" id="L530">    RetryPredicate&lt;Object, Object&gt; NORETRY_DELAY_PREDICATE = new RetryPredicate&lt;Object, Object&gt;() {</span>
+<span class="nc" id="L494">    RetryPredicate&lt;Object, Object&gt; NORETRY_DELAY_PREDICATE = new RetryPredicate&lt;Object, Object&gt;() {</span>
       @Override
       public RetryDecision getDecision(final Object value, final Callable callable) {
-<span class="nc" id="L533">         return RetryDecision.abort();</span>
+<span class="nc" id="L497">         return RetryDecision.abort();</span>
       }
     };
   }
@@ -544,7 +508,7 @@ public final class Callables {
   public static &lt;T, EX extends Exception&gt; T executeWithRetry(final TimeoutCallable&lt;T, EX&gt; what,
           final TimeoutRetryPredicate&lt;Exception, T&gt; retryOnException, final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, EX, TimeoutException {
-<span class="nc" id="L547">    return (T) executeWithRetry(what, (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,</span>
+<span class="nc" id="L511">    return executeWithRetry(what, (TimeoutRetryPredicate&lt;T, T&gt;) TimeoutRetryPredicate.NORETRY_FOR_RESULT,</span>
             retryOnException, exceptionClass);
   }
 
@@ -556,11 +520,11 @@ public final class Callables {
 
     RetryDecision&lt;R&gt; getDecision(T value, long deadlineMillis, Callable&lt;R&gt; what);
 
-<span class="fc" id="L559">    TimeoutRetryPredicate NORETRY_FOR_RESULT = new TimeoutRetryPredicate&lt;Object, Object&gt;() {</span>
+<span class="fc" id="L523">    TimeoutRetryPredicate NORETRY_FOR_RESULT = new TimeoutRetryPredicate&lt;Object, Object&gt;() {</span>
 
       @Override
       public RetryDecision&lt;Object&gt; getDecision(final Object value, final long deadline, final Callable&lt;Object&gt; what) {
-<span class="fc" id="L563">        return RetryDecision.abort();</span>
+<span class="fc" id="L527">        return RetryDecision.abort();</span>
       }
 
     };
@@ -578,15 +542,15 @@ public final class Callables {
 
     private final TimeoutRetryPredicate&lt;T, R&gt; predicate;
 
-<span class="fc" id="L581">    TimeoutRetryPredicate2RetryPredicate(final long deadline, final TimeoutRetryPredicate&lt;T, R&gt; predicate) {</span>
-<span class="fc" id="L582">      this.deadline = deadline;</span>
-<span class="fc" id="L583">      this.predicate = predicate;</span>
-<span class="fc" id="L584">    }</span>
+<span class="fc" id="L545">    TimeoutRetryPredicate2RetryPredicate(final long deadline, final TimeoutRetryPredicate&lt;T, R&gt; predicate) {</span>
+<span class="fc" id="L546">      this.deadline = deadline;</span>
+<span class="fc" id="L547">      this.predicate = predicate;</span>
+<span class="fc" id="L548">    }</span>
 
 
     @Override
     public RetryDecision&lt;R&gt; getDecision(final T value, final Callable&lt;R&gt; callable) {
-<span class="fc" id="L589">      return predicate.getDecision(value, deadline, callable);</span>
+<span class="fc" id="L553">      return predicate.getDecision(value, deadline, callable);</span>
     }
 
   }
@@ -615,9 +579,9 @@ public final class Callables {
   /**
    * @deprecated use RetryPolicy
    */
-<span class="nc" id="L618">  @Deprecated</span>
-<span class="nc" id="L619">  public enum SimpleAction {</span>
-<span class="nc" id="L620">    RETRY, ABORT</span>
+<span class="nc" id="L582">  @Deprecated</span>
+<span class="nc" id="L583">  public enum SimpleAction {</span>
+<span class="nc" id="L584">    RETRY, ABORT</span>
   }
 
   /**
@@ -654,84 +618,84 @@ public final class Callables {
           final RetryPredicate&lt;Exception, T&gt; retryOnException,
           final Class&lt;EX&gt; exceptionClass)
           throws InterruptedException, TimeoutException, EX {
-<span class="fc" id="L657">    Callable&lt;T&gt; what = pwhat;</span>
-<span class="fc" id="L658">    T result = null;</span>
-<span class="fc" id="L659">    Exception lastEx = null; // last exception</span>
+<span class="fc" id="L621">    Callable&lt;T&gt; what = pwhat;</span>
+<span class="fc" id="L622">    T result = null;</span>
+<span class="fc" id="L623">    Exception lastEx = null; // last exception</span>
     try {
-<span class="fc" id="L661">      result = what.call();</span>
-<span class="nc" id="L662">    } catch (InterruptedException ex1) {</span>
-<span class="nc" id="L663">      throw ex1;</span>
-<span class="fc" id="L664">    } catch (Exception e) { // only EX and RuntimeException</span>
-<span class="fc" id="L665">      lastEx = e;</span>
-<span class="fc" id="L666">    }</span>
-<span class="fc" id="L667">    Exception lastExChain = lastEx; // last exception chained with all previous exceptions</span>
-<span class="fc" id="L668">    RetryDecision decision = null;</span>
+<span class="fc" id="L625">      result = what.call();</span>
+<span class="nc" id="L626">    } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L627">      throw ex1;</span>
+<span class="fc" id="L628">    } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L629">      lastEx = e;</span>
+<span class="fc" id="L630">    }</span>
+<span class="fc" id="L631">    Exception lastExChain = lastEx; // last exception chained with all previous exceptions</span>
+<span class="fc" id="L632">    RetryDecision decision = null;</span>
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
-<span class="fc bfc" id="L670" title="All 2 branches covered.">    while ((lastEx != null</span>
-<span class="fc bfc" id="L671" title="All 4 branches covered.">            &amp;&amp; (decision = retryOnException.getDecision(lastEx, what)).getDecisionType()</span>
+<span class="fc bfc" id="L634" title="All 2 branches covered.">    while ((lastEx != null</span>
+<span class="fc bfc" id="L635" title="All 4 branches covered.">            &amp;&amp; (decision = retryOnException.getDecision(lastEx, what)).getDecisionType()</span>
                 == RetryDecision.Type.Retry)
-<span class="pc bpc" id="L673" title="1 of 2 branches missed.">            || (lastEx == null &amp;&amp; (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()</span>
+<span class="pc bpc" id="L637" title="1 of 2 branches missed.">            || (lastEx == null &amp;&amp; (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()</span>
                 == RetryDecision.Type.Retry)) {
-<span class="pc bpc" id="L675" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
-<span class="nc" id="L676">        Thread.currentThread().interrupt();</span>
-<span class="nc" id="L677">        throw new InterruptedException();</span>
+<span class="pc bpc" id="L639" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
+<span class="nc" id="L640">        Thread.currentThread().interrupt();</span>
+<span class="nc" id="L641">        throw new InterruptedException();</span>
       }
-<span class="fc" id="L679">      long delayMillis = decision.getDelayMillis();</span>
-<span class="fc bfc" id="L680" title="All 2 branches covered.">      if (delayMillis &gt; 0) {</span>
-<span class="fc" id="L681">        Thread.sleep(delayMillis);</span>
+<span class="fc" id="L643">      long delayMillis = decision.getDelayMillis();</span>
+<span class="fc bfc" id="L644" title="All 2 branches covered.">      if (delayMillis &gt; 0) {</span>
+<span class="fc" id="L645">        Thread.sleep(delayMillis);</span>
       }
-<span class="fc" id="L683">      what = decision.getNewCallable();</span>
-<span class="fc" id="L684">      result = null;</span>
-<span class="fc" id="L685">      lastEx = null;</span>
+<span class="fc" id="L647">      what = decision.getNewCallable();</span>
+<span class="fc" id="L648">      result = null;</span>
+<span class="fc" id="L649">      lastEx = null;</span>
       try {
-<span class="fc" id="L687">        result = what.call();</span>
-<span class="nc" id="L688">      } catch (InterruptedException ex1) {</span>
-<span class="nc" id="L689">        throw ex1;</span>
-<span class="fc" id="L690">      } catch (Exception e) { // only EX and RuntimeException</span>
-<span class="fc" id="L691">        lastEx = e;</span>
-<span class="pc bpc" id="L692" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
-<span class="fc" id="L693">          lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
+<span class="fc" id="L651">        result = what.call();</span>
+<span class="nc" id="L652">      } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L653">        throw ex1;</span>
+<span class="fc" id="L654">      } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L655">        lastEx = e;</span>
+<span class="pc bpc" id="L656" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="fc" id="L657">          lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
         } else {
-<span class="nc" id="L695">          lastExChain = lastEx;</span>
+<span class="nc" id="L659">          lastExChain = lastEx;</span>
         }
-<span class="fc" id="L697">      }</span>
-<span class="fc" id="L698">    }</span>
-<span class="pc bpc" id="L699" title="1 of 2 branches missed.">    if (decision == null) {</span>
-<span class="nc" id="L700">      throw new IllegalStateException(&quot;Decission should have ben initialized &quot; + lastEx + &quot;, &quot; + result);</span>
+<span class="fc" id="L661">      }</span>
+<span class="fc" id="L662">    }</span>
+<span class="pc bpc" id="L663" title="1 of 2 branches missed.">    if (decision == null) {</span>
+<span class="nc" id="L664">      throw new IllegalStateException(&quot;Decission should have ben initialized &quot; + lastEx + &quot;, &quot; + result);</span>
     }
-<span class="pc bpc" id="L702" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
-<span class="fc" id="L703">        Exception ex = decision.getException();</span>
-<span class="fc bfc" id="L704" title="All 2 branches covered.">        if (ex != null) {</span>
-<span class="fc" id="L705">          lastEx = ex;</span>
-<span class="pc bpc" id="L706" title="1 of 2 branches missed.">          if (lastExChain != null) {</span>
-<span class="fc" id="L707">            lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
+<span class="pc bpc" id="L666" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
+<span class="fc" id="L667">        Exception ex = decision.getException();</span>
+<span class="fc bfc" id="L668" title="All 2 branches covered.">        if (ex != null) {</span>
+<span class="fc" id="L669">          lastEx = ex;</span>
+<span class="pc bpc" id="L670" title="1 of 2 branches missed.">          if (lastExChain != null) {</span>
+<span class="fc" id="L671">            lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
           } else {
-<span class="nc" id="L709">            lastExChain = lastEx;</span>
+<span class="nc" id="L673">            lastExChain = lastEx;</span>
           }
         }
     }
-<span class="fc bfc" id="L713" title="All 2 branches covered.">    if (lastEx != null) {</span>
-<span class="pc bpc" id="L714" title="1 of 2 branches missed.">      if (lastExChain instanceof RuntimeException) {</span>
-<span class="nc" id="L715">        throw (RuntimeException) lastExChain;</span>
-<span class="fc bfc" id="L716" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
-<span class="fc" id="L717">        throw (TimeoutException) lastExChain;</span>
-<span class="pc bpc" id="L718" title="1 of 2 branches missed.">      } else if (lastExChain == null) {</span>
-<span class="nc" id="L719">        return null;</span>
-<span class="pc bpc" id="L720" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
-<span class="fc" id="L721">        throw (EX) lastExChain;</span>
+<span class="fc bfc" id="L677" title="All 2 branches covered.">    if (lastEx != null) {</span>
+<span class="pc bpc" id="L678" title="1 of 2 branches missed.">      if (lastExChain instanceof RuntimeException) {</span>
+<span class="nc" id="L679">        throw (RuntimeException) lastExChain;</span>
+<span class="fc bfc" id="L680" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
+<span class="fc" id="L681">        throw (TimeoutException) lastExChain;</span>
+<span class="pc bpc" id="L682" title="1 of 2 branches missed.">      } else if (lastExChain == null) {</span>
+<span class="nc" id="L683">        return null;</span>
+<span class="pc bpc" id="L684" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
+<span class="fc" id="L685">        throw (EX) lastExChain;</span>
       } else {
-<span class="nc" id="L723">        throw new UncheckedExecutionException(lastExChain);</span>
+<span class="nc" id="L687">        throw new UncheckedExecutionException(lastExChain);</span>
       }
     }
-<span class="fc" id="L726">    return result;</span>
+<span class="fc" id="L690">    return result;</span>
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; synchronize(final Callable&lt;T&gt; callable) {
-<span class="nc" id="L730">    return new Callable&lt;T&gt;() {</span>
+<span class="nc" id="L694">    return new Callable&lt;T&gt;() {</span>
 
       @Override
       public synchronized T call() throws Exception {
-<span class="nc" id="L734">        return callable.call();</span>
+<span class="nc" id="L698">        return callable.call();</span>
       }
     };
   }
@@ -740,42 +704,92 @@ public final class Callables {
    * This is a duplicate of guava Callables.threadRenaming ... will have to review for deprecation/removal.
    */
   public static &lt;T&gt; Callable&lt;T&gt; withName(final Callable&lt;T&gt; callable, final String name) {
-<span class="nc" id="L743">    return new Callable&lt;T&gt;() {</span>
+<span class="nc" id="L707">    return new Callable&lt;T&gt;() {</span>
 
       @Override
       public T call() throws Exception {
-<span class="nc" id="L747">        Thread currentThread = Thread.currentThread();</span>
-<span class="nc" id="L748">        String origName = currentThread.getName();</span>
+<span class="nc" id="L711">        Thread currentThread = Thread.currentThread();</span>
+<span class="nc" id="L712">        String origName = currentThread.getName();</span>
         try {
-<span class="nc" id="L750">          currentThread.setName(origName + '[' + name + ']');</span>
-<span class="nc" id="L751">          return callable.call();</span>
+<span class="nc" id="L714">          currentThread.setName(origName + '[' + name + ']');</span>
+<span class="nc" id="L715">          return callable.call();</span>
         } finally {
-<span class="nc" id="L753">          currentThread.setName(origName);</span>
+<span class="nc" id="L717">          currentThread.setName(origName);</span>
         }
       }
 
       @Override
       public String toString() {
-<span class="nc" id="L759">        return name;</span>
+<span class="nc" id="L723">        return name;</span>
       }
 
     };
   }
 
-  public static long overflowSafeAdd(final long currentTime, final long timeout) {
-<span class="pc bpc" id="L766" title="1 of 2 branches missed.">    if (currentTime &lt; 0) {</span>
-<span class="nc" id="L767">      throw new IllegalArgumentException(&quot;Time must be positive, not &quot; + currentTime);</span>
+  static long overflowSafeAdd(final long currentTime, final long timeout) {
+<span class="pc bpc" id="L730" title="1 of 2 branches missed.">    if (currentTime &lt; 0) {</span>
+<span class="nc" id="L731">      throw new IllegalArgumentException(&quot;Time must be positive, not &quot; + currentTime);</span>
     }
-<span class="pc bpc" id="L769" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
-<span class="nc" id="L770">      return currentTime;</span>
+<span class="pc bpc" id="L733" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L734">      return currentTime;</span>
     }
-<span class="fc" id="L772">    long result = currentTime + timeout;</span>
-<span class="pc bpc" id="L773" title="1 of 4 branches missed.">    if ((currentTime ^ timeout) &lt; 0 || (currentTime ^ result) &gt;= 0) {</span>
-<span class="fc" id="L774">      return result;</span>
+<span class="fc" id="L736">    long result = currentTime + timeout;</span>
+<span class="pc bpc" id="L737" title="1 of 4 branches missed.">    if ((currentTime ^ timeout) &lt; 0 || (currentTime ^ result) &gt;= 0) {</span>
+<span class="fc" id="L738">      return result;</span>
     } else {
-<span class="fc" id="L776">      return Long.MAX_VALUE;</span>
+<span class="fc" id="L740">      return Long.MAX_VALUE;</span>
     }
   }
+
+  public static &lt;V&gt; Callable&lt;V&gt; memorized(final Callable&lt;V&gt; source) {
+<span class="fc" id="L745">    return new MemorizedCallable&lt;&gt;(source);</span>
+  }
+
+  public static &lt;V&gt; Callable&lt;V&gt; constant(final V value) {
+<span class="nc" id="L749">    return new ConstCallable(value);</span>
+  }
+
+  public static Callable&lt;Void&gt; from(final Runnable value) {
+<span class="nc" id="L753">    return () -&gt; {</span>
+<span class="nc" id="L754">      value.run();</span>
+<span class="nc" id="L755">      return null;</span>
+    };
+  }
+
+  private static final class ConstCallable&lt;V&gt; implements Callable&lt;V&gt; {
+
+    private final V value;
+
+<span class="nc" id="L763">    ConstCallable(final V value) {</span>
+<span class="nc" id="L764">      this.value = value;</span>
+<span class="nc" id="L765">    }</span>
+
+    @Override
+    public V call() {
+<span class="nc" id="L769">      return value;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L774">      return &quot;ConstCallable{&quot; + value + '}';</span>
+    }
+  }
+
+  @Deprecated
+  private static final class DefaultAdvancedRetryPredicateImpl implements AdvancedRetryPredicate&lt;Exception&gt; {
+
+    @Override
+    public AdvancedAction apply(@Nonnull final Exception input) {
+<span class="fc bfc" id="L783" title="All 2 branches covered.">      if (Throwables.isRetryable(input)) {</span>
+<span class="fc" id="L784">        Logger.getLogger(DefaultAdvancedRetryPredicateImpl.class.getName())</span>
+<span class="fc" id="L785">                .log(Level.FINE, &quot;Exception encountered, retrying...&quot;, input);</span>
+<span class="fc" id="L786">        return AdvancedAction.RETRY;</span>
+      }
+<span class="fc" id="L788">      return AdvancedAction.ABORT;</span>
+    }
+  }
+
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

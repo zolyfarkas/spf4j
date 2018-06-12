@@ -43,18 +43,18 @@ public final  class MemoryBuilder {
 
     private final Map&lt;String, Integer&gt; symbolTable;
 
-<span class="fc" id="L46">    private int idx = 0;</span>
+<span class="nc" id="L46">    private int idx = 0;</span>
 
-<span class="fc" id="L48">    public MemoryBuilder() {</span>
-<span class="fc" id="L49">        memory = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L50">        symbolTable = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L51">    }</span>
+<span class="nc" id="L48">    public MemoryBuilder() {</span>
+<span class="nc" id="L49">        memory = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L50">        symbolTable = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L51">    }</span>
 
-<span class="fc" id="L53">    MemoryBuilder(final ArrayList&lt;Object&gt; memory, final Map&lt;String, Integer&gt; symbolTable) {</span>
-<span class="fc" id="L54">        this.memory = memory;</span>
-<span class="fc" id="L55">        this.symbolTable = symbolTable;</span>
-<span class="fc" id="L56">        this.idx = memory.size();</span>
-<span class="fc" id="L57">    }</span>
+<span class="nc" id="L53">    MemoryBuilder(final ArrayList&lt;Object&gt; memory, final Map&lt;String, Integer&gt; symbolTable) {</span>
+<span class="nc" id="L54">        this.memory = memory;</span>
+<span class="nc" id="L55">        this.symbolTable = symbolTable;</span>
+<span class="nc" id="L56">        this.idx = memory.size();</span>
+<span class="nc" id="L57">    }</span>
 
     public void addSymbol(final String symbol) {
 <span class="nc bnc" id="L60" title="All 2 branches missed.">        if (!symbolTable.containsKey(symbol)) {</span>
@@ -64,24 +64,24 @@ public final  class MemoryBuilder {
 <span class="nc" id="L64">    }</span>
 
     public void addSymbol(final String symbol, final Object value) {
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (!symbolTable.containsKey(symbol)) {</span>
-<span class="fc" id="L68">            memory.add(value);</span>
-<span class="fc" id="L69">            symbolTable.put(symbol, idx++);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!symbolTable.containsKey(symbol)) {</span>
+<span class="nc" id="L68">            memory.add(value);</span>
+<span class="nc" id="L69">            symbolTable.put(symbol, idx++);</span>
         } else {
-<span class="fc" id="L71">            final int position = symbolTable.get(symbol);</span>
-<span class="fc" id="L72">            memory.ensureCapacity(position + 1);</span>
-<span class="fc" id="L73">            memory.set(position, value);</span>
+<span class="nc" id="L71">            final int position = symbolTable.get(symbol);</span>
+<span class="nc" id="L72">            memory.ensureCapacity(position + 1);</span>
+<span class="nc" id="L73">            memory.set(position, value);</span>
         }
-<span class="fc" id="L75">    }</span>
+<span class="nc" id="L75">    }</span>
 
 
     public Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; build() {
-<span class="fc" id="L79">        return Pair.of(memory.toArray(), (Map&lt;String, Integer&gt;) new HashMap&lt;&gt;(symbolTable));</span>
+<span class="nc" id="L79">        return Pair.of(memory.toArray(), (Map&lt;String, Integer&gt;) new HashMap&lt;&gt;(symbolTable));</span>
     }
 
 
     public MemoryBuilder copy() {
-<span class="fc" id="L84">        return new MemoryBuilder(new ArrayList&lt;&gt;(memory), new HashMap&lt;&gt;(symbolTable));</span>
+<span class="nc" id="L84">        return new MemoryBuilder(new ArrayList&lt;&gt;(memory), new HashMap&lt;&gt;(symbolTable));</span>
     }
 
     @Override

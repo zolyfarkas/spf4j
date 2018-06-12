@@ -39,29 +39,29 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.concurrent;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.util.concurrent.UncheckedExecutionException;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> gnu.trove.set.hash.THashSet;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayDeque;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.Queue;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.AbstractExecutorService;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.atomic.AtomicInteger;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.locks.Condition;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.locks.ReentrantLock;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.annotation.CheckReturnValue;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> javax.annotation.ParametersAreNonnullByDefault;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.GuardedBy;
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.TimeSource;
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Timing;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> gnu.trove.set.hash.THashSet;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayDeque;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.Queue;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.AbstractExecutorService;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.atomic.AtomicInteger;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.locks.Condition;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.locks.ReentrantLock;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> javax.annotation.CheckReturnValue;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.annotation.ParametersAreNonnullByDefault;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.GuardedBy;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.TimeSource;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Timing;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.UncheckedExecutionException;
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> org.spf4j.ds.ZArrayDequeue;
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> org.spf4j.jmx.JmxExport;
@@ -89,7 +89,7 @@
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  @ParametersAreNonnullByDefault
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>  @SuppressFBWarnings({<span class="jxr_string">"MDM_THREAD_PRIORITIES"</span>, <span class="jxr_string">"MDM_WAIT_WITHOUT_TIMEOUT"</span>})
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a> <strong class="jxr_keyword">extends</strong> AbstractExecutorService <strong class="jxr_keyword">implements</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPool.html">LifoThreadPool</a> {
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a> <strong class="jxr_keyword">extends</strong> AbstractExecutorService <strong class="jxr_keyword">implements</strong> <a href="../../../org/spf4j/concurrent/MutableLifoThreadPool.html">MutableLifoThreadPool</a> {
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>  
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(LifoThreadPoolExecutorSQP.<strong class="jxr_keyword">class</strong>);
@@ -110,9 +110,9 @@
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>   @GuardedBy(<span class="jxr_string">"stateLock"</span>)
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue;
 <a class="jxr_linenumber" name="L104" href="#L104">104</a> 
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis;
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis;
 <a class="jxr_linenumber" name="L106" href="#L106">106</a> 
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxThreadCount;
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> maxThreadCount;
 <a class="jxr_linenumber" name="L108" href="#L108">108</a> 
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>   @GuardedBy(<span class="jxr_string">"stateLock"</span>)
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state;
@@ -121,15 +121,15 @@
 <a class="jxr_linenumber" name="L113" href="#L113">113</a> 
 <a class="jxr_linenumber" name="L114" href="#L114">114</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Condition stateCondition;
 <a class="jxr_linenumber" name="L115" href="#L115">115</a> 
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> queueSizeLimit;
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> queueSizeLimit;
 <a class="jxr_linenumber" name="L117" href="#L117">117</a> 
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String poolName;
 <a class="jxr_linenumber" name="L119" href="#L119">119</a> 
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/RejectedExecutionHandler.html">RejectedExecutionHandler</a> rejectionHandler;
 <a class="jxr_linenumber" name="L121" href="#L121">121</a> 
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> daemonThreads;
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> daemonThreads;
 <a class="jxr_linenumber" name="L123" href="#L123">123</a> 
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> threadPriority;
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> threadPriority;
 <a class="jxr_linenumber" name="L125" href="#L125">125</a> 
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>   <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">LifoThreadPoolExecutorSQP</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxNrThreads, <strong class="jxr_keyword">final</strong> String name) {
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>     <strong class="jxr_keyword">this</strong>(name, 0, maxNrThreads, 5000, 0);
@@ -380,271 +380,302 @@
 <a class="jxr_linenumber" name="L372" href="#L372">372</a>     Registry.unregister(LifoThreadPoolExecutorSQP.<strong class="jxr_keyword">class</strong>.getName(), poolName);
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>   }
 <a class="jxr_linenumber" name="L374" href="#L374">374</a> 
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>   @SuppressFBWarnings(<span class="jxr_string">"NO_NOTIFY_NOT_NOTIFYALL"</span>)
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> <strong class="jxr_keyword">extends</strong> Thread {
-<a class="jxr_linenumber" name="L377" href="#L377">377</a> 
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> AtomicInteger COUNT = <strong class="jxr_keyword">new</strong> AtomicInteger();
-<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue;
-<a class="jxr_linenumber" name="L381" href="#L381">381</a> 
-<a class="jxr_linenumber" name="L382" href="#L382">382</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Queue&lt;Runnable&gt; taskQueue;
-<a class="jxr_linenumber" name="L383" href="#L383">383</a> 
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis;
-<a class="jxr_linenumber" name="L385" href="#L385">385</a> 
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>     @GuardedBy(<span class="jxr_string">"poolStateLock"</span>)
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state;
-<a class="jxr_linenumber" name="L388" href="#L388">388</a> 
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> lastRunNanos;
-<a class="jxr_linenumber" name="L390" href="#L390">390</a> 
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ReentrantLock poolStateLock;
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>   @Override
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>   @JmxExport
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDaemonThreads(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> daemonThreads) {
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     <strong class="jxr_keyword">this</strong>.daemonThreads = daemonThreads;
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>   }
+<a class="jxr_linenumber" name="L380" href="#L380">380</a> 
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>   @Override
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>   @JmxExport
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxIdleTimeMillis(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis) {
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>     <strong class="jxr_keyword">this</strong>.maxIdleTimeMillis = maxIdleTimeMillis;
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>   }
+<a class="jxr_linenumber" name="L386" href="#L386">386</a> 
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>   @Override
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>   @JmxExport
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxThreadCount(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxThreadCount) {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>     <strong class="jxr_keyword">this</strong>.maxThreadCount = maxThreadCount;
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>   }
 <a class="jxr_linenumber" name="L392" href="#L392">392</a> 
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Condition poolStateCondition;
-<a class="jxr_linenumber" name="L394" href="#L394">394</a> 
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Condition submitCondition;
-<a class="jxr_linenumber" name="L396" href="#L396">396</a> 
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>     @Contended
-<a class="jxr_linenumber" name="L398" href="#L398">398</a>     <strong class="jxr_keyword">private</strong> Runnable toRun;
-<a class="jxr_linenumber" name="L399" href="#L399">399</a> 
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>     <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a>(<strong class="jxr_keyword">final</strong> String nameBase, <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue,
-<a class="jxr_linenumber" name="L401" href="#L401">401</a>             <strong class="jxr_keyword">final</strong> Queue&lt;Runnable&gt; taskQueue, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis,
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>             @Nullable <strong class="jxr_keyword">final</strong> Runnable runFirst, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state,
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>             <strong class="jxr_keyword">final</strong> ReentrantLock submitMonitor, <strong class="jxr_keyword">final</strong> Condition submitCondition) {
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>       <strong class="jxr_keyword">super</strong>(nameBase + COUNT.getAndIncrement());
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>       <strong class="jxr_keyword">this</strong>.threadQueue = threadQueue;
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>       <strong class="jxr_keyword">this</strong>.taskQueue = taskQueue;
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>       <strong class="jxr_keyword">this</strong>.maxIdleTimeMillis = maxIdleTimeMillis;
-<a class="jxr_linenumber" name="L408" href="#L408">408</a>       <strong class="jxr_keyword">this</strong>.state = state;
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>       <strong class="jxr_keyword">this</strong>.lastRunNanos = TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L410" href="#L410">410</a>       <strong class="jxr_keyword">this</strong>.poolStateLock = submitMonitor;
-<a class="jxr_linenumber" name="L411" href="#L411">411</a>       <strong class="jxr_keyword">this</strong>.submitCondition = submitMonitor.newCondition();
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>       <strong class="jxr_keyword">this</strong>.poolStateCondition = submitCondition;
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>       <strong class="jxr_keyword">this</strong>.toRun = runFirst;
-<a class="jxr_linenumber" name="L414" href="#L414">414</a>     }
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>   @Override
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>   @JmxExport
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setQueueSizeLimit(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> queueSizeLimit) {
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>     <strong class="jxr_keyword">this</strong>.queueSizeLimit = queueSizeLimit;
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>   }
+<a class="jxr_linenumber" name="L398" href="#L398">398</a> 
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>   @Override
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>   @JmxExport
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setThreadPriority(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> threadPriority) {
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>     <strong class="jxr_keyword">this</strong>.threadPriority = threadPriority;
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>   }
+<a class="jxr_linenumber" name="L404" href="#L404">404</a> 
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>   @SuppressFBWarnings(<span class="jxr_string">"NO_NOTIFY_NOT_NOTIFYALL"</span>)
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> <strong class="jxr_keyword">extends</strong> Thread {
+<a class="jxr_linenumber" name="L407" href="#L407">407</a> 
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> AtomicInteger COUNT = <strong class="jxr_keyword">new</strong> AtomicInteger();
+<a class="jxr_linenumber" name="L409" href="#L409">409</a> 
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue;
+<a class="jxr_linenumber" name="L411" href="#L411">411</a> 
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Queue&lt;Runnable&gt; taskQueue;
+<a class="jxr_linenumber" name="L413" href="#L413">413</a> 
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis;
 <a class="jxr_linenumber" name="L415" href="#L415">415</a> 
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L417" href="#L417">417</a> <em class="jxr_javadoccomment">     * will return false when this thread is not running anymore...</em>
-<a class="jxr_linenumber" name="L418" href="#L418">418</a> <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">     * @param runnable</em>
-<a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">     * @return</em>
-<a class="jxr_linenumber" name="L421" href="#L421">421</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>     @CheckReturnValue
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>     @SuppressFBWarnings(<span class="jxr_string">"MDM_SIGNAL_NOT_SIGNALALL"</span>) <em class="jxr_comment">// Only one thread will away on this condition</em>
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> runNext(<strong class="jxr_keyword">final</strong> Runnable runnable) {
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>         toRun = runnable;
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>         submitCondition.signal();
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>     }
-<a class="jxr_linenumber" name="L428" href="#L428">428</a> 
-<a class="jxr_linenumber" name="L429" href="#L429">429</a>     @SuppressFBWarnings
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> signal() {
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>       runNext(AbstractRunnable.NOP);
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>     }
-<a class="jxr_linenumber" name="L433" href="#L433">433</a> 
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>     @Override
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="L436" href="#L436">436</a>       <strong class="jxr_keyword">if</strong> (toRun != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>           run(toRun);
-<a class="jxr_linenumber" name="L439" href="#L439">439</a>         } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>           toRun = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>         }
-<a class="jxr_linenumber" name="L442" href="#L442">442</a>       }
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>       doRun(TimeUnit.MILLISECONDS.toNanos(maxIdleTimeMillis));
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>     @GuardedBy(<span class="jxr_string">"poolStateLock"</span>)
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state;
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> 
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> lastRunNanos;
+<a class="jxr_linenumber" name="L420" href="#L420">420</a> 
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ReentrantLock poolStateLock;
+<a class="jxr_linenumber" name="L422" href="#L422">422</a> 
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Condition poolStateCondition;
+<a class="jxr_linenumber" name="L424" href="#L424">424</a> 
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Condition submitCondition;
+<a class="jxr_linenumber" name="L426" href="#L426">426</a> 
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>     @Contended
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>     <strong class="jxr_keyword">private</strong> Runnable toRun;
+<a class="jxr_linenumber" name="L429" href="#L429">429</a> 
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>     <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a>(<strong class="jxr_keyword">final</strong> String nameBase, <strong class="jxr_keyword">final</strong> ZArrayDequeue&lt;QueuedThread&gt; threadQueue,
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>             <strong class="jxr_keyword">final</strong> Queue&lt;Runnable&gt; taskQueue, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxIdleTimeMillis,
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>             @Nullable <strong class="jxr_keyword">final</strong> Runnable runFirst, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> state,
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>             <strong class="jxr_keyword">final</strong> ReentrantLock submitMonitor, <strong class="jxr_keyword">final</strong> Condition submitCondition) {
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>       <strong class="jxr_keyword">super</strong>(nameBase + COUNT.getAndIncrement());
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>       <strong class="jxr_keyword">this</strong>.threadQueue = threadQueue;
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>       <strong class="jxr_keyword">this</strong>.taskQueue = taskQueue;
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>       <strong class="jxr_keyword">this</strong>.maxIdleTimeMillis = maxIdleTimeMillis;
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>       <strong class="jxr_keyword">this</strong>.state = state;
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>       <strong class="jxr_keyword">this</strong>.lastRunNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>       <strong class="jxr_keyword">this</strong>.poolStateLock = submitMonitor;
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>       <strong class="jxr_keyword">this</strong>.submitCondition = submitMonitor.newCondition();
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>       <strong class="jxr_keyword">this</strong>.poolStateCondition = submitCondition;
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>       <strong class="jxr_keyword">this</strong>.toRun = runFirst;
 <a class="jxr_linenumber" name="L444" href="#L444">444</a>     }
 <a class="jxr_linenumber" name="L445" href="#L445">445</a> 
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>     @SuppressFBWarnings({<span class="jxr_string">"MDM_LOCK_ISLOCKED"</span>, <span class="jxr_string">"UL_UNRELEASED_LOCK"</span>})
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> doRun(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> maxIdleNanos) {
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>         <strong class="jxr_keyword">while</strong> (<strong class="jxr_keyword">true</strong>) {
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>           poolStateLock.lock();
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>           Runnable poll = taskQueue.poll();
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>           <strong class="jxr_keyword">if</strong> (poll != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>             poolStateLock.unlock();
-<a class="jxr_linenumber" name="L454" href="#L454">454</a>             run(poll);
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>           } <strong class="jxr_keyword">else</strong> { <em class="jxr_comment">// nothing in the queue, will put the thread to thread queue.</em>
-<a class="jxr_linenumber" name="L456" href="#L456">456</a>             <strong class="jxr_keyword">if</strong> (state.isShutdown()) {
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>               removeThread();
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>               <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>             }
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <strong class="jxr_keyword">long</strong> timeoutNanos = lastRunNanos + maxIdleNanos - TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L461" href="#L461">461</a>             <strong class="jxr_keyword">if</strong> (timeoutNanos &lt;= 0) { <em class="jxr_comment">// Thread was idle more than it should</em>
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>               <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> tc = state.getThreadCount();
-<a class="jxr_linenumber" name="L463" href="#L463">463</a>               <strong class="jxr_keyword">if</strong> (tc &gt; state.getCoreThreads()) { <em class="jxr_comment">// can we terminate.</em>
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>                 removeThread();
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>                 <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>               } <strong class="jxr_keyword">else</strong> { <em class="jxr_comment">// this is a core thread for now.</em>
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>                 timeoutNanos = CORE_MINWAIT_NANOS;
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>               }
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>             }
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>             <strong class="jxr_keyword">int</strong> ptr = threadQueue.addLastAndGetPtr(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>               timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>             } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>               <strong class="jxr_keyword">if</strong> (state.isShutdown()) {
-<a class="jxr_linenumber" name="L475" href="#L475">475</a>                 removeThread();
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>                 <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L477" href="#L477">477</a>               }
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>             }
-<a class="jxr_linenumber" name="L479" href="#L479">479</a>             <strong class="jxr_keyword">if</strong> (toRun != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L480" href="#L480">480</a>                 poolStateLock.unlock();
-<a class="jxr_linenumber" name="L481" href="#L481">481</a>                 <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>                   run(toRun);
-<a class="jxr_linenumber" name="L483" href="#L483">483</a>                 } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L484" href="#L484">484</a>                   toRun = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L485" href="#L485">485</a>                 }
-<a class="jxr_linenumber" name="L486" href="#L486">486</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>                 threadQueue.delete(ptr, <strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>                 <strong class="jxr_keyword">if</strong> (timeoutNanos &lt;= 0) {
-<a class="jxr_linenumber" name="L489" href="#L489">489</a>                   <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> tc = state.getThreadCount();
-<a class="jxr_linenumber" name="L490" href="#L490">490</a>                   <strong class="jxr_keyword">if</strong> (state.isShutdown() || tc &gt; state.getCoreThreads()) {
-<a class="jxr_linenumber" name="L491" href="#L491">491</a>                     removeThread();
-<a class="jxr_linenumber" name="L492" href="#L492">492</a>                     <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L493" href="#L493">493</a>                   }
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>                 }
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>                 poolStateLock.unlock();
-<a class="jxr_linenumber" name="L496" href="#L496">496</a>             }
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>           }
-<a class="jxr_linenumber" name="L498" href="#L498">498</a>         }
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>       } <strong class="jxr_keyword">catch</strong> (Throwable t) {
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>         LOG.error(<span class="jxr_string">"Unexpected exception"</span>, t);
-<a class="jxr_linenumber" name="L501" href="#L501">501</a>         <strong class="jxr_keyword">if</strong> (poolStateLock.isHeldByCurrentThread()) {
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>           poolStateLock.unlock();
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>         }
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>         <strong class="jxr_keyword">throw</strong> t;
-<a class="jxr_linenumber" name="L505" href="#L505">505</a>       }
-<a class="jxr_linenumber" name="L506" href="#L506">506</a> 
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>     }
-<a class="jxr_linenumber" name="L508" href="#L508">508</a> 
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> removeThread() {
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>       state.removeThread(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>       poolStateCondition.signalAll();
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>       poolStateLock.unlock();
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>     }
-<a class="jxr_linenumber" name="L514" href="#L514">514</a> 
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> run(<strong class="jxr_keyword">final</strong> Runnable runnable) {
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>         runnable.run();
-<a class="jxr_linenumber" name="L518" href="#L518">518</a>       }  <strong class="jxr_keyword">catch</strong> (Throwable e) {
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>           <em class="jxr_comment">// Will run the thread uncaught handlers</em>
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>           <em class="jxr_comment">// but will continue the thread running unless a uncaught handler throws an exception</em>
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>           <strong class="jxr_keyword">final</strong> Thread.UncaughtExceptionHandler uexh = <strong class="jxr_keyword">this</strong>.getUncaughtExceptionHandler();
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>           <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>             uexh.uncaughtException(<strong class="jxr_keyword">this</strong>, e);
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>           } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>             ex.addSuppressed(e);
-<a class="jxr_linenumber" name="L526" href="#L526">526</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedExecutionException(<span class="jxr_string">"Uncaught exception handler blew up: "</span> + uexh, ex);
-<a class="jxr_linenumber" name="L527" href="#L527">527</a>           }
-<a class="jxr_linenumber" name="L528" href="#L528">528</a>       } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L529" href="#L529">529</a>         lastRunNanos = TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>       }
-<a class="jxr_linenumber" name="L531" href="#L531">531</a>     }
-<a class="jxr_linenumber" name="L532" href="#L532">532</a> 
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>     @Override
-<a class="jxr_linenumber" name="L534" href="#L534">534</a>     <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L535" href="#L535">535</a>       StackTraceElement[] stackTrace;
-<a class="jxr_linenumber" name="L536" href="#L536">536</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>         stackTrace = <strong class="jxr_keyword">this</strong>.getStackTrace();
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>       } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>         stackTrace = StackTrace.EMPTY_STACK_TRACE;
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>       }
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"QueuedThread{name = "</span> + getName() + <span class="jxr_string">", lastRunNanos="</span>
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>               + Timing.getCurrentTiming().fromNanoTimeToInstant(lastRunNanos)
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>               + <span class="jxr_string">", stack ="</span> + Arrays.toString(stackTrace)
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>               + <span class="jxr_string">", toRun = "</span> + toRun + '}';
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>     }
-<a class="jxr_linenumber" name="L546" href="#L546">546</a> 
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>   }
-<a class="jxr_linenumber" name="L548" href="#L548">548</a> 
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> {
-<a class="jxr_linenumber" name="L550" href="#L550">550</a> 
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> shutdown;
-<a class="jxr_linenumber" name="L552" href="#L552">552</a> 
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> coreThreads;
-<a class="jxr_linenumber" name="L554" href="#L554">554</a> 
-<a class="jxr_linenumber" name="L555" href="#L555">555</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads;
-<a class="jxr_linenumber" name="L556" href="#L556">556</a> 
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>     <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> thnr, <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads) {
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>       <strong class="jxr_keyword">this</strong>.shutdown = false;
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>       <strong class="jxr_keyword">this</strong>.coreThreads = thnr;
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>       <strong class="jxr_keyword">this</strong>.allThreads = allThreads;
-<a class="jxr_linenumber" name="L561" href="#L561">561</a>     }
-<a class="jxr_linenumber" name="L562" href="#L562">562</a> 
-<a class="jxr_linenumber" name="L563" href="#L563">563</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
-<a class="jxr_linenumber" name="L564" href="#L564">564</a>       <strong class="jxr_keyword">if</strong> (!allThreads.add(thread)) {
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Attempting to add a thread twice: "</span> + thread);
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>       }
-<a class="jxr_linenumber" name="L567" href="#L567">567</a>       LOG.debug(<span class="jxr_string">"Started thread {}"</span>, thread.getName());
-<a class="jxr_linenumber" name="L568" href="#L568">568</a>     }
-<a class="jxr_linenumber" name="L569" href="#L569">569</a> 
-<a class="jxr_linenumber" name="L570" href="#L570">570</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> removeThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
-<a class="jxr_linenumber" name="L571" href="#L571">571</a>       <strong class="jxr_keyword">if</strong> (!allThreads.remove(thread)) {
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Removing thread failed: "</span> + thread);
-<a class="jxr_linenumber" name="L573" href="#L573">573</a>       }
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>       LOG.debug(<span class="jxr_string">"Terminating thread {}"</span>, thread.getName());
-<a class="jxr_linenumber" name="L575" href="#L575">575</a>     }
-<a class="jxr_linenumber" name="L576" href="#L576">576</a> 
-<a class="jxr_linenumber" name="L577" href="#L577">577</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> interruptAll() {
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>       <strong class="jxr_keyword">for</strong> (Thread thread : allThreads) {
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>         thread.interrupt();
-<a class="jxr_linenumber" name="L580" href="#L580">580</a>       }
-<a class="jxr_linenumber" name="L581" href="#L581">581</a>     }
-<a class="jxr_linenumber" name="L582" href="#L582">582</a> 
-<a class="jxr_linenumber" name="L583" href="#L583">583</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getCoreThreads() {
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>       <strong class="jxr_keyword">return</strong> coreThreads;
-<a class="jxr_linenumber" name="L585" href="#L585">585</a>     }
-<a class="jxr_linenumber" name="L586" href="#L586">586</a> 
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L447" href="#L447">447</a> <em class="jxr_javadoccomment">     * will return false when this thread is not running anymore...</em>
+<a class="jxr_linenumber" name="L448" href="#L448">448</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L449" href="#L449">449</a> <em class="jxr_javadoccomment">     * @param runnable</em>
+<a class="jxr_linenumber" name="L450" href="#L450">450</a> <em class="jxr_javadoccomment">     * @return</em>
+<a class="jxr_linenumber" name="L451" href="#L451">451</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>     @CheckReturnValue
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>     @SuppressFBWarnings(<span class="jxr_string">"MDM_SIGNAL_NOT_SIGNALALL"</span>) <em class="jxr_comment">// Only one thread will away on this condition</em>
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> runNext(<strong class="jxr_keyword">final</strong> Runnable runnable) {
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         toRun = runnable;
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         submitCondition.signal();
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>     }
+<a class="jxr_linenumber" name="L458" href="#L458">458</a> 
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>     @SuppressFBWarnings
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> signal() {
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>       runNext(AbstractRunnable.NOP);
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>     }
+<a class="jxr_linenumber" name="L463" href="#L463">463</a> 
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>     @Override
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>       <strong class="jxr_keyword">if</strong> (toRun != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>           execute(toRun);
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>           toRun = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>         }
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>       }
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>       doRun(TimeUnit.MILLISECONDS.toNanos(maxIdleTimeMillis));
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>     }
+<a class="jxr_linenumber" name="L475" href="#L475">475</a> 
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     @SuppressFBWarnings({<span class="jxr_string">"MDM_LOCK_ISLOCKED"</span>, <span class="jxr_string">"UL_UNRELEASED_LOCK"</span>})
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> doRun(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> maxIdleNanos) {
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>         <strong class="jxr_keyword">while</strong> (<strong class="jxr_keyword">true</strong>) {
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>           poolStateLock.lock();
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>           Runnable poll = taskQueue.poll();
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>           <strong class="jxr_keyword">if</strong> (poll != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>             poolStateLock.unlock();
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>             execute(poll);
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>           } <strong class="jxr_keyword">else</strong> { <em class="jxr_comment">// nothing in the queue, will put the thread to thread queue.</em>
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>             <strong class="jxr_keyword">if</strong> (state.isShutdown()) {
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>               removeThread();
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>               <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>             }
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>             <strong class="jxr_keyword">long</strong> timeoutNanos = lastRunNanos + maxIdleNanos - TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>             <strong class="jxr_keyword">if</strong> (timeoutNanos &lt;= 0) { <em class="jxr_comment">// Thread was idle more than it should</em>
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>               <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> tc = state.getThreadCount();
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>               <strong class="jxr_keyword">if</strong> (tc &gt; state.getCoreThreads()) { <em class="jxr_comment">// can we terminate.</em>
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>                 removeThread();
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>               } <strong class="jxr_keyword">else</strong> { <em class="jxr_comment">// this is a core thread for now.</em>
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>                 timeoutNanos = CORE_MINWAIT_NANOS;
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>               }
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>             }
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>             <strong class="jxr_keyword">int</strong> ptr = threadQueue.addLastAndGetPtr(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>               timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>             } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>               <strong class="jxr_keyword">this</strong>.interrupt();
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>               <strong class="jxr_keyword">if</strong> (state.isShutdown()) {
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>                 removeThread();
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>               }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>             }
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>             <strong class="jxr_keyword">if</strong> (toRun != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>                 poolStateLock.unlock();
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>                   execute(toRun);
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>                 } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>                   toRun = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>                 }
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>                 threadQueue.delete(ptr, <strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>                 <strong class="jxr_keyword">if</strong> (timeoutNanos &lt;= 0) {
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>                   <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> tc = state.getThreadCount();
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>                   <strong class="jxr_keyword">if</strong> (state.isShutdown() || tc &gt; state.getCoreThreads()) {
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>                     removeThread();
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>                   }
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>                 }
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>                 poolStateLock.unlock();
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>             }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>           }
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>         }
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>       } <strong class="jxr_keyword">catch</strong> (Throwable t) {
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>         LOG.error(<span class="jxr_string">"Unexpected exception"</span>, t);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>         <strong class="jxr_keyword">if</strong> (poolStateLock.isHeldByCurrentThread()) {
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>           poolStateLock.unlock();
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>         }
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         <strong class="jxr_keyword">throw</strong> t;
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>       }
+<a class="jxr_linenumber" name="L537" href="#L537">537</a> 
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>     }
+<a class="jxr_linenumber" name="L539" href="#L539">539</a> 
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> removeThread() {
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>       state.removeThread(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>       poolStateCondition.signalAll();
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>       poolStateLock.unlock();
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>     }
+<a class="jxr_linenumber" name="L545" href="#L545">545</a> 
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> execute(<strong class="jxr_keyword">final</strong> Runnable runnable) {
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         runnable.run();
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>       }  <strong class="jxr_keyword">catch</strong> (Throwable e) {
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>           <em class="jxr_comment">// Will run the thread uncaught handlers</em>
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>           <em class="jxr_comment">// but will continue the thread running unless a uncaught handler throws an exception</em>
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>           <strong class="jxr_keyword">final</strong> Thread.UncaughtExceptionHandler uexh = <strong class="jxr_keyword">this</strong>.getUncaughtExceptionHandler();
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>           <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>             uexh.uncaughtException(<strong class="jxr_keyword">this</strong>, e);
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>           } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>             ex.addSuppressed(e);
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/UncheckedExecutionException.html">UncheckedExecutionException</a>(<span class="jxr_string">"Uncaught exception handler blew up: "</span> + uexh, ex);
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>           }
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>       } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>         lastRunNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>       }
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>     }
+<a class="jxr_linenumber" name="L563" href="#L563">563</a> 
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>     @Override
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>       StackTraceElement[] stackTrace;
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>         stackTrace = <strong class="jxr_keyword">this</strong>.getStackTrace();
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>       } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>         stackTrace = StackTrace.EMPTY_STACK_TRACE;
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>       }
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"QueuedThread{name = "</span> + getName() + <span class="jxr_string">", lastRunNanos="</span>
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>               + Timing.getCurrentTiming().fromNanoTimeToInstant(lastRunNanos)
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>               + <span class="jxr_string">", stack ="</span> + Arrays.toString(stackTrace)
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>               + <span class="jxr_string">", toRun = "</span> + toRun + '}';
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>     }
+<a class="jxr_linenumber" name="L577" href="#L577">577</a> 
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>   }
+<a class="jxr_linenumber" name="L579" href="#L579">579</a> 
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a> {
+<a class="jxr_linenumber" name="L581" href="#L581">581</a> 
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> shutdown;
+<a class="jxr_linenumber" name="L583" href="#L583">583</a> 
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> coreThreads;
+<a class="jxr_linenumber" name="L585" href="#L585">585</a> 
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads;
 <a class="jxr_linenumber" name="L587" href="#L587">587</a> 
-<a class="jxr_linenumber" name="L588" href="#L588">588</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isShutdown() {
-<a class="jxr_linenumber" name="L589" href="#L589">589</a>       <strong class="jxr_keyword">return</strong> shutdown;
-<a class="jxr_linenumber" name="L590" href="#L590">590</a>     }
-<a class="jxr_linenumber" name="L591" href="#L591">591</a> 
-<a class="jxr_linenumber" name="L592" href="#L592">592</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setShutdown(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> shutdown) {
-<a class="jxr_linenumber" name="L593" href="#L593">593</a>       <strong class="jxr_keyword">this</strong>.shutdown = shutdown;
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>     }
-<a class="jxr_linenumber" name="L595" href="#L595">595</a> 
-<a class="jxr_linenumber" name="L596" href="#L596">596</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getThreadCount() {
-<a class="jxr_linenumber" name="L597" href="#L597">597</a>       <strong class="jxr_keyword">return</strong> allThreads.size();
-<a class="jxr_linenumber" name="L598" href="#L598">598</a>     }
-<a class="jxr_linenumber" name="L599" href="#L599">599</a> 
-<a class="jxr_linenumber" name="L600" href="#L600">600</a>     @Override
-<a class="jxr_linenumber" name="L601" href="#L601">601</a>     <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L602" href="#L602">602</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ExecState{"</span> + <span class="jxr_string">"shutdown="</span> + shutdown + <span class="jxr_string">", threadCount="</span>
-<a class="jxr_linenumber" name="L603" href="#L603">603</a>               + allThreads.size() + '}';
-<a class="jxr_linenumber" name="L604" href="#L604">604</a>     }
-<a class="jxr_linenumber" name="L605" href="#L605">605</a> 
-<a class="jxr_linenumber" name="L606" href="#L606">606</a>   }
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>     <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">PoolState</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> thnr, <strong class="jxr_keyword">final</strong> Set&lt;QueuedThread&gt; allThreads) {
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>       <strong class="jxr_keyword">this</strong>.shutdown = false;
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>       <strong class="jxr_keyword">this</strong>.coreThreads = thnr;
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>       <strong class="jxr_keyword">this</strong>.allThreads = allThreads;
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>     }
+<a class="jxr_linenumber" name="L593" href="#L593">593</a> 
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>       <strong class="jxr_keyword">if</strong> (!allThreads.add(thread)) {
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Attempting to add a thread twice: "</span> + thread);
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>       }
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>       LOG.debug(<span class="jxr_string">"Started thread {}"</span>, thread.getName());
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>     }
+<a class="jxr_linenumber" name="L600" href="#L600">600</a> 
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> removeThread(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/concurrent/LifoThreadPoolExecutorSQP.html">QueuedThread</a> thread) {
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>       <strong class="jxr_keyword">if</strong> (!allThreads.remove(thread)) {
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Removing thread failed: "</span> + thread);
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>       }
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>       LOG.debug(<span class="jxr_string">"Terminating thread {}"</span>, thread.getName());
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>     }
 <a class="jxr_linenumber" name="L607" href="#L607">607</a> 
-<a class="jxr_linenumber" name="L608" href="#L608">608</a>   @Override
-<a class="jxr_linenumber" name="L609" href="#L609">609</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L610" href="#L610">610</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"LifoThreadPoolExecutorSQP{"</span> + <span class="jxr_string">"threadQueue="</span> + threadQueue + <span class="jxr_string">", maxIdleTimeMillis="</span>
-<a class="jxr_linenumber" name="L611" href="#L611">611</a>             + maxIdleTimeMillis + <span class="jxr_string">", maxThreadCount="</span> + maxThreadCount + <span class="jxr_string">", state="</span> + state
-<a class="jxr_linenumber" name="L612" href="#L612">612</a>             + <span class="jxr_string">", submitMonitor="</span> + stateLock + <span class="jxr_string">", queueCapacity="</span> + queueSizeLimit
-<a class="jxr_linenumber" name="L613" href="#L613">613</a>             + <span class="jxr_string">", poolName="</span> + poolName + '}';
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>   }
-<a class="jxr_linenumber" name="L615" href="#L615">615</a> 
-<a class="jxr_linenumber" name="L616" href="#L616">616</a>   @Override
-<a class="jxr_linenumber" name="L617" href="#L617">617</a>   <strong class="jxr_keyword">public</strong> Queue&lt;Runnable&gt; getTaskQueue() {
-<a class="jxr_linenumber" name="L618" href="#L618">618</a>     <strong class="jxr_keyword">return</strong> taskQueue;
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>   }
-<a class="jxr_linenumber" name="L620" href="#L620">620</a> 
-<a class="jxr_linenumber" name="L621" href="#L621">621</a>   @JmxExport
-<a class="jxr_linenumber" name="L622" href="#L622">622</a>   @Override
-<a class="jxr_linenumber" name="L623" href="#L623">623</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getMaxIdleTimeMillis() {
-<a class="jxr_linenumber" name="L624" href="#L624">624</a>     <strong class="jxr_keyword">return</strong> maxIdleTimeMillis;
-<a class="jxr_linenumber" name="L625" href="#L625">625</a>   }
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> interruptAll() {
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>       <strong class="jxr_keyword">for</strong> (Thread thread : allThreads) {
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         thread.interrupt();
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>       }
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>     }
+<a class="jxr_linenumber" name="L613" href="#L613">613</a> 
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getCoreThreads() {
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>       <strong class="jxr_keyword">return</strong> coreThreads;
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>     }
+<a class="jxr_linenumber" name="L617" href="#L617">617</a> 
+<a class="jxr_linenumber" name="L618" href="#L618">618</a> 
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isShutdown() {
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>       <strong class="jxr_keyword">return</strong> shutdown;
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>     }
+<a class="jxr_linenumber" name="L622" href="#L622">622</a> 
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setShutdown(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> shutdown) {
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>       <strong class="jxr_keyword">this</strong>.shutdown = shutdown;
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>     }
 <a class="jxr_linenumber" name="L626" href="#L626">626</a> 
-<a class="jxr_linenumber" name="L627" href="#L627">627</a>   @JmxExport
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>   @Override
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>   <strong class="jxr_keyword">public</strong> String getPoolName() {
-<a class="jxr_linenumber" name="L630" href="#L630">630</a>     <strong class="jxr_keyword">return</strong> poolName;
-<a class="jxr_linenumber" name="L631" href="#L631">631</a>   }
-<a class="jxr_linenumber" name="L632" href="#L632">632</a> 
-<a class="jxr_linenumber" name="L633" href="#L633">633</a>   @JmxExport
-<a class="jxr_linenumber" name="L634" href="#L634">634</a>   @Override
-<a class="jxr_linenumber" name="L635" href="#L635">635</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getThreadPriority() {
-<a class="jxr_linenumber" name="L636" href="#L636">636</a>     <strong class="jxr_keyword">return</strong> threadPriority;
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getThreadCount() {
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>       <strong class="jxr_keyword">return</strong> allThreads.size();
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>     }
+<a class="jxr_linenumber" name="L630" href="#L630">630</a> 
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>     @Override
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ExecState{"</span> + <span class="jxr_string">"shutdown="</span> + shutdown + <span class="jxr_string">", threadCount="</span>
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>               + allThreads.size() + '}';
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>     }
+<a class="jxr_linenumber" name="L636" href="#L636">636</a> 
 <a class="jxr_linenumber" name="L637" href="#L637">637</a>   }
 <a class="jxr_linenumber" name="L638" href="#L638">638</a> 
-<a class="jxr_linenumber" name="L639" href="#L639">639</a> }
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>   @Override
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"LifoThreadPoolExecutorSQP{"</span> + <span class="jxr_string">"threadQueue="</span> + threadQueue + <span class="jxr_string">", maxIdleTimeMillis="</span>
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>             + maxIdleTimeMillis + <span class="jxr_string">", maxThreadCount="</span> + maxThreadCount + <span class="jxr_string">", state="</span> + state
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>             + <span class="jxr_string">", submitMonitor="</span> + stateLock + <span class="jxr_string">", queueCapacity="</span> + queueSizeLimit
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>             + <span class="jxr_string">", poolName="</span> + poolName + '}';
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>   }
+<a class="jxr_linenumber" name="L646" href="#L646">646</a> 
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>   @Override
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>   <strong class="jxr_keyword">public</strong> Queue&lt;Runnable&gt; getTaskQueue() {
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>     <strong class="jxr_keyword">return</strong> taskQueue;
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>   }
+<a class="jxr_linenumber" name="L651" href="#L651">651</a> 
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>   @JmxExport
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>   @Override
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getMaxIdleTimeMillis() {
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>     <strong class="jxr_keyword">return</strong> maxIdleTimeMillis;
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>   }
+<a class="jxr_linenumber" name="L657" href="#L657">657</a> 
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>   @JmxExport
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>   @Override
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>   <strong class="jxr_keyword">public</strong> String getPoolName() {
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>     <strong class="jxr_keyword">return</strong> poolName;
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>   }
+<a class="jxr_linenumber" name="L663" href="#L663">663</a> 
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>   @JmxExport
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>   @Override
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getThreadPriority() {
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>     <strong class="jxr_keyword">return</strong> threadPriority;
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>   }
+<a class="jxr_linenumber" name="L669" href="#L669">669</a> 
+<a class="jxr_linenumber" name="L670" href="#L670">670</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

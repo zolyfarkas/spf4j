@@ -50,27 +50,27 @@
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.JmhFlightRecorderProfiler;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.spf4j.stackmonitor.Spf4jJmhProfiler;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../org/spf4j/JmhTest.html">JmhTest</a> {
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(JmhTest.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>    @Test
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> runJmh() <strong class="jxr_keyword">throws</strong> RunnerException, IOException {
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"true"</span>.equalsIgnoreCase(System.getenv(<span class="jxr_string">"TRAVIS"</span>))
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>              || <span class="jxr_string">"true"</span>.equalsIgnoreCase(System.getProperty(<span class="jxr_string">"is.release"</span>, <span class="jxr_string">"false"</span>))) {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>        LOG.info(<span class="jxr_string">"Benchmarks disabled in travis, not enough resources for this..."</span>);
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>        <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      }
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">final</strong> String destinationFolder = System.getProperty(<span class="jxr_string">"basedir"</span>,
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/target"</span>;
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">final</strong> String profile = System.getProperty(<span class="jxr_string">"basedir"</span>,
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/src/main/jfc/profile.jfc"</span>;
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      Options opt = <strong class="jxr_keyword">new</strong> OptionsBuilder()
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>              <em class="jxr_comment">//.include(".*Timing.*")</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.TestUtils;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../org/spf4j/JmhTest.html">JmhTest</a> {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(JmhTest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>    @Test
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> runJmh() <strong class="jxr_keyword">throws</strong> RunnerException, IOException {
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">if</strong> (TestUtils.isExecutedInCI()
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              || <span class="jxr_string">"true"</span>.equalsIgnoreCase(System.getProperty(<span class="jxr_string">"is.release"</span>, <span class="jxr_string">"false"</span>))) {
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>        LOG.info(<span class="jxr_string">"Benchmarks disabled in travis, not enough resources for this..."</span>);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>        <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">final</strong> String destinationFolder = System.getProperty(<span class="jxr_string">"basedir"</span>,
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/target"</span>;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">final</strong> String profile = System.getProperty(<span class="jxr_string">"basedir"</span>,
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              org.spf4j.base.Runtime.USER_DIR) + <span class="jxr_string">"/src/main/jfc/profile.jfc"</span>;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      Options opt = <strong class="jxr_keyword">new</strong> OptionsBuilder()
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_comment">//                           .include(".*ThreadPoolBenchmark")</em>
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>              <em class="jxr_comment">//                .include(".*Reflections.*")</em>
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>              <em class="jxr_comment">//                .addProfiler(JmhProfiler.class)</em>
@@ -92,7 +92,7 @@
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>                      <span class="jxr_string">"-Djmh.fr.options=defaultrecording=true,settings="</span> + profile)
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>              .result(destinationFolder + <span class="jxr_string">"/"</span> + <span class="jxr_string">"benchmarkResults.csv"</span>)
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>              .resultFormat(ResultFormatType.CSV)
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>              .warmupIterations(10)
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>              .warmupIterations(5)
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>              .measurementIterations(10)
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>              .forks(1)
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>              .build();

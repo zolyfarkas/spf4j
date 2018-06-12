@@ -31,29 +31,23 @@
  */
 package org.spf4j.base;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * @author zoly
  */
+@SuppressFBWarnings(&quot;ACEM_ABSTRACT_CLASS_EMPTY_METHODS&quot;)
 public abstract class AbstractRunnable implements Runnable {
 
   @Deprecated
-<span class="fc" id="L45">  public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();</span>
+<span class="fc" id="L47">  public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();</span>
 
-<span class="fc" id="L47">  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRunnable.class);</span>
 
-<span class="fc" id="L49">  public static final Runnable NOP = new Runnable() {</span>
-
-    @Override
-    public void run() {
-      //The nop runnable should do nothing...
-<span class="fc" id="L54">    }</span>
-
-  };
+<span class="fc" id="L50">  public static final Runnable NOP = () -&gt; { };</span>
 
   private final boolean lenient;
 
@@ -66,10 +60,10 @@ public abstract class AbstractRunnable implements Runnable {
    * loose the exception, the runnable will LOG it as an error, and not retrow it
    * @param threadName - the thread name during the execution of this runnable.
    */
-<span class="fc" id="L69">  public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {</span>
-<span class="fc" id="L70">    this.lenient = lenient;</span>
-<span class="fc" id="L71">    this.threadName = threadName;</span>
-<span class="fc" id="L72">  }</span>
+<span class="fc" id="L63">  public AbstractRunnable(final boolean lenient, @Nullable final String threadName) {</span>
+<span class="fc" id="L64">    this.lenient = lenient;</span>
+<span class="fc" id="L65">    this.threadName = threadName;</span>
+<span class="fc" id="L66">  }</span>
 
   /**
    * create runnable.
@@ -78,49 +72,49 @@ public abstract class AbstractRunnable implements Runnable {
    * loose the exception, the runnable will LOG it as an error, and not retrow it
    */
   public AbstractRunnable(final boolean lenient) {
-<span class="fc" id="L81">    this(lenient, null);</span>
-<span class="fc" id="L82">  }</span>
+<span class="fc" id="L75">    this(lenient, null);</span>
+<span class="fc" id="L76">  }</span>
 
   public AbstractRunnable() {
-<span class="fc" id="L85">    this(false, null);</span>
-<span class="fc" id="L86">  }</span>
+<span class="fc" id="L79">    this(false, null);</span>
+<span class="fc" id="L80">  }</span>
 
   public AbstractRunnable(final String threadName) {
-<span class="fc" id="L89">    this(false, threadName);</span>
-<span class="fc" id="L90">  }</span>
+<span class="fc" id="L83">    this(false, threadName);</span>
+<span class="fc" id="L84">  }</span>
 
   @Override
   public final void run() {
-<span class="fc" id="L94">    Thread thread = null;</span>
-<span class="fc" id="L95">    String origName = null;</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (threadName != null) {</span>
-<span class="fc" id="L97">      thread = Thread.currentThread();</span>
-<span class="fc" id="L98">      origName = thread.getName();</span>
-<span class="fc" id="L99">      thread.setName(threadName);</span>
+<span class="fc" id="L88">    Thread thread = null;</span>
+<span class="fc" id="L89">    String origName = null;</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">    if (threadName != null) {</span>
+<span class="fc" id="L91">      thread = Thread.currentThread();</span>
+<span class="fc" id="L92">      origName = thread.getName();</span>
+<span class="fc" id="L93">      thread.setName(threadName);</span>
     }
 
     try {
-<span class="fc" id="L103">      doRun();</span>
-<span class="fc" id="L104">    } catch (Exception ex) {</span>
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">      if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {</span>
-<span class="nc" id="L106">        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);</span>
+<span class="fc" id="L97">      doRun();</span>
+<span class="fc" id="L98">    } catch (Exception ex) {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">      if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {</span>
+<span class="nc" id="L100">        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);</span>
       }
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">      if (lenient) {</span>
-<span class="nc" id="L109">        LOGGER.error(&quot;Exception in runnable: &quot;, ex);</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">      if (lenient) {</span>
+<span class="nc" id="L103">        Logger.getLogger(AbstractRunnable.class.getName()).log(Level.SEVERE, &quot;Exception in runnable: &quot;, ex);</span>
       } else {
-<span class="nc" id="L111">        throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L105">        throw new UncheckedExecutionException(ex);</span>
       }
-<span class="nc" id="L113">    } catch (Throwable ex) {</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">      if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {</span>
-<span class="nc" id="L115">        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);</span>
+<span class="nc" id="L107">    } catch (Throwable ex) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">      if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {</span>
+<span class="nc" id="L109">        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);</span>
       }
-<span class="nc" id="L117">      throw ex;</span>
+<span class="nc" id="L111">      throw ex;</span>
     } finally {
-<span class="fc bfc" id="L119" title="All 2 branches covered.">      if (thread != null) {</span>
-<span class="fc" id="L120">        thread.setName(origName);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">      if (thread != null) {</span>
+<span class="fc" id="L114">        thread.setName(origName);</span>
       }
     }
-<span class="fc" id="L123">  }</span>
+<span class="fc" id="L117">  }</span>
 
   public abstract void doRun() throws Exception;
 

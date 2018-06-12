@@ -33,73 +33,74 @@ package org.spf4j.zel.vm;
 
 import gnu.trove.set.hash.THashSet;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public final class ZExecutionException extends ExecutionException {
 
-    private static final long serialVersionUID = 8823469923479284L;
+  private static final long serialVersionUID = 8823469923479284L;
 
-<span class="pc" id="L44">    private final List&lt;ZelFrame&gt; zelframes = new ArrayList&lt;&gt;();</span>
+  private List&lt;ZelFrame&gt; zelframes;
 
-    public ZExecutionException(final String message, final Exception e) {
-<span class="nc" id="L47">        super(message, e);</span>
-<span class="nc" id="L48">        this.payload = null;</span>
-<span class="nc" id="L49">    }</span>
+  private final Object payload;
 
+  public ZExecutionException(final String message, final Exception e) {
+<span class="nc" id="L50">    super(message, e);</span>
+<span class="nc" id="L51">    this.payload = null;</span>
+<span class="nc" id="L52">  }</span>
 
-    public ZExecutionException(final Exception e) {
-<span class="nc" id="L53">        super(e);</span>
-<span class="nc" id="L54">        this.payload = null;</span>
-<span class="nc" id="L55">    }</span>
+  public ZExecutionException(final Exception e) {
+<span class="nc" id="L55">    super(e);</span>
+<span class="nc" id="L56">    this.payload = null;</span>
+<span class="nc" id="L57">  }</span>
 
-    public ZExecutionException(final String msg) {
-<span class="nc" id="L58">        super(msg);</span>
-<span class="nc" id="L59">        this.payload = null;</span>
-<span class="nc" id="L60">    }</span>
+  public ZExecutionException(final String msg) {
+<span class="nc" id="L60">    super(msg);</span>
+<span class="nc" id="L61">    this.payload = null;</span>
+<span class="nc" id="L62">  }</span>
 
-    public ZExecutionException(final Object object) {
-<span class="fc" id="L63">        super();</span>
-<span class="fc" id="L64">        this.payload = object;</span>
-<span class="fc" id="L65">    }</span>
+  public ZExecutionException(final Object object) {
+<span class="nc" id="L65">    super();</span>
+<span class="nc" id="L66">    this.payload = object;</span>
+<span class="nc" id="L67">  }</span>
 
+  public Object getPayload() {
+<span class="nc" id="L70">    return payload;</span>
+  }
 
-    private final Object payload;
-
-    public Object getPayload() {
-<span class="nc" id="L71">        return payload;</span>
+  public void addZelFrame(final ZelFrame frame) {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (zelframes == null) {</span>
+<span class="nc" id="L75">      zelframes = new ArrayList&lt;&gt;();</span>
     }
+<span class="nc" id="L77">    zelframes.add(frame);</span>
+<span class="nc" id="L78">  }</span>
 
+  public List&lt;ZelFrame&gt; getZelframes() {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    return zelframes == null ? Collections.EMPTY_LIST : zelframes;</span>
+  }
 
-    public void addZelFrame(final ZelFrame frame) {
-<span class="fc" id="L76">        zelframes.add(frame);</span>
-<span class="fc" id="L77">    }</span>
-
-    public List&lt;ZelFrame&gt; getZelframes() {
-<span class="nc" id="L80">        return zelframes;</span>
-    }
-
-    @Override
-    public String toString() {
-<span class="nc" id="L85">        String msg = super.toString();</span>
-<span class="nc" id="L86">        StringBuilder result = new StringBuilder(1024);</span>
-<span class="nc" id="L87">        result.append(msg);</span>
-<span class="nc" id="L88">        result.append('\n');</span>
-<span class="nc" id="L89">        result.append(&quot;Zel trace:\n&quot;);</span>
-<span class="nc" id="L90">        Set&lt;String&gt; sourceIds = new THashSet&lt;&gt;(zelframes.size());</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        for (ZelFrame frame : zelframes) {</span>
-<span class="nc" id="L92">            result.append(frame);</span>
-<span class="nc" id="L93">            result.append('\n');</span>
-<span class="nc" id="L94">            sourceIds.add(frame.getSource());</span>
-<span class="nc" id="L95">        }</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        for (String sourceId : sourceIds) {</span>
-<span class="nc" id="L97">            result.append(sourceId).append(&quot;:\n&quot;);</span>
-<span class="nc" id="L98">            result.append(ZelFrame.getDetail(sourceId)).append('\n');</span>
-<span class="nc" id="L99">        }</span>
-<span class="nc" id="L100">        return result.toString();</span>
-    }
-
+  @Override
+  public String toString() {
+<span class="nc" id="L86">    String msg = super.toString();</span>
+<span class="nc" id="L87">    StringBuilder result = new StringBuilder(1024);</span>
+<span class="nc" id="L88">    result.append(msg);</span>
+<span class="nc" id="L89">    result.append('\n');</span>
+<span class="nc" id="L90">    result.append(&quot;Zel trace:\n&quot;);</span>
+<span class="nc" id="L91">    List&lt;ZelFrame&gt; zf = getZelframes();</span>
+<span class="nc" id="L92">    Set&lt;String&gt; sourceIds = new THashSet&lt;&gt;(zf.size());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    for (ZelFrame frame : zf) {</span>
+<span class="nc" id="L94">      result.append(frame);</span>
+<span class="nc" id="L95">      result.append('\n');</span>
+<span class="nc" id="L96">      sourceIds.add(frame.getSource());</span>
+<span class="nc" id="L97">    }</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    for (String sourceId : sourceIds) {</span>
+<span class="nc" id="L99">      result.append(sourceId).append(&quot;:\n&quot;);</span>
+<span class="nc" id="L100">      result.append(ZelFrame.getDetail(sourceId)).append('\n');</span>
+<span class="nc" id="L101">    }</span>
+<span class="nc" id="L102">    return result.toString();</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

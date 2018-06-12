@@ -149,7 +149,7 @@
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>             = Integer.getInteger(<span class="jxr_string">"spf4j.failsafe.defaultInitialNoDelayRetries"</span>, 3);
 <a class="jxr_linenumber" name="L142" href="#L142">142</a> 
 <a class="jxr_linenumber" name="L143" href="#L143">143</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> DEFAULT_MAX_NR_RETRIES
-<a class="jxr_linenumber" name="L144" href="#L144">144</a>             = Integer.getInteger(<span class="jxr_string">"spf4j.failsafe.defaultMaxNrRetries"</span>, MAX_EX_CHAIN_DEFAULT * 10);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>             = Integer.getInteger(<span class="jxr_string">"spf4j.failsafe.defaultMaxNrRetries"</span>, 1000);
 <a class="jxr_linenumber" name="L145" href="#L145">145</a> 
 <a class="jxr_linenumber" name="L146" href="#L146">146</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> maxExceptionChain = MAX_EX_CHAIN_DEFAULT;
 <a class="jxr_linenumber" name="L147" href="#L147">147</a> 
@@ -236,7 +236,7 @@
 <a class="jxr_linenumber" name="L228" href="#L228">228</a>     @CheckReturnValue
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>     <strong class="jxr_keyword">public</strong> Builder&lt;T, C&gt; withExceptionPartialPredicate(
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">final</strong> PartialExceptionRetryPredicate&lt;T, C&gt; predicate) {
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>       <strong class="jxr_keyword">return</strong> withExceptionPartialPredicateSupplier((s, e) -&gt; predicate);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>       <strong class="jxr_keyword">return</strong> withExceptionPartialPredicateSupplier(TimedSupplier.constant(predicate));
 <a class="jxr_linenumber" name="L232" href="#L232">232</a>     }
 <a class="jxr_linenumber" name="L233" href="#L233">233</a> 
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>     @CheckReturnValue
@@ -300,7 +300,7 @@
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>     @CheckReturnValue
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>     <strong class="jxr_keyword">public</strong> Builder&lt;T, C&gt; withResultPartialPredicate(
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>             <strong class="jxr_keyword">final</strong> PartialResultRetryPredicate&lt;T, C&gt; predicate) {
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>       resultPredicates.add((s, e) -&gt; predicate);
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>       resultPredicates.add(TimedSupplier.constant(predicate));
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>;
 <a class="jxr_linenumber" name="L297" href="#L297">297</a>     }
 <a class="jxr_linenumber" name="L298" href="#L298">298</a> 

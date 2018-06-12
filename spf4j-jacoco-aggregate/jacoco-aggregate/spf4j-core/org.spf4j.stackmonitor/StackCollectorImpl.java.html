@@ -38,40 +38,40 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @author zoly
  */
 @NotThreadSafe
-<span class="fc" id="L41">public final class StackCollectorImpl implements StackCollector {</span>
+<span class="nc" id="L41">public final class StackCollectorImpl implements StackCollector {</span>
 
   private SampleNode samples;
 
   @Override
   @Nullable
   public SampleNode getAndReset() {
-<span class="fc" id="L48">    SampleNode result = samples;</span>
-<span class="fc" id="L49">    samples = null;</span>
-<span class="fc" id="L50">    return result;</span>
+<span class="nc" id="L48">    SampleNode result = samples;</span>
+<span class="nc" id="L49">    samples = null;</span>
+<span class="nc" id="L50">    return result;</span>
   }
 
   @Override
   @Nullable
   public SampleNode get() {
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (samples == null) {</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (samples == null) {</span>
 <span class="nc" id="L57">      return null;</span>
     }
-<span class="fc" id="L59">    return SampleNode.clone(samples);</span>
+<span class="nc" id="L59">    return SampleNode.clone(samples);</span>
   }
 
 
   @Override
   public void collect(final StackTraceElement[] stackTrace) {
-<span class="fc bfc" id="L65" title="All 2 branches covered.">    if (samples == null) {</span>
-<span class="fc" id="L66">      samples = SampleNode.createSampleNode(stackTrace);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    if (samples == null) {</span>
+<span class="nc" id="L66">      samples = SampleNode.createSampleNode(stackTrace);</span>
     } else {
-<span class="fc" id="L68">      SampleNode.addToSampleNode(samples, stackTrace);</span>
+<span class="nc" id="L68">      SampleNode.addToSampleNode(samples, stackTrace);</span>
     }
-<span class="fc" id="L70">  }</span>
+<span class="nc" id="L70">  }</span>
 
   @Override
   public String toString() {
-<span class="fc" id="L74">    return &quot;AbstractStackCollector{&quot; + &quot;samples=&quot; + samples + '}';</span>
+<span class="nc" id="L74">    return &quot;AbstractStackCollector{&quot; + &quot;samples=&quot; + samples + '}';</span>
   }
 
   public int getNrNodes() {

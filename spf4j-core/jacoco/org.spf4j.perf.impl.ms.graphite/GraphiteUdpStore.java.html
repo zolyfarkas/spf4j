@@ -33,8 +33,6 @@ package org.spf4j.perf.impl.ms.graphite;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.common.util.concurrent.UncheckedTimeoutException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -49,6 +47,8 @@ import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Strings;
+import org.spf4j.base.UncheckedExecutionException;
+import org.spf4j.base.UncheckedTimeoutException;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.perf.MeasurementsInfo;

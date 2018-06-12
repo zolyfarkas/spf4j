@@ -55,7 +55,7 @@ import org.spf4j.base.Threads;
 @ParametersAreNonnullByDefault
 public final class FastStackCollector implements ISampler {
 
-<span class="fc" id="L58">  private static final String[] IGNORED_THREADS = {</span>
+<span class="nc" id="L58">  private static final String[] IGNORED_THREADS = {</span>
     &quot;Finalizer&quot;,
     &quot;Signal Dispatcher&quot;,
     &quot;Reference Handler&quot;,
@@ -68,7 +68,7 @@ public final class FastStackCollector implements ISampler {
 
   private final StackCollector collector;
 
-<span class="fc" id="L71">  private Thread[] requestFor = new Thread[]{};</span>
+<span class="nc" id="L71">  private Thread[] requestFor = new Thread[]{};</span>
 
   public FastStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
 <span class="nc" id="L74">    this(false, collectForMain, xtraIgnoredThreads);</span>
@@ -84,35 +84,35 @@ public final class FastStackCollector implements ISampler {
                             final boolean collectForMain,
                             final Thread[] ignored,
                             final String... xtraIgnoredThreads) {
-<span class="fc" id="L87">    this(createNameBasedFilter(collectRunnableThreadsOnly, collectForMain, ignored, xtraIgnoredThreads));</span>
-<span class="fc" id="L88">  }</span>
+<span class="nc" id="L87">    this(createNameBasedFilter(collectRunnableThreadsOnly, collectForMain, ignored, xtraIgnoredThreads));</span>
+<span class="nc" id="L88">  }</span>
 
   /**
    * @param threadFilter when returns true the thread is being ignored
    */
-<span class="fc" id="L93">  public FastStackCollector(final Predicate&lt;Thread&gt; threadFilter) {</span>
-<span class="fc" id="L94">    this.threadFilter = threadFilter;</span>
-<span class="fc" id="L95">    this.collector = new StackCollectorImpl();</span>
-<span class="fc" id="L96">  }</span>
+<span class="nc" id="L93">  public FastStackCollector(final Predicate&lt;Thread&gt; threadFilter) {</span>
+<span class="nc" id="L94">    this.threadFilter = threadFilter;</span>
+<span class="nc" id="L95">    this.collector = new StackCollectorImpl();</span>
+<span class="nc" id="L96">  }</span>
 
   public static Predicate&lt;Thread&gt; createNameBasedFilter(final boolean collectRunnableThreadsOnly,
                                                         final boolean collectForMain,
                                                         final Thread[] ignored,
                                                         final String[] xtraIgnoredThreads) {
-<span class="fc" id="L102">    final Set&lt;String&gt; ignoredThreadNames = new THashSet&lt;&gt;(Arrays.asList(IGNORED_THREADS));</span>
-<span class="fc" id="L103">    ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));</span>
-<span class="fc" id="L104">    Predicate&lt;Thread&gt; result = new ThreadNamesPredicate(ignoredThreadNames);</span>
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">    if (collectRunnableThreadsOnly) {</span>
+<span class="nc" id="L102">    final Set&lt;String&gt; ignoredThreadNames = new THashSet&lt;&gt;(Arrays.asList(IGNORED_THREADS));</span>
+<span class="nc" id="L103">    ignoredThreadNames.addAll(Arrays.asList(xtraIgnoredThreads));</span>
+<span class="nc" id="L104">    Predicate&lt;Thread&gt; result = new ThreadNamesPredicate(ignoredThreadNames);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">    if (collectRunnableThreadsOnly) {</span>
 <span class="nc bnc" id="L106" title="All 2 branches missed.">      result = result.or((Thread t) -&gt; Thread.State.RUNNABLE != t.getState());</span>
     }
-<span class="fc bfc" id="L108" title="All 2 branches covered.">    for (Thread th : ignored) {</span>
-<span class="fc bfc" id="L109" title="All 2 branches covered.">      result = result.or((t) -&gt; t == th);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">    for (Thread th : ignored) {</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">      result = result.or((t) -&gt; t == th);</span>
     }
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    if (!collectForMain) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (!collectForMain) {</span>
 <span class="nc" id="L112">      Thread mainThread = org.spf4j.base.Runtime.getMainThread();</span>
 <span class="nc bnc" id="L113" title="All 2 branches missed.">      result = result.or((t) -&gt; t == mainThread);</span>
     }
-<span class="fc" id="L115">    return result;</span>
+<span class="nc" id="L115">    return result;</span>
   }
 
   /**
@@ -142,36 +142,36 @@ public final class FastStackCollector implements ISampler {
   @Override
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
   public void sample() {
-<span class="fc" id="L145">    Thread[] threads = Threads.getThreads();</span>
-<span class="fc" id="L146">    final int nrThreads = threads.length;</span>
-<span class="fc bfc" id="L147" title="All 2 branches covered.">    if (requestFor.length &lt; nrThreads) {</span>
-<span class="fc" id="L148">      requestFor = new Thread[nrThreads - 1];</span>
+<span class="nc" id="L145">    Thread[] threads = Threads.getThreads();</span>
+<span class="nc" id="L146">    final int nrThreads = threads.length;</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">    if (requestFor.length &lt; nrThreads) {</span>
+<span class="nc" id="L148">      requestFor = new Thread[nrThreads - 1];</span>
     }
-<span class="fc" id="L150">    int j = 0;</span>
-<span class="fc bfc" id="L151" title="All 2 branches covered.">    for (int i = 0; i &lt; nrThreads; i++) {</span>
-<span class="fc" id="L152">      Thread th = threads[i];</span>
-<span class="fc bfc" id="L153" title="All 2 branches covered.">      if (!threadFilter.test(th)) { // not interested in these traces</span>
-<span class="fc" id="L154">        requestFor[j++] = th;</span>
+<span class="nc" id="L150">    int j = 0;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">    for (int i = 0; i &lt; nrThreads; i++) {</span>
+<span class="nc" id="L152">      Thread th = threads[i];</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">      if (!threadFilter.test(th)) { // not interested in these traces</span>
+<span class="nc" id="L154">        requestFor[j++] = th;</span>
       }
     }
-<span class="fc" id="L157">    Arrays.fill(requestFor, j, requestFor.length, null);</span>
-<span class="fc" id="L158">    StackTraceElement[][] stackDump = Threads.getStackTraces(requestFor);</span>
-<span class="fc bfc" id="L159" title="All 2 branches covered.">    for (int i = 0; i &lt; j; i++) {</span>
-<span class="fc" id="L160">      StackTraceElement[] stackTrace = stackDump[i];</span>
-<span class="fc bfc" id="L161" title="All 4 branches covered.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L162">        collector.collect(stackTrace);</span>
+<span class="nc" id="L157">    Arrays.fill(requestFor, j, requestFor.length, null);</span>
+<span class="nc" id="L158">    StackTraceElement[][] stackDump = Threads.getStackTraces(requestFor);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">    for (int i = 0; i &lt; j; i++) {</span>
+<span class="nc" id="L160">      StackTraceElement[] stackTrace = stackDump[i];</span>
+<span class="nc bnc" id="L161" title="All 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L162">        collector.collect(stackTrace);</span>
       } else {
-<span class="fc" id="L164">        collector.collect(new StackTraceElement[]{</span>
-<span class="fc" id="L165">          new StackTraceElement(&quot;Thread&quot;, requestFor[i].getName(), &quot;&quot;, 0)</span>
+<span class="nc" id="L164">        collector.collect(new StackTraceElement[]{</span>
+<span class="nc" id="L165">          new StackTraceElement(&quot;Thread&quot;, requestFor[i].getName(), &quot;&quot;, 0)</span>
         });
       }
     }
-<span class="fc" id="L169">  }</span>
+<span class="nc" id="L169">  }</span>
 
   @Override
   public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
-<span class="fc" id="L173">    SampleNode nodes = collector.getAndReset();</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+<span class="nc" id="L173">    SampleNode nodes = collector.getAndReset();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
   }
 
   @Override
@@ -184,13 +184,13 @@ public final class FastStackCollector implements ISampler {
 
     private final Set&lt;String&gt; ignoredThreadNames;
 
-<span class="fc" id="L187">    public ThreadNamesPredicate(final Set&lt;String&gt; ignoredThreadNames) {</span>
-<span class="fc" id="L188">      this.ignoredThreadNames = ignoredThreadNames;</span>
-<span class="fc" id="L189">    }</span>
+<span class="nc" id="L187">    public ThreadNamesPredicate(final Set&lt;String&gt; ignoredThreadNames) {</span>
+<span class="nc" id="L188">      this.ignoredThreadNames = ignoredThreadNames;</span>
+<span class="nc" id="L189">    }</span>
 
     @Override
     public boolean test(@Nonnull final Thread input) {
-<span class="fc" id="L193">      return ignoredThreadNames.contains(input.getName());</span>
+<span class="nc" id="L193">      return ignoredThreadNames.contains(input.getName());</span>
     }
   }
 

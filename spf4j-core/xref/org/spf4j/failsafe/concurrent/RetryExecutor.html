@@ -39,24 +39,24 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.failsafe.concurrent;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.util.concurrent.UncheckedExecutionException;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.BlockingQueue;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Callable;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.CancellationException;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.DelayQueue;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Delayed;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Either;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Throwables;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.RetryDecision;
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.RetryPredicate;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.TimeSource;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.BlockingQueue;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Callable;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.CancellationException;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.DelayQueue;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Delayed;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutorService;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.Future;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.AbstractRunnable;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Either;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Throwables;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.RetryDecision;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.RetryPredicate;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.TimeSource;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.UncheckedExecutionException;
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.DefaultExecutor;
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.FutureBean;
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>  
@@ -329,7 +329,7 @@
 <a class="jxr_linenumber" name="L321" href="#L321">321</a>         <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L322" href="#L322">322</a>           <strong class="jxr_keyword">this</strong>.retryManagerFuture.get();
 <a class="jxr_linenumber" name="L323" href="#L323">323</a>         } <strong class="jxr_keyword">catch</strong> (ExecutionException ex) {
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedExecutionException(ex);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/base/UncheckedExecutionException.html">UncheckedExecutionException</a>(ex);
 <a class="jxr_linenumber" name="L325" href="#L325">325</a>         }
 <a class="jxr_linenumber" name="L326" href="#L326">326</a>       }
 <a class="jxr_linenumber" name="L327" href="#L327">327</a>     }

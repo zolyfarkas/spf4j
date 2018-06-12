@@ -35,7 +35,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.function.Supplier;
@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
+import org.apache.avro.Schema.Field;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -59,15 +60,15 @@ public final class Schemas {
 
   @Nonnull
   public static ImmutableSchema immutable(final Schema schema) {
-<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (schema instanceof ImmutableSchema) {</span>
-<span class="nc" id="L63">      return (ImmutableSchema) schema;</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (schema instanceof ImmutableSchema) {</span>
+<span class="nc" id="L64">      return (ImmutableSchema) schema;</span>
     }
-<span class="nc" id="L65">    return visit(schema, new ImmutableCloningVisitor(schema, false));</span>
+<span class="nc" id="L66">    return visit(schema, new ImmutableCloningVisitor(schema, false));</span>
   }
 
   @Nonnull
   public static ImmutableSchema immutable(final Schema schema, final boolean withSerializationSignificatAttrsonly) {
-<span class="nc" id="L70">    return visit(schema, new ImmutableCloningVisitor(schema, withSerializationSignificatAttrsonly));</span>
+<span class="nc" id="L71">    return visit(schema, new ImmutableCloningVisitor(schema, withSerializationSignificatAttrsonly));</span>
   }
 
   /**
@@ -78,55 +79,55 @@ public final class Schemas {
    */
   public static &lt;T&gt; T visit(final Schema start, final SchemaVisitor&lt;T&gt; visitor) {
     // Set of Visited Schemas
-<span class="fc" id="L81">    IdentityHashSet&lt;Schema&gt; visited = new IdentityHashSet&lt;&gt;();</span>
+<span class="fc" id="L82">    IdentityHashSet&lt;Schema&gt; visited = new IdentityHashSet&lt;&gt;();</span>
     // Stack that contains the Schams to process and afterVisitNonTerminal functions.
     // Deque&lt;Either&lt;Schema, Supplier&lt;SchemaVisitorAction&gt;&gt;&gt;
     // Using either has a cost which we want to avoid...
-<span class="fc" id="L85">    Deque&lt;Object&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L86">    dq.addLast(start);</span>
+<span class="fc" id="L86">    Deque&lt;Object&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L87">    dq.addLast(start);</span>
     Object current;
-<span class="fc bfc" id="L88" title="All 2 branches covered.">    while ((current = dq.pollLast()) != null) {</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">      if (current instanceof Supplier) {</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    while ((current = dq.pollLast()) != null) {</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">      if (current instanceof Supplier) {</span>
         // we are executing a non terminal post visit.
-<span class="fc" id="L91">        SchemaVisitorAction action = ((Supplier&lt;SchemaVisitorAction&gt;) current).get();</span>
-<span class="pc bpc" id="L92" title="4 of 5 branches missed.">        switch (action) {</span>
+<span class="fc" id="L92">        SchemaVisitorAction action = ((Supplier&lt;SchemaVisitorAction&gt;) current).get();</span>
+<span class="pc bpc" id="L93" title="4 of 5 branches missed.">        switch (action) {</span>
           case CONTINUE:
-<span class="fc" id="L94">            break;</span>
+<span class="fc" id="L95">            break;</span>
           case SKIP_SUBTREE:
-<span class="nc" id="L96">            throw new UnsupportedOperationException();</span>
+<span class="nc" id="L97">            throw new UnsupportedOperationException();</span>
           case SKIP_SIBLINGS:
-<span class="nc bnc" id="L98" title="All 2 branches missed.">            while (dq.getLast() instanceof Schema) {</span>
-<span class="nc" id="L99">               dq.removeLast();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            while (dq.getLast() instanceof Schema) {</span>
+<span class="nc" id="L100">               dq.removeLast();</span>
             }
             break;
           case TERMINATE:
-<span class="nc" id="L103">            return visitor.get();</span>
+<span class="nc" id="L104">            return visitor.get();</span>
           default:
-<span class="nc" id="L105">            throw new UnsupportedOperationException(&quot;Invalid action &quot; + action);</span>
+<span class="nc" id="L106">            throw new UnsupportedOperationException(&quot;Invalid action &quot; + action);</span>
         }
-<span class="fc" id="L107">      } else {</span>
-<span class="fc" id="L108">        Schema schema = (Schema) current;</span>
+<span class="fc" id="L108">      } else {</span>
+<span class="fc" id="L109">        Schema schema = (Schema) current;</span>
         boolean terminate;
-<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (!visited.contains(schema)) {</span>
-<span class="fc" id="L111">          Schema.Type type = schema.getType();</span>
-<span class="pc bpc" id="L112" title="1 of 6 branches missed.">          switch (type) {</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (!visited.contains(schema)) {</span>
+<span class="fc" id="L112">          Schema.Type type = schema.getType();</span>
+<span class="pc bpc" id="L113" title="1 of 6 branches missed.">          switch (type) {</span>
             case ARRAY:
-<span class="fc" id="L114">              terminate = visitNonTerminal(visitor, schema, dq, Arrays.asList(schema.getElementType()));</span>
-<span class="fc" id="L115">              visited.add(schema);</span>
-<span class="fc" id="L116">              break;</span>
+<span class="fc" id="L115">              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getElementType()));</span>
+<span class="fc" id="L116">              visited.add(schema);</span>
+<span class="fc" id="L117">              break;</span>
             case RECORD:
-<span class="fc" id="L118">              terminate = visitNonTerminal(visitor, schema, dq,</span>
-<span class="fc" id="L119">                      Lists.transform(Lists.reverse(schema.getFields()), (field) -&gt; field.schema()));</span>
-<span class="fc" id="L120">              visited.add(schema);</span>
-<span class="fc" id="L121">              break;</span>
+<span class="fc" id="L119">              terminate = visitNonTerminal(visitor, schema, dq,</span>
+<span class="fc" id="L120">                      Lists.transform(Lists.reverse(schema.getFields()), Field::schema));</span>
+<span class="fc" id="L121">              visited.add(schema);</span>
+<span class="fc" id="L122">              break;</span>
             case UNION:
-<span class="fc" id="L123">              terminate = visitNonTerminal(visitor, schema, dq, schema.getTypes());</span>
-<span class="fc" id="L124">              visited.add(schema);</span>
-<span class="fc" id="L125">              break;</span>
+<span class="fc" id="L124">              terminate = visitNonTerminal(visitor, schema, dq, schema.getTypes());</span>
+<span class="fc" id="L125">              visited.add(schema);</span>
+<span class="fc" id="L126">              break;</span>
             case MAP:
-<span class="fc" id="L127">              terminate = visitNonTerminal(visitor, schema, dq, Arrays.asList(schema.getValueType()));</span>
-<span class="fc" id="L128">              visited.add(schema);</span>
-<span class="fc" id="L129">              break;</span>
+<span class="fc" id="L128">              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getValueType()));</span>
+<span class="fc" id="L129">              visited.add(schema);</span>
+<span class="fc" id="L130">              break;</span>
             case NULL:
             case BOOLEAN:
             case BYTES:
@@ -137,75 +138,75 @@ public final class Schemas {
             case INT:
             case LONG:
             case STRING:
-<span class="fc" id="L140">              terminate = visitTerminal(visitor, schema, dq);</span>
-<span class="fc" id="L141">              break;</span>
+<span class="fc" id="L141">              terminate = visitTerminal(visitor, schema, dq);</span>
+<span class="fc" id="L142">              break;</span>
             default:
-<span class="nc" id="L143">              throw new UnsupportedOperationException(&quot;Invalid type &quot; + type);</span>
+<span class="nc" id="L144">              throw new UnsupportedOperationException(&quot;Invalid type &quot; + type);</span>
           }
 
-<span class="fc" id="L146">        } else {</span>
-<span class="fc" id="L147">          terminate = visitTerminal(visitor, schema, dq);</span>
+<span class="fc" id="L147">        } else {</span>
+<span class="fc" id="L148">          terminate = visitTerminal(visitor, schema, dq);</span>
         }
-<span class="pc bpc" id="L149" title="1 of 2 branches missed.">        if (terminate) {</span>
-<span class="nc" id="L150">            return visitor.get();</span>
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">        if (terminate) {</span>
+<span class="nc" id="L151">            return visitor.get();</span>
         }
-<span class="fc" id="L152">      }</span>
+<span class="fc" id="L153">      }</span>
     }
-<span class="fc" id="L154">    return visitor.get();</span>
+<span class="fc" id="L155">    return visitor.get();</span>
   }
 
   private static boolean visitNonTerminal(final SchemaVisitor visitor,
           final Schema schema, final Deque&lt;Object&gt; dq,
           final Iterable&lt;Schema&gt; itSupp) {
-<span class="fc" id="L160">    SchemaVisitorAction action = visitor.visitNonTerminal(schema);</span>
-<span class="pc bpc" id="L161" title="4 of 5 branches missed.">    switch (action) {</span>
+<span class="fc" id="L161">    SchemaVisitorAction action = visitor.visitNonTerminal(schema);</span>
+<span class="pc bpc" id="L162" title="4 of 5 branches missed.">    switch (action) {</span>
       case CONTINUE:
-<span class="fc" id="L163">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
-<span class="fc" id="L164">        Iterator&lt;Schema&gt; it = itSupp.iterator();</span>
-<span class="fc bfc" id="L165" title="All 2 branches covered.">        while (it.hasNext()) {</span>
-<span class="fc" id="L166">          Schema child = it.next();</span>
-<span class="fc" id="L167">          dq.addLast(child);</span>
-<span class="fc" id="L168">        }</span>
+<span class="fc" id="L164">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
+<span class="fc" id="L165">        Iterator&lt;Schema&gt; it = itSupp.iterator();</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">        while (it.hasNext()) {</span>
+<span class="fc" id="L167">          Schema child = it.next();</span>
+<span class="fc" id="L168">          dq.addLast(child);</span>
+<span class="fc" id="L169">        }</span>
         break;
       case SKIP_SUBTREE:
-<span class="nc" id="L171">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
-<span class="nc" id="L172">        break;</span>
+<span class="nc" id="L172">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
+<span class="nc" id="L173">        break;</span>
       case SKIP_SIBLINGS:
-<span class="nc bnc" id="L174" title="All 4 branches missed.">        while (!dq.isEmpty() &amp;&amp; dq.getLast() instanceof Schema) {</span>
-<span class="nc" id="L175">          dq.removeLast();</span>
+<span class="nc bnc" id="L175" title="All 4 branches missed.">        while (!dq.isEmpty() &amp;&amp; dq.getLast() instanceof Schema) {</span>
+<span class="nc" id="L176">          dq.removeLast();</span>
         }
         break;
       case TERMINATE:
-<span class="nc" id="L179">        return true;</span>
+<span class="nc" id="L180">        return true;</span>
       default:
-<span class="nc" id="L181">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
+<span class="nc" id="L182">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
     }
-<span class="fc" id="L183">    return false;</span>
+<span class="fc" id="L184">    return false;</span>
   }
 
   private static boolean visitTerminal(final SchemaVisitor visitor, final Schema schema,
           final Deque&lt;Object&gt; dq) {
-<span class="fc" id="L188">    SchemaVisitorAction action = visitor.visitTerminal(schema);</span>
-<span class="pc bpc" id="L189" title="4 of 5 branches missed.">    switch (action) {</span>
+<span class="fc" id="L189">    SchemaVisitorAction action = visitor.visitTerminal(schema);</span>
+<span class="pc bpc" id="L190" title="4 of 5 branches missed.">    switch (action) {</span>
       case CONTINUE:
-<span class="fc" id="L191">        break;</span>
+<span class="fc" id="L192">        break;</span>
       case SKIP_SUBTREE:
-<span class="nc" id="L193">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
+<span class="nc" id="L194">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
       case SKIP_SIBLINGS:
         Object current;
         //CHECKSTYLE:OFF InnerAssignment
-<span class="nc bnc" id="L197" title="All 2 branches missed.">        while ((current = dq.getLast()) instanceof Schema) {</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        while ((current = dq.getLast()) instanceof Schema) {</span>
           // just skip
         }
         //CHECKSTYLE:ON
-<span class="nc" id="L201">        dq.addLast(current);</span>
-<span class="nc" id="L202">        break;</span>
+<span class="nc" id="L202">        dq.addLast(current);</span>
+<span class="nc" id="L203">        break;</span>
       case TERMINATE:
-<span class="nc" id="L204">        return true;</span>
+<span class="nc" id="L205">        return true;</span>
       default:
-<span class="nc" id="L206">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
+<span class="nc" id="L207">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
     }
-<span class="fc" id="L208">    return false;</span>
+<span class="fc" id="L209">    return false;</span>
   }
 
 

@@ -48,38 +48,38 @@ import org.spf4j.recyclable.ObjectCreationException;
  *
  * @author zoly
  */
-<span class="fc" id="L51">public enum StoreType {</span>
-<span class="fc" id="L52">    TSDB(new StoreFactory() {</span>
+<span class="nc" id="L51">public enum StoreType {</span>
+<span class="nc" id="L52">    TSDB(new StoreFactory() {</span>
         @Override
         @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // not supplied by user
         public MeasurementStore create(final String pconfig) throws IOException {
             String config;
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            if (!pconfig.endsWith(&quot;tsdb2&quot;))  {</span>
-<span class="fc" id="L58">                config = pconfig + &quot;.tsdb2&quot;;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if (!pconfig.endsWith(&quot;tsdb2&quot;))  {</span>
+<span class="nc" id="L58">                config = pconfig + &quot;.tsdb2&quot;;</span>
             } else {
 <span class="nc" id="L60">                config = pconfig;</span>
             }
-<span class="fc" id="L62">            return new TSDBMeasurementStore(new File(config));</span>
+<span class="nc" id="L62">            return new TSDBMeasurementStore(new File(config));</span>
         }
     }),
-<span class="fc" id="L65">    TSDB_TXT(new StoreFactory() {</span>
+<span class="nc" id="L65">    TSDB_TXT(new StoreFactory() {</span>
         @Override
         @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // not supplied by user
         public MeasurementStore create(final String config) throws IOException {
-<span class="fc" id="L69">            return new TSDBTxtMeasurementStore(new File(config));</span>
+<span class="nc" id="L69">            return new TSDBTxtMeasurementStore(new File(config));</span>
         }
     }),
-<span class="fc" id="L72">    GRAPHITE_UDP(new StoreFactory() {</span>
+<span class="nc" id="L72">    GRAPHITE_UDP(new StoreFactory() {</span>
         @Override
         public MeasurementStore create(final String config) throws ObjectCreationException {
             try {
-<span class="fc" id="L76">                return new GraphiteUdpStore(config);</span>
+<span class="nc" id="L76">                return new GraphiteUdpStore(config);</span>
 <span class="nc" id="L77">            } catch (URISyntaxException ex) {</span>
 <span class="nc" id="L78">                throw new IllegalArgumentException(&quot;Invalid configuration &quot; + config, ex);</span>
             }
         }
     }),
-<span class="fc" id="L82">    GRAPHITE_TCP(new StoreFactory() {</span>
+<span class="nc" id="L82">    GRAPHITE_TCP(new StoreFactory() {</span>
         @Override
         public MeasurementStore create(final String config) throws ObjectCreationException {
             try {
@@ -89,7 +89,7 @@ import org.spf4j.recyclable.ObjectCreationException;
             }
         }
     }),
-<span class="fc" id="L92">    NOP_STORE(new StoreFactory() {</span>
+<span class="nc" id="L92">    NOP_STORE(new StoreFactory() {</span>
 
         @Override
         public MeasurementStore create(final String config) {
@@ -98,15 +98,15 @@ import org.spf4j.recyclable.ObjectCreationException;
     });
     private final StoreFactory factory;
 
-<span class="fc" id="L101">    StoreType(final StoreFactory factory) {</span>
-<span class="fc" id="L102">        this.factory = factory;</span>
-<span class="fc" id="L103">    }</span>
+<span class="nc" id="L101">    StoreType(final StoreFactory factory) {</span>
+<span class="nc" id="L102">        this.factory = factory;</span>
+<span class="nc" id="L103">    }</span>
 
     public MeasurementStore create(final String configuration) throws IOException, ObjectCreationException {
-<span class="fc" id="L106">        MeasurementStore store =  factory.create(configuration);</span>
-<span class="fc" id="L107">        Registry.exportIfNeeded(store.getClass().getName(),</span>
-<span class="fc" id="L108">                    store.toString(), store);</span>
-<span class="fc" id="L109">        return store;</span>
+<span class="nc" id="L106">        MeasurementStore store =  factory.create(configuration);</span>
+<span class="nc" id="L107">        Registry.exportIfNeeded(store.getClass().getName(),</span>
+<span class="nc" id="L108">                    store.toString(), store);</span>
+<span class="nc" id="L109">        return store;</span>
     }
 
 }

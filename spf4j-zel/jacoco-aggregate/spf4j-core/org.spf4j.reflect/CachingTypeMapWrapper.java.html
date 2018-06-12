@@ -103,26 +103,24 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
   public void replace(final Type t, final Function&lt;H, H&gt; f) {
 <span class="fc" id="L104">    synchronized (wrapped) {</span>
 <span class="fc" id="L105">      H exact = wrapped.getExact(t);</span>
-<span class="fc bfc" id="L106" title="All 2 branches covered.">      if (exact != null) {</span>
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (!wrapped.remove(t)) {</span>
-<span class="nc" id="L108">          throw new IllegalStateException(&quot;Illegal Stat, type = &quot; + t + &quot; wrapped =  &quot; + wrapped);</span>
-        }
+<span class="pc bpc" id="L106" title="1 of 4 branches missed.">      if (exact != null &amp;&amp; !wrapped.remove(t)) {</span>
+<span class="nc" id="L107">        throw new IllegalStateException(&quot;Illegal Stat, type = &quot; + t + &quot; wrapped =  &quot; + wrapped);</span>
       }
-<span class="fc" id="L111">      wrapped.safePut(t, f.apply(exact));</span>
-<span class="fc" id="L112">     }</span>
-<span class="fc" id="L113">    cache.invalidateAll(); // a bit lazy :-)</span>
-<span class="fc" id="L114">  }</span>
+<span class="fc" id="L109">      wrapped.safePut(t, f.apply(exact));</span>
+<span class="fc" id="L110">     }</span>
+<span class="fc" id="L111">    cache.invalidateAll(); // a bit lazy :-)</span>
+<span class="fc" id="L112">  }</span>
 
   public void clearCache() {
-<span class="nc" id="L117">    cache.invalidateAll();</span>
-<span class="nc" id="L118">  }</span>
+<span class="nc" id="L115">    cache.invalidateAll();</span>
+<span class="nc" id="L116">  }</span>
 
-<span class="fc" id="L120">  private final class TypeMapedObjLoader extends CacheLoader&lt;Type, Set&lt;H&gt;&gt; {</span>
+<span class="fc" id="L118">  private final class TypeMapedObjLoader extends CacheLoader&lt;Type, Set&lt;H&gt;&gt; {</span>
 
     @Override
     public Set&lt;H&gt; load(final Type key) throws Exception {
-<span class="fc" id="L124">      synchronized (wrapped) {</span>
-<span class="fc" id="L125">        return wrapped.getAll(key);</span>
+<span class="fc" id="L122">      synchronized (wrapped) {</span>
+<span class="fc" id="L123">        return wrapped.getAll(key);</span>
       }
     }
   }
@@ -130,10 +128,10 @@ public final class CachingTypeMapWrapper&lt;H&gt; implements TypeMap&lt;H&gt; {
   @Override
   public String toString() {
     String wts;
-<span class="fc" id="L133">    synchronized (wrapped) {</span>
-<span class="fc" id="L134">      wts = wrapped.toString();</span>
-<span class="fc" id="L135">    }</span>
-<span class="fc" id="L136">    return &quot;CachingTypeMapWrapper{&quot; + &quot;cache=&quot; + cache + &quot;, wrapped=&quot; + wts + '}';</span>
+<span class="fc" id="L131">    synchronized (wrapped) {</span>
+<span class="fc" id="L132">      wts = wrapped.toString();</span>
+<span class="fc" id="L133">    }</span>
+<span class="fc" id="L134">    return &quot;CachingTypeMapWrapper{&quot; + &quot;cache=&quot; + cache + &quot;, wrapped=&quot; + wts + '}';</span>
   }
 
 

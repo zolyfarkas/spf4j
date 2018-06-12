@@ -74,44 +74,45 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     @SuppressForbiden
     public TSDBViewJInternalFrame(final File databaseFile) throws IOException {
 <span class="nc" id="L76">        super(databaseFile.getAbsolutePath());</span>
-<span class="nc" id="L77">        initComponents();</span>
-<span class="nc" id="L78">        tsDb = new TimeSeriesDatabase(databaseFile, null);</span>
-<span class="nc" id="L79">        Collection&lt;TSTable&gt; columnsInfo = tsDb.getTSTables();</span>
-<span class="nc" id="L80">        Map&lt;String, DefaultMutableTreeNode&gt; gNodes = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L81">        DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);</span>
-<span class="nc" id="L82">        long startDateMillis = System.currentTimeMillis();</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        for (TSTable info : columnsInfo) {</span>
-<span class="nc" id="L84">            String groupName = info.getTableName();</span>
-<span class="nc" id="L85">            long tableStart = tsDb.readStartDate(groupName);</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (tableStart &lt; startDateMillis) {</span>
-<span class="nc" id="L87">                startDateMillis = tableStart;</span>
+<span class="nc" id="L77">        setName(databaseFile.getName());</span>
+<span class="nc" id="L78">        initComponents();</span>
+<span class="nc" id="L79">        tsDb = new TimeSeriesDatabase(databaseFile, null);</span>
+<span class="nc" id="L80">        Collection&lt;TSTable&gt; columnsInfo = tsDb.getTSTables();</span>
+<span class="nc" id="L81">        Map&lt;String, DefaultMutableTreeNode&gt; gNodes = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L82">        DefaultMutableTreeNode root = new DefaultMutableTreeNode(databaseFile);</span>
+<span class="nc" id="L83">        long startDateMillis = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        for (TSTable info : columnsInfo) {</span>
+<span class="nc" id="L85">            String groupName = info.getTableName();</span>
+<span class="nc" id="L86">            long tableStart = tsDb.readStartDate(groupName);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (tableStart &lt; startDateMillis) {</span>
+<span class="nc" id="L88">                startDateMillis = tableStart;</span>
             }
-<span class="nc" id="L89">            Pair&lt;String, String&gt; pair = Pair.from(groupName);</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (pair == null) {</span>
-<span class="nc" id="L91">                DefaultMutableTreeNode child = new DefaultMutableTreeNode(groupName);</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">                for (String colName : info.getColumnNames()) {</span>
-<span class="nc" id="L93">                    child.add(new DefaultMutableTreeNode(colName));</span>
+<span class="nc" id="L90">            Pair&lt;String, String&gt; pair = Pair.from(groupName);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (pair == null) {</span>
+<span class="nc" id="L92">                DefaultMutableTreeNode child = new DefaultMutableTreeNode(groupName);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                for (String colName : info.getColumnNames()) {</span>
+<span class="nc" id="L94">                    child.add(new DefaultMutableTreeNode(colName));</span>
                 }
-<span class="nc" id="L95">                root.add(child);</span>
-<span class="nc" id="L96">            } else {</span>
-<span class="nc" id="L97">                groupName = pair.getFirst();</span>
-<span class="nc" id="L98">                DefaultMutableTreeNode gNode = gNodes.get(groupName);</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">                if (gNode == null) {</span>
-<span class="nc" id="L100">                    gNode = new DefaultMutableTreeNode(groupName);</span>
-<span class="nc" id="L101">                    gNodes.put(groupName, gNode);</span>
-<span class="nc" id="L102">                    root.add(gNode);</span>
+<span class="nc" id="L96">                root.add(child);</span>
+<span class="nc" id="L97">            } else {</span>
+<span class="nc" id="L98">                groupName = pair.getFirst();</span>
+<span class="nc" id="L99">                DefaultMutableTreeNode gNode = gNodes.get(groupName);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (gNode == null) {</span>
+<span class="nc" id="L101">                    gNode = new DefaultMutableTreeNode(groupName);</span>
+<span class="nc" id="L102">                    gNodes.put(groupName, gNode);</span>
+<span class="nc" id="L103">                    root.add(gNode);</span>
                 }
-<span class="nc" id="L104">                DefaultMutableTreeNode child = new DefaultMutableTreeNode(pair.getSecond());</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">                for (String colName : info.getColumnNames()) {</span>
-<span class="nc" id="L106">                    child.add(new DefaultMutableTreeNode(colName));</span>
+<span class="nc" id="L105">                DefaultMutableTreeNode child = new DefaultMutableTreeNode(pair.getSecond());</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                for (String colName : info.getColumnNames()) {</span>
+<span class="nc" id="L107">                    child.add(new DefaultMutableTreeNode(colName));</span>
                 }
-<span class="nc" id="L108">                gNode.add(child);</span>
+<span class="nc" id="L109">                gNode.add(child);</span>
             }
-<span class="nc" id="L110">        }</span>
-<span class="nc" id="L111">        measurementTree.setModel(new DefaultTreeModel(root));</span>
-<span class="nc" id="L112">        measurementTree.setVisible(true);</span>
-<span class="nc" id="L113">        this.startDate.setValue(new Date(startDateMillis));</span>
-<span class="nc" id="L114">    }</span>
+<span class="nc" id="L111">        }</span>
+<span class="nc" id="L112">        measurementTree.setModel(new DefaultTreeModel(root));</span>
+<span class="nc" id="L113">        measurementTree.setVisible(true);</span>
+<span class="nc" id="L114">        this.startDate.setValue(new Date(startDateMillis));</span>
+<span class="nc" id="L115">    }</span>
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
@@ -121,149 +122,149 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
     // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
     private void initComponents() {
 
-<span class="nc" id="L124">        rightPanel = new javax.swing.JPanel();</span>
-<span class="nc" id="L125">        mainSplitPannel = new javax.swing.JSplitPane();</span>
-<span class="nc" id="L126">        jPanel2 = new javax.swing.JPanel();</span>
-<span class="nc" id="L127">        jScrollPane1 = new javax.swing.JScrollPane();</span>
-<span class="nc" id="L128">        measurementTree = new javax.swing.JTree();</span>
-<span class="nc" id="L129">        chartPannel = new javax.swing.JScrollPane();</span>
-<span class="nc" id="L130">        jToolBar1 = new javax.swing.JToolBar();</span>
-<span class="nc" id="L131">        jButton1 = new javax.swing.JButton();</span>
-<span class="nc" id="L132">        jButton2 = new javax.swing.JButton();</span>
-<span class="nc" id="L133">        startDate = new javax.swing.JSpinner();</span>
-<span class="nc" id="L134">        endDate = new javax.swing.JSpinner();</span>
+<span class="nc" id="L125">        rightPanel = new javax.swing.JPanel();</span>
+<span class="nc" id="L126">        mainSplitPannel = new javax.swing.JSplitPane();</span>
+<span class="nc" id="L127">        jPanel2 = new javax.swing.JPanel();</span>
+<span class="nc" id="L128">        jScrollPane1 = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L129">        measurementTree = new javax.swing.JTree();</span>
+<span class="nc" id="L130">        chartPannel = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L131">        jToolBar1 = new javax.swing.JToolBar();</span>
+<span class="nc" id="L132">        jButton1 = new javax.swing.JButton();</span>
+<span class="nc" id="L133">        jButton2 = new javax.swing.JButton();</span>
+<span class="nc" id="L134">        startDate = new javax.swing.JSpinner();</span>
+<span class="nc" id="L135">        endDate = new javax.swing.JSpinner();</span>
 
-<span class="nc" id="L136">        org.jdesktop.layout.GroupLayout rightPanelLayout = new org.jdesktop.layout.GroupLayout(rightPanel);</span>
-<span class="nc" id="L137">        rightPanel.setLayout(rightPanelLayout);</span>
-<span class="nc" id="L138">        rightPanelLayout.setHorizontalGroup(</span>
-<span class="nc" id="L139">            rightPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L140">            .add(0, 448, Short.MAX_VALUE)</span>
+<span class="nc" id="L137">        org.jdesktop.layout.GroupLayout rightPanelLayout = new org.jdesktop.layout.GroupLayout(rightPanel);</span>
+<span class="nc" id="L138">        rightPanel.setLayout(rightPanelLayout);</span>
+<span class="nc" id="L139">        rightPanelLayout.setHorizontalGroup(</span>
+<span class="nc" id="L140">            rightPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L141">            .add(0, 448, Short.MAX_VALUE)</span>
         );
-<span class="nc" id="L142">        rightPanelLayout.setVerticalGroup(</span>
-<span class="nc" id="L143">            rightPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L144">            .add(0, 306, Short.MAX_VALUE)</span>
-        );
-
-<span class="nc" id="L147">        setClosable(true);</span>
-<span class="nc" id="L148">        setMaximizable(true);</span>
-<span class="nc" id="L149">        setResizable(true);</span>
-
-<span class="nc" id="L151">        mainSplitPannel.setDividerSize(5);</span>
-<span class="nc" id="L152">        mainSplitPannel.setPreferredSize(new java.awt.Dimension(600, 500));</span>
-
-<span class="nc" id="L154">        measurementTree.setAutoscrolls(true);</span>
-<span class="nc" id="L155">        jScrollPane1.setViewportView(measurementTree);</span>
-
-<span class="nc" id="L157">        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);</span>
-<span class="nc" id="L158">        jPanel2.setLayout(jPanel2Layout);</span>
-<span class="nc" id="L159">        jPanel2Layout.setHorizontalGroup(</span>
-<span class="nc" id="L160">            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L161">            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)</span>
-        );
-<span class="nc" id="L163">        jPanel2Layout.setVerticalGroup(</span>
-<span class="nc" id="L164">            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L165">            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)</span>
+<span class="nc" id="L143">        rightPanelLayout.setVerticalGroup(</span>
+<span class="nc" id="L144">            rightPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L145">            .add(0, 306, Short.MAX_VALUE)</span>
         );
 
-<span class="nc" id="L168">        mainSplitPannel.setLeftComponent(jPanel2);</span>
-<span class="nc" id="L169">        mainSplitPannel.setRightComponent(chartPannel);</span>
+<span class="nc" id="L148">        setClosable(true);</span>
+<span class="nc" id="L149">        setMaximizable(true);</span>
+<span class="nc" id="L150">        setResizable(true);</span>
 
-<span class="nc" id="L171">        jToolBar1.setFloatable(false);</span>
-<span class="nc" id="L172">        jToolBar1.setRollover(true);</span>
+<span class="nc" id="L152">        mainSplitPannel.setDividerSize(5);</span>
+<span class="nc" id="L153">        mainSplitPannel.setPreferredSize(new java.awt.Dimension(600, 500));</span>
 
-<span class="nc" id="L174">        jButton1.setText(&quot;Plot&quot;);</span>
-<span class="nc" id="L175">        jButton1.setFocusable(false);</span>
-<span class="nc" id="L176">        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
-<span class="nc" id="L177">        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
-<span class="nc" id="L178">        jButton1.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L155">        measurementTree.setAutoscrolls(true);</span>
+<span class="nc" id="L156">        jScrollPane1.setViewportView(measurementTree);</span>
+
+<span class="nc" id="L158">        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);</span>
+<span class="nc" id="L159">        jPanel2.setLayout(jPanel2Layout);</span>
+<span class="nc" id="L160">        jPanel2Layout.setHorizontalGroup(</span>
+<span class="nc" id="L161">            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L162">            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)</span>
+        );
+<span class="nc" id="L164">        jPanel2Layout.setVerticalGroup(</span>
+<span class="nc" id="L165">            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L166">            .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)</span>
+        );
+
+<span class="nc" id="L169">        mainSplitPannel.setLeftComponent(jPanel2);</span>
+<span class="nc" id="L170">        mainSplitPannel.setRightComponent(chartPannel);</span>
+
+<span class="nc" id="L172">        jToolBar1.setFloatable(false);</span>
+<span class="nc" id="L173">        jToolBar1.setRollover(true);</span>
+
+<span class="nc" id="L175">        jButton1.setText(&quot;Plot&quot;);</span>
+<span class="nc" id="L176">        jButton1.setFocusable(false);</span>
+<span class="nc" id="L177">        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L178">        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L179">        jButton1.addActionListener(new java.awt.event.ActionListener() {</span>
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L180">                jButton1ActionPerformed(evt);</span>
-<span class="nc" id="L181">            }</span>
+<span class="nc" id="L181">                jButton1ActionPerformed(evt);</span>
+<span class="nc" id="L182">            }</span>
         });
-<span class="nc" id="L183">        jToolBar1.add(jButton1);</span>
+<span class="nc" id="L184">        jToolBar1.add(jButton1);</span>
 
-<span class="nc" id="L185">        jButton2.setText(&quot;Export&quot;);</span>
-<span class="nc" id="L186">        jButton2.setFocusable(false);</span>
-<span class="nc" id="L187">        jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
-<span class="nc" id="L188">        jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
-<span class="nc" id="L189">        jButton2.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L186">        jButton2.setText(&quot;Export&quot;);</span>
+<span class="nc" id="L187">        jButton2.setFocusable(false);</span>
+<span class="nc" id="L188">        jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L189">        jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L190">        jButton2.addActionListener(new java.awt.event.ActionListener() {</span>
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L191">                jButton2ActionPerformed(evt);</span>
-<span class="nc" id="L192">            }</span>
+<span class="nc" id="L192">                jButton2ActionPerformed(evt);</span>
+<span class="nc" id="L193">            }</span>
         });
-<span class="nc" id="L194">        jToolBar1.add(jButton2);</span>
+<span class="nc" id="L195">        jToolBar1.add(jButton2);</span>
 
-<span class="nc" id="L196">        startDate.setModel(new javax.swing.SpinnerDateModel());</span>
-<span class="nc" id="L197">        startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
-<span class="nc" id="L198">        startDate.setMinimumSize(new java.awt.Dimension(200, 28));</span>
-<span class="nc" id="L199">        startDate.setName(&quot;&quot;); // NOI18N</span>
-<span class="nc" id="L200">        jToolBar1.add(startDate);</span>
+<span class="nc" id="L197">        startDate.setModel(new javax.swing.SpinnerDateModel());</span>
+<span class="nc" id="L198">        startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="nc" id="L199">        startDate.setMinimumSize(new java.awt.Dimension(200, 28));</span>
+<span class="nc" id="L200">        startDate.setName(&quot;&quot;); // NOI18N</span>
+<span class="nc" id="L201">        jToolBar1.add(startDate);</span>
 
-<span class="nc" id="L202">        endDate.setModel(new javax.swing.SpinnerDateModel());</span>
-<span class="nc" id="L203">        endDate.setEditor(new javax.swing.JSpinner.DateEditor(endDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
-<span class="nc" id="L204">        jToolBar1.add(endDate);</span>
+<span class="nc" id="L203">        endDate.setModel(new javax.swing.SpinnerDateModel());</span>
+<span class="nc" id="L204">        endDate.setEditor(new javax.swing.JSpinner.DateEditor(endDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="nc" id="L205">        jToolBar1.add(endDate);</span>
 
-<span class="nc" id="L206">        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
-<span class="nc" id="L207">        getContentPane().setLayout(layout);</span>
-<span class="nc" id="L208">        layout.setHorizontalGroup(</span>
-<span class="nc" id="L209">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L210">            .add(layout.createSequentialGroup()</span>
-<span class="nc" id="L211">                .addContainerGap()</span>
-<span class="nc" id="L212">                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L213">                    .add(layout.createSequentialGroup()</span>
-<span class="nc" id="L214">                        .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)</span>
-<span class="nc" id="L215">                        .add(236, 236, 236))</span>
-<span class="nc" id="L216">                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()</span>
-<span class="nc" id="L217">                        .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
-<span class="nc" id="L218">                        .addContainerGap())))</span>
+<span class="nc" id="L207">        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
+<span class="nc" id="L208">        getContentPane().setLayout(layout);</span>
+<span class="nc" id="L209">        layout.setHorizontalGroup(</span>
+<span class="nc" id="L210">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L211">            .add(layout.createSequentialGroup()</span>
+<span class="nc" id="L212">                .addContainerGap()</span>
+<span class="nc" id="L213">                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L214">                    .add(layout.createSequentialGroup()</span>
+<span class="nc" id="L215">                        .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 465, Short.MAX_VALUE)</span>
+<span class="nc" id="L216">                        .add(236, 236, 236))</span>
+<span class="nc" id="L217">                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()</span>
+<span class="nc" id="L218">                        .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
+<span class="nc" id="L219">                        .addContainerGap())))</span>
         );
-<span class="nc" id="L220">        layout.setVerticalGroup(</span>
-<span class="nc" id="L221">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L222">            .add(layout.createSequentialGroup()</span>
-<span class="nc" id="L223">                .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
-<span class="nc" id="L224">                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)</span>
-<span class="nc" id="L225">                .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 688, Short.MAX_VALUE)</span>
-<span class="nc" id="L226">                .addContainerGap())</span>
+<span class="nc" id="L221">        layout.setVerticalGroup(</span>
+<span class="nc" id="L222">            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L223">            .add(layout.createSequentialGroup()</span>
+<span class="nc" id="L224">                .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L225">                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)</span>
+<span class="nc" id="L226">                .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 688, Short.MAX_VALUE)</span>
+<span class="nc" id="L227">                .addContainerGap())</span>
         );
 
-<span class="nc" id="L229">        pack();</span>
-<span class="nc" id="L230">    }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+<span class="nc" id="L230">        pack();</span>
+<span class="nc" id="L231">    }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;UP_UNUSED_PARAMETER&quot;)
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-<span class="nc" id="L234">        TreePath[] selectionPaths = measurementTree.getSelectionPaths();</span>
-<span class="nc" id="L235">        JPanel content = new JPanel();</span>
-<span class="nc" id="L236">        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));</span>
-<span class="nc" id="L237">        chartPannel.setViewportView(content);</span>
+<span class="nc" id="L235">        TreePath[] selectionPaths = measurementTree.getSelectionPaths();</span>
+<span class="nc" id="L236">        JPanel content = new JPanel();</span>
+<span class="nc" id="L237">        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L238">        chartPannel.setViewportView(content);</span>
         try {
-<span class="nc" id="L239">            List&lt;String&gt; selectedTables = getSelectedTables(selectionPaths);</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">            for(String tableName : selectedTables) {</span>
-<span class="nc" id="L241">                addChartToPanel(tableName, content);</span>
-<span class="nc" id="L242">            }</span>
-<span class="nc" id="L243">        } catch (IOException ex) {</span>
-<span class="nc" id="L244">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L245">        }</span>
-<span class="nc" id="L246">        chartPannel.repaint();</span>
-<span class="nc" id="L247">    }//GEN-LAST:event_jButton1ActionPerformed</span>
+<span class="nc" id="L240">            List&lt;String&gt; selectedTables = getSelectedTables(selectionPaths);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            for(String tableName : selectedTables) {</span>
+<span class="nc" id="L242">                addChartToPanel(tableName, content);</span>
+<span class="nc" id="L243">            }</span>
+<span class="nc" id="L244">        } catch (IOException ex) {</span>
+<span class="nc" id="L245">            throw new RuntimeException(ex);</span>
+<span class="nc" id="L246">        }</span>
+<span class="nc" id="L247">        chartPannel.repaint();</span>
+<span class="nc" id="L248">    }//GEN-LAST:event_jButton1ActionPerformed</span>
 
         @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;UP_UNUSED_PARAMETER&quot;)
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-<span class="nc" id="L251">        TreePath[] selectionPaths = measurementTree.getSelectionPaths();</span>
-<span class="nc" id="L252">        List&lt;String&gt; selectedTables = getSelectedTables(selectionPaths);</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (!selectedTables.isEmpty()) {</span>
-<span class="nc" id="L254">            JFileChooser chooser = new JFileChooser();</span>
-<span class="nc" id="L255">            chooser.setDialogType(JFileChooser.SAVE_DIALOG);</span>
-<span class="nc" id="L256">            int returnVal = chooser.showOpenDialog(this);</span>
-<span class="nc bnc" id="L257" title="All 2 branches missed.">            if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
-<span class="nc" id="L258">                File file = chooser.getSelectedFile();</span>
+<span class="nc" id="L252">        TreePath[] selectionPaths = measurementTree.getSelectionPaths();</span>
+<span class="nc" id="L253">        List&lt;String&gt; selectedTables = getSelectedTables(selectionPaths);</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if (!selectedTables.isEmpty()) {</span>
+<span class="nc" id="L255">            JFileChooser chooser = new JFileChooser();</span>
+<span class="nc" id="L256">            chooser.setDialogType(JFileChooser.SAVE_DIALOG);</span>
+<span class="nc" id="L257">            int returnVal = chooser.showOpenDialog(this);</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">            if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L259">                File file = chooser.getSelectedFile();</span>
                 try {
-<span class="nc" id="L260">                    tsDb.writeCsvTables(selectedTables, file);</span>
-<span class="nc" id="L261">                } catch (IOException ex) {</span>
-<span class="nc" id="L262">                    throw new RuntimeException(ex);</span>
-<span class="nc" id="L263">                }</span>
+<span class="nc" id="L261">                    tsDb.writeCsvTables(selectedTables, file);</span>
+<span class="nc" id="L262">                } catch (IOException ex) {</span>
+<span class="nc" id="L263">                    throw new RuntimeException(ex);</span>
+<span class="nc" id="L264">                }</span>
             }
         }
-<span class="nc" id="L266">    }//GEN-LAST:event_jButton2ActionPerformed</span>
+<span class="nc" id="L267">    }//GEN-LAST:event_jButton2ActionPerformed</span>
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane chartPannel;
     private javax.swing.JSpinner endDate;
@@ -280,72 +281,72 @@ public class TSDBViewJInternalFrame extends javax.swing.JInternalFrame {
 
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
     private static List&lt;String&gt; getSelectedTables(@Nullable final TreePath[] selectionPaths) {
-<span class="nc bnc" id="L283" title="All 2 branches missed.">        if (selectionPaths == null) {</span>
-<span class="nc" id="L284">            return Collections.EMPTY_LIST;</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        if (selectionPaths == null) {</span>
+<span class="nc" id="L285">            return Collections.EMPTY_LIST;</span>
         }
-<span class="nc" id="L286">        List&lt;String&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">        for (TreePath path : selectionPaths) {</span>
-<span class="nc" id="L288">            Object[] pathArr = path.getPath();</span>
-<span class="nc bnc" id="L289" title="All 2 branches missed.">            if (pathArr.length &lt; 2) {</span>
-<span class="nc" id="L290">                continue;</span>
+<span class="nc" id="L287">        List&lt;String&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        for (TreePath path : selectionPaths) {</span>
+<span class="nc" id="L289">            Object[] pathArr = path.getPath();</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">            if (pathArr.length &lt; 2) {</span>
+<span class="nc" id="L291">                continue;</span>
             }
-<span class="nc" id="L292">            DefaultMutableTreeNode colNode = (DefaultMutableTreeNode) pathArr[1];</span>
-<span class="nc" id="L293">            int depth = colNode.getDepth();</span>
+<span class="nc" id="L293">            DefaultMutableTreeNode colNode = (DefaultMutableTreeNode) pathArr[1];</span>
+<span class="nc" id="L294">            int depth = colNode.getDepth();</span>
             String tableName;
-<span class="nc bnc" id="L295" title="All 2 branches missed.">            if (depth == 1) {</span>
-<span class="nc" id="L296">                result.add((String) colNode.getUserObject());</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">            if (depth == 1) {</span>
+<span class="nc" id="L297">                result.add((String) colNode.getUserObject());</span>
             } else {
-<span class="nc" id="L298">                Enumeration childEnum = colNode.children();</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">                while (childEnum.hasMoreElements()) {</span>
-<span class="nc" id="L300">                    DefaultMutableTreeNode child = (DefaultMutableTreeNode) childEnum.nextElement();</span>
-<span class="nc" id="L301">                    tableName =</span>
-<span class="nc" id="L302">                            Pair.of((String) colNode.getUserObject(), (String) child.getUserObject()).toString();</span>
-<span class="nc" id="L303">                    result.add(tableName);</span>
-<span class="nc" id="L304">                }</span>
+<span class="nc" id="L299">                Enumeration childEnum = colNode.children();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">                while (childEnum.hasMoreElements()) {</span>
+<span class="nc" id="L301">                    DefaultMutableTreeNode child = (DefaultMutableTreeNode) childEnum.nextElement();</span>
+<span class="nc" id="L302">                    tableName =</span>
+<span class="nc" id="L303">                            Pair.of((String) colNode.getUserObject(), (String) child.getUserObject()).toString();</span>
+<span class="nc" id="L304">                    result.add(tableName);</span>
+<span class="nc" id="L305">                }</span>
             }
         }
-<span class="nc" id="L307">        return result;</span>
+<span class="nc" id="L308">        return result;</span>
     }
 
     private void addChartToPanel(final String tableName, final JPanel content) throws IOException {
-<span class="nc" id="L311">        TSTable info = tsDb.getTSTable(tableName);</span>
-<span class="nc" id="L312">         long startTime = ((Date) startDate.getValue()).getTime();</span>
-<span class="nc" id="L313">         long endTime = ((Date) endDate.getValue()).getTime();</span>
-<span class="nc bnc" id="L314" title="All 2 branches missed.">        if (TimeSeriesDatabase.canGenerateHeatChart(info)) {</span>
-<span class="nc" id="L315">            JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),</span>
+<span class="nc" id="L312">        TSTable info = tsDb.getTSTable(tableName);</span>
+<span class="nc" id="L313">         long startTime = ((Date) startDate.getValue()).getTime();</span>
+<span class="nc" id="L314">         long endTime = ((Date) endDate.getValue()).getTime();</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        if (TimeSeriesDatabase.canGenerateHeatChart(info)) {</span>
+<span class="nc" id="L316">            JFreeChart chart = tsDb.createHeatJFreeChart(info.getTableName(),</span>
                     startTime, endTime);
-<span class="nc" id="L317">            ChartPanel pannel = new ChartPanel(chart);</span>
-<span class="nc" id="L318">            pannel.setPreferredSize(new Dimension(600, 800));</span>
-<span class="nc" id="L319">            pannel.setDomainZoomable(false);</span>
-<span class="nc" id="L320">            pannel.setMouseZoomable(false);</span>
-<span class="nc" id="L321">            pannel.setRangeZoomable(false);</span>
-<span class="nc" id="L322">            pannel.setZoomAroundAnchor(false);</span>
-<span class="nc" id="L323">            pannel.setZoomInFactor(1);</span>
-<span class="nc" id="L324">            pannel.setZoomOutFactor(1);</span>
-<span class="nc" id="L325">            content.add(pannel);</span>
+<span class="nc" id="L318">            ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L319">            pannel.setPreferredSize(new Dimension(600, 800));</span>
+<span class="nc" id="L320">            pannel.setDomainZoomable(false);</span>
+<span class="nc" id="L321">            pannel.setMouseZoomable(false);</span>
+<span class="nc" id="L322">            pannel.setRangeZoomable(false);</span>
+<span class="nc" id="L323">            pannel.setZoomAroundAnchor(false);</span>
+<span class="nc" id="L324">            pannel.setZoomInFactor(1);</span>
+<span class="nc" id="L325">            pannel.setZoomOutFactor(1);</span>
+<span class="nc" id="L326">            content.add(pannel);</span>
         }
-<span class="nc bnc" id="L327" title="All 2 branches missed.">        if (TimeSeriesDatabase.canGenerateMinMaxAvgCount(info)) {</span>
-<span class="nc" id="L328">            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName(),</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (TimeSeriesDatabase.canGenerateMinMaxAvgCount(info)) {</span>
+<span class="nc" id="L329">            JFreeChart chart = tsDb.createMinMaxAvgJFreeChart(info.getTableName(),</span>
                     startTime, endTime);
-<span class="nc" id="L330">            ChartPanel pannel = new ChartPanel(chart);</span>
-<span class="nc" id="L331">            pannel.setPreferredSize(new Dimension(600, 600));</span>
-<span class="nc" id="L332">            content.add(pannel);</span>
+<span class="nc" id="L331">            ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L332">            pannel.setPreferredSize(new Dimension(600, 600));</span>
+<span class="nc" id="L333">            content.add(pannel);</span>
 
         }
-<span class="nc bnc" id="L335" title="All 2 branches missed.">        if (TimeSeriesDatabase.canGenerateCount(info)) {</span>
-<span class="nc" id="L336">            JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName(),</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        if (TimeSeriesDatabase.canGenerateCount(info)) {</span>
+<span class="nc" id="L337">            JFreeChart chart = tsDb.createCountJFreeChart(info.getTableName(),</span>
                     startTime, endTime);
-<span class="nc" id="L338">            ChartPanel pannel = new ChartPanel(chart);</span>
-<span class="nc" id="L339">            pannel.setPreferredSize(new Dimension(600, 600));</span>
-<span class="nc" id="L340">            content.add(pannel);</span>
-<span class="nc" id="L341">        } else {</span>
-<span class="nc" id="L342">            List&lt;JFreeChart&gt; createJFreeCharts = tsDb.createJFreeCharts(info.getTableName(), startTime, endTime);</span>
-<span class="nc bnc" id="L343" title="All 2 branches missed.">            for (JFreeChart chart : createJFreeCharts) {</span>
-<span class="nc" id="L344">                ChartPanel pannel = new ChartPanel(chart);</span>
-<span class="nc" id="L345">                pannel.setPreferredSize(new Dimension(600, 600));</span>
-<span class="nc" id="L346">                content.add(pannel);</span>
-<span class="nc" id="L347">            }</span>
+<span class="nc" id="L339">            ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L340">            pannel.setPreferredSize(new Dimension(600, 600));</span>
+<span class="nc" id="L341">            content.add(pannel);</span>
+<span class="nc" id="L342">        } else {</span>
+<span class="nc" id="L343">            List&lt;JFreeChart&gt; createJFreeCharts = tsDb.createJFreeCharts(info.getTableName(), startTime, endTime);</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">            for (JFreeChart chart : createJFreeCharts) {</span>
+<span class="nc" id="L345">                ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L346">                pannel.setPreferredSize(new Dimension(600, 600));</span>
+<span class="nc" id="L347">                content.add(pannel);</span>
+<span class="nc" id="L348">            }</span>
         }
-<span class="nc" id="L349">    }</span>
+<span class="nc" id="L350">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

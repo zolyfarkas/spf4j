@@ -33,6 +33,10 @@ package org.spf4j.pool.jdbc;
 
 import com.google.common.annotations.Beta;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -42,6 +46,7 @@ import java.util.logging.Logger;
 import javax.sql.DataSource;
 import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 
@@ -52,87 +57,119 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
 @Beta
 public final class PooledDataSource implements DataSource, AutoCloseable {
 
-    private final RecyclingSupplier&lt;Connection&gt; pool;
+  private final RecyclingSupplier&lt;Connection&gt; pool;
 
+  public PooledDataSource(final int initialSize, final int maxSize,
+          final String driverName, final String url, final String user, final String password)
+          throws ObjectCreationException {
+<span class="nc" id="L65">    this(initialSize, maxSize, new JdbcConnectionFactory(driverName, url, user, password));</span>
+<span class="nc" id="L66">  }</span>
 
-    public PooledDataSource(final int initialSize, final int maxSize,
-            final String driverName, final String url, final String user, final String password)
-<span class="nc" id="L60">            throws ObjectCreationException {</span>
-<span class="nc" id="L61">        final JdbcConnectionFactory jdbcConnectionFactory =</span>
-                new JdbcConnectionFactory(driverName, url, user, password);
-<span class="nc" id="L63">        RecyclingSupplierBuilder&lt;Connection&gt; builder =</span>
-                new RecyclingSupplierBuilder&lt;&gt;(maxSize, jdbcConnectionFactory);
-<span class="nc" id="L65">        builder.withInitialSize(initialSize);</span>
-<span class="nc" id="L66">        pool = builder.build();</span>
-<span class="nc" id="L67">        jdbcConnectionFactory.setPool(pool);</span>
-<span class="nc" id="L68">    }</span>
-
-    @Override
-    public Connection getConnection() throws SQLException {
-        try {
-<span class="nc" id="L73">            return pool.get();</span>
-<span class="nc" id="L74">        } catch (InterruptedException | ObjectBorrowException | ObjectCreationException ex) {</span>
-<span class="nc" id="L75">            throw new SQLException(ex);</span>
-<span class="nc" id="L76">        } catch (TimeoutException ex) {</span>
-<span class="nc" id="L77">          throw new SQLTimeoutException(ex);</span>
-        }
-    }
-
-    @Override
-    public Connection getConnection(final String username, final String password)
-            throws SQLFeatureNotSupportedException {
-<span class="nc" id="L84">        throw new SQLFeatureNotSupportedException();</span>
-    }
-
-    @Override
-    public PrintWriter getLogWriter() throws SQLFeatureNotSupportedException {
-<span class="nc" id="L89">        throw new SQLFeatureNotSupportedException();</span>
-    }
-
-    @Override
-    public void setLogWriter(final PrintWriter out) throws SQLFeatureNotSupportedException {
-<span class="nc" id="L94">        throw new SQLFeatureNotSupportedException();</span>
-    }
-
-    @Override
-    public void setLoginTimeout(final int seconds) throws SQLFeatureNotSupportedException {
-<span class="nc" id="L99">        throw new SQLFeatureNotSupportedException();</span>
-    }
-
-    @Override
-    public int getLoginTimeout() throws SQLFeatureNotSupportedException {
-<span class="nc" id="L104">        throw new SQLFeatureNotSupportedException();</span>
-    }
-
-    @Override
-    public &lt;T&gt; T unwrap(final Class&lt;T&gt; iface) throws SQLException {
-<span class="nc bnc" id="L109" title="All 4 branches missed.">        if (iface.equals(DataSource.class) || iface.equals(PooledDataSource.class)) {</span>
-<span class="nc" id="L110">            return (T) this;</span>
-        } else {
-<span class="nc" id="L112">            throw new SQLException(&quot;Not a wrapper for &quot; + iface);</span>
-        }
-    }
-
-    @Override
-    public boolean isWrapperFor(final Class&lt;?&gt; iface) {
-<span class="nc bnc" id="L118" title="All 4 branches missed.">        return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);</span>
-    }
-
-    @Override
-    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-<span class="nc" id="L123">        throw new SQLFeatureNotSupportedException();</span>
-    }
-
-    @Override
-    public String toString() {
-<span class="nc" id="L128">        return &quot;PooledDataSource{&quot; + &quot;pool=&quot; + pool + '}';</span>
-    }
+  public PooledDataSource(final int initialSize, final int maxSize,
+<span class="fc" id="L69">          final RecyclingSupplier.Factory&lt;Connection&gt; jdbcConnectionFactory) throws ObjectCreationException {</span>
+<span class="fc" id="L70">    RecyclingSupplierBuilder&lt;Connection&gt; builder</span>
+            = new RecyclingSupplierBuilder&lt;&gt;(maxSize, jdbcConnectionFactory);
+<span class="fc" id="L72">    builder.withInitialSize(initialSize);</span>
+<span class="fc" id="L73">    pool = builder.build();</span>
+<span class="fc" id="L74">  }</span>
 
   @Override
-  public void close() throws Exception {
-<span class="nc" id="L133">    pool.dispose();</span>
-<span class="nc" id="L134">  }</span>
+  public Connection getConnection() throws SQLException {
+    Connection raw;
+    try {
+<span class="fc" id="L80">      raw = pool.get();</span>
+<span class="nc" id="L81">    } catch (InterruptedException | ObjectBorrowException | ObjectCreationException ex) {</span>
+<span class="nc" id="L82">      throw new SQLException(ex);</span>
+<span class="nc" id="L83">    } catch (TimeoutException ex) {</span>
+<span class="nc" id="L84">      throw new SQLTimeoutException(ex);</span>
+<span class="fc" id="L85">    }</span>
+<span class="fc" id="L86">    return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),</span>
+<span class="fc" id="L87">            new Class&lt;?&gt;[]{Connection.class}, new InvocationHandler() {</span>
 
+      private Exception ex;
+
+<span class="fc" id="L91">      private boolean closed = false;</span>
+
+      @Override
+      public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
+<span class="fc" id="L95">        String mName = method.getName();</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (&quot;close&quot;.equals(mName)) {</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">          if (!closed) {</span>
+<span class="fc" id="L98">            pool.recycle(raw, ex);</span>
+<span class="fc" id="L99">            ex = null;</span>
+<span class="fc" id="L100">            closed = true;</span>
+          }
+<span class="fc" id="L102">          return null;</span>
+        } else {
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">          if (closed) {</span>
+<span class="nc" id="L105">            throw new IllegalStateException(&quot;not aowner of this connection,&quot;</span>
+<span class="nc" id="L106">                    + &quot; it has been returned already to &quot; + pool);</span>
+          }
+          try {
+<span class="fc" id="L109">            return method.invoke(raw, args);</span>
+<span class="nc" id="L110">          } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {</span>
+<span class="nc" id="L111">            ex = e;</span>
+<span class="nc" id="L112">            throw e;</span>
+          }
+        }
+      }
+    });
+  }
+
+  @Override
+  public Connection getConnection(final String username, final String password)
+          throws SQLFeatureNotSupportedException {
+<span class="nc" id="L122">    throw new SQLFeatureNotSupportedException();</span>
+  }
+
+  @Override
+  public PrintWriter getLogWriter() throws SQLFeatureNotSupportedException {
+<span class="nc" id="L127">    throw new SQLFeatureNotSupportedException();</span>
+  }
+
+  @Override
+  public void setLogWriter(final PrintWriter out) throws SQLFeatureNotSupportedException {
+<span class="nc" id="L132">    throw new SQLFeatureNotSupportedException();</span>
+  }
+
+  @Override
+  public void setLoginTimeout(final int seconds) throws SQLFeatureNotSupportedException {
+<span class="nc" id="L137">    throw new SQLFeatureNotSupportedException();</span>
+  }
+
+  @Override
+  public int getLoginTimeout() throws SQLFeatureNotSupportedException {
+<span class="nc" id="L142">    throw new SQLFeatureNotSupportedException();</span>
+  }
+
+  @Override
+  public &lt;T&gt; T unwrap(final Class&lt;T&gt; iface) throws SQLException {
+<span class="nc bnc" id="L147" title="All 4 branches missed.">    if (iface.equals(DataSource.class) || iface.equals(PooledDataSource.class)) {</span>
+<span class="nc" id="L148">      return (T) this;</span>
+    } else {
+<span class="nc" id="L150">      throw new SQLException(&quot;Not a wrapper for &quot; + iface);</span>
+    }
+  }
+
+  @Override
+  public boolean isWrapperFor(final Class&lt;?&gt; iface) {
+<span class="nc bnc" id="L156" title="All 4 branches missed.">    return iface.equals(DataSource.class) || iface.equals(PooledDataSource.class);</span>
+  }
+
+  @Override
+  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+<span class="nc" id="L161">    throw new SQLFeatureNotSupportedException();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L166">    return &quot;PooledDataSource{&quot; + &quot;pool=&quot; + pool + '}';</span>
+  }
+
+  @Override
+  public void close() throws ObjectDisposeException, InterruptedException {
+<span class="fc" id="L171">    pool.dispose();</span>
+<span class="fc" id="L172">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

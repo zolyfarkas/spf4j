@@ -168,233 +168,224 @@
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>           <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>     <strong class="jxr_keyword">int</strong> i = 0;
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = argArray.length;
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> k = firstArgIdx; k &lt; len; k++) {
-<a class="jxr_linenumber" name="L164" href="#L164">164</a> 
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>     <strong class="jxr_keyword">int</strong> k = firstArgIdx;
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>     <strong class="jxr_keyword">for</strong> (; k &lt; len; k++) {
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>       <strong class="jxr_keyword">int</strong> j = messagePattern.indexOf(DELIM_STR, i);
-<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>       <strong class="jxr_keyword">if</strong> (j == -1) {
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>         <em class="jxr_comment">// no more variables</em>
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>         <strong class="jxr_keyword">if</strong> (i == 0) { <em class="jxr_comment">// this is a simple string</em>
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>           to.append(messagePattern, i, messagePattern.length());
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>           <strong class="jxr_keyword">return</strong> k;
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>         } <strong class="jxr_keyword">else</strong> { <em class="jxr_comment">// add the tail string which contains no variables and return</em>
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>           <em class="jxr_comment">// the result.</em>
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>           to.append(messagePattern, i, messagePattern.length());
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>           <strong class="jxr_keyword">return</strong> k;
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>         }
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>         <strong class="jxr_keyword">if</strong> (isEscapedDelimeter(messagePattern, j)) {
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>           <strong class="jxr_keyword">if</strong> (!isDoubleEscaped(messagePattern, j)) {
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>             k--; <em class="jxr_comment">// DELIM_START was escaped, thus should not be incremented</em>
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>             to.append(messagePattern, i, j - 1);
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>             to.append(DELIM_START);
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>             i = j + 1;
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>           } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>             <em class="jxr_comment">// The escape character preceding the delimiter start is</em>
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>             <em class="jxr_comment">// itself escaped: "abc x:&#92;&#92;{}"</em>
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>             <em class="jxr_comment">// we have to consume one backward slash</em>
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>             to.append(messagePattern, i, j - 1);
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>             deeplyAppendParameter(exHandler, to, argArray[k], <strong class="jxr_keyword">new</strong> THashSet&lt;&gt;(), appSupplier);
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>             i = j + 2;
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>           }
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>           <em class="jxr_comment">// normal case</em>
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>           to.append(messagePattern, i, j);
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>           deeplyAppendParameter(exHandler, to, argArray[k], <strong class="jxr_keyword">new</strong> THashSet&lt;&gt;(), appSupplier);
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>           i = j + 2;
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>         }
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>       }
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <em class="jxr_comment">// append the characters following the last {} pair.</em>
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>     to.append(messagePattern, i, messagePattern.length());
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>     <strong class="jxr_keyword">return</strong> len;
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>   }
-<a class="jxr_linenumber" name="L204" href="#L204">204</a> 
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isEscapedDelimeter(<strong class="jxr_keyword">final</strong> String messagePattern, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> delimeterStartIndex) {
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>     <strong class="jxr_keyword">if</strong> (delimeterStartIndex == 0) {
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>       <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>     }
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>     <strong class="jxr_keyword">return</strong> messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>   }
-<a class="jxr_linenumber" name="L211" href="#L211">211</a> 
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isDoubleEscaped(<strong class="jxr_keyword">final</strong> String messagePattern, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> delimeterStartIndex) {
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>     <strong class="jxr_keyword">return</strong> delimeterStartIndex &gt;= 2 &amp;&amp; messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>   }
-<a class="jxr_linenumber" name="L215" href="#L215">215</a> 
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>   <em class="jxr_comment">// special treatment of array values was suggested by 'lizongbo'</em>
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>   @SuppressFBWarnings(<span class="jxr_string">"ITC_INHERITANCE_TYPE_CHECKING"</span>)
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> deeplyAppendParameter(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Slf4jMessageFormatter.html">ErrorHandler</a> exHandler, <strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> Object o,
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>           <strong class="jxr_keyword">final</strong> Set&lt;Object[]&gt; seen, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/io/ObjectAppenderSupplier.html">ObjectAppenderSupplier</a> appSupplier) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>     <strong class="jxr_keyword">if</strong> (o == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>       sbuf.append(<span class="jxr_string">"null"</span>);
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>       <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>     }
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>     <strong class="jxr_keyword">if</strong> (!o.getClass().isArray()) {
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>       safeObjectAppend(exHandler, sbuf, o, appSupplier);
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>       <em class="jxr_comment">// check for primitive array types because they</em>
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>       <em class="jxr_comment">// unfortunately cannot be cast to Object[]</em>
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>       <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">boolean</strong>[]) {
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>         booleanArrayAppend(sbuf, (<strong class="jxr_keyword">boolean</strong>[]) o);
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof byte[]) {
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>         byteArrayAppend(sbuf, (byte[]) o);
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">char</strong>[]) {
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>         charArrayAppend(sbuf, (<strong class="jxr_keyword">char</strong>[]) o);
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">short</strong>[]) {
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>         shortArrayAppend(sbuf, (<strong class="jxr_keyword">short</strong>[]) o);
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">int</strong>[]) {
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>         intArrayAppend(sbuf, (<strong class="jxr_keyword">int</strong>[]) o);
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">long</strong>[]) {
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         longArrayAppend(sbuf, (<strong class="jxr_keyword">long</strong>[]) o);
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">float</strong>[]) {
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>         floatArrayAppend(sbuf, (<strong class="jxr_keyword">float</strong>[]) o);
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">double</strong>[]) {
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>         doubleArrayAppend(sbuf, (<strong class="jxr_keyword">double</strong>[]) o);
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>         objectArrayAppend(exHandler, sbuf, (Object[]) o, seen, appSupplier);
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>       }
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>     }
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>   }
-<a class="jxr_linenumber" name="L250" href="#L250">250</a> 
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>   @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> safeObjectAppend(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Slf4jMessageFormatter.html">ErrorHandler</a> exHandler, <strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> Object obj,
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/io/ObjectAppenderSupplier.html">ObjectAppenderSupplier</a> appSupplier) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>       appSupplier.get((Class) obj.getClass()).append(obj, sbuf);
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>     } <strong class="jxr_keyword">catch</strong> (IOException | RuntimeException | StackOverflowError t) {
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>       exHandler.accept(obj, sbuf, t);
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>     }
-<a class="jxr_linenumber" name="L259" href="#L259">259</a> 
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>   }
-<a class="jxr_linenumber" name="L261" href="#L261">261</a> 
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>   @SuppressFBWarnings(<span class="jxr_string">"ABC_ARRAY_BASED_COLLECTIONS"</span>)
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> objectArrayAppend(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Slf4jMessageFormatter.html">ErrorHandler</a> exHandler, <strong class="jxr_keyword">final</strong> Appendable sbuf,
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>           <strong class="jxr_keyword">final</strong> Object[] a, <strong class="jxr_keyword">final</strong> Set&lt;Object[]&gt; seen,
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/io/ObjectAppenderSupplier.html">ObjectAppenderSupplier</a> appSupplier) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>     <strong class="jxr_keyword">if</strong> (!seen.contains(a)) {
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>       seen.add(a);
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>       <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>         deeplyAppendParameter(exHandler, sbuf, a[0], seen, appSupplier);
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>           sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>           deeplyAppendParameter(exHandler, sbuf, a[i], seen, appSupplier);
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>         }
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>       }
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>       <em class="jxr_comment">// allow repeats in siblings</em>
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>       seen.remove(a);
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>       sbuf.append(<span class="jxr_string">"..."</span>);
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>     }
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>   }
-<a class="jxr_linenumber" name="L284" href="#L284">284</a> 
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> booleanArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>       sbuf.append(Boolean.toString(a[0]));
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>         sbuf.append(Boolean.toString(a[i]));
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>       }
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>     }
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>   }
-<a class="jxr_linenumber" name="L297" href="#L297">297</a> 
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> byteArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> byte[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>       sbuf.append(Byte.toString(a[0]));
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         sbuf.append(Byte.toString(a[i]));
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>       }
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>     }
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>   }
-<a class="jxr_linenumber" name="L310" href="#L310">310</a> 
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> charArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>       sbuf.append(a[0]);
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>         sbuf.append(a[i]);
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>       }
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>     }
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>   }
-<a class="jxr_linenumber" name="L323" href="#L323">323</a> 
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> shortArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">short</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>       sbuf.append(Short.toString(a[0]));
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>         sbuf.append(Short.toString(a[i]));
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>       }
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>     }
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>   }
-<a class="jxr_linenumber" name="L336" href="#L336">336</a> 
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> intArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>       sbuf.append(Integer.toString(a[0]));
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>         sbuf.append(Integer.toString(a[i]));
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>       }
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>     }
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>   }
-<a class="jxr_linenumber" name="L349" href="#L349">349</a> 
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> longArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>       sbuf.append(Long.toString(a[0]));
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L357" href="#L357">357</a>         sbuf.append(Long.toString(a[i]));
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>       }
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>     }
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>   }
-<a class="jxr_linenumber" name="L362" href="#L362">362</a> 
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> floatArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">float</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>       sbuf.append(Float.toString(a[0]));
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>         sbuf.append(Float.toString(a[i]));
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>       }
-<a class="jxr_linenumber" name="L372" href="#L372">372</a>     }
-<a class="jxr_linenumber" name="L373" href="#L373">373</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>   }
-<a class="jxr_linenumber" name="L375" href="#L375">375</a> 
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> doubleArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L377" href="#L377">377</a>     sbuf.append('[');
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>       sbuf.append(Double.toString(a[0]));
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
-<a class="jxr_linenumber" name="L382" href="#L382">382</a>         sbuf.append(<span class="jxr_string">", "</span>);
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>         sbuf.append(Double.toString(a[i]));
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>       }
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>     }
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>     sbuf.append(']');
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>   }
-<a class="jxr_linenumber" name="L388" href="#L388">388</a> 
-<a class="jxr_linenumber" name="L389" href="#L389">389</a> }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>       <strong class="jxr_keyword">if</strong> (j == -1) {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>         <em class="jxr_comment">// no more variables</em>
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>         <strong class="jxr_keyword">if</strong> (isEscapedDelimeter(messagePattern, j)) {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>           <strong class="jxr_keyword">if</strong> (!isDoubleEscaped(messagePattern, j)) {
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>             k--; <em class="jxr_comment">// DELIM_START was escaped, thus should not be incremented</em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>             to.append(messagePattern, i, j - 1);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>             to.append(DELIM_START);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>             i = j + 1;
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>           } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             <em class="jxr_comment">// The escape character preceding the delimiter start is</em>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>             <em class="jxr_comment">// itself escaped: "abc x:&#92;&#92;{}"</em>
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <em class="jxr_comment">// we have to consume one backward slash</em>
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             to.append(messagePattern, i, j - 1);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             deeplyAppendParameter(exHandler, to, argArray[k], <strong class="jxr_keyword">new</strong> THashSet&lt;&gt;(), appSupplier);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>             i = j + 2;
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>           }
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>           <em class="jxr_comment">// normal case</em>
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>           to.append(messagePattern, i, j);
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>           deeplyAppendParameter(exHandler, to, argArray[k], <strong class="jxr_keyword">new</strong> THashSet&lt;&gt;(), appSupplier);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>           i = j + 2;
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         }
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>       }
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>     }
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>     <em class="jxr_comment">// append the characters following the last {} pair.</em>
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     to.append(messagePattern, i, messagePattern.length());
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <strong class="jxr_keyword">return</strong> k;
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>   }
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> 
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isEscapedDelimeter(<strong class="jxr_keyword">final</strong> String messagePattern, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> delimeterStartIndex) {
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>     <strong class="jxr_keyword">if</strong> (delimeterStartIndex == 0) {
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>       <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     }
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     <strong class="jxr_keyword">return</strong> messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>   }
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> 
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isDoubleEscaped(<strong class="jxr_keyword">final</strong> String messagePattern, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> delimeterStartIndex) {
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">return</strong> delimeterStartIndex &gt;= 2 &amp;&amp; messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>   }
+<a class="jxr_linenumber" name="L207" href="#L207">207</a> 
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>   <em class="jxr_comment">// special treatment of array values was suggested by 'lizongbo'</em>
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>   @SuppressFBWarnings(<span class="jxr_string">"ITC_INHERITANCE_TYPE_CHECKING"</span>)
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> deeplyAppendParameter(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Slf4jMessageFormatter.html">ErrorHandler</a> exHandler, <strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> Object o,
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>           <strong class="jxr_keyword">final</strong> Set&lt;Object[]&gt; seen, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/io/ObjectAppenderSupplier.html">ObjectAppenderSupplier</a> appSupplier) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">if</strong> (o == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>       sbuf.append(<span class="jxr_string">"null"</span>);
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>       <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>     }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>     <strong class="jxr_keyword">if</strong> (!o.getClass().isArray()) {
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>       safeObjectAppend(exHandler, sbuf, o, appSupplier);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>       <em class="jxr_comment">// check for primitive array types because they</em>
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>       <em class="jxr_comment">// unfortunately cannot be cast to Object[]</em>
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>       <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">boolean</strong>[]) {
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         booleanArrayAppend(sbuf, (<strong class="jxr_keyword">boolean</strong>[]) o);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof byte[]) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         byteArrayAppend(sbuf, (byte[]) o);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">char</strong>[]) {
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         charArrayAppend(sbuf, (<strong class="jxr_keyword">char</strong>[]) o);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">short</strong>[]) {
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         shortArrayAppend(sbuf, (<strong class="jxr_keyword">short</strong>[]) o);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">int</strong>[]) {
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>         intArrayAppend(sbuf, (<strong class="jxr_keyword">int</strong>[]) o);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">long</strong>[]) {
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         longArrayAppend(sbuf, (<strong class="jxr_keyword">long</strong>[]) o);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">float</strong>[]) {
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         floatArrayAppend(sbuf, (<strong class="jxr_keyword">float</strong>[]) o);
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>       } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (o instanceof <strong class="jxr_keyword">double</strong>[]) {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         doubleArrayAppend(sbuf, (<strong class="jxr_keyword">double</strong>[]) o);
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         objectArrayAppend(exHandler, sbuf, (Object[]) o, seen, appSupplier);
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>       }
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>     }
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>   }
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> 
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>   @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> safeObjectAppend(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Slf4jMessageFormatter.html">ErrorHandler</a> exHandler, <strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> Object obj,
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/io/ObjectAppenderSupplier.html">ObjectAppenderSupplier</a> appSupplier) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>       appSupplier.get((Class) obj.getClass()).append(obj, sbuf);
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>     } <strong class="jxr_keyword">catch</strong> (IOException | RuntimeException | StackOverflowError t) {
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>       exHandler.accept(obj, sbuf, t);
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>     }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a> 
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>   }
+<a class="jxr_linenumber" name="L253" href="#L253">253</a> 
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>   @SuppressFBWarnings(<span class="jxr_string">"ABC_ARRAY_BASED_COLLECTIONS"</span>)
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> objectArrayAppend(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Slf4jMessageFormatter.html">ErrorHandler</a> exHandler, <strong class="jxr_keyword">final</strong> Appendable sbuf,
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>           <strong class="jxr_keyword">final</strong> Object[] a, <strong class="jxr_keyword">final</strong> Set&lt;Object[]&gt; seen,
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/io/ObjectAppenderSupplier.html">ObjectAppenderSupplier</a> appSupplier) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>     <strong class="jxr_keyword">if</strong> (seen.add(a)) {
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>       <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>       <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>         deeplyAppendParameter(exHandler, sbuf, a[0], seen, appSupplier);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>           sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>           deeplyAppendParameter(exHandler, sbuf, a[i], seen, appSupplier);
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         }
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>       }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>       <em class="jxr_comment">// allow repeats in siblings</em>
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>       seen.remove(a);
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>       sbuf.append(<span class="jxr_string">"..."</span>);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>     }
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>   }
+<a class="jxr_linenumber" name="L275" href="#L275">275</a> 
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> booleanArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>       sbuf.append(Boolean.toString(a[0]));
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         sbuf.append(Boolean.toString(a[i]));
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>       }
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>     }
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>   }
+<a class="jxr_linenumber" name="L288" href="#L288">288</a> 
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> byteArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> byte[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>       sbuf.append(Byte.toString(a[0]));
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         sbuf.append(Byte.toString(a[i]));
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>       }
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>     }
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>   }
+<a class="jxr_linenumber" name="L301" href="#L301">301</a> 
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> charArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">char</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>       sbuf.append(a[0]);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         sbuf.append(a[i]);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>       }
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     }
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>   }
+<a class="jxr_linenumber" name="L314" href="#L314">314</a> 
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> shortArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">short</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>       sbuf.append(Short.toString(a[0]));
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         sbuf.append(Short.toString(a[i]));
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>       }
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>     }
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>   }
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> 
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> intArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>       sbuf.append(Integer.toString(a[0]));
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         sbuf.append(Integer.toString(a[i]));
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>       }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>     }
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>   }
+<a class="jxr_linenumber" name="L340" href="#L340">340</a> 
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> longArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>       sbuf.append(Long.toString(a[0]));
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         sbuf.append(Long.toString(a[i]));
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>       }
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>     }
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>   }
+<a class="jxr_linenumber" name="L353" href="#L353">353</a> 
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> floatArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">float</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>       sbuf.append(Float.toString(a[0]));
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>         sbuf.append(Float.toString(a[i]));
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>       }
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>     }
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>   }
+<a class="jxr_linenumber" name="L366" href="#L366">366</a> 
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> doubleArrayAppend(<strong class="jxr_keyword">final</strong> Appendable sbuf, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong>[] a) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>     sbuf.append('[');
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len = a.length;
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>     <strong class="jxr_keyword">if</strong> (len &gt; 0) {
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>       sbuf.append(Double.toString(a[0]));
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; len; i++) {
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>         sbuf.append(<span class="jxr_string">", "</span>);
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         sbuf.append(Double.toString(a[i]));
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>       }
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>     }
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>     sbuf.append(']');
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>   }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
+<a class="jxr_linenumber" name="L380" href="#L380">380</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

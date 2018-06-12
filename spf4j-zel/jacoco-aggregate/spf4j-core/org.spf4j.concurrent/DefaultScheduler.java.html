@@ -75,6 +75,14 @@ public final class DefaultScheduler {
     });
 <span class="fc" id="L76">  }</span>
 
+  public static ScheduledExecutorService instance() {
+<span class="nc" id="L79">    return INSTANCE;</span>
+  }
+
+  public static ListeningScheduledExecutorService listenableInstance() {
+<span class="nc" id="L83">    return LISTENABLE_INSTANCE;</span>
+  }
+
   private DefaultScheduler() {
   }
 
@@ -87,17 +95,17 @@ public final class DefaultScheduler {
    */
   public static ScheduledFuture&lt;?&gt; scheduleAllignedAtFixedRateMillis(
           final Runnable command, final long millisInterval) {
-<span class="fc" id="L90">    long currentTime = System.currentTimeMillis();</span>
-    long nextScheduleTime;
-<span class="fc bfc" id="L92" title="All 2 branches covered.">    if (millisInterval &lt; HOUR_MILLIS) {</span>
-<span class="fc" id="L93">      long millisPastHour = currentTime % HOUR_MILLIS;</span>
-<span class="fc" id="L94">      nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;</span>
-<span class="fc" id="L95">    } else {</span>
-<span class="fc" id="L96">      long millisPastDay = currentTime % DAY_MILLIS;</span>
-<span class="fc" id="L97">      nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;</span>
+<span class="fc" id="L98">    long currentTime = System.currentTimeMillis();</span>
+    long nextScheduleDelay;
+<span class="fc bfc" id="L100" title="All 2 branches covered.">    if (millisInterval &lt; HOUR_MILLIS) {</span>
+<span class="fc" id="L101">      long millisPastHour = currentTime % HOUR_MILLIS;</span>
+<span class="fc" id="L102">      nextScheduleDelay =  millisInterval - millisPastHour % millisInterval;</span>
+<span class="fc" id="L103">    } else {</span>
+<span class="fc" id="L104">      long millisPastDay = currentTime % DAY_MILLIS;</span>
+<span class="fc" id="L105">      nextScheduleDelay =  millisInterval - millisPastDay % millisInterval;</span>
     }
-<span class="fc" id="L99">    return INSTANCE.scheduleAtFixedRate(</span>
-            command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
+<span class="fc" id="L107">    return INSTANCE.scheduleAtFixedRate(</span>
+            command, nextScheduleDelay, millisInterval, TimeUnit.MILLISECONDS);
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

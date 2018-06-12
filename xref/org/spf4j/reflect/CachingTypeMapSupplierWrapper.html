@@ -42,15 +42,15 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.cache.CacheBuilder;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.cache.CacheLoader;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> com.google.common.cache.LoadingCache;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> com.google.common.util.concurrent.UncheckedExecutionException;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> gnu.trove.set.hash.THashSet;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Type;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.GuardedBy;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.ThreadSafe;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> gnu.trove.set.hash.THashSet;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Type;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.ExecutionException;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Nullable;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.GuardedBy;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> javax.annotation.concurrent.ThreadSafe;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.UncheckedExecutionException;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.concurrent.UnboundedLoadingCache;
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment">/**</em>
@@ -84,19 +84,19 @@
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>    }
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>  
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> putIfNotPresent(<strong class="jxr_keyword">final</strong> Type type, <strong class="jxr_keyword">final</strong> ByTypeSupplier&lt;H, E&gt; appender) {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> putIfNotPresent(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Callables.html">Type</a> type, <strong class="jxr_keyword">final</strong> ByTypeSupplier&lt;H, E&gt; appender) {
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">synchronized</strong> (syncObj) {
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>        <strong class="jxr_keyword">return</strong> wrapped.putIfNotPresent(type, appender);
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>      }
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>    }
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> safePut(<strong class="jxr_keyword">final</strong> Type type, <strong class="jxr_keyword">final</strong> ByTypeSupplier&lt;H, E&gt; object) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> safePut(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Callables.html">Type</a> type, <strong class="jxr_keyword">final</strong> ByTypeSupplier&lt;H, E&gt; object) {
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">if</strong> (!putIfNotPresent(type, object)) {
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>        <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Cannot put "</span> + type + <span class="jxr_string">", "</span> + object + <span class="jxr_string">" exiting mapping present"</span>);
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>      }
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>    }
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> remove(<strong class="jxr_keyword">final</strong> Type type) {
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> remove(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Callables.html">Type</a> type) {
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">boolean</strong> remove;
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">synchronized</strong> (syncObj) {
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>        remove = wrapped.remove(type);
@@ -116,7 +116,7 @@
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>   @Override
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>   @SuppressFBWarnings({ <span class="jxr_string">"BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"</span>, <span class="jxr_string">"SPP_USE_ISEMPTY"</span>, <span class="jxr_string">"LEST_LOST_EXCEPTION_STACK_TRACE"</span> })
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>   @Nullable
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>   <strong class="jxr_keyword">public</strong> H get(<strong class="jxr_keyword">final</strong> Type type) <strong class="jxr_keyword">throws</strong> E {
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>   <strong class="jxr_keyword">public</strong> H get(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Callables.html">Type</a> type) <strong class="jxr_keyword">throws</strong> E {
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>     Set&lt;H&gt; get;
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L114" href="#L114">114</a>       get = cache.get(type);
@@ -125,7 +125,7 @@
 <a class="jxr_linenumber" name="L117" href="#L117">117</a>       <strong class="jxr_keyword">if</strong> (cause.getClass() == exClass) {
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">throw</strong> (E) cause;
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedExecutionException(ex);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/base/UncheckedExecutionException.html">UncheckedExecutionException</a>(ex);
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>       }
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>     }
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>     <strong class="jxr_keyword">int</strong> size = get.size();
@@ -141,7 +141,7 @@
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/reflect/CachingTypeMapWrapper.html">TypeMapedObjLoader</a> <strong class="jxr_keyword">extends</strong> CacheLoader&lt;Type, Set&lt;H&gt;&gt; {
 <a class="jxr_linenumber" name="L134" href="#L134">134</a> 
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>     @Override
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">public</strong> Set&lt;H&gt; load(<strong class="jxr_keyword">final</strong> Type key) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">public</strong> Set&lt;H&gt; load(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Callables.html">Type</a> key) <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>       <strong class="jxr_keyword">synchronized</strong> (wrapped) {
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>         Set&lt;ByTypeSupplier&lt;H, E&gt;&gt; all = wrapped.getAll(key);
 <a class="jxr_linenumber" name="L139" href="#L139">139</a>         Set&lt;H&gt; result = <strong class="jxr_keyword">new</strong> THashSet&lt;&gt;(all.size());

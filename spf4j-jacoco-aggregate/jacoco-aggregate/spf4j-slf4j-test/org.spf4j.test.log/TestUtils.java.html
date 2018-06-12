@@ -23,9 +23,18 @@ import java.util.List;
 public final class TestUtils {
   private TestUtils() { }
 
+  public static boolean isExecutedInCI() {
+<span class="nc" id="L27">    return isExecutedInTravis();</span>
+  }
+
+  public static boolean isExecutedInTravis() {
+<span class="nc" id="L31">    return &quot;true&quot;.equalsIgnoreCase(System.getenv(&quot;TRAVIS&quot;));</span>
+  }
+
+
   public static boolean isExecutedFromNetbeans() {
-<span class="fc" id="L27">    String mvnNetbeansCP = System.getProperty(&quot;maven.ext.class.path&quot;);</span>
-<span class="pc bpc" id="L28" title="1 of 4 branches missed.">    return mvnNetbeansCP != null &amp;&amp; mvnNetbeansCP.contains(&quot;netbeans&quot;);</span>
+<span class="nc" id="L36">    String mvnNetbeansCP = System.getProperty(&quot;maven.ext.class.path&quot;);</span>
+<span class="nc bnc" id="L37" title="All 4 branches missed.">    return mvnNetbeansCP != null &amp;&amp; mvnNetbeansCP.contains(&quot;netbeans&quot;);</span>
   }
 
   /**
@@ -34,14 +43,14 @@ public final class TestUtils {
    * @return
    */
   public static boolean isExecutedFromIDE() {
-<span class="pc bpc" id="L37" title="1 of 4 branches missed.">    return isExecutedFromNetbeans() || System.getProperty(&quot;spf4j.execFromIDE&quot;) != null;</span>
+<span class="nc bnc" id="L46" title="All 4 branches missed.">    return isExecutedFromNetbeans() || System.getProperty(&quot;spf4j.execFromIDE&quot;) != null;</span>
   }
 
   public static boolean isExecutedWithDebuggerAgent() {
-<span class="fc" id="L41">    List&lt;String&gt; inputArguments = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
-<span class="fc" id="L42">    return inputArguments.stream()</span>
-<span class="pc bpc" id="L43" title="3 of 6 branches missed.">            .filter((arg) -&gt; &quot;-agentlib:jdwp&quot;.equals(arg) || &quot;-Xdebug&quot;.equals(arg) || arg.startsWith(&quot;-Xrunjdwp&quot;))</span>
-<span class="pc bpc" id="L44" title="1 of 2 branches missed.">            .count() &gt; 0;</span>
+<span class="nc" id="L50">    List&lt;String&gt; inputArguments = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
+<span class="nc" id="L51">    return inputArguments.stream()</span>
+<span class="nc bnc" id="L52" title="All 6 branches missed.">            .filter((arg) -&gt; &quot;-agentlib:jdwp&quot;.equals(arg) || &quot;-Xdebug&quot;.equals(arg) || arg.startsWith(&quot;-Xrunjdwp&quot;))</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">            .count() &gt; 0;</span>
 
   }
 

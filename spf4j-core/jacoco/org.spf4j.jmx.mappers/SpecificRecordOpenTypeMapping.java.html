@@ -34,7 +34,6 @@ package org.spf4j.jmx.mappers;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 import org.spf4j.jmx.JMXBeanMapping;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.sun.jmx.mbeanserver.MXBeanMapping;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InvalidObjectException;
@@ -53,6 +52,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.spf4j.base.Reflections;
+import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.jmx.JMXBeanMappingSupplier;
 
 /**

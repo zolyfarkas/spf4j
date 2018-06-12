@@ -51,18 +51,18 @@ public final class DefaultExecutor {
   public static final ExecutorService INSTANCE;
 
   static {
-<span class="fc" id="L54">    final int coreThreads = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.coreThreads&quot;, 0);</span>
-<span class="fc" id="L55">    final int maxIdleMillis = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.maxIdleMillis&quot;, 60000);</span>
-<span class="fc" id="L56">    final boolean isDaemon = Boolean.getBoolean(&quot;spf4j.executors.defaultExecutor.daemon&quot;);</span>
-<span class="fc" id="L57">    final String impParam = &quot;spf4j.executors.defaultExecutor.implementation&quot;;</span>
-<span class="fc" id="L58">    final String value = System.getProperty(impParam, &quot;spf4j&quot;);</span>
-<span class="pc bpc" id="L59" title="3 of 4 branches missed.">    switch (value) {</span>
+<span class="nc" id="L54">    final int coreThreads = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.coreThreads&quot;, 0);</span>
+<span class="nc" id="L55">    final int maxIdleMillis = Integer.getInteger(&quot;spf4j.executors.defaultExecutor.maxIdleMillis&quot;, 60000);</span>
+<span class="nc" id="L56">    final boolean isDaemon = Boolean.getBoolean(&quot;spf4j.executors.defaultExecutor.daemon&quot;);</span>
+<span class="nc" id="L57">    final String impParam = &quot;spf4j.executors.defaultExecutor.implementation&quot;;</span>
+<span class="nc" id="L58">    final String value = System.getProperty(impParam, &quot;spf4j&quot;);</span>
+<span class="nc bnc" id="L59" title="All 4 branches missed.">    switch (value) {</span>
       case &quot;spf4j&quot;:
-<span class="fc" id="L61">        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
+<span class="nc" id="L61">        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP(&quot;defaultExecutor&quot;, coreThreads,</span>
                 Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon);
-<span class="fc" id="L63">        lifoExec.exportJmx();</span>
-<span class="fc" id="L64">        INSTANCE = lifoExec;</span>
-<span class="fc" id="L65">        break;</span>
+<span class="nc" id="L63">        lifoExec.exportJmx();</span>
+<span class="nc" id="L64">        INSTANCE = lifoExec;</span>
+<span class="nc" id="L65">        break;</span>
       case &quot;fjp&quot;: // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
 <span class="nc" id="L67">        INSTANCE = new ForkJoinPool(32767);</span>
 <span class="nc" id="L68">        break;</span>
@@ -73,25 +73,25 @@ public final class DefaultExecutor {
       default:
 <span class="nc" id="L74">        throw new IllegalArgumentException(&quot;Ivalid setting for &quot; + impParam + &quot; = &quot; + value);</span>
     }
-<span class="fc" id="L76">    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
+<span class="nc" id="L76">    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
 
       @Override
       public void doRun() throws InterruptedException {
-<span class="fc" id="L80">        INSTANCE.shutdown();</span>
-<span class="fc" id="L81">        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);</span>
-<span class="fc" id="L82">        List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (remaining.size() &gt; 0) {</span>
+<span class="nc" id="L80">        INSTANCE.shutdown();</span>
+<span class="nc" id="L81">        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L82">        List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (remaining.size() &gt; 0) {</span>
 <span class="nc" id="L84">          org.spf4j.base.Runtime.error(&quot;Remaining tasks: &quot; + remaining);</span>
         }
-<span class="fc" id="L86">      }</span>
+<span class="nc" id="L86">      }</span>
     });
-<span class="fc" id="L88">  }</span>
+<span class="nc" id="L88">  }</span>
 
   private DefaultExecutor() {
   }
 
   public static ExecutorService instance() {
-<span class="fc" id="L94">    return INSTANCE;</span>
+<span class="nc" id="L94">    return INSTANCE;</span>
   }
 
 }

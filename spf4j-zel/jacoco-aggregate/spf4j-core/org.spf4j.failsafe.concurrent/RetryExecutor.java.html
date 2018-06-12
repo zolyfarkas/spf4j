@@ -31,7 +31,6 @@
  */
 package org.spf4j.failsafe.concurrent;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -49,6 +48,7 @@ import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPredicate;
 import org.spf4j.base.TimeSource;
+import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.FutureBean;
 

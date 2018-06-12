@@ -32,11 +32,9 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.Closeable;
 import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +45,7 @@ import org.spf4j.base.Runtime;
 import org.spf4j.base.SysExits;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.unix.Lsof;
 
 /**
@@ -62,168 +61,167 @@ public final class OpenFilesSampler {
   private static ScheduledFuture&lt;?&gt; samplingFuture;
   private static AccumulatorRunnable accumulator;
 
-<span class="fc" id="L65">  private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);</span>
+<span class="nc" id="L64">  private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);</span>
 
-<span class="fc" id="L67">  private static volatile CharSequence lastWarnLsof = &quot;&quot;;</span>
+<span class="nc" id="L66">  private static volatile CharSequence lastWarnLsof = &quot;&quot;;</span>
 
   static {
-<span class="fc" id="L70">    Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+<span class="nc" id="L69">    Runtime.queueHook(2, new AbstractRunnable(true) {</span>
       @Override
       public void doRun() throws IOException {
-<span class="nc" id="L73">        stop();</span>
-<span class="nc" id="L74">      }</span>
+<span class="nc" id="L72">        stop();</span>
+<span class="nc" id="L73">      }</span>
     });
-<span class="fc" id="L76">    Registry.export(OpenFilesSampler.class);</span>
-<span class="fc" id="L77">  }</span>
+<span class="nc" id="L75">    Registry.export(OpenFilesSampler.class);</span>
+<span class="nc" id="L76">  }</span>
 
   private OpenFilesSampler() {
   }
 
   public static void start(final long sampleTimeMillis) {
-<span class="nc" id="L83">    long maxFileDescriptorCount = OperatingSystem.getMaxFileDescriptorCount();</span>
-<span class="nc" id="L84">    start(sampleTimeMillis, maxFileDescriptorCount - maxFileDescriptorCount / 10,</span>
+<span class="nc" id="L82">    long maxFileDescriptorCount = OperatingSystem.getMaxFileDescriptorCount();</span>
+<span class="nc" id="L83">    start(sampleTimeMillis, maxFileDescriptorCount - maxFileDescriptorCount / 10,</span>
             maxFileDescriptorCount, true);
-<span class="nc" id="L86">  }</span>
+<span class="nc" id="L85">  }</span>
 
   @JmxExport
   public static void start(@JmxExport(&quot;sampleTimeMillis&quot;) final long sampleTimeMillis,
           @JmxExport(&quot;shutdownOnError&quot;) final boolean shutdownOnError) {
-<span class="nc" id="L91">    long maxFileDescriptorCount = OperatingSystem.getMaxFileDescriptorCount();</span>
-<span class="nc" id="L92">    start(sampleTimeMillis, maxFileDescriptorCount - maxFileDescriptorCount / 10,</span>
+<span class="nc" id="L90">    long maxFileDescriptorCount = OperatingSystem.getMaxFileDescriptorCount();</span>
+<span class="nc" id="L91">    start(sampleTimeMillis, maxFileDescriptorCount - maxFileDescriptorCount / 10,</span>
             maxFileDescriptorCount, shutdownOnError);
-<span class="nc" id="L94">  }</span>
+<span class="nc" id="L93">  }</span>
 
   @JmxExport
   public static String getWarnLsofDetail() {
-<span class="nc" id="L98">    return lastWarnLsof.toString();</span>
+<span class="nc" id="L97">    return lastWarnLsof.toString();</span>
   }
 
   public static void start(final long sampleTimeMillis,
           final long warnThreshold, final long errorThreshold, final boolean shutdownOnError) {
-<span class="fc" id="L103">    start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);</span>
-<span class="fc" id="L104">  }</span>
+<span class="nc" id="L102">    start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);</span>
+<span class="nc" id="L103">  }</span>
 
   public static synchronized void start(final long sampleTimeMillis,
           final long warnThreshold, final long errorThreshold, final boolean shutdownOnError,
           final int aggTimeMillis) {
-<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    if (samplingFuture == null) {</span>
-<span class="fc" id="L110">      accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">    if (samplingFuture == null) {</span>
+<span class="nc" id="L109">      accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,</span>
               warnThreshold, aggTimeMillis);
-<span class="fc" id="L112">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulator,</span>
+<span class="nc" id="L111">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulator,</span>
               sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
     } else {
-<span class="nc" id="L115">      throw new IllegalStateException(&quot;Open file usage sampling already started &quot; + samplingFuture);</span>
+<span class="nc" id="L114">      throw new IllegalStateException(&quot;Open file usage sampling already started &quot; + samplingFuture);</span>
     }
-<span class="fc" id="L117">  }</span>
+<span class="nc" id="L116">  }</span>
 
   @JmxExport
   public static synchronized void stop() throws IOException {
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
-<span class="fc" id="L122">      samplingFuture.cancel(false);</span>
-<span class="fc" id="L123">      samplingFuture = null;</span>
-      try {
-<span class="fc" id="L125">        accumulator.close();</span>
-      } finally {
-<span class="fc" id="L127">        accumulator = null;</span>
-      }
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    if (samplingFuture != null) {</span>
+<span class="nc" id="L121">      samplingFuture.cancel(false);</span>
+<span class="nc" id="L122">      samplingFuture = null;</span>
+<span class="nc" id="L123">      accumulator.close();</span>
+<span class="nc" id="L124">      accumulator = null;</span>
     }
-<span class="fc" id="L130">  }</span>
+<span class="nc" id="L126">  }</span>
 
   @JmxExport
   public static synchronized boolean isStarted() {
-<span class="nc bnc" id="L134" title="All 2 branches missed.">    return samplingFuture != null;</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    return samplingFuture != null;</span>
   }
 
   @JmxExport
   public static String getLsof() {
-<span class="nc" id="L139">    CharSequence lsofOutput = Runtime.getLsofOutput();</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">    return lsofOutput == null ? &quot;unable to obtain lsof&quot; : lsofOutput.toString();</span>
+<span class="nc" id="L135">    CharSequence lsofOutput = Runtime.getLsofOutput();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">    return lsofOutput == null ? &quot;unable to obtain lsof&quot; : lsofOutput.toString();</span>
   }
 
   @Deprecated
   public static long getMaxNrOpenFiles() {
-<span class="nc" id="L145">    return OperatingSystem.getMaxFileDescriptorCount();</span>
+<span class="nc" id="L141">    return OperatingSystem.getMaxFileDescriptorCount();</span>
   }
 
   @Deprecated
   public static long getNrOpenFiles() {
-<span class="nc" id="L150">    return OperatingSystem.getOpenFileDescriptorCount();</span>
+<span class="nc" id="L146">    return OperatingSystem.getOpenFileDescriptorCount();</span>
   }
 
   @JmxExport
   public static long getWarnThreshold() {
-<span class="nc bnc" id="L155" title="All 2 branches missed.">    if (accumulator == null) {</span>
-<span class="nc" id="L156">      return -1;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">    if (accumulator == null) {</span>
+<span class="nc" id="L152">      return -1;</span>
     }
-<span class="nc" id="L158">    return accumulator.getWarnThreshold();</span>
+<span class="nc" id="L154">    return accumulator.getWarnThreshold();</span>
   }
 
   @JmxExport
   public static long getErrorThreshold() {
-<span class="nc bnc" id="L163" title="All 2 branches missed.">    if (accumulator == null) {</span>
-<span class="nc" id="L164">      return -1;</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">    if (accumulator == null) {</span>
+<span class="nc" id="L160">      return -1;</span>
     }
-<span class="nc" id="L166">    return accumulator.getErrorThreshold();</span>
+<span class="nc" id="L162">    return accumulator.getErrorThreshold();</span>
   }
 
 
-  private static class AccumulatorRunnable extends AbstractRunnable implements Closeable {
+  private static class AccumulatorRunnable extends AbstractRunnable implements AutoCloseable {
 
     private final long errorThreshold;
     private final boolean shutdownOnError;
     private final long warnThreshold;
-    private final MeasurementRecorder nrOpenFiles;
+    private final CloseableMeasurementRecorder nrOpenFiles;
 
     AccumulatorRunnable(final long errorThreshold, final boolean shutdownOnError,
-<span class="fc" id="L178">            final long warnThreshold, final int aggMillis) {</span>
-<span class="fc" id="L179">      this.errorThreshold = errorThreshold;</span>
-<span class="fc" id="L180">      this.shutdownOnError = shutdownOnError;</span>
-<span class="fc" id="L181">      this.warnThreshold = warnThreshold;</span>
-<span class="fc" id="L182">      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder(&quot;nr-open-files&quot;, &quot;count&quot;, aggMillis);</span>
-<span class="fc" id="L183">    }</span>
+<span class="nc" id="L174">            final long warnThreshold, final int aggMillis) {</span>
+<span class="nc" id="L175">      this.errorThreshold = errorThreshold;</span>
+<span class="nc" id="L176">      this.shutdownOnError = shutdownOnError;</span>
+<span class="nc" id="L177">      this.warnThreshold = warnThreshold;</span>
+<span class="nc" id="L178">      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;nr-open-files&quot;, &quot;count&quot;, aggMillis);</span>
+<span class="nc" id="L179">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
     public void doRun() {
-<span class="fc" id="L188">      long time = System.currentTimeMillis();</span>
-<span class="fc" id="L189">      long nrOf = OperatingSystem.getOpenFileDescriptorCount();</span>
-<span class="pc bpc" id="L190" title="1 of 2 branches missed.">      if (nrOf &gt; errorThreshold) {</span>
-<span class="nc" id="L191">        lastWarnLsof = Lsof.getLsofOutput();</span>
-<span class="nc" id="L192">        LOG.error(&quot;Nr open files is {} and exceeds error threshold {}, detail:\n{}&quot;,</span>
-<span class="nc" id="L193">                nrOf, errorThreshold, lastWarnLsof);</span>
-<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (shutdownOnError) {</span>
-<span class="nc" id="L195">          Runtime.goDownWithError(null, SysExits.EX_IOERR);</span>
+<span class="nc" id="L184">      long time = System.currentTimeMillis();</span>
+<span class="nc" id="L185">      long nrOf = OperatingSystem.getOpenFileDescriptorCount();</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">      if (nrOf &gt; errorThreshold) {</span>
+<span class="nc" id="L187">        lastWarnLsof = Lsof.getLsofOutput();</span>
+<span class="nc" id="L188">        LOG.error(&quot;Nr open files is {} and exceeds error threshold {}, detail:\n{}&quot;,</span>
+<span class="nc" id="L189">                nrOf, errorThreshold, lastWarnLsof);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (shutdownOnError) {</span>
+<span class="nc" id="L191">          Runtime.goDownWithError(null, SysExits.EX_IOERR);</span>
         }
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">      } else if (nrOf &gt; warnThreshold) {</span>
-<span class="nc" id="L198">        lastWarnLsof = Lsof.getLsofOutput();</span>
-<span class="nc" id="L199">        LOG.warn(&quot;Nr open files is {} and exceeds warn threshold {}, detail:\n{} &quot;,</span>
-<span class="nc" id="L200">                nrOf, warnThreshold, lastWarnLsof);</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (!Runtime.gc(60000)) {</span>
-<span class="nc" id="L202">          LOG.warn(&quot;Unable to trigger GC although running low on file resources&quot;);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">      } else if (nrOf &gt; warnThreshold) {</span>
+<span class="nc" id="L194">        lastWarnLsof = Lsof.getLsofOutput();</span>
+<span class="nc" id="L195">        LOG.warn(&quot;Nr open files is {} and exceeds warn threshold {}, detail:\n{} &quot;,</span>
+<span class="nc" id="L196">                nrOf, warnThreshold, lastWarnLsof);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (!Runtime.gc(60000)) {</span>
+<span class="nc" id="L198">          LOG.warn(&quot;Unable to trigger GC although running low on file resources&quot;);</span>
         } else {
-<span class="nc" id="L204">          LOG.warn(&quot;gc executed nr open files reduced by {} files&quot;,</span>
-<span class="nc" id="L205">                  nrOf - OperatingSystem.getOpenFileDescriptorCount());</span>
+<span class="nc" id="L200">          LOG.warn(&quot;gc executed nr open files reduced by {} files&quot;,</span>
+<span class="nc" id="L201">                  nrOf - OperatingSystem.getOpenFileDescriptorCount());</span>
         }
       }
-<span class="fc" id="L208">      this.nrOpenFiles.recordAt(time, nrOf);</span>
-<span class="fc" id="L209">    }</span>
-
-    @Override
-    public void close() throws IOException {
-<span class="fc" id="L213">        this.nrOpenFiles.close();</span>
-<span class="fc" id="L214">    }</span>
+<span class="nc" id="L204">      this.nrOpenFiles.recordAt(time, nrOf);</span>
+<span class="nc" id="L205">    }</span>
 
     public long getErrorThreshold() {
-<span class="nc" id="L217">      return errorThreshold;</span>
+<span class="nc" id="L208">      return errorThreshold;</span>
     }
 
     public boolean isShutdownOnError() {
-<span class="nc" id="L221">      return shutdownOnError;</span>
+<span class="nc" id="L212">      return shutdownOnError;</span>
     }
 
     public long getWarnThreshold() {
-<span class="nc" id="L225">      return warnThreshold;</span>
+<span class="nc" id="L216">      return warnThreshold;</span>
     }
+
+    @Override
+    public void close() {
+<span class="nc" id="L221">      nrOpenFiles.close();</span>
+<span class="nc" id="L222">    }</span>
+
+
 
   }
 

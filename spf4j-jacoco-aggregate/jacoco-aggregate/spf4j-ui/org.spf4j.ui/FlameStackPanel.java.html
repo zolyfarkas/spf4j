@@ -71,7 +71,7 @@ public final class FlameStackPanel extends StackPanelBase&lt;Pair&lt;Method, Sam
 <span class="nc" id="L71">    setElementColor(depth, g2);</span>
 <span class="nc" id="L72">    g2.setClip(x, y, width, height);</span>
 <span class="nc" id="L73">    g2.fillRect(x, y, width, height);</span>
-<span class="nc" id="L74">    insert(x, y, width, height, new Sampled&lt;&gt;(Pair.of(method, node), sampleCount));</span>
+<span class="nc" id="L74">    insert(x, y, width, height, Pair.of(method, node));</span>
 <span class="nc" id="L75">    g2.setPaint(Color.BLACK);</span>
 <span class="nc" id="L76">    g2.drawString(val, x, y + height - 1);</span>
 <span class="nc" id="L77">    g2.setClip(null);</span>
@@ -103,10 +103,10 @@ public final class FlameStackPanel extends StackPanelBase&lt;Pair&lt;Method, Sam
   @SuppressFBWarnings(&quot;ISB_TOSTRING_APPENDING&quot;)
   @Nullable
   public String getDetail(final Point location) {
-<span class="nc" id="L106">    List&lt;Sampled&lt;Pair&lt;Method, SampleNode&gt;&gt;&gt; tips = search(location.x, location.y, 0, 0);</span>
+<span class="nc" id="L106">    List&lt;Pair&lt;Method, SampleNode&gt;&gt; tips = search(location.x, location.y, 0, 0);</span>
 <span class="nc bnc" id="L107" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L108">      final Sampled&lt;Pair&lt;Method, SampleNode&gt;&gt; m = tips.get(0);</span>
-<span class="nc" id="L109">      return m.getObj().toString() + '-' + m.getNrSamples();</span>
+<span class="nc" id="L108">      final Pair&lt;Method, SampleNode&gt; m = tips.get(0);</span>
+<span class="nc" id="L109">      return m.getFirst().toString() + '-' + m.getSecond().getSampleCount();</span>
     } else {
 <span class="nc" id="L111">      return null;</span>
     }
@@ -114,9 +114,9 @@ public final class FlameStackPanel extends StackPanelBase&lt;Pair&lt;Method, Sam
 
   @Override
   public void filter() {
-<span class="nc" id="L117">    List&lt;Sampled&lt;Pair&lt;Method, SampleNode&gt;&gt;&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc" id="L117">    List&lt;Pair&lt;Method, SampleNode&gt;&gt; tips = search(xx, yy, 0, 0);</span>
 <span class="nc bnc" id="L118" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L119">      final Method value = tips.get(0).getObj().getFirst();</span>
+<span class="nc" id="L119">      final Method value = tips.get(0).getFirst();</span>
 <span class="nc" id="L120">      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate&lt;Method&gt;(value)));</span>
 <span class="nc" id="L121">      repaint();</span>
     }
@@ -124,9 +124,9 @@ public final class FlameStackPanel extends StackPanelBase&lt;Pair&lt;Method, Sam
 
   @Override
   public void drill() {
-<span class="nc" id="L127">    List&lt;Sampled&lt;Pair&lt;Method, SampleNode&gt;&gt;&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc" id="L127">    List&lt;Pair&lt;Method, SampleNode&gt;&gt; tips = search(xx, yy, 0, 0);</span>
 <span class="nc bnc" id="L128" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L129">      Pair&lt;Method, SampleNode&gt; sample = tips.get(0).getObj();</span>
+<span class="nc" id="L129">      Pair&lt;Method, SampleNode&gt; sample = tips.get(0);</span>
 <span class="nc" id="L130">      updateSamples(sample.getFirst(), sample.getSecond());</span>
 <span class="nc" id="L131">      repaint();</span>
     }

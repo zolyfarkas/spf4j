@@ -16,9 +16,7 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.spf4j.base.Callables;
 
 /**
  *
@@ -26,15 +24,35 @@ import javax.annotation.Nullable;
  */
 @FunctionalInterface
 public interface PartialExceptionRetryPredicate&lt;T, C extends Callable&lt;? extends T&gt;&gt;
-        extends BiFunction&lt;Exception, C, RetryDecision&lt;T, C&gt;&gt; {
+        extends PartialTypedExceptionRetryPredicate&lt;T, C, Exception&gt; {
 
-  @Nullable
-  RetryDecision&lt;T, C&gt; getExceptionDecision(@Nonnull Exception value, @Nonnull C what);
-
-  @Override
-  default RetryDecision&lt;T, C&gt; apply(final Exception t, final C u) {
-<span class="fc" id="L36">    return getExceptionDecision(t, u);</span>
+  /**
+   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
+   */
+  @Deprecated
+  static PartialExceptionRetryPredicate&lt;?, ? extends Callable&lt;?&gt;&gt; from(
+          final Callables.AdvancedRetryPredicate&lt;Exception&gt; oldStyle) {
+<span class="nc" id="L35">    return new PartialExceptionRetryPredicate&lt;Object, Callable&lt;? extends Object&gt;&gt;() {</span>
+      @Override
+      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
+<span class="nc" id="L38">        Callables.AdvancedAction aa = oldStyle.apply(value);</span>
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        switch (aa) {</span>
+          case ABORT:
+<span class="nc" id="L41">            return org.spf4j.failsafe.RetryDecision.abort();</span>
+          case RETRY:
+          case RETRY_DELAYED:
+<span class="nc" id="L44">            return org.spf4j.failsafe.RetryDecision.retryDefault(what);</span>
+          case RETRY_IMMEDIATE:
+<span class="nc" id="L46">            return org.spf4j.failsafe.RetryDecision.retry(0, what);</span>
+          default:
+<span class="nc" id="L48">            throw new IllegalStateException(&quot;Invalid enum value &quot; + aa);</span>
+        }
+      }
+    };
   }
+
+
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

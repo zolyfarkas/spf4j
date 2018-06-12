@@ -50,21 +50,21 @@ final class AsyncRetryExecutorImpl&lt;T, C extends Callable&lt;? extends T&gt;&g
   private final RetryExecutor executor;
 
   AsyncRetryExecutorImpl(final RetryPolicy&lt;T, C&gt; retryPolicy,
-<span class="fc" id="L53">          final RetryExecutor executor) {</span>
-<span class="fc" id="L54">    this.executor = executor;</span>
-<span class="fc" id="L55">    this.retryPolicy = retryPolicy;</span>
-<span class="fc" id="L56">  }</span>
+<span class="nc" id="L53">          final RetryExecutor executor) {</span>
+<span class="nc" id="L54">    this.executor = executor;</span>
+<span class="nc" id="L55">    this.retryPolicy = retryPolicy;</span>
+<span class="nc" id="L56">  }</span>
 
 
   @Override
   public &lt;R extends T, W extends C&gt; Future&lt;R&gt; submit(final W pwhat,
           final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L62">    return (Future&lt;R&gt;) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
+<span class="nc" id="L62">    return (Future&lt;R&gt;) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
   }
 
   public &lt;W extends C&gt; void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L66">    executor.execute(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
-<span class="fc" id="L67">  }</span>
+<span class="nc" id="L66">    executor.execute(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
+<span class="nc" id="L67">  }</span>
 
   @Override
   public String toString() {
@@ -74,7 +74,7 @@ final class AsyncRetryExecutorImpl&lt;T, C extends Callable&lt;? extends T&gt;&g
   @Override
   public &lt;R extends T, W extends C, EX extends Exception&gt; R call(final W pwhat, final Class&lt;EX&gt; exceptionClass,
           final long startNanos, final long deadlineNanos) throws InterruptedException, TimeoutException, EX {
-<span class="fc" id="L77">    return retryPolicy.call(pwhat, exceptionClass, startNanos, deadlineNanos);</span>
+<span class="nc" id="L77">    return retryPolicy.call(pwhat, exceptionClass, startNanos, deadlineNanos);</span>
   }
 
 

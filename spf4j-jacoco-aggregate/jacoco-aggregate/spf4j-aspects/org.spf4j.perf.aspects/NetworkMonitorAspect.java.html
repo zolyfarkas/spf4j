@@ -48,17 +48,17 @@ import org.spf4j.perf.impl.RecorderFactory;
  */
 @Aspect
 @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
-<span class="fc" id="L51">public final class NetworkMonitorAspect {</span>
+<span class="nc" id="L51">public final class NetworkMonitorAspect {</span>
 
-<span class="fc" id="L53">    public static final int SAMPLE_TIME =</span>
-<span class="fc" id="L54">            Integer.getInteger(&quot;spf4j.perf.network.sampleTimeMillis&quot;, 300000);</span>
+<span class="nc" id="L53">    public static final int SAMPLE_TIME =</span>
+<span class="nc" id="L54">            Integer.getInteger(&quot;spf4j.perf.network.sampleTimeMillis&quot;, 300000);</span>
 
-<span class="fc" id="L56">    private static final MeasurementRecorderSource RECORDER_READ =</span>
-<span class="fc" id="L57">            RecorderFactory.createScalableCountingRecorderSource(&quot;network-read&quot;, &quot;bytes&quot;,</span>
+<span class="nc" id="L56">    private static final MeasurementRecorderSource RECORDER_READ =</span>
+<span class="nc" id="L57">            RecorderFactory.createScalableCountingRecorderSource(&quot;network-read&quot;, &quot;bytes&quot;,</span>
             SAMPLE_TIME);
 
-<span class="fc" id="L60">    private static final MeasurementRecorderSource RECORDER_WRITE =</span>
-<span class="fc" id="L61">            RecorderFactory.createScalableCountingRecorderSource(&quot;network-write&quot;, &quot;bytes&quot;,</span>
+<span class="nc" id="L60">    private static final MeasurementRecorderSource RECORDER_WRITE =</span>
+<span class="nc" id="L61">            RecorderFactory.createScalableCountingRecorderSource(&quot;network-write&quot;, &quot;bytes&quot;,</span>
             SAMPLE_TIME);
 
 
@@ -101,14 +101,14 @@ import org.spf4j.perf.impl.RecorderFactory;
 
     @Around(&quot;call(* java.net.Socket.getInputStream())&quot;)
     public Object socketIS(final ProceedingJoinPoint pjp) throws Throwable {
-<span class="fc" id="L104">        InputStream result = (InputStream) pjp.proceed();</span>
-<span class="fc" id="L105">        return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_READ);</span>
+<span class="nc" id="L104">        InputStream result = (InputStream) pjp.proceed();</span>
+<span class="nc" id="L105">        return new MeasuredInputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_READ);</span>
     }
 
     @Around(&quot;call(* java.net.Socket.getOutputStream())&quot;)
     public Object socketOS(final ProceedingJoinPoint pjp) throws Throwable {
-<span class="fc" id="L110">        OutputStream result = (OutputStream) pjp.proceed();</span>
-<span class="fc" id="L111">        return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_WRITE);</span>
+<span class="nc" id="L110">        OutputStream result = (OutputStream) pjp.proceed();</span>
+<span class="nc" id="L111">        return new MeasuredOutputStream(result, pjp.getSourceLocation().getWithinType().getName(), RECORDER_WRITE);</span>
     }
 
 

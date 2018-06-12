@@ -48,49 +48,49 @@ public final class CALLA extends Instruction {
 
     private final int nrParameters;
 
-<span class="fc" id="L51">    public CALLA(final int nrParameters) {</span>
-<span class="fc" id="L52">        this.nrParameters = nrParameters;</span>
-<span class="fc" id="L53">    }</span>
+<span class="nc" id="L51">    public CALLA(final int nrParameters) {</span>
+<span class="nc" id="L52">        this.nrParameters = nrParameters;</span>
+<span class="nc" id="L53">    }</span>
 
     @Override
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
     public int execute(final ExecutionContext context)
             throws ExecutionException, InterruptedException, SuspendedException {
-<span class="fc" id="L59">        final Object function = context.peekFromTop(nrParameters);</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (function instanceof Program) {</span>
-<span class="fc" id="L61">            final Program p = (Program) function;</span>
+<span class="nc" id="L59">        final Object function = context.peekFromTop(nrParameters);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (function instanceof Program) {</span>
+<span class="nc" id="L61">            final Program p = (Program) function;</span>
             final ExecutionContext nctx;
             Object obj;
-<span class="pc bpc" id="L64" title="2 of 3 branches missed.">            switch (p.getType()) {</span>
+<span class="nc bnc" id="L64" title="All 3 branches missed.">            switch (p.getType()) {</span>
                 case DETERMINISTIC:
 <span class="nc" id="L66">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
 <span class="nc" id="L67">                    context.pop();</span>
 <span class="nc" id="L68">                    List&lt;Object&gt; params = CALL.getParameters(nctx, nrParameters);</span>
-<span class="nc" id="L69">                    obj = context.getResultCache().getResult(p, params, () -&gt; nctx.executeAsync());</span>
+<span class="nc" id="L69">                    obj = context.getResultCache().getResult(p, params, nctx::executeAsync);</span>
 <span class="nc" id="L70">                    break;</span>
                 case NONDETERMINISTIC:
-<span class="fc" id="L72">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
-<span class="fc" id="L73">                    context.pop();</span>
-<span class="fc" id="L74">                    obj = nctx.executeAsync();</span>
-<span class="fc" id="L75">                    break;</span>
+<span class="nc" id="L72">                    nctx = context.getSubProgramContext(p, nrParameters);</span>
+<span class="nc" id="L73">                    context.pop();</span>
+<span class="nc" id="L74">                    obj = nctx.executeAsync();</span>
+<span class="nc" id="L75">                    break;</span>
                 default:
 <span class="nc" id="L77">                    throw new UnsupportedOperationException(p.getType().toString());</span>
             }
-<span class="fc" id="L79">            context.push(obj);</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        } else if (function instanceof Method) {</span>
-<span class="fc" id="L81">            Object[] parameters = context.popSyncStackVals(nrParameters);</span>
-<span class="fc" id="L82">            context.pop();</span>
-<span class="fc" id="L83">            Future&lt;Object&gt; obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));</span>
-<span class="fc" id="L84">            context.push(obj);</span>
-<span class="fc" id="L85">        } else {</span>
+<span class="nc" id="L79">            context.push(obj);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        } else if (function instanceof Method) {</span>
+<span class="nc" id="L81">            Object[] parameters = context.popSyncStackVals(nrParameters);</span>
+<span class="nc" id="L82">            context.pop();</span>
+<span class="nc" id="L83">            Future&lt;Object&gt; obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));</span>
+<span class="nc" id="L84">            context.push(obj);</span>
+<span class="nc" id="L85">        } else {</span>
 <span class="nc" id="L86">            throw new ZExecutionException(&quot;cannot invoke &quot; + function);</span>
         }
-<span class="fc" id="L88">        return 1;</span>
+<span class="nc" id="L88">        return 1;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="fc" id="L93">        return new Object[] {nrParameters};</span>
+<span class="nc" id="L93">        return new Object[] {nrParameters};</span>
     }
 
     private static class MethodVMExecutor implements VMExecutor.Suspendable&lt;Object&gt; {
@@ -99,15 +99,15 @@ public final class CALLA extends Instruction {
         private final ExecutionContext context;
         private final Object[] parameters;
 
-<span class="fc" id="L102">        MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {</span>
-<span class="fc" id="L103">            this.function = function;</span>
-<span class="fc" id="L104">            this.context = context;</span>
-<span class="fc" id="L105">            this.parameters = parameters;</span>
-<span class="fc" id="L106">        }</span>
+<span class="nc" id="L102">        MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {</span>
+<span class="nc" id="L103">            this.function = function;</span>
+<span class="nc" id="L104">            this.context = context;</span>
+<span class="nc" id="L105">            this.parameters = parameters;</span>
+<span class="nc" id="L106">        }</span>
 
         @Override
         public Object call() {
-<span class="fc" id="L110">            return ((Method) function).invoke(context, parameters);</span>
+<span class="nc" id="L110">            return ((Method) function).invoke(context, parameters);</span>
         }
 
         @Override

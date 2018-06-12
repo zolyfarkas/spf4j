@@ -103,8 +103,8 @@
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>    @Test
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testDefaulPolicy() <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, TimeoutException {
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">try</strong> (LogAssert expect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 2,
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>              LogMatchers.hasMatchingMessage(
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>                      Matchers.startsWith(<span class="jxr_string">"Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest"</span>)))) {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              LogMatchers.hasMessageWithPattern(
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>                      <span class="jxr_string">"Result java.lang.RuntimeException.* for org.spf4j.failsafe.RetryPolicyTest.*"</span>))) {
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>       <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>         RetryPolicy.defaultPolicy().run(() -&gt; {
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException();
@@ -190,10 +190,10 @@
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>     AsyncRetryExecutor&lt;Response, ServerCall&gt; rp = buildRetryExecutor();
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>     <a href="../../../org/spf4j/failsafe/Server.html">Server</a> server = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Server.html">Server</a>();
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>     <a href="../../../org/spf4j/failsafe/Response.html">Response</a> response1 = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Response.html">Response</a>(Response.Type.OK, <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>     server.setResponse(<span class="jxr_string">"url1"</span>, (r) -&gt; response1);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     server.setResponse(<span class="jxr_string">"url1"</span>, (x) -&gt; response1);
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>     server.setResponse(<span class="jxr_string">"url2"</span>, (r) -&gt; <strong class="jxr_keyword">new</strong> Response(Response.Type.REDIRECT, <span class="jxr_string">"url1"</span>));
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>     server.setResponse(<span class="jxr_string">"url3"</span>, (r) -&gt; <strong class="jxr_keyword">new</strong> Response(Response.Type.ERROR, <span class="jxr_string">"boooo"</span>));
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>     testSyncRetry(server, rp, response1);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     assertSyncRetry(server, rp, response1);
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>   }
 <a class="jxr_linenumber" name="L190" href="#L190">190</a> 
 <a class="jxr_linenumber" name="L191" href="#L191">191</a>   @Test
@@ -201,10 +201,10 @@
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>     AsyncRetryExecutor&lt;Response, ServerCall&gt; rp = buildRetryExecutor();
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>     <a href="../../../org/spf4j/failsafe/Server.html">Server</a> server = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Server.html">Server</a>();
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>     <a href="../../../org/spf4j/failsafe/Response.html">Response</a> response1 = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Response.html">Response</a>(Response.Type.OK, <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>     server.setResponse(<span class="jxr_string">"url1"</span>, (r) -&gt; response1);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>     server.setResponse(<span class="jxr_string">"url1"</span>, (x) -&gt; response1);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>     server.setResponse(<span class="jxr_string">"url2"</span>, (r) -&gt; <strong class="jxr_keyword">new</strong> Response(Response.Type.REDIRECT, <span class="jxr_string">"url1"</span>));
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>     server.setResponse(<span class="jxr_string">"url3"</span>, (r) -&gt; <strong class="jxr_keyword">new</strong> Response(Response.Type.ERROR, <span class="jxr_string">"boooo"</span>));
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>     testASyncRetry(server, rp, response1);
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     assertASyncRetry(server, rp, response1);
 <a class="jxr_linenumber" name="L200" href="#L200">200</a>   }
 <a class="jxr_linenumber" name="L201" href="#L201">201</a> 
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong>  AsyncRetryExecutor&lt;Response, ServerCall&gt; buildRetryExecutor() {
@@ -238,7 +238,7 @@
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>   }
 <a class="jxr_linenumber" name="L231" href="#L231">231</a> 
 <a class="jxr_linenumber" name="L232" href="#L232">232</a>   @SuppressFBWarnings(<span class="jxr_string">"CC_CYCLOMATIC_COMPLEXITY"</span>)
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">void</strong> testSyncRetry(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/failsafe/Server.html">Server</a> server, <strong class="jxr_keyword">final</strong> AsyncRetryExecutor&lt;Response, ServerCall&gt; rp,
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">void</strong> assertSyncRetry(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/failsafe/Server.html">Server</a> server, <strong class="jxr_keyword">final</strong> AsyncRetryExecutor&lt;Response, ServerCall&gt; rp,
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/failsafe/Response.html">Response</a> response1)
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>           <strong class="jxr_keyword">throws</strong> InterruptedException, TimeoutException, ExecutionException, IOException {
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>     <strong class="jxr_keyword">long</strong> deadlineMillis = System.currentTimeMillis() + 1000;
@@ -255,8 +255,8 @@
 <a class="jxr_linenumber" name="L247" href="#L247">247</a>     }
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>     server.breakException(<strong class="jxr_keyword">new</strong> SocketException(<span class="jxr_string">"Bla bla"</span>));
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>             LogMatchers.hasMatchingMessage(
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>                     Matchers.startsWith(<span class="jxr_string">"Result java.net.SocketException: Bla bla for ServerCall"</span>)))) {
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>             LogMatchers.hasMessageWithPattern(
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                     <span class="jxr_string">"Result java.net.SocketException for ServerCall.*"</span>))) {
 <a class="jxr_linenumber" name="L252" href="#L252">252</a>       <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>         rp.run(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)), IOException.<strong class="jxr_keyword">class</strong>,
 <a class="jxr_linenumber" name="L254" href="#L254">254</a>                 1000, TimeUnit.MILLISECONDS);
@@ -296,7 +296,7 @@
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>   }
 <a class="jxr_linenumber" name="L289" href="#L289">289</a> 
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>   @SuppressFBWarnings(<span class="jxr_string">"CC_CYCLOMATIC_COMPLEXITY"</span>)
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">void</strong> testASyncRetry(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/failsafe/Server.html">Server</a> server, <strong class="jxr_keyword">final</strong> AsyncRetryExecutor&lt;Response, ServerCall&gt; rp,
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">void</strong> assertASyncRetry(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/failsafe/Server.html">Server</a> server, <strong class="jxr_keyword">final</strong> AsyncRetryExecutor&lt;Response, ServerCall&gt; rp,
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/failsafe/Response.html">Response</a> response1)
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>           <strong class="jxr_keyword">throws</strong> InterruptedException, TimeoutException, ExecutionException, IOException {
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>     <strong class="jxr_keyword">long</strong> deadlineMillis = System.currentTimeMillis() + 1000;
@@ -313,8 +313,8 @@
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>     }
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>     server.breakException(<strong class="jxr_keyword">new</strong> SocketException(<span class="jxr_string">"Bla bla"</span>));
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>             LogMatchers.hasMatchingMessage(
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>                     Matchers.startsWith(<span class="jxr_string">"Result java.net.SocketException: Bla bla for ServerCall"</span>)))) {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>             LogMatchers.hasMessageWithPattern(
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>                     <span class="jxr_string">"Result java.net.SocketException for ServerCall.*"</span>))) {
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>       <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>         rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)),
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>                 1000, TimeUnit.MILLISECONDS).get();

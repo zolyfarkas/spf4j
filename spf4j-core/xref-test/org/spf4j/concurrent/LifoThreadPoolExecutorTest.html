@@ -72,7 +72,7 @@
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testLifoExecSQ() <strong class="jxr_keyword">throws</strong> InterruptedException, IOException {
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      LifoThreadPoolExecutorSQP executor
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>              = <strong class="jxr_keyword">new</strong> LifoThreadPoolExecutorSQP(<span class="jxr_string">"test"</span>, 8, 8, 60000, 1024);
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>      testPool(executor);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      assertPoolBehavior(executor);
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>    }
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>  
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>    @Test
@@ -83,7 +83,7 @@
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>                       .withQueueSizeLimit(0).withRejectionHandler((a, b) -&gt; {
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>                       <strong class="jxr_keyword">throw</strong> ex;
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>                       }).build();
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>         testPool(executor);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>         assertPoolBehavior(executor);
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>    }
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>  
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>    @Test(timeout = 60000)
@@ -96,7 +96,7 @@
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>                       })
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>                       .withSpinLockCount(1024)
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>                       .buildMutable();
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>      testPool(executor);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      assertPoolBehavior(executor);
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>    }
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>  
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>  
@@ -175,17 +175,17 @@
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>     <strong class="jxr_keyword">final</strong> LinkedBlockingQueue linkedBlockingQueue = <strong class="jxr_keyword">new</strong> LinkedBlockingQueue(1024);
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>     ThreadPoolExecutor executor = <strong class="jxr_keyword">new</strong> ThreadPoolExecutor(8, 8, 60000, TimeUnit.MILLISECONDS,
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>             linkedBlockingQueue);
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>     testPool(executor);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     assertPoolBehavior(executor);
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>   }
 <a class="jxr_linenumber" name="L172" href="#L172">172</a> 
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>   @Test
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>   @Ignore
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testJdkFJPExec() <strong class="jxr_keyword">throws</strong> InterruptedException, IOException {
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>     ExecutorService executor = <strong class="jxr_keyword">new</strong> ForkJoinPool(8);
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>     testPool(executor);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     assertPoolBehavior(executor);
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>   }
 <a class="jxr_linenumber" name="L179" href="#L179">179</a> 
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> testPool(<strong class="jxr_keyword">final</strong> ExecutorService executor)
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> assertPoolBehavior(<strong class="jxr_keyword">final</strong> ExecutorService executor)
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>           <strong class="jxr_keyword">throws</strong> InterruptedException, IOException {
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>     <strong class="jxr_keyword">final</strong> LongAdder adder = <strong class="jxr_keyword">new</strong> LongAdder();
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> testCount = 10000000;

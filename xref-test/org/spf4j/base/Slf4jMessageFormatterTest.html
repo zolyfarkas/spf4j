@@ -132,10 +132,23 @@
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>                     + <span class="jxr_string">"89012345678901234567890123456789012345678901234567890123456789"</span>);
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>     LOG.debug(<span class="jxr_string">"formatted message: {}"</span>, sb);
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>     Assert.assertThat(sb.toString(), Matchers.containsString(<span class="jxr_string">"...@"</span>));
-<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>   }
-<a class="jxr_linenumber" name="L129" href="#L129">129</a> 
-<a class="jxr_linenumber" name="L130" href="#L130">130</a> }
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>   }
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> 
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>   @Test
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>   @SuppressFBWarnings({ <span class="jxr_string">"LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS"</span>, <span class="jxr_string">"UCC_UNRELATED_COLLECTION_CONTENTS"</span> })
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testFormatterRecursion() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     Object[] arr = <strong class="jxr_keyword">new</strong> Object[4];
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     arr[0] = <span class="jxr_string">"a"</span>;
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     arr[1] = arr;
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     arr[2] = <span class="jxr_string">"b"</span>;
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     arr[3] = arr;
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     Slf4jMessageFormatter.format(builder, <span class="jxr_string">"{} {}"</span>, (Object) arr, arr);
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     LOG.debug(<span class="jxr_string">""</span>, builder);
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     Assert.assertEquals(<span class="jxr_string">"[a, [...], b, [...]] [a, [...], b, [...]]"</span>, builder.toString());
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>   }
+<a class="jxr_linenumber" name="L142" href="#L142">142</a> 
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

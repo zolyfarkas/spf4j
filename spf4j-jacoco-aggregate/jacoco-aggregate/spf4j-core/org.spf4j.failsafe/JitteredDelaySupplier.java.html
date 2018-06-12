@@ -28,20 +28,20 @@ final class JitteredDelaySupplier implements RetryDelaySupplier {
 
   private final double jitterFactor;
 
-<span class="fc" id="L31">  JitteredDelaySupplier(final RetryDelaySupplier wrapped, final double jitterFactor) {</span>
-<span class="fc" id="L32">    this.wrapped = wrapped;</span>
-<span class="fc" id="L33">    this.jitterFactor = jitterFactor;</span>
-<span class="fc" id="L34">  }</span>
+<span class="nc" id="L31">  JitteredDelaySupplier(final RetryDelaySupplier wrapped, final double jitterFactor) {</span>
+<span class="nc" id="L32">    this.wrapped = wrapped;</span>
+<span class="nc" id="L33">    this.jitterFactor = jitterFactor;</span>
+<span class="nc" id="L34">  }</span>
 
   @Override
   @SuppressFBWarnings(&quot;PREDICTABLE_RANDOM&quot;) // we can use predicatable randoms here
   public long nextDelay() {
-<span class="fc" id="L39">    long nextDelay = wrapped.nextDelay();</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">    if (nextDelay &gt; 1) {</span>
-<span class="fc" id="L41">      long jitter = (long) (nextDelay * jitterFactor);</span>
-<span class="fc" id="L42">      return ThreadLocalRandom.current().nextLong(nextDelay - jitter, nextDelay);</span>
+<span class="nc" id="L39">    long nextDelay = wrapped.nextDelay();</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    if (nextDelay &gt; 1) {</span>
+<span class="nc" id="L41">      long jitter = (long) (nextDelay * jitterFactor);</span>
+<span class="nc" id="L42">      return ThreadLocalRandom.current().nextLong(nextDelay - jitter, nextDelay);</span>
     } else {
-<span class="fc" id="L44">      return nextDelay;</span>
+<span class="nc" id="L44">      return nextDelay;</span>
     }
   }
 

@@ -73,9 +73,6 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
 <span class="fc" id="L73">        return recorders.getUnchecked(forWhat);</span>
     }
 
-    @Override
-    public void close() {
-<span class="fc" id="L78">    }</span>
 
     private static final class CreateDirectRecorder extends CacheLoader&lt;Object, MeasurementRecorder&gt; {
 
@@ -86,24 +83,24 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
         private final MeasurementStore store;
 
         CreateDirectRecorder(final Object forWhat, final String description,
-<span class="fc" id="L89">                final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
-<span class="fc" id="L90">            this.forWhat = forWhat;</span>
-<span class="fc" id="L91">            this.description = description;</span>
-<span class="fc" id="L92">            this.uom = uom;</span>
-<span class="fc" id="L93">            this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="fc" id="L94">            this.store = store;</span>
-<span class="fc" id="L95">        }</span>
+<span class="fc" id="L86">                final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
+<span class="fc" id="L87">            this.forWhat = forWhat;</span>
+<span class="fc" id="L88">            this.description = description;</span>
+<span class="fc" id="L89">            this.uom = uom;</span>
+<span class="fc" id="L90">            this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="fc" id="L91">            this.store = store;</span>
+<span class="fc" id="L92">        }</span>
 
         @Override
         public MeasurementRecorder load(final Object key) {
-<span class="fc" id="L99">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
+<span class="fc" id="L96">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
                     uom, sampleTimeMillis, store);
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L106">        return &quot;DirectRecorderSource{&quot; + &quot;recorders=&quot; + recorders + '}';</span>
+<span class="nc" id="L103">        return &quot;DirectRecorderSource{&quot; + &quot;recorders=&quot; + recorders + '}';</span>
     }
 
 }

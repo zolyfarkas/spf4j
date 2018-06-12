@@ -44,7 +44,7 @@ import javax.annotation.Nonnull;
  * @author zoly
  */
 // a pool instance is tipically alive for the entire life of the process
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
+@SuppressFBWarnings(&quot;PMB_INSTANCE_BASED_THREAD_LOCAL&quot;)
 final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  Scanable&lt;ObjectHolder&lt;T&gt;&gt; {
 
     private final SimpleSmartObjectPool&lt;ObjectHolder&lt;T&gt;&gt; globalPool;
@@ -54,16 +54,16 @@ final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  
 
     ScalableObjectPool(final int initialSize, final int maxSize,
             @Nonnull final RecyclingSupplier.Factory&lt;T&gt; factory,
-<span class="fc" id="L57">            final boolean fair) throws ObjectCreationException {</span>
-<span class="fc" id="L58">        globalPool = new SimpleSmartObjectPool&lt;&gt;(initialSize, maxSize,</span>
+<span class="nc" id="L57">            final boolean fair) throws ObjectCreationException {</span>
+<span class="nc" id="L58">        globalPool = new SimpleSmartObjectPool&lt;&gt;(initialSize, maxSize,</span>
                 new ObjectHolderFactory&lt;&gt;(initialSize, factory), fair);
-<span class="fc" id="L60">        localPool = new ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt;() {</span>
+<span class="nc" id="L60">        localPool = new ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt;() {</span>
                     @Override
                     protected LocalObjectPool&lt;T&gt; initialValue() {
-<span class="fc" id="L63">                        return new LocalObjectPool&lt;&gt;(globalPool);</span>
+<span class="nc" id="L63">                        return new LocalObjectPool&lt;&gt;(globalPool);</span>
                     }
         };
-<span class="fc" id="L66">    }</span>
+<span class="nc" id="L66">    }</span>
 
 
 
@@ -71,31 +71,31 @@ final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  
     @Nonnull
     @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;)
     public T get() throws ObjectCreationException, InterruptedException, TimeoutException {
-<span class="fc" id="L74">        return localPool.get().get();</span>
+<span class="nc" id="L74">        return localPool.get().get();</span>
     }
 
     @Override
     public void recycle(final T object, final Exception e) {
-<span class="fc" id="L79">        localPool.get().recycle(object, e);</span>
-<span class="fc" id="L80">    }</span>
+<span class="nc" id="L79">        localPool.get().recycle(object, e);</span>
+<span class="nc" id="L80">    }</span>
 
     @Override
     public boolean tryDispose(final long timeoutMillis) throws ObjectDisposeException, InterruptedException {
-<span class="fc" id="L84">       return globalPool.tryDispose(timeoutMillis);</span>
+<span class="nc" id="L84">       return globalPool.tryDispose(timeoutMillis);</span>
     }
 
     @Override
     public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
-<span class="fc" id="L89">        return globalPool.scan(handler);</span>
+<span class="nc" id="L89">        return globalPool.scan(handler);</span>
     }
 
     public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
-<span class="fc" id="L93">        globalPool.requestReturnFromBorrowersIfNotInUse();</span>
-<span class="fc" id="L94">    }</span>
+<span class="nc" id="L93">        globalPool.requestReturnFromBorrowersIfNotInUse();</span>
+<span class="nc" id="L94">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L98">        return &quot;ScalableObjectPool{&quot; + &quot;globalPool=&quot; + globalPool + '}';</span>
+<span class="nc" id="L98">        return &quot;ScalableObjectPool{&quot; + &quot;globalPool=&quot; + globalPool + '}';</span>
     }
 
     @Override

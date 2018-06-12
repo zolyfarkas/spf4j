@@ -46,18 +46,18 @@ import org.spf4j.base.TimeSource;
 final class UnitQueuePU&lt;T&gt; {
 
 
-<span class="fc" id="L49">  private final AtomicReference&lt;T&gt; value = new AtomicReference&lt;&gt;();</span>
+<span class="nc" id="L49">  private final AtomicReference&lt;T&gt; value = new AtomicReference&lt;&gt;();</span>
 
   private final Thread readerThread;
 
-<span class="fc" id="L53">  UnitQueuePU(final Thread readerThread) {</span>
-<span class="fc" id="L54">    this.readerThread = readerThread;</span>
-<span class="fc" id="L55">  }</span>
+<span class="nc" id="L53">  UnitQueuePU(final Thread readerThread) {</span>
+<span class="nc" id="L54">    this.readerThread = readerThread;</span>
+<span class="nc" id="L55">  }</span>
 
   @CheckReturnValue
   @Nullable
   public T poll() {
-<span class="fc" id="L60">    return value.getAndSet(null);</span>
+<span class="nc" id="L60">    return value.getAndSet(null);</span>
   }
 
   @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
@@ -65,62 +65,62 @@ final class UnitQueuePU&lt;T&gt; {
   @Nullable
   @SuppressWarnings(&quot;checkstyle:InnerAssignment&quot;)
   public T poll(final long timeoutNanos, final long spinCount, final long pcurrTime) throws InterruptedException {
-<span class="fc" id="L68">    T result = value.getAndSet(null);</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">    if (result != null) {</span>
-<span class="fc" id="L70">      return result;</span>
+<span class="nc" id="L68">    T result = value.getAndSet(null);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    if (result != null) {</span>
+<span class="nc" id="L70">      return result;</span>
     }
-<span class="pc bpc" id="L72" title="1 of 4 branches missed.">    if (spinCount &gt; 0 &amp;&amp; org.spf4j.base.Runtime.NR_PROCESSORS &gt; 1) {</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">      if (SpinLimiter.SPIN_LIMIT.tryAcquire()) {</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">    if (spinCount &gt; 0 &amp;&amp; org.spf4j.base.Runtime.NR_PROCESSORS &gt; 1) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">      if (SpinLimiter.SPIN_LIMIT.tryAcquire()) {</span>
         try {
-<span class="fc" id="L75">          int i = 0;</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">          while (i &lt; spinCount) {</span>
-<span class="fc" id="L77">            result = value.getAndSet(null);</span>
-<span class="fc bfc" id="L78" title="All 2 branches covered.">            if (result != null) {</span>
-<span class="fc" id="L79">              return result;</span>
+<span class="nc" id="L75">          int i = 0;</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">          while (i &lt; spinCount) {</span>
+<span class="nc" id="L77">            result = value.getAndSet(null);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (result != null) {</span>
+<span class="nc" id="L79">              return result;</span>
             }
-<span class="pc bpc" id="L81" title="1 of 4 branches missed.">            if (i % 100 == 0 &amp;&amp; Thread.interrupted()) {</span>
+<span class="nc bnc" id="L81" title="All 4 branches missed.">            if (i % 100 == 0 &amp;&amp; Thread.interrupted()) {</span>
 <span class="nc" id="L82">              throw new InterruptedException();</span>
             }
-<span class="fc" id="L84">            i++;</span>
+<span class="nc" id="L84">            i++;</span>
           }
         } finally {
-<span class="fc" id="L87">          SpinLimiter.SPIN_LIMIT.release();</span>
+<span class="nc" id="L87">          SpinLimiter.SPIN_LIMIT.release();</span>
         }
       }
     }
-<span class="fc bfc" id="L91" title="All 2 branches covered.">    if ((result = value.getAndSet(null)) == null) {</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">      long currTime = spinCount &lt;= 0 ? pcurrTime : TimeSource.nanoTime();</span>
-<span class="fc" id="L93">      long deadlineNanos = currTime + timeoutNanos;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">    if ((result = value.getAndSet(null)) == null) {</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">      long currTime = spinCount &lt;= 0 ? pcurrTime : TimeSource.nanoTime();</span>
+<span class="nc" id="L93">      long deadlineNanos = currTime + timeoutNanos;</span>
       do {
-<span class="fc" id="L95">        final long to = deadlineNanos - currTime;</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (to &lt;= 0) {</span>
-<span class="fc" id="L97">          return null;</span>
+<span class="nc" id="L95">        final long to = deadlineNanos - currTime;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (to &lt;= 0) {</span>
+<span class="nc" id="L97">          return null;</span>
         }
-<span class="fc" id="L99">        LockSupport.parkNanos(to);</span>
-<span class="fc bfc" id="L100" title="All 2 branches covered.">        if ((result = value.getAndSet(null)) != null) {</span>
-<span class="fc" id="L101">         return result;</span>
+<span class="nc" id="L99">        LockSupport.parkNanos(to);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if ((result = value.getAndSet(null)) != null) {</span>
+<span class="nc" id="L101">         return result;</span>
         }
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (Thread.interrupted()) {</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (Thread.interrupted()) {</span>
 <span class="nc" id="L104">          throw new InterruptedException();</span>
         }
-<span class="fc" id="L106">        currTime = TimeSource.nanoTime();</span>
-<span class="fc" id="L107">      } while (true);</span>
+<span class="nc" id="L106">        currTime = TimeSource.nanoTime();</span>
+<span class="nc" id="L107">      } while (true);</span>
     }
-<span class="fc" id="L109">    return result;</span>
+<span class="nc" id="L109">    return result;</span>
   }
 
   @CheckReturnValue
   public boolean offer(final T offer) {
-<span class="fc" id="L114">    boolean result = value.compareAndSet(null, offer);</span>
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">    if (result) {</span>
-<span class="fc" id="L116">      LockSupport.unpark(readerThread);</span>
+<span class="nc" id="L114">    boolean result = value.compareAndSet(null, offer);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (result) {</span>
+<span class="nc" id="L116">      LockSupport.unpark(readerThread);</span>
     }
-<span class="fc" id="L118">    return result;</span>
+<span class="nc" id="L118">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L123">    return &quot;UnitQueuePU{&quot; + &quot;value=&quot; + value + '}';</span>
+<span class="nc" id="L123">    return &quot;UnitQueuePU{&quot; + &quot;value=&quot; + value + '}';</span>
   }
 
 }

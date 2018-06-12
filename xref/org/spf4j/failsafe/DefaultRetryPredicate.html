@@ -112,7 +112,7 @@
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>       <strong class="jxr_keyword">if</strong> (decision != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>         <strong class="jxr_keyword">if</strong> (decision.getDecisionType() == RetryDecision.Type.Retry) {
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>           Callable&lt;?&gt; newCallable = decision.getNewCallable();
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>           LOG.debug(<span class="jxr_string">"Result {} for {} retrying {}"</span>, value, what, newCallable);
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>           LOG.debug(<span class="jxr_string">"Result {} for {} retrying {}"</span>, value.getClass().getName(), what, newCallable, value);
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>           <strong class="jxr_keyword">if</strong> (decision.getDelayNanos() &lt; 0) {
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>             <a href="../../../org/spf4j/failsafe/RetryDelaySupplier.html">RetryDelaySupplier</a> backoff = defaultBackoffSupplier.apply(value);
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>             <strong class="jxr_keyword">return</strong> (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);

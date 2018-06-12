@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenType;
@@ -63,8 +65,6 @@ import static javax.management.openmbean.SimpleType.LONG;
 import static javax.management.openmbean.SimpleType.DOUBLE;
 import static javax.management.openmbean.SimpleType.VOID;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.Pair;
 import org.spf4j.jmx.JMXBeanMapping;
 import org.spf4j.jmx.JMXBeanMappingSupplier;
@@ -78,7 +78,7 @@ import org.spf4j.reflect.GraphTypeMap;
  */
 public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
-<span class="fc" id="L81">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jOpenTypeMapper.class);</span>
+<span class="fc" id="L81">  private static final Logger LOG = Logger.getLogger(Spf4jOpenTypeMapper.class.getName());</span>
 
 <span class="fc" id="L83">  private static final ThreadLocal&lt;Set&lt;Type&gt;&gt; IN_PROGRESS = new ThreadLocal&lt;Set&lt;Type&gt;&gt;() {</span>
     @Override
@@ -157,7 +157,7 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
 <span class="fc" id="L158">        Set&lt;Type&gt; ip = IN_PROGRESS.get();</span>
 <span class="fc bfc" id="L159" title="All 2 branches covered.">        if (ip.contains(t)) {</span>
-<span class="fc" id="L160">           LOG.debug(&quot;No openType mapping for {} recorsive data structure&quot;, t);</span>
+<span class="fc" id="L160">           LOG.log(Level.FINE, &quot;No openType mapping for {0} recursive data structure&quot;, t);</span>
 <span class="fc" id="L161">           return null;</span>
         }
         try {
@@ -171,33 +171,35 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 <span class="fc" id="L171">        } catch (NotSerializableException ex) {</span>
 <span class="fc" id="L172">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
 <span class="pc bpc" id="L173" title="2 of 4 branches missed.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
-<span class="fc" id="L174">            LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
-<span class="fc" id="L175">            return null;</span>
+<span class="fc" id="L174">            LOG.log(Level.FINE, &quot;No mapping for type {0}&quot;, t);</span>
+<span class="fc" id="L175">            LOG.log(Level.FINEST, &quot;Exception Detail&quot;, ex);</span>
+<span class="fc" id="L176">            return null;</span>
           } else {
-<span class="nc" id="L177">            throw ex;</span>
+<span class="nc" id="L178">            throw ex;</span>
           }
-<span class="fc" id="L179">        } catch (RuntimeException ex) {</span>
-<span class="fc" id="L180">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
-<span class="fc bfc" id="L181" title="All 4 branches covered.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
-<span class="fc" id="L182">            LOG.debug(&quot;No mapping for type {}&quot;, t, ex);</span>
-<span class="fc" id="L183">            return null;</span>
+<span class="fc" id="L180">        } catch (RuntimeException ex) {</span>
+<span class="fc" id="L181">          TypeToken&lt;?&gt; tt = TypeToken.of(t);</span>
+<span class="fc bfc" id="L182" title="All 4 branches covered.">          if (tt.isSubtypeOf(Serializable.class) || tt.getRawType().isInterface()) {</span>
+<span class="fc" id="L183">            LOG.log(Level.FINE, &quot;No mapping for type {0}&quot;, t);</span>
+<span class="fc" id="L184">            LOG.log(Level.FINEST, &quot;Exception Detail&quot;, ex);</span>
+<span class="fc" id="L185">            return null;</span>
           } else {
-<span class="fc" id="L185">            NotSerializableException nsex = new NotSerializableException(&quot;Type &quot; + t + &quot;  must be serializable&quot;);</span>
-<span class="fc" id="L186">            nsex.addSuppressed(ex);</span>
-<span class="fc" id="L187">            throw nsex;</span>
+<span class="fc" id="L187">            NotSerializableException nsex = new NotSerializableException(&quot;Type &quot; + t + &quot;  must be serializable&quot;);</span>
+<span class="fc" id="L188">            nsex.addSuppressed(ex);</span>
+<span class="fc" id="L189">            throw nsex;</span>
           }
         } finally {
-<span class="fc" id="L190">          ip.remove(t);</span>
+<span class="fc" id="L192">          ip.remove(t);</span>
         }
   }
 
   public CachingTypeMapSupplierWrapper&lt;JMXBeanMapping, NotSerializableException&gt; getCache() {
-<span class="nc" id="L195">    return cache;</span>
+<span class="nc" id="L197">    return cache;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L200">    return &quot;Spf4jOpenTypeMapper{&quot; + &quot;convertedTypes=&quot; + cache + '}';</span>
+<span class="nc" id="L202">    return &quot;Spf4jOpenTypeMapper{&quot; + &quot;convertedTypes=&quot; + cache + '}';</span>
   }
 
 }

@@ -63,39 +63,39 @@ public final class SimpleResultCache implements ResultCache {
 
         private final int maxSize;
 
-<span class="fc" id="L66">        CacheLoaderImpl(final int maxSize) {</span>
-<span class="fc" id="L67">            this.maxSize = maxSize;</span>
-<span class="fc" id="L68">        }</span>
+<span class="nc" id="L66">        CacheLoaderImpl(final int maxSize) {</span>
+<span class="nc" id="L67">            this.maxSize = maxSize;</span>
+<span class="nc" id="L68">        }</span>
 
         @Override
         public Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; load(
                 final Program key) throws Exception {
-<span class="fc" id="L73">            Cache&lt;List&lt;Object&gt;, Object&gt; trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();</span>
-<span class="fc" id="L74">            return Pair.of(new ConcurrentHashMap&lt;List&lt;Object&gt;, Object&gt;(), trCache);</span>
+<span class="nc" id="L73">            Cache&lt;List&lt;Object&gt;, Object&gt; trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();</span>
+<span class="nc" id="L74">            return Pair.of(new ConcurrentHashMap&lt;List&lt;Object&gt;, Object&gt;(), trCache);</span>
         }
     }
 
     public SimpleResultCache() {
-<span class="fc" id="L79">        this(100000);</span>
-<span class="fc" id="L80">    }</span>
+<span class="nc" id="L79">        this(100000);</span>
+<span class="nc" id="L80">    }</span>
 
-<span class="fc" id="L82">    public SimpleResultCache(final int maxSize) {</span>
-<span class="fc" id="L83">        cache = new UnboundedLoadingCache&lt;Program,</span>
+<span class="nc" id="L82">    public SimpleResultCache(final int maxSize) {</span>
+<span class="nc" id="L83">        cache = new UnboundedLoadingCache&lt;Program,</span>
                 Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt;&gt;(16,
                 new CacheLoaderImpl(maxSize));
-<span class="fc" id="L86">    }</span>
+<span class="nc" id="L86">    }</span>
 
     @Override
     public void putPermanentResult(final Program program,
             @Nonnull final List&lt;Object&gt; params, final Object result) {
-<span class="fc" id="L91">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
-<span class="fc" id="L92">                cache.getUnchecked(program);</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L91">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; resultsMap =</span>
+<span class="nc" id="L92">                cache.getUnchecked(program);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (result == null) {</span>
 <span class="nc" id="L94">            resultsMap.getFirst().put(params, ResultCache.NULL);</span>
         } else {
-<span class="fc" id="L96">            resultsMap.getFirst().put(params, result);</span>
+<span class="nc" id="L96">            resultsMap.getFirst().put(params, result);</span>
         }
-<span class="fc" id="L98">    }</span>
+<span class="nc" id="L98">    }</span>
 
     @Override
     public void putTransientResult(final Program program,
@@ -113,16 +113,16 @@ public final class SimpleResultCache implements ResultCache {
     public Object getResult(final Program program,
             @Nonnull final List&lt;Object&gt; params, final Callable&lt;Object&gt; compute)
             throws ExecutionException {
-<span class="fc" id="L116">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; prCache =</span>
-<span class="fc" id="L117">                cache.getUnchecked(program);</span>
-<span class="fc" id="L118">        Object result = prCache.getFirst().get(params);</span>
-<span class="fc bfc" id="L119" title="All 2 branches covered.">        if (result == null) {</span>
-<span class="fc" id="L120">            result = prCache.getSecond().get(params, new CallableNullWrapper(compute));</span>
+<span class="nc" id="L116">        final Pair&lt;? extends ConcurrentMap&lt;List&lt;Object&gt;, Object&gt;, ? extends Cache&lt;List&lt;Object&gt;, Object&gt;&gt; prCache =</span>
+<span class="nc" id="L117">                cache.getUnchecked(program);</span>
+<span class="nc" id="L118">        Object result = prCache.getFirst().get(params);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L120">            result = prCache.getSecond().get(params, new CallableNullWrapper(compute));</span>
         }
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (result == ResultCache.NULL) {</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (result == ResultCache.NULL) {</span>
 <span class="nc" id="L123">            result = null;</span>
         }
-<span class="fc" id="L125">        return result;</span>
+<span class="nc" id="L125">        return result;</span>
     }
 
     @Override
@@ -134,17 +134,17 @@ public final class SimpleResultCache implements ResultCache {
 
         private final Callable&lt;Object&gt; compute;
 
-<span class="fc" id="L137">        CallableNullWrapper(final Callable&lt;Object&gt; compute) {</span>
-<span class="fc" id="L138">            this.compute = compute;</span>
-<span class="fc" id="L139">        }</span>
+<span class="nc" id="L137">        CallableNullWrapper(final Callable&lt;Object&gt; compute) {</span>
+<span class="nc" id="L138">            this.compute = compute;</span>
+<span class="nc" id="L139">        }</span>
 
         @Override
         public Object call() throws Exception {
-<span class="fc" id="L143">            Object result = compute.call();</span>
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">            if (result == null) {</span>
+<span class="nc" id="L143">            Object result = compute.call();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (result == null) {</span>
 <span class="nc" id="L145">                return ResultCache.NULL;</span>
             } else {
-<span class="fc" id="L147">                return result;</span>
+<span class="nc" id="L147">                return result;</span>
             }
         }
     }

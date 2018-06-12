@@ -32,6 +32,7 @@
 package org.spf4j.aspects;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -50,36 +51,37 @@ import org.spf4j.failsafe.RetryPolicy;
  * @author zoly
  */
 @Aspect
-<span class="nc" id="L53">public final class RetryAspect {</span>
+<span class="nc" id="L54">public final class RetryAspect {</span>
 
-<span class="nc" id="L55">  private static final ConcurrentMap&lt;String, RetryPolicy&gt; POLICIES = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L56">  private static final ConcurrentMap&lt;String, RetryPolicy&gt; POLICIES = new ConcurrentHashMap&lt;&gt;();</span>
 
-  @Around(value = &quot;execution(@org.spf4j.annotations.Retry * *(..)) &amp;&amp; @annotation(annot)&quot;,
+  @Around(value = &quot;execution(@org.spf4j.annotations.Retry * *(..)) &amp;&amp; @annotation(org.spf4j.annotations.Retry annot)&quot;,
           argNames = &quot;pjp,annot&quot;)
+  @SuppressFBWarnings(&quot;FII_USE_METHOD_REFERENCE&quot;)
   public Object retriedMethod(final ProceedingJoinPoint pjp, final Retry annot)
           throws Throwable {
-<span class="nc" id="L61">    try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeout(), annot.units())) {</span>
-<span class="nc" id="L62">      Callable c = () -&gt; {</span>
+<span class="nc" id="L63">    try (ExecutionContext ctx = ExecutionContexts.start(pjp.toShortString(), annot.timeout(), annot.units())) {</span>
+<span class="nc" id="L64">      Callable c = () -&gt; {</span>
         try {
-<span class="nc" id="L64">          return pjp.proceed();</span>
-<span class="nc" id="L65">        } catch (Exception | Error e) {</span>
-<span class="nc" id="L66">          throw e;</span>
-<span class="nc" id="L67">        } catch (Throwable ex) {</span>
-<span class="nc" id="L68">          throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L66">          return pjp.proceed();</span>
+<span class="nc" id="L67">        } catch (Exception | Error e) {</span>
+<span class="nc" id="L68">          throw e;</span>
+<span class="nc" id="L69">        } catch (Throwable ex) {</span>
+<span class="nc" id="L70">          throw new UncheckedExecutionException(ex);</span>
         }
       };
-<span class="nc" id="L71">      String retryPolicyName = annot.retryPolicyName();</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">      if (&quot;&quot;.equals(retryPolicyName)) {</span>
-<span class="nc" id="L73">        return RetryPolicy.defaultPolicy().call(c, Exception.class, ctx.getDeadlineNanos());</span>
+<span class="nc" id="L73">      String retryPolicyName = annot.retryPolicyName();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">      if (&quot;&quot;.equals(retryPolicyName)) {</span>
+<span class="nc" id="L75">        return RetryPolicy.defaultPolicy().call(c, Exception.class, ctx.getDeadlineNanos());</span>
       } else {
-<span class="nc" id="L75">        return POLICIES.get(retryPolicyName).call(c, Exception.class, ctx.getDeadlineNanos());</span>
+<span class="nc" id="L77">        return POLICIES.get(retryPolicyName).call(c, Exception.class, ctx.getDeadlineNanos());</span>
       }
     }
 
   }
 
   public static RetryPolicy registerRetryPolicy(final String name, final RetryPolicy policy) {
-<span class="nc" id="L82">    return POLICIES.put(name, policy);</span>
+<span class="nc" id="L84">    return POLICIES.put(name, policy);</span>
   }
 
 }

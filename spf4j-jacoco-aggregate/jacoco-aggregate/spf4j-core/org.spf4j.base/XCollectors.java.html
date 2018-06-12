@@ -49,14 +49,14 @@ public final class XCollectors {
   }
 
   public static &lt;T&gt; Collector&lt;T, ?, ArrayDeque&lt;T&gt;&gt; last(final int limit) {
-<span class="fc" id="L52">    return Collector.of(</span>
+<span class="nc" id="L52">    return Collector.of(</span>
             ArrayDeque&lt;T&gt;::new,
             (l, e) -&gt; {
-<span class="fc bfc" id="L55" title="All 2 branches covered.">              if (l.size() &gt;= limit) {</span>
-<span class="fc" id="L56">                l.removeFirst();</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">              if (l.size() &gt;= limit) {</span>
+<span class="nc" id="L56">                l.removeFirst();</span>
               }
-<span class="fc" id="L58">              l.addLast(e);</span>
-<span class="fc" id="L59">            },</span>
+<span class="nc" id="L58">              l.addLast(e);</span>
+<span class="nc" id="L59">            },</span>
             (l1, l2) -&gt; {
 <span class="nc" id="L61">              throw new UnsupportedOperationException(&quot;Limiting collectors do not support combining&quot;);</span>
             }
@@ -64,16 +64,16 @@ public final class XCollectors {
   }
 
   public static &lt;T&gt; Collector&lt;T, ?, ArrayDeque&lt;T&gt;&gt; last(final int limit, final T addIfLimited) {
-<span class="fc" id="L67">    return Collector.of(</span>
+<span class="nc" id="L67">    return Collector.of(</span>
             ArrayDeque&lt;T&gt;::new,
             (l, e) -&gt; {
-<span class="fc bfc" id="L70" title="All 2 branches covered.">              if (l.size() &gt;= limit) {</span>
-<span class="fc" id="L71">                l.removeFirst();</span>
-<span class="fc" id="L72">                l.removeFirst();</span>
-<span class="fc" id="L73">                l.addFirst(addIfLimited);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">              if (l.size() &gt;= limit) {</span>
+<span class="nc" id="L71">                l.removeFirst();</span>
+<span class="nc" id="L72">                l.removeFirst();</span>
+<span class="nc" id="L73">                l.addFirst(addIfLimited);</span>
               }
-<span class="fc" id="L75">              l.addLast(e);</span>
-<span class="fc" id="L76">            },</span>
+<span class="nc" id="L75">              l.addLast(e);</span>
+<span class="nc" id="L76">            },</span>
             (l1, l2) -&gt; {
 <span class="nc" id="L78">              throw new UnsupportedOperationException(&quot;Limiting collectors do not support combining&quot;);</span>
             }
@@ -86,20 +86,20 @@ public final class XCollectors {
   public static &lt;T, A, R&gt;
           Collector&lt;T, ?, R&gt; filtering(final Predicate&lt;? super T&gt; predicate,
                   final Collector&lt;? super T, A, R&gt; downstream) {
-<span class="fc" id="L89">    BiConsumer&lt;A, ? super T&gt; downstreamAccumulator = downstream.accumulator();</span>
-<span class="fc" id="L90">    return new CollectorImpl&lt;&gt;(downstream.supplier(),</span>
+<span class="nc" id="L89">    BiConsumer&lt;A, ? super T&gt; downstreamAccumulator = downstream.accumulator();</span>
+<span class="nc" id="L90">    return new CollectorImpl&lt;&gt;(downstream.supplier(),</span>
             (r, t) -&gt; {
-<span class="fc bfc" id="L92" title="All 2 branches covered.">              if (predicate.test(t)) {</span>
-<span class="fc" id="L93">                downstreamAccumulator.accept(r, t);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">              if (predicate.test(t)) {</span>
+<span class="nc" id="L93">                downstreamAccumulator.accept(r, t);</span>
               }
-<span class="fc" id="L95">            },</span>
-<span class="fc" id="L96">            downstream.combiner(), downstream.finisher(),</span>
-<span class="fc" id="L97">            downstream.characteristics());</span>
+<span class="nc" id="L95">            },</span>
+<span class="nc" id="L96">            downstream.combiner(), downstream.finisher(),</span>
+<span class="nc" id="L97">            downstream.characteristics());</span>
   }
 
   @SuppressWarnings(&quot;unchecked&quot;)
   private static &lt;I, R&gt; Function&lt;I, R&gt; castingIdentity() {
-<span class="nc" id="L102">    return i -&gt; (R) i;</span>
+<span class="nc" id="L102">    return (Function&lt;I, R&gt;) Function.identity();</span>
   }
 
   static final class CollectorImpl&lt;T, A, R&gt; implements Collector&lt;T, A, R&gt; {
@@ -114,13 +114,13 @@ public final class XCollectors {
             final BiConsumer&lt;A, T&gt; accumulator,
             final BinaryOperator&lt;A&gt; combiner,
             final Function&lt;A, R&gt; finisher,
-<span class="fc" id="L117">            final Set&lt;Characteristics&gt; characteristics) {</span>
-<span class="fc" id="L118">      this.supplier = supplier;</span>
-<span class="fc" id="L119">      this.accumulator = accumulator;</span>
-<span class="fc" id="L120">      this.combiner = combiner;</span>
-<span class="fc" id="L121">      this.finisher = finisher;</span>
-<span class="fc" id="L122">      this.characteristics = characteristics;</span>
-<span class="fc" id="L123">    }</span>
+<span class="nc" id="L117">            final Set&lt;Characteristics&gt; characteristics) {</span>
+<span class="nc" id="L118">      this.supplier = supplier;</span>
+<span class="nc" id="L119">      this.accumulator = accumulator;</span>
+<span class="nc" id="L120">      this.combiner = combiner;</span>
+<span class="nc" id="L121">      this.finisher = finisher;</span>
+<span class="nc" id="L122">      this.characteristics = characteristics;</span>
+<span class="nc" id="L123">    }</span>
 
     CollectorImpl(final Supplier&lt;A&gt; supplier,
             final BiConsumer&lt;A, T&gt; accumulator,
@@ -131,27 +131,27 @@ public final class XCollectors {
 
     @Override
     public BiConsumer&lt;A, T&gt; accumulator() {
-<span class="fc" id="L134">      return accumulator;</span>
+<span class="nc" id="L134">      return accumulator;</span>
     }
 
     @Override
     public Supplier&lt;A&gt; supplier() {
-<span class="fc" id="L139">      return supplier;</span>
+<span class="nc" id="L139">      return supplier;</span>
     }
 
     @Override
     public BinaryOperator&lt;A&gt; combiner() {
-<span class="fc" id="L144">      return combiner;</span>
+<span class="nc" id="L144">      return combiner;</span>
     }
 
     @Override
     public Function&lt;A, R&gt; finisher() {
-<span class="fc" id="L149">      return finisher;</span>
+<span class="nc" id="L149">      return finisher;</span>
     }
 
     @Override
     public Set&lt;Characteristics&gt; characteristics() {
-<span class="fc" id="L154">      return characteristics;</span>
+<span class="nc" id="L154">      return characteristics;</span>
     }
   }
 

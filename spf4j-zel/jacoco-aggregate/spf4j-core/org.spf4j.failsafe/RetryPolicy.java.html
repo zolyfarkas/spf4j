@@ -141,7 +141,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
 <span class="fc" id="L141">            = Integer.getInteger(&quot;spf4j.failsafe.defaultInitialNoDelayRetries&quot;, 3);</span>
 
 <span class="fc" id="L143">    private static final int DEFAULT_MAX_NR_RETRIES</span>
-<span class="fc" id="L144">            = Integer.getInteger(&quot;spf4j.failsafe.defaultMaxNrRetries&quot;, MAX_EX_CHAIN_DEFAULT * 10);</span>
+<span class="fc" id="L144">            = Integer.getInteger(&quot;spf4j.failsafe.defaultMaxNrRetries&quot;, 1000);</span>
 
 <span class="fc" id="L146">    private int maxExceptionChain = MAX_EX_CHAIN_DEFAULT;</span>
 
@@ -228,7 +228,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
     @CheckReturnValue
     public Builder&lt;T, C&gt; withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate&lt;T, C&gt; predicate) {
-<span class="nc" id="L231">      return withExceptionPartialPredicateSupplier((s, e) -&gt; predicate);</span>
+<span class="nc" id="L231">      return withExceptionPartialPredicateSupplier(TimedSupplier.constant(predicate));</span>
     }
 
     @CheckReturnValue
@@ -292,7 +292,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
     @CheckReturnValue
     public Builder&lt;T, C&gt; withResultPartialPredicate(
             final PartialResultRetryPredicate&lt;T, C&gt; predicate) {
-<span class="fc" id="L295">      resultPredicates.add((s, e) -&gt; predicate);</span>
+<span class="fc" id="L295">      resultPredicates.add(TimedSupplier.constant(predicate));</span>
 <span class="fc" id="L296">      return this;</span>
     }
 

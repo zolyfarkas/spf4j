@@ -31,7 +31,6 @@
  */
 package org.spf4j.failsafe;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +40,7 @@ import org.spf4j.base.Either;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
+import org.spf4j.base.UncheckedExecutionException;
 
 /**
  * @author Zoltan Farkas

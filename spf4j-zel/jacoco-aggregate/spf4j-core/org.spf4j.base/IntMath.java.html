@@ -84,44 +84,43 @@ public final class IntMath {
     @Deprecated
 <span class="nc" id="L85">    public static final class XorShift32ThreadSafe implements IntSequence {</span>
 
+<span class="nc" id="L87">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
 
-<span class="nc" id="L88">      public static final class Singleton {</span>
+<span class="nc" id="L89">      public static final class Singleton {</span>
 
-<span class="nc" id="L90">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
+<span class="nc" id="L91">        public static final XorShift32ThreadSafe INSTANCE = new XorShift32ThreadSafe();</span>
 
       }
 
-<span class="nc" id="L94">      private final ThreadLocal&lt;XorShift32&gt; rnd = new ThreadLocalRandom();</span>
-
       @Override
       public int nextInt() {
-<span class="nc" id="L98">        return rnd.get().nextInt();</span>
+<span class="nc" id="L97">        return rnd.get().nextInt();</span>
       }
 
       private static class ThreadLocalRandom extends ThreadLocal&lt;XorShift32&gt; {
 
         @Override
         protected XorShift32 initialValue() {
-<span class="nc" id="L105">          return new XorShift32();</span>
+<span class="nc" id="L104">          return new XorShift32();</span>
         }
       }
     }
 
 
     @NotThreadSafe
-<span class="fc" id="L112">    public static final class XorShift128 implements IntSequence {</span>
+<span class="fc" id="L111">    public static final class XorShift128 implements IntSequence {</span>
         // XorShift128 PRNG with a 2^128-1 period.
-<span class="fc" id="L114">        private int x = System.identityHashCode(this);</span>
-<span class="fc" id="L115">        private int y = -938745813;</span>
-<span class="fc" id="L116">        private int z = 452465366;</span>
-<span class="fc" id="L117">        private int w = 1343246171;</span>
+<span class="fc" id="L113">        private int x = System.identityHashCode(this);</span>
+<span class="fc" id="L114">        private int y = -938745813;</span>
+<span class="fc" id="L115">        private int z = 452465366;</span>
+<span class="fc" id="L116">        private int w = 1343246171;</span>
 
         @Override
         public int nextInt() {
-<span class="fc" id="L121">            int t = x ^ (x &lt;&lt; 15);</span>
-<span class="fc" id="L122">            x = y; y = z; z = w;</span>
-<span class="fc" id="L123">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
-<span class="fc" id="L124">            return w;</span>
+<span class="fc" id="L120">            int t = x ^ (x &lt;&lt; 15);</span>
+<span class="fc" id="L121">            x = y; y = z; z = w;</span>
+<span class="fc" id="L122">            w = (w ^ (w &gt;&gt;&gt; 21)) ^ (t ^ (t &gt;&gt;&gt; 4));</span>
+<span class="fc" id="L123">            return w;</span>
         }
     }
 

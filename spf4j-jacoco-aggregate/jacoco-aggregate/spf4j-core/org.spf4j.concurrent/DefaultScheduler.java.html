@@ -50,30 +50,38 @@ public final class DefaultScheduler {
 
   private static final long DAY_MILLIS = HOUR_MILLIS * 24;
 
-<span class="fc" id="L53">  public static final ScheduledExecutorService INSTANCE</span>
+<span class="nc" id="L53">  public static final ScheduledExecutorService INSTANCE</span>
           = new ScheduledThreadPoolExecutor(
-<span class="fc" id="L55">                  Integer.getInteger(&quot;spf4j.executors.defaultScheduler.coreThreads&quot;, 2),</span>
+<span class="nc" id="L55">                  Integer.getInteger(&quot;spf4j.executors.defaultScheduler.coreThreads&quot;, 2),</span>
                   new CustomThreadFactory(&quot;DefaultScheduler&quot;,
-<span class="fc" id="L57">                          Boolean.getBoolean(&quot;spf4j.executors.defaultScheduler.daemon&quot;),</span>
-<span class="fc" id="L58">                          Integer.getInteger(&quot;spf4j.executors.defaultScheduler.priority&quot;, Thread.NORM_PRIORITY)));</span>
+<span class="nc" id="L57">                          Boolean.getBoolean(&quot;spf4j.executors.defaultScheduler.daemon&quot;),</span>
+<span class="nc" id="L58">                          Integer.getInteger(&quot;spf4j.executors.defaultScheduler.priority&quot;, Thread.NORM_PRIORITY)));</span>
 
-<span class="fc" id="L60">  public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE</span>
-<span class="fc" id="L61">          = MoreExecutors.listeningDecorator(INSTANCE);</span>
+<span class="nc" id="L60">  public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE</span>
+<span class="nc" id="L61">          = MoreExecutors.listeningDecorator(INSTANCE);</span>
 
   static {
-<span class="fc" id="L64">    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
+<span class="nc" id="L64">    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {</span>
 
       @Override
       public void doRun() throws InterruptedException {
-<span class="fc" id="L68">        INSTANCE.shutdown();</span>
-<span class="fc" id="L69">        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);</span>
-<span class="fc" id="L70">        List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (remaining.size() &gt; 0) {</span>
+<span class="nc" id="L68">        INSTANCE.shutdown();</span>
+<span class="nc" id="L69">        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L70">        List&lt;Runnable&gt; remaining = INSTANCE.shutdownNow();</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (remaining.size() &gt; 0) {</span>
 <span class="nc" id="L72">          org.spf4j.base.Runtime.error(&quot;Remaining tasks: &quot; + remaining);</span>
         }
-<span class="fc" id="L74">      }</span>
+<span class="nc" id="L74">      }</span>
     });
-<span class="fc" id="L76">  }</span>
+<span class="nc" id="L76">  }</span>
+
+  public static ScheduledExecutorService instance() {
+<span class="nc" id="L79">    return INSTANCE;</span>
+  }
+
+  public static ListeningScheduledExecutorService listenableInstance() {
+<span class="nc" id="L83">    return LISTENABLE_INSTANCE;</span>
+  }
 
   private DefaultScheduler() {
   }
@@ -87,17 +95,17 @@ public final class DefaultScheduler {
    */
   public static ScheduledFuture&lt;?&gt; scheduleAllignedAtFixedRateMillis(
           final Runnable command, final long millisInterval) {
-<span class="fc" id="L90">    long currentTime = System.currentTimeMillis();</span>
-    long nextScheduleTime;
-<span class="fc bfc" id="L92" title="All 2 branches covered.">    if (millisInterval &lt; HOUR_MILLIS) {</span>
-<span class="fc" id="L93">      long millisPastHour = currentTime % HOUR_MILLIS;</span>
-<span class="fc" id="L94">      nextScheduleTime = (millisPastHour / millisInterval + 1) * millisInterval + currentTime - millisPastHour;</span>
-<span class="fc" id="L95">    } else {</span>
-<span class="fc" id="L96">      long millisPastDay = currentTime % DAY_MILLIS;</span>
-<span class="fc" id="L97">      nextScheduleTime = (millisPastDay / millisInterval + 1) * millisInterval + currentTime - millisPastDay;</span>
+<span class="nc" id="L98">    long currentTime = System.currentTimeMillis();</span>
+    long nextScheduleDelay;
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (millisInterval &lt; HOUR_MILLIS) {</span>
+<span class="nc" id="L101">      long millisPastHour = currentTime % HOUR_MILLIS;</span>
+<span class="nc" id="L102">      nextScheduleDelay =  millisInterval - millisPastHour % millisInterval;</span>
+<span class="nc" id="L103">    } else {</span>
+<span class="nc" id="L104">      long millisPastDay = currentTime % DAY_MILLIS;</span>
+<span class="nc" id="L105">      nextScheduleDelay =  millisInterval - millisPastDay % millisInterval;</span>
     }
-<span class="fc" id="L99">    return INSTANCE.scheduleAtFixedRate(</span>
-            command, nextScheduleTime - currentTime, millisInterval, TimeUnit.MILLISECONDS);
+<span class="nc" id="L107">    return INSTANCE.scheduleAtFixedRate(</span>
+            command, nextScheduleDelay, millisInterval, TimeUnit.MILLISECONDS);
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

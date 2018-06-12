@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Arrow2D.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ui</a> &gt; <span class="el_source">Arrow2D.java</span></div><h1>Arrow2D.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.ui;
+
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class Arrow2D extends Line2D.Float {
+
+  private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L31">  public Arrow2D() {</span>
+<span class="nc" id="L32">  }</span>
+
+  public Arrow2D(final float x1, final float y1, final float x2, final float y2) {
+<span class="nc" id="L35">    super(x1, y1, x2, y2);</span>
+<span class="nc" id="L36">  }</span>
+
+  public Arrow2D(final Point2D p1, final Point2D p2) {
+<span class="nc" id="L39">    super(p1, p2);</span>
+<span class="nc" id="L40">  }</span>
+
+
+  public void draw(final Graphics2D g2d) {
+<span class="nc" id="L44">    draw(g2d, (int) x1, (int) y1, (int) x2, (int) y2);</span>
+<span class="nc" id="L45">  }</span>
+
+  public static void draw(final Graphics2D g2d, final int x1, final int y1, final int x2, final int y2) {
+<span class="nc" id="L48">    g2d.drawLine(x1, y1, x2, y2);</span>
+<span class="nc" id="L49">    double angle = Math.atan2(y2 - y1, x2 - x1);</span>
+<span class="nc" id="L50">    AffineTransform tx = new AffineTransform();</span>
+<span class="nc" id="L51">    tx.translate(x2, y2);</span>
+<span class="nc" id="L52">    tx.rotate((angle - Math.PI / 2d));</span>
+<span class="nc" id="L53">    Polygon arrowHead = new Polygon();</span>
+<span class="nc" id="L54">    arrowHead.addPoint(0, 5);</span>
+<span class="nc" id="L55">    arrowHead.addPoint(-5, -5);</span>
+<span class="nc" id="L56">    arrowHead.addPoint(5, -5);</span>
+<span class="nc" id="L57">    Graphics2D g = (Graphics2D) g2d.create();</span>
+<span class="nc" id="L58">    g.setTransform(tx);</span>
+<span class="nc" id="L59">    g.fill(arrowHead);</span>
+<span class="nc" id="L60">    g.dispose();</span>
+<span class="nc" id="L61">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

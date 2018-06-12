@@ -111,41 +111,39 @@
 <a class="jxr_linenumber" name="L103" href="#L103">103</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> replace(<strong class="jxr_keyword">final</strong> Type t, <strong class="jxr_keyword">final</strong> Function&lt;H, H&gt; f) {
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">synchronized</strong> (wrapped) {
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>       H exact = wrapped.getExact(t);
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>       <strong class="jxr_keyword">if</strong> (exact != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">if</strong> (!wrapped.remove(t)) {
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Illegal Stat, type = "</span> + t + <span class="jxr_string">" wrapped =  "</span> + wrapped);
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         }
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>       }
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>       wrapped.safePut(t, f.apply(exact));
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>      }
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>     cache.invalidateAll(); <em class="jxr_comment">// a bit lazy :-)</em>
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>   }
-<a class="jxr_linenumber" name="L115" href="#L115">115</a> 
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> clearCache() {
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>     cache.invalidateAll();
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>   }
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>       <strong class="jxr_keyword">if</strong> (exact != <strong class="jxr_keyword">null</strong> &amp;&amp; !wrapped.remove(t)) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Illegal Stat, type = "</span> + t + <span class="jxr_string">" wrapped =  "</span> + wrapped);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>       }
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>       wrapped.safePut(t, f.apply(exact));
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>      }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     cache.invalidateAll(); <em class="jxr_comment">// a bit lazy :-)</em>
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>   }
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> 
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> clearCache() {
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>     cache.invalidateAll();
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>   }
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> 
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/reflect/CachingTypeMapWrapper.html">TypeMapedObjLoader</a> <strong class="jxr_keyword">extends</strong> CacheLoader&lt;Type, Set&lt;H&gt;&gt; {
 <a class="jxr_linenumber" name="L119" href="#L119">119</a> 
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/reflect/CachingTypeMapWrapper.html">TypeMapedObjLoader</a> <strong class="jxr_keyword">extends</strong> CacheLoader&lt;Type, Set&lt;H&gt;&gt; {
-<a class="jxr_linenumber" name="L121" href="#L121">121</a> 
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>     @Override
-<a class="jxr_linenumber" name="L123" href="#L123">123</a>     <strong class="jxr_keyword">public</strong> Set&lt;H&gt; load(<strong class="jxr_keyword">final</strong> Type key) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>       <strong class="jxr_keyword">synchronized</strong> (wrapped) {
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>         <strong class="jxr_keyword">return</strong> wrapped.getAll(key);
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>       }
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>     }
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>   }
-<a class="jxr_linenumber" name="L129" href="#L129">129</a> 
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>   @Override
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L132" href="#L132">132</a>     String wts;
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>     <strong class="jxr_keyword">synchronized</strong> (wrapped) {
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>       wts = wrapped.toString();
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>     }
-<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"CachingTypeMapWrapper{"</span> + <span class="jxr_string">"cache="</span> + cache + <span class="jxr_string">", wrapped="</span> + wts + '}';
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>   }
-<a class="jxr_linenumber" name="L138" href="#L138">138</a> 
-<a class="jxr_linenumber" name="L139" href="#L139">139</a> 
-<a class="jxr_linenumber" name="L140" href="#L140">140</a> }
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     @Override
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     <strong class="jxr_keyword">public</strong> Set&lt;H&gt; load(<strong class="jxr_keyword">final</strong> Type key) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>       <strong class="jxr_keyword">synchronized</strong> (wrapped) {
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         <strong class="jxr_keyword">return</strong> wrapped.getAll(key);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>       }
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     }
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>   }
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>   @Override
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     String wts;
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     <strong class="jxr_keyword">synchronized</strong> (wrapped) {
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>       wts = wrapped.toString();
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     }
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"CachingTypeMapWrapper{"</span> + <span class="jxr_string">"cache="</span> + cache + <span class="jxr_string">", wrapped="</span> + wts + '}';
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>   }
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> 
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> 
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

@@ -29,10 +29,10 @@ import org.spf4j.base.Either;
  */
 public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
-<span class="fc" id="L32">  RetryDecision&lt;?, ?&gt; ABORT  = new RetryDecision() {</span>
+<span class="nc" id="L32">  RetryDecision&lt;?, ?&gt; ABORT  = new RetryDecision() {</span>
     @Override
     public Type getDecisionType() {
-<span class="fc" id="L35">      return Type.Abort;</span>
+<span class="nc" id="L35">      return Type.Abort;</span>
     }
 
     @Override
@@ -42,7 +42,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
     @Override
     public Either getResult() {
-<span class="fc" id="L45">      return null;</span>
+<span class="nc" id="L45">      return null;</span>
     }
 
     @Override
@@ -57,7 +57,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
    */
   @CheckReturnValue
   static RetryDecision abort() {
-<span class="fc" id="L60">    return ABORT;</span>
+<span class="nc" id="L60">    return ABORT;</span>
   }
 
 
@@ -68,10 +68,10 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
    */
   @CheckReturnValue
   static RetryDecision&lt;?, Callable&lt;?&gt;&gt; abortThrow(@Nonnull final Exception exception) {
-<span class="fc" id="L71">    return new RetryDecision() {</span>
+<span class="nc" id="L71">    return new RetryDecision() {</span>
       @Override
       public Type getDecisionType() {
-<span class="fc" id="L74">        return Type.Abort;</span>
+<span class="nc" id="L74">        return Type.Abort;</span>
       }
 
       @Override
@@ -86,7 +86,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
       @Override
       public Either getResult() {
-<span class="fc" id="L89">        return Either.left(exception);</span>
+<span class="nc" id="L89">        return Either.left(exception);</span>
       }
 
     };
@@ -132,15 +132,15 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
   @CheckReturnValue
   static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryDecision&lt;T, C&gt; retry(
           @Nonnegative final long retryNanos, @Nonnull final C callable) {
-<span class="fc" id="L135">   return new RetryDecision&lt;T, C&gt;() {</span>
+<span class="nc" id="L135">   return new RetryDecision&lt;T, C&gt;() {</span>
      @Override
      public Type getDecisionType() {
-<span class="fc" id="L138">       return Type.Retry;</span>
+<span class="nc" id="L138">       return Type.Retry;</span>
      }
 
      @Override
      public long getDelayNanos() {
-<span class="fc" id="L143">       return retryNanos;</span>
+<span class="nc" id="L143">       return retryNanos;</span>
      }
 
      @Override
@@ -150,7 +150,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
      @Override
      public C getNewCallable() {
-<span class="fc" id="L153">       return callable;</span>
+<span class="nc" id="L153">       return callable;</span>
      }
 
    };
@@ -159,15 +159,15 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
   @CheckReturnValue
   static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryDecision&lt;T, C&gt; retryDefault(@Nonnull final C callable) {
-<span class="fc" id="L162">   return new RetryDecision&lt;T, C&gt;() {</span>
+<span class="nc" id="L162">   return new RetryDecision&lt;T, C&gt;() {</span>
      @Override
      public Type getDecisionType() {
-<span class="fc" id="L165">       return Type.Retry;</span>
+<span class="nc" id="L165">       return Type.Retry;</span>
      }
 
      @Override
      public long getDelayNanos() {
-<span class="fc" id="L170">       return -1;</span>
+<span class="nc" id="L170">       return -1;</span>
      }
 
      @Override
@@ -177,17 +177,17 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
      @Override
      public C getNewCallable() {
-<span class="fc" id="L180">       return callable;</span>
+<span class="nc" id="L180">       return callable;</span>
      }
 
    };
   }
 
-<span class="fc" id="L186">  enum Type {</span>
+<span class="nc" id="L186">  enum Type {</span>
     /** Do not retry operation*/
-<span class="fc" id="L188">    Abort,</span>
+<span class="nc" id="L188">    Abort,</span>
     /** Retry operation */
-<span class="fc" id="L190">    Retry</span>
+<span class="nc" id="L190">    Retry</span>
   }
 
 

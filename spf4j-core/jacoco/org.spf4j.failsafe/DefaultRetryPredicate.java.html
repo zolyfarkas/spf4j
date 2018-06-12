@@ -104,7 +104,7 @@ final class DefaultRetryPredicate&lt;T&gt; implements RetryPredicate&lt;T, Calla
 <span class="fc bfc" id="L104" title="All 2 branches covered.">      if (decision != null) {</span>
 <span class="fc bfc" id="L105" title="All 2 branches covered.">        if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
 <span class="fc" id="L106">          Callable&lt;?&gt; newCallable = decision.getNewCallable();</span>
-<span class="fc" id="L107">          LOG.debug(&quot;Result {} for {} retrying {}&quot;, value, what, newCallable);</span>
+<span class="fc" id="L107">          LOG.debug(&quot;Result {} for {} retrying {}&quot;, value.getClass().getName(), what, newCallable, value);</span>
 <span class="pc bpc" id="L108" title="1 of 2 branches missed.">          if (decision.getDelayNanos() &lt; 0) {</span>
 <span class="fc" id="L109">            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);</span>
 <span class="fc" id="L110">            return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);</span>

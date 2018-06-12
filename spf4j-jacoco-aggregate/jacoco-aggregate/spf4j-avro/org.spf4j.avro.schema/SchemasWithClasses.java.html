@@ -43,38 +43,38 @@ import org.apache.avro.Schema;
  * @author zoly
  */
 //CHECKSTYLE IGNORE MissingSwitchDefault FOR NEXT 200 LINES
-<span class="fc" id="L46">public final class SchemasWithClasses implements SchemaVisitor&lt;Map&lt;String, Schema&gt;&gt; {</span>
+<span class="nc" id="L46">public final class SchemasWithClasses implements SchemaVisitor&lt;Map&lt;String, Schema&gt;&gt; {</span>
 
-<span class="fc" id="L48">  private final Map&lt;String, Schema&gt; schemas = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L48">  private final Map&lt;String, Schema&gt; schemas = new HashMap&lt;&gt;();</span>
 
   @Override
   @SuppressFBWarnings(&quot;SF_SWITCH_NO_DEFAULT&quot;)
   public SchemaVisitorAction visitTerminal(final Schema schema) {
-<span class="pc bfc" id="L53" title="All 2 branches covered.">    switch (schema.getType()) {</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    switch (schema.getType()) {</span>
       case FIXED:
       case ENUM:
-<span class="fc" id="L56">        schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
+<span class="nc" id="L56">        schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
         break;
     }
-<span class="fc" id="L59">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="nc" id="L59">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public SchemaVisitorAction visitNonTerminal(final Schema schema) {
-<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (schema.getType() == Schema.Type.RECORD) {</span>
-<span class="fc" id="L65">      schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (schema.getType() == Schema.Type.RECORD) {</span>
+<span class="nc" id="L65">      schemas.put(SchemaUtils.getJavaClassName(schema), schema);</span>
     }
-<span class="fc" id="L67">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="nc" id="L67">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public SchemaVisitorAction afterVisitNonTerminal(final Schema terminal) {
-<span class="fc" id="L72">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="nc" id="L72">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public Map&lt;String, Schema&gt; get() {
-<span class="fc" id="L77">    return schemas;</span>
+<span class="nc" id="L77">    return schemas;</span>
   }
 
   @Override

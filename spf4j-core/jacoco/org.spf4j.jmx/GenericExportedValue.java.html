@@ -31,7 +31,6 @@
  */
 package org.spf4j.jmx;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.function.Consumer;
@@ -42,6 +41,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import org.spf4j.base.UncheckedExecutionException;
 
 /**
  *

@@ -35,7 +35,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collection;
 import java.util.Comparator;
@@ -48,7 +47,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.MemorizedCallable;
+import org.spf4j.base.Callables;
+import org.spf4j.base.UncheckedExecutionException;
 
 /**
  *
@@ -94,7 +94,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
   public V get(final K key) throws ExecutionException {
 <span class="fc" id="L95">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
 <span class="fc bfc" id="L96" title="All 2 branches covered.">    if (existingValHolder == null) {</span>
-<span class="fc" id="L97">      Callable&lt;? extends V&gt; newHolder = new MemorizedCallable(new Callable&lt;V&gt;() {</span>
+<span class="fc" id="L97">      Callable&lt;? extends V&gt; newHolder = Callables.memorized(new Callable&lt;V&gt;() {</span>
         @Override
         public V call() throws Exception {
 <span class="fc" id="L100">          return loader.load(key);</span>
@@ -170,7 +170,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
   public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) throws ExecutionException {
 <span class="nc" id="L171">    Callable&lt;? extends V&gt; existingValHolder = map.get(key);</span>
 <span class="nc bnc" id="L172" title="All 2 branches missed.">    if (existingValHolder == null) {</span>
-<span class="nc" id="L173">      Callable&lt;? extends V&gt; newHolder = new MemorizedCallable(valueLoader);</span>
+<span class="nc" id="L173">      Callable&lt;? extends V&gt; newHolder = Callables.memorized(valueLoader);</span>
 <span class="nc" id="L174">      existingValHolder = map.putIfAbsent(key, newHolder);</span>
 <span class="nc bnc" id="L175" title="All 2 branches missed.">      if (existingValHolder == null) {</span>
 <span class="nc" id="L176">        existingValHolder = newHolder;</span>
@@ -198,7 +198,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
   @Override
   public void put(final K key, final V value) {
-<span class="nc" id="L201">    map.put(key, (Callable&lt;V&gt;) () -&gt; value);</span>
+<span class="nc" id="L201">    map.put(key, Callables.constant(value));</span>
 <span class="nc" id="L202">  }</span>
 
   @Override
@@ -254,7 +254,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
     @Override
     public V putIfAbsent(final K key, final V value) {
-<span class="nc" id="L257">      Callable&lt;? extends V&gt; result = map.putIfAbsent(key, () -&gt; value);</span>
+<span class="nc" id="L257">      Callable&lt;? extends V&gt; result = map.putIfAbsent(key, Callables.constant(value));</span>
       try {
 <span class="nc bnc" id="L259" title="All 2 branches missed.">        return result == null ? null : result.call();</span>
 <span class="nc" id="L260">      } catch (Exception ex) {</span>
@@ -309,7 +309,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
 
     @Override
     public V put(final K key, final V value) {
-<span class="nc" id="L312">      Callable&lt;? extends V&gt; result = map.put(key, () -&gt; value);</span>
+<span class="nc" id="L312">      Callable&lt;? extends V&gt; result = map.put(key, Callables.constant(value));</span>
       try {
 <span class="nc bnc" id="L314" title="All 2 branches missed.">        return result == null ? null : result.call();</span>
 <span class="nc" id="L315">      } catch (Exception ex) {</span>
@@ -330,7 +330,7 @@ public final class UnboundedLoadingCache&lt;K, V&gt; implements LoadingCache&lt;
     @Override
     public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
 <span class="nc bnc" id="L332" title="All 2 branches missed.">      for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
-<span class="nc" id="L333">        map.put(entry.getKey(), () -&gt; entry.getValue());</span>
+<span class="nc" id="L333">        map.put(entry.getKey(), entry::getValue);</span>
 <span class="nc" id="L334">      }</span>
 <span class="nc" id="L335">    }</span>
 

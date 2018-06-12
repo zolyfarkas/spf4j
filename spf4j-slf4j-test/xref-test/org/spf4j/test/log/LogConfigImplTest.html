@@ -25,7 +25,7 @@
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.ImmutableList;
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.ImmutableMap;
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.Collections;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.junit.Assert;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
@@ -43,27 +43,29 @@
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>      LogPrinter h3 = <strong class="jxr_keyword">new</strong> LogPrinter(Level.DEBUG);
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>      LogPrinter h4 = <strong class="jxr_keyword">new</strong> LogPrinter(Level.ERROR);
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>      LogPrinter h5 = <strong class="jxr_keyword">new</strong> LogPrinter(Level.DEBUG);
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      LogConfigImpl cfg = <strong class="jxr_keyword">new</strong> LogConfigImpl(ImmutableList.of(h1), ImmutableMap.of(<span class="jxr_string">"a.b"</span>, Arrays.asList(h2),
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>              <span class="jxr_string">"a.c"</span>, Arrays.asList(h3), <span class="jxr_string">"c.d"</span>, Arrays.asList(h4)));
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>      LogConsumer handler = cfg.getLogConsumer(<span class="jxr_string">"a"</span>, Level.DEBUG);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      Assert.assertNull(handler);
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>      List&lt;LogHandler&gt; handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a"</span>, Level.INFO)).logHandlers;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>      Assert.assertSame(h1, handlers.get(0));
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a.b"</span>, Level.INFO)).logHandlers;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>      Assert.assertSame(h2, handlers.get(0));
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      Assert.assertSame(h1, handlers.get(1));
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      cfg = cfg.add(<span class="jxr_string">"a"</span>, h5);
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a.b"</span>, Level.INFO)).logHandlers;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>      Assert.assertSame(h2, handlers.get(0));
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>      Assert.assertSame(h5, handlers.get(1));
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      Assert.assertSame(h1, handlers.get(2));
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>      cfg = cfg.remove(<span class="jxr_string">"a"</span>, h5);
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>      handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a.b"</span>, Level.INFO)).logHandlers;
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>      Assert.assertSame(h2, handlers.get(0));
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      Assert.assertSame(h1, handlers.get(1));
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>    }
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>  }
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      LogConfigImpl cfg = <strong class="jxr_keyword">new</strong> LogConfigImpl(ImmutableList.of(h1),
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              ImmutableMap.of(<span class="jxr_string">"a.b"</span>, Collections.singletonList(h2),
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              <span class="jxr_string">"a.c"</span>, Collections.singletonList(h3),
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              <span class="jxr_string">"c.d"</span>, Collections.singletonList(h4)));
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      LogConsumer handler = cfg.getLogConsumer(<span class="jxr_string">"a"</span>, Level.DEBUG);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      Assert.assertNull(handler);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      List&lt;LogHandler&gt; handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a"</span>, Level.INFO)).logHandlers;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      Assert.assertSame(h1, handlers.get(0));
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a.b"</span>, Level.INFO)).logHandlers;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      Assert.assertSame(h2, handlers.get(0));
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      Assert.assertSame(h1, handlers.get(1));
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      cfg = cfg.add(<span class="jxr_string">"a"</span>, h5);
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a.b"</span>, Level.INFO)).logHandlers;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      Assert.assertSame(h2, handlers.get(0));
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      Assert.assertSame(h5, handlers.get(1));
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      Assert.assertSame(h1, handlers.get(2));
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      cfg = cfg.remove(<span class="jxr_string">"a"</span>, h5);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      handlers = ((CompositeLogHandler) cfg.getLogConsumer(<span class="jxr_string">"a.b"</span>, Level.INFO)).logHandlers;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      Assert.assertSame(h2, handlers.get(0));
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      Assert.assertSame(h1, handlers.get(1));
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>    }
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

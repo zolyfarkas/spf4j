@@ -31,8 +31,6 @@
  */
 package org.spf4j.base;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
@@ -47,7 +45,7 @@ import java.security.PrivilegedAction;
  */
 public final class Threads {
 
-<span class="fc" id="L50">  public static final Thread[] EMPTY_ARRAY = new Thread[0];</span>
+<span class="fc" id="L48">  public static final Thread[] EMPTY_ARRAY = new Thread[0];</span>
 
   private static final MethodHandle GET_THREADS;
   private static final MethodHandle DUMP_THREADS;
@@ -57,69 +55,68 @@ public final class Threads {
     final java.lang.reflect.Method dumpThreads;
     try {
 
-<span class="fc" id="L60">      getThreads = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
-<span class="fc" id="L61">      dumpThreads = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
-<span class="nc" id="L62">    } catch (NoSuchMethodException ex) {</span>
-<span class="nc" id="L63">      throw new ExceptionInInitializerError(ex);</span>
-<span class="fc" id="L64">    }</span>
-<span class="fc" id="L65">    AccessController.doPrivileged((PrivilegedAction) () -&gt; {</span>
-<span class="fc" id="L66">      getThreads.setAccessible(true);</span>
-<span class="fc" id="L67">      dumpThreads.setAccessible(true);</span>
-<span class="fc" id="L68">      return null; // nothing to return</span>
+<span class="fc" id="L58">      getThreads = Thread.class.getDeclaredMethod(&quot;getThreads&quot;);</span>
+<span class="fc" id="L59">      dumpThreads = Thread.class.getDeclaredMethod(&quot;dumpThreads&quot;, Thread[].class);</span>
+<span class="nc" id="L60">    } catch (NoSuchMethodException ex) {</span>
+<span class="nc" id="L61">      throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L62">    }</span>
+<span class="fc" id="L63">    AccessController.doPrivileged((PrivilegedAction) () -&gt; {</span>
+<span class="fc" id="L64">      getThreads.setAccessible(true);</span>
+<span class="fc" id="L65">      dumpThreads.setAccessible(true);</span>
+<span class="fc" id="L66">      return null; // nothing to return</span>
     });
-<span class="fc" id="L70">    MethodHandles.Lookup lookup = MethodHandles.lookup();</span>
+<span class="fc" id="L68">    MethodHandles.Lookup lookup = MethodHandles.lookup();</span>
     try {
-<span class="fc" id="L72">      GET_THREADS = lookup.unreflect(getThreads);</span>
-<span class="fc" id="L73">      DUMP_THREADS = lookup.unreflect(dumpThreads);</span>
-<span class="nc" id="L74">    } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L75">      throw new ExceptionInInitializerError(ex);</span>
-<span class="fc" id="L76">    }</span>
+<span class="fc" id="L70">      GET_THREADS = lookup.unreflect(getThreads);</span>
+<span class="fc" id="L71">      DUMP_THREADS = lookup.unreflect(dumpThreads);</span>
+<span class="nc" id="L72">    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L73">      throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L74">    }</span>
 
-<span class="fc" id="L78">  }</span>
+<span class="fc" id="L76">  }</span>
 
   private Threads() { }
 
   public static Thread[] getThreads() {
     try {
-<span class="fc" id="L84">      return (Thread[]) GET_THREADS.invokeExact();</span>
-<span class="nc" id="L85">    } catch (RuntimeException | Error ex) {</span>
-<span class="nc" id="L86">      throw ex;</span>
-<span class="nc" id="L87">    } catch (Throwable ex) {</span>
-<span class="nc" id="L88">      throw new UncheckedExecutionException(ex);</span>
+<span class="fc" id="L82">      return (Thread[]) GET_THREADS.invokeExact();</span>
+<span class="nc" id="L83">    } catch (RuntimeException | Error ex) {</span>
+<span class="nc" id="L84">      throw ex;</span>
+<span class="nc" id="L85">    } catch (Throwable ex) {</span>
+<span class="nc" id="L86">      throw new UncheckedExecutionException(ex);</span>
     }
   }
 
   public static StackTraceElement[][] getStackTraces(final Thread... threads) {
     StackTraceElement[][] stackDump;
     try {
-<span class="fc" id="L95">      stackDump = (StackTraceElement[][]) DUMP_THREADS.invokeExact(threads);</span>
-<span class="nc" id="L96">    } catch (RuntimeException | Error ex) {</span>
-<span class="nc" id="L97">      throw ex;</span>
-<span class="nc" id="L98">    } catch (Throwable ex) {</span>
-<span class="nc" id="L99">      throw new RuntimeException(ex);</span>
-<span class="fc" id="L100">    }</span>
-<span class="fc" id="L101">    return stackDump;</span>
+<span class="fc" id="L93">      stackDump = (StackTraceElement[][]) DUMP_THREADS.invokeExact(threads);</span>
+<span class="nc" id="L94">    } catch (RuntimeException | Error ex) {</span>
+<span class="nc" id="L95">      throw ex;</span>
+<span class="nc" id="L96">    } catch (Throwable ex) {</span>
+<span class="nc" id="L97">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L98">    }</span>
+<span class="fc" id="L99">    return stackDump;</span>
   }
 
-  @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;) // jdk printstreams are sync I don't want interleaving.
   public static void dumpToPrintStream(final PrintStream stream) {
-<span class="nc" id="L106">    synchronized (stream) {</span>
-<span class="nc" id="L107">      Thread[] threads = getThreads();</span>
-<span class="nc" id="L108">      StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
-<span class="nc" id="L110">        StackTraceElement[] stackTrace = stackTraces[i];</span>
-<span class="nc bnc" id="L111" title="All 4 branches missed.">        if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="nc" id="L112">          Thread thread = threads[i];</span>
-<span class="nc" id="L113">          stream.println(&quot;Thread &quot; + thread.getName());</span>
-          try {
-<span class="nc" id="L115">            Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);</span>
-<span class="nc" id="L116">          } catch (IOException ex) {</span>
-<span class="nc" id="L117">            throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L118">          }</span>
-        }
+<span class="nc" id="L103">    StringBuilder sb = new StringBuilder(1024);</span>
+<span class="nc" id="L104">    Thread[] threads = getThreads();</span>
+<span class="nc" id="L105">    StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">    for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L107">      StackTraceElement[] stackTrace = stackTraces[i];</span>
+<span class="nc bnc" id="L108" title="All 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L109">        Thread thread = threads[i];</span>
+<span class="nc" id="L110">        sb.append(&quot;Thread &quot;).append(thread.getName()).append('\n');</span>
+        try {
+<span class="nc" id="L112">          Throwables.writeTo(stackTrace, sb, Throwables.PackageDetail.SHORT, true);</span>
+<span class="nc" id="L113">        } catch (IOException ex) {</span>
+<span class="nc" id="L114">          throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L115">        }</span>
       }
-<span class="nc" id="L121">    }</span>
-<span class="nc" id="L122">  }</span>
+    }
+<span class="nc" id="L118">    stream.append(sb);</span>
+<span class="nc" id="L119">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
