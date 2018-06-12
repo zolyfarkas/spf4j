@@ -57,6 +57,13 @@ public interface CLibrary extends LibCAPI, Library {
 
   int fork();
 
+  /**
+   * returns signal name from a signal number.
+   * @param sigNumber the signal number.
+   * @return the signal name.
+   */
+  String strsignal(int sigNumber);
+
   int kill(int pid, int signum);
 
   int setsid();
