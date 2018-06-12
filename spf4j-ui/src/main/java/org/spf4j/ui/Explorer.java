@@ -282,6 +282,7 @@ public class Explorer extends javax.swing.JFrame {
   private void fromTextMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fromTextMenuItemActionPerformed
 
     final JDialog frame = new JDialog(this, "Enter json stack samples", true);
+    frame.setName("fromTextDialog");
     frame.setJMenuBar(createContextMenuBar());
     TextEntryPanel panel = new TextEntryPanel((samples) -> {
         JInternalFrame f = new StackDumpJInternalFrame(samples, "text entry", true);

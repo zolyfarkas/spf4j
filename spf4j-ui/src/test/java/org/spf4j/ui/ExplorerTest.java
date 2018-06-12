@@ -23,6 +23,7 @@ import javax.swing.JMenuItem;
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.edt.FailOnThreadViolationRepaintManager;
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JFileChooserFixture;
 import org.assertj.swing.fixture.JMenuItemFixture;
@@ -101,7 +102,20 @@ public class ExplorerTest {
     fileChooser.approve();
     Assert.assertNotNull(window.internalFrame(
             "test8381720042200787335.tsdb2"));
-
+    JMenuItemFixture openJsonText = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(final JMenuItem component) {
+        return "FromText".equals(component.getText());
+      }
+    });
+    openJsonText.click();
+    DialogFixture dialog = window.dialog("fromTextDialog");
+    dialog.textBox("textBox").setText("{\"ROOT@49924@ZMacBookPro-2.local\":10,"
+            + "\"c\":[{\"m3@C2\":2,\"c\":[{\"m2@C2\":2,\"c\":[{\"m1@C2\":2}]}]},{\"m1@C1\":2},"
+            + "{\"m3@C1\":4,\"c\":[{\"m2@C1\":4,\"c\":[{\"m1@C1\":4}]}]},"
+            + "{\"m4@C1\":2,\"c\":[{\"m2@C1\":2,\"c\":[{\"m1@C1\":2}]}]}]}");
+    dialog.button("display").click();
+    Assert.assertNotNull(window.internalFrame("text entry"));
     window.close();
     window.cleanUp();
     expectation.assertObservation(2, TimeUnit.SECONDS);

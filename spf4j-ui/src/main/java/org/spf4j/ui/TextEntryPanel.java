@@ -69,10 +69,13 @@ public class TextEntryPanel extends javax.swing.JPanel {
     jTextPane1 = new javax.swing.JTextPane();
     javax.swing.JButton display = new javax.swing.JButton();
 
+    jTextPane1.setName("textBox"); // NOI18N
+    jTextPane1.setOpaque(false);
     jTextPane1.setRequestFocusEnabled(false);
     jScrollPane1.setViewportView(jTextPane1);
 
     display.setText("Display");
+    display.setName("display"); // NOI18N
     display.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         displayActionPerformed(evt);
