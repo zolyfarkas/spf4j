@@ -57,6 +57,7 @@
         <junit.version>4.12</junit.version>
         <slf4j.version>1.7.25</slf4j.version>
         <jmh.version>1.21</jmh.version>
+        <maven-plugin-plugin.version>3.5.2</maven-plugin-plugin.version>
         <!-- avro 1.8.2 generated classes depend on org.apache.avro.message.* which is not yet ported to my fork. -->
         <avro.version>1.8.1</avro.version>
         <guava.version>25.1-jre</guava.version>
@@ -68,7 +69,7 @@
         <jacoco.class.ratio>0.5</jacoco.class.ratio>
         <jacoco.method.ratio>0.4</jacoco.method.ratio>
         <argLine>-Djava.io.tmpdir=./target -Duser.dir=./target -XX:-OmitStackTraceInFastThrow</argLine>
-        <skip.avrodoc>true</skip.avrodoc>
+        <skip.avrodoc>false</skip.avrodoc>
     </properties>
     
     <scm>
@@ -305,7 +306,7 @@ java.util.Calendar#getInstance()
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.7</version>  <!-- last used: 3.4 -->
+                <version>3.7.1</version>  <!-- last used: 3.4 -->
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.maven.doxia</groupId>
@@ -524,7 +525,7 @@ java.util.Calendar#getInstance()
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.20.1</version>
+                    <version>2.21.0</version>
                     <configuration>
                       <trimStackTrace>false</trimStackTrace>
                       <systemProperties>
@@ -564,9 +565,8 @@ java.util.Calendar#getInstance()
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
+                    <version>3.1.1</version>
                 </plugin>    
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jxr-plugin</artifactId>
@@ -577,7 +577,15 @@ java.util.Calendar#getInstance()
                   <artifactId>maven-install-plugin</artifactId>
                   <version>2.5.2</version>
                 </plugin>
-
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-plugin-plugin</artifactId>
+                  <version>3.5.2</version>
+                  <configuration>
+                    <!-- see http://jira.codehaus.org/browse/MNG-5346 -->
+                    <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                  </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         
@@ -592,7 +600,7 @@ java.util.Calendar#getInstance()
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
+                <version>2.10.4</version>
                 <configuration>
                     <aggregate>true</aggregate>
                     <failOnError>false</failOnError>
