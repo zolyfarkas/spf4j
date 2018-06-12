@@ -65,7 +65,7 @@ public interface CLibrary extends LibCAPI, Library {
   String strsignal(int sigNumber);
 
   int kill(int pid, int signum);
-
+  
   int setsid();
 
   int setuid(short newuid);

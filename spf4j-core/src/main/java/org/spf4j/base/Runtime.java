@@ -509,26 +509,11 @@ public final class Runtime {
     } while (ref.get() != null && TimeSource.nanoTime() < deadline);
     return ref.get() == null;
   }
-
-  public static void jrunLog(final Class<?> classWithMain,
-          final long timeoutMillis, final String... arguments)
-          throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-    jrunLog(classWithMain, classPath, timeoutMillis, arguments);
-  }
-
   public static CharSequence jrun(final Class<?> classWithMain,
           final long timeoutMillis, final String... arguments)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
     final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
     return jrun(classWithMain, classPath, timeoutMillis, arguments);
-  }
-
-  public static void jrunLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
-          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());
-    inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
-    jrunLog(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);
   }
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
@@ -538,16 +523,6 @@ public final class Runtime {
     return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);
   }
 
-  public static void jrunLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
-          final String[] jvmArgs,
-          final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    final String jvmPath = JAVA_HOME + File.separatorChar + "bin" + File.separatorChar + "java";
-    String[] command = Arrays.concat(new String[]{jvmPath},
-            jvmArgs,
-            new String[]{"-cp", classPath, classWithMain.getName()},
-            arguments);
-    OperatingSystem.forkExecLog(command, timeoutMillis);
-  }
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String[] jvmArgs,

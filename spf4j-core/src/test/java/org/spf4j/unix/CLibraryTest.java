@@ -31,20 +31,53 @@
  */
 package org.spf4j.unix;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+//CHECKSTYLE:OFF
+import sun.misc.Signal;
+//CHECKSTYLE:ON
 
 /**
  *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public class CLibraryTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CLibraryTest.class);
 
   @Test
   public void testStrSignal() {
     String strsignal = CLibrary.INSTANCE.strsignal(9);
     Assert.assertThat(strsignal, Matchers.startsWith("Kill"));
+  }
+
+  @Test
+  public void testSignal() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    CountDownLatch latch = new CountDownLatch(1);
+    Signal.handle(new Signal("USR2"), (signal) -> {
+      LOG.debug("Received signal: {}", signal);
+      latch.countDown();
+    });
+    org.spf4j.base.Runtime.jrunAndLog(CLibraryTest.class, 60000);
+    Assert.assertTrue(latch.await(1, TimeUnit.MINUTES));
+
+  }
+
+  public static void main(final String[] args) {
+    int ppid = CLibrary.INSTANCE.getppid();
+    Signal signal = new Signal("USR2");
+    LOG.info("Sending signal: {}", signal);
+    CLibrary.INSTANCE.kill(ppid, signal.getNumber());
   }
 
 }
