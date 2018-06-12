@@ -317,7 +317,7 @@ public final class OperatingSystem {
             = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);
     if (resp.getResponseExitCode() != SysExits.OK) {
       throw new ExecutionException("Failed to execute " + Arrays.toString(command)
-              + ", returned" + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
+              + ", exitCode = " + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
     }
     return resp.getOutput();
   }
@@ -331,7 +331,7 @@ public final class OperatingSystem {
                     timeoutMillis, 60000);
     if (resp.getResponseExitCode() != SysExits.OK) {
       throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(command)
-              + ", returned" + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
+              + ", exitCode = " + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
     }
   }
 
