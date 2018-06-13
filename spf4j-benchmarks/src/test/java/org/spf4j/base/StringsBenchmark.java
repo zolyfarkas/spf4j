@@ -31,7 +31,12 @@
  */
 package org.spf4j.base;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ThreadLocalRandom;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Scope;
@@ -50,13 +55,17 @@ public class StringsBenchmark {
   public static final String TEST_STRING;
 
   static {
-    IntMath.XorShift32 rnd = new IntMath.XorShift32();
-    StringBuilder builder = new StringBuilder(2200);
-    for (int i = 0; i < 2200; i++) {
-      builder.append('A' + Math.abs(rnd.nextInt()) % 22);
+    java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(2500);
+    OutputStream bos = encoder.wrap(byteArrayOutputStream);
+    for (int i = 0; i < 2400; i++) {
+      try {
+        bos.write(ThreadLocalRandom.current().nextInt(256));
+      } catch (IOException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
     }
-    builder.append("cw==");
-    TEST_STRING = builder.toString();
+    TEST_STRING = "1234567890" + new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
   }
 
   @Benchmark
