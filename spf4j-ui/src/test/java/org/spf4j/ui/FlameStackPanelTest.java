@@ -19,6 +19,7 @@ import com.google.common.io.Resources;
 import java.awt.BorderLayout;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JFrame;
@@ -66,7 +67,7 @@ public class FlameStackPanelTest {
 
   @Test
   public void testLoadingHotStackPanel() throws IOException, InterruptedException {
-    HotFlameStackPanel panel = new HotFlameStackPanel(NODES);
+    HotFlameStackPanel panel = new HotFlameStackPanel(NODES, new LinkedList<>());
     testPanel(panel);
   }
 
@@ -84,13 +85,13 @@ public class FlameStackPanelTest {
   @Test
   public void testLoadingHotStackPanel2() throws IOException, InterruptedException {
     LOG.debug("Graph = {}", NODES2);
-    HotFlameStackPanel panel = new HotFlameStackPanel(NODES2);
+    HotFlameStackPanel panel = new HotFlameStackPanel(NODES2, new LinkedList<>());
     testPanel(panel);
   }
 
   @Test
   public void testLoadingStackPanel() throws IOException, InterruptedException {
-    FlameStackPanel panel = new FlameStackPanel(NODES);
+    FlameStackPanel panel = new FlameStackPanel(NODES, new LinkedList<>());
     testPanel(panel);
   }
 

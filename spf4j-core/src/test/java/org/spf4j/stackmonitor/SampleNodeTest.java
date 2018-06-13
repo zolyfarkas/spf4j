@@ -110,9 +110,15 @@ public final class SampleNodeTest {
 
     StringBuilder sb = new StringBuilder();
     node1.writeTo(sb);
+    LOG.debug("Serialized String", sb);
     Pair<Method, SampleNode> parsed = SampleNode.parse(new StringReader(sb.toString()));
     Assert.assertEquals(node1, parsed.getSecond());
     Assert.assertEquals(node1, Objects.clone(node1));
+
+    SampleNode.traverse(parsed.getFirst(), parsed.getSecond(), (f, t, s) -> {
+      LOG.debug("{} -> {} sampled {} times", f, t, s);
+      return true;
+    });
 
   }
 

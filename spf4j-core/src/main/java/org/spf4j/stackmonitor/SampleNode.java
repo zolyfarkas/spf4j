@@ -244,6 +244,11 @@ public final class SampleNode implements Serializable, JsonWriteable {
     }
   }
 
+  /**
+   * creates a copy filtered by predicate.
+   * @param predicate
+   * @return
+   */
   @Nullable
   public SampleNode filteredBy(final Predicate<Method> predicate) {
 

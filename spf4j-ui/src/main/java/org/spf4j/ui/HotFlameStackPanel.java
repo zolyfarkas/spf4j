@@ -43,12 +43,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.spf4j.base.EqualsPredicate;
+import org.spf4j.base.Method;
+import org.spf4j.base.Pair;
 import org.spf4j.stackmonitor.SampleGraph;
 import org.spf4j.stackmonitor.SampleGraph.AggSample;
 import org.spf4j.stackmonitor.SampleGraph.Sample;
@@ -71,12 +74,13 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
   private double totalHeight = 0;
 
 
-  public HotFlameStackPanel(final SampleNode samples) {
-    super(samples);
+  public HotFlameStackPanel(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
+    super(samples, history);
   }
 
   @Override
   public int paint(final Graphics2D gr, final double width, final double rowHeight) {
+    totalHeight = 0;
     paintGraph(gr, width, rowHeight);
     return (int) totalHeight;
   }
@@ -111,7 +115,7 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
     SComparator(final SampleGraph graph) {
       this.graph = graph;
     }
-
+    // This is not really a good comparator....
     public int compare(final AggSample a, final AggSample b) {
       int as = graph.getParents(a).size();
       int bs = graph.getParents(b).size();

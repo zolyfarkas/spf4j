@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -52,8 +53,8 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
 
   private static final long serialVersionUID = 1L;
 
-  public FlameStackPanel(final SampleNode samples) {
-    super(samples);
+  public FlameStackPanel(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
+    super(samples, history);
   }
 
   @Override

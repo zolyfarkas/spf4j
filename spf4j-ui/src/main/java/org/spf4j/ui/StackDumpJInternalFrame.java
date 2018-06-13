@@ -34,6 +34,7 @@ package org.spf4j.ui;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ItemEvent;
+import java.util.LinkedList;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -69,14 +70,22 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
   }
 
   private void setViewType(final boolean isgraph) {
+    StackPanelBase view = (StackPanelBase) ssScrollPanel.getViewport().getView();
     if (isgraph) {
       graphToggle.setSelected(true);
       //ssScrollPanel.setViewportView(new ZStackPanel(this.samples));
-      ssScrollPanel.setViewportView(new HotFlameStackPanel(this.samples));
+      if (view != null) {
+        ssScrollPanel.setViewportView(new HotFlameStackPanel(view.getSamples(), view.getHistory()));
+      } else {
+        ssScrollPanel.setViewportView(new HotFlameStackPanel(this.samples, new LinkedList<>()));
+      }
     } else {
       graphToggle.setSelected(false);
-      ssScrollPanel.setViewportView(new FlameStackPanel(this.samples));
-    }
+      if (view != null) {
+        ssScrollPanel.setViewportView(new FlameStackPanel(view.getSamples(), view.getHistory()));
+      } else {
+        ssScrollPanel.setViewportView(new FlameStackPanel(this.samples, new LinkedList<>()));
+      }    }
   }
 
   /**

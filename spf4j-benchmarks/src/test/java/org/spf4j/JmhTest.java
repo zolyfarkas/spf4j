@@ -63,7 +63,7 @@ public final class JmhTest {
     final String profile = System.getProperty("basedir",
             org.spf4j.base.Runtime.USER_DIR) + "/src/main/jfc/profile.jfc";
     Options opt = new OptionsBuilder()
-//                           .include(".*ThreadPoolBenchmark")
+                           .include(".*ThreadPoolBenchmark")
             //                .include(".*Reflections.*")
             //                .addProfiler(JmhProfiler.class)
             //                .addProfiler(CompilerProfiler.class)
@@ -74,7 +74,7 @@ public final class JmhTest {
             // "-XX:+PrintInlining", "-XX:+TraceDeoptimization", "-XX:+DebugDeoptimization", "-XX:+LogEvents"
             //"-XX:+UnlockDiagnosticVMOptions", "-XX:+LogEvents", "-XX:+PrintCodeCache", "-XX:MaxInlineLevel=12",
             //         "-XX:+PrintInlining", "-XX:+PrintCompilation", "-XX:+LogCompilation"
-            .jvmArgs("-XX:MaxInlineLevel=12",
+            .jvmArgs("-XX:MaxInlineLevel=12", "-XX:-RestrictContended",
                     "-XX:BiasedLockingStartupDelay=0",
                     "-Xmx256m", "-Xms256m", "-XX:+UnlockCommercialFeatures",
                     "-Djmh.stack.profiles=" + destinationFolder,

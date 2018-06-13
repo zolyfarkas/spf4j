@@ -85,11 +85,11 @@ public abstract class StackPanelBase<T> extends JPanel
 
   public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
-  public StackPanelBase(final SampleNode samples) {
+  public StackPanelBase(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
     this.imgSize = new Dimension(0, 0);
     this.samples = samples;
     this.method = Method.ROOT;
-    history = new LinkedList<>();
+    this.history = history;
     setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
     final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();
     sharedInstance.registerComponent(this);
@@ -153,7 +153,7 @@ public abstract class StackPanelBase<T> extends JPanel
   public final void paintComponent(final Graphics g) {
     super.paintComponent(g);
     Dimension size = getSize();
-    if (size.getWidth() != imgSize.getWidth()) {
+    if (!size.equals(imgSize)) {
       img = null;
       imgSize = size;
     }
@@ -295,6 +295,10 @@ public abstract class StackPanelBase<T> extends JPanel
 
   public final Method getMethod() {
     return method;
+  }
+
+  public final LinkedList<Pair<Method, SampleNode>> getHistory() {
+    return history;
   }
 
   @Nullable
