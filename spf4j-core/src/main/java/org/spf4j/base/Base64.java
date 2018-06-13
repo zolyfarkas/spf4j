@@ -282,12 +282,12 @@ public final class Base64 {
   }
 
   public static String encodeBase64(final byte[] input) {
-    return Base64.encodeBase64(input, 0, input.length);
+    return encodeBase64(input, 0, input.length);
   }
 
   public static String encodeBase64(final byte[] input, final int offset, final int len) {
     char[] buf = TLScratch.getCharsTmp((((len + 2) / 3) * 4));
-    int ptr = Base64.encodeBase64(input, offset, len, buf, 0);
+    int ptr = encodeBase64(input, offset, len, buf, 0);
     return new String(buf, 0, ptr);
   }
 
