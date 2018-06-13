@@ -34,6 +34,7 @@ package org.spf4j.stackmonitor;
 import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
@@ -42,7 +43,9 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
@@ -316,6 +319,57 @@ public final class SampleNode implements Serializable, JsonWriteable {
       }
     }
   }
+
+  private static final class TraversalData {
+    private final Method m;
+    private final SampleNode n;
+
+    TraversalData(final Method m, final SampleNode n) {
+      this.m = m;
+      this.n = n;
+    }
+
+  }
+
+  public interface Invocation {
+    @CheckReturnValue
+    boolean invocation(Method from, Method to, int nrSamples);
+  }
+
+  public static void traverse(final Method m, final SampleNode node, final Invocation handler) {
+    traverse(m, node, handler, true);
+  }
+
+  public static void traverse(final Method m, final SampleNode node, final Invocation handler,
+          final boolean breadthFirst) {
+    traverse(m, node, handler, breadthFirst ? Deque<TraversalData>::pollFirst : Deque<TraversalData>::pollLast);
+  }
+
+  public static void traverse(final Method m, final SampleNode node, final Invocation handler,
+          final Function<Deque, TraversalData> func) {
+    Deque<TraversalData> dq = new ArrayDeque<>();
+    dq.add(new TraversalData(m, node));
+    TraversalData t;
+    while ((t = func.apply(dq)) != null) {
+      if (t.n.subNodes != null) {
+        Method from = t.m;
+        boolean conti = t.n.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
+          @Override
+          public boolean execute(final Method a, final SampleNode b) {
+            boolean result = handler.invocation(from, a, b.sampleCount);
+            if (result) {
+              dq.addLast(new TraversalData(a, b));
+            }
+            return result;
+          }
+        });
+        if (!conti) {
+          return;
+        }
+      }
+    }
+  }
+
 
   private static final class Lazy {
 
