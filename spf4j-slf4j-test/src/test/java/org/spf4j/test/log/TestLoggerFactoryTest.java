@@ -19,6 +19,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
@@ -297,6 +298,16 @@ public class TestLoggerFactoryTest {
       LOG.info("coco");
     }).start();
     expect.assertObservation(3, TimeUnit.SECONDS);
+  }
+
+  @Test
+  public void testIntercept() throws InterruptedException {
+    TestLoggers sys = TestLoggers.sys();
+    HandlerRegistration reg = sys.interceptAllLevels("org.spf4j.test.log", (l) -> null);
+    LogAssert expect = sys.dontExpect("org.spf4j.test.log", Level.INFO, (Matcher) Matchers.anything());
+    LOG.info("bla");
+    expect.assertObservation();
+    reg.close();
   }
 
 
