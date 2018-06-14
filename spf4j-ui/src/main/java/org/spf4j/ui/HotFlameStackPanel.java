@@ -252,13 +252,13 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
   @Nullable
   private Double findEmptySpace(final double newXBase, final double newYBase,
           final double newWidth, final double maxX) {
-    double tryx = newXBase + (maxX - newXBase) / 2 - newWidth / 2;
+    double tryx =  Math.max(0, newXBase + (maxX - newXBase) / 2 - newWidth / 2);
     List<SampleKey> methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE - newYBase);
     if (!methods.isEmpty()) {
-      tryx = newXBase;
+      tryx = Math.max(0, newXBase);
       methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE  - newYBase);
       if (!methods.isEmpty()) {
-        tryx = maxX - newWidth;
+        tryx = Math.max(0, maxX - newWidth);
         methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE  - newYBase);
       }
     }

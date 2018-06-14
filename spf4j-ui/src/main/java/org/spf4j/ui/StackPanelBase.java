@@ -80,13 +80,11 @@ public abstract class StackPanelBase<T> extends JPanel
   private final JPopupMenu menu;
   private final LinkedList<Pair<Method, SampleNode>> history;
   private volatile BufferedImage img;
-  private volatile int height;
-  private volatile Dimension imgSize;
+  private volatile int imgWidth;
 
   public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
   public StackPanelBase(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
-    this.imgSize = new Dimension(0, 0);
     this.samples = samples;
     this.method = Method.ROOT;
     this.history = history;
@@ -153,36 +151,43 @@ public abstract class StackPanelBase<T> extends JPanel
   public final void paintComponent(final Graphics g) {
     super.paintComponent(g);
     Dimension size = getSize();
-    if (!size.equals(imgSize)) {
-      img = null;
-      imgSize = size;
-    }
     Insets insets = getInsets();
-    Rectangle2D available = new Rectangle2D.Double(insets.left, insets.top,
-            size.getWidth() - insets.left - insets.right,
-            size.getHeight() - insets.top - insets.bottom);
     Graphics2D g2 = (Graphics2D) g.create();
     try {
-      double rowHeight = g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight() + 2;
-      if (img == null) {
-        GraphicsConfiguration gc = g2.getDeviceConfiguration();
-        img = gc.createCompatibleImage(
-                (int) available.getWidth(), (int) available.getHeight(),
-                Transparency.TRANSLUCENT);
-
-        double width = available.getWidth();
-        samplesRTree.clear();
-        Graphics2D gr = img.createGraphics();
-        gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        height = paint(gr, width, rowHeight);
-        gr.dispose();
+      int width1 = (int) size.getWidth();
+      if (img == null || imgWidth != width1) {
+        double rowHeight = g2.getFont().getStringBounds("ROOT", g2.getFontRenderContext()).getHeight() + 2;
+        img = paintImage(g2, width1 - insets.left - insets.right, rowHeight);
+        Dimension dimension = new Dimension(img.getWidth(), img.getHeight());
+        setPreferredSize(dimension);
+        imgWidth = width1;
       }
       g2.drawImage(img, insets.left, insets.top, this);
-      final Dimension dimension = new Dimension((int) size.getWidth(), height + 20);
-      setPreferredSize(dimension);
     } finally {
       g2.dispose();
     }
+  }
+
+  private BufferedImage paintImage(final Graphics2D g2, final int width, final double rowHeight) {
+    GraphicsConfiguration gc = g2.getDeviceConfiguration();
+    int height = 50000;
+    BufferedImage limg;
+    do {
+      limg = gc.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+      Graphics2D gr = limg.createGraphics();
+      gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+      int nheight = repaint(gr, width, rowHeight) + 10;
+      gr.dispose();
+      if (nheight < height) {
+        return limg.getSubimage(0, 0, width, nheight);
+      }
+      height = nheight;
+    } while (true);
+  }
+
+  private int repaint(final Graphics2D gr, final double width, final double rowHeight) {
+    samplesRTree.clear();
+    return paint(gr, width, rowHeight);
   }
 
   public abstract int paint(Graphics2D gr, double width, double rowHeight);
