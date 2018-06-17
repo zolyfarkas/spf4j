@@ -551,14 +551,13 @@ public final class Throwables {
     writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION);
   }
 
-  @SuppressFBWarnings({"OCP_OVERLY_CONCRETE_PARAMETER", "NOS_NON_OWNED_SYNCHRONIZATION"})
-  // I don't want this to throw a checked ex though... + I really want the coarse sync!
+  @SuppressFBWarnings({"OCP_OVERLY_CONCRETE_PARAMETER"}) // on purpose :-)
   public static void writeTo(@Nonnull final Throwable t, @Nonnull final PrintStream to,
           @Nonnull final PackageDetail detail, final boolean abbreviatedTraceElement) {
+    StringBuilder sb = new StringBuilder(1024);
     try {
-      synchronized (to) {
-        writeTo(t, (Appendable) to, detail, abbreviatedTraceElement);
-      }
+      writeTo(t, sb, detail, abbreviatedTraceElement);
+      to.append(sb);
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }

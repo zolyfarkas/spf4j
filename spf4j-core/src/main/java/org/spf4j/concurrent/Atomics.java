@@ -62,8 +62,6 @@ public final class Atomics {
       newObj = function.apply(initial);
       if (Objects.equals(initial, newObj)) {
         return UpdateResult.same(initial);
-      } else if (initial == newObj) {
-        throw new IllegalStateException("Function " + function + " is mutating " + initial + ", this is not allowed");
       }
     } while (!ar.compareAndSet(initial, newObj));
     return UpdateResult.updated(newObj);

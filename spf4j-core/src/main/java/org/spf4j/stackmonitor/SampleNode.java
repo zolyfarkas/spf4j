@@ -66,7 +66,7 @@ public final class SampleNode implements Serializable, JsonWriteable {
   private int sampleCount;
   private TMap<Method, SampleNode> subNodes;
 
-  public SampleNode(final StackTraceElement[] stackTrace, final int from) {
+  SampleNode(final StackTraceElement[] stackTrace, final int from) {
     sampleCount = 1;
     if (from >= 0) {
       subNodes = new THashMap(4);
