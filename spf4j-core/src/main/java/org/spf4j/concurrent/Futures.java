@@ -32,7 +32,6 @@
 package org.spf4j.concurrent;
 
 import com.google.common.collect.Maps;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
@@ -57,10 +57,18 @@ public final class Futures {
 
   private Futures() { }
 
+  @Nullable
   @CheckReturnValue
   public static RuntimeException cancelAll(final boolean mayInterrupt, final Future... futures) {
+    return cancelAll(mayInterrupt, futures, 0);
+  }
+
+  @Nullable
+  @CheckReturnValue
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future[] futures, final int from) {
     RuntimeException ex = null;
-    for (Future future : futures) {
+    for (int i = from; i < futures.length; i++) {
+      Future future = futures[i];
       try {
         future.cancel(mayInterrupt);
       } catch (RuntimeException e) {
@@ -117,26 +125,19 @@ public final class Futures {
       Future future = futures[i];
       try {
         final long toNanos = deadlineNanos - TimeSource.nanoTime();
-        if (toNanos > 0) {
-          results.put(future, future.get(toNanos, TimeUnit.NANOSECONDS));
-        } else {
-          throw new TimeoutException("Timed out when about to run " + future);
-        }
-      } catch (InterruptedException | TimeoutException ex) {
+        results.put(future, future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS));
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
         if (exception == null) {
           exception = ex;
         } else {
           exception = Throwables.suppress(ex, exception);
         }
-        int next = i + 1;
-        if (next < futures.length) {
-          RuntimeException cex = cancelAll(true, Arrays.copyOfRange(futures, next, futures.length));
-          if (cex != null) {
-            exception = Throwables.suppress(exception, cex);
-          }
+        RuntimeException cex = cancelAll(true, futures, i + 1);
+        if (cex != null) {
+          exception = Throwables.suppress(exception, cex);
         }
-        break;
-      } catch (ExecutionException | RuntimeException ex) {
+      } catch (TimeoutException | ExecutionException | RuntimeException ex) {
         if (exception == null) {
           exception = ex;
         } else {
@@ -171,12 +172,9 @@ public final class Futures {
       Future future = iterator.next();
       try {
         final long toNanos = deadlineNanos - TimeSource.nanoTime();
-        if (toNanos > 0) {
-          results.put(future, future.get(toNanos, TimeUnit.NANOSECONDS));
-        } else {
-          throw new TimeoutException("Timed out when about to run " + future);
-        }
-      } catch (InterruptedException | TimeoutException ex) {
+        results.put(future, future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS));
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
         if (exception == null) {
           exception = ex;
         } else {
@@ -187,7 +185,7 @@ public final class Futures {
           exception = Throwables.suppress(exception, cex);
         }
         break;
-      } catch (ExecutionException | RuntimeException ex) {
+      } catch (TimeoutException | ExecutionException | RuntimeException ex) {
         if (exception == null) {
           exception = ex;
         } else {
