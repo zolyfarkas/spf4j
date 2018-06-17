@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
-import org.spf4j.test.log.LogMatchers;
+import org.spf4j.test.matchers.LogMatchers;
 import org.spf4j.test.log.TestLoggers;
 
 /**

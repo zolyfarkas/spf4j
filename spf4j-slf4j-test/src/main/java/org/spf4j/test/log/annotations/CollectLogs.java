@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.test.log;
+package org.spf4j.test.log.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.spf4j.test.log.Level;
 
 /**
- *
+ * Annotation to specify custom log collection for a particular unit test.
+ * By default all unprinted logs above and including DEBUG level are collected.
  * @author Zoltan Farkas
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface CollectTrobleshootingLogs {
+public @interface CollectLogs {
   Level minLevel() default Level.DEBUG;
   boolean collectPrinted() default false;
 }

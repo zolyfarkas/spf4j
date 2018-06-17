@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.test.log;
+package org.spf4j.test.matchers;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.slf4j.Marker;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogRecord;
 
 /**
  * Utility class to create LogRecord matchers.

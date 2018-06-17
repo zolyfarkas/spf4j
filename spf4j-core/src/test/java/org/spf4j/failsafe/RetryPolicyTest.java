@@ -36,7 +36,7 @@ import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
-import org.spf4j.test.log.LogMatchers;
+import org.spf4j.test.matchers.LogMatchers;
 import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
 

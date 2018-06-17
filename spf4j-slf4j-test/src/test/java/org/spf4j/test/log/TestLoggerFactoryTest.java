@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import org.spf4j.test.matchers.LogMatchers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ import org.slf4j.MarkerFactory;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Method;
 import org.spf4j.io.MimeTypes;
+import org.spf4j.test.log.annotations.CollectLogs;
 
 /**
  *
@@ -174,7 +176,7 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @CollectTrobleshootingLogs(minLevel = Level.TRACE)
+  @CollectLogs(minLevel = Level.TRACE)
   public void testIgnore() {
     TestLoggers config = TestLoggers.sys();
     try (HandlerRegistration ir = config.ignore("org.spf4j.test", Level.DEBUG, Level.ERROR)) {
@@ -188,7 +190,7 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @CollectTrobleshootingLogs(minLevel = Level.TRACE)
+  @CollectLogs(minLevel = Level.TRACE)
   public void testCollect() {
     TestLoggers config = TestLoggers.sys();
     try (LogCollection<Long> c = config.collect("org.spf4j.test", Level.INFO, true, Collectors.counting())) {
@@ -227,7 +229,7 @@ public class TestLoggerFactoryTest {
 
   @Ignore
   @Test
-  @CollectTrobleshootingLogs(minLevel = Level.TRACE, collectPrinted = true)
+  @CollectLogs(minLevel = Level.TRACE, collectPrinted = true)
   public void testLogging4() {
     LOG.trace("lala");
     LOG.debug("log {}", 1);
