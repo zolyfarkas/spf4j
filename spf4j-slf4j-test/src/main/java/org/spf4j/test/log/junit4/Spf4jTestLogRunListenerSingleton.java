@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.Closeables;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TestTimeSource;
 import org.spf4j.test.log.CollectTrobleshootingLogs;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.test.log.Level;
@@ -52,6 +53,10 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);
 
   private static final Spf4jTestLogRunListenerSingleton INSTANCE = new Spf4jTestLogRunListenerSingleton();
+
+  static {
+    System.setProperty("spf4j.timeSource", TestTimeSource.class.getName());
+  }
 
   private final Level minLogLevel;
 
