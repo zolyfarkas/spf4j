@@ -274,13 +274,12 @@ public final class SampleGraph {
           aggGraph.addNode(current);
           aggregates.put(vtxk, current);
         } else {
-          if (isParentDescendant(current, aggParent)) {
-            vtxk = new SampleKey(vtxk.method, vtxk.idxInHierarchy + 1);
-            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);
-            continue;
-          }
+//          if (isParentDescendant(current, aggParent)) {
+//            vtxk = new SampleKey(vtxk.method, vtxk.idxInHierarchy + 1);
+//            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);
+//            continue;
+//          }
           current.add(vtx);
-          updateLevels(current, vtx.level);
         }
         break;
       } while (true);
@@ -303,23 +302,28 @@ public final class SampleGraph {
         });
       }
     }
+    updateLevels(aggSampleVertex);
     return parentVertex;
   }
 
-  private void updateLevels(final AggSample sample, final int l) {
-    if (l <= sample.level) {
-      return;
-    }
-    sample.level = l;
+  /**
+   * Update level of an aggregate sample...
+   * @param sample
+   * @param l
+   */
+  private void updateLevels(final AggSample sample) {
+    Set<AggSample> seen = new THashSet<>();
     ArrayDeque<Pair<AggSample, Integer>> trq = new ArrayDeque<>();
-    aggGraph.successors(sample).forEach((n) -> trq.add(Pair.of(n, l + 1)));
+    aggGraph.successors(sample).forEach((n) -> trq.add(Pair.of(n, sample.level + 1)));
     Pair<AggSample, Integer> curr;
     while ((curr = trq.pollFirst()) != null) {
       AggSample first = curr.getFirst();
-      Integer second = curr.getSecond();
-      first.addLevel(second);
-      Set<AggSample> successors = aggGraph.successors(first);
-      successors.forEach((n) -> trq.add(Pair.of(n, second + 1)));
+      if (seen.add(first)) {
+        Integer second = curr.getSecond();
+        first.addLevel(second);
+        Set<AggSample> successors = aggGraph.successors(first);
+        successors.forEach((n) -> trq.add(Pair.of(n, second + 1)));
+      }
     }
   }
 

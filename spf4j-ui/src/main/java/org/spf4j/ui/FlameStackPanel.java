@@ -53,8 +53,9 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
 
   private static final long serialVersionUID = 1L;
 
-  public FlameStackPanel(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
-    super(samples, history);
+  public FlameStackPanel(final Method method,
+          final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
+    super(method, samples, history);
   }
 
   @Override

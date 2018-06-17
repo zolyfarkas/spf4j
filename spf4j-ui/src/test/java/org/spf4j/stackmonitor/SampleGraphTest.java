@@ -16,6 +16,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.io.Resources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +33,37 @@ import org.spf4j.base.Method;
 public class SampleGraphTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(SampleGraphTest.class);
+
+  /**
+   * 2 sample case:
+   * a -> b
+   * b -> a
+   *
+   * @throws IOException
+   */
+  @Test
+  @SuppressFBWarnings("LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS")
+  public void testCycleAggLogic() throws IOException {
+    SampleNode node = SampleNode.createSampleNode(new StackTraceElement[] {
+      new StackTraceElement("C", "a", "C.java", -1),
+      new StackTraceElement("C", "b", "C.java", -1)
+    });
+    SampleNode.addToSampleNode(node, new StackTraceElement[] {
+      new StackTraceElement("C", "b", "C.java", -1),
+      new StackTraceElement("C", "a", "C.java", -1)
+    });
+    LOG.debug("samples", node);
+    SampleGraph sg = new SampleGraph(Method.ROOT, node);
+    SampleGraph.AggSample aggRootVertex = sg.getAggRootVertex();
+    LOG.debug("Root = {}", aggRootVertex);
+    Set<SampleGraph.AggSample> children = sg.getChildren(aggRootVertex);
+    LOG.debug("Children = {}", children);
+    for (SampleGraph.AggSample child : children) {
+      LOG.debug("Children Children = {}", sg.getChildren(child));
+    }
+    Assert.assertEquals(2, sg.getAggNode(new SampleGraph.SampleKey(Method.getMethod("C", "a"), 0)).getNrSamples());
+    Assert.assertEquals(2, sg.getAggNode(new SampleGraph.SampleKey(Method.getMethod("C", "b"), 0)).getNrSamples());
+  }
 
   @Test
   public void testAggLogic() throws IOException {

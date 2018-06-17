@@ -19,6 +19,7 @@ import com.google.common.io.Resources;
 import java.awt.BorderLayout;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Method;
+import org.spf4j.base.Pair;
 import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleGraph;
 import org.spf4j.stackmonitor.SampleNode;
@@ -67,7 +69,7 @@ public class FlameStackPanelTest {
 
   @Test
   public void testLoadingHotStackPanel() throws IOException, InterruptedException {
-    HotFlameStackPanel panel = new HotFlameStackPanel(NODES, new LinkedList<>());
+    HotFlameStackPanel panel = new HotFlameStackPanel(Method.ROOT, NODES, new LinkedList<>());
     testPanel(panel);
   }
 
@@ -85,13 +87,23 @@ public class FlameStackPanelTest {
   @Test
   public void testLoadingHotStackPanel2() throws IOException, InterruptedException {
     LOG.debug("Graph = {}", NODES2);
-    HotFlameStackPanel panel = new HotFlameStackPanel(NODES2, new LinkedList<>());
+    HotFlameStackPanel panel = new HotFlameStackPanel(Method.ROOT, NODES2, new LinkedList<>());
     testPanel(panel);
   }
 
   @Test
+  public void testHotStackPanelCycle() throws IOException, InterruptedException {
+    Pair<Method, SampleNode> parse = SampleNode.parse(new StringReader("{\"ROOT@65406@ZMacBookPro-2.local\":2,\"c\":"
+            + "[{\"a@C\":1,\"c\":[{\"b@C\":1}]},{\"b@C\":1,\"c\":[{\"a@C\":1}]}]}"));
+    HotFlameStackPanel panel = new HotFlameStackPanel(parse.getFirst(), parse.getSecond(), new LinkedList<>());
+    testPanel(panel);
+  }
+
+
+
+  @Test
   public void testLoadingStackPanel() throws IOException, InterruptedException {
-    FlameStackPanel panel = new FlameStackPanel(NODES, new LinkedList<>());
+    FlameStackPanel panel = new FlameStackPanel(Method.ROOT, NODES, new LinkedList<>());
     testPanel(panel);
   }
 

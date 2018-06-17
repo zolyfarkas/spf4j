@@ -84,9 +84,10 @@ public abstract class StackPanelBase<T> extends JPanel
 
   public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
-  public StackPanelBase(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
+  public StackPanelBase(final Method method,
+          final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
     this.samples = samples;
-    this.method = Method.ROOT;
+    this.method = method;
     this.history = history;
     setPreferredSize(new Dimension(400, 20 * samples.height() + 10));
     final ToolTipManager sharedInstance = ToolTipManager.sharedInstance();

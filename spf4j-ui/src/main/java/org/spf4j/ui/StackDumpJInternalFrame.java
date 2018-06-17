@@ -35,6 +35,7 @@ package org.spf4j.ui;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ItemEvent;
 import java.util.LinkedList;
+import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -60,7 +61,8 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     setName(title);
     initComponents();
     if (samples == null) {
-      this.samples = new SampleNode(new StackTraceElement[]{new StackTraceElement("NO SAMPLES", "", "", -1)}, 0);
+      this.samples = SampleNode.createSampleNode(
+              new StackTraceElement[]{new StackTraceElement("NO SAMPLES", "", "", -1)});
     } else {
       this.samples = samples;
     }
@@ -75,17 +77,18 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
       graphToggle.setSelected(true);
       //ssScrollPanel.setViewportView(new ZStackPanel(this.samples));
       if (view != null) {
-        ssScrollPanel.setViewportView(new HotFlameStackPanel(view.getSamples(), view.getHistory()));
+        ssScrollPanel.setViewportView(new HotFlameStackPanel(view.getMethod(), view.getSamples(), view.getHistory()));
       } else {
-        ssScrollPanel.setViewportView(new HotFlameStackPanel(this.samples, new LinkedList<>()));
+        ssScrollPanel.setViewportView(new HotFlameStackPanel(Method.ROOT, this.samples, new LinkedList<>()));
       }
     } else {
       graphToggle.setSelected(false);
       if (view != null) {
-        ssScrollPanel.setViewportView(new FlameStackPanel(view.getSamples(), view.getHistory()));
+        ssScrollPanel.setViewportView(new FlameStackPanel(view.getMethod(), view.getSamples(), view.getHistory()));
       } else {
-        ssScrollPanel.setViewportView(new FlameStackPanel(this.samples, new LinkedList<>()));
-      }    }
+        ssScrollPanel.setViewportView(new FlameStackPanel(Method.ROOT, this.samples, new LinkedList<>()));
+      }
+    }
   }
 
   /**

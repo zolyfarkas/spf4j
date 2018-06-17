@@ -74,8 +74,9 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
   private double totalHeight = 0;
 
 
-  public HotFlameStackPanel(final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
-    super(samples, history);
+  public HotFlameStackPanel(final Method method,
+          final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
+    super(method, samples, history);
   }
 
   @Override
@@ -170,18 +171,26 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
       fromLinks = new ArrayList<>(parents.size());
       Iterator<AggSample> iterator = parents.iterator();
       AggSample next = iterator.next();
+      double x1 = 0, x2 = 0, y = 0;
       Rectangle2D pr = methodLocations.get(next.getKey());
-      double x1 = pr.getX();
-      double x2 = pr.getMaxX();
-      double y = pr.getMaxY();
-      fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) y));
+      if (pr != null) {
+        x1 = pr.getX();
+        x2 = pr.getMaxX();
+        y = pr.getMaxY();
+        fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) y));
+      }
       while (iterator.hasNext()) {
         next = iterator.next();
         pr = methodLocations.get(next.getKey());
-        fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) pr.getMaxY()));
-        x1 = Math.min(x1, pr.getX());
-        x2 = Math.max(x2, pr.getMaxX());
-        y = Math.max(y, pr.getMaxY());
+        if (pr != null) {
+          fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) pr.getMaxY()));
+          x1 = Math.min(x1, pr.getX());
+          x2 = Math.max(x2, pr.getMaxX());
+          y = Math.max(y, pr.getMaxY());
+        }
+      }
+      if (y <= 0) {
+        throw new IllegalStateException("No parents for " + sample);
       }
       y += rowHeight;
       double width = pps * sample.getNrSamples();
@@ -193,9 +202,18 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
       }
       location = new Rectangle2D.Double(result.floatValue(),  y, width, rowHeight);
     }
+    Set<AggSample> children = graph.getChildren(sample);
+    final List<Point2D> toLinks = new ArrayList<>(0);
+    for (AggSample chs : children) {
+      Rectangle2D ch = methodLocations.get(chs.getKey());
+      if (ch != null) {
+        toLinks.add(new Point2D.Float((float) ch.getCenterX(), (float) ch.getMaxY()));
+      }
+    }
+
     methodLocations.put(sample.getKey(), location);
     insert(location, sample.getKey());
-    drawMethodRectangle(g2, location, sample, fromLinks);
+    drawMethodRectangle(g2, location, sample, fromLinks, toLinks);
 
   }
 
@@ -223,7 +241,7 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
 
 
   private void drawMethodRectangle(final Graphics2D g2, final Rectangle2D.Double location,
-          final AggSample sample, final List<Point2D> fromLinks) {
+          final AggSample sample, final List<Point2D> fromLinks, final List<Point2D> toLinks) {
     double x = location.getX();
     double y = location.getY();
     double width = location.getWidth();
@@ -244,6 +262,9 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
     for (Point2D divLoc : fromLinks) {
       Arrow2D.draw(g2, (int) divLoc.getX(), (int) divLoc.getY(),
               tx, (int) y);
+    }
+    for (Point2D divLoc : toLinks) {
+      Arrow2D.draw(g2, tx, (int) y, (int) divLoc.getX(), (int) divLoc.getY());
     }
     g2.drawRect((int) x, (int) y, (int) width, (int) height);
   }
