@@ -35,13 +35,16 @@ import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
+import org.spf4j.test.log.HandlerRegistration;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.annotations.CollectLogs;
+import org.spf4j.test.log.annotations.PrintLogs;
 
 /**
  *
@@ -66,6 +69,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final Map<Description, ExecutionContext> ctxts;
 
+  private final Map<Description, HandlerRegistration> handlers;
+
   private final boolean collectPrinted;
 
   private final ExceptionAsserterUncaughtExceptionHandler uncaughtExceptionHandler;
@@ -76,6 +81,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     collectPrinted = Boolean.getBoolean("spf4j.test.log.collectPrintedLogs");
     collections = new ConcurrentHashMap<>();
     ctxts = new ConcurrentHashMap<>();
+    handlers = new ConcurrentHashMap<>();
     synchronized (Thread.class) {
       final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
       uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);
@@ -133,6 +139,10 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public synchronized void testFinished(final Description description) {
+    HandlerRegistration stdHandler = handlers.remove(description);
+    if (stdHandler != null) {
+      stdHandler.close();
+    }
     LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
     try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
       handleUncaughtExceptions(description, h.get());
@@ -181,7 +191,13 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     CollectLogs ca = description.getAnnotation(CollectLogs.class);
     Level mll = ca == null ? minLogLevel : ca.minLevel();
     boolean clp = ca == null ? collectPrinted : ca.collectPrinted();
-    collections.put(description, TestLoggers.sys().collect(mll, maxDebugLogsCollected, clp));
+    TestLoggers sysTest = TestLoggers.sys();
+    collections.put(description, sysTest.collect(mll, maxDebugLogsCollected, clp));
+    PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);
+    if (prtAnnot != null) {
+      handlers.put(description, sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
+              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel()));
+    }
     ctxts.put(description, ctx);
     super.testStarted(description);
   }

@@ -53,7 +53,8 @@ public final class TestTimeSource implements LongSupplier {
       nextTime = System.nanoTime();
     }
     if (LOG.isTraceEnabled()) {
-      LOG.trace("nanoTime = {}", nextTime);
+      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+      LOG.trace("nanoTime = {} at {}", nextTime, stackTrace.length > 2 ? stackTrace[2] : "unknown");
     }
     return nextTime;
   }

@@ -41,6 +41,8 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.TimeSource;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.annotations.PrintLogs;
 
 /**
  * @author Zoltan Farkas
@@ -55,6 +57,7 @@ public class RateLimiterTest {
   }
 
   @Test
+  @PrintLogs(ideMinLevel = Level.TRACE)
   public void testRateLimitArgs() {
     try (RateLimiter rateLimiter = new RateLimiter(17, 10, 10)) {
     LOG.debug("Rate Limiter = {}", rateLimiter);
