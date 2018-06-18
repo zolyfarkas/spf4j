@@ -73,6 +73,10 @@ public final class LogMatchers {
      return Matchers.hasProperty("arguments", Matchers.arrayContaining(objects));
   }
 
+  public static Matcher<LogRecord> hasAttachment(final String attachment) {
+     return Matchers.hasProperty("attachments", Matchers.contains(attachment));
+  }
+
   public static Matcher<LogRecord> hasMatchingArguments(final Object objects) {
      return Matchers.hasProperty("arguments", Matchers.arrayContaining(objects));
   }

@@ -16,6 +16,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.iterator.TLongIterator;
 import gnu.trove.list.array.TLongArrayList;
 import java.util.function.LongSupplier;
@@ -45,6 +46,7 @@ public final class TestTimeSource implements LongSupplier {
 
   @Override
   @Nonnull
+  @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
   public long getAsLong() {
     long nextTime;
     if (timeStream.hasNext()) {

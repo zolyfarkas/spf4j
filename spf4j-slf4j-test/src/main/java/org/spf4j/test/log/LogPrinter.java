@@ -46,12 +46,17 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
 
 /**
+ * A log handler that will print all logs that are not marked as printed above a log level.
+ * It passes through all logs to downstream handlers.
+ * Marks Log messages a PRINTED.
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
 public final class LogPrinter implements LogHandler {
 
   public static final String PRINTED = "PRINTED";
+
+  public static final String DO_NOT_PRINT = "DO_NOT_PRINT";
 
   private static final DateTimeFormatter FMT =
           TestUtils.isExecutedFromIDE() ? new DateTimeFormatterBuilder()
@@ -132,7 +137,7 @@ public final class LogPrinter implements LogHandler {
   @SuppressFBWarnings({ "CFS_CONFUSING_FUNCTION_SEMANTICS", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
   @Override
   public LogRecord handle(final LogRecord record) {
-    if (record.hasAttachment(PRINTED)) {
+    if (record.hasAttachment(PRINTED) || record.hasAttachment(DO_NOT_PRINT)) {
       return record;
     }
     Buffer buff = TL_BUFFER.get();

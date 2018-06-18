@@ -31,8 +31,9 @@ public interface LogHandler  {
     HANDLE_PASS,
     /** Will handle this message, and will consume it. */
     HANDLE_CONSUME,
-    /** Not handling these massages */
-    NONE }
+    /** Not handling these messages */
+    NONE
+  }
 
   /**
    * find out if this handler should be used for the given log level.

@@ -102,6 +102,19 @@ with tons of debug info dumped to output all the time. But making it available w
         ..
       }
 
+or for a unit test:
+
+
+    @Test
+    @PrintLogs(category = "org.spf4", ideMinLevel = Level.TRACE)
+    public void testSomeHandler2() {
+      ....
+      LOG.trace("test");
+      ....
+    }
+
+
+
 #### Log Additional objects:
 
       LOG.debug("log {} {} {}", 1, 2, 3, /* extra object */ 4);

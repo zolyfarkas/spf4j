@@ -168,6 +168,10 @@ public final class LogRecord {
     return attachments.contains(obj);
   }
 
+  public synchronized Set<Object> getAttachments() {
+    return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);
+  }
+
   @Override
   public String toString() {
     return "LogRecord{ thread=" + thread + ", logger=" + logger + ", level="

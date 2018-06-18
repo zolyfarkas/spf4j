@@ -33,6 +33,7 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Method;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.test.log.annotations.CollectLogs;
+import org.spf4j.test.log.annotations.PrintLogs;
 
 /**
  *
@@ -45,22 +46,33 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testSomeHandler() {
-    HandlerRegistration reg = TestLoggers.sys().print("org.spf4j.test", Level.TRACE);
-    Assert.assertNotNull(reg);
+    TestLoggers sys = TestLoggers.sys();
+    LogAssert expect = sys.expect("", Level.TRACE, LogMatchers.hasAttachment(LogPrinter.PRINTED));
+    sys.print("org.spf4j.test", Level.TRACE);
+    LOG.trace("test");
+    expect.assertObservation();
+  }
+
+  @Test
+  @PrintLogs(category = "org.spf4", ideMinLevel = Level.TRACE)
+  public void testSomeHandler2() {
+    LogAssert expect = TestLoggers.sys().expect("", Level.TRACE, LogMatchers.hasAttachment(LogPrinter.PRINTED));
+    LOG.trace("test");
+    expect.assertObservation();
   }
 
 
   @Test
+  @PrintLogs(ideMinLevel = Level.TRACE)
+  @CollectLogs(minLevel = Level.TRACE)
   public void testLogging() {
     TestLoggers tLog = TestLoggers.sys();
-    try (HandlerRegistration printer = tLog.print("org.spf4j.test", Level.TRACE)) {
-      logTests();
-      logMarkerTests();
-      LogAssert expect = tLog.expect("org.spf4j.test", Level.ERROR,
-              LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
-      LOG.error("Booo", new RuntimeException());
-      expect.assertObservation();
-    }
+    logTests();
+    logMarkerTests();
+    LogAssert expect = tLog.expect("org.spf4j.test", Level.ERROR,
+            LogMatchers.hasMatchingFormat(Matchers.equalTo("Booo")));
+    LOG.error("Booo", new RuntimeException());
+    expect.assertObservation();
   }
 
   public static void logTests() {

@@ -29,6 +29,7 @@ import java.util.function.Function;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import org.hamcrest.Matcher;
 import org.slf4j.ILoggerFactory;
@@ -118,11 +119,17 @@ public final class TestLoggers implements ILoggerFactory {
    * @param level the log level.
    * @return a handler that allows this printing to stop (when calling close).
    */
-  @CheckReturnValue
-  public HandlerRegistration print(final String category, final Level level) {
-    return intercept(category, new LogPrinter(level));
+  public void print(final String category, final Level level) {
+    interceptInContext(category, new LogPrinter(level));
   }
 
+  public void print(final String category, final Level level, final boolean greedy) {
+    if (greedy) {
+      interceptInContext(category, new GreedyLogPrinter(new LogPrinter(level)));
+    } else {
+      interceptInContext(category, new LogPrinter(level));
+    }
+  }
   /**
    * Ability to intercept log messages logged under a category
    *
@@ -138,9 +145,25 @@ public final class TestLoggers implements ILoggerFactory {
         resetJulConfig();
       }
     };
-    addConfig(category, handler, reg);
+    addConfig(category, handler,  ExecutionContexts.current(), reg);
     return reg;
   }
+
+  @CheckReturnValue
+  public void interceptInContext(final String category, final LogHandler handler) {
+    HandlerRegistration reg = () -> {
+      synchronized (sync) {
+        config = config.remove(category, handler);
+        resetJulConfig();
+      }
+    };
+    ExecutionContext current = ExecutionContexts.current();
+    if (current == null) {
+      throw new IllegalStateException("No execution context available for " + Thread.currentThread());
+    }
+    addConfig(category, handler, current, reg);
+  }
+
 
   /**
    * Collect a bunch of logs.
@@ -187,15 +210,15 @@ public final class TestLoggers implements ILoggerFactory {
         }
       }
     };
-    addConfig(category, handler, handler);
+    addConfig(category, handler, ExecutionContexts.current(),  handler);
     return handler;
   }
 
-  private  void addConfig(final String category, final LogHandler handler, final HandlerRegistration reg) {
+  private void addConfig(final String category, final LogHandler handler,
+          @Nullable final ExecutionContext ctx, final HandlerRegistration reg) {
     synchronized (sync) {
       config = config.add(category, handler);
       resetJulConfig();
-      ExecutionContext ctx = ExecutionContexts.current();
       if (ctx != null) {
         ctx.compute(AutoCloseable.class, (Class<AutoCloseable> k, ArrayList<AutoCloseable> v) -> {
           if  (v == null) {
@@ -285,7 +308,7 @@ public final class TestLoggers implements ILoggerFactory {
       }
 
     };
-    addConfig(category, handler, handler);
+    addConfig(category, handler,  ExecutionContexts.current(), handler);
     return handler;
   }
 

@@ -16,35 +16,15 @@
 package org.spf4j.test.log.annotations;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.spf4j.test.log.Level;
 
 /**
- * Annotation to specify custom log collection for a particular unit test.
- * By default all unprinted logs above and including DEBUG level are collected.
  * @author Zoltan Farkas
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Repeatable(PrintLogsConfigs.class)
-public @interface PrintLogs {
-  /**
-   * @return the log category to print. ("" is the root category).
-   */
-  String category() default "";
-  /**
-   * @return true if we don't want downstream print handlers to PRINT any logs from this category.
-   */
-  boolean greedy() default false;
-  /**
-   * @return minimum log level to print.
-   */
-  Level minLevel() default Level.INFO;
-  /**
-   * @return minimum log level to print when running in the IDE.
-   */
-  Level ideMinLevel() default Level.DEBUG;
+public @interface PrintLogsConfigs {
+    PrintLogs[] value();
 }
