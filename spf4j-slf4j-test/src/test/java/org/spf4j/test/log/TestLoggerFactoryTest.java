@@ -54,7 +54,7 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @PrintLogs(category = "org.spf4", ideMinLevel = Level.TRACE)
+  @PrintLogs(category = "org.spf4", ideMinLevel = Level.TRACE, minLevel = Level.TRACE)
   public void testSomeHandler2() {
     LogAssert expect = TestLoggers.sys().expect("", Level.TRACE, LogMatchers.hasAttachment(LogPrinter.PRINTED));
     LOG.trace("test");
