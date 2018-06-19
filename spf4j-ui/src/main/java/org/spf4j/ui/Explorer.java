@@ -34,6 +34,7 @@ package org.spf4j.ui;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Frame;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,8 +43,10 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -52,6 +55,7 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultEditorKit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Throwables;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.Sampler;
 import org.spf4j.stackmonitor.proto.Converter;
@@ -375,6 +379,16 @@ public class Explorer extends javax.swing.JFrame {
     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
   }
 
+  @Nullable
+  private static Frame findActiveFrame() {
+    Frame[] frames = JFrame.getFrames();
+    for (Frame frame : frames) {
+      if (frame.isVisible()) {
+        return frame;
+      }
+    }
+    return null;
+  }
 
 
 
@@ -382,6 +396,14 @@ public class Explorer extends javax.swing.JFrame {
    * @param args the command line arguments
    */
   public static void main(final String[] args) {
+    Thread.setDefaultUncaughtExceptionHandler((Thread t, Throwable e) -> {
+      Frame frame = findActiveFrame();
+      if (frame != null) {
+        JOptionPane.showMessageDialog(frame, Throwables.toString(e));
+      } else {
+        Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
+      }
+    });
     System.setProperty("spf4j.tsdb2.lenientRead", "true");
     /* Set the Nimbus look and feel */
     //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
