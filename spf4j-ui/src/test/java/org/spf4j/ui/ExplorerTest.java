@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import org.assertj.swing.core.GenericTypeMatcher;
+import org.assertj.swing.core.Settings;
 import org.assertj.swing.edt.FailOnThreadViolationRepaintManager;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
@@ -64,7 +65,9 @@ public class ExplorerTest {
             UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
     JFrame tFrame = GuiActionRunner.execute(() -> new Explorer());
     FrameFixture window = new FrameFixture(tFrame);
-    window.robot().settings().delayBetweenEvents(100);
+    Settings settings = window.robot().settings();
+    settings.delayBetweenEvents(100);
+    settings.eventPostingDelay(10);
     window.show(); // shows the frame to test
     Assert.assertTrue(window.isEnabled());
     JMenuItemFixture openFileMenuItem = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
