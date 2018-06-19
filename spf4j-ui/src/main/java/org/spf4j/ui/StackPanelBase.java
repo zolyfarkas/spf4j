@@ -171,7 +171,7 @@ public abstract class StackPanelBase<T> extends JPanel
 
   private BufferedImage paintImage(final Graphics2D g2, final int width, final double rowHeight) {
     GraphicsConfiguration gc = g2.getDeviceConfiguration();
-    int height = 50000;
+    int height = 6000;
     BufferedImage limg;
     do {
       limg = gc.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
