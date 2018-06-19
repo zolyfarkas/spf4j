@@ -74,6 +74,7 @@ public class ExplorerTest {
       }
     });
     openFileMenuItem.click();
+    Thread.sleep(100); // without this somehow things are not found.
     JFileChooserFixture fileChooser = window.fileChooser("openFileDialog");
     fileChooser.setCurrentDirectory(new File("src/test/resources"));
     fileChooser.selectFile(new File(
@@ -84,6 +85,7 @@ public class ExplorerTest {
             "com.google.common.io.AppendableWriterBenchmark.spf4jAppendable-Throughput.ssdump2"));
 
     openFileMenuItem.click();
+    Thread.sleep(100);
     fileChooser = window.fileChooser("openFileDialog");
     fileChooser.setCurrentDirectory(new File("src/test/resources"));
     Thread.sleep(100);
@@ -94,6 +96,7 @@ public class ExplorerTest {
             "19156@ZMacBookPro.local.tsdb"));
 
     openFileMenuItem.click();
+    Thread.sleep(100);
     fileChooser = window.fileChooser("openFileDialog");
     fileChooser.setCurrentDirectory(new File("src/test/resources"));
     Thread.sleep(100);
@@ -109,6 +112,7 @@ public class ExplorerTest {
       }
     });
     openJsonText.click();
+    Thread.sleep(100);
     DialogFixture dialog = window.dialog("fromTextDialog");
     dialog.textBox("textBox").setText("{\"ROOT@49924@ZMacBookPro-2.local\":10,"
             + "\"c\":[{\"m3@C2\":2,\"c\":[{\"m2@C2\":2,\"c\":[{\"m1@C2\":2}]}]},{\"m1@C1\":2},"
