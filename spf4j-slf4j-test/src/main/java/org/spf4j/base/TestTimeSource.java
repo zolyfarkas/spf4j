@@ -32,15 +32,34 @@ public final class TestTimeSource implements LongSupplier {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestTimeSource.class);
 
-  private static final TLongIterator EMPTY_STREAM = new TLongArrayList(0).iterator();
+  public static final TLongIterator SYSTEM_NANO_TIME_STREAM = new TLongIterator() {
+    @Override
+    public long next() {
+      return System.nanoTime();
+    }
 
-  private static volatile TLongIterator timeStream = EMPTY_STREAM;
+    @Override
+    public boolean hasNext() {
+      return true;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+  };
+
+  private static volatile TLongIterator timeStream = SYSTEM_NANO_TIME_STREAM;
 
   public static void clear() {
-    timeStream = EMPTY_STREAM;
+    timeStream = SYSTEM_NANO_TIME_STREAM;
   }
 
-  public static void addTimeStream(final long... times) {
+  public static void setTimeStream(final TLongIterator stream) {
+    timeStream = stream;
+  }
+
+  public static void setTimeStream(final long... times) {
     timeStream = new TLongArrayList(times).iterator();
   }
 
@@ -52,7 +71,9 @@ public final class TestTimeSource implements LongSupplier {
     if (timeStream.hasNext()) {
       nextTime = timeStream.next();
     } else {
-      nextTime = System.nanoTime();
+      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+      throw new AssertionError("End of time reached at "
+              + (stackTrace.length > 2 ? stackTrace[2] : "unknown"));
     }
     if (LOG.isTraceEnabled()) {
       StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();

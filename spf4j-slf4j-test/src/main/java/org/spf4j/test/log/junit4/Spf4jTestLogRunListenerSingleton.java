@@ -136,6 +136,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public synchronized void testFinished(final Description description) {
+    TestTimeSource.clear();
     LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
     try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
       handleUncaughtExceptions(description, h.get());
