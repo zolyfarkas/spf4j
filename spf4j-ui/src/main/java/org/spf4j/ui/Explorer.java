@@ -43,6 +43,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -69,6 +71,9 @@ import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 public class Explorer extends javax.swing.JFrame {
 
   private static final long serialVersionUID = 1L;
+
+  private static final Lock ERR_LOCK = new ReentrantLock();
+
 
   private File folder;
 
@@ -391,7 +396,6 @@ public class Explorer extends javax.swing.JFrame {
   }
 
 
-
   /**
    * @param args the command line arguments
    */
@@ -399,7 +403,16 @@ public class Explorer extends javax.swing.JFrame {
     Thread.setDefaultUncaughtExceptionHandler((Thread t, Throwable e) -> {
       Frame frame = findActiveFrame();
       if (frame != null) {
-        JOptionPane.showMessageDialog(frame, Throwables.toString(e));
+        if (ERR_LOCK.tryLock()) {
+          try {
+            JOptionPane.showConfirmDialog(frame, Throwables.toString(e), "Exception",
+                JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE);
+          } finally {
+            ERR_LOCK.unlock();
+          }
+        } else {
+          Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
+        }
       } else {
         Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
       }
