@@ -35,7 +35,6 @@ import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.spf4j.test.log.AsyncObservationAssert;
 import org.spf4j.test.log.TestLoggers;
@@ -44,7 +43,6 @@ import org.spf4j.test.log.UncaughtExceptionDetail;
 /**
  * @author Zoltan Farkas
  */
-@Ignore
 public class ExplorerTest {
 
   private static NoExitSecurityManagerInstaller installNoExitSecurityManager;
