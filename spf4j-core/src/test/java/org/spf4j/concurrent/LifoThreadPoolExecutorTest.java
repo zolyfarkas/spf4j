@@ -107,9 +107,19 @@ public class LifoThreadPoolExecutorTest {
       executor.execute(() -> {
       });
     } finally {
-      executor.shutdownNow();
+      Assert.assertEquals(0, executor.shutdownNow().size());
     }
   }
+
+  @Test(expected = RejectedExecutionException.class)
+  public void testRejectShutdown() throws InterruptedException {
+    LifoThreadPool executor
+            = LifoThreadPoolBuilder.newBuilder().withCoreSize(0).withMaxSize(1).withQueueSizeLimit(0).build();
+    executor.shutdown();
+    Assert.assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+    executor.execute(() -> { });
+  }
+
 
   @Test
   public void testRejectHandlerZeroQueueSizeTp() {
