@@ -117,6 +117,16 @@ public final class Arrays {
     return true;
   }
 
+  public static boolean equals(final byte[] a, final byte[] b, final int a1,  final int b1, final int length) {
+    for (int i = a1, j = b1, k = 0; k < length; i++, j++, k++) {
+      if (a[i] != b[j]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
   public static int search(final char[] array, final char c) {
     for (int i = 0; i < array.length; i++) {
       if (array[i] == c) {

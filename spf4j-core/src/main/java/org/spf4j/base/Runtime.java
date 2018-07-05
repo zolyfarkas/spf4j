@@ -518,9 +518,21 @@ public final class Runtime {
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());
-    inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
-    return jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);
+    String[] arr = getJvmArgsNoJMX();
+    return jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
+  }
+
+  private static String[] getJvmArgsNoJMX() {
+    List<String> jvmInputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
+    String[] arr;
+    if (jvmInputArgs.isEmpty()) {
+      arr = Arrays.EMPTY_STRING_ARRAY;
+    } else {
+      JVMArguments inputArguments = new JVMArguments(jvmInputArgs);
+      inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
+      arr = inputArguments.toArray();
+    }
+    return arr;
   }
 
 
@@ -544,9 +556,8 @@ public final class Runtime {
 
   public static void jrunAndLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    JVMArguments inputArguments = new JVMArguments(ManagementFactory.getRuntimeMXBean().getInputArguments());
-    inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
-    jrun(classWithMain, classPath, timeoutMillis, inputArguments.toArray(), arguments);
+    String[] arr = getJvmArgsNoJMX();
+    jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
   }
 
   public static void jrunAndLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
@@ -559,8 +570,6 @@ public final class Runtime {
             arguments);
     OperatingSystem.forkExecLog(command, timeoutMillis);
   }
-
-
 
   /**
    * get the main Thread.

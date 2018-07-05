@@ -67,6 +67,10 @@ public final class GraphiteUdpStoreTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(GraphiteUdpStoreTest.class);
 
+  private static volatile boolean terminated = false;
+  private static volatile Future<?> server;
+  private static final BlockingQueue<String> QUEUE = new LinkedBlockingQueue<>();
+
   private static final File TSDB_TXT;
 
   static {
@@ -81,10 +85,6 @@ public final class GraphiteUdpStoreTest {
             "TSDB@" + tsdb.getAbsolutePath() + "," + "TSDB_TXT@" + TSDB_TXT.getAbsolutePath()
             + ",GRAPHITE_UDP@127.0.0.1:1976");
   }
-
-  private static volatile boolean terminated = false;
-  private static volatile Future<?> server;
-  private static final BlockingQueue<String> QUEUE = new LinkedBlockingQueue<>();
 
 
   @Test

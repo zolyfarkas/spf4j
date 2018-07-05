@@ -31,12 +31,12 @@
  */
 package org.spf4j.net;
 
+import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -48,20 +48,27 @@ import org.spf4j.failsafe.RetryPolicy;
 
 /**
  * Simple NTP client. Inspired by Android Sntp client. For how to use, see SntpClientTest.java.
+ * https://tools.ietf.org/html/rfc1361
  *
  * @author zoly
  */
 @SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class SntpClient {
 
-  private static final int ORIGINATE_TIME_OFFSET = 24;
-  private static final int RECEIVE_TIME_OFFSET = 32;
-  private static final int TRANSMIT_TIME_OFFSET = 40;
+  static final int ORIGINATE_TIME_OFFSET = 24;
+  static final int RECEIVE_TIME_OFFSET = 32;
+  static final int TRANSMIT_TIME_OFFSET = 40;
   private static final int NTP_PACKET_SIZE = 48;
 
   private static final int NTP_PORT = 123;
   private static final int NTP_MODE_CLIENT = 3;
+  private static final int NTP_MODE_SERVER = 4;
+  private static final int NTP_MODE_BROADCAST = 5;
   private static final int NTP_VERSION = 3;
+
+  private static final int NTP_LEAP_NOSYNC = 3;
+  private static final int NTP_STRATUM_DEATH = 0;
+  private static final int NTP_STRATUM_MAX = 15;
 
   // Number of seconds between Jan 1, 1900 and Jan 1, 1970
   // 70 years plus 17 leap days
@@ -94,7 +101,7 @@ public final class SntpClient {
           final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
     if (hosts.length <= 0) {
-      throw new IllegalArgumentException("Must specify at least one host " + Arrays.toString(hosts));
+      throw new IllegalArgumentException("Must specify at least one host " + java.util.Arrays.toString(hosts));
     }
     try (ExecutionContext ctx = ExecutionContexts.start("requestTimeHA", timeoutMillis, TimeUnit.MILLISECONDS)) {
       return  RetryPolicy.defaultPolicy().call(new Callable<Timing>() {
@@ -112,6 +119,11 @@ public final class SntpClient {
     }
   }
 
+  public static synchronized Timing requestTime(final String host, final int timeoutMillis)
+          throws IOException {
+    return requestTime(host, NTP_PORT, timeoutMillis);
+  }
+
   /**
    * Get NTP time.
    *
@@ -121,13 +133,14 @@ public final class SntpClient {
    * @throws IOException - thrown in case of time server connectivity issues.
    */
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
-  public static Timing requestTime(final String host, final int timeoutMillis) throws IOException {
-
+  public static synchronized Timing requestTime(final String host, final int port, final int timeoutMillis)
+          throws IOException {
     try (DatagramSocket socket = new DatagramSocket()) {
       socket.setSoTimeout(timeoutMillis);
       InetAddress address = InetAddress.getByName(host);
       byte[] buffer = new byte[NTP_PACKET_SIZE];
-      DatagramPacket request = new DatagramPacket(buffer, buffer.length, address, NTP_PORT);
+      byte[] clientTime = new byte[8];
+      DatagramPacket request = new DatagramPacket(buffer, buffer.length, address, port);
 
       // set mode = 3 (client) and version = 3
       // mode is in low 3 bits of first byte
@@ -139,18 +152,26 @@ public final class SntpClient {
       long requestTicks = TimeSource.nanoTime() / 1000000L;
       // get current time and write it to the request packet
       long requestTime = System.currentTimeMillis();
-      writeTimeStamp(buffer, TRANSMIT_TIME_OFFSET, requestTime);
+      writeTimeStamp(clientTime, 0, requestTime);
+      System.arraycopy(clientTime, 0, buffer, TRANSMIT_TIME_OFFSET, 8);
       socket.send(request);
       // read the response
-      socket.receive(response);
+      do {
+        socket.receive(response);
+      } while (!org.spf4j.base.Arrays.equals(clientTime, buffer, 0, ORIGINATE_TIME_OFFSET, 0));
       long responseTicks = TimeSource.nanoTime() / 1000000L;
       long roundTripMs = responseTicks - requestTicks;
       long responseTime = requestTime + roundTripMs;
 
       // extract the results
+      // the server copies originateTime from request, reread for
       long originateTime = readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);
       long receiveTime = readTimeStamp(buffer, RECEIVE_TIME_OFFSET);
       long transmitTime = readTimeStamp(buffer, TRANSMIT_TIME_OFFSET);
+      final byte leap = (byte) ((buffer[0] >> 6) & 0x3);
+      final byte mode = (byte) (buffer[0] & 0x7);
+      final int stratum = buffer[1] & 0xff;
+      checkValidServerReply(leap, mode, stratum, transmitTime);
       long roundTripTime = roundTripMs - (transmitTime - receiveTime);
       // receiveTime = originateTime + transit + skew
       // responseTime = transmitTime + transit - skew
@@ -162,6 +183,19 @@ public final class SntpClient {
       //             = (2 * skew)/2 = skew
       long clockOffset = ((receiveTime - originateTime) + (transmitTime - responseTime)) / 2;
       return new Timing(responseTime + clockOffset, responseTicks, roundTripTime);
+    }
+  }
+
+  private static void checkValidServerReply(
+          final byte leap, final byte mode, final int stratum, final long transmitTime) {
+    if (leap == NTP_LEAP_NOSYNC) {
+      throw new IllegalStateException("Unsynchronized server: " + leap);
+    } else if ((mode != NTP_MODE_SERVER) && (mode != NTP_MODE_BROADCAST)) {
+      throw new IllegalStateException("Untrusted mode: " + mode);
+    } else if ((stratum == NTP_STRATUM_DEATH) || (stratum > NTP_STRATUM_MAX)) {
+      throw new IllegalStateException("Untrusted stratum: " + stratum);
+    } else if (transmitTime == 0) {
+      throw new IllegalStateException("Zero transmitTime: " + transmitTime);
     }
   }
 
@@ -187,7 +221,8 @@ public final class SntpClient {
    * Reads the NTP time stamp at the given offset in the buffer and returns it as a system time (milliseconds since
    * January 1, 1970).
    */
-  private static long readTimeStamp(final byte[] buffer, final int offset) {
+  @VisibleForTesting
+  static long readTimeStamp(final byte[] buffer, final int offset) {
     long seconds = read32(buffer, offset);
     long fraction = read32(buffer, offset + 4);
     return ((seconds - OFFSET_1900_TO_1970) * 1000) + ((fraction * 1000L) / 0x100000000L);
@@ -197,10 +232,11 @@ public final class SntpClient {
    * Writes system time (milliseconds since January 1, 1970) as an NTP time stamp at the given offset in the buffer.
    */
   @SuppressFBWarnings("PREDICTABLE_RANDOM")
-  private static void writeTimeStamp(final byte[] buffer, final int poffset, final long time) {
+  @VisibleForTesting
+  static void writeTimeStamp(final byte[] buffer, final int poffset, final long time) {
     int offset = poffset;
     long seconds = time / 1000L;
-    long milliseconds = time - seconds * 1000L;
+    long milliseconds = time % 1000L;
     seconds += OFFSET_1900_TO_1970;
 
     // write seconds in big endian format
