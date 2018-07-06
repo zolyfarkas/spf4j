@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -100,6 +102,12 @@ public final class SntpClient {
   public static Timing requestTimeHA(final int timeoutMillis,
           final int ntpResponseTimeoutMillis, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
+    return requestTimeHA(timeoutMillis, ntpResponseTimeoutMillis, NTP_PORT, hosts);
+  }
+
+  public static Timing requestTimeHA(final int timeoutMillis,
+          final int ntpResponseTimeoutMillis, final int port, final String... hosts)
+          throws IOException, InterruptedException, TimeoutException {
     if (hosts.length <= 0) {
       throw new IllegalArgumentException("Must specify at least one host " + java.util.Arrays.toString(hosts));
     }
@@ -111,7 +119,7 @@ public final class SntpClient {
         @Override
         public Timing call() throws IOException {
           int hostIdx = Math.abs(i++) % hosts.length;
-          return requestTime(hosts[hostIdx],
+          return requestTime(hosts[hostIdx], port,
                   Math.min((int) TimeUnit.NANOSECONDS.toMillis(ctx.getDeadlineNanos() - TimeSource.nanoTime()),
                           ntpResponseTimeoutMillis));
         }
@@ -124,6 +132,12 @@ public final class SntpClient {
     return requestTime(host, NTP_PORT, timeoutMillis);
   }
 
+  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
+  public static synchronized Timing requestTime(final String host, final int port, final int timeoutMillis)
+          throws IOException {
+    return requestTime(host, port, TimeSource.getDeadlineNanos(timeoutMillis, TimeUnit.MILLISECONDS));
+  }
+
   /**
    * Get NTP time.
    *
@@ -133,10 +147,9 @@ public final class SntpClient {
    * @throws IOException - thrown in case of time server connectivity issues.
    */
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
-  public static synchronized Timing requestTime(final String host, final int port, final int timeoutMillis)
+  public static synchronized Timing requestTime(final String host, final int port, final long deadlineNanos)
           throws IOException {
     try (DatagramSocket socket = new DatagramSocket()) {
-      socket.setSoTimeout(timeoutMillis);
       InetAddress address = InetAddress.getByName(host);
       byte[] buffer = new byte[NTP_PACKET_SIZE];
       byte[] clientTime = new byte[8];
@@ -156,9 +169,16 @@ public final class SntpClient {
       System.arraycopy(clientTime, 0, buffer, TRANSMIT_TIME_OFFSET, 8);
       socket.send(request);
       // read the response
-      do {
-        socket.receive(response);
-      } while (!org.spf4j.base.Arrays.equals(clientTime, buffer, 0, ORIGINATE_TIME_OFFSET, 0));
+      long msToDeadline = deadlineNanos / 1000000L - requestTicks;
+      if (msToDeadline <= 0) {
+        throw new SocketTimeoutException("deadline exceded by " + (-msToDeadline) + " ms");
+      }
+      socket.setSoTimeout((int) msToDeadline);
+      socket.receive(response);
+      if (!org.spf4j.base.Arrays.equals(clientTime, buffer, 0, ORIGINATE_TIME_OFFSET, 0)) {
+        throw new IllegalStateException("Packet with incorrect OriginateTime received " + Arrays.toString(buffer));
+      }
+
       long responseTicks = TimeSource.nanoTime() / 1000000L;
       long roundTripMs = responseTicks - requestTicks;
       long responseTime = requestTime + roundTripMs;

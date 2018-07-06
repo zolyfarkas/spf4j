@@ -31,16 +31,17 @@
  */
 package org.spf4j.net;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 //import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -69,13 +70,28 @@ public final class SntpClientTest {
 
   @Test
   public void test2() throws IOException {
-    Timing timing = SntpClient.requestTime("localhost", 50123, 5000);
-    long currentTimeMachine = System.currentTimeMillis();
-    long currentTimeNtp = timing.getTime();
-    LOG.debug("Current Timing = {} ", timing);
-    LOG.debug("Current time machine = {} ", Instant.ofEpochMilli(currentTimeMachine));
-    LOG.debug("Current time ntp = {} ", Instant.ofEpochMilli(currentTimeNtp));
-    Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 10000);
+    try (Closeable runUdpServer = runUdpServer(false)) {
+      Timing timing = SntpClient.requestTime("localhost", 50123, 20);
+      long currentTimeMachine = System.currentTimeMillis();
+      long currentTimeNtp = timing.getTime();
+      LOG.debug("Current Timing = {} ", timing);
+      LOG.debug("Current time machine = {} ", Instant.ofEpochMilli(currentTimeMachine));
+      LOG.debug("Current time ntp = {} ", Instant.ofEpochMilli(currentTimeNtp));
+      Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 10000);
+    }
+  }
+
+  @Test
+  public void test2h() throws IOException, InterruptedException, TimeoutException {
+    try (Closeable runUdpServer = runUdpServer(true)) {
+      Timing timing = SntpClient.requestTimeHA(60000, 5, 50123, "localhost");
+      long currentTimeMachine = System.currentTimeMillis();
+      long currentTimeNtp = timing.getTime();
+      LOG.debug("Current Timing = {} ", timing);
+      LOG.debug("Current time machine = {} ", Instant.ofEpochMilli(currentTimeMachine));
+      LOG.debug("Current time ntp = {} ", Instant.ofEpochMilli(currentTimeNtp));
+      Assert.assertTrue(Math.abs(currentTimeNtp - currentTimeMachine) < 10000);
+    }
   }
 
   @Test
@@ -87,42 +103,53 @@ public final class SntpClientTest {
     Assert.assertEquals(1530813879197L, readTimeStamp);
   }
 
-  private static volatile boolean terminated = false;
-  private static volatile Future<?> server;
+  public static Closeable runUdpServer(final boolean hickup) {
 
-  @BeforeClass
-  public static void runUdpServer() {
+    return new Closeable() {
+      private volatile boolean terminated = false;
+      private Future<?> server = org.spf4j.concurrent.DefaultExecutor.INSTANCE.submit(new AbstractRunnable(true) {
 
-    server = org.spf4j.concurrent.DefaultExecutor.INSTANCE.submit(new AbstractRunnable(true) {
-
-      @Override
-      public void doRun() throws IOException, InterruptedException {
-        try (DatagramSocket socket = new DatagramSocket(50123)) {
-          socket.setSoTimeout(10000000);
-          byte[] buffer = new byte[48];
-          DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-          while (!terminated) {
-            socket.receive(request);
-            long currentTimeMillis = System.currentTimeMillis();
-            DatagramPacket response
-                    = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
-            buffer[0] = 0b00011100;
-            buffer[1] = 2;
-            SntpClient.writeTimeStamp(buffer, SntpClient.RECEIVE_TIME_OFFSET, currentTimeMillis);
-            System.arraycopy(buffer, SntpClient.TRANSMIT_TIME_OFFSET, buffer, SntpClient.ORIGINATE_TIME_OFFSET, 8);
-            SntpClient.writeTimeStamp(buffer, SntpClient.TRANSMIT_TIME_OFFSET, System.currentTimeMillis());
-            socket.send(response);
+        @Override
+        @SuppressFBWarnings("MDM_THREAD_YIELD") // not ideal
+        public void doRun() throws IOException, InterruptedException {
+          boolean first = true;
+          try (DatagramSocket socket = new DatagramSocket(50123)) {
+            socket.setSoTimeout(1000);
+            byte[] buffer = new byte[48];
+            DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+            while (!terminated) {
+              try {
+                socket.receive(request);
+              } catch (SocketTimeoutException sex) {
+                continue;
+              }
+              long currentTimeMillis = System.currentTimeMillis();
+              LOG.debug("Server received {}", buffer);
+              if (first && hickup) {
+                Thread.sleep(1000);
+                first = false;
+              }
+              DatagramPacket response
+                      = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+              buffer[0] = 0b00011100;
+              buffer[1] = 2;
+              SntpClient.writeTimeStamp(buffer, SntpClient.RECEIVE_TIME_OFFSET, currentTimeMillis);
+              System.arraycopy(buffer, SntpClient.TRANSMIT_TIME_OFFSET, buffer, SntpClient.ORIGINATE_TIME_OFFSET, 8);
+              SntpClient.writeTimeStamp(buffer, SntpClient.TRANSMIT_TIME_OFFSET, System.currentTimeMillis());
+              socket.send(response);
+              LOG.debug("Server reply to {} with {}", request.getPort(), buffer);
+            }
           }
         }
+      });
+
+      @Override
+      public void close() {
+        terminated = true;
+        server.cancel(true);
       }
-    });
+    };
 
-  }
-
-  @AfterClass
-  public static void stopUdpServer() {
-    terminated = true;
-    server.cancel(true);
   }
 
 }
