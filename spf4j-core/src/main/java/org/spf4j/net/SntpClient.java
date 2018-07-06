@@ -164,8 +164,8 @@ public final class SntpClient {
       long responseTime = requestTime + roundTripMs;
 
       // extract the results
-      // the server copies originateTime from request, reread for
-      long originateTime = readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);
+      // the server copies originateTime from request.
+      long originateTime = requestTime; //readTimeStamp(buffer, ORIGINATE_TIME_OFFSET);
       long receiveTime = readTimeStamp(buffer, RECEIVE_TIME_OFFSET);
       long transmitTime = readTimeStamp(buffer, TRANSMIT_TIME_OFFSET);
       final byte leap = (byte) ((buffer[0] >> 6) & 0x3);
