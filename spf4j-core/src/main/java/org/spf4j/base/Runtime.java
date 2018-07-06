@@ -103,6 +103,8 @@ public final class Runtime {
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
   private static final List<Class<?>> PRELOADED = new ArrayList<>(2);
+  private static final java.lang.Runtime JAVA_RUNTIME = java.lang.Runtime.getRuntime();
+
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
     try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
@@ -112,9 +114,8 @@ public final class Runtime {
     } catch (UnsupportedEncodingException ex) {
       throw new ExceptionInInitializerError(ex);
     }
-    final java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-    final int availableProcessors = runtime.availableProcessors();
+    final int availableProcessors = JAVA_RUNTIME.availableProcessors();
     if (availableProcessors <= 0) {
       error("Invalid number of processors " + availableProcessors
               + " defaulting to 1");
@@ -141,7 +142,7 @@ public final class Runtime {
     if (dumpNonDaemonThreadInfoOnShutdown) { // prime class...
       PRELOADED.add(Threads.class);
     }
-    runtime.addShutdownHook(new Thread(new AbstractRunnable(false) {
+    JAVA_RUNTIME.addShutdownHook(new Thread(new AbstractRunnable(false) {
       @Override
       public void doRun() throws Exception {
         Exception rex = null;
@@ -277,19 +278,19 @@ public final class Runtime {
   public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
     try {
       if (t != null) {
-        error(OS_NAME, t);
         Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first
-        Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT); //getting more curageous :-)
+        error("Error, going down with exit code " + exitCode, t);
         //Now we are pushing it...
         Logger logger = Logger.getLogger(Runtime.class.getName());
         logger.log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
         logger.log(Level.SEVERE, "Exception detail", t);
       } else {
+        error("Error, going down with exit code " + exitCode);
         Logger.getLogger(Runtime.class.getName())
                 .log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
       }
     } finally {
-      java.lang.Runtime.getRuntime().halt(exitCode);
+      JAVA_RUNTIME.halt(exitCode);
     }
   }
 
