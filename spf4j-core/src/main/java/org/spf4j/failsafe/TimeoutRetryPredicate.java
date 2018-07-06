@@ -54,10 +54,8 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
-          TimeoutException timeoutException = new TimeoutException("Time to deadline not enough "
-                  + timeToDeadlineNanos + " ns ");
-          timeoutException.addSuppressed((Throwable) value);
-          return (RetryDecision) RetryDecision.abortThrow(timeoutException);
+          return (RetryDecision) RetryDecision.abortThrow(new TimeoutException("Time to deadline not enough "
+                  + timeToDeadlineNanos + " ns "));
       }
     }
     return decision;
