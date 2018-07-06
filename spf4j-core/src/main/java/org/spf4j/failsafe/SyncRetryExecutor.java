@@ -137,7 +137,6 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
               == RetryDecision.Type.Retry
             : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {
       if (Thread.interrupted()) {
-        Thread.currentThread().interrupt();
         InterruptedException ex = new InterruptedException();
         if (lastExChain != null) {
           ex.addSuppressed(lastExChain);
