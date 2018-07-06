@@ -637,7 +637,6 @@ public final class Callables {
             || (lastEx == null && (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()
                 == RetryDecision.Type.Retry)) {
       if (Thread.interrupted()) {
-        Thread.currentThread().interrupt();
         throw new InterruptedException();
       }
       long delayMillis = decision.getDelayMillis();
