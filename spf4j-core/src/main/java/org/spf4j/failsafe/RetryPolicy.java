@@ -243,6 +243,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     }
 
     @CheckReturnValue
+    public <E extends Exception> Builder<T, C> withExceptionPartialPredicate(final Class<E> clasz,
+            final PartialTypedExceptionRetryPredicate<T, C, E> predicate, final int maxRetries) {
+      return withExceptionPartialPredicate((e, c) -> {
+        if (clasz.isAssignableFrom(e.getClass())) {
+          return predicate.getExceptionDecision((E) e, c);
+        }
+        return null;
+      }, maxRetries);
+    }
+
+    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate,
             final int maxRetries) {
