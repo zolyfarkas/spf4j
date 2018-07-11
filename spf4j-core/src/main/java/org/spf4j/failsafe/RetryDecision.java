@@ -67,7 +67,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
    * @return a Abort decision with a custom Exception.
    */
   @CheckReturnValue
-  static RetryDecision<?, Callable<?>> abortThrow(@Nonnull final Exception exception) {
+  static RetryDecision abortThrow(@Nonnull final Exception exception) {
     return new RetryDecision() {
       @Override
       public Type getDecisionType() {

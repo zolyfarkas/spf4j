@@ -48,52 +48,52 @@ import org.spf4j.base.UncheckedExecutionException;
 public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
 
   @CheckReturnValue
-  <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+  <R extends T, W extends C, E extends Exception> R call(W pwhat, Class<E> exceptionClass,
           long startNanos, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX;
+          throws InterruptedException, TimeoutException, E;
 
   @CheckReturnValue
-  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+  default <R extends T, W extends C, E extends Exception> R call(W pwhat, Class<E> exceptionClass,
           long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
+          throws InterruptedException, TimeoutException, E {
     return call(pwhat, exceptionClass, TimeSource.nanoTime(), deadlineNanos);
   }
 
   @CheckReturnValue
-  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass)
-          throws InterruptedException, TimeoutException, EX {
+  default <R extends T, W extends C, E extends Exception> R call(W pwhat, Class<E> exceptionClass)
+          throws InterruptedException, TimeoutException, E {
     long nanoTime = TimeSource.nanoTime();
     return call(pwhat, exceptionClass, nanoTime, ExecutionContexts.getContextDeadlineNanos());
   }
 
   @CheckReturnValue
-  default <R extends T, W extends C, EX extends Exception> R call(W pwhat, Class<EX> exceptionClass,
+  default <R extends T, W extends C, E extends Exception> R call(W pwhat, Class<E> exceptionClass,
           long timeout, TimeUnit tu)
-          throws InterruptedException, TimeoutException, EX {
+          throws InterruptedException, TimeoutException, E {
     long nanoTime = TimeSource.nanoTime();
     return call(pwhat, exceptionClass, nanoTime,
             ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));
   }
 
-  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass)
-          throws InterruptedException, TimeoutException, EX {
+  default <W extends C, E extends Exception> void run(W pwhat, Class<E> exceptionClass)
+          throws InterruptedException, TimeoutException, E {
     T res = call(pwhat, exceptionClass);
     if (res != null) {
       throw new IllegalStateException("result must be null not " + res);
     }
   }
 
-  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
+  default <W extends C, E extends Exception> void run(W pwhat, Class<E> exceptionClass, long deadlineNanos)
+          throws InterruptedException, TimeoutException, E {
     T res = call(pwhat, exceptionClass, deadlineNanos);
     if (res != null) {
       throw new IllegalStateException("result must be null not " + res);
     }
   }
 
-  default <W extends C, EX extends Exception> void run(W pwhat, Class<EX> exceptionClass,
+  default <E extends Exception, W extends C> void run(W pwhat, Class<E> exceptionClass,
           long timeout, TimeUnit tu)
-          throws InterruptedException, TimeoutException, EX {
+          throws InterruptedException, TimeoutException, E {
      run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
   }
 
@@ -111,12 +111,12 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
    * @throws EX - the exception thrown by callable.
    */
   @SuppressFBWarnings({ "MDM_THREAD_YIELD", "ITC_INHERITANCE_TYPE_CHECKING" })
-  static <T, EX extends Exception, C extends Callable<? extends T>> T call(
+  static <T, E extends Exception, C extends Callable<? extends T>> T call(
           final C pwhat,
           final RetryPredicate<T, C> retryPredicate,
-          final Class<EX> exceptionClass,
+          final Class<E> exceptionClass,
           final int maxExceptionChain)
-          throws InterruptedException, TimeoutException, EX {
+          throws InterruptedException, TimeoutException, E {
     C what = pwhat;
     T result;
     Exception lastEx; // last exception
@@ -195,7 +195,7 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
       } else if (lastExChain instanceof TimeoutException) {
         throw (TimeoutException) lastExChain;
       } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {
-        throw (EX) lastExChain;
+        throw (E) lastExChain;
       } else {
         throw new UncheckedExecutionException(lastExChain);
       }

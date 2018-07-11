@@ -342,4 +342,24 @@ public class RetryPolicyTest {
     }
   }
 
+  @Test
+  public void testSpecificExceptionRetryPolicy() throws TimeoutException, InterruptedException {
+    LogAssert expect = TestLoggers.sys().expect(LOG.getName(), Level.DEBUG, LogMatchers.hasFormat("encontered"));
+    RetryPolicy<Object, Callable<Object>> policy =
+            RetryPolicy.newBuilder().withExceptionPartialPredicate(IllegalStateException.class,
+            (ex, call) -> {
+              LOG.debug("encontered", ex);
+              return RetryDecision.abort();
+            }).build();
+    try {
+      policy.run(() -> {
+        throw new IllegalStateException();
+      }, RuntimeException.class);
+      Assert.fail();
+    } catch (IllegalStateException ex) {
+         expect.assertObservation();
+    }
+  }
+
+
 }
