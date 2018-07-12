@@ -39,7 +39,11 @@ final class JitteredDelaySupplier implements RetryDelaySupplier {
     long nextDelay = wrapped.nextDelay();
     if (nextDelay > 1) {
       long jitter = (long) (nextDelay * jitterFactor);
-      return ThreadLocalRandom.current().nextLong(nextDelay - jitter, nextDelay);
+      if (jitter > 0) {
+        return ThreadLocalRandom.current().nextLong(Math.max(0, nextDelay - jitter), nextDelay);
+      } else {
+        return nextDelay;
+      }
     } else {
       return nextDelay;
     }

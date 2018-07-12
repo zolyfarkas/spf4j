@@ -40,7 +40,7 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
       this.p2 = 1;
     } else {
       this.p1 = startDelay;
-      this.p2 = startDelay;
+      this.p2 = startDelay + 1;
     }
   }
 
@@ -48,7 +48,7 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
   public long nextDelay() {
     if (immediateLeft > 0) {
       immediateLeft--;
-      return 0;
+      return p1;
     } else if (p2 > maxDelay) {
       return maxDelay;
     } else {
