@@ -55,6 +55,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.net.ssl.SSLException;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -149,6 +150,9 @@ public final class Throwables {
       }
       // Root Cause
       Throwable rootCause = com.google.common.base.Throwables.getRootCause(t);
+      if (rootCause instanceof SSLException) {
+        return false;
+      }
       if (rootCause instanceof RuntimeException) {
         String name = rootCause.getClass().getName();
         if (name.contains("NonTransient") || !name.contains("Transient")) {
