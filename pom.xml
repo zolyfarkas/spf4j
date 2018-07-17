@@ -176,6 +176,27 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>buildnumber-maven-plugin</artifactId>
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>create</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+              <providerImplementations>
+                <git>git</git>
+              </providerImplementations>
+              <doCheck>false</doCheck>
+              <doUpdate>false</doUpdate>
+            </configuration>
+          </plugin>
 
           <plugin> <!-- https://github.com/RichardWarburton/lambda-behave/issues/31 -->
             <groupId>org.apache.maven.plugins</groupId>
@@ -534,7 +555,7 @@ java.util.Calendar#getInstance()
                         <is.release>${is.release}</is.release>
                       </systemProperties>
                     </configuration>
-                </plugin> 
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -553,6 +574,8 @@ java.util.Calendar#getInstance()
                                 <Implementation-Url>${project.url}</Implementation-Url>
                                 <Implementation-Org>${project.organization.name}</Implementation-Org>
                                 <Implementation-Org-Url>${project.organization.url}</Implementation-Org-Url>
+                                <Implementation-Build>${buildNumber}</Implementation-Build>
+                                <Build-Time>${maven.build.timestamp}</Build-Time>
                             </manifestEntries>
                         </archive>
                     </configuration>
@@ -588,7 +611,6 @@ java.util.Calendar#getInstance()
                 </plugin>
             </plugins>
         </pluginManagement>
-        
     </build>
     <reporting>
         <plugins>
