@@ -38,7 +38,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -108,6 +110,19 @@ public final class SntpClient {
   public static Timing requestTimeHA(final int timeoutMillis,
           final int ntpResponseTimeoutMillis, final int port, final String... hosts)
           throws IOException, InterruptedException, TimeoutException {
+    List<InetAddress> addrs = new ArrayList<>(hosts.length * 2);
+    for (String host : hosts) {
+      for (InetAddress addr : InetAddress.getAllByName(host)) {
+        addrs.add(addr);
+      }
+    }
+    return requestTimeHA(timeoutMillis,
+            ntpResponseTimeoutMillis, port, addrs.toArray(new InetAddress[addrs.size()]));
+  }
+
+  public static Timing requestTimeHA(final int timeoutMillis,
+          final int ntpResponseTimeoutMillis, final int port, final InetAddress... hosts)
+          throws IOException, InterruptedException, TimeoutException {
     if (hosts.length <= 0) {
       throw new IllegalArgumentException("Must specify at least one host " + java.util.Arrays.toString(hosts));
     }
@@ -133,7 +148,7 @@ public final class SntpClient {
   }
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
-  public static synchronized Timing requestTime(final String host, final int port, final int timeoutMillis)
+  public static Timing requestTime(final String host, final int port, final int timeoutMillis)
           throws IOException {
     return requestTime(host, port, TimeSource.getDeadlineNanos(timeoutMillis, TimeUnit.MILLISECONDS));
   }
@@ -147,10 +162,24 @@ public final class SntpClient {
    * @throws IOException - thrown in case of time server connectivity issues.
    */
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
-  public static synchronized Timing requestTime(final String host, final int port, final long deadlineNanos)
+  public static Timing requestTime(final String host, final int port, final long deadlineNanos)
+          throws IOException {
+    return requestTime(InetAddress.getByName(host), port, deadlineNanos);
+  }
+
+
+  /**
+   * Get NTP time.
+   *
+   * @param address - NTP server addr.
+   * @param timeoutMillis - the socket timeout.
+   * @return - NTP server timing info.
+   * @throws IOException - thrown in case of time server connectivity issues.
+   */
+  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE") // false positive
+  public static synchronized Timing requestTime(final InetAddress address, final int port, final long deadlineNanos)
           throws IOException {
     try (DatagramSocket socket = new DatagramSocket()) {
-      InetAddress address = InetAddress.getByName(host);
       byte[] buffer = new byte[NTP_PACKET_SIZE];
       byte[] clientTime = new byte[8];
       DatagramPacket request = new DatagramPacket(buffer, buffer.length, address, port);
