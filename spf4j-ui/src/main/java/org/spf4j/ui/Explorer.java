@@ -34,6 +34,7 @@ package org.spf4j.ui;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
@@ -46,8 +47,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -57,6 +56,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultEditorKit;
 import org.spf4j.base.AbstractRunnable;
@@ -410,7 +411,12 @@ public class Explorer extends javax.swing.JFrame {
         try {
           if (ERR_LOCK.tryLock(100, TimeUnit.MILLISECONDS)) {
             try {
-              JOptionPane.showConfirmDialog(frame, Throwables.toString(e), "Exception",
+              JTextArea textArea = new JTextArea(Throwables.toString(e));
+              JScrollPane scrollPane = new JScrollPane(textArea);
+              textArea.setLineWrap(true);
+              textArea.setWrapStyleWord(true);
+              scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
+              JOptionPane.showConfirmDialog(frame, scrollPane, "Exception",
                       JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE);
             } finally {
               ERR_LOCK.unlock();
