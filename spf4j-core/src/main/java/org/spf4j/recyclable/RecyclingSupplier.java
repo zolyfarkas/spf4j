@@ -47,20 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <T> - type of recycled objects
  */
 @ParametersAreNonnullByDefault
-public interface RecyclingSupplier<T> extends Disposable {
-
-    /**
-     * block until a object is available and return it.
-     *
-     * @return - a object instance returned by this supplier.
-     * @throws ObjectCreationException - cannot create an object.
-     * @throws ObjectBorrowException - cannot borrow an object.
-     * @throws InterruptedException - interrupted.
-     * @throws TimeoutException - timed out while getting object.
-     */
-    @Nonnull
-    T get() throws ObjectCreationException, ObjectBorrowException,
-            InterruptedException, TimeoutException;
+public interface RecyclingSupplier<T> extends NonValidatingRecyclingSupplier<T> {
 
     /**
      * return a object previously borrowed from the pool,

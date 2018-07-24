@@ -59,9 +59,6 @@ import org.spf4j.ds.ZArrayDequeue;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.stackmonitor.StackTrace;
-//CHECKSTYLE:OFF
-import sun.misc.Contended;
-//CHECKSTYLE:ON
 
 /**
  *
@@ -132,7 +129,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
           final int maxSize, final int maxIdleTimeMillis,
           final int queueSize, final boolean daemonThreads) {
     this(poolName, coreSize, maxSize, maxIdleTimeMillis,
-            new ArrayDeque<Runnable>(Math.min(queueSize, LL_THRESHOLD)),
             queueSize, daemonThreads, REJECT_EXCEPTION_EXEC_HANDLER);
   }
 
@@ -140,20 +136,19 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
           final int maxSize, final int maxIdleTimeMillis,
           final int queueSizeLimit) {
     this(poolName, coreSize, maxSize, maxIdleTimeMillis,
-            new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD)),
             queueSizeLimit, false, REJECT_EXCEPTION_EXEC_HANDLER);
   }
 
   public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
-          final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
+          final int maxSize, final int maxIdleTimeMillis,
           final int queueSizeLimit, final boolean daemonThreads,
           final RejectedExecutionHandler rejectionHandler) {
-    this(poolName, coreSize, maxSize, maxIdleTimeMillis, taskQueue, queueSizeLimit, daemonThreads,
+    this(poolName, coreSize, maxSize, maxIdleTimeMillis, queueSizeLimit, daemonThreads,
             rejectionHandler, Thread.NORM_PRIORITY);
   }
 
   public LifoThreadPoolExecutorSQP(final String poolName, final int coreSize,
-          final int maxSize, final int maxIdleTimeMillis, final Queue<Runnable> taskQueue,
+          final int maxSize, final int maxIdleTimeMillis,
           final int queueSizeLimit, final boolean daemonThreads,
           final RejectedExecutionHandler rejectionHandler,
           final int threadPriority) {
@@ -166,15 +161,15 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
               + coreSize + ", " + maxSize + ", " + maxIdleTimeMillis
               + ", " + queueSizeLimit);
     }
+    this.stateLock = new ReentrantLock();
     this.rejectionHandler = rejectionHandler;
     this.poolName = poolName;
     this.maxIdleTimeMillis = maxIdleTimeMillis;
-    this.taskQueue = taskQueue;
+    this.taskQueue = new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD));
     this.queueSizeLimit = queueSizeLimit;
     this.threadQueue = new ZArrayDequeue<>(Math.min(1024, maxSize));
     this.threadPriority = threadPriority;
-    state = new PoolState(coreSize, new THashSet<QueuedThread>(Math.min(maxSize, 2048)));
-    this.stateLock = new ReentrantLock();
+    state = new PoolState(coreSize, new THashSet<>(Math.min(maxSize, 2048)));
     this.stateCondition = stateLock.newCondition();
     this.daemonThreads = daemonThreads;
     for (int i = 0; i < coreSize; i++) {
@@ -424,7 +419,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     private final Condition submitCondition;
 
-    @Contended
+    @Nullable
     private Runnable toRun;
 
     QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
@@ -463,9 +458,10 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     @Override
     public void run() {
-      if (toRun != null) {
+      Runnable r = toRun;
+      if (r != null) {
         try {
-          execute(toRun);
+          execute(r);
         } finally {
           toRun = null;
         }
@@ -506,10 +502,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                 break;
               }
             }
-            if (toRun != null) {
+            Runnable r = toRun;
+            if (r != null) {
                 poolStateLock.unlock();
                 try {
-                  execute(toRun);
+                  execute(r);
                 } finally {
                   toRun = null;
                 }

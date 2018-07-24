@@ -54,13 +54,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.Nullable;
 import javax.annotation.WillClose;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * File based Lock implementation, that can be used as IPC method.
  *
  * @author zoly
  */
+@ThreadSafe
 public final class FileBasedLock implements Lock, java.io.Closeable {
 
   private static final Cache<String, FileBasedLock> FILE_LOCKS =
@@ -70,6 +74,8 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
   private final RandomAccessFile file;
   private final ReentrantLock jvmLock;
+
+  @Nullable
   private FileLock fileLock;
 
   @SuppressFBWarnings("PREDICTABLE_RANDOM")
@@ -274,6 +280,9 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
   public void unlock() {
     try {
       if (jvmLock.getHoldCount() == 1) {
+        if (fileLock == null) {
+          throw new LockRuntimeException("Cannot unlock a lock that has not been locked before.. " + jvmLock);
+        }
         fileLock.release();
       }
     } catch (IOException ex) {

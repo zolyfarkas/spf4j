@@ -31,6 +31,8 @@
  */
 package org.spf4j.base;
 
+import javax.annotation.Nullable;
+
 /**
  * @author zoly
  */
@@ -39,21 +41,21 @@ public abstract class Either<A, B> {
     //CHECKSTYLE:OFF
     protected final Object value;
     //CHECKSTYLE:ON
-    
-    private Either(final Object value) {
+
+    private Either(@Nullable final Object value) {
         this.value = value;
     }
-    
+
     public abstract boolean isLeft();
-    
-    
+
+
     public boolean isRight() {
         return !isLeft();
     }
-    
-    
+
+
     public abstract  A getLeft();
-    
+
     public abstract  B getRight();
 
     @Override
@@ -73,14 +75,14 @@ public abstract class Either<A, B> {
         return (!(this.value != other.value && (this.value == null || !this.value.equals(other.value))));
     }
 
-    
-    
+
+
     @Override
     public String toString() {
         return "Either{" + "value=" + value + '}';
     }
 
-    
+
     public static final class Left<A, B> extends Either<A, B> {
 
         public Left(final A a) {
@@ -101,11 +103,11 @@ public abstract class Either<A, B> {
         public B getRight() {
             throw new UnsupportedOperationException("This union doe not have a right val, instead a " + value);
         }
-        
+
     }
 
     public static final class Right<A, B> extends Either<A, B> {
-        
+
         public Right(final B b) {
            super(b);
         }
@@ -129,7 +131,7 @@ public abstract class Either<A, B> {
     public static <A, B> Either<A, B> left(final A a) {
         return new Left<A, B>(a);
     }
-    
+
     public static <A, B> Either<A, B> right(final B b) {
         return new Right<A, B>(b);
     }

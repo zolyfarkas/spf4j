@@ -29,58 +29,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.recyclable.impl;
+package org.spf4j.recyclable;
 
-import java.util.function.Supplier;
-import javax.annotation.Nullable;
-import org.spf4j.recyclable.NonValidatingRecyclingSupplier;
+import java.util.concurrent.TimeoutException;
+import javax.annotation.Nonnull;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public final class ThreadLocalRecyclingSupplier<T> implements NonValidatingRecyclingSupplier<T> {
+public interface NonValidatingRecyclingSupplier<T> extends Disposable {
 
-  private final Supplier<T> supplier;
+    /**
+     * block until a object is available and return it.
+     *
+     * @return - a object instance returned by this supplier.
+     * @throws ObjectCreationException - cannot create an object.
+     * @throws ObjectBorrowException - cannot borrow an object.
+     * @throws InterruptedException - interrupted.
+     * @throws TimeoutException - timed out while getting object.
+     */
+    @Nonnull
+    T get() throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException;
 
-  private final ThreadLocal<T> threadLocal;
-
-  public ThreadLocalRecyclingSupplier(final Supplier<T> supplier) {
-    this.supplier = supplier;
-    threadLocal = new ThreadLocal<T>() {
-      @Override
-      protected T initialValue() {
-        return supplier.get();
-      }
-    };
-  }
-
-  @Override
-  @Nullable
-  public T get() {
-    T obj = threadLocal.get();
-    if (obj == null) {
-      return supplier.get();
-    } else {
-      threadLocal.set(null);
-      return obj;
-    }
-  }
-
-  @Override
-  public void recycle(final T object) {
-    threadLocal.set(object);
-  }
-
-  @Override
-  public boolean tryDispose(final long timeoutMillis) {
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "ThreadLocalRecyclingSupplier{" + "supplier=" + supplier + ", threadLocal=" + threadLocal + '}';
-  }
-
+    /**
+     * recycle object.
+     * @param object - object to recycle.
+     */
+    void recycle(T object);
 
 
 }

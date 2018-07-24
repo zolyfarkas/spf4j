@@ -34,12 +34,15 @@ package org.spf4j.stackmonitor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContextFactory;
 
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public final class ProfiledExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
 
   private final ConcurrentNavigableMap<Thread, ExecutionContext> currentContexts;
@@ -65,14 +68,14 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
 
 
   @Override
-  public ExecutionContext start(final String name, final ExecutionContext parent,
+  public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
           final long startTimeNanos, final long deadlineNanos,
           final Runnable onClose) {
     return wrapped.start(name, parent, startTimeNanos, deadlineNanos, onClose);
   }
 
   @Override
-  public ExecutionContext startThreadRoot(final String name, final ExecutionContext parent,
+  public ExecutionContext startThreadRoot(final String name, @Nullable final ExecutionContext parent,
           final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
     Thread currentThread = Thread.currentThread();
     ExecutionContext ctx = wrapped.startThreadRoot(name, parent, startTimeNanos, deadlineNanos, () -> {

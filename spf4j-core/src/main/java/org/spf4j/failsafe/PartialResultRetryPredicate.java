@@ -32,6 +32,7 @@ public interface PartialResultRetryPredicate<T, C extends Callable<? extends T>>
   RetryDecision<T, C> getDecision(@Nonnull T value, @Nonnull C what);
 
   @Override
+  @Nullable
   default RetryDecision<T, C> apply(final T t, final C u) {
     return getDecision(t, u);
   }

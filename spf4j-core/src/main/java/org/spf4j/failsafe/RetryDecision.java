@@ -41,6 +41,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
     }
 
     @Override
+    @Nullable
     public Either getResult() {
       return null;
     }

@@ -95,6 +95,7 @@ import javax.annotation.Nullable;
  * @since 1.6
  * @param <E> the type of elements held in this collection
  */
+@SuppressWarnings("nullness")
 public class ZArrayDequeue<E> extends AbstractCollection<E>
         implements Deque<E>, Cloneable, Serializable {
 
@@ -133,7 +134,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    *
    * @param numElements the number of elements to hold
    */
-  private void allocateElements(int numElements) {
+  private static <E> E[] allocateElements(int numElements) {
     int initialCapacity = MIN_INITIAL_CAPACITY;
     // Find the best power of two to hold elements.
     // Tests "<=" because arrays aren't kept full.
@@ -151,7 +152,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
         initialCapacity >>>= 1;// Good luck allocating 2 ^ 30 elements
       }
     }
-    elements = (E[]) new Object[initialCapacity];
+    return  (E[]) new Object[initialCapacity];
   }
 
   /**
@@ -205,7 +206,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @param numElements lower bound on initial capacity of the deque
    */
   public ZArrayDequeue(int numElements) {
-    allocateElements(numElements);
+    elements = allocateElements(numElements);
   }
 
   /**
@@ -217,7 +218,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
    * @throws NullPointerException if the specified collection is null
    */
   public ZArrayDequeue(Collection<? extends E> c) {
-    allocateElements(c.size());
+    elements = allocateElements(c.size());
     addAll(c);
   }
 
@@ -877,7 +878,7 @@ public class ZArrayDequeue<E> extends AbstractCollection<E>
 
     // Read in size and allocate array
     int size = s.readInt();
-    allocateElements(size);
+    elements = allocateElements(size);
     head = 0;
     tail = size;
 

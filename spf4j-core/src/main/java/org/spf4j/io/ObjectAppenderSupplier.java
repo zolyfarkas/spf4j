@@ -31,7 +31,6 @@
  */
 package org.spf4j.io;
 
-import java.util.function.Function;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.reflect.ByTypeSupplier;
 
@@ -41,13 +40,9 @@ import org.spf4j.reflect.ByTypeSupplier;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public interface ObjectAppenderSupplier extends Function<Class, ObjectAppender>,
+public interface ObjectAppenderSupplier extends
         ByTypeSupplier<ObjectAppender, RuntimeException> {
 
     ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
-
-    default ObjectAppender apply(Class clasz) {
-        return get(clasz);
-    }
 
 }
