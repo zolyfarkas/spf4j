@@ -123,6 +123,7 @@ public final class SntpClient {
   public static Timing requestTimeHA(final int timeoutMillis,
           final int ntpResponseTimeoutMillis, final int port, final InetAddress... hosts)
           throws IOException, InterruptedException, TimeoutException {
+    final long ntpResponseTimeoutNanos = TimeUnit.MILLISECONDS.toNanos(ntpResponseTimeoutMillis);
     if (hosts.length <= 0) {
       throw new IllegalArgumentException("Must specify at least one host " + java.util.Arrays.toString(hosts));
     }
@@ -134,9 +135,11 @@ public final class SntpClient {
         @Override
         public Timing call() throws IOException {
           int hostIdx = Math.abs(i++) % hosts.length;
-          return requestTime(hosts[hostIdx], port,
-                  Math.min((int) TimeUnit.NANOSECONDS.toMillis(ctx.getDeadlineNanos() - TimeSource.nanoTime()),
-                          ntpResponseTimeoutMillis));
+          long contextDe = ctx.getDeadlineNanos();
+          long currTime = TimeSource.nanoTime();
+          long deadline = (ntpResponseTimeoutNanos > contextDe - currTime)
+                  ? contextDe : currTime + ntpResponseTimeoutNanos;
+          return requestTime(hosts[hostIdx], port, deadline);
         }
       }, IOException.class, ctx.getDeadlineNanos());
     }
@@ -190,8 +193,9 @@ public final class SntpClient {
       buffer[0] = NTP_MODE_CLIENT | (NTP_VERSION << 3);
       // Allocate response.
       DatagramPacket response = new DatagramPacket(buffer, buffer.length);
+      long nanoTime = TimeSource.nanoTime();
       // get current nanotime.
-      long requestTicks = TimeSource.nanoTime() / 1000000L;
+      long requestTicks = nanoTime / 1000000L;
       // get current time and write it to the request packet
       long requestTime = System.currentTimeMillis();
       writeTimeStamp(clientTime, 0, requestTime);
