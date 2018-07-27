@@ -50,6 +50,7 @@ public final class LogRecord {
   private final Object[] arguments;
   private Set<Object> attachments;
   private int startExtra;
+  @Nullable
   private String message;
 
   @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
@@ -103,6 +104,7 @@ public final class LogRecord {
     return thread;
   }
 
+  @Nonnull
   public synchronized String getMessage() {
     materializeMessage();
     return message;

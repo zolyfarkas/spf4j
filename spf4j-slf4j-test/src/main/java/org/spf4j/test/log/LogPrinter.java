@@ -256,7 +256,7 @@ public final class LogPrinter implements LogHandler {
     if (obj == null) {
       wr.append("null");
     } else {
-      ObjectAppender ostrApp = TO_STRINGER.apply(obj.getClass());
+      ObjectAppender ostrApp = TO_STRINGER.get(obj.getClass());
       MimeType type = ostrApp.getAppendedType();
       if ("json".equalsIgnoreCase(type.getSubType())) {
         ostrApp.append(obj, wr);

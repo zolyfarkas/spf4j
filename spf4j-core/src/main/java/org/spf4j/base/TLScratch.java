@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 
@@ -80,6 +81,7 @@ public final class TLScratch {
    * @param size - the minimum size of the temporary buffer requested.
    * @return - the temporary buffer.
    */
+  @SuppressFBWarnings("SUA_SUSPICIOUS_UNINITIALIZED_ARRAY")
   public static char[] getCharsTmp(final int size) {
     if (size > MAX_LOCAL_ARRAY_SIZE) {
       return new char[size];

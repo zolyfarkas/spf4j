@@ -40,6 +40,7 @@ import org.spf4j.reflect.ByTypeSupplier;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
+@SuppressWarnings("checkstyle:InterfaceIsType")
 public interface ObjectAppenderSupplier extends
         ByTypeSupplier<ObjectAppender, RuntimeException> {
 

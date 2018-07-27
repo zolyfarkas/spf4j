@@ -32,7 +32,7 @@
 package org.spf4j.recyclable.impl;
 
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import org.spf4j.recyclable.NonValidatingRecyclingSupplier;
 
 /**
@@ -55,7 +55,7 @@ public final class ThreadLocalRecyclingSupplier<T> implements NonValidatingRecyc
   }
 
   @Override
-  @Nullable
+  @Nonnull
   public T get() {
     T obj = threadLocal.get();
     if (obj == null) {

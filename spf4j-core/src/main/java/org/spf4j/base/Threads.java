@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
@@ -38,65 +39,110 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Thread utilities.
+ *
  * @author Zoltan Farkas
  */
 public final class Threads {
 
   public static final Thread[] EMPTY_ARRAY = new Thread[0];
 
-  private static final MethodHandle GET_THREADS;
-  private static final MethodHandle DUMP_THREADS;
+  private static final ThreadInfoSupplier TI_SUPP;
 
   static {
-    final java.lang.reflect.Method getThreads;
-    final java.lang.reflect.Method dumpThreads;
+    ThreadInfoSupplier supp;
     try {
-
-      getThreads = Thread.class.getDeclaredMethod("getThreads");
-      dumpThreads = Thread.class.getDeclaredMethod("dumpThreads", Thread[].class);
-    } catch (NoSuchMethodException ex) {
-      throw new ExceptionInInitializerError(ex);
+      supp = new OracleJdkThreadInfoSupplier();
+    } catch (ExceptionInInitializerError ex) {
+      Logger logger = Logger.getLogger(Threads.class.getName());
+      logger.warning("Optimized stack trace access not available,"
+              + " profiling overhead will be higher");
+      logger.log(Level.FINE, "Exception detail", ex);
+      supp = new SlowThreadInfoSupplierImpl();
     }
-    AccessController.doPrivileged((PrivilegedAction) () -> {
-      getThreads.setAccessible(true);
-      dumpThreads.setAccessible(true);
-      return null; // nothing to return
-    });
-    MethodHandles.Lookup lookup = MethodHandles.lookup();
-    try {
-      GET_THREADS = lookup.unreflect(getThreads);
-      DUMP_THREADS = lookup.unreflect(dumpThreads);
-    } catch (IllegalAccessException ex) {
-      throw new ExceptionInInitializerError(ex);
+    TI_SUPP = supp;
+  }
+
+  interface ThreadInfoSupplier {
+
+    Thread[] getThreads();
+
+    StackTraceElement[][] getStackTraces(Thread... threads);
+  }
+
+  private static class OracleJdkThreadInfoSupplier implements ThreadInfoSupplier {
+
+    private static final MethodHandle GET_THREADS;
+    private static final MethodHandle DUMP_THREADS;
+
+    static {
+      final java.lang.reflect.Method getThreads;
+      final java.lang.reflect.Method dumpThreads;
+      try {
+
+        getThreads = Thread.class.getDeclaredMethod("getThreads");
+        dumpThreads = Thread.class.getDeclaredMethod("dumpThreads", Thread[].class);
+      } catch (NoSuchMethodException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+      AccessController.doPrivileged((PrivilegedAction) () -> {
+        getThreads.setAccessible(true);
+        dumpThreads.setAccessible(true);
+        return null; // nothing to return
+      });
+      MethodHandles.Lookup lookup = MethodHandles.lookup();
+      try {
+        GET_THREADS = lookup.unreflect(getThreads);
+        DUMP_THREADS = lookup.unreflect(dumpThreads);
+      } catch (IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+
+    }
+
+    @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+    public Thread[] getThreads() {
+      try {
+        return (Thread[]) GET_THREADS.invokeExact();
+      } catch (RuntimeException | Error ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+    }
+
+    @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+    public StackTraceElement[][] getStackTraces(final Thread... threads) {
+      StackTraceElement[][] stackDump;
+      try {
+        stackDump = (StackTraceElement[][]) DUMP_THREADS.invokeExact(threads);
+      } catch (RuntimeException | Error ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new UncheckedExecutionException(ex);
+      }
+      return stackDump;
     }
 
   }
 
-  private Threads() { }
+  private Threads() {
+  }
 
   public static Thread[] getThreads() {
-    try {
-      return (Thread[]) GET_THREADS.invokeExact();
-    } catch (RuntimeException | Error ex) {
-      throw ex;
-    } catch (Throwable ex) {
-      throw new UncheckedExecutionException(ex);
-    }
+    return TI_SUPP.getThreads();
   }
 
   public static StackTraceElement[][] getStackTraces(final Thread... threads) {
-    StackTraceElement[][] stackDump;
-    try {
-      stackDump = (StackTraceElement[][]) DUMP_THREADS.invokeExact(threads);
-    } catch (RuntimeException | Error ex) {
-      throw ex;
-    } catch (Throwable ex) {
-      throw new RuntimeException(ex);
-    }
-    return stackDump;
+    return TI_SUPP.getStackTraces(threads);
   }
 
   public static void dumpToPrintStream(final PrintStream stream) {
@@ -116,6 +162,25 @@ public final class Threads {
       }
     }
     stream.append(sb);
+  }
+
+  private static class SlowThreadInfoSupplierImpl implements ThreadInfoSupplier {
+
+    @Override
+    public Thread[] getThreads() {
+      Set<Thread> keySet = Thread.getAllStackTraces().keySet();
+      return keySet.toArray(new Thread[keySet.size()]);
+    }
+
+    @Override
+    public StackTraceElement[][] getStackTraces(final Thread... threads) {
+      Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces();
+      StackTraceElement[][] result = new StackTraceElement[threads.length][];
+      for (int i = 0; i < threads.length; i++) {
+        result[i] = allStackTraces.get(threads[i]);
+      }
+      return result;
+    }
   }
 
 }

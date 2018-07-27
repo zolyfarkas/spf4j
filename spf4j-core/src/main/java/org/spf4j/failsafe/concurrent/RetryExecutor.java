@@ -64,6 +64,7 @@ public final class RetryExecutor implements AutoCloseable {
   private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
   private volatile RetryManager retryManager;
   private Future<?> retryManagerFuture;
+  @Nullable
   private final BlockingQueue<Future<?>> completionQueue;
   private final Object sync = new Object();
 

@@ -31,9 +31,7 @@
  */
 package org.spf4j.recyclable;
 
-import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
