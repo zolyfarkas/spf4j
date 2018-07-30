@@ -34,6 +34,8 @@ package org.spf4j.base;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.spf4j.io.ObjectAppenderSupplier;
@@ -79,6 +81,22 @@ public final class Slf4jMessageFormatter {
     sbuf.append(className);
     sbuf.append(']');
   }
+
+  public static String toString(@Nonnull final String messagePattern,
+          final Object... argArray) {
+    StringBuilder sb = new StringBuilder(messagePattern.length() + argArray.length * 8);
+    try {
+      int nrUsed = format(sb, messagePattern, argArray);
+      if (nrUsed != argArray.length) {
+        throw new IllegalArgumentException("Invalid format "
+                + messagePattern + ", params " + Arrays.toString(argArray));
+      }
+    } catch (IOException ex) {
+     throw new UncheckedIOException(ex);
+    }
+    return sb.toString();
+  }
+
 
   /**
    * Slf4j message formatter.
