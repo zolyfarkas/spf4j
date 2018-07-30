@@ -127,11 +127,11 @@ public final class UpdateablePriorityQueueTest {
     @Test
     public void test6() {
         UpdateablePriorityQueue<MutableHolder<Integer>> queue = new UpdateablePriorityQueue<>(0);
-        queue.add(new MutableHolder<>(3));
-        queue.add(new MutableHolder<>(2));
-        queue.add(new MutableHolder<>(4));
-        UpdateablePriorityQueue<MutableHolder<Integer>>.ElementRef add = queue.add(new MutableHolder<>(1));
-        UpdateablePriorityQueue<MutableHolder<Integer>>.ElementRef add1 = queue.add(new MutableHolder<>(5));
+        queue.add(MutableHolder.of(3));
+        queue.add(MutableHolder.of(2));
+        queue.add(MutableHolder.of(4));
+        UpdateablePriorityQueue<MutableHolder<Integer>>.ElementRef add = queue.add(MutableHolder.of(1));
+        UpdateablePriorityQueue<MutableHolder<Integer>>.ElementRef add1 = queue.add(MutableHolder.of(5));
         Assert.assertEquals(Integer.valueOf(1), queue.peek().getValue());
         add.getElem().setValue(10);
         add.elementMutated();
@@ -146,13 +146,13 @@ public final class UpdateablePriorityQueueTest {
     @Test
     public void testRemove() {
         UpdateablePriorityQueue<MutableHolder<Integer>> queue = new UpdateablePriorityQueue<>(0);
-        final MutableHolder<Integer> value = new MutableHolder<>(3);
+        final MutableHolder<Integer> value = MutableHolder.of(3);
         UpdateablePriorityQueue.ElementRef ref = queue.add(value);
-        final MutableHolder<Integer> four = new MutableHolder<>(4);
+        final MutableHolder<Integer> four = MutableHolder.of(4);
         queue.add(four);
-        final MutableHolder<Integer> five = new MutableHolder<>(5);
+        final MutableHolder<Integer> five = MutableHolder.of(5);
         queue.add(five);
-        final MutableHolder<Integer> six = new MutableHolder<>(6);
+        final MutableHolder<Integer> six = MutableHolder.of(6);
         queue.add(six);
         MutableHolder<Integer> poll = queue.poll();
         Assert.assertEquals(value, poll);

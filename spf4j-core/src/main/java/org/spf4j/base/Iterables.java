@@ -48,7 +48,7 @@ public final class Iterables {
   @Nullable
   @CheckReturnValue
   public static <T> RuntimeException forAll(final Iterable<T> itterable, final Consumer<? super T> consumer)  {
-    MutableHolder<RuntimeException> hex = MutableHolder.of(null);
+    MutableHolder<RuntimeException> hex = MutableHolder.of((RuntimeException) null);
     itterable.forEach(new Consumer<T>() {
       @Override
       public void accept(final T t) {

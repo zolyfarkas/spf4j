@@ -32,75 +32,110 @@
 package org.spf4j.base;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
- *
  * @author zoly
  */
-public final  class MutableHolder<T> implements Comparable<MutableHolder<T>> {
+public class MutableHolder<T> implements Supplier<T> {
 
-    private T value;
+  private T value;
 
-    public MutableHolder(final T value) {
-        this.value = value;
+  /**
+   * @deprecated use MutableHolder.of
+   */
+  @Deprecated
+  public MutableHolder(final T value) {
+    this.value = value;
+  }
+
+  /**
+   * @deprecated use MutableHolder.of
+   */
+  @Deprecated
+  public MutableHolder() {
+    this.value = null;
+  }
+
+  public static <T> MutableHolder<T> of(final T value) {
+    return (MutableHolder<T>) new MutableHolder<>(value);
+  }
+
+  public static <T extends Comparable> ComparableHolder<T> of(final T value) {
+    return ComparableHolder.of(value);
+  }
+
+  public final T getValue() {
+    return value;
+  }
+
+  public final void setValue(final T value) {
+    this.value = value;
+  }
+
+  @Override
+  public final String toString() {
+    return "MutableHolder{" + "value=" + value + '}';
+  }
+
+  @Override
+  public final int hashCode() {
+    return 79 + Objects.hashCode(this.value);
+  }
+
+  @Override
+  public final boolean equals(final Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final MutableHolder<?> other = (MutableHolder<?>) obj;
+    return Objects.equals(this.value, other.value);
+  }
+
+  @Override
+  public final T get() {
+    return value;
+  }
+
+  public static final class ComparableHolder<T extends Comparable>
+          extends MutableHolder<T>
+          implements Comparable<ComparableHolder<T>> {
+
+    public ComparableHolder(final T value) {
+      super(value);
     }
 
-    public MutableHolder() {
-        this.value = null;
+    public ComparableHolder() {
+      super(null);
     }
 
-    public static <T> MutableHolder<T> of(final T value) {
-      return (MutableHolder<T>) new MutableHolder<>(value);
-    }
-
-    public T getValue() {
-        return value;
-    }
-
-    public void setValue(final T value) {
-        this.value = value;
+    public static <T extends Comparable> ComparableHolder<T> of(final T value) {
+      return (ComparableHolder<T>) new ComparableHolder<>(value);
     }
 
     @Override
-    public String toString() {
-        return "MutableHolder{" + "value=" + value + '}';
-    }
-
-    @Override
-    public int compareTo(final MutableHolder<T> o) {
-        if (this.value == null) {
-            if (o.value == null) {
-                return 0;
-            } else {
-                return -1;
-            }
+    public int compareTo(final ComparableHolder<T> o) {
+      T thisVal = getValue();
+      T otherVal = o.getValue();
+      if (thisVal == null) {
+        if (otherVal == null) {
+          return 0;
         } else {
-            if (o.value == null) {
-                return 1;
-            } else {
-                return ((Comparable) this.value).compareTo(o.value);
-            }
+          return -1;
         }
+      } else {
+        if (otherVal == null) {
+          return 1;
+        } else {
+          return thisVal.compareTo(otherVal);
+        }
+      }
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        return 79 * hash + Objects.hashCode(this.value);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final MutableHolder<?> other = (MutableHolder<?>) obj;
-        return Objects.equals(this.value, other.value);
-    }
-
+  }
 
 
 
