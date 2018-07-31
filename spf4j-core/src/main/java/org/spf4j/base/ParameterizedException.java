@@ -44,7 +44,7 @@ public class ParameterizedException extends Exception {
 
   private final Serializable[] args;
 
-  public ParameterizedException(final String message, final Throwable cause, final Serializable... params) {
+  public ParameterizedException(final Throwable cause, final String message, final Serializable... params) {
     super(message, cause);
     this.args = params;
   }
