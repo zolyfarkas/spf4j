@@ -31,7 +31,6 @@
  */
 package org.spf4j.perf.impl.ms.graphite;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
@@ -42,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
@@ -91,7 +91,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
         throw new ObjectCreationException(ex);
       }
       try {
-        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8));
+        return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
       } catch (IOException ex) {
         try {
           socket.close();

@@ -31,7 +31,6 @@
  */
 package org.spf4j.tsdb2;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.primitives.Longs;
@@ -45,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -236,7 +236,7 @@ public final class TSDBQuery {
   public static void writeCsvTable(final File tsDB, final String tableName, final File output)
           throws IOException {
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-            Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
+            Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {
       writeAsCsv(writer, tsDB, tableName);
     }
   }
@@ -272,7 +272,7 @@ public final class TSDBQuery {
     }
     ListMultimap<String, TableDef> tables = getTables(tsDB, tableNames);
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-            Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
+            Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {
       TableDef table = tables.values().iterator().next();
       Csv.writeCsvElement("table", writer);
       writer.append(',');

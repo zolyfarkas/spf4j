@@ -31,9 +31,9 @@
  */
 package org.spf4j.zel.vm;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public final class StringEvalTest {
   @Test(expected = CompileException.class)
   public void testEscaping() throws CompileException, ExecutionException, InterruptedException, IOException {
     String qsort = Resources.toString(Resources.getResource(StringEvalTest.class, "stringEscaping.zel"),
-            Charsets.US_ASCII);
+            StandardCharsets.US_ASCII);
     Program p = Program.compile(qsort);
     LOG.debug("Program = {}", p);
     p.execute();

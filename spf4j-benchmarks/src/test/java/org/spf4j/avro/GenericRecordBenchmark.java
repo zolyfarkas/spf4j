@@ -31,9 +31,9 @@
  */
 package org.spf4j.avro;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -59,7 +59,7 @@ public class GenericRecordBenchmark {
   static {
     try {
       SCHEMA = new Schema.Parser().parse(
-              Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII));
+              Resources.toString(Resources.getResource("SchemaBuilder.avsc"), StandardCharsets.US_ASCII));
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }

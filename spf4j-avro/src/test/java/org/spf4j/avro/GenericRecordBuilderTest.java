@@ -31,10 +31,10 @@
  */
 package org.spf4j.avro;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -56,7 +56,7 @@ public class GenericRecordBuilderTest {
   @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testGenericRecordCreation() throws IOException, Exception {
-    String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII);
+    String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), StandardCharsets.US_ASCII);
     Schema schema = new Schema.Parser().parse(schemaStr);
     try (GenericRecordBuilder builder = new GenericRecordBuilder(schema)) {
       Class<? extends SpecificRecordBase> clasz = builder.getRecordClass(schema);

@@ -31,9 +31,9 @@
  */
 package org.spf4j.io.appenders;
 
-import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.activation.MimeType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.EncoderFactory;
@@ -80,7 +80,7 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
   public void append(final SpecificRecord object, final Appendable appendTo) throws IOException {
     StringBuilder sb = TMP.get();
     sb.setLength(0);
-    try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
+    try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {
       final Schema schema = object.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
       JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos);
@@ -106,7 +106,7 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
     }
     sb.setLength(0);
     sb.append("{\"SerializationError\":\n");
-    try (AppendableOutputStream bos = new AppendableOutputStream(sb, Charsets.UTF_8)) {
+    try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {
       JThrowable at = Converters.convert(ex);
       Schema schema = at.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);

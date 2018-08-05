@@ -31,9 +31,9 @@
  */
 package org.spf4j.avro.schema;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.avro.Schema;
@@ -75,7 +75,7 @@ public class SchemasTest {
     Schema recSchema = new Schema.Parser().parse(SCHEMA);
     Schemas.visit(recSchema, new PrintingVisitor());
 
-    String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), Charsets.US_ASCII);
+    String schemaStr = Resources.toString(Resources.getResource("SchemaBuilder.avsc"), StandardCharsets.US_ASCII);
     Schema schema = new Schema.Parser().parse(schemaStr);
 
     Map<String, Schema> schemas = Schemas.visit(schema, new SchemasWithClasses());

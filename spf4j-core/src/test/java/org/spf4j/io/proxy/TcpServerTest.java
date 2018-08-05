@@ -31,7 +31,6 @@
  */
 package org.spf4j.io.proxy;
 
-import com.google.common.base.Charsets;
 import org.spf4j.io.tcp.proxy.ProxyClientHandler;
 import org.spf4j.io.tcp.TcpServer;
 import com.google.common.net.HostAndPort;
@@ -122,7 +121,7 @@ public class TcpServerTest {
       return new Sniffer() {
 
 
-        private final CharsetDecoder asciiDecoder = Charsets.US_ASCII.newDecoder();
+        private final CharsetDecoder asciiDecoder = StandardCharsets.US_ASCII.newDecoder();
 
         @Override
         public int received(final ByteBuffer data, final int nrBytes) {

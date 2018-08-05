@@ -31,11 +31,11 @@
  */
 package org.spf4j.concurrent.jdbc;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -75,8 +75,8 @@ public class JdbcSemaphoreTest {
 
   static {
     try {
-      hbddl = Resources.toString(Resources.getResource("heartBeats.sql"), Charsets.US_ASCII);
-      semddl = Resources.toString(Resources.getResource("semaphoreTable.sql"), Charsets.US_ASCII);
+      hbddl = Resources.toString(Resources.getResource("heartBeats.sql"), StandardCharsets.US_ASCII);
+      semddl = Resources.toString(Resources.getResource("semaphoreTable.sql"), StandardCharsets.US_ASCII);
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }

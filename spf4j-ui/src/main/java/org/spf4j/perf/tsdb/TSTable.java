@@ -31,11 +31,11 @@
  */
 package org.spf4j.perf.tsdb;
 
-import com.google.common.base.Charsets;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -217,7 +217,7 @@ public final class TSTable {
     public String[] getColumnMetaDataAsStrings() {
         String[] result = new String[columnMetaData.length];
         for (int i = 0; i < columnMetaData.length; i++) {
-            result[i] = new String(columnMetaData[i], Charsets.UTF_8);
+            result[i] = new String(columnMetaData[i], StandardCharsets.UTF_8);
         }
         return result;
     }

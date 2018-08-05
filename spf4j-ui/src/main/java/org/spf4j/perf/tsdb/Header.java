@@ -31,9 +31,9 @@
  */
 package org.spf4j.perf.tsdb;
 
-import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 
 /**
  * TSDB header detail
@@ -59,7 +59,7 @@ final class Header {
     Header(final RandomAccessFile raf) throws IOException {
         byte[] bType = new byte[4];
         raf.readFully(bType);
-        this.type = new String(bType, Charsets.US_ASCII);
+        this.type = new String(bType, StandardCharsets.US_ASCII);
         if (!TYPE.equals(this.type)) {
             throw new IOException("Invalid File Type " + this.type);
         }
@@ -74,7 +74,7 @@ final class Header {
     }
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-        raf.write(type.getBytes(Charsets.US_ASCII));
+        raf.write(type.getBytes(StandardCharsets.US_ASCII));
         raf.writeInt(version);
         raf.writeInt(metaData.length);
         if (metaData.length > 0) {

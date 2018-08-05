@@ -31,10 +31,10 @@
  */
 package org.spf4j.base;
 
-import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -113,7 +113,7 @@ public class Slf4jMessageFormatterTest {
       public void append(final String object, final Appendable appendTo) throws IOException {
         try (AppendableLimiterWithOverflow limiter
                 = new AppendableLimiterWithOverflow(90, File.createTempFile("string", ".overflow"),
-                        "...@", Charsets.UTF_8, appendTo)) {
+                        "...@", StandardCharsets.UTF_8, appendTo)) {
           limiter.append(object);
         }
       }

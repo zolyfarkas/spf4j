@@ -32,7 +32,6 @@
 package org.spf4j.perf.impl;
 
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
-import com.google.common.base.Charsets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -158,7 +157,7 @@ public final class GraphiteUdpStoreTest {
           byte[] rba = new byte[bb.position()];
           bb.rewind();
           bb.get(rba);
-          String receivedString = new String(rba, Charsets.UTF_8);
+          String receivedString = new String(rba, StandardCharsets.UTF_8);
           String[] lines = receivedString.split("\n");
           LOG.debug("Received = {}", lines);
           for (String line : lines) {

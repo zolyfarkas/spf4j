@@ -31,7 +31,6 @@
  */
 package org.spf4j.io;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +58,7 @@ public class AppendableLimiterWithFileOverflowTest {
             = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
     try (AppendableLimiterWithOverflow limiter
-            = new AppendableLimiterWithOverflow(90, ovflow, "...@", Charsets.UTF_8, destination)) {
+            = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
       limiter.append(testStr.subSequence(0, 45));
       limiter.append(testStr.charAt(45));
       limiter.append(testStr.subSequence(46, testStr.length()));
@@ -79,7 +78,7 @@ public class AppendableLimiterWithFileOverflowTest {
             = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
     int nr = ovflow.getPath().length() + 4;
     try (AppendableLimiterWithOverflow limiter
-            = new AppendableLimiterWithOverflow(90, ovflow, "...@", Charsets.UTF_8, destination)) {
+            = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
       limiter.append(testStr.subSequence(0, nr));
       limiter.append(testStr.charAt(nr));
       limiter.append(testStr.subSequence(nr + 1, testStr.length()));
@@ -99,7 +98,7 @@ public class AppendableLimiterWithFileOverflowTest {
     final String testStr
             = "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
     try (AppendableLimiterWithOverflow limiter
-            = new AppendableLimiterWithOverflow(90, ovflow, "...@", Charsets.UTF_8, destination)) {
+            = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
       limiter.append(testStr.subSequence(0, 45));
       limiter.append(testStr.charAt(45));
       limiter.append(testStr.subSequence(46, testStr.length()));

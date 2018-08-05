@@ -31,9 +31,9 @@
  */
 package org.spf4j.zel.vm;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -54,7 +54,7 @@ public final class QSortTest {
   @Test
   public void test() throws CompileException, ExecutionException, InterruptedException, IOException {
     String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sort.zel"),
-            Charsets.US_ASCII);
+            StandardCharsets.US_ASCII);
     Program p = Program.compile(qsort);
     LOG.debug("Program = {}", p);
     Integer result = (Integer) p.execute();
@@ -64,7 +64,7 @@ public final class QSortTest {
   @Test
   public void testSort() throws CompileException, ExecutionException, InterruptedException, IOException {
     String qsort = Resources.toString(Resources.getResource(QSortTest.class, "sortFunc.zel"),
-            Charsets.US_ASCII);
+            StandardCharsets.US_ASCII);
     Program p = Program.compile(qsort, "x");
     Integer[] testArray = new Integer[10000];
     IntMath.XorShift32 random = new IntMath.XorShift32();

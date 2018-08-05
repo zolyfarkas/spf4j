@@ -31,8 +31,8 @@
  */
 package org.spf4j.io.appenders;
 
-import com.google.common.base.Charsets;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.activation.MimeType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -59,7 +59,7 @@ public final class GenericRecordAppender implements ObjectAppender<GenericRecord
   public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
     StringBuilder sb = TMP.get();
     sb.setLength(0);
-    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, Charsets.UTF_8)) {
+    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {
       final Schema schema = object.getSchema();
       GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(schema);
       JsonEncoder jsonEncoder = SpecificRecordAppender.EF.jsonEncoder(schema, bos);

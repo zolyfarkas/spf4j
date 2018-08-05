@@ -31,7 +31,6 @@
  */
 package org.spf4j.io;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
@@ -142,7 +141,7 @@ public class MemorizingBufferedInputStreamTest {
     final byte[] utf8Bytes = Strings.toUtf8(sb.toString());
     ByteArrayInputStream bis = new ByteArrayInputStream(utf8Bytes);
     try (MemorizingBufferedInputStream mbis = new MemorizingBufferedInputStream(bis, buffSize, buffSize / 2,
-            ArraySuppliers.Bytes.GL_SUPPLIER, Charsets.UTF_8)) {
+            ArraySuppliers.Bytes.GL_SUPPLIER, StandardCharsets.UTF_8)) {
       int val = mbis.read();
       Assert.assertEquals(val, mbis.getReadBytesFromBuffer()[0]);
       byte[] buff = new byte[8];

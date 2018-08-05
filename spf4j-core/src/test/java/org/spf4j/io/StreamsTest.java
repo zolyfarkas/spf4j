@@ -31,11 +31,11 @@
  */
 package org.spf4j.io;
 
-import com.google.common.base.Charsets;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public final class StreamsTest {
 
   @Test
   public void testCopy() throws IOException {
-    byte[] testArray = PipedOutputStreamTest.generateTestStr(10001).toString().getBytes(Charsets.UTF_8);
+    byte[] testArray = PipedOutputStreamTest.generateTestStr(10001).toString().getBytes(StandardCharsets.UTF_8);
     InputStream bis = new ByteArrayInputStream(testArray);
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     Streams.copy(bis, bos);

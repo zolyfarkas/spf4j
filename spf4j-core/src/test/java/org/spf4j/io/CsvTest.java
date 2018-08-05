@@ -31,7 +31,6 @@
  */
 package org.spf4j.io;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharSource;
@@ -78,7 +77,7 @@ public final class CsvTest {
     File testFile = createTestCsv();
 
     List<Map<String, String>> data
-            = Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<List<Map<String, String>>>() {
+            = Csv.read(testFile, StandardCharsets.UTF_8, new Csv.CsvHandler<List<Map<String, String>>>() {
 
               private boolean firstRow = true;
 
@@ -132,7 +131,7 @@ public final class CsvTest {
   public void testCsvReadWriteException() throws IOException, CsvParseException {
     File testFile = createTestCsv();
 
-    Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<Void>() {
+    Csv.read(testFile, StandardCharsets.UTF_8, new Csv.CsvHandler<Void>() {
       @Override
       public void element(final CharSequence elem) throws CsvParseException {
         throw new CsvParseException("Yohooo at " + elem);
@@ -150,7 +149,7 @@ public final class CsvTest {
   public void testCsvReadWriteException2() throws IOException, CsvParseException {
     File testFile = createTestCsv();
 
-    Csv.read(testFile, Charsets.UTF_8, new Csv.CsvHandler<Void>() {
+    Csv.read(testFile, StandardCharsets.UTF_8, new Csv.CsvHandler<Void>() {
       @Override
       public void element(final CharSequence elem) {
         throw new IllegalArgumentException("Yohooo at " + elem);
@@ -168,7 +167,7 @@ public final class CsvTest {
   public void testCsvReadWrite2() throws IOException, CsvParseException {
     File testFile = createTestCsv();
     List<Map<String, String>> data
-            = Csv.read(testFile, Charsets.UTF_8, new Csv.CsvMapHandler<List<Map<String, String>>>() {
+            = Csv.read(testFile, StandardCharsets.UTF_8, new Csv.CsvMapHandler<List<Map<String, String>>>() {
 
               private final List<Map<String, String>> result = new ArrayList<>();
 
@@ -196,7 +195,7 @@ public final class CsvTest {
     File testFile = File.createTempFile("csvTest", ".csv");
     LOG.debug("test file : {}", testFile);
     try (BufferedWriter writer = new BufferedWriter(
-            new OutputStreamWriter(Files.newOutputStream(testFile.toPath()), Charsets.UTF_8))) {
+            new OutputStreamWriter(Files.newOutputStream(testFile.toPath()), StandardCharsets.UTF_8))) {
       Csv.writeCsvRow(writer, "a", "b", "c", "d");
       Csv.writeCsvRow(writer, "1.2\r", "1", "1,3", 1);
       Csv.writeCsvRow(writer, "0", "\"", "0\n", "1,3");
@@ -224,7 +223,7 @@ public final class CsvTest {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(
             new GZIPInputStream(
                     new URL("http://www.maxmind.com/download/worldcities/worldcitiespop.txt.gz").openStream()),
-            Charsets.UTF_8), 65536)) {
+            StandardCharsets.UTF_8), 65536)) {
       long startTime = System.currentTimeMillis();
       long count = Csv.read(reader,
               new Csv.CsvHandler<Long>() {

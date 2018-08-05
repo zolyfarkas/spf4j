@@ -31,10 +31,10 @@
  */
 package org.spf4j.io.compress;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import org.hamcrest.Matchers;
@@ -57,30 +57,30 @@ public class CompressTest {
       throw new IOException("Cannot create folder " + subFolder);
     }
     File subTestFile = new File(subFolder, "subTestFile.txt");
-    Files.asCharSink(file, Charsets.UTF_8).write(testStr);
-    Files.asCharSink(subTestFile, Charsets.UTF_8).write(testStr);
+    Files.asCharSink(file, StandardCharsets.UTF_8).write(testStr);
+    Files.asCharSink(subTestFile, StandardCharsets.UTF_8).write(testStr);
     Path zip = Compress.zip(tmpFolder.toPath());
     Assert.assertThat(zip.getFileName().toString(), Matchers.endsWith(".zip"));
     Assert.assertTrue(java.nio.file.Files.exists(zip));
     File tmpFir = Files.createTempDir();
     List<Path> unzip = Compress.unzip(zip, tmpFir.toPath());
     Assert.assertEquals(2, unzip.size());
-    Assert.assertEquals(testStr, Files.asCharSource(unzip.get(0).toFile(), Charsets.UTF_8).read());
-    Assert.assertEquals(testStr, Files.asCharSource(unzip.get(1).toFile(), Charsets.UTF_8).read());
+    Assert.assertEquals(testStr, Files.asCharSource(unzip.get(0).toFile(), StandardCharsets.UTF_8).read());
+    Assert.assertEquals(testStr, Files.asCharSource(unzip.get(1).toFile(), StandardCharsets.UTF_8).read());
   }
 
   @Test
   public void testZip2() throws IOException {
     File file = File.createTempFile(".bla", ".tmp");
     String testStr = "skjfghskjdhgfjgishfgksjhgjkhdskghsfdkjhg";
-    Files.write(testStr, file, Charsets.UTF_8);
+    Files.write(testStr, file, StandardCharsets.UTF_8);
     Path zip = Compress.zip(file.toPath());
     Assert.assertThat(zip.getFileName().toString(), Matchers.endsWith(".zip"));
     Assert.assertTrue(java.nio.file.Files.exists(zip));
     File tmpFir = Files.createTempDir();
     List<Path> unzip = Compress.unzip(zip, tmpFir.toPath());
     Assert.assertEquals(1, unzip.size());
-    Assert.assertEquals(testStr, Files.toString(unzip.get(0).toFile(), Charsets.UTF_8));
+    Assert.assertEquals(testStr, Files.toString(unzip.get(0).toFile(), StandardCharsets.UTF_8));
   }
 
 

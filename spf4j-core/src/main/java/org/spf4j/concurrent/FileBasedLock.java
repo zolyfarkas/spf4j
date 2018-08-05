@@ -31,7 +31,6 @@
  */
 package org.spf4j.concurrent;
 
-import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -316,7 +316,7 @@ public final class FileBasedLock implements Lock, java.io.Closeable {
 
   private void writeHolderInfo() throws IOException {
     file.seek(0);
-    byte[] data = getContextInfo().getBytes(Charsets.UTF_8);
+    byte[] data = getContextInfo().getBytes(StandardCharsets.UTF_8);
     file.write(data);
     file.setLength(data.length);
     file.getChannel().force(true);

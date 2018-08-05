@@ -31,13 +31,13 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
-import com.google.common.base.Charsets;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import javax.annotation.PreDestroy;
@@ -64,7 +64,7 @@ public final class TSDBTxtMeasurementStore
   public TSDBTxtMeasurementStore(final File file) throws IOException {
     this.writer = new BufferedWriter(new OutputStreamWriter(
             Files.newOutputStream(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.APPEND),
-            Charsets.UTF_8));
+            StandardCharsets.UTF_8));
     this.fileName = file.getPath();
     this.sync = new Object();
   }

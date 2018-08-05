@@ -31,9 +31,9 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
-import com.google.common.base.Charsets;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -61,13 +61,13 @@ public class TSDBTxtMeasurementStoreTest {
             new String[]{"a", "b"}, new String[]{"ms", "ms"}), 10000);
     store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
     store.close();
-    String content = Files.lines(tmpFile, Charsets.UTF_8).collect(Collectors.joining("\n"));
+    String content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining("\n"));
     LOG.debug("File Content: {}", content);
     Assert.assertThat(content, Matchers.containsString("a,3,b,4"));
     TSDBTxtMeasurementStore store2 = new TSDBTxtMeasurementStore(file);
     store2.saveMeasurements(id, System.currentTimeMillis(), 5L, 6L);
     store2.close();
-    content = Files.lines(tmpFile, Charsets.UTF_8).collect(Collectors.joining("\n"));
+    content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining("\n"));
     Assert.assertThat(content, Matchers.containsString("a,3,b,4"));
     Assert.assertThat(content, Matchers.containsString("a,5,b,6"));
   }
