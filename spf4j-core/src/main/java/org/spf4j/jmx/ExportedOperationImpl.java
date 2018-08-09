@@ -103,7 +103,7 @@ final class ExportedOperationImpl implements ExportedOperation {
         pname = "param_" + i;
       }
       if (pdesc.isEmpty()) {
-        pdesc = name;
+        pdesc = pname;
       }
       Type parameterType = parameterTypes[i];
 
