@@ -186,8 +186,9 @@ public final class Strings {
           charsField = String.class.getDeclaredField("value");
           charsField.setAccessible(true);
         } catch (NoSuchFieldException ex) {
-          Logger.getLogger(Strings.class.getName()).log(Level.INFO,
-                  "char array stealing from String not supported", ex);
+          Logger logger = Logger.getLogger(Strings.class.getName());
+          logger.warning("char array stealing from String not supported");
+          logger.log(Level.FINE, "Exception detail", ex);
           charsField = null;
         }
         return charsField;
