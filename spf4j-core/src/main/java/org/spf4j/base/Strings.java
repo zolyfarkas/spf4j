@@ -220,8 +220,9 @@ public final class Strings {
             constr.setAccessible(true);
           } catch (NoSuchMethodException ex2) {
             ex2.addSuppressed(ex);
-            Logger.getLogger(Strings.class.getName()).log(Level.INFO,
-                    "building String from char[] fast not supported", ex2);
+            Logger logger = Logger.getLogger(Strings.class.getName());
+            logger.warning("Building String from char[] without copy not supported");
+            logger.log(Level.FINE, "Exception detail", ex2);
             constr = null;
           }
         }
