@@ -156,15 +156,15 @@ public final class PipedOutputStream extends OutputStream {
     }
   }
 
-  public void writeUntil(final byte[] b, final int off, final int len, final long deadline) throws IOException {
+  public void writeUntil(final byte[] b, final int off, final int len, final long deadlineNanos) throws IOException {
     int bytesWritten = 0;
     while (bytesWritten < len) {
       synchronized (sync) {
         int a2w = 0;
         while (!writerClosed && (a2w = availableToWrite()) < 1) {
-          long timeToWait = deadline - TimeSource.nanoTime();
+          long timeToWait = deadlineNanos - TimeSource.nanoTime();
           if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadline, -timeToWait);
+            throw new IOTimeoutException(deadlineNanos, -timeToWait);
           }
           try {
             TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
@@ -201,14 +201,14 @@ public final class PipedOutputStream extends OutputStream {
     writeUntil(b, deadline);
   }
 
-  public void writeUntil(final int b, final long deadline) throws IOException {
+  public void writeUntil(final int b, final long deadlineNanos) throws IOException {
     synchronized (sync) {
       int a2w = 0;
       while (!writerClosed && (a2w = availableToWrite()) < 1) {
         try {
-          long timeToWait = deadline - TimeSource.nanoTime();
+          long timeToWait = deadlineNanos - TimeSource.nanoTime();
           if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadline, -timeToWait);
+            throw new IOTimeoutException(deadlineNanos, -timeToWait);
           }
           TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
         } catch (InterruptedException ex) {
@@ -367,13 +367,13 @@ public final class PipedOutputStream extends OutputStream {
       return readUntil(deadline);
     }
 
-    public int readUntil(final long deadline) throws IOException {
+    public int readUntil(final long deadlineNanos) throws IOException {
       synchronized (sync) {
         int availableToRead = 0;
         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-          long timeToWait = deadline - TimeSource.nanoTime();
+          long timeToWait = deadlineNanos - TimeSource.nanoTime();
           if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadline, -timeToWait);
+            throw new IOTimeoutException(deadlineNanos, -timeToWait);
           }
           try {
             TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);

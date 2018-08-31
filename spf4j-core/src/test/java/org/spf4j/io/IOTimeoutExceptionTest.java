@@ -31,43 +31,26 @@
  */
 package org.spf4j.io;
 
-import java.io.IOException;
 import java.time.Instant;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Test;
 import org.spf4j.base.DateTimeFormats;
-import org.spf4j.base.Timing;
 
 /**
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public class IOTimeoutException extends IOException {
+public class IOTimeoutExceptionTest {
 
-
-    private final long deadlineNanos;
-
-    private final long millisAfterDeadline;
-
-    public IOTimeoutException(final long deadlineNanos, final long millisAfterDeadline) {
-        super("Timeout encountered, " + millisAfterDeadline + " ms after deadline: "
-                + DateTimeFormats.TS_FORMAT.format(
-                        Instant.ofEpochMilli(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(deadlineNanos))));
-        this.deadlineNanos = deadlineNanos;
-        this.millisAfterDeadline = deadlineNanos;
-    }
-
-    @Deprecated
-    public final long getDeadline() {
-        return deadlineNanos;
-    }
-
-    public final long getDeadlineNanos() {
-        return deadlineNanos;
-    }
-
-    public final long getMillisAfterDeadline() {
-        return millisAfterDeadline;
-    }
-
-
+  @Test
+  public void testIOtimeout() {
+    long currentNanos = System.nanoTime();
+    long currentMillis = System.currentTimeMillis();
+    IOTimeoutException ex = new IOTimeoutException(currentNanos, 100);
+    Assert.assertEquals(currentNanos, ex.getDeadlineNanos());
+    Assert.assertThat(ex.getMessage(), Matchers.containsString(DateTimeFormats.TS_FORMAT.format(
+                        Instant.ofEpochMilli(currentMillis))));
+  }
 
 }
