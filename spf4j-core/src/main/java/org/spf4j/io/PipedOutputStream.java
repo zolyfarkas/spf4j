@@ -287,7 +287,7 @@ public final class PipedOutputStream extends OutputStream {
    * Designed to propagate exception details from the consumer to the producer.
    * A consumer that reads data from a InputStream connected to this PipedOutpuStream,
    * can close this pipe, and provide a exception. THis exception will be used as cause for any
-   * exceptions thrown by subsequent attempteed write operations.
+   * exceptions thrown by subsequent attempted write operations.
    * @param ex the exception to use as root cause.
    */
   @DischargesObligation
