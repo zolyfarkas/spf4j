@@ -162,12 +162,12 @@ public final class PipedOutputStream extends OutputStream {
       synchronized (sync) {
         int a2w = 0;
         while (!writerClosed && (a2w = availableToWrite()) < 1) {
-          long timeToWait = deadlineNanos - TimeSource.nanoTime();
-          if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadlineNanos, -timeToWait);
+          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();
+          if (timeToWaitNanos <= 0) {
+            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);
           }
           try {
-            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
           } catch (InterruptedException ex) {
             throw new IOException("Interrupted while writing " + Arrays.toString(b), ex);
           }
@@ -206,11 +206,11 @@ public final class PipedOutputStream extends OutputStream {
       int a2w = 0;
       while (!writerClosed && (a2w = availableToWrite()) < 1) {
         try {
-          long timeToWait = deadlineNanos - TimeSource.nanoTime();
-          if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadlineNanos, -timeToWait);
+          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();
+          if (timeToWaitNanos <= 0) {
+            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);
           }
-          TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+          TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
         } catch (InterruptedException ex) {
           throw new IOException("Interrupted while writing " + b, ex);
         }
@@ -371,12 +371,12 @@ public final class PipedOutputStream extends OutputStream {
       synchronized (sync) {
         int availableToRead = 0;
         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-          long timeToWait = deadlineNanos - TimeSource.nanoTime();
-          if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadlineNanos, -timeToWait);
+          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();
+          if (timeToWaitNanos <= 0) {
+            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);
           }
           try {
-            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
           } catch (InterruptedException ex) {
             throw new IOException("Interrupted while reading from "
                     + PipedOutputStream.this, ex);
@@ -413,12 +413,12 @@ public final class PipedOutputStream extends OutputStream {
       synchronized (sync) {
         int availableToRead = 0;
         while (!readerClosed && (availableToRead = availableToRead()) < 1 && !writerClosed) {
-          long timeToWait = deadline - TimeSource.nanoTime();
-          if (timeToWait <= 0) {
-            throw new IOTimeoutException(deadline, -timeToWait);
+          long timeToWaitNanos = deadline - TimeSource.nanoTime();
+          if (timeToWaitNanos <= 0) {
+            throw new IOTimeoutException(deadline, -timeToWaitNanos);
           }
           try {
-            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
           } catch (InterruptedException ex) {
             throw new IOException("Interrupted while reading from " + PipedOutputStream.this, ex);
           }

@@ -48,9 +48,11 @@ public class IOTimeoutExceptionTest {
     long currentNanos = System.nanoTime();
     long currentMillis = System.currentTimeMillis();
     IOTimeoutException ex = new IOTimeoutException(currentNanos, 100);
+    Assert.assertEquals(100, ex.getNanosAfterDeadline());
     Assert.assertEquals(currentNanos, ex.getDeadlineNanos());
     Assert.assertThat(ex.getMessage(), Matchers.containsString(DateTimeFormats.DT_FORMAT.format(
                         Instant.ofEpochMilli(currentMillis))));
+    Assert.assertThat(ex.getMessage(), Matchers.containsString(100 + " ns"));
   }
 
 }
