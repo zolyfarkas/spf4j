@@ -185,6 +185,12 @@ or for a unit test:
       # collect printed logs.
       spf4j.test.log.collectPrintedLogs
 
+#### Configuring the default log printing configuration.
+
+ You can add to your test resources a file with the name spf4j-test-prtcfg.properties or spf4j-test-prtcfg-ide.properties if you want
+ different configuration when executing your tests from the IDE. The file format is a property file with key=values in the format:
+
+      [category(package) name]=[LOG,LEVEL](,[greedy])?
 
 #### The log format is:
 

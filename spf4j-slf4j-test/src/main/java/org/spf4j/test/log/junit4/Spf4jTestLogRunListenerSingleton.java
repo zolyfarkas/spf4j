@@ -135,6 +135,40 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   }
 
   @Override
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testStarted(final Description description) throws Exception {
+    Test ta = description.getAnnotation(Test.class);
+    ExecutionContext ctx;
+    if (ta != null && ta.timeout() > 0) {
+      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);
+    } else {
+      ctx = ExecutionContexts.start(description.getDisplayName());
+    }
+    CollectLogs ca = description.getAnnotation(CollectLogs.class);
+    Level mll = ca == null ? minLogLevel : ca.minLevel();
+    boolean clp = ca == null ? collectPrinted : ca.collectPrinted();
+    TestLoggers sysTest = TestLoggers.sys();
+    collections.put(description, sysTest.collect(mll, maxDebugLogsCollected, clp));
+    PrintLogsConfigs prtAnnots = description.getAnnotation(PrintLogsConfigs.class);
+    if (prtAnnots != null) {
+      PrintLogs[] value = prtAnnots.value();
+      for (PrintLogs prtAnnot : value) {
+        sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
+              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
+      }
+    } else {
+      PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);
+      if (prtAnnot != null) {
+        sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
+              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
+      }
+    }
+    ctxts.put(description, ctx);
+    super.testStarted(description);
+  }
+
+
+  @Override
   public synchronized void testFinished(final Description description) {
     TestTimeSource.clear();
     LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
@@ -171,39 +205,6 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       dumpDebugInfo(logs, description);
       throw assertionError;
     }
-  }
-
-  @Override
-  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testStarted(final Description description) throws Exception {
-    Test ta = description.getAnnotation(Test.class);
-    ExecutionContext ctx;
-    if (ta != null && ta.timeout() > 0) {
-      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);
-    } else {
-      ctx = ExecutionContexts.start(description.getDisplayName());
-    }
-    CollectLogs ca = description.getAnnotation(CollectLogs.class);
-    Level mll = ca == null ? minLogLevel : ca.minLevel();
-    boolean clp = ca == null ? collectPrinted : ca.collectPrinted();
-    TestLoggers sysTest = TestLoggers.sys();
-    collections.put(description, sysTest.collect(mll, maxDebugLogsCollected, clp));
-    PrintLogsConfigs prtAnnots = description.getAnnotation(PrintLogsConfigs.class);
-    if (prtAnnots != null) {
-      PrintLogs[] value = prtAnnots.value();
-      for (PrintLogs prtAnnot : value) {
-        sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
-              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
-      }
-    } else {
-      PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);
-      if (prtAnnot != null) {
-        sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
-              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
-      }
-    }
-    ctxts.put(description, ctx);
-    super.testStarted(description);
   }
 
   public ExceptionHandoverRegistry getUncaughtExceptionHandler() {

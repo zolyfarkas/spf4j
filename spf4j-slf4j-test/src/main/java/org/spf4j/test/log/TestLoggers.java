@@ -17,11 +17,13 @@ package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -86,14 +88,34 @@ public final class TestLoggers implements ILoggerFactory {
   private TestLoggers() {
     sync = new Object();
     loggerMap = new ConcurrentHashMap<String, Logger>();
-    Level rootPrintLevel = TestUtils.isExecutedFromIDE()
+    boolean executedFromIDE = TestUtils.isExecutedFromIDE();
+    Level rootPrintLevel = executedFromIDE
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
             : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
+    final Map<String, List<LogHandler>> catHandlers;
+    Map<String, PrintConfig> loadConfig = null;
+    if (executedFromIDE) {
+      loadConfig = PrintLogConfigsIO.loadConfigFromResource("spf4j-test-prtcfg-ide.properties");
+    }
+    if (loadConfig == null) {
+      loadConfig = PrintLogConfigsIO.loadConfigFromResource("spf4j-test-prtcfg.properties");
+    }
+    if (loadConfig != null) {
+        catHandlers = Maps.newHashMapWithExpectedSize(loadConfig.size());
+        for (PrintConfig pl : loadConfig.values()) {
+          if (pl.getCategory().isEmpty()) {
+            rootPrintLevel = pl.getMinLevel();
+          } else {
+            catHandlers.put(pl.getCategory(), Collections.singletonList((new LogPrinter(pl.getMinLevel()))));
+          }
+        }
 
+    } else {
+      catHandlers = Collections.EMPTY_MAP;
+    }
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
     config = new LogConfigImpl(
-            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()),
-            Collections.EMPTY_MAP);
+            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()), catHandlers);
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
