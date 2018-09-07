@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import com.google.common.annotations.Beta;
 import java.util.List;
 
 /**
@@ -37,13 +38,45 @@ public final class TestUtils {
     return mvnNetbeansCP != null && mvnNetbeansCP.contains("netbeans");
   }
 
+  @Beta
+  public static boolean isExecutedFromIntelij() {
+    for (StackTraceElement[] st : Thread.getAllStackTraces().values()) {
+      if (st != null) {
+        for (StackTraceElement ste : st) {
+          if (ste.getClassName().startsWith("com.intelij.rt.execution")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
+  @Beta
+  public static boolean isExecutedFromEclipse() {
+    for (StackTraceElement[] st : Thread.getAllStackTraces().values()) {
+      if (st != null) {
+        for (StackTraceElement ste : st) {
+          if (ste.getClassName().startsWith("org.eclipse.jdt.internal")) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+
+
   /**
    * Supporting netbeans only at this time.
    * For other IDEs you need to configure them to pass the spf4j.execFromIDE property.
    * @return
    */
   public static boolean isExecutedFromIDE() {
-    return isExecutedFromNetbeans() || System.getProperty("spf4j.execFromIDE") != null;
+    return isExecutedFromNetbeans() || System.getProperty("spf4j.execFromIDE") != null
+            || isExecutedFromEclipse() || isExecutedFromIntelij();
   }
 
   public static boolean isExecutedWithDebuggerAgent() {
