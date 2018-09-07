@@ -36,7 +36,7 @@ public @interface PrintLogs {
    */
   String category() default "";
   /**
-   * @return true if we don't want downstream print handlers to PRINT any logs from this category.
+   * @return true if we don't want downstream log handlers to receive any logs from this category.
    */
   boolean greedy() default false;
   /**
