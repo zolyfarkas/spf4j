@@ -107,7 +107,7 @@ public class PipedOutputStreamTest {
         sb.append(Strings.fromUtf8(buffer, 0, read));
       }
     }
-    Assert.assertEquals(testStr, sb.toString());
+    Assert.assertEquals("buffSize = " + buffSize + ", buffered = " + buffered, testStr, sb.toString());
   }
 
   @Test
