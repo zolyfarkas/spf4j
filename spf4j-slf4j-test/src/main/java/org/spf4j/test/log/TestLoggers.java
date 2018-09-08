@@ -51,6 +51,8 @@ import sun.misc.Contended;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class TestLoggers implements ILoggerFactory {
 
+  public static final  boolean EXECUTED_FROM_IDE = TestUtils.isExecutedFromIDE();
+
   private static final Map<Level, java.util.logging.Level> LEV_MAP = new EnumMap<>(Level.class);
 
   /**
@@ -88,13 +90,12 @@ public final class TestLoggers implements ILoggerFactory {
   private TestLoggers() {
     sync = new Object();
     loggerMap = new ConcurrentHashMap<String, Logger>();
-    boolean executedFromIDE = TestUtils.isExecutedFromIDE();
-    Level rootPrintLevel = executedFromIDE
+    Level rootPrintLevel = EXECUTED_FROM_IDE
             ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
             : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
     final Map<String, List<LogHandler>> catHandlers;
     Map<String, PrintConfig> loadConfig = null;
-    if (executedFromIDE) {
+    if (EXECUTED_FROM_IDE) {
       loadConfig = PrintLogConfigsIO.loadConfigFromResource("spf4j-test-prtcfg-ide.properties");
     }
     if (loadConfig == null) {

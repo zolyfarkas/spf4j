@@ -40,7 +40,6 @@ import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
-import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.annotations.CollectLogs;
 import org.spf4j.test.log.annotations.PrintLogs;
@@ -153,13 +152,13 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     if (prtAnnots != null) {
       PrintLogs[] value = prtAnnots.value();
       for (PrintLogs prtAnnot : value) {
-        sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
+        sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE
               ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
       }
     } else {
       PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);
       if (prtAnnot != null) {
-        sysTest.print(prtAnnot.category(), TestUtils.isExecutedFromIDE()
+        sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE
               ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
       }
     }
