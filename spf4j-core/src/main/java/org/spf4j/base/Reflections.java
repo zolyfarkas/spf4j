@@ -517,7 +517,7 @@ public final class Reflections {
    * @throws IOException
    */
   @Nullable
-  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+  @SuppressFBWarnings({ "NP_LOAD_OF_KNOWN_NULL_VALUE", "URLCONNECTION_SSRF_FD" })
   public static Manifest getManifest(@Nonnull final URL jarUrl) throws IOException {
     try (JarInputStream jis = new JarInputStream(jarUrl.openStream())) {
       return jis.getManifest();
