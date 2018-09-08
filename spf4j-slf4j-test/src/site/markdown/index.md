@@ -20,6 +20,7 @@ with tons of debug info dumped to output all the time. But making it available w
  *  Lossless and fast java.util.logging redirect. (source class, source method ... are not being lost)
  *  Environment specific configurations with best defaults right out of the box. (DEBUG when running from IDE, INFO otherwise)
  *  Assert logging made from various logging APIs. java.util.logging supported out of the box, for everything else [see](https://www.slf4j.org/legacy.html)
+ *  Ability to control your timing based on TimeSource.
 
 ## 2. How to use it.
 
@@ -113,6 +114,17 @@ or for a unit test:
       ....
     }
 
+or a more complex print config:
+
+      @Test
+      @PrintLogsConfigs(
+              {
+                @PrintLogs(ideMinLevel = Level.TRACE),
+                @PrintLogs(category = "com.sun", ideMinLevel = Level.WARN)
+              }
+      )
+      public void testLogging() {
+         ....
 
 
 #### Log Additional objects:
@@ -191,6 +203,17 @@ or for a unit test:
  different configuration when executing your tests from the IDE. The file format is a property file with key=values in the format:
 
       [category(package) name]=[LOG,LEVEL](,[greedy])?
+
+#### Customized timing for testing.
+ 
+ You can control TimeSource like:
+
+        @Test
+        public void testAssertionError() {
+          TestTimeSource.setTimeStream(0L, 1L, 2L);
+          Assert.assertEquals(0L, TimeSource.nanoTime());
+          Assert.assertEquals(1L, TimeSource.nanoTime());
+          ....
 
 #### The log format is:
 

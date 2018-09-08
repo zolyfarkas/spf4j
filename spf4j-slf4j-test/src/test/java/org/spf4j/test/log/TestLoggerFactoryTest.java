@@ -34,6 +34,7 @@ import org.spf4j.base.Method;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.test.log.annotations.CollectLogs;
 import org.spf4j.test.log.annotations.PrintLogs;
+import org.spf4j.test.log.annotations.PrintLogsConfigs;
 
 /**
  *
@@ -63,7 +64,12 @@ public class TestLoggerFactoryTest {
 
 
   @Test
-  @PrintLogs(ideMinLevel = Level.TRACE)
+  @PrintLogsConfigs(
+          {
+            @PrintLogs(ideMinLevel = Level.TRACE),
+            @PrintLogs(category = "com.sun", ideMinLevel = Level.WARN)
+          }
+  )
   @CollectLogs(minLevel = Level.TRACE)
   public void testLogging() {
     TestLoggers tLog = TestLoggers.sys();
