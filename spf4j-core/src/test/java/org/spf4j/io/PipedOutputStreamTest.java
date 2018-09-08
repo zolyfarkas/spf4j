@@ -94,8 +94,7 @@ public class PipedOutputStreamTest {
         try (OutputStream os = pos) {
           final byte[] utf8 = Strings.toUtf8(testStr);
           os.write(utf8[0]);
-          os.write(utf8, 1, 10);
-          os.write(utf8, 11, utf8.length - 11);
+          os.write(utf8, 1,  utf8.length - 1);
         }
       }
     });

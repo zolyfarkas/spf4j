@@ -123,6 +123,13 @@ public class MemorizingBufferedInputStreamTest {
   }
 
   @Test
+  public void testSpecialCase() throws IOException {
+    test("101", 2, true);
+    Assert.assertTrue(true);
+  }
+
+
+  @Test
   public void testStreamBuffering() throws IOException {
     test(TSTR, 8, true);
     for (int i = 0; i < 100; i++) {
