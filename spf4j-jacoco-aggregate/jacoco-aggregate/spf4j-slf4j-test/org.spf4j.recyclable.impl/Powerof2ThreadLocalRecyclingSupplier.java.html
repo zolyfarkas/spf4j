@@ -51,53 +51,53 @@ public final class Powerof2ThreadLocalRecyclingSupplier&lt;T&gt; implements Size
 
     private final ThreadLocal&lt;Deque&lt;Reference&lt;T&gt;&gt; []&gt; localObjects;
 
-<span class="nc" id="L54">    public Powerof2ThreadLocalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
-<span class="nc" id="L55">        this.factory = factory;</span>
-<span class="nc" id="L56">        this.refType = refType;</span>
-<span class="nc" id="L57">        localObjects = new ThreadLocal&lt;Deque&lt;Reference&lt;T&gt;&gt; []&gt;() {</span>
+<span class="fc" id="L54">    public Powerof2ThreadLocalRecyclingSupplier(final Factory&lt;T&gt; factory, final ReferenceType refType) {</span>
+<span class="fc" id="L55">        this.factory = factory;</span>
+<span class="fc" id="L56">        this.refType = refType;</span>
+<span class="fc" id="L57">        localObjects = new ThreadLocal&lt;Deque&lt;Reference&lt;T&gt;&gt; []&gt;() {</span>
 
             @Override
             protected  Deque&lt;Reference&lt;T&gt;&gt;[] initialValue() {
-<span class="nc" id="L61">                Deque&lt;Reference&lt;T&gt;&gt;[] result =  new Deque[28];</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">                for (int i = 0; i &lt; result.length; i++) {</span>
-<span class="nc" id="L63">                    result[i] = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L61">                Deque&lt;Reference&lt;T&gt;&gt;[] result =  new Deque[28];</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="fc" id="L63">                    result[i] = new ArrayDeque&lt;&gt;();</span>
                 }
-<span class="nc" id="L65">                return result;</span>
+<span class="fc" id="L65">                return result;</span>
             }
         };
-<span class="nc" id="L68">    }</span>
+<span class="fc" id="L68">    }</span>
 
     @Override
     public T get(final int size) {
-<span class="nc" id="L72">        Deque&lt;Reference&lt;T&gt;&gt;[] available = localObjects.get();</span>
-<span class="nc" id="L73">        int idx = IntMath.closestPowerOf2(size);</span>
-<span class="nc" id="L74">        Deque&lt;Reference&lt;T&gt;&gt; refs = available[idx];</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (refs.isEmpty()) {</span>
-<span class="nc" id="L76">            int actualSize = 1 &lt;&lt; idx;</span>
-<span class="nc" id="L77">            return factory.create(actualSize);</span>
+<span class="fc" id="L72">        Deque&lt;Reference&lt;T&gt;&gt;[] available = localObjects.get();</span>
+<span class="fc" id="L73">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L74">        Deque&lt;Reference&lt;T&gt;&gt; refs = available[idx];</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (refs.isEmpty()) {</span>
+<span class="fc" id="L76">            int actualSize = 1 &lt;&lt; idx;</span>
+<span class="fc" id="L77">            return factory.create(actualSize);</span>
         } else {
             T result;
             do {
-<span class="nc" id="L81">                Reference&lt;T&gt; removeLast = refs.removeLast();</span>
-<span class="nc" id="L82">                result = removeLast.get();</span>
-<span class="nc bnc" id="L83" title="All 4 branches missed.">            } while (result == null &amp;&amp; !refs.isEmpty());</span>
-<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (result == null) {</span>
+<span class="fc" id="L81">                Reference&lt;T&gt; removeLast = refs.removeLast();</span>
+<span class="fc" id="L82">                result = removeLast.get();</span>
+<span class="pc bpc" id="L83" title="3 of 4 branches missed.">            } while (result == null &amp;&amp; !refs.isEmpty());</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">            if (result == null) {</span>
 <span class="nc" id="L85">                int actualSize = 1 &lt;&lt; idx;</span>
 <span class="nc" id="L86">                return factory.create(actualSize);</span>
             } else {
-<span class="nc" id="L88">                return result;</span>
+<span class="fc" id="L88">                return result;</span>
             }
         }
     }
 
     @Override
     public void recycle(final T object) {
-<span class="nc" id="L95">        int size = factory.size(object);</span>
-<span class="nc" id="L96">        int idx = IntMath.closestPowerOf2(size);</span>
-<span class="nc" id="L97">        Deque&lt;Reference&lt;T&gt;&gt;[] available = localObjects.get();</span>
-<span class="nc" id="L98">        Deque&lt;Reference&lt;T&gt;&gt; refs = available[idx];</span>
-<span class="nc" id="L99">        refs.addLast(refType.create(object));</span>
-<span class="nc" id="L100">    }</span>
+<span class="fc" id="L95">        int size = factory.size(object);</span>
+<span class="fc" id="L96">        int idx = IntMath.closestPowerOf2(size);</span>
+<span class="fc" id="L97">        Deque&lt;Reference&lt;T&gt;&gt;[] available = localObjects.get();</span>
+<span class="fc" id="L98">        Deque&lt;Reference&lt;T&gt;&gt; refs = available[idx];</span>
+<span class="fc" id="L99">        refs.addLast(refType.create(object));</span>
+<span class="fc" id="L100">    }</span>
 
     @Override
     public String toString() {

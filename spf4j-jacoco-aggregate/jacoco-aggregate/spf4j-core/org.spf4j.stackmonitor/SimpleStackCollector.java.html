@@ -45,37 +45,37 @@ public final class SimpleStackCollector implements ISampler {
 
   private final StackCollector collector;
 
-<span class="nc" id="L48">  public SimpleStackCollector(final Thread ignore) {</span>
-<span class="nc" id="L49">    this.ignore = ignore;</span>
-<span class="nc" id="L50">    this.collector = new StackCollectorImpl();</span>
-<span class="nc" id="L51">  }</span>
+<span class="fc" id="L48">  public SimpleStackCollector(final Thread ignore) {</span>
+<span class="fc" id="L49">    this.ignore = ignore;</span>
+<span class="fc" id="L50">    this.collector = new StackCollectorImpl();</span>
+<span class="fc" id="L51">  }</span>
 
   @Override
   public void sample() {
-<span class="nc" id="L55">    Map&lt;Thread, StackTraceElement[]&gt; stackDump = Thread.getAllStackTraces();</span>
-<span class="nc" id="L56">    stackDump.remove(ignore);</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">    for (Map.Entry&lt;Thread, StackTraceElement[]&gt; element : stackDump.entrySet()) {</span>
-<span class="nc" id="L58">      StackTraceElement[] stackTrace = element.getValue();</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">      if (stackTrace.length &gt; 0) {</span>
-<span class="nc" id="L60">        collector.collect(stackTrace);</span>
+<span class="fc" id="L55">    Map&lt;Thread, StackTraceElement[]&gt; stackDump = Thread.getAllStackTraces();</span>
+<span class="fc" id="L56">    stackDump.remove(ignore);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">    for (Map.Entry&lt;Thread, StackTraceElement[]&gt; element : stackDump.entrySet()) {</span>
+<span class="fc" id="L58">      StackTraceElement[] stackTrace = element.getValue();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">      if (stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L60">        collector.collect(stackTrace);</span>
       } else {
-<span class="nc" id="L62">        collector.collect(new StackTraceElement[]{</span>
-<span class="nc" id="L63">          new StackTraceElement(&quot;Thread&quot;, element.getKey().getName(), &quot;&quot;, 0)</span>
+<span class="fc" id="L62">        collector.collect(new StackTraceElement[]{</span>
+<span class="fc" id="L63">          new StackTraceElement(&quot;Thread&quot;, element.getKey().getName(), &quot;&quot;, 0)</span>
         });
       }
-<span class="nc" id="L66">    }</span>
-<span class="nc" id="L67">  }</span>
+<span class="fc" id="L66">    }</span>
+<span class="fc" id="L67">  }</span>
 
   @Override
   public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
-<span class="nc" id="L71">    SampleNode nodes = collector.getAndReset();</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+<span class="fc" id="L71">    SampleNode nodes = collector.getAndReset();</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
   }
 
   @Override
   public Map&lt;String, SampleNode&gt; getCollections() {
-<span class="nc" id="L77">    SampleNode nodes = collector.get();</span>
-<span class="nc bnc" id="L78" title="All 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+<span class="fc" id="L77">    SampleNode nodes = collector.get();</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
   }
 
   @Override

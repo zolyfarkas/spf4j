@@ -54,18 +54,16 @@ final class TimeoutRetryPredicate&lt;T, C extends Callable&lt;T&gt;&gt; implemen
 <span class="fc bfc" id="L54" title="All 2 branches covered.">    if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
 <span class="fc" id="L55">      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);</span>
 <span class="fc bfc" id="L56" title="All 2 branches covered.">      if (timeToDeadlineNanos &lt; decision.getDelayNanos()) {</span>
-<span class="fc" id="L57">          TimeoutException timeoutException = new TimeoutException(&quot;Time to deadline not enough &quot;</span>
-                  + timeToDeadlineNanos + &quot; ns &quot;);
-<span class="fc" id="L59">          timeoutException.addSuppressed((Throwable) value);</span>
-<span class="fc" id="L60">          return (RetryDecision) RetryDecision.abortThrow(timeoutException);</span>
+<span class="fc" id="L57">          return (RetryDecision) RetryDecision.abortThrow(new TimeoutException(&quot;Time to deadline not enough &quot;</span>
+                  + timeToDeadlineNanos + &quot; ns &quot;));
       }
     }
-<span class="fc" id="L63">    return decision;</span>
+<span class="fc" id="L61">    return decision;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L68">    return &quot;TimeoutRetryPredicate{&quot; + &quot;predicate=&quot; + predicate + &quot;, deadlineNanos=&quot; + deadlineNanos + '}';</span>
+<span class="nc" id="L66">    return &quot;TimeoutRetryPredicate{&quot; + &quot;predicate=&quot; + predicate + &quot;, deadlineNanos=&quot; + deadlineNanos + '}';</span>
   }
 
 }

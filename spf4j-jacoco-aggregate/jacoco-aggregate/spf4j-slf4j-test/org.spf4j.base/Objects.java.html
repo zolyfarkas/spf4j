@@ -49,13 +49,13 @@ public final class Objects {
 
     @SuppressFBWarnings(&quot;OBJECT_DESERIALIZATION&quot;)
     public static &lt;T extends Serializable&gt; T clone(final T t) {
-<span class="nc" id="L52">        try (ByteArrayBuilder bos = new ByteArrayBuilder(256);</span>
-<span class="nc" id="L53">             ObjectOutputStream out = new ObjectOutputStream(bos)) {</span>
-<span class="nc" id="L54">            out.writeObject(t);</span>
-<span class="nc" id="L55">            out.flush();</span>
-<span class="nc" id="L56">            try (ObjectInputStream in = new ObjectInputStream(</span>
-<span class="nc" id="L57">                    new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()))) {</span>
-<span class="nc" id="L58">                return (T) in.readObject();</span>
+<span class="fc" id="L52">        try (ByteArrayBuilder bos = new ByteArrayBuilder(256);</span>
+<span class="fc" id="L53">             ObjectOutputStream out = new ObjectOutputStream(bos)) {</span>
+<span class="fc" id="L54">            out.writeObject(t);</span>
+<span class="fc" id="L55">            out.flush();</span>
+<span class="fc" id="L56">            try (ObjectInputStream in = new ObjectInputStream(</span>
+<span class="fc" id="L57">                    new ByteArrayInputStream(bos.getBuffer(), 0, bos.size()))) {</span>
+<span class="fc" id="L58">                return (T) in.readObject();</span>
             }
 <span class="nc" id="L60">        } catch (IOException | ClassNotFoundException e) {</span>
 <span class="nc" id="L61">            throw new CloneFailedException(&quot;Failed to clone &quot; + t, e);</span>

@@ -45,52 +45,52 @@ public final class LODAX extends Instruction implements LValRef {
 
     private final String symbol;
     
-<span class="nc" id="L48">    public LODAX(final String symbol) {</span>
-<span class="nc" id="L49">        this.symbol = symbol;</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L48">    public LODAX(final String symbol) {</span>
+<span class="fc" id="L49">        this.symbol = symbol;</span>
+<span class="fc" id="L50">    }</span>
     
     
     public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
             throws ZExecutionException {
-<span class="nc" id="L55">        Program code = context.getProgram();</span>
-<span class="nc" id="L56">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (addr == null) {</span>
-<span class="nc" id="L58">            addr = code.getGlobalSymbolTable().get(symbol);</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (addr == null) {</span>
+<span class="fc" id="L55">        Program code = context.getProgram();</span>
+<span class="fc" id="L56">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (addr == null) {</span>
+<span class="fc" id="L58">            addr = code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            if (addr == null) {</span>
 <span class="nc" id="L60">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
             }
-<span class="nc" id="L62">            context.globalPoke(addr, what);</span>
+<span class="fc" id="L62">            context.globalPoke(addr, what);</span>
         } else {
-<span class="nc" id="L64">            context.localPoke(addr, what);</span>
+<span class="fc" id="L64">            context.localPoke(addr, what);</span>
         }
-<span class="nc" id="L66">    }</span>
+<span class="fc" id="L66">    }</span>
 
     @Override
     public int execute(final ExecutionContext context) {
            
-<span class="nc" id="L71">        context.push(new AssignableValue() {</span>
+<span class="fc" id="L71">        context.push(new AssignableValue() {</span>
 
             @Override
             public void assign(final Object object) throws ZExecutionException {
-<span class="nc" id="L75">                writeTo(symbol, context, object);</span>
-<span class="nc" id="L76">            }</span>
+<span class="fc" id="L75">                writeTo(symbol, context, object);</span>
+<span class="fc" id="L76">            }</span>
 
             @Override
             public Object get() throws ZExecutionException {
-<span class="nc" id="L80">                return LODX.readFrom(symbol, context);</span>
+<span class="fc" id="L80">                return LODX.readFrom(symbol, context);</span>
             }
         });
-<span class="nc" id="L83">        return 1;</span>
+<span class="fc" id="L83">        return 1;</span>
     }
 
     @Override
     public String getSymbol() {
-<span class="nc" id="L88">        return symbol;</span>
+<span class="fc" id="L88">        return symbol;</span>
     }
 
     @Override
     public Object[] getParameters() {
-<span class="nc" id="L93">        return new Object[] {symbol};</span>
+<span class="fc" id="L93">        return new Object[] {symbol};</span>
     }
 
 }

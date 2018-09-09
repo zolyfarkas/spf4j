@@ -44,14 +44,14 @@ import org.spf4j.perf.impl.NopMeasurementRecorder;
  */
 public final class PerformanceMonitor {
 
-<span class="nc" id="L47">  private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);</span>
+<span class="fc" id="L47">  private static final Logger LOG = LoggerFactory.getLogger(PerformanceMonitor.class);</span>
 
   private PerformanceMonitor() {
   }
 
   public static &lt;T&gt; T callAndMonitor(
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) throws Exception {
-<span class="nc" id="L54">    return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();</span>
+<span class="fc" id="L54">    return performanceMonitoredCallable(warnMillis, errorMillis, callable).call();</span>
   }
 
   public static &lt;T&gt; T callAndMonitor(final MeasurementRecorderSource mrs,
@@ -107,7 +107,7 @@ public final class PerformanceMonitor {
 
   public static &lt;T&gt; Callable&lt;T&gt; performanceMonitoredCallable(
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable) {
-<span class="nc" id="L110">    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
+<span class="fc" id="L110">    return performanceMonitoredCallable(NopMeasurementRecorder.INSTANCE,</span>
             warnMillis, errorMillis, callable, false);
   }
 
@@ -122,18 +122,18 @@ public final class PerformanceMonitor {
           final long warnMillis, final long errorMillis, final Callable&lt;T&gt; callable,
           final boolean isLogInfo, final Object... detail) {
 
-<span class="nc" id="L125">    return new Callable&lt;T&gt;() {</span>
+<span class="fc" id="L125">    return new Callable&lt;T&gt;() {</span>
       @Override
       public T call() throws Exception {
-<span class="nc" id="L128">        final long start = System.currentTimeMillis();</span>
-<span class="nc" id="L129">        T result = callable.call();</span>
-<span class="nc" id="L130">        final long elapsed = System.currentTimeMillis() - start;</span>
-<span class="nc" id="L131">        mr.record(elapsed);</span>
-<span class="nc" id="L132">        String callableName = callable.toString();</span>
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (elapsed &gt; warnMillis) {</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">          if (elapsed &gt; errorMillis) {</span>
-<span class="nc" id="L135">            LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
-<span class="nc" id="L136">                    elapsed, callableName, errorMillis, detail);</span>
+<span class="fc" id="L128">        final long start = System.currentTimeMillis();</span>
+<span class="fc" id="L129">        T result = callable.call();</span>
+<span class="fc" id="L130">        final long elapsed = System.currentTimeMillis() - start;</span>
+<span class="fc" id="L131">        mr.record(elapsed);</span>
+<span class="fc" id="L132">        String callableName = callable.toString();</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if (elapsed &gt; warnMillis) {</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">          if (elapsed &gt; errorMillis) {</span>
+<span class="fc" id="L135">            LOG.error(&quot;Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}&quot;,</span>
+<span class="fc" id="L136">                    elapsed, callableName, errorMillis, detail);</span>
           } else {
 <span class="nc" id="L138">            LOG.warn(&quot;Execution time  {} ms for {} exceeds warning threshold of {} ms, detail: {}&quot;,</span>
 <span class="nc" id="L139">                    elapsed, callableName, warnMillis, detail);</span>
@@ -145,7 +145,7 @@ public final class PerformanceMonitor {
 <span class="nc" id="L145">            LOG.debug(&quot;Execution time {} ms for {}, detail: {}&quot;, elapsed, callableName, detail);</span>
           }
         }
-<span class="nc" id="L148">        return result;</span>
+<span class="fc" id="L148">        return result;</span>
 
       }
     };

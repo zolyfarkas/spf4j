@@ -39,8 +39,8 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.io.appenders;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> javax.activation.MimeType;
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.Schema;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.<strong class="jxr_keyword">generic</strong>.GenericDatumWriter;
@@ -67,7 +67,7 @@
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> append(<strong class="jxr_keyword">final</strong> GenericRecord object, <strong class="jxr_keyword">final</strong> Appendable appendTo) <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>      StringBuilder sb = TMP.get();
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>      sb.setLength(0);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">try</strong> (AppendableOutputStream bos = <strong class="jxr_keyword">new</strong> AppendableOutputStream(appendTo, Charsets.UTF_8)) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">try</strong> (AppendableOutputStream bos = <strong class="jxr_keyword">new</strong> AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>        <strong class="jxr_keyword">final</strong> Schema schema = object.getSchema();
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>        GenericDatumWriter&lt;GenericRecord&gt; writer = <strong class="jxr_keyword">new</strong> GenericDatumWriter&lt;&gt;(schema);
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>        JsonEncoder jsonEncoder = SpecificRecordAppender.EF.jsonEncoder(schema, bos);

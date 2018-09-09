@@ -49,10 +49,10 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 public final class BufferedInputStream extends FilterInputStream {
 
-<span class="nc" id="L52">    private static int defaultBufferSize = 8192;</span>
+<span class="fc" id="L52">    private static int defaultBufferSize = 8192;</span>
 
-<span class="nc" id="L54">    private static final AtomicReferenceFieldUpdater&lt;BufferedInputStream, byte[]&gt; BUF_UPDATER</span>
-<span class="nc" id="L55">            = AtomicReferenceFieldUpdater.newUpdater(BufferedInputStream.class, byte[].class, &quot;buf&quot;);</span>
+<span class="fc" id="L54">    private static final AtomicReferenceFieldUpdater&lt;BufferedInputStream, byte[]&gt; BUF_UPDATER</span>
+<span class="fc" id="L55">            = AtomicReferenceFieldUpdater.newUpdater(BufferedInputStream.class, byte[].class, &quot;buf&quot;);</span>
 
 
     private volatile byte[] buf;
@@ -61,26 +61,26 @@ public final class BufferedInputStream extends FilterInputStream {
 
     private int pos;
 
-<span class="nc" id="L64">    private int markpos = -1;</span>
+<span class="fc" id="L64">    private int markpos = -1;</span>
 
     private int marklimit;
 
     private final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider;
 
     private InputStream getInIfOpen() throws IOException {
-<span class="nc" id="L71">        InputStream input = in;</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (input == null) {</span>
+<span class="fc" id="L71">        InputStream input = in;</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (input == null) {</span>
 <span class="nc" id="L73">            throw new IOException(&quot;Stream closed &quot; + in);</span>
         }
-<span class="nc" id="L75">        return input;</span>
+<span class="fc" id="L75">        return input;</span>
     }
 
     private byte[] getBufIfOpen() throws IOException {
-<span class="nc" id="L79">        byte[] buffer = buf;</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (buffer == null) {</span>
+<span class="fc" id="L79">        byte[] buffer = buf;</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (buffer == null) {</span>
 <span class="nc" id="L81">            throw new IOException(&quot;Stream closed &quot; + in);</span>
         }
-<span class="nc" id="L83">        return buffer;</span>
+<span class="fc" id="L83">        return buffer;</span>
     }
 
     public BufferedInputStream(final InputStream in) {
@@ -93,13 +93,13 @@ public final class BufferedInputStream extends FilterInputStream {
 
     public BufferedInputStream(final InputStream in, final int size,
             final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider) {
-<span class="nc" id="L96">        super(in);</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (size &lt;= 0) {</span>
+<span class="fc" id="L96">        super(in);</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (size &lt;= 0) {</span>
 <span class="nc" id="L98">            throw new IllegalArgumentException(&quot;Buffer size &lt;= 0 : &quot; + size);</span>
         }
-<span class="nc" id="L100">        this.bufferProvider = bufferProvider;</span>
-<span class="nc" id="L101">        buf = bufferProvider.get(size);</span>
-<span class="nc" id="L102">    }</span>
+<span class="fc" id="L100">        this.bufferProvider = bufferProvider;</span>
+<span class="fc" id="L101">        buf = bufferProvider.get(size);</span>
+<span class="fc" id="L102">    }</span>
 
     private void fill() throws IOException {
 <span class="nc" id="L105">        byte[] buffer = getBufIfOpen();</span>
@@ -148,10 +148,10 @@ public final class BufferedInputStream extends FilterInputStream {
     }
 
     private int read1(final byte[] b, final int off, final int len) throws IOException {
-<span class="nc" id="L151">        int avail = count - pos;</span>
-<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (avail &lt;= 0) {</span>
-<span class="nc bnc" id="L153" title="All 4 branches missed.">            if (len &gt;= getBufIfOpen().length &amp;&amp; markpos &lt; 0) {</span>
-<span class="nc" id="L154">                return getInIfOpen().read(b, off, len);</span>
+<span class="fc" id="L151">        int avail = count - pos;</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (avail &lt;= 0) {</span>
+<span class="pc bpc" id="L153" title="2 of 4 branches missed.">            if (len &gt;= getBufIfOpen().length &amp;&amp; markpos &lt; 0) {</span>
+<span class="fc" id="L154">                return getInIfOpen().read(b, off, len);</span>
             }
 <span class="nc" id="L156">            fill();</span>
 <span class="nc" id="L157">            avail = count - pos;</span>
@@ -168,27 +168,27 @@ public final class BufferedInputStream extends FilterInputStream {
     @Override
     public synchronized int read(final byte[] b, final int off, final int len)
             throws IOException {
-<span class="nc" id="L171">        getBufIfOpen(); // Check for closed stream</span>
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if ((off | len | (off + len) | (b.length - (off + len))) &lt; 0) {</span>
+<span class="fc" id="L171">        getBufIfOpen(); // Check for closed stream</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if ((off | len | (off + len) | (b.length - (off + len))) &lt; 0) {</span>
 <span class="nc" id="L173">            throw new IndexOutOfBoundsException();</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        } else if (len == 0) {</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">        } else if (len == 0) {</span>
 <span class="nc" id="L175">            return 0;</span>
         }
 
-<span class="nc" id="L178">        int n = 0;</span>
+<span class="fc" id="L178">        int n = 0;</span>
         for (;;) {
-<span class="nc" id="L180">            int nread = read1(b, off + n, len - n);</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">            if (nread &lt;= 0) {</span>
-<span class="nc bnc" id="L182" title="All 2 branches missed.">                return (n == 0) ? nread : n;</span>
+<span class="fc" id="L180">            int nread = read1(b, off + n, len - n);</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">            if (nread &lt;= 0) {</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">                return (n == 0) ? nread : n;</span>
             }
-<span class="nc" id="L184">            n += nread;</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">            if (n &gt;= len) {</span>
+<span class="fc" id="L184">            n += nread;</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            if (n &gt;= len) {</span>
 <span class="nc" id="L186">                return n;</span>
             }
             // if not closed but no bytes available, return
-<span class="nc" id="L189">            InputStream input = in;</span>
-<span class="nc bnc" id="L190" title="All 4 branches missed.">            if (input != null &amp;&amp; input.available() &lt;= 0) {</span>
-<span class="nc" id="L191">                return n;</span>
+<span class="fc" id="L189">            InputStream input = in;</span>
+<span class="pc bpc" id="L190" title="2 of 4 branches missed.">            if (input != null &amp;&amp; input.available() &lt;= 0) {</span>
+<span class="fc" id="L191">                return n;</span>
             }
 <span class="nc" id="L193">        }</span>
     }
@@ -222,7 +222,7 @@ public final class BufferedInputStream extends FilterInputStream {
 
     @Override
     public synchronized int available() throws IOException {
-<span class="nc" id="L225">        return getInIfOpen().available() + (count - pos);</span>
+<span class="fc" id="L225">        return getInIfOpen().available() + (count - pos);</span>
     }
 
     @Override
@@ -249,15 +249,15 @@ public final class BufferedInputStream extends FilterInputStream {
     @DischargesObligation
     public void close() throws IOException {
         byte[] buffer;
-<span class="nc bnc" id="L252" title="All 2 branches missed.">        while ((buffer = buf) != null) {</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (BUF_UPDATER.compareAndSet(this, buffer, null)) {</span>
-<span class="nc" id="L254">                bufferProvider.recycle(buffer);</span>
-<span class="nc" id="L255">                InputStream input = in;</span>
-<span class="nc" id="L256">                in = null;</span>
-<span class="nc bnc" id="L257" title="All 2 branches missed.">                if (input != null) {</span>
-<span class="nc" id="L258">                    input.close();</span>
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">        while ((buffer = buf) != null) {</span>
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">            if (BUF_UPDATER.compareAndSet(this, buffer, null)) {</span>
+<span class="fc" id="L254">                bufferProvider.recycle(buffer);</span>
+<span class="fc" id="L255">                InputStream input = in;</span>
+<span class="fc" id="L256">                in = null;</span>
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">                if (input != null) {</span>
+<span class="fc" id="L258">                    input.close();</span>
                 }
-<span class="nc" id="L260">                return;</span>
+<span class="fc" id="L260">                return;</span>
             }
         }
 <span class="nc" id="L263">    }</span>

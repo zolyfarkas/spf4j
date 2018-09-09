@@ -46,17 +46,17 @@ public final class ProcessUtil {
   private ProcessUtil() { }
 
   public static int getPid(final Process p) {
-<span class="nc bnc" id="L49" title="All 2 branches missed.">    if (org.spf4j.base.Runtime.isWindows()) {</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    if (org.spf4j.base.Runtime.isWindows()) {</span>
 <span class="nc" id="L50">      return getWindowsPid(p);</span>
     }
-<span class="nc" id="L52">    return getUnixPid(p);</span>
+<span class="fc" id="L52">    return getUnixPid(p);</span>
   }
 
   private static int getUnixPid(final Process p) {
     try {
-<span class="nc" id="L57">      Field pidF = p.getClass().getDeclaredField(&quot;pid&quot;);</span>
-<span class="nc" id="L58">      pidF.setAccessible(true);</span>
-<span class="nc" id="L59">      return pidF.getInt(p);</span>
+<span class="fc" id="L57">      Field pidF = p.getClass().getDeclaredField(&quot;pid&quot;);</span>
+<span class="fc" id="L58">      pidF.setAccessible(true);</span>
+<span class="fc" id="L59">      return pidF.getInt(p);</span>
 <span class="nc" id="L60">    } catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {</span>
 <span class="nc" id="L61">      throw new UncheckedExecutionException(&quot;Cannot get PID for &quot; + p, ex);</span>
     }

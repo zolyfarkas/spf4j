@@ -50,129 +50,135 @@ public final class LogRecord {
   private final Object[] arguments;
   private Set&lt;Object&gt; attachments;
   private int startExtra;
+  @Nullable
   private String message;
 
   @SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;)
   public LogRecord(final Logger logger, final Level level,
           final String format, final Object... arguments) {
-<span class="fc" id="L58">    this(logger, level, null, format, arguments);</span>
-<span class="fc" id="L59">  }</span>
+<span class="fc" id="L59">    this(logger, level, null, format, arguments);</span>
+<span class="fc" id="L60">  }</span>
 
   @SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;)
   public LogRecord(final Logger logger, final Level level,
-<span class="fc" id="L63">          @Nullable final Marker marker, final String format, final Object... arguments) {</span>
-<span class="fc" id="L64">    this.logger = logger;</span>
-<span class="fc" id="L65">    this.level = level;</span>
-<span class="fc" id="L66">    this.timeStamp = System.currentTimeMillis();</span>
-<span class="fc" id="L67">    this.marker = marker;</span>
-<span class="fc" id="L68">    this.format = format;</span>
-<span class="fc" id="L69">    this.arguments = arguments;</span>
-<span class="fc" id="L70">    this.thread = Thread.currentThread();</span>
-<span class="fc" id="L71">    this.attachments = Collections.EMPTY_SET;</span>
-<span class="fc" id="L72">    this.startExtra = arguments.length;</span>
-<span class="fc" id="L73">    this.message = null;</span>
-<span class="fc" id="L74">  }</span>
+<span class="fc" id="L64">          @Nullable final Marker marker, final String format, final Object... arguments) {</span>
+<span class="fc" id="L65">    this.logger = logger;</span>
+<span class="fc" id="L66">    this.level = level;</span>
+<span class="fc" id="L67">    this.timeStamp = System.currentTimeMillis();</span>
+<span class="fc" id="L68">    this.marker = marker;</span>
+<span class="fc" id="L69">    this.format = format;</span>
+<span class="fc" id="L70">    this.arguments = arguments;</span>
+<span class="fc" id="L71">    this.thread = Thread.currentThread();</span>
+<span class="fc" id="L72">    this.attachments = Collections.EMPTY_SET;</span>
+<span class="fc" id="L73">    this.startExtra = arguments.length;</span>
+<span class="fc" id="L74">    this.message = null;</span>
+<span class="fc" id="L75">  }</span>
 
   public Logger getLogger() {
-<span class="fc" id="L77">    return logger;</span>
+<span class="fc" id="L78">    return logger;</span>
   }
 
   public Level getLevel() {
-<span class="fc" id="L81">    return level;</span>
+<span class="fc" id="L82">    return level;</span>
   }
 
   public long getTimeStamp() {
-<span class="fc" id="L85">    return timeStamp;</span>
+<span class="fc" id="L86">    return timeStamp;</span>
   }
 
   @Nullable
   public Marker getMarker() {
-<span class="fc" id="L90">    return marker;</span>
+<span class="fc" id="L91">    return marker;</span>
   }
 
   public String getFormat() {
-<span class="fc" id="L94">    return format;</span>
+<span class="fc" id="L95">    return format;</span>
   }
 
   @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;) // risk I take...
   public Object[] getArguments() {
-<span class="fc" id="L99">    return arguments;</span>
+<span class="fc" id="L100">    return arguments;</span>
   }
 
   public Thread getThread() {
-<span class="fc" id="L103">    return thread;</span>
+<span class="fc" id="L104">    return thread;</span>
   }
 
+  @Nonnull
   public synchronized String getMessage() {
-<span class="nc" id="L107">    materializeMessage();</span>
-<span class="nc" id="L108">    return message;</span>
+<span class="nc" id="L109">    materializeMessage();</span>
+<span class="nc" id="L110">    return message;</span>
   }
 
   public synchronized void materializeMessage() {
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">    if (message == null) {</span>
-<span class="fc" id="L113">      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    if (message == null) {</span>
+<span class="fc" id="L115">      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);</span>
       try {
-<span class="fc" id="L115">        this.startExtra = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, sb, format,</span>
+<span class="fc" id="L117">        this.startExtra = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, sb, format,</span>
                 ObjectAppenderSupplier.TO_STRINGER, arguments);
-<span class="nc" id="L117">      } catch (IOException ex) {</span>
-<span class="nc" id="L118">        throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L119">      }</span>
-<span class="fc" id="L120">      message = sb.toString();</span>
+<span class="nc" id="L119">      } catch (IOException ex) {</span>
+<span class="nc" id="L120">        throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L121">      }</span>
+<span class="fc" id="L122">      message = sb.toString();</span>
     }
-<span class="fc" id="L122">  }</span>
+<span class="fc" id="L124">  }</span>
 
   @Nonnull
   public synchronized Object[] getExtraArguments() {
-<span class="fc" id="L126">    materializeMessage();</span>
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">    if (startExtra &lt; arguments.length) {</span>
-<span class="fc" id="L128">      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
+<span class="fc" id="L128">    materializeMessage();</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">    if (startExtra &lt; arguments.length) {</span>
+<span class="fc" id="L130">      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
     } else {
-<span class="nc" id="L130">      return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L132">      return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
   }
 
   @Nullable
   public synchronized Throwable getExtraThrowable() {
-<span class="nc" id="L136">    materializeMessage();</span>
-<span class="nc" id="L137">    Throwable result = null;</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">    for (int i = startExtra; i &lt; arguments.length; i++) {</span>
-<span class="nc" id="L139">      Object argument = arguments[i];</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">      if (argument instanceof Throwable) {</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (result == null) {</span>
-<span class="nc" id="L142">          result = (Throwable) argument;</span>
+<span class="nc" id="L138">    materializeMessage();</span>
+<span class="nc" id="L139">    Throwable result = null;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">    for (int i = startExtra; i &lt; arguments.length; i++) {</span>
+<span class="nc" id="L141">      Object argument = arguments[i];</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">      if (argument instanceof Throwable) {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L144">          result = (Throwable) argument;</span>
         } else {
-<span class="nc" id="L144">          result.addSuppressed((Throwable) argument);</span>
+<span class="nc" id="L146">          result.addSuppressed((Throwable) argument);</span>
         }
       }
     }
-<span class="nc" id="L148">    return result;</span>
+<span class="nc" id="L150">    return result;</span>
   }
 
   @Nonnull
   public List&lt;Throwable&gt; getExtraThrowableChain() {
-<span class="nc" id="L153">    Throwable extraThrowable = getExtraThrowable();</span>
-<span class="nc bnc" id="L154" title="All 2 branches missed.">    if (extraThrowable == null) {</span>
-<span class="nc" id="L155">      return Collections.EMPTY_LIST;</span>
+<span class="nc" id="L155">    Throwable extraThrowable = getExtraThrowable();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">    if (extraThrowable == null) {</span>
+<span class="nc" id="L157">      return Collections.EMPTY_LIST;</span>
     }
-<span class="nc" id="L157">    return Throwables.getCausalChain(extraThrowable);</span>
+<span class="nc" id="L159">    return Throwables.getCausalChain(extraThrowable);</span>
   }
 
   public synchronized void attach(final Object obj) {
-<span class="fc bfc" id="L161" title="All 2 branches covered.">    if (attachments.isEmpty()) {</span>
-<span class="fc" id="L162">      attachments = new HashSet&lt;&gt;(2);</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">    if (attachments.isEmpty()) {</span>
+<span class="fc" id="L164">      attachments = new HashSet&lt;&gt;(2);</span>
     }
-<span class="fc" id="L164">    attachments.add(obj);</span>
-<span class="fc" id="L165">  }</span>
+<span class="fc" id="L166">    attachments.add(obj);</span>
+<span class="fc" id="L167">  }</span>
 
   public synchronized boolean hasAttachment(final Object obj) {
-<span class="fc" id="L168">    return attachments.contains(obj);</span>
+<span class="fc" id="L170">    return attachments.contains(obj);</span>
+  }
+
+  public synchronized Set&lt;Object&gt; getAttachments() {
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">    return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L173">    return &quot;LogRecord{ thread=&quot; + thread + &quot;, logger=&quot; + logger + &quot;, level=&quot;</span>
+<span class="nc" id="L179">    return &quot;LogRecord{ thread=&quot; + thread + &quot;, logger=&quot; + logger + &quot;, level=&quot;</span>
             + level + &quot;, timeStamp=&quot; + timeStamp + &quot;, marker=&quot; + marker + &quot;, format=&quot;
-<span class="nc" id="L175">            + format + &quot;, arguments=&quot; + java.util.Arrays.toString(arguments) + '}';</span>
+<span class="nc" id="L181">            + format + &quot;, arguments=&quot; + java.util.Arrays.toString(arguments) + '}';</span>
   }
 
 

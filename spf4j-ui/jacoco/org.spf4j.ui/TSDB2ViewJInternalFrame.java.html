@@ -31,7 +31,6 @@
  */
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
-import com.google.common.collect.Multimap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Dimension;
 import java.io.File;
@@ -57,6 +56,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.spf4j.base.Pair;
 import org.spf4j.base.SuppressForbiden;
+import com.google.common.collect.Multimap;
 import org.spf4j.tsdb2.Charts;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBQuery.TableDefEx;

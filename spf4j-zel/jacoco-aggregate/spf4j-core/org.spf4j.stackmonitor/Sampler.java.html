@@ -171,7 +171,7 @@ public final class Sampler {
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis, final SamplerSupplier collector,
           final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
-<span class="pc bpc" id="L174" title="1 of 2 branches missed.">    if (instance == null) {</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">    if (instance == null) {</span>
       try {
 <span class="fc" id="L176">        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,</span>
 <span class="fc" id="L177">                dumpFolder.getCanonicalFile(), dumpFilePrefix);</span>
@@ -181,15 +181,15 @@ public final class Sampler {
 <span class="fc" id="L181">      instance.registerJmx();</span>
 <span class="fc" id="L182">      return instance;</span>
     } else {
-<span class="nc" id="L184">      instance.dispose();</span>
+<span class="fc" id="L184">      instance.dispose();</span>
       try {
-<span class="nc" id="L186">        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,</span>
-<span class="nc" id="L187">                dumpFolder.getCanonicalFile(), dumpFilePrefix);</span>
+<span class="fc" id="L186">        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,</span>
+<span class="fc" id="L187">                dumpFolder.getCanonicalFile(), dumpFilePrefix);</span>
 <span class="nc" id="L188">      } catch (IOException ex) {</span>
 <span class="nc" id="L189">       throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L190">      }</span>
-<span class="nc" id="L191">      instance.registerJmx();</span>
-<span class="nc" id="L192">      return instance;</span>
+<span class="fc" id="L190">      }</span>
+<span class="fc" id="L191">      instance.registerJmx();</span>
+<span class="fc" id="L192">      return instance;</span>
     }
   }
 
@@ -362,9 +362,9 @@ public final class Sampler {
 
   @PreDestroy
   public void dispose() throws InterruptedException {
-<span class="nc" id="L365">    stop();</span>
-<span class="nc" id="L366">    Registry.unregister(this);</span>
-<span class="nc" id="L367">  }</span>
+<span class="fc" id="L365">    stop();</span>
+<span class="fc" id="L366">    Registry.unregister(this);</span>
+<span class="fc" id="L367">  }</span>
 
   @JmxExport(description = &quot;interval in milliseconds to save stack stamples periodically&quot;)
   public int getDumpTimeMillis() {

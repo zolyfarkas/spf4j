@@ -32,56 +32,53 @@
 package org.spf4j.recyclable.impl;
 
 import java.util.function.Supplier;
-import org.spf4j.recyclable.RecyclingSupplier;
+import javax.annotation.Nonnull;
+import org.spf4j.recyclable.NonValidatingRecyclingSupplier;
 
 /**
  * @author Zoltan Farkas
  */
-public final class ThreadLocalRecyclingSupplier&lt;T&gt; implements RecyclingSupplier&lt;T&gt; {
+public final class ThreadLocalRecyclingSupplier&lt;T&gt; implements NonValidatingRecyclingSupplier&lt;T&gt; {
 
   private final Supplier&lt;T&gt; supplier;
 
   private final ThreadLocal&lt;T&gt; threadLocal;
 
-<span class="nc" id="L46">  public ThreadLocalRecyclingSupplier(final Supplier&lt;T&gt; supplier) {</span>
-<span class="nc" id="L47">    this.supplier = supplier;</span>
-<span class="nc" id="L48">    threadLocal = new ThreadLocal&lt;T&gt;() {</span>
+<span class="fc" id="L47">  public ThreadLocalRecyclingSupplier(final Supplier&lt;T&gt; supplier) {</span>
+<span class="fc" id="L48">    this.supplier = supplier;</span>
+<span class="fc" id="L49">    threadLocal = new ThreadLocal&lt;T&gt;() {</span>
       @Override
       protected T initialValue() {
-<span class="nc" id="L51">        return supplier.get();</span>
+<span class="fc" id="L52">        return supplier.get();</span>
       }
     };
-<span class="nc" id="L54">  }</span>
+<span class="fc" id="L55">  }</span>
 
   @Override
+  @Nonnull
   public T get() {
-<span class="nc" id="L58">    T obj = threadLocal.get();</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L60">      return supplier.get();</span>
+<span class="fc" id="L60">    T obj = threadLocal.get();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    if (obj == null) {</span>
+<span class="fc" id="L62">      return supplier.get();</span>
     } else {
-<span class="nc" id="L62">      threadLocal.set(null);</span>
-<span class="nc" id="L63">      return obj;</span>
+<span class="fc" id="L64">      threadLocal.set(null);</span>
+<span class="fc" id="L65">      return obj;</span>
     }
   }
 
   @Override
-  public void recycle(final T object, final Exception e) {
-<span class="nc" id="L69">    throw new UnsupportedOperationException();</span>
-  }
-
-  @Override
   public void recycle(final T object) {
-<span class="nc" id="L74">    threadLocal.set(object);</span>
-<span class="nc" id="L75">  }</span>
+<span class="fc" id="L71">    threadLocal.set(object);</span>
+<span class="fc" id="L72">  }</span>
 
   @Override
   public boolean tryDispose(final long timeoutMillis) {
-<span class="nc" id="L79">    return true;</span>
+<span class="nc" id="L76">    return true;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L84">    return &quot;ThreadLocalRecyclingSupplier{&quot; + &quot;supplier=&quot; + supplier + &quot;, threadLocal=&quot; + threadLocal + '}';</span>
+<span class="nc" id="L81">    return &quot;ThreadLocalRecyclingSupplier{&quot; + &quot;supplier=&quot; + supplier + &quot;, threadLocal=&quot; + threadLocal + '}';</span>
   }
 
 

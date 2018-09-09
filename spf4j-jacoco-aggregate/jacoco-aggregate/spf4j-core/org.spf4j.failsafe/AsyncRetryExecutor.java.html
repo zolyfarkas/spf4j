@@ -48,8 +48,8 @@ public interface AsyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&
 
   @CheckReturnValue
   default &lt;R extends T, W extends C&gt; Future&lt;R&gt; submit(W pwhat) {
-<span class="nc" id="L51">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="nc" id="L52">    return submit(pwhat, nanoTime, ExecutionContexts.getContextDeadlineNanos(nanoTime));</span>
+<span class="fc" id="L51">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L52">    return submit(pwhat, nanoTime, ExecutionContexts.getContextDeadlineNanos(nanoTime));</span>
   }
 
   @CheckReturnValue
@@ -62,15 +62,15 @@ public interface AsyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&
 
   @CheckReturnValue
   default &lt;R extends T, W extends C&gt; Future&lt;R&gt; submit(W pwhat, long timeout, TimeUnit tu) {
-<span class="nc" id="L65">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="nc" id="L66">    return submit(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime,</span>
-<span class="nc" id="L67">            ExecutionContexts.current(), tu, timeout));</span>
+<span class="fc" id="L65">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L66">    return submit(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime,</span>
+<span class="fc" id="L67">            ExecutionContexts.current(), tu, timeout));</span>
   }
 
   default &lt;W extends C&gt; void execute(W pwhat) {
-<span class="nc" id="L71">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="nc" id="L72">    execute(pwhat, nanoTime, ExecutionContexts.getContextDeadlineNanos(nanoTime));</span>
-<span class="nc" id="L73">  }</span>
+<span class="fc" id="L71">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L72">    execute(pwhat, nanoTime, ExecutionContexts.getContextDeadlineNanos(nanoTime));</span>
+<span class="fc" id="L73">  }</span>
 
   &lt;W extends C&gt; void execute(W pwhat, long startTimeNanos, long deadlineNanos);
 

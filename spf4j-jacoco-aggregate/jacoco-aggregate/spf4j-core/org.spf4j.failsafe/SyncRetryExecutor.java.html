@@ -48,52 +48,52 @@ import org.spf4j.base.UncheckedExecutionException;
 public interface SyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
   @CheckReturnValue
-  &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass,
+  &lt;R extends T, W extends C, E extends Exception&gt; R call(W pwhat, Class&lt;E&gt; exceptionClass,
           long startNanos, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX;
+          throws InterruptedException, TimeoutException, E;
 
   @CheckReturnValue
-  default &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass,
+  default &lt;R extends T, W extends C, E extends Exception&gt; R call(W pwhat, Class&lt;E&gt; exceptionClass,
           long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
-<span class="nc" id="L59">    return call(pwhat, exceptionClass, TimeSource.nanoTime(), deadlineNanos);</span>
+          throws InterruptedException, TimeoutException, E {
+<span class="fc" id="L59">    return call(pwhat, exceptionClass, TimeSource.nanoTime(), deadlineNanos);</span>
   }
 
   @CheckReturnValue
-  default &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass)
-          throws InterruptedException, TimeoutException, EX {
-<span class="nc" id="L65">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="nc" id="L66">    return call(pwhat, exceptionClass, nanoTime, ExecutionContexts.getContextDeadlineNanos());</span>
+  default &lt;R extends T, W extends C, E extends Exception&gt; R call(W pwhat, Class&lt;E&gt; exceptionClass)
+          throws InterruptedException, TimeoutException, E {
+<span class="fc" id="L65">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L66">    return call(pwhat, exceptionClass, nanoTime, ExecutionContexts.getContextDeadlineNanos());</span>
   }
 
   @CheckReturnValue
-  default &lt;R extends T, W extends C, EX extends Exception&gt; R call(W pwhat, Class&lt;EX&gt; exceptionClass,
+  default &lt;R extends T, W extends C, E extends Exception&gt; R call(W pwhat, Class&lt;E&gt; exceptionClass,
           long timeout, TimeUnit tu)
-          throws InterruptedException, TimeoutException, EX {
-<span class="nc" id="L73">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="nc" id="L74">    return call(pwhat, exceptionClass, nanoTime,</span>
-<span class="nc" id="L75">            ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));</span>
+          throws InterruptedException, TimeoutException, E {
+<span class="fc" id="L73">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L74">    return call(pwhat, exceptionClass, nanoTime,</span>
+<span class="fc" id="L75">            ExecutionContexts.computeDeadline(nanoTime, ExecutionContexts.current(), tu, timeout));</span>
   }
 
-  default &lt;W extends C, EX extends Exception&gt; void run(W pwhat, Class&lt;EX&gt; exceptionClass)
-          throws InterruptedException, TimeoutException, EX {
+  default &lt;W extends C, E extends Exception&gt; void run(W pwhat, Class&lt;E&gt; exceptionClass)
+          throws InterruptedException, TimeoutException, E {
 <span class="nc" id="L80">    T res = call(pwhat, exceptionClass);</span>
 <span class="nc bnc" id="L81" title="All 2 branches missed.">    if (res != null) {</span>
 <span class="nc" id="L82">      throw new IllegalStateException(&quot;result must be null not &quot; + res);</span>
     }
 <span class="nc" id="L84">  }</span>
 
-  default &lt;W extends C, EX extends Exception&gt; void run(W pwhat, Class&lt;EX&gt; exceptionClass, long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
+  default &lt;W extends C, E extends Exception&gt; void run(W pwhat, Class&lt;E&gt; exceptionClass, long deadlineNanos)
+          throws InterruptedException, TimeoutException, E {
 <span class="nc" id="L88">    T res = call(pwhat, exceptionClass, deadlineNanos);</span>
 <span class="nc bnc" id="L89" title="All 2 branches missed.">    if (res != null) {</span>
 <span class="nc" id="L90">      throw new IllegalStateException(&quot;result must be null not &quot; + res);</span>
     }
 <span class="nc" id="L92">  }</span>
 
-  default &lt;W extends C, EX extends Exception&gt; void run(W pwhat, Class&lt;EX&gt; exceptionClass,
+  default &lt;E extends Exception, W extends C&gt; void run(W pwhat, Class&lt;E&gt; exceptionClass,
           long timeout, TimeUnit tu)
-          throws InterruptedException, TimeoutException, EX {
+          throws InterruptedException, TimeoutException, E {
 <span class="nc" id="L97">     run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));</span>
 <span class="nc" id="L98">  }</span>
 
@@ -111,97 +111,96 @@ public interface SyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&g
    * @throws EX - the exception thrown by callable.
    */
   @SuppressFBWarnings({ &quot;MDM_THREAD_YIELD&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot; })
-  static &lt;T, EX extends Exception, C extends Callable&lt;? extends T&gt;&gt; T call(
+  static &lt;T, E extends Exception, C extends Callable&lt;? extends T&gt;&gt; T call(
           final C pwhat,
           final RetryPredicate&lt;T, C&gt; retryPredicate,
-          final Class&lt;EX&gt; exceptionClass,
+          final Class&lt;E&gt; exceptionClass,
           final int maxExceptionChain)
-          throws InterruptedException, TimeoutException, EX {
-<span class="nc" id="L120">    C what = pwhat;</span>
+          throws InterruptedException, TimeoutException, E {
+<span class="fc" id="L120">    C what = pwhat;</span>
     T result;
     Exception lastEx; // last exception
     try {
-<span class="nc" id="L124">      result = what.call();</span>
-<span class="nc" id="L125">      lastEx = null;</span>
+<span class="fc" id="L124">      result = what.call();</span>
+<span class="fc" id="L125">      lastEx = null;</span>
 <span class="nc" id="L126">    } catch (InterruptedException ex1) {</span>
 <span class="nc" id="L127">      throw ex1;</span>
-<span class="nc" id="L128">    } catch (Exception e) { // only EX and RuntimeException</span>
-<span class="nc" id="L129">      lastEx = e;</span>
-<span class="nc" id="L130">      result = null;</span>
-<span class="nc" id="L131">    }</span>
-<span class="nc" id="L132">    Exception lastExChain = lastEx; // last exception chained with all previous exceptions</span>
+<span class="fc" id="L128">    } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L129">      lastEx = e;</span>
+<span class="fc" id="L130">      result = null;</span>
+<span class="fc" id="L131">    }</span>
+<span class="fc" id="L132">    Exception lastExChain = lastEx; // last exception chained with all previous exceptions</span>
     RetryDecision&lt;T, C&gt; decision;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
-<span class="nc bnc" id="L135" title="All 2 branches missed.">    while ((lastEx != null)</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">            ? (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">    while ((lastEx != null)</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">            ? (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()</span>
               == RetryDecision.Type.Retry
-<span class="nc bnc" id="L138" title="All 2 branches missed.">            : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">      if (Thread.interrupted()) {</span>
-<span class="nc" id="L140">        Thread.currentThread().interrupt();</span>
-<span class="nc" id="L141">        InterruptedException ex = new InterruptedException();</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (lastExChain != null) {</span>
-<span class="nc" id="L143">          ex.addSuppressed(lastExChain);</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">            : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
+<span class="nc" id="L140">        InterruptedException ex = new InterruptedException();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="nc" id="L142">          ex.addSuppressed(lastExChain);</span>
         }
-<span class="nc" id="L145">        throw ex;</span>
+<span class="nc" id="L144">        throw ex;</span>
       }
-<span class="nc" id="L147">      long delayNanos = decision.getDelayNanos();</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">      if (delayNanos &gt; 0) {</span>
-<span class="nc" id="L149">        TimeUnit.NANOSECONDS.sleep(delayNanos);</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">      } else if (delayNanos &lt; 0) {</span>
-<span class="nc" id="L151">        throw new IllegalStateException(&quot;Invalid retry decision delay: &quot; + delayNanos);</span>
+<span class="fc" id="L146">      long delayNanos = decision.getDelayNanos();</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">      if (delayNanos &gt; 0) {</span>
+<span class="fc" id="L148">        TimeUnit.NANOSECONDS.sleep(delayNanos);</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">      } else if (delayNanos &lt; 0) {</span>
+<span class="nc" id="L150">        throw new IllegalStateException(&quot;Invalid retry decision delay: &quot; + delayNanos);</span>
       }
-<span class="nc" id="L153">      what = decision.getNewCallable();</span>
+<span class="fc" id="L152">      what = decision.getNewCallable();</span>
       try {
-<span class="nc" id="L155">        result = what.call();</span>
-<span class="nc" id="L156">        lastEx = null;</span>
-<span class="nc" id="L157">      } catch (InterruptedException ex1) {</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (lastExChain != null) {</span>
-<span class="nc" id="L159">          ex1.addSuppressed(lastExChain);</span>
+<span class="fc" id="L154">        result = what.call();</span>
+<span class="fc" id="L155">        lastEx = null;</span>
+<span class="nc" id="L156">      } catch (InterruptedException ex1) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="nc" id="L158">          ex1.addSuppressed(lastExChain);</span>
         }
-<span class="nc" id="L161">        throw ex1;</span>
-<span class="nc" id="L162">      } catch (Exception e) { // only EX and RuntimeException</span>
-<span class="nc" id="L163">        lastEx = e;</span>
-<span class="nc" id="L164">        result = null;</span>
-<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (lastExChain != null) {</span>
-<span class="nc" id="L166">          lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);</span>
+<span class="nc" id="L160">        throw ex1;</span>
+<span class="fc" id="L161">      } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L162">        lastEx = e;</span>
+<span class="fc" id="L163">        result = null;</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="fc" id="L165">          lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);</span>
         } else {
-<span class="nc" id="L168">          lastExChain = lastEx;</span>
+<span class="nc" id="L167">          lastExChain = lastEx;</span>
         }
-<span class="nc" id="L170">      }</span>
-<span class="nc" id="L171">    }</span>
-<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
-<span class="nc" id="L173">        Either&lt;Exception, T&gt; r = decision.getResult();</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (r != null) {</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">          if (r.isLeft()) {</span>
-<span class="nc" id="L176">            lastEx = r.getLeft();</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">            if (lastExChain != null) {</span>
-<span class="nc" id="L178">              lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);</span>
+<span class="fc" id="L169">      }</span>
+<span class="fc" id="L170">    }</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
+<span class="fc" id="L172">        Either&lt;Exception, T&gt; r = decision.getResult();</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        if (r != null) {</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">          if (r.isLeft()) {</span>
+<span class="fc" id="L175">            lastEx = r.getLeft();</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">            if (lastExChain != null) {</span>
+<span class="fc" id="L177">              lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);</span>
             } else {
-<span class="nc" id="L180">              lastExChain = lastEx;</span>
+<span class="nc" id="L179">              lastExChain = lastEx;</span>
             }
           } else {
-<span class="nc" id="L183">            result = r.getRight();</span>
-<span class="nc" id="L184">            lastEx = null;</span>
+<span class="nc" id="L182">            result = r.getRight();</span>
+<span class="nc" id="L183">            lastEx = null;</span>
           }
         }
-<span class="nc" id="L187">    } else {</span>
-<span class="nc" id="L188">      throw new IllegalStateException(&quot;Should not happen, decision =  &quot; + decision);</span>
+<span class="fc" id="L186">    } else {</span>
+<span class="nc" id="L187">      throw new IllegalStateException(&quot;Should not happen, decision =  &quot; + decision);</span>
     }
-<span class="nc bnc" id="L190" title="All 2 branches missed.">    if (lastEx != null) {</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">      if (lastExChain == null) {</span>
-<span class="nc" id="L192">        lastExChain = lastEx;</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">    if (lastEx != null) {</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">      if (lastExChain == null) {</span>
+<span class="nc" id="L191">        lastExChain = lastEx;</span>
       }
-<span class="nc bnc" id="L194" title="All 2 branches missed.">      if (lastExChain instanceof RuntimeException) {</span>
-<span class="nc" id="L195">        throw (RuntimeException) lastExChain;</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">      } else if (lastExChain instanceof TimeoutException) {</span>
-<span class="nc" id="L197">        throw (TimeoutException) lastExChain;</span>
-<span class="nc bnc" id="L198" title="All 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
-<span class="nc" id="L199">        throw (EX) lastExChain;</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">      if (lastExChain instanceof RuntimeException) {</span>
+<span class="fc" id="L194">        throw (RuntimeException) lastExChain;</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
+<span class="fc" id="L196">        throw (TimeoutException) lastExChain;</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
+<span class="fc" id="L198">        throw (E) lastExChain;</span>
       } else {
-<span class="nc" id="L201">        throw new UncheckedExecutionException(lastExChain);</span>
+<span class="nc" id="L200">        throw new UncheckedExecutionException(lastExChain);</span>
       }
     }
-<span class="nc" id="L204">    return result;</span>
+<span class="fc" id="L203">    return result;</span>
   }
 
 

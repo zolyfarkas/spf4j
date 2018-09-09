@@ -62,21 +62,19 @@
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">if</strong> (decision.getDecisionType() == RetryDecision.Type.Retry) {
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>        <strong class="jxr_keyword">long</strong> timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>        <strong class="jxr_keyword">if</strong> (timeToDeadlineNanos &lt; decision.getDelayNanos()) {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>            TimeoutException timeoutException = <strong class="jxr_keyword">new</strong> TimeoutException(<span class="jxr_string">"Time to deadline not enough "</span>
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>                    + timeToDeadlineNanos + <span class="jxr_string">" ns "</span>);
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>            timeoutException.addSuppressed((Throwable) value);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>            <strong class="jxr_keyword">return</strong> (RetryDecision) RetryDecision.abortThrow(timeoutException);
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>        }
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      }
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">return</strong> decision;
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>    }
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>    @Override
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>    <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">return</strong> <span class="jxr_string">"TimeoutRetryPredicate{"</span> + <span class="jxr_string">"predicate="</span> + predicate + <span class="jxr_string">", deadlineNanos="</span> + deadlineNanos + '}';
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>    }
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>  }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>            <strong class="jxr_keyword">return</strong> (RetryDecision) RetryDecision.abortThrow(<strong class="jxr_keyword">new</strong> TimeoutException(<span class="jxr_string">"Time to deadline not enough "</span>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>                    + timeToDeadlineNanos + <span class="jxr_string">" ns "</span>));
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>        }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">return</strong> decision;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>    }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>    @Override
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>    <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">return</strong> <span class="jxr_string">"TimeoutRetryPredicate{"</span> + <span class="jxr_string">"predicate="</span> + predicate + <span class="jxr_string">", deadlineNanos="</span> + deadlineNanos + '}';
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>    }
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

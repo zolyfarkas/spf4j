@@ -70,8 +70,8 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
 <span class="nc" id="L70">  }</span>
 
   public UIDGenerator(final Sequence sequence, final long customEpoch) {
-<span class="nc" id="L73">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
-<span class="nc" id="L74">  }</span>
+<span class="fc" id="L73">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
+<span class="fc" id="L74">  }</span>
 
   public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
 <span class="nc" id="L77">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);</span>
@@ -85,12 +85,12 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
    */
   @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
   public UIDGenerator(final Sequence sequence, final BaseEncoding baseEncoding,
-<span class="nc" id="L88">          final long customEpoch, final char separator, final String prefix) {</span>
-<span class="nc" id="L89">    this.sequence = sequence;</span>
-<span class="nc" id="L90">    StringBuilder sb = generateIdBase(prefix, baseEncoding, separator, customEpoch);</span>
-<span class="nc" id="L91">    base = sb;</span>
-<span class="nc" id="L92">    maxSize = base.length() + 16;</span>
-<span class="nc" id="L93">  }</span>
+<span class="fc" id="L88">          final long customEpoch, final char separator, final String prefix) {</span>
+<span class="fc" id="L89">    this.sequence = sequence;</span>
+<span class="fc" id="L90">    StringBuilder sb = generateIdBase(prefix, baseEncoding, separator, customEpoch);</span>
+<span class="fc" id="L91">    base = sb;</span>
+<span class="fc" id="L92">    maxSize = base.length() + 16;</span>
+<span class="fc" id="L93">  }</span>
 
   public static StringBuilder generateIdBase(final String prefix,
           final char separator) {
@@ -107,17 +107,17 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
   public static StringBuilder generateIdBase(final String prefix,
           final BaseEncoding baseEncoding, final char separator,
           final long customEpoch) {
-<span class="nc" id="L110">    StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
-<span class="nc" id="L111">    sb.append(prefix);</span>
+<span class="fc" id="L110">    StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
+<span class="fc" id="L111">    sb.append(prefix);</span>
 
     byte[] intfMac;
     try {
-<span class="nc" id="L115">      Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
-<span class="nc bnc" id="L116" title="All 4 branches missed.">      if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
+<span class="fc" id="L115">      Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
+<span class="pc bpc" id="L116" title="2 of 4 branches missed.">      if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
         do {
-<span class="nc" id="L118">          intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
-<span class="nc bnc" id="L119" title="All 6 branches missed.">        } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (intfMac == null) {</span>
+<span class="fc" id="L118">          intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
+<span class="pc bpc" id="L119" title="4 of 6 branches missed.">        } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (intfMac == null) {</span>
 <span class="nc" id="L121">          Logger.getLogger(UIDGenerator.class.getName()).warning(</span>
                   &quot;Unable to get interface MAC address for ID generation&quot;);
           try {
@@ -144,14 +144,14 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
 <span class="nc" id="L144">        ex2.addSuppressed(ex);</span>
 <span class="nc" id="L145">        throw new IllegalStateException(ex2);</span>
 <span class="nc" id="L146">      }</span>
-<span class="nc" id="L147">    }</span>
-<span class="nc" id="L148">    sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
+<span class="fc" id="L147">    }</span>
+<span class="fc" id="L148">    sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
 
-<span class="nc" id="L150">    AppendableUtils.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
-<span class="nc" id="L151">    sb.append(separator);</span>
-<span class="nc" id="L152">    AppendableUtils.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
-<span class="nc" id="L153">    sb.append(separator);</span>
-<span class="nc" id="L154">    return sb;</span>
+<span class="fc" id="L150">    AppendableUtils.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);</span>
+<span class="fc" id="L151">    sb.append(separator);</span>
+<span class="fc" id="L152">    AppendableUtils.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
+<span class="fc" id="L153">    sb.append(separator);</span>
+<span class="fc" id="L154">    return sb;</span>
   }
 
   public int getMaxSize() {
@@ -159,10 +159,10 @@ public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
   }
 
   public CharSequence next() {
-<span class="nc" id="L162">    StringBuilder result = new StringBuilder(maxSize);</span>
-<span class="nc" id="L163">    result.append(base);</span>
-<span class="nc" id="L164">    AppendableUtils.appendUnsignedString(result, sequence.next(), 5);</span>
-<span class="nc" id="L165">    return result;</span>
+<span class="fc" id="L162">    StringBuilder result = new StringBuilder(maxSize);</span>
+<span class="fc" id="L163">    result.append(base);</span>
+<span class="fc" id="L164">    AppendableUtils.appendUnsignedString(result, sequence.next(), 5);</span>
+<span class="fc" id="L165">    return result;</span>
   }
 
   @Override

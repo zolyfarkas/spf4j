@@ -29,7 +29,7 @@ import org.spf4j.test.log.UncaughtExceptionConsumer;
  */
 class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler, ExceptionHandoverRegistry {
 
-<span class="nc" id="L32">  private static final Logger LOG = LoggerFactory.getLogger(ExceptionAsserterUncaughtExceptionHandler.class);</span>
+<span class="fc" id="L32">  private static final Logger LOG = LoggerFactory.getLogger(ExceptionAsserterUncaughtExceptionHandler.class);</span>
 
   private final Thread.UncaughtExceptionHandler wrapped;
 
@@ -37,16 +37,16 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
 
   private final List&lt;UncaughtExceptionDetail&gt; uncaughtExceptions;
 
-<span class="nc" id="L40">  ExceptionAsserterUncaughtExceptionHandler(final Thread.UncaughtExceptionHandler wrapped) {</span>
-<span class="nc" id="L41">    this.wrapped = wrapped;</span>
-<span class="nc" id="L42">    this.uncaughtExceptions = new CopyOnWriteArrayList&lt;&gt;();</span>
-<span class="nc" id="L43">    this.handovers = new CopyOnWriteArrayList&lt;&gt;();</span>
-<span class="nc" id="L44">  }</span>
+<span class="fc" id="L40">  ExceptionAsserterUncaughtExceptionHandler(final Thread.UncaughtExceptionHandler wrapped) {</span>
+<span class="fc" id="L41">    this.wrapped = wrapped;</span>
+<span class="fc" id="L42">    this.uncaughtExceptions = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="fc" id="L43">    this.handovers = new CopyOnWriteArrayList&lt;&gt;();</span>
+<span class="fc" id="L44">  }</span>
 
   @Override
   public void add(final UncaughtExceptionConsumer handover) {
-<span class="nc" id="L48">    handovers.add(handover);</span>
-<span class="nc" id="L49">  }</span>
+<span class="fc" id="L48">    handovers.add(handover);</span>
+<span class="fc" id="L49">  }</span>
 
   @Override
   public void remove(final UncaughtExceptionConsumer handover) {
@@ -55,25 +55,25 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
 
   @Override
   public void uncaughtException(final Thread t, final Throwable e) {
-<span class="nc bnc" id="L58" title="All 2 branches missed.">    if (wrapped != null) {</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">    if (wrapped != null) {</span>
 <span class="nc" id="L59">      wrapped.uncaughtException(t, e);</span>
     } else {
-<span class="nc" id="L61">      LOG.debug(&quot;Uncaught Exception in thread {}&quot;, t, e);</span>
+<span class="fc" id="L61">      LOG.debug(&quot;Uncaught Exception in thread {}&quot;, t, e);</span>
     }
-<span class="nc" id="L63">    UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);</span>
-<span class="nc" id="L64">    boolean accepted = false;</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">    for (UncaughtExceptionConsumer handover : handovers) {</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">      if (handover.offer(exDetail)) {</span>
-<span class="nc" id="L67">        accepted = true;</span>
+<span class="fc" id="L63">    UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);</span>
+<span class="fc" id="L64">    boolean accepted = false;</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    for (UncaughtExceptionConsumer handover : handovers) {</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">      if (handover.offer(exDetail)) {</span>
+<span class="fc" id="L67">        accepted = true;</span>
       }
-<span class="nc" id="L69">    }</span>
-<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (!accepted) {</span>
+<span class="fc" id="L69">    }</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (!accepted) {</span>
 <span class="nc" id="L71">      uncaughtExceptions.add(exDetail);</span>
     }
-<span class="nc" id="L73">  }</span>
+<span class="fc" id="L73">  }</span>
 
   public List&lt;UncaughtExceptionDetail&gt; getUncaughtExceptions() {
-<span class="nc" id="L76">    return new ArrayList&lt;&gt;(uncaughtExceptions);</span>
+<span class="fc" id="L76">    return new ArrayList&lt;&gt;(uncaughtExceptions);</span>
   }
 
   @Override

@@ -637,65 +637,64 @@ public final class Callables {
 <span class="pc bpc" id="L637" title="1 of 2 branches missed.">            || (lastEx == null &amp;&amp; (decision = retryOnReturnVal.getDecision(result, what)).getDecisionType()</span>
                 == RetryDecision.Type.Retry)) {
 <span class="pc bpc" id="L639" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
-<span class="nc" id="L640">        Thread.currentThread().interrupt();</span>
-<span class="nc" id="L641">        throw new InterruptedException();</span>
+<span class="nc" id="L640">        throw new InterruptedException();</span>
       }
-<span class="fc" id="L643">      long delayMillis = decision.getDelayMillis();</span>
-<span class="fc bfc" id="L644" title="All 2 branches covered.">      if (delayMillis &gt; 0) {</span>
-<span class="fc" id="L645">        Thread.sleep(delayMillis);</span>
+<span class="fc" id="L642">      long delayMillis = decision.getDelayMillis();</span>
+<span class="fc bfc" id="L643" title="All 2 branches covered.">      if (delayMillis &gt; 0) {</span>
+<span class="fc" id="L644">        Thread.sleep(delayMillis);</span>
       }
-<span class="fc" id="L647">      what = decision.getNewCallable();</span>
-<span class="fc" id="L648">      result = null;</span>
-<span class="fc" id="L649">      lastEx = null;</span>
+<span class="fc" id="L646">      what = decision.getNewCallable();</span>
+<span class="fc" id="L647">      result = null;</span>
+<span class="fc" id="L648">      lastEx = null;</span>
       try {
-<span class="fc" id="L651">        result = what.call();</span>
-<span class="nc" id="L652">      } catch (InterruptedException ex1) {</span>
-<span class="nc" id="L653">        throw ex1;</span>
-<span class="fc" id="L654">      } catch (Exception e) { // only EX and RuntimeException</span>
-<span class="fc" id="L655">        lastEx = e;</span>
-<span class="pc bpc" id="L656" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
-<span class="fc" id="L657">          lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
+<span class="fc" id="L650">        result = what.call();</span>
+<span class="nc" id="L651">      } catch (InterruptedException ex1) {</span>
+<span class="nc" id="L652">        throw ex1;</span>
+<span class="fc" id="L653">      } catch (Exception e) { // only EX and RuntimeException</span>
+<span class="fc" id="L654">        lastEx = e;</span>
+<span class="pc bpc" id="L655" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="fc" id="L656">          lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
         } else {
-<span class="nc" id="L659">          lastExChain = lastEx;</span>
+<span class="nc" id="L658">          lastExChain = lastEx;</span>
         }
-<span class="fc" id="L661">      }</span>
-<span class="fc" id="L662">    }</span>
-<span class="pc bpc" id="L663" title="1 of 2 branches missed.">    if (decision == null) {</span>
-<span class="nc" id="L664">      throw new IllegalStateException(&quot;Decission should have ben initialized &quot; + lastEx + &quot;, &quot; + result);</span>
+<span class="fc" id="L660">      }</span>
+<span class="fc" id="L661">    }</span>
+<span class="pc bpc" id="L662" title="1 of 2 branches missed.">    if (decision == null) {</span>
+<span class="nc" id="L663">      throw new IllegalStateException(&quot;Decission should have ben initialized &quot; + lastEx + &quot;, &quot; + result);</span>
     }
-<span class="pc bpc" id="L666" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
-<span class="fc" id="L667">        Exception ex = decision.getException();</span>
-<span class="fc bfc" id="L668" title="All 2 branches covered.">        if (ex != null) {</span>
-<span class="fc" id="L669">          lastEx = ex;</span>
-<span class="pc bpc" id="L670" title="1 of 2 branches missed.">          if (lastExChain != null) {</span>
-<span class="fc" id="L671">            lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
+<span class="pc bpc" id="L665" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
+<span class="fc" id="L666">        Exception ex = decision.getException();</span>
+<span class="fc bfc" id="L667" title="All 2 branches covered.">        if (ex != null) {</span>
+<span class="fc" id="L668">          lastEx = ex;</span>
+<span class="pc bpc" id="L669" title="1 of 2 branches missed.">          if (lastExChain != null) {</span>
+<span class="fc" id="L670">            lastExChain = Throwables.suppress(lastEx, lastExChain);</span>
           } else {
-<span class="nc" id="L673">            lastExChain = lastEx;</span>
+<span class="nc" id="L672">            lastExChain = lastEx;</span>
           }
         }
     }
-<span class="fc bfc" id="L677" title="All 2 branches covered.">    if (lastEx != null) {</span>
-<span class="pc bpc" id="L678" title="1 of 2 branches missed.">      if (lastExChain instanceof RuntimeException) {</span>
-<span class="nc" id="L679">        throw (RuntimeException) lastExChain;</span>
-<span class="fc bfc" id="L680" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
-<span class="fc" id="L681">        throw (TimeoutException) lastExChain;</span>
-<span class="pc bpc" id="L682" title="1 of 2 branches missed.">      } else if (lastExChain == null) {</span>
-<span class="nc" id="L683">        return null;</span>
-<span class="pc bpc" id="L684" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
-<span class="fc" id="L685">        throw (EX) lastExChain;</span>
+<span class="fc bfc" id="L676" title="All 2 branches covered.">    if (lastEx != null) {</span>
+<span class="pc bpc" id="L677" title="1 of 2 branches missed.">      if (lastExChain instanceof RuntimeException) {</span>
+<span class="nc" id="L678">        throw (RuntimeException) lastExChain;</span>
+<span class="fc bfc" id="L679" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
+<span class="fc" id="L680">        throw (TimeoutException) lastExChain;</span>
+<span class="pc bpc" id="L681" title="1 of 2 branches missed.">      } else if (lastExChain == null) {</span>
+<span class="nc" id="L682">        return null;</span>
+<span class="pc bpc" id="L683" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
+<span class="fc" id="L684">        throw (EX) lastExChain;</span>
       } else {
-<span class="nc" id="L687">        throw new UncheckedExecutionException(lastExChain);</span>
+<span class="nc" id="L686">        throw new UncheckedExecutionException(lastExChain);</span>
       }
     }
-<span class="fc" id="L690">    return result;</span>
+<span class="fc" id="L689">    return result;</span>
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; synchronize(final Callable&lt;T&gt; callable) {
-<span class="nc" id="L694">    return new Callable&lt;T&gt;() {</span>
+<span class="nc" id="L693">    return new Callable&lt;T&gt;() {</span>
 
       @Override
       public synchronized T call() throws Exception {
-<span class="nc" id="L698">        return callable.call();</span>
+<span class="nc" id="L697">        return callable.call();</span>
       }
     };
   }
@@ -704,55 +703,55 @@ public final class Callables {
    * This is a duplicate of guava Callables.threadRenaming ... will have to review for deprecation/removal.
    */
   public static &lt;T&gt; Callable&lt;T&gt; withName(final Callable&lt;T&gt; callable, final String name) {
-<span class="nc" id="L707">    return new Callable&lt;T&gt;() {</span>
+<span class="nc" id="L706">    return new Callable&lt;T&gt;() {</span>
 
       @Override
       public T call() throws Exception {
-<span class="nc" id="L711">        Thread currentThread = Thread.currentThread();</span>
-<span class="nc" id="L712">        String origName = currentThread.getName();</span>
+<span class="nc" id="L710">        Thread currentThread = Thread.currentThread();</span>
+<span class="nc" id="L711">        String origName = currentThread.getName();</span>
         try {
-<span class="nc" id="L714">          currentThread.setName(origName + '[' + name + ']');</span>
-<span class="nc" id="L715">          return callable.call();</span>
+<span class="nc" id="L713">          currentThread.setName(origName + '[' + name + ']');</span>
+<span class="nc" id="L714">          return callable.call();</span>
         } finally {
-<span class="nc" id="L717">          currentThread.setName(origName);</span>
+<span class="nc" id="L716">          currentThread.setName(origName);</span>
         }
       }
 
       @Override
       public String toString() {
-<span class="nc" id="L723">        return name;</span>
+<span class="nc" id="L722">        return name;</span>
       }
 
     };
   }
 
   static long overflowSafeAdd(final long currentTime, final long timeout) {
-<span class="pc bpc" id="L730" title="1 of 2 branches missed.">    if (currentTime &lt; 0) {</span>
-<span class="nc" id="L731">      throw new IllegalArgumentException(&quot;Time must be positive, not &quot; + currentTime);</span>
+<span class="pc bpc" id="L729" title="1 of 2 branches missed.">    if (currentTime &lt; 0) {</span>
+<span class="nc" id="L730">      throw new IllegalArgumentException(&quot;Time must be positive, not &quot; + currentTime);</span>
     }
-<span class="pc bpc" id="L733" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
-<span class="nc" id="L734">      return currentTime;</span>
+<span class="pc bpc" id="L732" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L733">      return currentTime;</span>
     }
-<span class="fc" id="L736">    long result = currentTime + timeout;</span>
-<span class="pc bpc" id="L737" title="1 of 4 branches missed.">    if ((currentTime ^ timeout) &lt; 0 || (currentTime ^ result) &gt;= 0) {</span>
-<span class="fc" id="L738">      return result;</span>
+<span class="fc" id="L735">    long result = currentTime + timeout;</span>
+<span class="pc bpc" id="L736" title="1 of 4 branches missed.">    if ((currentTime ^ timeout) &lt; 0 || (currentTime ^ result) &gt;= 0) {</span>
+<span class="fc" id="L737">      return result;</span>
     } else {
-<span class="fc" id="L740">      return Long.MAX_VALUE;</span>
+<span class="fc" id="L739">      return Long.MAX_VALUE;</span>
     }
   }
 
   public static &lt;V&gt; Callable&lt;V&gt; memorized(final Callable&lt;V&gt; source) {
-<span class="fc" id="L745">    return new MemorizedCallable&lt;&gt;(source);</span>
+<span class="fc" id="L744">    return new MemorizedCallable&lt;&gt;(source);</span>
   }
 
   public static &lt;V&gt; Callable&lt;V&gt; constant(final V value) {
-<span class="nc" id="L749">    return new ConstCallable(value);</span>
+<span class="nc" id="L748">    return new ConstCallable(value);</span>
   }
 
   public static Callable&lt;Void&gt; from(final Runnable value) {
-<span class="nc" id="L753">    return () -&gt; {</span>
-<span class="nc" id="L754">      value.run();</span>
-<span class="nc" id="L755">      return null;</span>
+<span class="nc" id="L752">    return () -&gt; {</span>
+<span class="nc" id="L753">      value.run();</span>
+<span class="nc" id="L754">      return null;</span>
     };
   }
 
@@ -760,18 +759,18 @@ public final class Callables {
 
     private final V value;
 
-<span class="nc" id="L763">    ConstCallable(final V value) {</span>
-<span class="nc" id="L764">      this.value = value;</span>
-<span class="nc" id="L765">    }</span>
+<span class="nc" id="L762">    ConstCallable(final V value) {</span>
+<span class="nc" id="L763">      this.value = value;</span>
+<span class="nc" id="L764">    }</span>
 
     @Override
     public V call() {
-<span class="nc" id="L769">      return value;</span>
+<span class="nc" id="L768">      return value;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L774">      return &quot;ConstCallable{&quot; + value + '}';</span>
+<span class="nc" id="L773">      return &quot;ConstCallable{&quot; + value + '}';</span>
     }
   }
 
@@ -780,12 +779,12 @@ public final class Callables {
 
     @Override
     public AdvancedAction apply(@Nonnull final Exception input) {
-<span class="fc bfc" id="L783" title="All 2 branches covered.">      if (Throwables.isRetryable(input)) {</span>
-<span class="fc" id="L784">        Logger.getLogger(DefaultAdvancedRetryPredicateImpl.class.getName())</span>
-<span class="fc" id="L785">                .log(Level.FINE, &quot;Exception encountered, retrying...&quot;, input);</span>
-<span class="fc" id="L786">        return AdvancedAction.RETRY;</span>
+<span class="fc bfc" id="L782" title="All 2 branches covered.">      if (Throwables.isRetryable(input)) {</span>
+<span class="fc" id="L783">        Logger.getLogger(DefaultAdvancedRetryPredicateImpl.class.getName())</span>
+<span class="fc" id="L784">                .log(Level.FINE, &quot;Exception encountered, retrying...&quot;, input);</span>
+<span class="fc" id="L785">        return AdvancedAction.RETRY;</span>
       }
-<span class="fc" id="L788">      return AdvancedAction.ABORT;</span>
+<span class="fc" id="L787">      return AdvancedAction.ABORT;</span>
     }
   }
 

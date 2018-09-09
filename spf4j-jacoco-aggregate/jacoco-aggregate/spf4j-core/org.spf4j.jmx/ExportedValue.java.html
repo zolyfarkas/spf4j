@@ -59,27 +59,27 @@ public interface ExportedValue&lt;T&gt; {
   OpenType&lt;?&gt; getValueOpenType();
 
   default MBeanAttributeInfo toAttributeInfo() {
-<span class="nc" id="L62">    final Type oClass = this.getValueType();</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">    Class&lt;?&gt; valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;</span>
-<span class="nc" id="L64">    OpenType openType = this.getValueOpenType();</span>
-<span class="nc" id="L65">    String description = this.getDescription();</span>
-<span class="nc bnc" id="L66" title="All 4 branches missed.">    if (description == null || description.isEmpty()) {</span>
-<span class="nc" id="L67">      description = this.getName();</span>
+<span class="fc" id="L62">    final Type oClass = this.getValueType();</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">    Class&lt;?&gt; valClass = oClass instanceof Class ? Reflections.primitiveToWrapper((Class) oClass) : null;</span>
+<span class="fc" id="L64">    OpenType openType = this.getValueOpenType();</span>
+<span class="fc" id="L65">    String description = this.getDescription();</span>
+<span class="pc bpc" id="L66" title="1 of 4 branches missed.">    if (description == null || description.isEmpty()) {</span>
+<span class="fc" id="L67">      description = this.getName();</span>
     }
-<span class="nc bnc" id="L69" title="All 2 branches missed.">    if (openType != null) {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">    if (openType != null) {</span>
       try {
-<span class="nc" id="L71">        return new OpenMBeanAttributeInfoSupport(this.getName(), description,</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">                openType, true, this.isWriteable(), valClass == Boolean.class);</span>
+<span class="fc" id="L71">        return new OpenMBeanAttributeInfoSupport(this.getName(), description,</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                openType, true, this.isWriteable(), valClass == Boolean.class);</span>
 <span class="nc" id="L73">      } catch (IllegalArgumentException ex) {</span>
 <span class="nc" id="L74">        throw new IllegalArgumentException(&quot;Cannot export &quot; + this, ex);</span>
       }
     } else {
-<span class="nc" id="L77">      return new MBeanAttributeInfo(</span>
-<span class="nc" id="L78">              this.getName(),</span>
-<span class="nc" id="L79">              oClass.getTypeName(),</span>
-<span class="nc" id="L80">              this.getDescription(),</span>
+<span class="fc" id="L77">      return new MBeanAttributeInfo(</span>
+<span class="fc" id="L78">              this.getName(),</span>
+<span class="fc" id="L79">              oClass.getTypeName(),</span>
+<span class="fc" id="L80">              this.getDescription(),</span>
               true, // isReadable
-<span class="nc bnc" id="L82" title="All 2 branches missed.">              this.isWriteable(), // isWritable</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">              this.isWriteable(), // isWritable</span>
               valClass == Boolean.class);
     }
 

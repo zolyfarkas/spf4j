@@ -35,12 +35,12 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
 <span class="fc" id="L35">    this.immediateLeft = immediateLeft;</span>
 <span class="fc" id="L36">    this.startDelay = startDelay;</span>
 <span class="fc" id="L37">    this.maxDelay = maxDelay;</span>
-<span class="pc bpc" id="L38" title="1 of 2 branches missed.">    if (startDelay &lt; 1) {</span>
-<span class="nc" id="L39">      this.p1 = 0;</span>
-<span class="nc" id="L40">      this.p2 = 1;</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">    if (startDelay &lt; 1) {</span>
+<span class="fc" id="L39">      this.p1 = 0;</span>
+<span class="fc" id="L40">      this.p2 = 1;</span>
     } else {
 <span class="fc" id="L42">      this.p1 = startDelay;</span>
-<span class="fc" id="L43">      this.p2 = startDelay;</span>
+<span class="fc" id="L43">      this.p2 = startDelay + 1;</span>
     }
 <span class="fc" id="L45">  }</span>
 
@@ -48,7 +48,7 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
   public long nextDelay() {
 <span class="fc bfc" id="L49" title="All 2 branches covered.">    if (immediateLeft &gt; 0) {</span>
 <span class="fc" id="L50">      immediateLeft--;</span>
-<span class="fc" id="L51">      return 0;</span>
+<span class="fc" id="L51">      return p1;</span>
 <span class="pc bpc" id="L52" title="1 of 2 branches missed.">    } else if (p2 &gt; maxDelay) {</span>
 <span class="nc" id="L53">      return maxDelay;</span>
     } else {

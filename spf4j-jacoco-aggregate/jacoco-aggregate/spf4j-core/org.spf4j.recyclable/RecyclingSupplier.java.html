@@ -31,9 +31,7 @@
  */
 package org.spf4j.recyclable;
 
-import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -47,20 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param &lt;T&gt; - type of recycled objects
  */
 @ParametersAreNonnullByDefault
-public interface RecyclingSupplier&lt;T&gt; extends Disposable {
-
-    /**
-     * block until a object is available and return it.
-     *
-     * @return - a object instance returned by this supplier.
-     * @throws ObjectCreationException - cannot create an object.
-     * @throws ObjectBorrowException - cannot borrow an object.
-     * @throws InterruptedException - interrupted.
-     * @throws TimeoutException - timed out while getting object.
-     */
-    @Nonnull
-    T get() throws ObjectCreationException, ObjectBorrowException,
-            InterruptedException, TimeoutException;
+public interface RecyclingSupplier&lt;T&gt; extends NonValidatingRecyclingSupplier&lt;T&gt; {
 
     /**
      * return a object previously borrowed from the pool,
@@ -79,8 +64,8 @@ public interface RecyclingSupplier&lt;T&gt; extends Disposable {
      * @param object - object to recycle.
      */
     default void recycle(T object) {
-<span class="nc" id="L82">      recycle(object, null);</span>
-<span class="nc" id="L83">    }</span>
+<span class="nc" id="L67">      recycle(object, null);</span>
+<span class="nc" id="L68">    }</span>
 
 
     @ParametersAreNonnullByDefault

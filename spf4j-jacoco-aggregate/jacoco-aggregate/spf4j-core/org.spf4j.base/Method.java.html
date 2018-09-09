@@ -53,9 +53,9 @@ public final class Method implements Comparable&lt;Method&gt;, Serializable, Wri
 
   private static final long serialVersionUID = 1L;
 
-<span class="nc" id="L56">  public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
+<span class="fc" id="L56">  public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
 
-<span class="nc" id="L58">  private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
+<span class="fc" id="L58">  private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
 
   @Nonnull
   private final String declaringClass;
@@ -71,47 +71,47 @@ public final class Method implements Comparable&lt;Method&gt;, Serializable, Wri
 <span class="nc" id="L71">    this(clasz.getName(), methodName);</span>
 <span class="nc" id="L72">  }</span>
 
-<span class="nc" id="L74">  public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {</span>
-<span class="nc" id="L75">    this.declaringClass = declaringClass;</span>
-<span class="nc" id="L76">    this.methodName = methodName;</span>
-<span class="nc" id="L77">  }</span>
+<span class="fc" id="L74">  public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {</span>
+<span class="fc" id="L75">    this.declaringClass = declaringClass;</span>
+<span class="fc" id="L76">    this.methodName = methodName;</span>
+<span class="fc" id="L77">  }</span>
 
   @Nonnull
   public String getDeclaringClass() {
-<span class="nc" id="L81">    return declaringClass;</span>
+<span class="fc" id="L81">    return declaringClass;</span>
   }
 
   @Nonnull
   public String getMethodName() {
-<span class="nc" id="L86">    return methodName;</span>
+<span class="fc" id="L86">    return methodName;</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc" id="L91">    return 47 * declaringClass.hashCode() + methodName.hashCode();</span>
+<span class="fc" id="L91">    return 47 * declaringClass.hashCode() + methodName.hashCode();</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">    if (this == obj) {</span>
-<span class="nc" id="L97">      return true;</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (this == obj) {</span>
+<span class="fc" id="L97">      return true;</span>
     }
-<span class="nc bnc" id="L99" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">    if (obj == null) {</span>
 <span class="nc" id="L100">      return false;</span>
     }
-<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
 <span class="nc" id="L103">      return false;</span>
     }
-<span class="nc" id="L105">    final Method other = (Method) obj;</span>
-<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (!this.declaringClass.equals(other.declaringClass)) {</span>
-<span class="nc" id="L107">      return false;</span>
+<span class="fc" id="L105">    final Method other = (Method) obj;</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">    if (!this.declaringClass.equals(other.declaringClass)) {</span>
+<span class="fc" id="L107">      return false;</span>
     }
-<span class="nc" id="L109">    return this.methodName.equals(other.methodName);</span>
+<span class="fc" id="L109">    return this.methodName.equals(other.methodName);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L114">    return methodName + '@' + declaringClass;</span>
+<span class="fc" id="L114">    return methodName + '@' + declaringClass;</span>
   }
 
   /**
@@ -129,7 +129,7 @@ public final class Method implements Comparable&lt;Method&gt;, Serializable, Wri
 <span class="nc" id="L129">  }</span>
 
   public static Method getMethod(final StackTraceElement elem) {
-<span class="nc" id="L132">    return getMethod(elem.getClassName(), elem.getMethodName());</span>
+<span class="fc" id="L132">    return getMethod(elem.getClassName(), elem.getMethodName());</span>
   }
 
   /*
@@ -138,47 +138,47 @@ public final class Method implements Comparable&lt;Method&gt;, Serializable, Wri
    */
   @SuppressFBWarnings(&quot;PMB_POSSIBLE_MEMORY&quot;)
   public static synchronized Method getMethod(final String className, final String methodName) {
-<span class="nc" id="L141">    Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
+<span class="fc" id="L141">    Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
     Method result;
-<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (mtom == null) {</span>
-<span class="nc" id="L144">      mtom = new THashMap&lt;&gt;(4);</span>
-<span class="nc" id="L145">      result = new Method(className, methodName);</span>
-<span class="nc" id="L146">      mtom.put(methodName, result);</span>
-<span class="nc" id="L147">      INSTANCE_REPO.put(className, mtom);</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">    if (mtom == null) {</span>
+<span class="fc" id="L144">      mtom = new THashMap&lt;&gt;(4);</span>
+<span class="fc" id="L145">      result = new Method(className, methodName);</span>
+<span class="fc" id="L146">      mtom.put(methodName, result);</span>
+<span class="fc" id="L147">      INSTANCE_REPO.put(className, mtom);</span>
     } else {
-<span class="nc" id="L149">      result = mtom.get(methodName);</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">      if (result == null) {</span>
-<span class="nc" id="L151">        result = new Method(className, methodName);</span>
-<span class="nc" id="L152">        mtom.put(methodName, result);</span>
+<span class="fc" id="L149">      result = mtom.get(methodName);</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">      if (result == null) {</span>
+<span class="fc" id="L151">        result = new Method(className, methodName);</span>
+<span class="fc" id="L152">        mtom.put(methodName, result);</span>
       }
     }
-<span class="nc" id="L155">    return result;</span>
+<span class="fc" id="L155">    return result;</span>
   }
 
   @Override
   public void writeTo(final Appendable w) throws IOException {
-<span class="nc" id="L160">    w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
-<span class="nc" id="L161">  }</span>
+<span class="fc" id="L160">    w.append(methodName).append(&quot;@&quot;).append(declaringClass);</span>
+<span class="fc" id="L161">  }</span>
 
   public static Method from(final CharSequence cs) {
-<span class="nc" id="L164">    return from(cs, 0, cs.length());</span>
+<span class="fc" id="L164">    return from(cs, 0, cs.length());</span>
   }
 
   public static Method from(final CharSequence cs, final int start, final int end) {
-<span class="nc" id="L168">    int idx = CharSequences.indexOf(cs, start, end, '@');</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">    if (idx &lt; 0) {</span>
+<span class="fc" id="L168">    int idx = CharSequences.indexOf(cs, start, end, '@');</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">    if (idx &lt; 0) {</span>
 <span class="nc" id="L170">      throw new IllegalArgumentException(&quot;Invalid method representation: &quot; + cs);</span>
     }
-<span class="nc" id="L172">    return getMethod(cs.subSequence(idx + 1, end).toString(), cs.subSequence(start, idx).toString());</span>
+<span class="fc" id="L172">    return getMethod(cs.subSequence(idx + 1, end).toString(), cs.subSequence(start, idx).toString());</span>
   }
 
   @Override
   public int compareTo(final Method o) {
-<span class="nc" id="L177">    int cmp = this.declaringClass.compareTo(o.declaringClass);</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (cmp == 0) {</span>
-<span class="nc" id="L179">      return this.methodName.compareTo(o.methodName);</span>
+<span class="fc" id="L177">    int cmp = this.declaringClass.compareTo(o.declaringClass);</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">    if (cmp == 0) {</span>
+<span class="fc" id="L179">      return this.methodName.compareTo(o.methodName);</span>
     } else {
-<span class="nc" id="L181">      return cmp;</span>
+<span class="fc" id="L181">      return cmp;</span>
     }
   }
 

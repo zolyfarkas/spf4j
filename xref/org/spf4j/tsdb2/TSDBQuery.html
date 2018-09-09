@@ -39,20 +39,20 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.tsdb2;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.ArrayListMultimap;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.ListMultimap;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> com.google.common.primitives.Longs;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> gnu.trove.list.TLongList;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> gnu.trove.list.array.TLongArrayList;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> gnu.trove.map.TLongObjectMap;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> gnu.trove.map.hash.TLongObjectHashMap;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.io.BufferedWriter;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.io.OutputStreamWriter;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.io.Writer;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.ArrayListMultimap;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.collect.ListMultimap;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> com.google.common.primitives.Longs;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> gnu.trove.list.TLongList;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> gnu.trove.list.array.TLongArrayList;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> gnu.trove.map.TLongObjectMap;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> gnu.trove.map.hash.TLongObjectHashMap;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> java.io.BufferedWriter;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> java.io.OutputStreamWriter;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> java.io.Writer;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> java.nio.file.Files;
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> java.time.Instant;
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
@@ -244,7 +244,7 @@
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> writeCsvTable(<strong class="jxr_keyword">final</strong> File tsDB, <strong class="jxr_keyword">final</strong> String tableName, <strong class="jxr_keyword">final</strong> File output)
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>           <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>     <strong class="jxr_keyword">try</strong> (Writer writer = <strong class="jxr_keyword">new</strong> BufferedWriter(<strong class="jxr_keyword">new</strong> OutputStreamWriter(
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>       writeAsCsv(writer, tsDB, tableName);
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>     }
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>   }
@@ -280,7 +280,7 @@
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>     }
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>     ListMultimap&lt;String, TableDef&gt; tables = getTables(tsDB, tableNames);
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>     <strong class="jxr_keyword">try</strong> (Writer writer = <strong class="jxr_keyword">new</strong> BufferedWriter(<strong class="jxr_keyword">new</strong> OutputStreamWriter(
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>             Files.newOutputStream(output.toPath()), Charsets.UTF_8))) {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>             Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>       TableDef table = tables.values().iterator().next();
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>       Csv.writeCsvElement(<span class="jxr_string">"table"</span>, writer);
 <a class="jxr_linenumber" name="L278" href="#L278">278</a>       writer.append(',');

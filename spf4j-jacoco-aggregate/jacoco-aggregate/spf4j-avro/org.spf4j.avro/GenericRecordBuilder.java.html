@@ -77,67 +77,67 @@ public final class GenericRecordBuilder implements Closeable {
   private final AbstractJavaSourceClassLoader source;
 
   public GenericRecordBuilder(final Schema... schemas) {
-<span class="nc" id="L80">    this(GenericData.StringType.String, schemas);</span>
-<span class="nc" id="L81">  }</span>
+<span class="fc" id="L80">    this(GenericData.StringType.String, schemas);</span>
+<span class="fc" id="L81">  }</span>
 
-<span class="nc" id="L83">  public GenericRecordBuilder(final GenericData.StringType stringType, final Schema... schemas) {</span>
-<span class="nc" id="L84">    tmpDir = com.google.common.io.Files.createTempDir();</span>
-<span class="nc" id="L85">    this.stringType = stringType;</span>
-<span class="nc" id="L86">    generateClasses(stringType, schemas);</span>
+<span class="fc" id="L83">  public GenericRecordBuilder(final GenericData.StringType stringType, final Schema... schemas) {</span>
+<span class="fc" id="L84">    tmpDir = com.google.common.io.Files.createTempDir();</span>
+<span class="fc" id="L85">    this.stringType = stringType;</span>
+<span class="fc" id="L86">    generateClasses(stringType, schemas);</span>
     try {
-<span class="nc" id="L88">      AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()</span>
-<span class="nc" id="L89">              .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());</span>
-<span class="nc" id="L90">      src.setSourcePath(new File[]{tmpDir});</span>
-<span class="nc" id="L91">      this.source = src;</span>
+<span class="fc" id="L88">      AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()</span>
+<span class="fc" id="L89">              .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());</span>
+<span class="fc" id="L90">      src.setSourcePath(new File[]{tmpDir});</span>
+<span class="fc" id="L91">      this.source = src;</span>
 <span class="nc" id="L92">    } catch (Exception ex) {</span>
 <span class="nc" id="L93">      throw new IllegalStateException(ex);</span>
-<span class="nc" id="L94">    }</span>
-<span class="nc" id="L95">  }</span>
+<span class="fc" id="L94">    }</span>
+<span class="fc" id="L95">  }</span>
 
   private void generateClasses(final GenericData.StringType st, final Schema... schemas) {
-<span class="nc" id="L98">    String[] namespaces = new String[schemas.length];</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">    for (int i = 0; i &lt; schemas.length; i++) {</span>
-<span class="nc" id="L100">      String namespace = schemas[i].getNamespace();</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">      if (namespace == null) {</span>
-<span class="nc" id="L102">        namespace = &quot;&quot;;</span>
+<span class="fc" id="L98">    String[] namespaces = new String[schemas.length];</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    for (int i = 0; i &lt; schemas.length; i++) {</span>
+<span class="fc" id="L100">      String namespace = schemas[i].getNamespace();</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">      if (namespace == null) {</span>
+<span class="fc" id="L102">        namespace = &quot;&quot;;</span>
       }
-<span class="nc" id="L104">      namespaces[i] = namespace;</span>
+<span class="fc" id="L104">      namespaces[i] = namespace;</span>
     }
-<span class="nc" id="L106">    String commonPrefix = org.spf4j.base.Strings.commonPrefix(namespaces);</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (commonPrefix.endsWith(&quot;.&quot;)) {</span>
+<span class="fc" id="L106">    String commonPrefix = org.spf4j.base.Strings.commonPrefix(namespaces);</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">    if (commonPrefix.endsWith(&quot;.&quot;)) {</span>
 <span class="nc" id="L108">      commonPrefix = commonPrefix.substring(0, commonPrefix.length() - 1);</span>
     }
-<span class="nc" id="L110">    Protocol proto = new Protocol(&quot;generated&quot;, commonPrefix);</span>
-<span class="nc" id="L111">    proto.setTypes(Arrays.asList(schemas));</span>
-<span class="nc" id="L112">    SpecificCompiler sc = new SpecificCompiler(proto);</span>
-<span class="nc" id="L113">    sc.setStringType(st);</span>
+<span class="fc" id="L110">    Protocol proto = new Protocol(&quot;generated&quot;, commonPrefix);</span>
+<span class="fc" id="L111">    proto.setTypes(Arrays.asList(schemas));</span>
+<span class="fc" id="L112">    SpecificCompiler sc = new SpecificCompiler(proto);</span>
+<span class="fc" id="L113">    sc.setStringType(st);</span>
     // use a custom template that does not contain the builder (janino can't compile builder).
-<span class="nc" id="L115">    sc.setTemplateDir(&quot;org/spf4j/avro/&quot;);</span>
+<span class="fc" id="L115">    sc.setTemplateDir(&quot;org/spf4j/avro/&quot;);</span>
     try {
-<span class="nc" id="L117">      sc.compileToDestination(null, tmpDir);</span>
+<span class="fc" id="L117">      sc.compileToDestination(null, tmpDir);</span>
 <span class="nc" id="L118">    } catch (IOException ex) {</span>
 <span class="nc" id="L119">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L120">    }</span>
+<span class="fc" id="L120">    }</span>
     try {
-<span class="nc" id="L122">      Files.walkFileTree(tmpDir.toPath(), new SetFilesReadOnlyVisitor());</span>
+<span class="fc" id="L122">      Files.walkFileTree(tmpDir.toPath(), new SetFilesReadOnlyVisitor());</span>
 <span class="nc" id="L123">    } catch (IOException ex) {</span>
 <span class="nc" id="L124">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L125">    }</span>
-<span class="nc" id="L126">  }</span>
+<span class="fc" id="L125">    }</span>
+<span class="fc" id="L126">  }</span>
 
   public Class&lt;? extends SpecificRecordBase&gt; getRecordClass(final Schema schema) {
-<span class="nc" id="L129">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+<span class="fc" id="L129">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
     try {
-<span class="nc" id="L131">      return (Class&lt;? extends SpecificRecordBase&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
+<span class="fc" id="L131">      return (Class&lt;? extends SpecificRecordBase&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
 <span class="nc" id="L132">    } catch (ClassNotFoundException ex) {</span>
 <span class="nc" id="L133">      throw new IllegalStateException(ex);</span>
     }
   }
 
   public Class&lt;? extends GenericEnumSymbol&gt; getEnumClass(final Schema schema) {
-<span class="nc" id="L138">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+<span class="fc" id="L138">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
     try {
-<span class="nc" id="L140">      return (Class&lt;? extends GenericEnumSymbol&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
+<span class="fc" id="L140">      return (Class&lt;? extends GenericEnumSymbol&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
 <span class="nc" id="L141">    } catch (ClassNotFoundException ex) {</span>
 <span class="nc" id="L142">      throw new IllegalStateException(ex);</span>
     }
@@ -155,11 +155,11 @@ public final class GenericRecordBuilder implements Closeable {
   @Override
   public void close() {
     try {
-<span class="nc" id="L158">      Files.walkFileTree(tmpDir.toPath(), new DeletingVisitor());</span>
+<span class="fc" id="L158">      Files.walkFileTree(tmpDir.toPath(), new DeletingVisitor());</span>
 <span class="nc" id="L159">    } catch (IOException ex) {</span>
 <span class="nc" id="L160">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L161">    }</span>
-<span class="nc" id="L162">  }</span>
+<span class="fc" id="L161">    }</span>
+<span class="fc" id="L162">  }</span>
 
   @Override
   public String toString() {

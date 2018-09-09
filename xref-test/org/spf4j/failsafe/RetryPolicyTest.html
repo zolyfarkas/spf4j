@@ -44,7 +44,7 @@
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.spf4j.failsafe.concurrent.RetryExecutor;
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.Level;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.LogAssert;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.LogMatchers;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.matchers.LogMatchers;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.LogRecord;
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.TestLoggers;
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  
@@ -350,7 +350,27 @@
 <a class="jxr_linenumber" name="L342" href="#L342">342</a>     }
 <a class="jxr_linenumber" name="L343" href="#L343">343</a>   }
 <a class="jxr_linenumber" name="L344" href="#L344">344</a> 
-<a class="jxr_linenumber" name="L345" href="#L345">345</a> }
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>   @Test
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSpecificExceptionRetryPolicy() <strong class="jxr_keyword">throws</strong> TimeoutException, InterruptedException {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>     LogAssert expect = TestLoggers.sys().expect(LOG.getName(), Level.DEBUG, LogMatchers.hasFormat(<span class="jxr_string">"encontered"</span>));
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>     RetryPolicy&lt;Object, Callable&lt;Object&gt;&gt; policy =
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>             RetryPolicy.newBuilder().withExceptionPartialPredicate(IllegalStateException.<strong class="jxr_keyword">class</strong>,
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>             (ex, call) -&gt; {
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>               LOG.debug(<span class="jxr_string">"encontered"</span>, ex);
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>               <strong class="jxr_keyword">return</strong> RetryDecision.abort();
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>             }).build();
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>       policy.run(() -&gt; {
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException();
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>       }, RuntimeException.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>       Assert.fail();
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>     } <strong class="jxr_keyword">catch</strong> (IllegalStateException ex) {
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>          expect.assertObservation();
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>     }
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>   }
+<a class="jxr_linenumber" name="L363" href="#L363">363</a> 
+<a class="jxr_linenumber" name="L364" href="#L364">364</a> 
+<a class="jxr_linenumber" name="L365" href="#L365">365</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

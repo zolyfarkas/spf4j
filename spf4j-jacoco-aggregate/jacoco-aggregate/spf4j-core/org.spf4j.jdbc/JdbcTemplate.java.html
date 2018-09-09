@@ -61,8 +61,8 @@ public final class JdbcTemplate {
    * certain JDBC drivers multiply timeout to transform in milis or nanos without validating overflow.
    * This value needs to be low enough to account for this case.
    */
-<span class="nc" id="L64">  private static final int MAX_JDBC_TIMEOUTSECONDS =</span>
-<span class="nc" id="L65">          Integer.getInteger(&quot;spf4j.jdbc.maxdbcTimeoutSeconds&quot;, 3600 * 24);</span>
+<span class="fc" id="L64">  private static final int MAX_JDBC_TIMEOUTSECONDS =</span>
+<span class="fc" id="L65">          Integer.getInteger(&quot;spf4j.jdbc.maxdbcTimeoutSeconds&quot;, 3600 * 24);</span>
 
 
   private final DataSource dataSource;
@@ -70,51 +70,51 @@ public final class JdbcTemplate {
   private final RetryPolicy&lt;Object, Callable&lt;? extends Object&gt;&gt; retryPolicy;
 
   public JdbcTemplate(final DataSource dataSource) {
-<span class="nc" id="L73">    this(dataSource, RetryPolicy.newBuilder()</span>
-<span class="nc" id="L74">            .withDefaultThrowableRetryPredicate()</span>
-<span class="nc" id="L75">            .build());</span>
-<span class="nc" id="L76">  }</span>
+<span class="fc" id="L73">    this(dataSource, RetryPolicy.newBuilder()</span>
+<span class="fc" id="L74">            .withDefaultThrowableRetryPredicate()</span>
+<span class="fc" id="L75">            .build());</span>
+<span class="fc" id="L76">  }</span>
 
-<span class="nc" id="L78">  public JdbcTemplate(final DataSource dataSource, final RetryPolicy&lt;Object, Callable&lt;? extends Object&gt;&gt; retryPolicy) {</span>
-<span class="nc" id="L79">    this.dataSource = dataSource;</span>
-<span class="nc" id="L80">    this.retryPolicy = retryPolicy;</span>
-<span class="nc" id="L81">  }</span>
+<span class="fc" id="L78">  public JdbcTemplate(final DataSource dataSource, final RetryPolicy&lt;Object, Callable&lt;? extends Object&gt;&gt; retryPolicy) {</span>
+<span class="fc" id="L79">    this.dataSource = dataSource;</span>
+<span class="fc" id="L80">    this.retryPolicy = retryPolicy;</span>
+<span class="fc" id="L81">  }</span>
 
   public static void checkJdbcObjectName(final CharSequence name) {
-<span class="nc bnc" id="L84" title="All 4 branches missed.">    if (!JavaUtils.isJavaIdentifier(name) || name.length() &gt; 30) {</span>
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">    if (!JavaUtils.isJavaIdentifier(name) || name.length() &gt; 30) {</span>
 <span class="nc" id="L85">      throw new IllegalArgumentException(&quot;Invalid database Object identifier &quot; + name);</span>
     }
-<span class="nc" id="L87">  }</span>
+<span class="fc" id="L87">  }</span>
 
 
   @SuppressFBWarnings(&quot;BED_BOGUS_EXCEPTION_DECLARATION&quot;)
   public &lt;R&gt; R transactOnConnection(final HandlerNano&lt;Connection, R, SQLException&gt; handler,
           final long timeout, final TimeUnit tu)
           throws SQLException, InterruptedException {
-<span class="nc" id="L94">    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {</span>
-<span class="nc" id="L95">      return (R) retryPolicy.call(new Callable() {</span>
+<span class="fc" id="L94">    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {</span>
+<span class="fc" id="L95">      return (R) retryPolicy.call(new Callable() {</span>
         @Override
         public R call() throws SQLException {
-<span class="nc" id="L98">          try (Connection conn = dataSource.getConnection()) {</span>
-<span class="nc" id="L99">            boolean autocomit = conn.getAutoCommit();</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (autocomit) {</span>
-<span class="nc" id="L101">              conn.setAutoCommit(false);</span>
+<span class="fc" id="L98">          try (Connection conn = dataSource.getConnection()) {</span>
+<span class="fc" id="L99">            boolean autocomit = conn.getAutoCommit();</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">            if (autocomit) {</span>
+<span class="fc" id="L101">              conn.setAutoCommit(false);</span>
             }
             try {
-<span class="nc" id="L104">              R result = handler.handle(conn, ctx.getDeadlineNanos());</span>
-<span class="nc" id="L105">              conn.commit();</span>
-<span class="nc" id="L106">              return result;</span>
-<span class="nc" id="L107">            } catch (SQLException | RuntimeException ex) {</span>
-<span class="nc" id="L108">              conn.rollback();</span>
-<span class="nc" id="L109">              throw ex;</span>
+<span class="fc" id="L104">              R result = handler.handle(conn, ctx.getDeadlineNanos());</span>
+<span class="fc" id="L105">              conn.commit();</span>
+<span class="fc" id="L106">              return result;</span>
+<span class="fc" id="L107">            } catch (SQLException | RuntimeException ex) {</span>
+<span class="fc" id="L108">              conn.rollback();</span>
+<span class="fc" id="L109">              throw ex;</span>
             } finally {
-<span class="nc bnc" id="L111" title="All 2 branches missed.">              if (autocomit) {</span>
-<span class="nc" id="L112">                conn.setAutoCommit(true);</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">              if (autocomit) {</span>
+<span class="fc" id="L112">                conn.setAutoCommit(true);</span>
               }
             }
           }
         }
-<span class="nc" id="L117">      }, SQLException.class, ctx.getDeadlineNanos());</span>
+<span class="fc" id="L117">      }, SQLException.class, ctx.getDeadlineNanos());</span>
 <span class="nc" id="L118">    } catch (TimeoutException ex) {</span>
 <span class="nc" id="L119">      throw new SQLTimeoutException(ex);</span>
     }
@@ -125,7 +125,7 @@ public final class JdbcTemplate {
           final long timeout, final TimeUnit tu)
           throws SQLException {
     try {
-<span class="nc" id="L128">      return transactOnConnection(handler, timeout, tu);</span>
+<span class="fc" id="L128">      return transactOnConnection(handler, timeout, tu);</span>
 <span class="nc" id="L129">    } catch (InterruptedException ex) {</span>
 <span class="nc" id="L130">      Thread.currentThread().interrupt();</span>
 <span class="nc" id="L131">      throw new SQLException(ex);</span>
@@ -139,30 +139,30 @@ public final class JdbcTemplate {
    */
   @Nonnegative
   public static int getTimeoutToDeadlineSeconds(final long deadlineNanos) throws SQLTimeoutException {
-<span class="nc" id="L142">    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (toSeconds &lt; 0L) {</span>
+<span class="fc" id="L142">    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">    if (toSeconds &lt; 0L) {</span>
 <span class="nc" id="L144">      throw new SQLTimeoutException(&quot;deadline exceeded by &quot; + (-toSeconds) + &quot; seconds&quot;);</span>
     }
-<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (toSeconds == 0) {</span>
-<span class="nc" id="L147">      return 1;</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">    if (toSeconds == 0) {</span>
+<span class="fc" id="L147">      return 1;</span>
     }
-<span class="nc bnc" id="L149" title="All 2 branches missed.">    if (toSeconds &gt; MAX_JDBC_TIMEOUTSECONDS) {</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">    if (toSeconds &gt; MAX_JDBC_TIMEOUTSECONDS) {</span>
 <span class="nc" id="L150">      return MAX_JDBC_TIMEOUTSECONDS;</span>
     } else {
-<span class="nc" id="L152">     return (int) toSeconds;</span>
+<span class="fc" id="L152">     return (int) toSeconds;</span>
     }
   }
 
   @Signed
   public static int getTimeoutToDeadlineSecondsNoEx(final long deadlineNanos) {
-<span class="nc" id="L158">    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">    if (toSeconds == 0) {</span>
-<span class="nc" id="L160">      return 1;</span>
+<span class="fc" id="L158">    long toSeconds = TimeUnit.NANOSECONDS.toSeconds(deadlineNanos - TimeSource.nanoTime());</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    if (toSeconds == 0) {</span>
+<span class="fc" id="L160">      return 1;</span>
     }
-<span class="nc bnc" id="L162" title="All 2 branches missed.">    if (toSeconds &gt; MAX_JDBC_TIMEOUTSECONDS) {</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">    if (toSeconds &gt; MAX_JDBC_TIMEOUTSECONDS) {</span>
 <span class="nc" id="L163">      return MAX_JDBC_TIMEOUTSECONDS;</span>
     } else {
-<span class="nc" id="L165">     return (int) toSeconds;</span>
+<span class="fc" id="L165">     return (int) toSeconds;</span>
     }
   }
 

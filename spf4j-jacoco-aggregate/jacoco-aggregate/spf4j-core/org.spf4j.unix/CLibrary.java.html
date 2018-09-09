@@ -46,7 +46,7 @@ import com.sun.jna.ptr.IntByReference;
  */
 public interface CLibrary extends LibCAPI, Library {
 
-<span class="nc" id="L49">  CLibrary INSTANCE = (CLibrary) Native.loadLibrary(&quot;c&quot;, CLibrary.class);</span>
+<span class="fc" id="L49">  CLibrary INSTANCE = (CLibrary) Native.loadLibrary(&quot;c&quot;, CLibrary.class);</span>
 
    // obtained from Linux. Needs to be checked if these values are portable.
   int F_GETFD = 1;
@@ -57,8 +57,15 @@ public interface CLibrary extends LibCAPI, Library {
 
   int fork();
 
-  int kill(int pid, int signum);
+  /**
+   * returns signal name from a signal number.
+   * @param sigNumber the signal number.
+   * @return the signal name.
+   */
+  String strsignal(int sigNumber);
 
+  int kill(int pid, int signum);
+  
   int setsid();
 
   int setuid(short newuid);
@@ -67,8 +74,18 @@ public interface CLibrary extends LibCAPI, Library {
 
   int umask(int mask);
 
+  /**
+   * Get current process id.
+   * https://www.systutorials.com/docs/linux/man/2-getppid/
+   * @return current process id.
+   */
   int getpid();
 
+  /**
+   * get parent process id.
+   * https://www.systutorials.com/docs/linux/man/2-getppid/
+   * @return parent process id.
+   */
   int getppid();
 
   int chdir(String dir);
@@ -94,12 +111,12 @@ public interface CLibrary extends LibCAPI, Library {
 
   class FILE extends PointerType {
 
-<span class="nc" id="L97">    public FILE() {</span>
-<span class="nc" id="L98">    }</span>
+<span class="nc" id="L114">    public FILE() {</span>
+<span class="nc" id="L115">    }</span>
 
     public FILE(final Pointer pointer) {
-<span class="nc" id="L101">      super(pointer);</span>
-<span class="nc" id="L102">    }</span>
+<span class="nc" id="L118">      super(pointer);</span>
+<span class="nc" id="L119">    }</span>
   }
 
   FILE fopen(String fileName, String mode);

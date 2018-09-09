@@ -200,29 +200,29 @@ public final class Charts {
 
   public static Pair&lt;long[], double[][]&gt; fillGaps(final long[] timestamps,
           final long[][] data, final int sampleTime, final int nrColumns) {
-<span class="nc" id="L203">    long startTime = timestamps[0];</span>
-<span class="nc" id="L204">    int nrSamples = (int) ((timestamps[timestamps.length - 1] - startTime) / sampleTime) + 1;</span>
-<span class="nc" id="L205">    long[] lts = new long[nrSamples];</span>
-<span class="nc" id="L206">    double[][] dr = new double[nrSamples][];</span>
-<span class="nc" id="L207">    long nextTime = startTime;</span>
-<span class="nc" id="L208">    int j = 0;</span>
-<span class="nc" id="L209">    int maxDeviation = sampleTime / 2;</span>
-<span class="nc" id="L210">    double[] nodata = new double[nrColumns];</span>
-<span class="nc bnc" id="L211" title="All 2 branches missed.">    for (int i = 0; i &lt; nrColumns; i++) {</span>
-<span class="nc" id="L212">      nodata[i] = Double.NaN;</span>
+<span class="fc" id="L203">    long startTime = timestamps[0];</span>
+<span class="fc" id="L204">    int nrSamples = (int) ((timestamps[timestamps.length - 1] - startTime) / sampleTime) + 1;</span>
+<span class="fc" id="L205">    long[] lts = new long[nrSamples];</span>
+<span class="fc" id="L206">    double[][] dr = new double[nrSamples][];</span>
+<span class="fc" id="L207">    long nextTime = startTime;</span>
+<span class="fc" id="L208">    int j = 0;</span>
+<span class="fc" id="L209">    int maxDeviation = sampleTime / 2;</span>
+<span class="fc" id="L210">    double[] nodata = new double[nrColumns];</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">    for (int i = 0; i &lt; nrColumns; i++) {</span>
+<span class="fc" id="L212">      nodata[i] = Double.NaN;</span>
     }
-<span class="nc bnc" id="L214" title="All 2 branches missed.">    for (int i = 0; i &lt; nrSamples; i++) {</span>
-<span class="nc" id="L215">      lts[i] = nextTime;</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">    for (int i = 0; i &lt; nrSamples; i++) {</span>
+<span class="fc" id="L215">      lts[i] = nextTime;</span>
 
-<span class="nc bnc" id="L217" title="All 2 branches missed.">      if (Math.abs(timestamps[j] - nextTime) &lt; maxDeviation) {</span>
-<span class="nc" id="L218">        dr[i] = Arrays.toDoubleArray(data[j]);</span>
-<span class="nc" id="L219">        j++;</span>
+<span class="fc bfc" id="L217" title="All 2 branches covered.">      if (Math.abs(timestamps[j] - nextTime) &lt; maxDeviation) {</span>
+<span class="fc" id="L218">        dr[i] = Arrays.toDoubleArray(data[j]);</span>
+<span class="fc" id="L219">        j++;</span>
       } else {
-<span class="nc" id="L221">        dr[i] = nodata;</span>
+<span class="fc" id="L221">        dr[i] = nodata;</span>
       }
-<span class="nc" id="L223">      nextTime += sampleTime;</span>
+<span class="fc" id="L223">      nextTime += sampleTime;</span>
     }
-<span class="nc" id="L225">    return Pair.of(lts, dr);</span>
+<span class="fc" id="L225">    return Pair.of(lts, dr);</span>
   }
 
 }

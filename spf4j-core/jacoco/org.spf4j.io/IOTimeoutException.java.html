@@ -33,7 +33,9 @@ package org.spf4j.io;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 import org.spf4j.base.DateTimeFormats;
+import org.spf4j.base.Timing;
 
 /**
  *
@@ -42,23 +44,33 @@ import org.spf4j.base.DateTimeFormats;
 public class IOTimeoutException extends IOException {
 
 
-    private final long deadline;
+    private final long deadlineNanos;
 
-    private final long millisAfterDeadline;
+    private final long nanosAfterDeadline;
 
-    public IOTimeoutException(final long deadline, final long millisAfterDeadline) {
-<span class="fc" id="L50">        super(&quot;Timeout encountered, &quot; + millisAfterDeadline + &quot; ms after deadline: &quot;</span>
-<span class="fc" id="L51">                + DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(deadline)));</span>
-<span class="fc" id="L52">        this.deadline = deadline;</span>
-<span class="fc" id="L53">        this.millisAfterDeadline = deadline;</span>
-<span class="fc" id="L54">    }</span>
+    public IOTimeoutException(final long deadlineNanos, final long nanosAfterDeadline) {
+<span class="fc" id="L52">        super(&quot;Timeout encountered, &quot; + nanosAfterDeadline + &quot; ns after deadline: &quot;</span>
+<span class="fc" id="L53">                + DateTimeFormats.TS_FORMAT.format(</span>
+<span class="fc" id="L54">                        Instant.ofEpochMilli(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(deadlineNanos))));</span>
+<span class="fc" id="L55">        this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L56">        this.nanosAfterDeadline = nanosAfterDeadline;</span>
+<span class="fc" id="L57">    }</span>
 
+    @Deprecated
     public final long getDeadline() {
-<span class="nc" id="L57">        return deadline;</span>
+<span class="nc" id="L61">        return deadlineNanos;</span>
+    }
+
+    public final long getDeadlineNanos() {
+<span class="fc" id="L65">        return deadlineNanos;</span>
     }
 
     public final long getMillisAfterDeadline() {
-<span class="nc" id="L61">        return millisAfterDeadline;</span>
+<span class="nc" id="L69">      return TimeUnit.NANOSECONDS.toMillis(nanosAfterDeadline);</span>
+    }
+
+    public final long getNanosAfterDeadline() {
+<span class="fc" id="L73">        return nanosAfterDeadline;</span>
     }
 
 

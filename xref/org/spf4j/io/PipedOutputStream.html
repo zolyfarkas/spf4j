@@ -164,18 +164,18 @@
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>     }
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>   }
 <a class="jxr_linenumber" name="L158" href="#L158">158</a> 
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> writeUntil(<strong class="jxr_keyword">final</strong> byte[] b, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadline) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> writeUntil(<strong class="jxr_keyword">final</strong> byte[] b, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> off, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> len, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>     <strong class="jxr_keyword">int</strong> bytesWritten = 0;
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>     <strong class="jxr_keyword">while</strong> (bytesWritten &lt; len) {
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>       <strong class="jxr_keyword">synchronized</strong> (sync) {
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>         <strong class="jxr_keyword">int</strong> a2w = 0;
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>         <strong class="jxr_keyword">while</strong> (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>           <strong class="jxr_keyword">long</strong> timeToWait = deadline - TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>           <strong class="jxr_keyword">if</strong> (timeToWait &lt;= 0) {
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadline, -timeToWait);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>           <strong class="jxr_keyword">long</strong> timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>           <strong class="jxr_keyword">if</strong> (timeToWaitNanos &lt;= 0) {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadlineNanos, -timeToWaitNanos);
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>           }
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>           <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>             TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>           } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
 <a class="jxr_linenumber" name="L172" href="#L172">172</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Interrupted while writing "</span> + Arrays.toString(b), ex);
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>           }
@@ -209,16 +209,16 @@
 <a class="jxr_linenumber" name="L201" href="#L201">201</a>     writeUntil(b, deadline);
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>   }
 <a class="jxr_linenumber" name="L203" href="#L203">203</a> 
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> writeUntil(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> b, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadline) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> writeUntil(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> b, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">synchronized</strong> (sync) {
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>       <strong class="jxr_keyword">int</strong> a2w = 0;
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>       <strong class="jxr_keyword">while</strong> (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {
 <a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>           <strong class="jxr_keyword">long</strong> timeToWait = deadline - TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>           <strong class="jxr_keyword">if</strong> (timeToWait &lt;= 0) {
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadline, -timeToWait);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>           <strong class="jxr_keyword">long</strong> timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>           <strong class="jxr_keyword">if</strong> (timeToWaitNanos &lt;= 0) {
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadlineNanos, -timeToWaitNanos);
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>           }
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>           TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>           TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Interrupted while writing "</span> + b, ex);
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>         }
@@ -295,7 +295,7 @@
 <a class="jxr_linenumber" name="L287" href="#L287">287</a> <em class="jxr_javadoccomment">   * Designed to propagate exception details from the consumer to the producer.</em>
 <a class="jxr_linenumber" name="L288" href="#L288">288</a> <em class="jxr_javadoccomment">   * A consumer that reads data from a InputStream connected to this PipedOutpuStream,</em>
 <a class="jxr_linenumber" name="L289" href="#L289">289</a> <em class="jxr_javadoccomment">   * can close this pipe, and provide a exception. THis exception will be used as cause for any</em>
-<a class="jxr_linenumber" name="L290" href="#L290">290</a> <em class="jxr_javadoccomment">   * exceptions thrown by subsequent attempteed write operations.</em>
+<a class="jxr_linenumber" name="L290" href="#L290">290</a> <em class="jxr_javadoccomment">   * exceptions thrown by subsequent attempted write operations.</em>
 <a class="jxr_linenumber" name="L291" href="#L291">291</a> <em class="jxr_javadoccomment">   * @param ex the exception to use as root cause.</em>
 <a class="jxr_linenumber" name="L292" href="#L292">292</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>   @DischargesObligation
@@ -375,16 +375,16 @@
 <a class="jxr_linenumber" name="L367" href="#L367">367</a>       <strong class="jxr_keyword">return</strong> readUntil(deadline);
 <a class="jxr_linenumber" name="L368" href="#L368">368</a>     }
 <a class="jxr_linenumber" name="L369" href="#L369">369</a> 
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> readUntil(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadline) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> readUntil(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> deadlineNanos) <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L371" href="#L371">371</a>       <strong class="jxr_keyword">synchronized</strong> (sync) {
 <a class="jxr_linenumber" name="L372" href="#L372">372</a>         <strong class="jxr_keyword">int</strong> availableToRead = 0;
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>         <strong class="jxr_keyword">while</strong> (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>           <strong class="jxr_keyword">long</strong> timeToWait = deadline - TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>           <strong class="jxr_keyword">if</strong> (timeToWait &lt;= 0) {
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadline, -timeToWait);
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>           <strong class="jxr_keyword">long</strong> timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>           <strong class="jxr_keyword">if</strong> (timeToWaitNanos &lt;= 0) {
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadlineNanos, -timeToWaitNanos);
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>           }
 <a class="jxr_linenumber" name="L378" href="#L378">378</a>           <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>             TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>             TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
 <a class="jxr_linenumber" name="L380" href="#L380">380</a>           } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
 <a class="jxr_linenumber" name="L381" href="#L381">381</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Interrupted while reading from "</span>
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>                     + PipedOutputStream.<strong class="jxr_keyword">this</strong>, ex);
@@ -421,12 +421,12 @@
 <a class="jxr_linenumber" name="L413" href="#L413">413</a>       <strong class="jxr_keyword">synchronized</strong> (sync) {
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>         <strong class="jxr_keyword">int</strong> availableToRead = 0;
 <a class="jxr_linenumber" name="L415" href="#L415">415</a>         <strong class="jxr_keyword">while</strong> (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>           <strong class="jxr_keyword">long</strong> timeToWait = deadline - TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>           <strong class="jxr_keyword">if</strong> (timeToWait &lt;= 0) {
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadline, -timeToWait);
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>           <strong class="jxr_keyword">long</strong> timeToWaitNanos = deadline - TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>           <strong class="jxr_keyword">if</strong> (timeToWaitNanos &lt;= 0) {
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/io/IOTimeoutException.html">IOTimeoutException</a>(deadline, -timeToWaitNanos);
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>           }
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>           <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L421" href="#L421">421</a>             TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>             TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);
 <a class="jxr_linenumber" name="L422" href="#L422">422</a>           } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Interrupted while reading from "</span> + PipedOutputStream.<strong class="jxr_keyword">this</strong>, ex);
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>           }

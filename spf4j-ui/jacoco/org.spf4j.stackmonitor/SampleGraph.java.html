@@ -95,7 +95,7 @@ public final class SampleGraph {
 
     @Override
     public String toString() {
-<span class="nc" id="L98">      return &quot;SampleKey{&quot; + &quot;method=&quot; + method + &quot;, idxInHierarchy=&quot; + idxInHierarchy + '}';</span>
+<span class="fc" id="L98">      return &quot;SampleKey{&quot; + &quot;method=&quot; + method + &quot;, idxInHierarchy=&quot; + idxInHierarchy + '}';</span>
     }
 
   }
@@ -157,7 +157,7 @@ public final class SampleGraph {
 
     @Override
     public String toString() {
-<span class="nc" id="L160">      return &quot;AggSample{&quot; + &quot;key=&quot; + getKey() + &quot;, nrSamples=&quot; + nrSamples + &quot;, level=&quot; + level + '}';</span>
+<span class="fc" id="L160">      return &quot;AggSample{&quot; + &quot;key=&quot; + getKey() + &quot;, nrSamples=&quot; + nrSamples + &quot;, level=&quot; + level + '}';</span>
     }
 
   }
@@ -274,117 +274,121 @@ public final class SampleGraph {
 <span class="fc" id="L274">          aggGraph.addNode(current);</span>
 <span class="fc" id="L275">          aggregates.put(vtxk, current);</span>
         } else {
-<span class="fc bfc" id="L277" title="All 2 branches covered.">          if (isParentDescendant(current, aggParent)) {</span>
-<span class="fc" id="L278">            vtxk = new SampleKey(vtxk.method, vtxk.idxInHierarchy + 1);</span>
-<span class="fc" id="L279">            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);</span>
-<span class="fc" id="L280">            continue;</span>
-          }
+//          if (isParentDescendant(current, aggParent)) {
+//            vtxk = new SampleKey(vtxk.method, vtxk.idxInHierarchy + 1);
+//            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);
+//            continue;
+//          }
 <span class="fc" id="L282">          current.add(vtx);</span>
-<span class="fc" id="L283">          updateLevels(current, vtx.level);</span>
         }
-<span class="fc" id="L285">        break;</span>
+        break;
       } while (true);
-<span class="pc bpc" id="L287" title="1 of 2 branches missed.">      if (!sampleTree.addNode(vtx)) {</span>
-<span class="nc" id="L288">        throw new IllegalStateException();</span>
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">      if (!sampleTree.addNode(vtx)) {</span>
+<span class="nc" id="L287">        throw new IllegalStateException();</span>
       }
-<span class="pc bpc" id="L290" title="1 of 2 branches missed.">      if (!vertexMap.put(vtx.key, vtx)) {</span>
-<span class="nc" id="L291">        throw new IllegalStateException();</span>
+<span class="pc bpc" id="L289" title="1 of 2 branches missed.">      if (!vertexMap.put(vtx.key, vtx)) {</span>
+<span class="nc" id="L290">        throw new IllegalStateException();</span>
       }
-<span class="fc" id="L293">      aggGraph.putEdge(aggParent, current);</span>
-<span class="pc bpc" id="L294" title="1 of 2 branches missed.">      if (!sampleTree.putEdge(t.parent, vtx)) {</span>
-<span class="nc" id="L295">        throw new IllegalStateException();</span>
+<span class="fc" id="L292">      aggGraph.putEdge(aggParent, current);</span>
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">      if (!sampleTree.putEdge(t.parent, vtx)) {</span>
+<span class="nc" id="L294">        throw new IllegalStateException();</span>
       }
-<span class="fc" id="L297">      TMap&lt;Method, SampleNode&gt; subNodes2 = t.node.getSubNodes();</span>
-<span class="fc" id="L298">      final Sample vvv = vtx;</span>
-<span class="pc bpc" id="L299" title="1 of 2 branches missed.">      if (subNodes2 != null) {</span>
-<span class="fc" id="L300">        subNodes2.forEachEntry((k, v) -&gt; {</span>
-<span class="fc" id="L301">          dq.add(new TraversalData(vvv, k, v));</span>
-<span class="fc" id="L302">          return true;</span>
+<span class="fc" id="L296">      TMap&lt;Method, SampleNode&gt; subNodes2 = t.node.getSubNodes();</span>
+<span class="fc" id="L297">      final Sample vvv = vtx;</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">      if (subNodes2 != null) {</span>
+<span class="fc" id="L299">        subNodes2.forEachEntry((k, v) -&gt; {</span>
+<span class="fc" id="L300">          dq.add(new TraversalData(vvv, k, v));</span>
+<span class="fc" id="L301">          return true;</span>
         });
       }
-<span class="fc" id="L305">    }</span>
+<span class="fc" id="L304">    }</span>
+<span class="fc" id="L305">    updateLevels(aggSampleVertex);</span>
 <span class="fc" id="L306">    return parentVertex;</span>
   }
 
-  private void updateLevels(final AggSample sample, final int l) {
-<span class="fc bfc" id="L310" title="All 2 branches covered.">    if (l &lt;= sample.level) {</span>
-<span class="fc" id="L311">      return;</span>
-    }
-<span class="fc" id="L313">    sample.level = l;</span>
-<span class="fc" id="L314">    ArrayDeque&lt;Pair&lt;AggSample, Integer&gt;&gt; trq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L315">    aggGraph.successors(sample).forEach((n) -&gt; trq.add(Pair.of(n, l + 1)));</span>
+  /**
+   * Update level of an aggregate sample...
+   * @param sample
+   * @param l
+   */
+  private void updateLevels(final AggSample sample) {
+<span class="fc" id="L315">    Set&lt;AggSample&gt; seen = new THashSet&lt;&gt;();</span>
+<span class="fc" id="L316">    ArrayDeque&lt;Pair&lt;AggSample, Integer&gt;&gt; trq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L317">    aggGraph.successors(sample).forEach((n) -&gt; trq.add(Pair.of(n, sample.level + 1)));</span>
     Pair&lt;AggSample, Integer&gt; curr;
-<span class="fc bfc" id="L317" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
-<span class="fc" id="L318">      AggSample first = curr.getFirst();</span>
-<span class="fc" id="L319">      Integer second = curr.getSecond();</span>
-<span class="fc" id="L320">      first.addLevel(second);</span>
-<span class="fc" id="L321">      Set&lt;AggSample&gt; successors = aggGraph.successors(first);</span>
-<span class="fc" id="L322">      successors.forEach((n) -&gt; trq.add(Pair.of(n, second + 1)));</span>
-<span class="fc" id="L323">    }</span>
-<span class="fc" id="L324">  }</span>
+<span class="fc bfc" id="L319" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
+<span class="fc" id="L320">      AggSample first = curr.getFirst();</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">      if (seen.add(first)) {</span>
+<span class="fc" id="L322">        Integer second = curr.getSecond();</span>
+<span class="fc" id="L323">        first.addLevel(second);</span>
+<span class="fc" id="L324">        Set&lt;AggSample&gt; successors = aggGraph.successors(first);</span>
+<span class="fc" id="L325">        successors.forEach((n) -&gt; trq.add(Pair.of(n, second + 1)));</span>
+      }
+<span class="fc" id="L327">    }</span>
+<span class="fc" id="L328">  }</span>
 
   public Sample getRootVertex() {
-<span class="nc" id="L327">    return rootVertex;</span>
+<span class="nc" id="L331">    return rootVertex;</span>
   }
 
   public AggSample getAggRootVertex() {
-<span class="fc" id="L331">    return aggregates.get(rootVertex.key);</span>
+<span class="fc" id="L335">    return aggregates.get(rootVertex.key);</span>
   }
 
   public int getAggNodesNr() {
-<span class="fc" id="L335">    return this.aggregates.size();</span>
+<span class="fc" id="L339">    return this.aggregates.size();</span>
   }
 
   public boolean haveCommonChild(final AggSample a, final AggSample b) {
-<span class="fc bfc" id="L339" title="All 2 branches covered.">    if (a.getKey().equals(b.getKey())) {</span>
-<span class="fc" id="L340">      return true;</span>
+<span class="fc bfc" id="L343" title="All 2 branches covered.">    if (a.getKey().equals(b.getKey())) {</span>
+<span class="fc" id="L344">      return true;</span>
     }
-<span class="fc" id="L342">    Set&lt;SampleKey&gt; traversed = new THashSet&lt;&gt;();</span>
-<span class="fc" id="L343">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L344">    trq.add(a);</span>
-<span class="fc" id="L345">    trq.add(b);</span>
+<span class="fc" id="L346">    Set&lt;SampleKey&gt; traversed = new THashSet&lt;&gt;();</span>
+<span class="fc" id="L347">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L348">    trq.add(a);</span>
+<span class="fc" id="L349">    trq.add(b);</span>
     AggSample curr;
-<span class="fc bfc" id="L347" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
-<span class="fc bfc" id="L348" title="All 2 branches covered.">      if (!traversed.add(curr.getKey())) {</span>
-<span class="fc" id="L349">        return true;</span>
+<span class="fc bfc" id="L351" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
+<span class="fc bfc" id="L352" title="All 2 branches covered.">      if (!traversed.add(curr.getKey())) {</span>
+<span class="fc" id="L353">        return true;</span>
       }
-<span class="fc" id="L351">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
+<span class="fc" id="L355">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
     }
-<span class="fc" id="L353">    return false;</span>
+<span class="fc" id="L357">    return false;</span>
   }
 
   public boolean isParentDescendant(final AggSample a, final AggSample b) {
-<span class="fc" id="L357">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L358">    trq.add(a);</span>
+<span class="fc" id="L361">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L362">    trq.add(a);</span>
     AggSample curr;
-<span class="fc bfc" id="L360" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
-<span class="fc bfc" id="L361" title="All 2 branches covered.">      if (curr.equals(b)) {</span>
-<span class="fc" id="L362">        return true;</span>
+<span class="pc bpc" id="L364" title="1 of 2 branches missed.">    while ((curr = trq.pollFirst()) != null) {</span>
+<span class="fc bfc" id="L365" title="All 2 branches covered.">      if (curr.equals(b)) {</span>
+<span class="fc" id="L366">        return true;</span>
       }
-<span class="fc" id="L364">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
+<span class="fc" id="L368">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
     }
-<span class="fc" id="L366">    return false;</span>
+<span class="nc" id="L370">    return false;</span>
   }
 
   public Set&lt;AggSample&gt; getParents(final AggSample node) {
-<span class="fc" id="L370">    return aggGraph.predecessors(node);</span>
+<span class="fc" id="L374">    return aggGraph.predecessors(node);</span>
   }
 
   public Set&lt;AggSample&gt; getChildren(final AggSample node) {
-<span class="fc" id="L374">    return aggGraph.successors(node);</span>
+<span class="fc" id="L378">    return aggGraph.successors(node);</span>
   }
 
   public AggSample getAggNode(final SampleKey key) {
-<span class="nc" id="L378">    return this.aggregates.get(key);</span>
+<span class="fc" id="L382">    return this.aggregates.get(key);</span>
   }
 
   public Set&lt;Sample&gt; getSamples(final SampleKey key) {
-<span class="nc" id="L382">    return this.vertexMap.get(key);</span>
+<span class="nc" id="L386">    return this.vertexMap.get(key);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L387">    return &quot;SampleGraph{&quot; + &quot;vertexMap=&quot; + vertexMap</span>
+<span class="nc" id="L391">    return &quot;SampleGraph{&quot; + &quot;vertexMap=&quot; + vertexMap</span>
             + &quot;, aggregates=&quot; + aggregates + &quot;, sampleTree=&quot; + sampleTree
             + &quot;, aggGraph=&quot; + aggGraph
             + &quot;, rootVertex=&quot; + rootVertex + '}';

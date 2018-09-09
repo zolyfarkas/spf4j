@@ -49,35 +49,35 @@ public final class PackageInfo implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-<span class="nc" id="L52">  private static final LoadingCache&lt;String, PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
-<span class="nc" id="L53">          .weakKeys().weakValues().build(new CacheLoader&lt;String, PackageInfo&gt;() {</span>
+<span class="fc" id="L52">  private static final LoadingCache&lt;String, PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
+<span class="fc" id="L53">          .weakKeys().weakValues().build(new CacheLoader&lt;String, PackageInfo&gt;() {</span>
 
             @Override
             public PackageInfo load(final String key) {
-<span class="nc" id="L57">              return getPackageInfoDirect(key);</span>
+<span class="fc" id="L57">              return getPackageInfoDirect(key);</span>
             }
           });
 
 
-<span class="nc" id="L62">  public static final PackageInfo NONE = new PackageInfo(null, null);</span>
+<span class="fc" id="L62">  public static final PackageInfo NONE = new PackageInfo(null, null);</span>
 
   private final String url;
   private final String version;
 
   @ConstructorProperties({&quot;url&quot;, &quot;version&quot;})
-<span class="nc" id="L68">  public PackageInfo(@Nullable final String url, @Nullable final String version) {</span>
-<span class="nc" id="L69">    this.url = url;</span>
-<span class="nc" id="L70">    this.version = version;</span>
-<span class="nc" id="L71">  }</span>
+<span class="fc" id="L68">  public PackageInfo(@Nullable final String url, @Nullable final String version) {</span>
+<span class="fc" id="L69">    this.url = url;</span>
+<span class="fc" id="L70">    this.version = version;</span>
+<span class="fc" id="L71">  }</span>
 
   @Nullable
   public String getUrl() {
-<span class="nc" id="L75">    return url;</span>
+<span class="fc" id="L75">    return url;</span>
   }
 
   @Nullable
   public String getVersion() {
-<span class="nc" id="L80">    return version;</span>
+<span class="fc" id="L80">    return version;</span>
   }
 
   @Override
@@ -91,22 +91,22 @@ public final class PackageInfo implements Serializable {
   }
 
   public boolean hasInfo() {
-<span class="nc bnc" id="L94" title="All 4 branches missed.">    return url != null || version != null;</span>
+<span class="pc bpc" id="L94" title="1 of 4 branches missed.">    return url != null || version != null;</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L99" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">    if (obj == null) {</span>
 <span class="nc" id="L100">      return false;</span>
     }
-<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
 <span class="nc" id="L103">      return false;</span>
     }
-<span class="nc" id="L105">    final PackageInfo other = (PackageInfo) obj;</span>
-<span class="nc bnc" id="L106" title="All 2 branches missed.">    if (!java.util.Objects.equals(this.url, other.url)) {</span>
-<span class="nc" id="L107">      return false;</span>
+<span class="fc" id="L105">    final PackageInfo other = (PackageInfo) obj;</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">    if (!java.util.Objects.equals(this.url, other.url)) {</span>
+<span class="fc" id="L107">      return false;</span>
     }
-<span class="nc" id="L109">    return java.util.Objects.equals(this.version, other.version);</span>
+<span class="fc" id="L109">    return java.util.Objects.equals(this.version, other.version);</span>
   }
 
   @Override
@@ -118,27 +118,27 @@ public final class PackageInfo implements Serializable {
   public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class&lt;?&gt; aClass;
     try {
-<span class="nc" id="L121">      aClass = Class.forName(className);</span>
-<span class="nc" id="L122">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
-<span class="nc" id="L123">      return NONE;</span>
-<span class="nc" id="L124">    }</span>
-<span class="nc" id="L125">    return getPackageInfoDirect(aClass);</span>
+<span class="fc" id="L121">      aClass = Class.forName(className);</span>
+<span class="fc" id="L122">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
+<span class="fc" id="L123">      return NONE;</span>
+<span class="fc" id="L124">    }</span>
+<span class="fc" id="L125">    return getPackageInfoDirect(aClass);</span>
   }
 
   @Nonnull
   public static PackageInfo getPackageInfoDirect(@Nonnull final Class&lt;?&gt; aClass) {
-<span class="nc" id="L130">    URL jarSourceUrl = getJarSourceUrl(aClass);</span>
-<span class="nc" id="L131">    final Package aPackage = aClass.getPackage();</span>
-<span class="nc bnc" id="L132" title="All 2 branches missed.">    if (aPackage == null) {</span>
+<span class="fc" id="L130">    URL jarSourceUrl = getJarSourceUrl(aClass);</span>
+<span class="fc" id="L131">    final Package aPackage = aClass.getPackage();</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
 <span class="nc" id="L133">      return NONE;</span>
     }
-<span class="nc" id="L135">    String version = aPackage.getImplementationVersion();</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">    return new PackageInfo(jarSourceUrl == null ? &quot;&quot; : jarSourceUrl.toString(), version);</span>
+<span class="fc" id="L135">    String version = aPackage.getImplementationVersion();</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">    return new PackageInfo(jarSourceUrl == null ? &quot;&quot; : jarSourceUrl.toString(), version);</span>
   }
 
   @Nonnull
   public static PackageInfo getPackageInfo(@Nonnull final String className) {
-<span class="nc" id="L141">    return CACHE.getUnchecked(className);</span>
+<span class="fc" id="L141">    return CACHE.getUnchecked(className);</span>
   }
   /**
    * Useful to get the jar URL where a particular class is located.
@@ -148,11 +148,11 @@ public final class PackageInfo implements Serializable {
    */
   @Nullable
   public static URL getJarSourceUrl(final Class&lt;?&gt; clasz) {
-<span class="nc" id="L151">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
-<span class="nc bnc" id="L152" title="All 2 branches missed.">    if (codeSource == null) {</span>
-<span class="nc" id="L153">      return null;</span>
+<span class="fc" id="L151">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">    if (codeSource == null) {</span>
+<span class="fc" id="L153">      return null;</span>
     } else {
-<span class="nc" id="L155">      return codeSource.getLocation();</span>
+<span class="fc" id="L155">      return codeSource.getLocation();</span>
     }
   }
 

@@ -29,9 +29,9 @@ public final class TimeSource {
 
   static {
 <span class="fc" id="L31">    String cfgTimeSource = System.getProperty(&quot;spf4j.timeSource&quot;);</span>
-<span class="pc bpc" id="L32" title="1 of 2 branches missed.">    if (cfgTimeSource == null) {</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">    if (cfgTimeSource == null) {</span>
 <span class="fc" id="L33">      TIMESUPP = () -&gt; System.nanoTime();</span>
-<span class="nc bnc" id="L34" title="All 2 branches missed.">    } else if (&quot;systemTime&quot;.equals(cfgTimeSource)) {</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">    } else if (&quot;systemTime&quot;.equals(cfgTimeSource)) {</span>
       // System time is about 3 times faster on macOSX (30ns vs 10ns):
       // and worth considerign is more than millisecond precission is not needed:
       // TimingBenchmark.getCurrentTimeMillis         thrpt   10  108291306.615 ± 3493136.191  ops/s
@@ -39,10 +39,10 @@ public final class TimeSource {
 <span class="nc" id="L39">      TIMESUPP = new SystemTimeProvider();</span>
     } else {
       try {
-<span class="nc" id="L42">        TIMESUPP = (LongSupplier) Class.forName(cfgTimeSource).newInstance();</span>
+<span class="fc" id="L42">        TIMESUPP = (LongSupplier) Class.forName(cfgTimeSource).newInstance();</span>
 <span class="nc" id="L43">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
 <span class="nc" id="L44">        throw new ExceptionInInitializerError(ex);</span>
-<span class="nc" id="L45">      }</span>
+<span class="fc" id="L45">      }</span>
     }
 
 <span class="fc" id="L48">  }</span>

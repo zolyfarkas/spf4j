@@ -58,29 +58,29 @@ import org.spf4j.text.MessageFormat;
  * &lt;p&gt; Implementation is interchangeable with the jul-to-slf4j implementation &lt;/p&gt;
  *
  */
-<span class="nc" id="L61">public final class SLF4JBridgeHandler extends Handler {</span>
+<span class="fc" id="L61">public final class SLF4JBridgeHandler extends Handler {</span>
 
-<span class="nc" id="L63">  private static final String FQCN = java.util.logging.Logger.class.getName();</span>
+<span class="fc" id="L63">  private static final String FQCN = java.util.logging.Logger.class.getName();</span>
   private static final String UNKNOWN_LOGGER_NAME = &quot;unknown.jul.logger&quot;;
 
-<span class="nc" id="L66">  private static final int TRACE_LEVEL_THRESHOLD = Level.FINEST.intValue();</span>
-<span class="nc" id="L67">  private static final int DEBUG_LEVEL_THRESHOLD = Level.FINE.intValue();</span>
-<span class="nc" id="L68">  private static final int INFO_LEVEL_THRESHOLD = Level.INFO.intValue();</span>
-<span class="nc" id="L69">  private static final int WARN_LEVEL_THRESHOLD = Level.WARNING.intValue();</span>
+<span class="fc" id="L66">  private static final int TRACE_LEVEL_THRESHOLD = Level.FINEST.intValue();</span>
+<span class="fc" id="L67">  private static final int DEBUG_LEVEL_THRESHOLD = Level.FINE.intValue();</span>
+<span class="fc" id="L68">  private static final int INFO_LEVEL_THRESHOLD = Level.INFO.intValue();</span>
+<span class="fc" id="L69">  private static final int WARN_LEVEL_THRESHOLD = Level.WARNING.intValue();</span>
 
-<span class="nc" id="L71">  private static final boolean ALWAYS_TRY_INFER = Boolean.getBoolean(&quot;spf4j.jul2slf4jBridge.alwaysTryInferSource&quot;);</span>
+<span class="fc" id="L71">  private static final boolean ALWAYS_TRY_INFER = Boolean.getBoolean(&quot;spf4j.jul2slf4jBridge.alwaysTryInferSource&quot;);</span>
 
   @Nullable
   private static final Field NEED_INFER;
 
   static {
-<span class="nc" id="L77">    NEED_INFER = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
+<span class="fc" id="L77">    NEED_INFER = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
       @Override
       public Field run() {
         try {
-<span class="nc" id="L81">          Field declaredField = LogRecord.class.getDeclaredField(&quot;needToInferCaller&quot;);</span>
-<span class="nc" id="L82">          declaredField.setAccessible(true);</span>
-<span class="nc" id="L83">          return declaredField;</span>
+<span class="fc" id="L81">          Field declaredField = LogRecord.class.getDeclaredField(&quot;needToInferCaller&quot;);</span>
+<span class="fc" id="L82">          declaredField.setAccessible(true);</span>
+<span class="fc" id="L83">          return declaredField;</span>
 <span class="nc" id="L84">        } catch (NoSuchFieldException | SecurityException ex) {</span>
 <span class="nc" id="L85">          LoggerFactory.getLogger(SLF4JBridgeHandler.class)</span>
 <span class="nc" id="L86">                  .debug(&quot;jul to slf4j bridge will not differentiate between computed caller info and provided&quot;, ex);</span>
@@ -88,7 +88,7 @@ import org.spf4j.text.MessageFormat;
         }
       }
     });
-<span class="nc" id="L91">  }</span>
+<span class="fc" id="L91">  }</span>
 
   /**
    * Adds a SLF4JBridgeHandler instance to jul's root logger.
@@ -100,11 +100,11 @@ import org.spf4j.text.MessageFormat;
    * reach SLF4JBridgeHandler and cannot be redirected.
    */
   public static void install() {
-<span class="nc" id="L103">    getRootLogger().addHandler(new SLF4JBridgeHandler());</span>
-<span class="nc" id="L104">  }</span>
+<span class="fc" id="L103">    getRootLogger().addHandler(new SLF4JBridgeHandler());</span>
+<span class="fc" id="L104">  }</span>
 
   private static java.util.logging.Logger getRootLogger() {
-<span class="nc" id="L107">    return LogManager.getLogManager().getLogger(&quot;&quot;);</span>
+<span class="fc" id="L107">    return LogManager.getLogManager().getLogger(&quot;&quot;);</span>
   }
 
   /**
@@ -144,18 +144,18 @@ import org.spf4j.text.MessageFormat;
    * Invoking this method removes/unregisters/detaches all handlers currently attached to the root logger
    */
   public static void removeHandlersForRootLogger() {
-<span class="nc" id="L147">    java.util.logging.Logger rootLogger = getRootLogger();</span>
-<span class="nc" id="L148">    Handler[] handlers = rootLogger.getHandlers();</span>
-<span class="nc bnc" id="L149" title="All 2 branches missed.">    for (int i = 0; i &lt; handlers.length; i++) {</span>
+<span class="fc" id="L147">    java.util.logging.Logger rootLogger = getRootLogger();</span>
+<span class="fc" id="L148">    Handler[] handlers = rootLogger.getHandlers();</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">    for (int i = 0; i &lt; handlers.length; i++) {</span>
 <span class="nc" id="L150">      rootLogger.removeHandler(handlers[i]);</span>
     }
-<span class="nc" id="L152">  }</span>
+<span class="fc" id="L152">  }</span>
 
 
   @Override
   public void close() {
     // NOOP
-<span class="nc" id="L158">  }</span>
+<span class="fc" id="L158">  }</span>
 
   @Override
   public void flush() {
@@ -166,11 +166,11 @@ import org.spf4j.text.MessageFormat;
    * Return the Logger instance that will be used for logging.
    */
   private static Logger getSLF4JLogger(final LogRecord record) {
-<span class="nc" id="L169">    String name = record.getLoggerName();</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">    if (name == null) {</span>
+<span class="fc" id="L169">    String name = record.getLoggerName();</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">    if (name == null) {</span>
 <span class="nc" id="L171">      name = UNKNOWN_LOGGER_NAME;</span>
     }
-<span class="nc" id="L173">    return LoggerFactory.getLogger(name);</span>
+<span class="fc" id="L173">    return LoggerFactory.getLogger(name);</span>
   }
 
   private static void callLocationAwareLogger(final LocationAwareLogger lal, final LogRecord record) {
@@ -197,22 +197,22 @@ import org.spf4j.text.MessageFormat;
 <span class="nc" id="L197">  }</span>
 
   private static void callPlainSLF4JLogger(final Logger slf4jLogger, final LogRecord record) {
-<span class="nc" id="L200">    String i18nMessage = getMessageI18N(record);</span>
-<span class="nc" id="L201">    int julLevelValue = record.getLevel().intValue();</span>
-<span class="nc" id="L202">    Throwable thrown = record.getThrown();</span>
-<span class="nc" id="L203">    Method m = getSourceMethodInfo(record);</span>
-<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (thrown != null) {</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">      if (julLevelValue &lt;= TRACE_LEVEL_THRESHOLD) {</span>
+<span class="fc" id="L200">    String i18nMessage = getMessageI18N(record);</span>
+<span class="fc" id="L201">    int julLevelValue = record.getLevel().intValue();</span>
+<span class="fc" id="L202">    Throwable thrown = record.getThrown();</span>
+<span class="fc" id="L203">    Method m = getSourceMethodInfo(record);</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">    if (thrown != null) {</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">      if (julLevelValue &lt;= TRACE_LEVEL_THRESHOLD) {</span>
 <span class="nc bnc" id="L206" title="All 2 branches missed.">        if (m != null) {</span>
 <span class="nc" id="L207">          slf4jLogger.trace(i18nMessage, m, thrown);</span>
         } else {
 <span class="nc" id="L209">          slf4jLogger.trace(i18nMessage, thrown);</span>
         }
-<span class="nc bnc" id="L211" title="All 2 branches missed.">      } else if (julLevelValue &lt;= DEBUG_LEVEL_THRESHOLD) {</span>
-<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (m != null) {</span>
-<span class="nc" id="L213">          slf4jLogger.debug(i18nMessage, m, thrown);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">      } else if (julLevelValue &lt;= DEBUG_LEVEL_THRESHOLD) {</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (m != null) {</span>
+<span class="fc" id="L213">          slf4jLogger.debug(i18nMessage, m, thrown);</span>
         } else {
-<span class="nc" id="L215">          slf4jLogger.debug(i18nMessage, thrown);</span>
+<span class="fc" id="L215">          slf4jLogger.debug(i18nMessage, thrown);</span>
         }
 <span class="nc bnc" id="L217" title="All 2 branches missed.">      } else if (julLevelValue &lt;= INFO_LEVEL_THRESHOLD) {</span>
 <span class="nc bnc" id="L218" title="All 2 branches missed.">        if (m != null) {</span>
@@ -234,53 +234,53 @@ import org.spf4j.text.MessageFormat;
         }
       }
     } else {
-<span class="nc bnc" id="L237" title="All 2 branches missed.">       if (julLevelValue &lt;= TRACE_LEVEL_THRESHOLD) {</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">       if (julLevelValue &lt;= TRACE_LEVEL_THRESHOLD) {</span>
 <span class="nc bnc" id="L238" title="All 2 branches missed.">        if (m != null) {</span>
 <span class="nc" id="L239">          slf4jLogger.trace(i18nMessage, m);</span>
         } else {
 <span class="nc" id="L241">          slf4jLogger.trace(i18nMessage);</span>
         }
-<span class="nc bnc" id="L243" title="All 2 branches missed.">      } else if (julLevelValue &lt;= DEBUG_LEVEL_THRESHOLD) {</span>
-<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (m != null) {</span>
-<span class="nc" id="L245">          slf4jLogger.debug(i18nMessage, m);</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">      } else if (julLevelValue &lt;= DEBUG_LEVEL_THRESHOLD) {</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">        if (m != null) {</span>
+<span class="fc" id="L245">          slf4jLogger.debug(i18nMessage, m);</span>
         } else {
-<span class="nc" id="L247">          slf4jLogger.debug(i18nMessage);</span>
+<span class="fc" id="L247">          slf4jLogger.debug(i18nMessage);</span>
         }
-<span class="nc bnc" id="L249" title="All 2 branches missed.">      } else if (julLevelValue &lt;= INFO_LEVEL_THRESHOLD) {</span>
-<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (m != null) {</span>
-<span class="nc" id="L251">          slf4jLogger.info(i18nMessage, m);</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">      } else if (julLevelValue &lt;= INFO_LEVEL_THRESHOLD) {</span>
+<span class="fc bfc" id="L250" title="All 2 branches covered.">        if (m != null) {</span>
+<span class="fc" id="L251">          slf4jLogger.info(i18nMessage, m);</span>
         } else {
-<span class="nc" id="L253">          slf4jLogger.info(i18nMessage);</span>
+<span class="fc" id="L253">          slf4jLogger.info(i18nMessage);</span>
         }
-<span class="nc bnc" id="L255" title="All 2 branches missed.">      } else if (julLevelValue &lt;= WARN_LEVEL_THRESHOLD) {</span>
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">      } else if (julLevelValue &lt;= WARN_LEVEL_THRESHOLD) {</span>
 <span class="nc bnc" id="L256" title="All 2 branches missed.">        if (m != null) {</span>
 <span class="nc" id="L257">          slf4jLogger.warn(i18nMessage, m);</span>
         } else {
 <span class="nc" id="L259">          slf4jLogger.warn(i18nMessage);</span>
         }
       } else {
-<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (m != null) {</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">        if (m != null) {</span>
 <span class="nc" id="L263">          slf4jLogger.error(i18nMessage, m);</span>
         } else {
-<span class="nc" id="L265">          slf4jLogger.error(i18nMessage);</span>
+<span class="fc" id="L265">          slf4jLogger.error(i18nMessage);</span>
         }
       }
     }
-<span class="nc" id="L269">  }</span>
+<span class="fc" id="L269">  }</span>
 
   @Nullable
   public static Method getSourceMethodInfo(final LogRecord record) {
     Method m;
     try {
-<span class="nc bnc" id="L275" title="All 6 branches missed.">      if (ALWAYS_TRY_INFER || (NEED_INFER != null &amp;&amp; !NEED_INFER.getBoolean(record))) {</span>
-<span class="nc" id="L276">        m = new Method(record.getSourceClassName(), record.getSourceMethodName());</span>
+<span class="pc bpc" id="L275" title="2 of 6 branches missed.">      if (ALWAYS_TRY_INFER || (NEED_INFER != null &amp;&amp; !NEED_INFER.getBoolean(record))) {</span>
+<span class="fc" id="L276">        m = new Method(record.getSourceClassName(), record.getSourceMethodName());</span>
       } else {
-<span class="nc" id="L278">        m = null;</span>
+<span class="fc" id="L278">        m = null;</span>
       }
 <span class="nc" id="L280">    } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
 <span class="nc" id="L281">      throw new RuntimeException(ex);</span>
-<span class="nc" id="L282">    }</span>
-<span class="nc" id="L283">    return m;</span>
+<span class="fc" id="L282">    }</span>
+<span class="fc" id="L283">    return m;</span>
   }
 
   /**
@@ -291,42 +291,42 @@ import org.spf4j.text.MessageFormat;
    */
   @Nonnull
   private static String getMessageI18N(final LogRecord record) {
-<span class="nc" id="L294">    String message = record.getMessage();</span>
-<span class="nc bnc" id="L295" title="All 2 branches missed.">    if (message == null) {</span>
+<span class="fc" id="L294">    String message = record.getMessage();</span>
+<span class="pc bpc" id="L295" title="1 of 2 branches missed.">    if (message == null) {</span>
 <span class="nc" id="L296">      return &quot;&quot;;</span>
     }
 
-<span class="nc" id="L299">    ResourceBundle bundle = record.getResourceBundle();</span>
-<span class="nc bnc" id="L300" title="All 2 branches missed.">    if (bundle != null) {</span>
+<span class="fc" id="L299">    ResourceBundle bundle = record.getResourceBundle();</span>
+<span class="pc bpc" id="L300" title="1 of 2 branches missed.">    if (bundle != null) {</span>
       try {
 <span class="nc" id="L302">        message = bundle.getString(message);</span>
 <span class="nc" id="L303">      } catch (MissingResourceException e) {</span>
 <span class="nc" id="L304">      }</span>
     }
-<span class="nc" id="L306">    Object[] params = record.getParameters();</span>
-<span class="nc bnc" id="L307" title="All 4 branches missed.">    if (params != null &amp;&amp; params.length &gt; 0) {</span>
+<span class="fc" id="L306">    Object[] params = record.getParameters();</span>
+<span class="pc bpc" id="L307" title="1 of 4 branches missed.">    if (params != null &amp;&amp; params.length &gt; 0) {</span>
       try {
-<span class="nc" id="L309">        message = MessageFormat.format(message, params);</span>
+<span class="fc" id="L309">        message = MessageFormat.format(message, params);</span>
 <span class="nc" id="L310">      } catch (IllegalArgumentException e) {</span>
 <span class="nc" id="L311">        LoggerFactory.getLogger(SLF4JBridgeHandler.class).warn(&quot;Unable to format {} with {}&quot;, message, params, e);</span>
 <span class="nc" id="L312">        return message;</span>
-<span class="nc" id="L313">      }</span>
+<span class="fc" id="L313">      }</span>
     }
-<span class="nc" id="L315">    return message;</span>
+<span class="fc" id="L315">    return message;</span>
   }
 
   public void publish(final LogRecord record) {
     try {
-<span class="nc" id="L320">      Logger slf4jLogger = getSLF4JLogger(record);</span>
-<span class="nc bnc" id="L321" title="All 2 branches missed.">      if (slf4jLogger instanceof LocationAwareLogger) {</span>
+<span class="fc" id="L320">      Logger slf4jLogger = getSLF4JLogger(record);</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">      if (slf4jLogger instanceof LocationAwareLogger) {</span>
 <span class="nc" id="L322">        callLocationAwareLogger((LocationAwareLogger) slf4jLogger, record);</span>
       } else {
-<span class="nc" id="L324">        callPlainSLF4JLogger(slf4jLogger, record);</span>
+<span class="fc" id="L324">        callPlainSLF4JLogger(slf4jLogger, record);</span>
       }
 <span class="nc" id="L326">    } catch (RuntimeException ex) {</span>
 <span class="nc" id="L327">      LoggerFactory.getLogger(SLF4JBridgeHandler.class).warn(&quot;Unable to publish {}&quot;, record, ex);</span>
-<span class="nc" id="L328">    }</span>
-<span class="nc" id="L329">  }</span>
+<span class="fc" id="L328">    }</span>
+<span class="fc" id="L329">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

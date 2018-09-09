@@ -39,10 +39,10 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.io.compress;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.io.Files;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.io.Files;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.nio.file.Path;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.hamcrest.Matchers;
@@ -65,30 +65,30 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>        <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Cannot create folder "</span> + subFolder);
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>      }
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>      File subTestFile = <strong class="jxr_keyword">new</strong> File(subFolder, <span class="jxr_string">"subTestFile.txt"</span>);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      Files.asCharSink(file, Charsets.UTF_8).write(testStr);
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>      Files.asCharSink(subTestFile, Charsets.UTF_8).write(testStr);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      Files.asCharSink(file, StandardCharsets.UTF_8).write(testStr);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      Files.asCharSink(subTestFile, StandardCharsets.UTF_8).write(testStr);
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      Path zip = Compress.zip(tmpFolder.toPath());
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      Assert.assertThat(zip.getFileName().toString(), Matchers.endsWith(<span class="jxr_string">".zip"</span>));
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>      Assert.assertTrue(java.nio.file.Files.exists(zip));
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      File tmpFir = Files.createTempDir();
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>      List&lt;Path&gt; unzip = Compress.unzip(zip, tmpFir.toPath());
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>      Assert.assertEquals(2, unzip.size());
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>      Assert.assertEquals(testStr, Files.asCharSource(unzip.get(0).toFile(), Charsets.UTF_8).read());
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>      Assert.assertEquals(testStr, Files.asCharSource(unzip.get(1).toFile(), Charsets.UTF_8).read());
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      Assert.assertEquals(testStr, Files.asCharSource(unzip.get(0).toFile(), StandardCharsets.UTF_8).read());
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      Assert.assertEquals(testStr, Files.asCharSource(unzip.get(1).toFile(), StandardCharsets.UTF_8).read());
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>    }
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>  
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>    @Test
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testZip2() <strong class="jxr_keyword">throws</strong> IOException {
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>      File file = File.createTempFile(<span class="jxr_string">".bla"</span>, <span class="jxr_string">".tmp"</span>);
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>      String testStr = <span class="jxr_string">"skjfghskjdhgfjgishfgksjhgjkhdskghsfdkjhg"</span>;
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      Files.write(testStr, file, Charsets.UTF_8);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      Files.write(testStr, file, StandardCharsets.UTF_8);
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>      Path zip = Compress.zip(file.toPath());
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>      Assert.assertThat(zip.getFileName().toString(), Matchers.endsWith(<span class="jxr_string">".zip"</span>));
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>      Assert.assertTrue(java.nio.file.Files.exists(zip));
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>      File tmpFir = Files.createTempDir();
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>      List&lt;Path&gt; unzip = Compress.unzip(zip, tmpFir.toPath());
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>      Assert.assertEquals(1, unzip.size());
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>      Assert.assertEquals(testStr, Files.toString(unzip.get(0).toFile(), Charsets.UTF_8));
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      Assert.assertEquals(testStr, Files.toString(unzip.get(0).toFile(), StandardCharsets.UTF_8));
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>    }
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>  

@@ -39,9 +39,9 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.perf.impl.ms.tsdb;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.File;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.nio.file.Files;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.nio.file.Path;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.nio.file.Paths;
@@ -69,13 +69,13 @@
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>              <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>}, <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"ms"</span>, <span class="jxr_string">"ms"</span>}), 10000);
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      store.close();
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      String content = Files.lines(tmpFile, Charsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      String content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      LOG.debug(<span class="jxr_string">"File Content: {}"</span>, content);
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,3,b,4"</span>));
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>      TSDBTxtMeasurementStore store2 = <strong class="jxr_keyword">new</strong> TSDBTxtMeasurementStore(file);
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>      store2.saveMeasurements(id, System.currentTimeMillis(), 5L, 6L);
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>      store2.close();
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      content = Files.lines(tmpFile, Charsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,3,b,4"</span>));
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,5,b,6"</span>));
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>    }

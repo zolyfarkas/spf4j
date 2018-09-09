@@ -41,13 +41,14 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
     }
 
     @Override
+    @Nullable
     public Either getResult() {
-<span class="fc" id="L45">      return null;</span>
+<span class="fc" id="L46">      return null;</span>
     }
 
     @Override
     public Callable getNewCallable() {
-<span class="nc" id="L50">      throw new UnsupportedOperationException();</span>
+<span class="nc" id="L51">      throw new UnsupportedOperationException();</span>
     }
 
   };
@@ -57,7 +58,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
    */
   @CheckReturnValue
   static RetryDecision abort() {
-<span class="fc" id="L60">    return ABORT;</span>
+<span class="fc" id="L61">    return ABORT;</span>
   }
 
 
@@ -67,26 +68,26 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
    * @return a Abort decision with a custom Exception.
    */
   @CheckReturnValue
-  static RetryDecision&lt;?, Callable&lt;?&gt;&gt; abortThrow(@Nonnull final Exception exception) {
-<span class="fc" id="L71">    return new RetryDecision() {</span>
+  static RetryDecision abortThrow(@Nonnull final Exception exception) {
+<span class="fc" id="L72">    return new RetryDecision() {</span>
       @Override
       public Type getDecisionType() {
-<span class="fc" id="L74">        return Type.Abort;</span>
+<span class="fc" id="L75">        return Type.Abort;</span>
       }
 
       @Override
       public long getDelayNanos() {
-<span class="nc" id="L79">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L80">        throw new UnsupportedOperationException();</span>
       }
 
       @Override
       public Callable&lt;?&gt; getNewCallable() {
-<span class="nc" id="L84">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L85">        throw new UnsupportedOperationException();</span>
       }
 
       @Override
       public Either getResult() {
-<span class="fc" id="L89">        return Either.left(exception);</span>
+<span class="fc" id="L90">        return Either.left(exception);</span>
       }
 
     };
@@ -99,25 +100,25 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
    */
   @CheckReturnValue
   static &lt;T&gt; RetryDecision&lt;T, ? extends Callable&lt;? extends T&gt;&gt; abortReturn(final T result) {
-<span class="nc" id="L102">    return new RetryDecision&lt;T, Callable&lt;T&gt;&gt;() {</span>
+<span class="nc" id="L103">    return new RetryDecision&lt;T, Callable&lt;T&gt;&gt;() {</span>
       @Override
       public Type getDecisionType() {
-<span class="nc" id="L105">        return Type.Abort;</span>
+<span class="nc" id="L106">        return Type.Abort;</span>
       }
 
       @Override
       public long getDelayNanos() {
-<span class="nc" id="L110">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L111">        throw new UnsupportedOperationException();</span>
       }
 
       @Override
       public Either&lt;Exception, T&gt; getResult() {
-<span class="nc" id="L115">        return Either.right(result);</span>
+<span class="nc" id="L116">        return Either.right(result);</span>
       }
 
       @Override
       public Callable&lt;T&gt; getNewCallable() {
-<span class="nc" id="L120">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L121">        throw new UnsupportedOperationException();</span>
       }
 
     };
@@ -126,31 +127,31 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
   @CheckReturnValue
   static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryDecision&lt;T, C&gt; retry(
           @Nonnegative final long time, final TimeUnit unit, @Nonnull final C callable) {
-<span class="nc" id="L129">    return retry(unit.toNanos(time), callable);</span>
+<span class="nc" id="L130">    return retry(unit.toNanos(time), callable);</span>
   }
 
   @CheckReturnValue
   static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryDecision&lt;T, C&gt; retry(
           @Nonnegative final long retryNanos, @Nonnull final C callable) {
-<span class="fc" id="L135">   return new RetryDecision&lt;T, C&gt;() {</span>
+<span class="fc" id="L136">   return new RetryDecision&lt;T, C&gt;() {</span>
      @Override
      public Type getDecisionType() {
-<span class="fc" id="L138">       return Type.Retry;</span>
+<span class="fc" id="L139">       return Type.Retry;</span>
      }
 
      @Override
      public long getDelayNanos() {
-<span class="fc" id="L143">       return retryNanos;</span>
+<span class="fc" id="L144">       return retryNanos;</span>
      }
 
      @Override
      public Either&lt;Exception, T&gt; getResult() {
-<span class="nc" id="L148">       throw new UnsupportedOperationException();</span>
+<span class="nc" id="L149">       throw new UnsupportedOperationException();</span>
      }
 
      @Override
      public C getNewCallable() {
-<span class="fc" id="L153">       return callable;</span>
+<span class="fc" id="L154">       return callable;</span>
      }
 
    };
@@ -159,35 +160,35 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
   @CheckReturnValue
   static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryDecision&lt;T, C&gt; retryDefault(@Nonnull final C callable) {
-<span class="fc" id="L162">   return new RetryDecision&lt;T, C&gt;() {</span>
+<span class="fc" id="L163">   return new RetryDecision&lt;T, C&gt;() {</span>
      @Override
      public Type getDecisionType() {
-<span class="fc" id="L165">       return Type.Retry;</span>
+<span class="fc" id="L166">       return Type.Retry;</span>
      }
 
      @Override
      public long getDelayNanos() {
-<span class="fc" id="L170">       return -1;</span>
+<span class="fc" id="L171">       return -1;</span>
      }
 
      @Override
      public Either&lt;Exception, T&gt; getResult() {
-<span class="nc" id="L175">       throw new UnsupportedOperationException();</span>
+<span class="nc" id="L176">       throw new UnsupportedOperationException();</span>
      }
 
      @Override
      public C getNewCallable() {
-<span class="fc" id="L180">       return callable;</span>
+<span class="fc" id="L181">       return callable;</span>
      }
 
    };
   }
 
-<span class="fc" id="L186">  enum Type {</span>
+<span class="fc" id="L187">  enum Type {</span>
     /** Do not retry operation*/
-<span class="fc" id="L188">    Abort,</span>
+<span class="fc" id="L189">    Abort,</span>
     /** Retry operation */
-<span class="fc" id="L190">    Retry</span>
+<span class="fc" id="L191">    Retry</span>
   }
 
 

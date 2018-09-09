@@ -63,7 +63,7 @@ import org.spf4j.base.Throwables;
 final class ExportedValuesMBean implements DynamicMBean {
 
 
-<span class="nc" id="L66">  private static final Pattern INVALID_CHARS = Pattern.compile(&quot;[^a-zA-Z0-9_\\-\\.]&quot;);</span>
+<span class="fc" id="L66">  private static final Pattern INVALID_CHARS = Pattern.compile(&quot;[^a-zA-Z0-9_\\-\\.]&quot;);</span>
 
   private final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedValues;
 
@@ -75,12 +75,12 @@ final class ExportedValuesMBean implements DynamicMBean {
 
   ExportedValuesMBean(final ObjectName objectName,
           final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedValues,
-<span class="nc" id="L78">          final Map&lt;String, ExportedOperation&gt; exportedOperations) {</span>
-<span class="nc" id="L79">    this.exportedOperations = exportedOperations;</span>
-<span class="nc" id="L80">    this.exportedValues = exportedValues;</span>
-<span class="nc" id="L81">    this.objectName = objectName;</span>
-<span class="nc" id="L82">    this.beanInfo = createBeanInfo();</span>
-<span class="nc" id="L83">  }</span>
+<span class="fc" id="L78">          final Map&lt;String, ExportedOperation&gt; exportedOperations) {</span>
+<span class="fc" id="L79">    this.exportedOperations = exportedOperations;</span>
+<span class="fc" id="L80">    this.exportedValues = exportedValues;</span>
+<span class="fc" id="L81">    this.objectName = objectName;</span>
+<span class="fc" id="L82">    this.beanInfo = createBeanInfo();</span>
+<span class="fc" id="L83">  }</span>
 
   ExportedValuesMBean(final ObjectName objectName,
 <span class="nc" id="L86">          final ExportedValue&lt;?&gt;[] exported, final ExportedOperation[] operations) {</span>
@@ -122,21 +122,21 @@ final class ExportedValuesMBean implements DynamicMBean {
 
   ExportedValuesMBean(final ExportedValuesMBean extend,
           final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedValues,
-<span class="nc" id="L125">          final Map&lt;String, ExportedOperation&gt; exportedOperations) {</span>
-<span class="nc" id="L126">    this.exportedValues = exportedValues;</span>
-<span class="nc" id="L127">    this.exportedValues.putAll(extend.exportedValues);</span>
-<span class="nc" id="L128">    this.exportedOperations = exportedOperations;</span>
-<span class="nc" id="L129">    this.exportedOperations.putAll(extend.exportedOperations);</span>
-<span class="nc" id="L130">    this.objectName = extend.getObjectName();</span>
-<span class="nc" id="L131">    this.beanInfo = createBeanInfo();</span>
-<span class="nc" id="L132">  }</span>
+<span class="fc" id="L125">          final Map&lt;String, ExportedOperation&gt; exportedOperations) {</span>
+<span class="fc" id="L126">    this.exportedValues = exportedValues;</span>
+<span class="fc" id="L127">    this.exportedValues.putAll(extend.exportedValues);</span>
+<span class="fc" id="L128">    this.exportedOperations = exportedOperations;</span>
+<span class="fc" id="L129">    this.exportedOperations.putAll(extend.exportedOperations);</span>
+<span class="fc" id="L130">    this.objectName = extend.getObjectName();</span>
+<span class="fc" id="L131">    this.beanInfo = createBeanInfo();</span>
+<span class="fc" id="L132">  }</span>
 
 
   /**
    * @return - the object name of this mbean.
    */
   public ObjectName getObjectName() {
-<span class="nc" id="L139">    return objectName;</span>
+<span class="fc" id="L139">    return objectName;</span>
   }
 
   /**
@@ -144,12 +144,12 @@ final class ExportedValuesMBean implements DynamicMBean {
    */
   @Override
   public Object getAttribute(final String name) throws AttributeNotFoundException, MBeanException {
-<span class="nc" id="L147">    ExportedValue&lt;?&gt; result = exportedValues.get(name);</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (result == null) {</span>
+<span class="fc" id="L147">    ExportedValue&lt;?&gt; result = exportedValues.get(name);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">    if (result == null) {</span>
 <span class="nc" id="L149">      throw new AttributeNotFoundException(name);</span>
     }
     try {
-<span class="nc" id="L152">      return result.get();</span>
+<span class="fc" id="L152">      return result.get();</span>
 <span class="nc" id="L153">    } catch (OpenDataException | RuntimeException ex) {</span>
 <span class="nc" id="L154">      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,</span>
               &quot;Exception while getting attr {0}&quot;, name);
@@ -165,13 +165,13 @@ final class ExportedValuesMBean implements DynamicMBean {
   @Override
   public void setAttribute(final Attribute attribute)
           throws AttributeNotFoundException, InvalidAttributeValueException {
-<span class="nc" id="L168">    String name = attribute.getName();</span>
-<span class="nc" id="L169">    ExportedValue&lt;Object&gt; result = (ExportedValue&lt;Object&gt;) exportedValues.get(name);</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">    if (result == null) {</span>
+<span class="fc" id="L168">    String name = attribute.getName();</span>
+<span class="fc" id="L169">    ExportedValue&lt;Object&gt; result = (ExportedValue&lt;Object&gt;) exportedValues.get(name);</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">    if (result == null) {</span>
 <span class="nc" id="L171">      throw new AttributeNotFoundException(name);</span>
     }
     try {
-<span class="nc" id="L174">      result.set(attribute.getValue());</span>
+<span class="fc" id="L174">      result.set(attribute.getValue());</span>
 <span class="nc" id="L175">    } catch (InvalidObjectException | RuntimeException ex) {</span>
 <span class="nc" id="L176">      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,</span>
               &quot;Exception while setting attr {0}&quot;, attribute);
@@ -179,8 +179,8 @@ final class ExportedValuesMBean implements DynamicMBean {
               &quot;Exception detail&quot;, ex);
 <span class="nc" id="L180">      throw new InvalidAttributeValueException(&quot;Invalid value &quot; + attribute</span>
 <span class="nc" id="L181">              + &quot; detail:\n&quot; + Throwables.toString(ex));</span>
-<span class="nc" id="L182">    }</span>
-<span class="nc" id="L183">  }</span>
+<span class="fc" id="L182">    }</span>
+<span class="fc" id="L183">  }</span>
 
   /**
    * {@inheritDoc}
@@ -238,7 +238,7 @@ final class ExportedValuesMBean implements DynamicMBean {
   @Override
   public Object invoke(final String name, final Object[] args, final String[] sig) throws MBeanException {
     try {
-<span class="nc" id="L241">      return exportedOperations.get(name).invoke(args);</span>
+<span class="fc" id="L241">      return exportedOperations.get(name).invoke(args);</span>
 <span class="nc" id="L242">    } catch (OpenDataException | InvalidObjectException | RuntimeException ex) {</span>
 <span class="nc" id="L243">      Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,</span>
               &quot;Exception while invoking operation {0}({1})&quot;, new Object[] {name, args});
@@ -254,43 +254,43 @@ final class ExportedValuesMBean implements DynamicMBean {
    */
   @Override
   public MBeanInfo getMBeanInfo() {
-<span class="nc" id="L257">    return beanInfo;</span>
+<span class="fc" id="L257">    return beanInfo;</span>
   }
 
   public static ObjectName createObjectName(final String domain, final String name) {
     try {
-<span class="nc" id="L262">      final String sanitizedDomain = INVALID_CHARS.matcher(domain).replaceAll(&quot;_&quot;);</span>
-<span class="nc" id="L263">      final String sanitizedName = INVALID_CHARS.matcher(name).replaceAll(&quot;_&quot;);</span>
-<span class="nc" id="L264">      StringBuilder builder = new StringBuilder(domain.length() + name.length() + 6);</span>
-<span class="nc" id="L265">      builder.append(sanitizedDomain).append(':');</span>
-<span class="nc" id="L266">      builder.append(&quot;name=&quot;).append(sanitizedName);</span>
-<span class="nc" id="L267">      return new ObjectName(builder.toString());</span>
+<span class="fc" id="L262">      final String sanitizedDomain = INVALID_CHARS.matcher(domain).replaceAll(&quot;_&quot;);</span>
+<span class="fc" id="L263">      final String sanitizedName = INVALID_CHARS.matcher(name).replaceAll(&quot;_&quot;);</span>
+<span class="fc" id="L264">      StringBuilder builder = new StringBuilder(domain.length() + name.length() + 6);</span>
+<span class="fc" id="L265">      builder.append(sanitizedDomain).append(':');</span>
+<span class="fc" id="L266">      builder.append(&quot;name=&quot;).append(sanitizedName);</span>
+<span class="fc" id="L267">      return new ObjectName(builder.toString());</span>
 <span class="nc" id="L268">    } catch (MalformedObjectNameException e) {</span>
 <span class="nc" id="L269">      throw new IllegalArgumentException(&quot;Invalid name for &quot; + domain + &quot;, &quot; + name, e);</span>
     }
   }
 
   private MBeanInfo createBeanInfo() {
-<span class="nc" id="L274">    MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];</span>
-<span class="nc" id="L275">    int i = 0;</span>
-<span class="nc bnc" id="L276" title="All 2 branches missed.">    for (ExportedValue&lt;?&gt; val : exportedValues.values()) {</span>
-<span class="nc" id="L277">      attrs[i++] = val.toAttributeInfo();</span>
-<span class="nc" id="L278">    }</span>
-<span class="nc" id="L279">    MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];</span>
-<span class="nc" id="L280">    i = 0;</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">    for (ExportedOperation op : exportedOperations.values()) {</span>
-<span class="nc" id="L282">      MBeanParameterInfo[] paramInfos = op.getParameterInfos();</span>
-<span class="nc" id="L283">      String description = op.getDescription();</span>
-<span class="nc bnc" id="L284" title="All 4 branches missed.">      if (description == null || description.isEmpty()) {</span>
-<span class="nc" id="L285">        description = op.getName();</span>
+<span class="fc" id="L274">    MBeanAttributeInfo[] attrs = new MBeanAttributeInfo[exportedValues.size()];</span>
+<span class="fc" id="L275">    int i = 0;</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">    for (ExportedValue&lt;?&gt; val : exportedValues.values()) {</span>
+<span class="fc" id="L277">      attrs[i++] = val.toAttributeInfo();</span>
+<span class="fc" id="L278">    }</span>
+<span class="fc" id="L279">    MBeanOperationInfo[] operations = new MBeanOperationInfo[exportedOperations.size()];</span>
+<span class="fc" id="L280">    i = 0;</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">    for (ExportedOperation op : exportedOperations.values()) {</span>
+<span class="fc" id="L282">      MBeanParameterInfo[] paramInfos = op.getParameterInfos();</span>
+<span class="fc" id="L283">      String description = op.getDescription();</span>
+<span class="pc bpc" id="L284" title="1 of 4 branches missed.">      if (description == null || description.isEmpty()) {</span>
+<span class="fc" id="L285">        description = op.getName();</span>
       }
-<span class="nc" id="L287">      OpenType&lt;?&gt; openType = op.getReturnOpenType();</span>
-<span class="nc" id="L288">      operations[i++] = new MBeanOperationInfo(op.getName(), description, paramInfos,</span>
-<span class="nc bnc" id="L289" title="All 2 branches missed.">              op.getReturnType().getName(), 0, openType == null ? null</span>
+<span class="fc" id="L287">      OpenType&lt;?&gt; openType = op.getReturnOpenType();</span>
+<span class="fc" id="L288">      operations[i++] = new MBeanOperationInfo(op.getName(), description, paramInfos,</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">              op.getReturnType().getName(), 0, openType == null ? null</span>
                       : new ImmutableDescriptor(new String[]{&quot;openType&quot;, &quot;originalType&quot;},
-<span class="nc" id="L291">            new Object[]{openType, op.getReturnType().getName()}));</span>
-<span class="nc" id="L292">    }</span>
-<span class="nc" id="L293">    return new MBeanInfo(objectName.toString(), &quot;spf4j exported&quot;,</span>
+<span class="fc" id="L291">            new Object[]{openType, op.getReturnType().getName()}));</span>
+<span class="fc" id="L292">    }</span>
+<span class="fc" id="L293">    return new MBeanInfo(objectName.toString(), &quot;spf4j exported&quot;,</span>
             attrs, null, operations, null);
   }
 

@@ -34,58 +34,61 @@ package org.spf4j.stackmonitor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContextFactory;
 
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public final class ProfiledExecutionContextFactory implements ExecutionContextFactory&lt;ExecutionContext&gt; {
 
   private final ConcurrentNavigableMap&lt;Thread, ExecutionContext&gt; currentContexts;
 
   private final ExecutionContextFactory&lt;ExecutionContext&gt; wrapped;
 
-<span class="fc" id="L49">  public ProfiledExecutionContextFactory(final ExecutionContextFactory&lt;ExecutionContext&gt; wrapped) {</span>
-<span class="fc" id="L50">    this.wrapped = wrapped;</span>
-<span class="fc" id="L51">    this.currentContexts = new ConcurrentSkipListMap&lt;&gt;(ProfiledExecutionContextFactory::compare);</span>
-<span class="fc" id="L52">  }</span>
+<span class="fc" id="L52">  public ProfiledExecutionContextFactory(final ExecutionContextFactory&lt;ExecutionContext&gt; wrapped) {</span>
+<span class="fc" id="L53">    this.wrapped = wrapped;</span>
+<span class="fc" id="L54">    this.currentContexts = new ConcurrentSkipListMap&lt;&gt;(ProfiledExecutionContextFactory::compare);</span>
+<span class="fc" id="L55">  }</span>
 
   private static int compare(final Thread o1, final Thread o2) {
-<span class="fc" id="L55">     return Long.compare(o1.getId(), o2.getId());</span>
+<span class="fc" id="L58">     return Long.compare(o1.getId(), o2.getId());</span>
   }
 
   public Iterable&lt;Thread&gt; getCurrentThreads() {
-<span class="fc" id="L59">    return currentContexts.keySet();</span>
+<span class="fc" id="L62">    return currentContexts.keySet();</span>
   }
 
   public Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt; getCurrentThreadContexts() {
-<span class="fc" id="L63">    return currentContexts.entrySet();</span>
+<span class="fc" id="L66">    return currentContexts.entrySet();</span>
   }
 
 
   @Override
-  public ExecutionContext start(final String name, final ExecutionContext parent,
+  public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
           final long startTimeNanos, final long deadlineNanos,
           final Runnable onClose) {
-<span class="fc" id="L71">    return wrapped.start(name, parent, startTimeNanos, deadlineNanos, onClose);</span>
+<span class="fc" id="L74">    return wrapped.start(name, parent, startTimeNanos, deadlineNanos, onClose);</span>
   }
 
   @Override
-  public ExecutionContext startThreadRoot(final String name, final ExecutionContext parent,
+  public ExecutionContext startThreadRoot(final String name, @Nullable final ExecutionContext parent,
           final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
-<span class="fc" id="L77">    Thread currentThread = Thread.currentThread();</span>
-<span class="fc" id="L78">    ExecutionContext ctx = wrapped.startThreadRoot(name, parent, startTimeNanos, deadlineNanos, () -&gt; {</span>
-<span class="fc" id="L79">      currentContexts.remove(currentThread);</span>
-<span class="fc" id="L80">      onClose.run();</span>
-<span class="fc" id="L81">    });</span>
-<span class="fc" id="L82">    currentContexts.put(currentThread, ctx);</span>
-<span class="fc" id="L83">    return ctx;</span>
+<span class="fc" id="L80">    Thread currentThread = Thread.currentThread();</span>
+<span class="fc" id="L81">    ExecutionContext ctx = wrapped.startThreadRoot(name, parent, startTimeNanos, deadlineNanos, () -&gt; {</span>
+<span class="fc" id="L82">      currentContexts.remove(currentThread);</span>
+<span class="fc" id="L83">      onClose.run();</span>
+<span class="fc" id="L84">    });</span>
+<span class="fc" id="L85">    currentContexts.put(currentThread, ctx);</span>
+<span class="fc" id="L86">    return ctx;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L88">    return &quot;ProfiledExecutionContextFactory{&quot; + &quot;currentContexts=&quot;</span>
+<span class="nc" id="L91">    return &quot;ProfiledExecutionContextFactory{&quot; + &quot;currentContexts=&quot;</span>
             + currentContexts + &quot;, wrapped=&quot; + wrapped + '}';
   }
 

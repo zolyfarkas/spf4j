@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrintLogConfigsIO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.test.log</a> &gt; <span class="el_source">PrintLogConfigsIO.java</span></div><h1>PrintLogConfigsIO.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.test.log;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public final class PrintLogConfigsIO {
+
+  private PrintLogConfigsIO() {
+  }
+
+  public static Map&lt;String, PrintConfig&gt; loadConfig(final Path path) throws IOException {
+<span class="nc" id="L46">    try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L47">      return loadConfig(br);</span>
+    }
+  }
+
+  @Nullable
+  public static Map&lt;String, PrintConfig&gt; loadConfigFromResource(final String resourceName) {
+<span class="fc" id="L53">    ClassLoader loader = MoreObjects.firstNonNull(</span>
+<span class="fc" id="L54">            Thread.currentThread().getContextClassLoader(), Resources.class.getClassLoader());</span>
+<span class="fc" id="L55">    URL url = loader.getResource(resourceName);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">    if (url == null) {</span>
+<span class="fc" id="L57">      return null;</span>
+    }
+<span class="fc" id="L59">    try (BufferedReader cfgR = Resources.asCharSource(url, StandardCharsets.UTF_8).openBufferedStream()) {</span>
+<span class="fc" id="L60">      return loadConfig(cfgR);</span>
+<span class="nc" id="L61">    } catch (IOException ex) {</span>
+<span class="nc" id="L62">      throw new UncheckedIOException(ex);</span>
+    }
+  }
+
+  public static Map&lt;String, PrintConfig&gt; loadConfig(final Reader reader) throws IOException {
+<span class="fc" id="L67">    Properties props = new Properties();</span>
+<span class="fc" id="L68">    props.load(reader);</span>
+<span class="fc" id="L69">    Map&lt;String, PrintConfig&gt; cfgs = Maps.newHashMapWithExpectedSize(props.size());</span>
+<span class="fc" id="L70">    Set&lt;Map.Entry&lt;String, String&gt;&gt; entrySet = (Set) props.entrySet();</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (Map.Entry&lt;String, String&gt; entry : entrySet) {</span>
+<span class="fc" id="L72">      String category = entry.getKey().trim();</span>
+<span class="fc" id="L73">      String[] cfg = entry.getValue().trim().split(&quot;,&quot;);</span>
+<span class="fc" id="L74">      int len = cfg.length;</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">      if (len == 0) {</span>
+<span class="nc" id="L76">        throw new IllegalArgumentException(&quot;Invalid config entry: &quot; + entry);</span>
+      }
+      final boolean greedy;
+<span class="fc" id="L79">      String lval = cfg[len - 1];</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">      if (&quot;true&quot;.equalsIgnoreCase(lval)) {</span>
+<span class="fc" id="L81">        greedy = true;</span>
+<span class="fc" id="L82">        len--;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">      } else if (&quot;false&quot;.equalsIgnoreCase(lval)) {</span>
+<span class="nc" id="L84">        greedy = false;</span>
+<span class="nc" id="L85">        len--;</span>
+      } else {
+<span class="fc" id="L87">        greedy = false;</span>
+      }
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">      if (len != 1) {</span>
+<span class="nc" id="L90">        throw new IllegalArgumentException(&quot;Invalid config entry: &quot; + entry);</span>
+      }
+<span class="fc" id="L92">      final Level minLevel = Level.valueOf(cfg[0]);</span>
+<span class="fc" id="L93">      cfgs.put(category, new PrintConfig(category, minLevel, greedy));</span>
+<span class="fc" id="L94">    }</span>
+<span class="fc" id="L95">    return cfgs;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

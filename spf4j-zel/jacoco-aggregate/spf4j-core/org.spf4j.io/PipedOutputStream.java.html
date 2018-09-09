@@ -156,18 +156,18 @@ public final class PipedOutputStream extends OutputStream {
     }
   }
 
-  public void writeUntil(final byte[] b, final int off, final int len, final long deadline) throws IOException {
+  public void writeUntil(final byte[] b, final int off, final int len, final long deadlineNanos) throws IOException {
 <span class="fc" id="L160">    int bytesWritten = 0;</span>
 <span class="fc bfc" id="L161" title="All 2 branches covered.">    while (bytesWritten &lt; len) {</span>
 <span class="fc" id="L162">      synchronized (sync) {</span>
 <span class="fc" id="L163">        int a2w = 0;</span>
 <span class="pc bpc" id="L164" title="1 of 4 branches missed.">        while (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {</span>
-<span class="fc" id="L165">          long timeToWait = deadline - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L166" title="1 of 2 branches missed.">          if (timeToWait &lt;= 0) {</span>
-<span class="nc" id="L167">            throw new IOTimeoutException(deadline, -timeToWait);</span>
+<span class="fc" id="L165">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="nc" id="L167">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
           }
           try {
-<span class="fc" id="L170">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);</span>
+<span class="fc" id="L170">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
 <span class="nc" id="L171">          } catch (InterruptedException ex) {</span>
 <span class="nc" id="L172">            throw new IOException(&quot;Interrupted while writing &quot; + Arrays.toString(b), ex);</span>
 <span class="fc" id="L173">          }</span>
@@ -201,16 +201,16 @@ public final class PipedOutputStream extends OutputStream {
 <span class="fc" id="L201">    writeUntil(b, deadline);</span>
 <span class="fc" id="L202">  }</span>
 
-  public void writeUntil(final int b, final long deadline) throws IOException {
+  public void writeUntil(final int b, final long deadlineNanos) throws IOException {
 <span class="fc" id="L205">    synchronized (sync) {</span>
 <span class="fc" id="L206">      int a2w = 0;</span>
 <span class="fc bfc" id="L207" title="All 4 branches covered.">      while (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {</span>
         try {
-<span class="fc" id="L209">          long timeToWait = deadline - TimeSource.nanoTime();</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">          if (timeToWait &lt;= 0) {</span>
-<span class="fc" id="L211">            throw new IOTimeoutException(deadline, -timeToWait);</span>
+<span class="fc" id="L209">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="fc" id="L211">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
           }
-<span class="fc" id="L213">          TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);</span>
+<span class="fc" id="L213">          TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
 <span class="nc" id="L214">        } catch (InterruptedException ex) {</span>
 <span class="nc" id="L215">          throw new IOException(&quot;Interrupted while writing &quot; + b, ex);</span>
 <span class="fc" id="L216">        }</span>
@@ -287,7 +287,7 @@ public final class PipedOutputStream extends OutputStream {
    * Designed to propagate exception details from the consumer to the producer.
    * A consumer that reads data from a InputStream connected to this PipedOutpuStream,
    * can close this pipe, and provide a exception. THis exception will be used as cause for any
-   * exceptions thrown by subsequent attempteed write operations.
+   * exceptions thrown by subsequent attempted write operations.
    * @param ex the exception to use as root cause.
    */
   @DischargesObligation
@@ -367,16 +367,16 @@ public final class PipedOutputStream extends OutputStream {
 <span class="fc" id="L367">      return readUntil(deadline);</span>
     }
 
-    public int readUntil(final long deadline) throws IOException {
+    public int readUntil(final long deadlineNanos) throws IOException {
 <span class="fc" id="L371">      synchronized (sync) {</span>
 <span class="fc" id="L372">        int availableToRead = 0;</span>
 <span class="pc bpc" id="L373" title="1 of 6 branches missed.">        while (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {</span>
-<span class="fc" id="L374">          long timeToWait = deadline - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L375" title="1 of 2 branches missed.">          if (timeToWait &lt;= 0) {</span>
-<span class="nc" id="L376">            throw new IOTimeoutException(deadline, -timeToWait);</span>
+<span class="fc" id="L374">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="nc" id="L376">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
           }
           try {
-<span class="fc" id="L379">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);</span>
+<span class="fc" id="L379">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
 <span class="nc" id="L380">          } catch (InterruptedException ex) {</span>
 <span class="nc" id="L381">            throw new IOException(&quot;Interrupted while reading from &quot;</span>
                     + PipedOutputStream.this, ex);
@@ -413,12 +413,12 @@ public final class PipedOutputStream extends OutputStream {
 <span class="fc" id="L413">      synchronized (sync) {</span>
 <span class="fc" id="L414">        int availableToRead = 0;</span>
 <span class="pc bpc" id="L415" title="1 of 6 branches missed.">        while (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {</span>
-<span class="fc" id="L416">          long timeToWait = deadline - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L417" title="1 of 2 branches missed.">          if (timeToWait &lt;= 0) {</span>
-<span class="nc" id="L418">            throw new IOTimeoutException(deadline, -timeToWait);</span>
+<span class="fc" id="L416">          long timeToWaitNanos = deadline - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L417" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="nc" id="L418">            throw new IOTimeoutException(deadline, -timeToWaitNanos);</span>
           }
           try {
-<span class="fc" id="L421">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWait);</span>
+<span class="fc" id="L421">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
 <span class="nc" id="L422">          } catch (InterruptedException ex) {</span>
 <span class="nc" id="L423">            throw new IOException(&quot;Interrupted while reading from &quot; + PipedOutputStream.this, ex);</span>
 <span class="fc" id="L424">          }</span>

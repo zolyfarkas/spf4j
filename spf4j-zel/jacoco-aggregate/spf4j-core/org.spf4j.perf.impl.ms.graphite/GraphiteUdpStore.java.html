@@ -31,7 +31,6 @@
  */
 package org.spf4j.perf.impl.ms.graphite;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -42,6 +41,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
@@ -213,7 +213,7 @@ public final class GraphiteUdpStore implements MeasurementStore {
     @Nullable
     public Void handle(final DatagramChannel datagramChannel, final long deadline) throws IOException {
 <span class="fc" id="L215">      try (ByteArrayBuilder bos = new ByteArrayBuilder();</span>
-<span class="fc" id="L216">              OutputStreamWriter os = new OutputStreamWriter(bos, Charsets.UTF_8)) {</span>
+<span class="fc" id="L216">              OutputStreamWriter os = new OutputStreamWriter(bos, StandardCharsets.UTF_8)) {</span>
 
 <span class="fc" id="L218">        int msgStart = 0;</span>
 <span class="fc" id="L219">        int msgEnd = 0;</span>

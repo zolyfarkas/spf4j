@@ -39,15 +39,19 @@ final class JitteredDelaySupplier implements RetryDelaySupplier {
 <span class="fc" id="L39">    long nextDelay = wrapped.nextDelay();</span>
 <span class="fc bfc" id="L40" title="All 2 branches covered.">    if (nextDelay &gt; 1) {</span>
 <span class="fc" id="L41">      long jitter = (long) (nextDelay * jitterFactor);</span>
-<span class="fc" id="L42">      return ThreadLocalRandom.current().nextLong(nextDelay - jitter, nextDelay);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">      if (jitter &gt; 0) {</span>
+<span class="fc" id="L43">        return ThreadLocalRandom.current().nextLong(Math.max(0, nextDelay - jitter), nextDelay);</span>
+      } else {
+<span class="fc" id="L45">        return nextDelay;</span>
+      }
     } else {
-<span class="fc" id="L44">      return nextDelay;</span>
+<span class="fc" id="L48">      return nextDelay;</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L50">    return &quot;JitteredDelaySupplier{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
+<span class="nc" id="L54">    return &quot;JitteredDelaySupplier{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
   }
 
 }

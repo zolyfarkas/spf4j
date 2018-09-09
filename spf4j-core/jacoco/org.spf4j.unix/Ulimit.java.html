@@ -104,12 +104,17 @@ public final class Ulimit {
 <span class="nc" id="L104">          mfiles = Integer.MAX_VALUE;</span>
 <span class="fc" id="L105">        }</span>
       }
-<span class="nc" id="L107">    } catch (TimeoutException | IOException | InterruptedException | ExecutionException ex) {</span>
+<span class="nc" id="L107">    } catch (TimeoutException | IOException | ExecutionException ex) {</span>
 <span class="nc" id="L108">      Logger.getLogger(Ulimit.class.getName()).log(Level.WARNING,</span>
               &quot;Error while parsing ulimit output, assuming no limit&quot;, ex);
 <span class="nc" id="L110">      mfiles = Integer.MAX_VALUE;</span>
-<span class="fc" id="L111">    }</span>
-<span class="fc" id="L112">    return mfiles;</span>
+<span class="nc" id="L111">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L112">      Logger.getLogger(Ulimit.class.getName()).log(Level.WARNING,</span>
+              &quot;Ulimit interrupted, assuming no limit&quot;, ex);
+<span class="nc" id="L114">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L115">      mfiles = Integer.MAX_VALUE;</span>
+<span class="pc" id="L116">    }</span>
+<span class="fc" id="L117">    return mfiles;</span>
   }
 
 }

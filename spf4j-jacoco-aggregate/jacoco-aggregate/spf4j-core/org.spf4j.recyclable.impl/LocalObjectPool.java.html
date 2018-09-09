@@ -57,8 +57,8 @@ import org.spf4j.recyclable.SmartRecyclingSupplier;
  */
 final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, ObjectBorower&lt;ObjectHolder&lt;T&gt;&gt; {
 
-<span class="nc" id="L60">  private static final Either&lt;Action, ObjectHolder&lt;?&gt;&gt; REQ_MADE = Either.left(Action.REQUEST_MADE);</span>
-<span class="nc" id="L61">  private static final Either&lt;Action, ObjectHolder&lt;?&gt;&gt; NONE = Either.left(Action.NONE);</span>
+<span class="fc" id="L60">  private static final Either&lt;Action, ObjectHolder&lt;?&gt;&gt; REQ_MADE = Either.left(Action.REQUEST_MADE);</span>
+<span class="fc" id="L61">  private static final Either&lt;Action, ObjectHolder&lt;?&gt;&gt; NONE = Either.left(Action.NONE);</span>
 
   private final Queue&lt;ObjectHolder&lt;T&gt;&gt; localObjects;
   private final Map&lt;T, ObjectHolder&lt;T&gt;&gt; borrowedObjects;
@@ -67,63 +67,63 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
   private final Thread thread;
   private final ReentrantLock lock;
 
-<span class="nc" id="L70">  LocalObjectPool(final SmartRecyclingSupplier&lt;ObjectHolder&lt;T&gt;&gt; globalPool) {</span>
-<span class="nc" id="L71">    localObjects = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L72">    borrowedObjects = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L73">    this.globalPool = globalPool;</span>
-<span class="nc" id="L74">    reqReturnObjects = 0;</span>
-<span class="nc" id="L75">    thread = Thread.currentThread();</span>
-<span class="nc" id="L76">    lock = new ReentrantLock();</span>
-<span class="nc" id="L77">  }</span>
+<span class="fc" id="L70">  LocalObjectPool(final SmartRecyclingSupplier&lt;ObjectHolder&lt;T&gt;&gt; globalPool) {</span>
+<span class="fc" id="L71">    localObjects = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L72">    borrowedObjects = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L73">    this.globalPool = globalPool;</span>
+<span class="fc" id="L74">    reqReturnObjects = 0;</span>
+<span class="fc" id="L75">    thread = Thread.currentThread();</span>
+<span class="fc" id="L76">    lock = new ReentrantLock();</span>
+<span class="fc" id="L77">  }</span>
 
   @Override
   @Nonnull
   @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;)
   public T get() throws ObjectCreationException,
           InterruptedException, TimeoutException {
-<span class="nc" id="L84">    lock.lock();</span>
+<span class="fc" id="L84">    lock.lock();</span>
     try {
       T object;
       ObjectHolder&lt;T&gt; objectHolder;
       do {
-<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (localObjects.isEmpty()) {</span>
-<span class="nc" id="L90">          objectHolder = globalPool.get(this);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (localObjects.isEmpty()) {</span>
+<span class="fc" id="L90">          objectHolder = globalPool.get(this);</span>
         } else {
-<span class="nc" id="L92">          objectHolder = localObjects.remove();</span>
+<span class="fc" id="L92">          objectHolder = localObjects.remove();</span>
         }
-<span class="nc" id="L94">        object = objectHolder.borrowOrCreateObjectIfPossible();</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">      } while (object == null);</span>
-<span class="nc" id="L96">      borrowedObjects.put(object, objectHolder);</span>
-<span class="nc" id="L97">      return object;</span>
+<span class="fc" id="L94">        object = objectHolder.borrowOrCreateObjectIfPossible();</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">      } while (object == null);</span>
+<span class="fc" id="L96">      borrowedObjects.put(object, objectHolder);</span>
+<span class="fc" id="L97">      return object;</span>
     } finally {
-<span class="nc" id="L99">      lock.unlock();</span>
+<span class="fc" id="L99">      lock.unlock();</span>
     }
   }
 
   @Override
   public void recycle(final T object, final Exception e) {
-<span class="nc" id="L105">    lock.lock();</span>
+<span class="fc" id="L105">    lock.lock();</span>
     try {
-<span class="nc" id="L107">      ObjectHolder holder = borrowedObjects.remove(object);</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">      if (holder == null) {</span>
+<span class="fc" id="L107">      ObjectHolder holder = borrowedObjects.remove(object);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">      if (holder == null) {</span>
         // not borrowed from here.
-<span class="nc" id="L110">        globalPool.recycle(new ObjectHolder&lt;&gt;(object, globalPool.getSample().getFactory()), this);</span>
+<span class="fc" id="L110">        globalPool.recycle(new ObjectHolder&lt;&gt;(object, globalPool.getSample().getFactory()), this);</span>
       } else {
         try {
-<span class="nc" id="L113">          holder.returnObject(object, e);</span>
+<span class="fc" id="L113">          holder.returnObject(object, e);</span>
         } finally {
-<span class="nc bnc" id="L115" title="All 2 branches missed.">          if (reqReturnObjects &gt; 0) {</span>
-<span class="nc" id="L116">            reqReturnObjects--;</span>
-<span class="nc" id="L117">            globalPool.recycle(holder, this);</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">          if (reqReturnObjects &gt; 0) {</span>
+<span class="fc" id="L116">            reqReturnObjects--;</span>
+<span class="fc" id="L117">            globalPool.recycle(holder, this);</span>
           } else {
-<span class="nc" id="L119">            localObjects.add(holder);</span>
+<span class="fc" id="L119">            localObjects.add(holder);</span>
           }
         }
       }
     } finally {
-<span class="nc" id="L124">      lock.unlock();</span>
+<span class="fc" id="L124">      lock.unlock();</span>
     }
-<span class="nc" id="L126">  }</span>
+<span class="fc" id="L126">  }</span>
 
   @Override
   public boolean tryDispose(final long timeoutMillis) {
@@ -132,111 +132,111 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 
   @Override
   public boolean scan(final ScanHandler&lt;ObjectHolder&lt;T&gt;&gt; handler) throws Exception {
-<span class="nc" id="L135">    lock.lock();</span>
+<span class="fc" id="L135">    lock.lock();</span>
     try {
-<span class="nc bnc" id="L137" title="All 2 branches missed.">      for (ObjectHolder&lt;T&gt; object : localObjects) {</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (!handler.handle(object)) {</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">      for (ObjectHolder&lt;T&gt; object : localObjects) {</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (!handler.handle(object)) {</span>
 <span class="nc" id="L139">          return false;</span>
         }
-<span class="nc" id="L141">      }</span>
-<span class="nc" id="L142">      return true;</span>
+<span class="fc" id="L141">      }</span>
+<span class="fc" id="L142">      return true;</span>
     } finally {
-<span class="nc" id="L144">      lock.unlock();</span>
+<span class="fc" id="L144">      lock.unlock();</span>
     }
   }
 
   @Override
   public Either&lt;Action, ObjectHolder&lt;T&gt;&gt; tryRequestReturnObject() throws InterruptedException {
-<span class="nc" id="L150">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L151" title="All 2 branches missed.">    if (acquired) {</span>
+<span class="fc" id="L150">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">    if (acquired) {</span>
       try {
 
-<span class="nc" id="L154">        ObjectHolder&lt;T&gt; objectHolder = tryReturnObjectIfNotInUse();</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (objectHolder != null) {</span>
-<span class="nc" id="L156">          return Either.right(objectHolder);</span>
-<span class="nc bnc" id="L157" title="All 2 branches missed.">        } else if (this.thread == Thread.currentThread()) {</span>
+<span class="fc" id="L154">        ObjectHolder&lt;T&gt; objectHolder = tryReturnObjectIfNotInUse();</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        if (objectHolder != null) {</span>
+<span class="fc" id="L156">          return Either.right(objectHolder);</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        } else if (this.thread == Thread.currentThread()) {</span>
           // this will happen is the same thread is closing the pool.
           // in this case whatever objects the thread is borrowing, we will return
           // even if not officially returnes.
-<span class="nc bnc" id="L161" title="All 2 branches missed.">          if (this.borrowedObjects.isEmpty()) {</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">          if (this.borrowedObjects.isEmpty()) {</span>
 <span class="nc" id="L162">            return (Either) NONE;</span>
           } else {
-<span class="nc" id="L164">            Iterator&lt;Map.Entry&lt;T, ObjectHolder&lt;T&gt;&gt;&gt; it = this.borrowedObjects.entrySet().iterator();</span>
-<span class="nc" id="L165">            Map.Entry&lt;T, ObjectHolder&lt;T&gt;&gt; next = it.next();</span>
-<span class="nc" id="L166">            ObjectHolder&lt;T&gt; result = next.getValue();</span>
-<span class="nc" id="L167">            result.returnObject(next.getKey(), null);</span>
-<span class="nc" id="L168">            it.remove();</span>
-<span class="nc" id="L169">            return Either.right(result);</span>
+<span class="fc" id="L164">            Iterator&lt;Map.Entry&lt;T, ObjectHolder&lt;T&gt;&gt;&gt; it = this.borrowedObjects.entrySet().iterator();</span>
+<span class="fc" id="L165">            Map.Entry&lt;T, ObjectHolder&lt;T&gt;&gt; next = it.next();</span>
+<span class="fc" id="L166">            ObjectHolder&lt;T&gt; result = next.getValue();</span>
+<span class="fc" id="L167">            result.returnObject(next.getKey(), null);</span>
+<span class="fc" id="L168">            it.remove();</span>
+<span class="fc" id="L169">            return Either.right(result);</span>
           }
         } else {
-<span class="nc bnc" id="L172" title="All 2 branches missed.">          if (borrowedObjects.size() &gt; reqReturnObjects) {</span>
-<span class="nc" id="L173">            reqReturnObjects++;</span>
-<span class="nc" id="L174">            return (Either) REQ_MADE;</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">          if (borrowedObjects.size() &gt; reqReturnObjects) {</span>
+<span class="fc" id="L173">            reqReturnObjects++;</span>
+<span class="fc" id="L174">            return (Either) REQ_MADE;</span>
           } else {
-<span class="nc" id="L176">            return (Either) NONE;</span>
+<span class="fc" id="L176">            return (Either) NONE;</span>
           }
         }
       } finally {
-<span class="nc" id="L180">        lock.unlock();</span>
+<span class="fc" id="L180">        lock.unlock();</span>
       }
     } else {
-<span class="nc" id="L183">      return (Either) NONE;</span>
+<span class="fc" id="L183">      return (Either) NONE;</span>
     }
   }
 
   @Override
   @Nullable
   public ObjectHolder&lt;T&gt; tryReturnObjectIfNotInUse() throws InterruptedException {
-<span class="nc" id="L190">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">    if (acquired) {</span>
+<span class="fc" id="L190">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">    if (acquired) {</span>
       try {
-<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (!localObjects.isEmpty()) {</span>
-<span class="nc" id="L194">          return localObjects.remove();</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">        if (!localObjects.isEmpty()) {</span>
+<span class="fc" id="L194">          return localObjects.remove();</span>
         } else {
-<span class="nc" id="L196">          return null;</span>
+<span class="fc" id="L196">          return null;</span>
         }
       } finally {
-<span class="nc" id="L199">        lock.unlock();</span>
+<span class="fc" id="L199">        lock.unlock();</span>
       }
     } else {
-<span class="nc" id="L202">      return null;</span>
+<span class="fc" id="L202">      return null;</span>
     }
   }
 
   @Override
   public Collection&lt;ObjectHolder&lt;T&gt;&gt; tryReturnObjectsIfNotInUse() throws InterruptedException {
-<span class="nc" id="L208">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L209" title="All 2 branches missed.">    if (acquired) {</span>
+<span class="fc" id="L208">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">    if (acquired) {</span>
       try {
-<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (!localObjects.isEmpty()) {</span>
-<span class="nc" id="L212">          Collection&lt;ObjectHolder&lt;T&gt;&gt; result = new ArrayList&lt;&gt;(localObjects);</span>
-<span class="nc" id="L213">          localObjects.clear();</span>
-<span class="nc" id="L214">          return result;</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        if (!localObjects.isEmpty()) {</span>
+<span class="fc" id="L212">          Collection&lt;ObjectHolder&lt;T&gt;&gt; result = new ArrayList&lt;&gt;(localObjects);</span>
+<span class="fc" id="L213">          localObjects.clear();</span>
+<span class="fc" id="L214">          return result;</span>
         } else {
-<span class="nc" id="L216">          return Collections.EMPTY_LIST;</span>
+<span class="fc" id="L216">          return Collections.EMPTY_LIST;</span>
         }
       } finally {
-<span class="nc" id="L219">        lock.unlock();</span>
+<span class="fc" id="L219">        lock.unlock();</span>
       }
     } else {
-<span class="nc" id="L222">      return Collections.EMPTY_LIST;</span>
+<span class="fc" id="L222">      return Collections.EMPTY_LIST;</span>
     }
   }
 
   @Override
   public Collection&lt;ObjectHolder&lt;T&gt;&gt; tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
-<span class="nc" id="L228">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">    if (acquired) {</span>
+<span class="fc" id="L228">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">    if (acquired) {</span>
       try {
-<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (!thread.isAlive()) {</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">        if (!thread.isAlive()) {</span>
 <span class="nc bnc" id="L232" title="All 2 branches missed.">          if (!borrowedObjects.isEmpty()) {</span>
 <span class="nc" id="L233">            throw new IllegalStateException(&quot;Objects not returned by dead thread: &quot; + borrowedObjects);</span>
           }
 <span class="nc" id="L235">          return localObjects;</span>
         }
-<span class="nc" id="L237">        return Collections.EMPTY_LIST;</span>
+<span class="fc" id="L237">        return Collections.EMPTY_LIST;</span>
       } finally {
-<span class="nc" id="L239">        lock.unlock();</span>
+<span class="fc" id="L239">        lock.unlock();</span>
       }
     } else {
 <span class="nc" id="L242">      return Collections.EMPTY_LIST;</span>
@@ -245,7 +245,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 
   @Override
   public String toString() {
-<span class="nc" id="L248">    return &quot;LocalObjectPool{&quot; + &quot;localObjects=&quot; + localObjects + &quot;, borrowedObjects=&quot;</span>
+<span class="fc" id="L248">    return &quot;LocalObjectPool{&quot; + &quot;localObjects=&quot; + localObjects + &quot;, borrowedObjects=&quot;</span>
             + borrowedObjects + &quot;, reqReturnObjects=&quot; + reqReturnObjects + &quot;, thread=&quot; + thread + '}';
   }
 
@@ -256,11 +256,11 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 
   @Override
   public boolean nevermind(final ObjectHolder&lt;T&gt; object) {
-<span class="nc" id="L259">    lock.lock();</span>
+<span class="fc" id="L259">    lock.lock();</span>
     try {
-<span class="nc bnc" id="L261" title="All 2 branches missed.">      return borrowedObjects.remove(object.getObj()) != null;</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">      return borrowedObjects.remove(object.getObj()) != null;</span>
     } finally {
-<span class="nc" id="L263">      lock.unlock();</span>
+<span class="fc" id="L263">      lock.unlock();</span>
     }
   }
 }

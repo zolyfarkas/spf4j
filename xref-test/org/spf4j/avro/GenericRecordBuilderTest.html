@@ -39,10 +39,10 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.avro;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.base.Charsets;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.google.common.io.Resources;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.google.common.io.Resources;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.junit.Assert;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.Schema;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.apache.avro.SchemaBuilder;
@@ -64,7 +64,7 @@
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>    @Test
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>    @SuppressFBWarnings(<span class="jxr_string">"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"</span>)
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGenericRecordCreation() <strong class="jxr_keyword">throws</strong> IOException, Exception {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      String schemaStr = Resources.toString(Resources.getResource(<span class="jxr_string">"SchemaBuilder.avsc"</span>), Charsets.US_ASCII);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      String schemaStr = Resources.toString(Resources.getResource(<span class="jxr_string">"SchemaBuilder.avsc"</span>), StandardCharsets.US_ASCII);
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>      Schema schema = <strong class="jxr_keyword">new</strong> Schema.Parser().parse(schemaStr);
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">try</strong> (GenericRecordBuilder builder = <strong class="jxr_keyword">new</strong> GenericRecordBuilder(schema)) {
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>        Class&lt;? <strong class="jxr_keyword">extends</strong> SpecificRecordBase&gt; clasz = builder.getRecordClass(schema);

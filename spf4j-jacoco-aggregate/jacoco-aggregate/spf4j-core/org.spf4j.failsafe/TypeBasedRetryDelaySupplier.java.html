@@ -32,17 +32,17 @@ public final class TypeBasedRetryDelaySupplier&lt;T&gt; implements Function&lt;T
   private final Function&lt;Class&lt;T&gt;, RetryDelaySupplier&gt; supplier;
 
   public TypeBasedRetryDelaySupplier(
-<span class="nc" id="L35">          final Function&lt;Class&lt;T&gt;, RetryDelaySupplier&gt; supplier) {</span>
-<span class="nc" id="L36">    this.delays = new HashMap&lt;&gt;(4);</span>
-<span class="nc" id="L37">    this.supplier = supplier;</span>
-<span class="nc" id="L38">  }</span>
+<span class="fc" id="L35">          final Function&lt;Class&lt;T&gt;, RetryDelaySupplier&gt; supplier) {</span>
+<span class="fc" id="L36">    this.delays = new HashMap&lt;&gt;(4);</span>
+<span class="fc" id="L37">    this.supplier = supplier;</span>
+<span class="fc" id="L38">  }</span>
 
 
   @Override
   public RetryDelaySupplier apply(final T t) {
-<span class="nc" id="L43">    Class&lt;T&gt; clasz = (Class&lt;T&gt;) t.getClass();</span>
-<span class="nc" id="L44">    return delays.computeIfAbsent(clasz,</span>
-<span class="nc" id="L45">            (x) -&gt; supplier.apply(x));</span>
+<span class="fc" id="L43">    Class&lt;T&gt; clasz = (Class&lt;T&gt;) t.getClass();</span>
+<span class="fc" id="L44">    return delays.computeIfAbsent(clasz,</span>
+<span class="fc" id="L45">            (x) -&gt; supplier.apply(x));</span>
   }
 
   @Override

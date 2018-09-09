@@ -31,9 +31,9 @@
  */
 package org.spf4j.perf.tsdb;
 
-import com.google.common.base.Charsets;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 
 /**
  * TSDB header detail
@@ -59,7 +59,7 @@ final class Header {
 <span class="fc" id="L59">    Header(final RandomAccessFile raf) throws IOException {</span>
 <span class="fc" id="L60">        byte[] bType = new byte[4];</span>
 <span class="fc" id="L61">        raf.readFully(bType);</span>
-<span class="fc" id="L62">        this.type = new String(bType, Charsets.US_ASCII);</span>
+<span class="fc" id="L62">        this.type = new String(bType, StandardCharsets.US_ASCII);</span>
 <span class="pc bpc" id="L63" title="1 of 2 branches missed.">        if (!TYPE.equals(this.type)) {</span>
 <span class="nc" id="L64">            throw new IOException(&quot;Invalid File Type &quot; + this.type);</span>
         }
@@ -74,7 +74,7 @@ final class Header {
 <span class="fc" id="L74">    }</span>
 
     public void writeTo(final RandomAccessFile raf) throws IOException {
-<span class="fc" id="L77">        raf.write(type.getBytes(Charsets.US_ASCII));</span>
+<span class="fc" id="L77">        raf.write(type.getBytes(StandardCharsets.US_ASCII));</span>
 <span class="fc" id="L78">        raf.writeInt(version);</span>
 <span class="fc" id="L79">        raf.writeInt(metaData.length);</span>
 <span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (metaData.length &gt; 0) {</span>

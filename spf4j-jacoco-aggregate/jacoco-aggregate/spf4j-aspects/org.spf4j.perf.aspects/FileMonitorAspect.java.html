@@ -48,17 +48,17 @@ import org.spf4j.perf.io.MeasuredOutputStream;
  */
 @Aspect
 @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
-<span class="nc" id="L51">public final class FileMonitorAspect {</span>
+<span class="fc" id="L51">public final class FileMonitorAspect {</span>
 
-<span class="nc" id="L53">    public static final int SAMPLE_TIME = Integer.getInteger(&quot;spf4j.perf.file.sampleTimeMillis&quot;, 300000);</span>
+<span class="fc" id="L53">    public static final int SAMPLE_TIME = Integer.getInteger(&quot;spf4j.perf.file.sampleTimeMillis&quot;, 300000);</span>
 
-<span class="nc" id="L55">    public static final boolean ADD_FILE_DETAIL = Boolean.getBoolean(&quot;spf4j.perf.file.addFileDetail&quot;);</span>
+<span class="fc" id="L55">    public static final boolean ADD_FILE_DETAIL = Boolean.getBoolean(&quot;spf4j.perf.file.addFileDetail&quot;);</span>
 
-<span class="nc" id="L57">    private static final MeasurementRecorderSource RECORDER_READ =</span>
-<span class="nc" id="L58">            RecorderFactory.createScalableCountingRecorderSource(&quot;file-read&quot;, &quot;bytes&quot;,</span>
+<span class="fc" id="L57">    private static final MeasurementRecorderSource RECORDER_READ =</span>
+<span class="fc" id="L58">            RecorderFactory.createScalableCountingRecorderSource(&quot;file-read&quot;, &quot;bytes&quot;,</span>
             SAMPLE_TIME);
-<span class="nc" id="L60">    private static final MeasurementRecorderSource RECORDER_WRITE =</span>
-<span class="nc" id="L61">            RecorderFactory.createScalableCountingRecorderSource(&quot;file-write&quot;, &quot;bytes&quot;,</span>
+<span class="fc" id="L60">    private static final MeasurementRecorderSource RECORDER_WRITE =</span>
+<span class="fc" id="L61">            RecorderFactory.createScalableCountingRecorderSource(&quot;file-write&quot;, &quot;bytes&quot;,</span>
             SAMPLE_TIME);
 
     @Around(&quot;call(long java.nio.channels.FileChannel.read(..))&quot;)
@@ -97,11 +97,11 @@ import org.spf4j.perf.io.MeasuredOutputStream;
 
     @SuppressFBWarnings(&quot;ISB_TOSTRING_APPENDING&quot;)
     private static String getLogInfo(final ProceedingJoinPoint pjp) {
-<span class="nc" id="L100">      String logInfo = pjp.getSourceLocation().getWithinType().getName();</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">      if (ADD_FILE_DETAIL) {</span>
+<span class="fc" id="L100">      String logInfo = pjp.getSourceLocation().getWithinType().getName();</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">      if (ADD_FILE_DETAIL) {</span>
 <span class="nc" id="L102">        logInfo += ':' + pjp.getArgs()[0].toString();</span>
       }
-<span class="nc" id="L104">      return logInfo;</span>
+<span class="fc" id="L104">      return logInfo;</span>
     }
 
     @Around(&quot;call(java.io.FileInputStream.new(java.io.File))&quot;)
@@ -111,7 +111,7 @@ import org.spf4j.perf.io.MeasuredOutputStream;
 
     @Around(&quot;call(java.io.InputStream java.nio.file.Files.newInputStream(..))&quot;)
     public Object filesIS(final ProceedingJoinPoint pjp) throws Throwable {
-<span class="nc" id="L114">      return new MeasuredInputStream((InputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_READ);</span>
+<span class="fc" id="L114">      return new MeasuredInputStream((InputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_READ);</span>
     }
 
     @Around(&quot;call(java.io.FileOutputStream.new(java.io.File))&quot;)
@@ -121,7 +121,7 @@ import org.spf4j.perf.io.MeasuredOutputStream;
 
     @Around(&quot;call(java.io.OutputStream java.nio.file.Files.newOutputStream(..))&quot;)
     public Object filesOS(final ProceedingJoinPoint pjp) throws Throwable {
-<span class="nc" id="L124">        return new MeasuredOutputStream((OutputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_WRITE);</span>
+<span class="fc" id="L124">        return new MeasuredOutputStream((OutputStream) pjp.proceed(), getLogInfo(pjp), RECORDER_WRITE);</span>
     }
 
 }

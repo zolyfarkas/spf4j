@@ -57,8 +57,8 @@ public final class Lsof {
   private static final File LSOF;
 
   static {
-<span class="nc" id="L60">    File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
-<span class="nc bnc" id="L61" title="All 4 branches missed.">    if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
+<span class="fc" id="L60">    File lsofFile = new File(&quot;/usr/sbin/lsof&quot;);</span>
+<span class="pc bpc" id="L61" title="2 of 4 branches missed.">    if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
 <span class="nc" id="L62">      lsofFile = new File(&quot;/usr/bin/lsof&quot;);</span>
 <span class="nc bnc" id="L63" title="All 4 branches missed.">      if (!lsofFile.exists() || !lsofFile.canExecute()) {</span>
 <span class="nc" id="L64">        lsofFile = new File(&quot;/usr/local/bin/lsof&quot;);</span>
@@ -67,14 +67,14 @@ public final class Lsof {
         }
       }
     }
-<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (lsofFile == null) {</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (lsofFile == null) {</span>
 <span class="nc" id="L71">      Logger.getLogger(Lsof.class.getName()).warning(&quot;lsof unavailable on this system&quot;);</span>
     }
-<span class="nc" id="L73">    LSOF = lsofFile;</span>
+<span class="fc" id="L73">    LSOF = lsofFile;</span>
   }
 
-<span class="nc bnc" id="L76" title="All 2 branches missed.">  private static final String[] LSOF_CMD = (LSOF == null) ? null</span>
-<span class="nc" id="L77">          : new String[]{LSOF.getAbsolutePath(), &quot;-p&quot;, Integer.toString(PID)};</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">  private static final String[] LSOF_CMD = (LSOF == null) ? null</span>
+<span class="fc" id="L77">          : new String[]{LSOF.getAbsolutePath(), &quot;-p&quot;, Integer.toString(PID)};</span>
 
 
   private Lsof() { }
@@ -95,11 +95,11 @@ public final class Lsof {
   @Nullable
   @CheckReturnValue
   public static CharSequence getLsofOutput() {
-<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (Lsof.LSOF == null) {</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">    if (Lsof.LSOF == null) {</span>
 <span class="nc" id="L99">      return null;</span>
     }
     try {
-<span class="nc" id="L102">      return run(Lsof.LSOF_CMD, 60000);</span>
+<span class="fc" id="L102">      return run(Lsof.LSOF_CMD, 60000);</span>
 <span class="nc" id="L103">    } catch (IOException | ExecutionException | TimeoutException ex) {</span>
 <span class="nc" id="L104">      Logger.getLogger(Lsof.class.getName()).log(Level.WARNING, &quot;Unable to run lsof&quot;, ex);</span>
 <span class="nc" id="L105">      return null;</span>

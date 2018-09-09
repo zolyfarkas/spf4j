@@ -86,12 +86,12 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
     private long readBytes;
 
     public MemorizingBufferedInputStream(final InputStream in) {
-<span class="nc" id="L89">        this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, null);</span>
-<span class="nc" id="L90">    }</span>
+<span class="fc" id="L89">        this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, null);</span>
+<span class="fc" id="L90">    }</span>
 
     public MemorizingBufferedInputStream(final InputStream in, final int size) {
-<span class="nc" id="L93">        this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, null);</span>
-<span class="nc" id="L94">    }</span>
+<span class="fc" id="L93">        this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, null);</span>
+<span class="fc" id="L94">    }</span>
 
     public MemorizingBufferedInputStream(final InputStream in, final Charset charset) {
 <span class="nc" id="L97">        this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, charset);</span>
@@ -101,227 +101,227 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
             final int size, final int readSize,
             final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider,
             @Nullable final Charset charset) {
-<span class="nc" id="L104">        super(in);</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (readSize &gt; size) {</span>
+<span class="fc" id="L104">        super(in);</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (readSize &gt; size) {</span>
 <span class="nc" id="L106">            throw new IllegalArgumentException(&quot;Read size &quot; + readSize + &quot; cannot be greater than &quot; + size);</span>
         }
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (size &lt; 2) {</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (size &lt; 2) {</span>
 <span class="nc" id="L109">            throw new IllegalArgumentException(&quot;Buffer size &quot; + size + &quot; cannot be smaler than 2&quot;);</span>
         }
-<span class="nc" id="L111">        memory = bufferProvider.get(size);</span>
-<span class="nc" id="L112">        this.bufferProvider = bufferProvider;</span>
-<span class="nc" id="L113">        this.charset = charset;</span>
-<span class="nc" id="L114">        this.startIdx = 0;</span>
-<span class="nc" id="L115">        this.endIdx = 0;</span>
-<span class="nc" id="L116">        this.readSize = readSize;</span>
-<span class="nc" id="L117">        this.isEof = false;</span>
-<span class="nc" id="L118">        this.isClosed = false;</span>
-<span class="nc" id="L119">        this.readBytes = 0;</span>
-<span class="nc" id="L120">    }</span>
+<span class="fc" id="L111">        memory = bufferProvider.get(size);</span>
+<span class="fc" id="L112">        this.bufferProvider = bufferProvider;</span>
+<span class="fc" id="L113">        this.charset = charset;</span>
+<span class="fc" id="L114">        this.startIdx = 0;</span>
+<span class="fc" id="L115">        this.endIdx = 0;</span>
+<span class="fc" id="L116">        this.readSize = readSize;</span>
+<span class="fc" id="L117">        this.isEof = false;</span>
+<span class="fc" id="L118">        this.isClosed = false;</span>
+<span class="fc" id="L119">        this.readBytes = 0;</span>
+<span class="fc" id="L120">    }</span>
 
     @Override
     @DischargesObligation
     public synchronized void close() throws IOException {
-<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (!isClosed) {</span>
-<span class="nc" id="L126">            isClosed = true;</span>
-<span class="nc" id="L127">            bufferProvider.recycle(memory);</span>
-<span class="nc" id="L128">            memory = null;</span>
-<span class="nc" id="L129">            super.close();</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!isClosed) {</span>
+<span class="fc" id="L126">            isClosed = true;</span>
+<span class="fc" id="L127">            bufferProvider.recycle(memory);</span>
+<span class="fc" id="L128">            memory = null;</span>
+<span class="fc" id="L129">            super.close();</span>
         }
-<span class="nc" id="L131">    }</span>
+<span class="fc" id="L131">    }</span>
 
     private int availableToWrite() {
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (memIdx &lt;= endIdx) {</span>
-<span class="nc" id="L135">            return memIdx + memory.length - endIdx - 1;</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (memIdx &lt;= endIdx) {</span>
+<span class="fc" id="L135">            return memIdx + memory.length - endIdx - 1;</span>
         } else {
-<span class="nc" id="L137">            return memIdx - endIdx - 1;</span>
+<span class="fc" id="L137">            return memIdx - endIdx - 1;</span>
         }
     }
 
     private int availableToRead() {
-<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (startIdx &lt;= endIdx) {</span>
-<span class="nc" id="L143">            return endIdx - startIdx;</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        if (startIdx &lt;= endIdx) {</span>
+<span class="fc" id="L143">            return endIdx - startIdx;</span>
         } else {
-<span class="nc" id="L145">            return memory.length - startIdx + endIdx;</span>
+<span class="fc" id="L145">            return memory.length - startIdx + endIdx;</span>
         }
     }
 
     private int availableInMemory() {
-<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (memIdx &lt;= startIdx) {</span>
-<span class="nc" id="L151">            return startIdx - memIdx;</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        if (memIdx &lt;= startIdx) {</span>
+<span class="fc" id="L151">            return startIdx - memIdx;</span>
         } else {
-<span class="nc" id="L153">            return memory.length - memIdx + startIdx;</span>
+<span class="fc" id="L153">            return memory.length - memIdx + startIdx;</span>
         }
     }
 
 
     public synchronized byte[] getReadBytesFromBuffer() {
-<span class="nc" id="L159">        final int availableInMemory = availableInMemory();</span>
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (availableInMemory == 0) {</span>
+<span class="fc" id="L159">        final int availableInMemory = availableInMemory();</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if (availableInMemory == 0) {</span>
 <span class="nc" id="L161">            return Arrays.EMPTY_BYTE_ARRAY;</span>
         }
-<span class="nc" id="L163">        byte[] result = new byte[availableInMemory];</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (memIdx &lt; startIdx) {</span>
-<span class="nc" id="L165">            System.arraycopy(memory, memIdx, result, 0, result.length);</span>
+<span class="fc" id="L163">        byte[] result = new byte[availableInMemory];</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        if (memIdx &lt; startIdx) {</span>
+<span class="fc" id="L165">            System.arraycopy(memory, memIdx, result, 0, result.length);</span>
         } else {
-<span class="nc" id="L167">            final int toEnd = memory.length - memIdx;</span>
-<span class="nc" id="L168">            System.arraycopy(memory, memIdx, result, 0, toEnd);</span>
-<span class="nc" id="L169">            System.arraycopy(memory, 0, result, toEnd, startIdx);</span>
+<span class="fc" id="L167">            final int toEnd = memory.length - memIdx;</span>
+<span class="fc" id="L168">            System.arraycopy(memory, memIdx, result, 0, toEnd);</span>
+<span class="fc" id="L169">            System.arraycopy(memory, 0, result, toEnd, startIdx);</span>
         }
-<span class="nc" id="L171">        return result;</span>
+<span class="fc" id="L171">        return result;</span>
     }
 
     public synchronized byte[] getUnreadBytesFromBuffer() {
-<span class="nc" id="L175">        final int availableToRead = availableToRead();</span>
-<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (availableToRead == 0) {</span>
-<span class="nc" id="L177">            return Arrays.EMPTY_BYTE_ARRAY;</span>
+<span class="fc" id="L175">        final int availableToRead = availableToRead();</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
+<span class="fc" id="L177">            return Arrays.EMPTY_BYTE_ARRAY;</span>
         }
-<span class="nc" id="L179">        byte[] result = new byte[availableToRead];</span>
-<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (startIdx &lt; endIdx) {</span>
+<span class="fc" id="L179">        byte[] result = new byte[availableToRead];</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (startIdx &lt; endIdx) {</span>
 <span class="nc" id="L181">            System.arraycopy(memory, startIdx, result, 0, result.length);</span>
         } else {
-<span class="nc" id="L183">            final int toEnd = memory.length - startIdx;</span>
-<span class="nc" id="L184">            System.arraycopy(memory, startIdx, result, 0, toEnd);</span>
-<span class="nc" id="L185">            System.arraycopy(memory, 0, result, toEnd, endIdx);</span>
+<span class="fc" id="L183">            final int toEnd = memory.length - startIdx;</span>
+<span class="fc" id="L184">            System.arraycopy(memory, startIdx, result, 0, toEnd);</span>
+<span class="fc" id="L185">            System.arraycopy(memory, 0, result, toEnd, endIdx);</span>
         }
-<span class="nc" id="L187">        return result;</span>
+<span class="fc" id="L187">        return result;</span>
     }
 
 
     private int tryCleanup(final int size) {
-<span class="nc" id="L192">        int canWrite = availableToWrite();</span>
-<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (canWrite &lt; size) {</span>
-<span class="nc" id="L194">            int toFree = size - canWrite;</span>
-<span class="nc" id="L195">            int availableToFree = availableInMemory();</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (toFree &gt; availableToFree) {</span>
+<span class="fc" id="L192">        int canWrite = availableToWrite();</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">        if (canWrite &lt; size) {</span>
+<span class="fc" id="L194">            int toFree = size - canWrite;</span>
+<span class="fc" id="L195">            int availableToFree = availableInMemory();</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">            if (toFree &gt; availableToFree) {</span>
 <span class="nc" id="L197">                toFree = availableToFree;</span>
             }
-<span class="nc" id="L199">            memIdx = memIdx + toFree;</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">            if (memIdx &gt;= memory.length) {</span>
-<span class="nc" id="L201">                memIdx = memIdx - memory.length;</span>
+<span class="fc" id="L199">            memIdx = memIdx + toFree;</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">            if (memIdx &gt;= memory.length) {</span>
+<span class="fc" id="L201">                memIdx = memIdx - memory.length;</span>
             }
-<span class="nc" id="L203">            return toFree + canWrite;</span>
+<span class="fc" id="L203">            return toFree + canWrite;</span>
         } else {
-<span class="nc" id="L205">            return size;</span>
+<span class="fc" id="L205">            return size;</span>
         }
     }
 
     private void fill() throws IOException {
-<span class="nc" id="L210">        int size = tryCleanup(readSize);</span>
-<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (size &lt; readSize) {</span>
+<span class="fc" id="L210">        int size = tryCleanup(readSize);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (size &lt; readSize) {</span>
 <span class="nc" id="L212">            throw new IllegalStateException(&quot;Illegal state &quot; + this);</span>
         }
-<span class="nc" id="L214">        int canWriteInBulk = Math.min(size, memory.length - endIdx);</span>
-<span class="nc" id="L215">        int read = super.read(memory, endIdx, canWriteInBulk);</span>
-<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (read &lt; 0) {</span>
-<span class="nc" id="L217">            isEof = true;</span>
-<span class="nc" id="L218">            return;</span>
+<span class="fc" id="L214">        int canWriteInBulk = Math.min(size, memory.length - endIdx);</span>
+<span class="fc" id="L215">        int read = super.read(memory, endIdx, canWriteInBulk);</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (read &lt; 0) {</span>
+<span class="fc" id="L217">            isEof = true;</span>
+<span class="fc" id="L218">            return;</span>
         }
-<span class="nc" id="L220">        endIdx += read;</span>
-<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (read &lt; canWriteInBulk) {</span>
-<span class="nc" id="L222">            return;</span>
+<span class="fc" id="L220">        endIdx += read;</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (read &lt; canWriteInBulk) {</span>
+<span class="fc" id="L222">            return;</span>
         }
-<span class="nc" id="L224">        int wrapArround = size - canWriteInBulk;</span>
-<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (wrapArround &gt; 0) {</span>
-<span class="nc" id="L226">            read = super.read(memory, 0, wrapArround);</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">            if (read &lt; 0) {</span>
-<span class="nc bnc" id="L228" title="All 2 branches missed.">              if (endIdx &gt;= memory.length) {</span>
-<span class="nc" id="L229">                endIdx = 0;</span>
+<span class="fc" id="L224">        int wrapArround = size - canWriteInBulk;</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">        if (wrapArround &gt; 0) {</span>
+<span class="fc" id="L226">            read = super.read(memory, 0, wrapArround);</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">            if (read &lt; 0) {</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">              if (endIdx &gt;= memory.length) {</span>
+<span class="fc" id="L229">                endIdx = 0;</span>
               }
-<span class="nc" id="L231">              isEof = true;</span>
-<span class="nc" id="L232">              return;</span>
+<span class="fc" id="L231">              isEof = true;</span>
+<span class="fc" id="L232">              return;</span>
             }
-<span class="nc" id="L234">            endIdx = read;</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">        } else if (endIdx &gt;= memory.length) {</span>
-<span class="nc" id="L236">            endIdx = 0;</span>
+<span class="fc" id="L234">            endIdx = read;</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        } else if (endIdx &gt;= memory.length) {</span>
+<span class="fc" id="L236">            endIdx = 0;</span>
         }
-<span class="nc" id="L238">    }</span>
+<span class="fc" id="L238">    }</span>
 
     @Override
     public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
-<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (isClosed) {</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        if (isClosed) {</span>
 <span class="nc" id="L243">            throw new IOException(&quot;Stream is closed &quot; + this);</span>
         }
-<span class="nc bnc" id="L245" title="All 4 branches missed.">        if (len &lt; 0 || off + len &gt; b.length) {</span>
+<span class="pc bpc" id="L245" title="2 of 4 branches missed.">        if (len &lt; 0 || off + len &gt; b.length) {</span>
 <span class="nc" id="L246">          throw new ArrayIndexOutOfBoundsException(&quot;Offset &quot; + off  + &quot; or len &quot; + len);</span>
         }
-<span class="nc" id="L248">        int availableToRead = availableToRead();</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (availableToRead &lt;= 0) {</span>
-<span class="nc" id="L250">            fill();</span>
-<span class="nc" id="L251">            availableToRead = availableToRead();</span>
+<span class="fc" id="L248">        int availableToRead = availableToRead();</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (availableToRead &lt;= 0) {</span>
+<span class="fc" id="L250">            fill();</span>
+<span class="fc" id="L251">            availableToRead = availableToRead();</span>
         }
-<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (availableToRead == 0) {</span>
-<span class="nc bnc" id="L254" title="All 2 branches missed.">            if (isEof) {</span>
-<span class="nc" id="L255">                return -1;</span>
+<span class="fc bfc" id="L253" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">            if (isEof) {</span>
+<span class="fc" id="L255">                return -1;</span>
             } else {
 <span class="nc" id="L257">                throw new IllegalStateException(&quot;State=&quot; + this);</span>
             }
         }
-<span class="nc" id="L260">        int toRead = Math.min(availableToRead, len);</span>
-<span class="nc" id="L261">        int readToEnd = Math.min(toRead, memory.length - startIdx);</span>
-<span class="nc" id="L262">        System.arraycopy(memory, startIdx, b, off, readToEnd);</span>
-<span class="nc" id="L263">        startIdx += readToEnd;</span>
-<span class="nc" id="L264">        int wrapArround = toRead - readToEnd;</span>
-<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (wrapArround &gt; 0) {</span>
-<span class="nc" id="L266">            System.arraycopy(memory, 0, b, off + readToEnd, wrapArround);</span>
-<span class="nc" id="L267">            startIdx = wrapArround;</span>
-<span class="nc bnc" id="L268" title="All 2 branches missed.">        } else if (startIdx &gt;= memory.length) {</span>
-<span class="nc" id="L269">            startIdx = 0;</span>
+<span class="fc" id="L260">        int toRead = Math.min(availableToRead, len);</span>
+<span class="fc" id="L261">        int readToEnd = Math.min(toRead, memory.length - startIdx);</span>
+<span class="fc" id="L262">        System.arraycopy(memory, startIdx, b, off, readToEnd);</span>
+<span class="fc" id="L263">        startIdx += readToEnd;</span>
+<span class="fc" id="L264">        int wrapArround = toRead - readToEnd;</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">        if (wrapArround &gt; 0) {</span>
+<span class="fc" id="L266">            System.arraycopy(memory, 0, b, off + readToEnd, wrapArround);</span>
+<span class="fc" id="L267">            startIdx = wrapArround;</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">        } else if (startIdx &gt;= memory.length) {</span>
+<span class="fc" id="L269">            startIdx = 0;</span>
         }
-<span class="nc" id="L271">        this.readBytes += toRead;</span>
-<span class="nc" id="L272">        return toRead;</span>
+<span class="fc" id="L271">        this.readBytes += toRead;</span>
+<span class="fc" id="L272">        return toRead;</span>
     }
 
 
     @Override
     public synchronized int read() throws IOException {
-<span class="nc bnc" id="L278" title="All 2 branches missed.">        if (isClosed) {</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">        if (isClosed) {</span>
 <span class="nc" id="L279">            throw new IOException(&quot;Stream is closed &quot; + this);</span>
         }
-<span class="nc" id="L281">        int availableToRead = availableToRead();</span>
-<span class="nc bnc" id="L282" title="All 2 branches missed.">        if (availableToRead &lt;= 0) {</span>
-<span class="nc" id="L283">            fill();</span>
-<span class="nc" id="L284">            availableToRead = availableToRead();</span>
+<span class="fc" id="L281">        int availableToRead = availableToRead();</span>
+<span class="fc bfc" id="L282" title="All 2 branches covered.">        if (availableToRead &lt;= 0) {</span>
+<span class="fc" id="L283">            fill();</span>
+<span class="fc" id="L284">            availableToRead = availableToRead();</span>
         }
-<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (availableToRead == 0) {</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">            if (isEof) {</span>
-<span class="nc" id="L288">                return -1;</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">            if (isEof) {</span>
+<span class="fc" id="L288">                return -1;</span>
             } else {
 <span class="nc" id="L290">                throw new IllegalStateException(&quot;State=&quot; + this);</span>
             }
         }
-<span class="nc" id="L293">        int result = memory[startIdx++] &amp; 0xff;</span>
-<span class="nc bnc" id="L294" title="All 2 branches missed.">        if (startIdx &gt;= memory.length) {</span>
+<span class="fc" id="L293">        int result = memory[startIdx++] &amp; 0xff;</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        if (startIdx &gt;= memory.length) {</span>
 <span class="nc" id="L295">            startIdx = 0;</span>
         }
-<span class="nc" id="L297">        this.readBytes++;</span>
-<span class="nc" id="L298">        return result;</span>
+<span class="fc" id="L297">        this.readBytes++;</span>
+<span class="fc" id="L298">        return result;</span>
     }
 
     @Override
     public synchronized int available() throws IOException {
-<span class="nc bnc" id="L303" title="All 2 branches missed.">        if (isClosed) {</span>
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">        if (isClosed) {</span>
 <span class="nc" id="L304">            throw new IOException(&quot;Stream is closed &quot; + this);</span>
         }
-<span class="nc" id="L306">        return availableToRead();</span>
+<span class="fc" id="L306">        return availableToRead();</span>
     }
 
     @Override
     public synchronized String toString() {
         StringBuilder result;
-<span class="nc bnc" id="L312" title="All 2 branches missed.">        if (isClosed) {</span>
-<span class="nc" id="L313">           result = new StringBuilder(64);</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        if (isClosed) {</span>
+<span class="fc" id="L313">           result = new StringBuilder(64);</span>
         } else {
-<span class="nc" id="L315">           result = new StringBuilder((availableToRead() + availableInMemory()) * 2 + 128);</span>
+<span class="fc" id="L315">           result = new StringBuilder((availableToRead() + availableInMemory()) * 2 + 128);</span>
         }
-<span class="nc" id="L317">        result.append(&quot;MemorizingBufferedInputStream{\n&quot;);</span>
-<span class="nc bnc" id="L318" title="All 2 branches missed.">        if (isClosed) {</span>
-<span class="nc" id="L319">            result.append(&quot;closed=true\n&quot;);</span>
-<span class="nc bnc" id="L320" title="All 2 branches missed.">        } else if (charset == null) {</span>
-<span class="nc" id="L321">            final BaseEncoding base64 = BaseEncoding.base64();</span>
-<span class="nc" id="L322">            result.append(&quot;readBytes=\&quot;&quot;).append(base64.encode(getReadBytesFromBuffer())).append(&quot;\&quot;,\n&quot;);</span>
-<span class="nc" id="L323">            result.append(&quot;unreadBytes=\&quot;&quot;).append(base64.encode(getUnreadBytesFromBuffer())).append(&quot;\&quot;\n&quot;);</span>
-<span class="nc" id="L324">        } else {</span>
+<span class="fc" id="L317">        result.append(&quot;MemorizingBufferedInputStream{\n&quot;);</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        if (isClosed) {</span>
+<span class="fc" id="L319">            result.append(&quot;closed=true\n&quot;);</span>
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">        } else if (charset == null) {</span>
+<span class="fc" id="L321">            final BaseEncoding base64 = BaseEncoding.base64();</span>
+<span class="fc" id="L322">            result.append(&quot;readBytes=\&quot;&quot;).append(base64.encode(getReadBytesFromBuffer())).append(&quot;\&quot;,\n&quot;);</span>
+<span class="fc" id="L323">            result.append(&quot;unreadBytes=\&quot;&quot;).append(base64.encode(getUnreadBytesFromBuffer())).append(&quot;\&quot;\n&quot;);</span>
+<span class="fc" id="L324">        } else {</span>
           try {
 <span class="nc" id="L326">            result.append(&quot;readStr=\&quot;&quot;).append(</span>
 <span class="nc" id="L327">                    charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)</span>
@@ -336,11 +336,11 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
 <span class="nc" id="L336">          }</span>
 
         }
-<span class="nc" id="L339">        result.append(&quot;memIdx=&quot;).append(this.memIdx).append(&quot;\&quot;\n&quot;);</span>
-<span class="nc" id="L340">        result.append(&quot;startIdx=&quot;).append(this.startIdx).append(&quot;\&quot;\n&quot;);</span>
-<span class="nc" id="L341">        result.append(&quot;endIdx=&quot;).append(this.endIdx).append(&quot;\&quot;\n&quot;);</span>
-<span class="nc" id="L342">        result.append('}');</span>
-<span class="nc" id="L343">        return result.toString();</span>
+<span class="fc" id="L339">        result.append(&quot;memIdx=&quot;).append(this.memIdx).append(&quot;\&quot;\n&quot;);</span>
+<span class="fc" id="L340">        result.append(&quot;startIdx=&quot;).append(this.startIdx).append(&quot;\&quot;\n&quot;);</span>
+<span class="fc" id="L341">        result.append(&quot;endIdx=&quot;).append(this.endIdx).append(&quot;\&quot;\n&quot;);</span>
+<span class="fc" id="L342">        result.append('}');</span>
+<span class="fc" id="L343">        return result.toString();</span>
     }
 
     public synchronized long getReadBytes() {
