@@ -55,6 +55,9 @@ import org.spf4j.base.Threads;
 @ParametersAreNonnullByDefault
 public final class FastStackCollector implements ISampler {
 
+  private static final int DEFAULT_MAX_NR_SAMPLED_THREADS
+          = Integer.getInteger("spf4j.stackCollector.maxSampledThreads", 128);
+
   private static final String[] IGNORED_THREADS = {
     "Finalizer",
     "Signal Dispatcher",
@@ -70,6 +73,8 @@ public final class FastStackCollector implements ISampler {
 
   private Thread[] requestFor = new Thread[]{};
 
+  private final int maxNrSampledThreads;
+
   public FastStackCollector(final boolean collectForMain, final String... xtraIgnoredThreads) {
     this(false, collectForMain, xtraIgnoredThreads);
   }
@@ -84,15 +89,17 @@ public final class FastStackCollector implements ISampler {
                             final boolean collectForMain,
                             final Thread[] ignored,
                             final String... xtraIgnoredThreads) {
-    this(createNameBasedFilter(collectRunnableThreadsOnly, collectForMain, ignored, xtraIgnoredThreads));
+    this(createNameBasedFilter(collectRunnableThreadsOnly, collectForMain, ignored, xtraIgnoredThreads),
+            DEFAULT_MAX_NR_SAMPLED_THREADS);
   }
 
   /**
    * @param threadFilter when returns true the thread is being ignored
    */
-  public FastStackCollector(final Predicate<Thread> threadFilter) {
+  public FastStackCollector(final Predicate<Thread> threadFilter, final int maxNrSampledThreads) {
     this.threadFilter = threadFilter;
     this.collector = new StackCollectorImpl();
+    this.maxNrSampledThreads = maxNrSampledThreads;
   }
 
   public static Predicate<Thread> createNameBasedFilter(final boolean collectRunnableThreadsOnly,
@@ -143,16 +150,17 @@ public final class FastStackCollector implements ISampler {
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public void sample() {
     Thread[] threads = Threads.getThreads();
-    final int nrThreads = threads.length;
+    final int nrThreads = Threads.randomFirst(maxNrSampledThreads, threads);
     if (requestFor.length < nrThreads) {
-      requestFor = new Thread[nrThreads - 1];
+      requestFor = new Thread[nrThreads];
     }
     int j = 0;
     for (int i = 0; i < nrThreads; i++) {
       Thread th = threads[i];
-      if (!threadFilter.test(th)) { // not interested in these traces
-        requestFor[j++] = th;
+      if (threadFilter.test(th)) { // not interested in these traces
+        continue;
       }
+      requestFor[j++] = th;
     }
     Arrays.fill(requestFor, j, requestFor.length, null);
     StackTraceElement[][] stackDump = Threads.getStackTraces(requestFor);

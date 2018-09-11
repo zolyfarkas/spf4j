@@ -41,6 +41,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -139,6 +140,31 @@ public final class Threads {
 
   public static Thread[] getThreads() {
     return TI_SUPP.getThreads();
+  }
+
+  /**
+   * get a random selection of nr Threads from the array, the first nr location in the array will
+   * contain the random set,m the rest will be null.
+   * @param nr number of threads to randomly select.
+   * @param threads the array of threads to select from
+   */
+  @SuppressFBWarnings("PREDICTABLE_RANDOM")
+  public static int randomFirst(final int nr, final Thread[] threads) {
+    int length = threads.length;
+    if (nr >= length) {
+      return length;
+    }
+    ThreadLocalRandom rnd = ThreadLocalRandom.current();
+    for (int i = 0; i < nr; i++) {
+      int nextInt = rnd.nextInt(i, length);
+      if (nextInt != i) {
+        Thread t = threads[i];
+        threads[i] = threads[nextInt];
+        threads[nextInt] = t;
+      }
+    }
+    Arrays.fill(threads, nr, length, null);
+    return nr;
   }
 
   public static StackTraceElement[][] getStackTraces(final Thread... threads) {
