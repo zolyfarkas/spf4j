@@ -70,6 +70,8 @@
         <jacoco.method.ratio>0.4</jacoco.method.ratio>
         <argLine>-Djava.io.tmpdir=./target -Duser.dir=./target -XX:-OmitStackTraceInFastThrow</argLine>
         <skip.avrodoc>true</skip.avrodoc>
+        <findbugs.excludeFilterFile>${basedir}/../findbugs_exclude.xml</findbugs.excludeFilterFile>
+        <checkstyle.configLocation>${basedir}/../checkstyle_checks.xml</checkstyle.configLocation>
     </properties>
     
     <scm>
@@ -143,7 +145,7 @@
         <module>spf4j-ui</module>
         <module>spf4j-aspects</module>
         <module>spf4j-zel</module>
-        <module>spf4j-avro</module>
+        <module>spf4j-avro-components</module>
         <module>spf4j-benchmarks</module>
         <module>spf4j-jacoco-aggregate</module>
         <!-- disable until implemented 
@@ -451,7 +453,7 @@ java.util.Calendar#getInstance()
                         <threshold>Exp</threshold><!-- High, Default, Low, Ignore -->
                         <xmlOutput>true</xmlOutput>
                         <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
-                        <excludeFilterFile>${basedir}/../findbugs_exclude.xml</excludeFilterFile>
+                        <excludeFilterFile>${findbugs.excludeFilterFile}</excludeFilterFile>
                         <includeTests>true</includeTests>
                         <plugins>
                             <plugin>
@@ -490,7 +492,7 @@ java.util.Calendar#getInstance()
                     <configuration>
                         <logViolationsToConsole>true</logViolationsToConsole>
                         <consoleOutput>true</consoleOutput>
-                        <configLocation>${project.basedir}/../checkstyle_checks.xml</configLocation>
+                        <configLocation>${checkstyle.configLocation}</configLocation>
                     </configuration>
                     <executions>
                         <execution>
@@ -500,7 +502,6 @@ java.util.Calendar#getInstance()
                                 <goal>check</goal>
                             </goals>
                             <configuration>
-                              <configLocation>${project.basedir}/../checkstyle_checks.xml</configLocation>
                               <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             </configuration>
                         </execution>
