@@ -36,6 +36,10 @@ import org.spf4j.annotations.PerformanceMonitor;
 import org.junit.Test;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogAssert;
+import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.matchers.LogMatchers;
 
 /**
  *
@@ -44,21 +48,24 @@ import org.spf4j.jmx.Registry;
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class PerformanceMonitorAspectTest {
 
-    /**
-     * Test of performanceMonitoredMethod method, of class PerformanceMonitorAspect.
-     */
-    @Test
-    public void testPerformanceMonitoredMethod() throws Exception {
-        Registry.export(this);
-        for (int i = 0; i < 10; i++) {
-            somethingTomeasure(i, "Test");
-        }
+  /**
+   * Test of performanceMonitoredMethod method, of class PerformanceMonitorAspect.
+   */
+  @Test
+  public void testPerformanceMonitoredMethod() throws Exception {
+    Registry.export(this);
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.perf.aspects.PerformanceMonitorAspect", Level.WARN,
+            LogMatchers.hasFormat("Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}"));
+    for (int i = 0; i < 10; i++) {
+      somethingTomeasure(i, "Test");
     }
+    expect.assertObservation();
+  }
 
-    @PerformanceMonitor(warnThresholdMillis = 1)
-    @JmxExport
-    public void somethingTomeasure(final int arg1, final String arg2) throws InterruptedException {
-        Thread.sleep(10);
-    }
+  @PerformanceMonitor(warnThresholdMillis = 1)
+  @JmxExport
+  public void somethingTomeasure(final int arg1, final String arg2) throws InterruptedException {
+    Thread.sleep(10);
+  }
 
 }

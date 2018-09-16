@@ -33,7 +33,7 @@
     <jacoco.instruction.ratio>0.2</jacoco.instruction.ratio>
     <jacoco.class.ratio>0.3</jacoco.class.ratio>
     <jacoco.method.ratio>0.3</jacoco.method.ratio>
-    <argLine>-Djava.io.tmpdir=./target -javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar -javaagent:${project.build.directory}/lib/spf4j-core-${project.version}.jar</argLine>
+    <argLine>-javaagent:${project.build.directory}/lib/aspectjweaver-${aspectj.version}.jar -javaagent:${project.build.directory}/lib/spf4j-core-${project.version}.jar</argLine>
   </properties>
 
   <dependencies>
@@ -123,12 +123,15 @@
           <skip>true</skip>
           <forkCount>1</forkCount>
           <reuseForks>false</reuseForks>
-          <systemPropertyVariables>
-            <property>
-              <name>aj.weaving.verbose</name>
-              <value>true</value>
-            </property>
-          </systemPropertyVariables>
+          <systemProperties>
+            <spf4j.testLog.expectingErrorsIn>org.aspectj.weaver.bcel.BcelWorld</spf4j.testLog.expectingErrorsIn>
+            <aj.weaving.verbose>true</aj.weaving.verbose>
+            <org.aspectj.tracing.enabled>false</org.aspectj.tracing.enabled>
+            <org.aspectj.tracing.debug>false</org.aspectj.tracing.debug>
+            <spf4j.testLog.rootPrintLevelIDE>TRACE</spf4j.testLog.rootPrintLevelIDE>
+            <spf4j.testLog.rootPrintLevel>TRACE</spf4j.testLog.rootPrintLevel>
+            <org.aspectj.weaver.loadtime.configuration>file:META-INF/aop.xml</org.aspectj.weaver.loadtime.configuration>
+          </systemProperties>
           <properties>
             <property>
               <name>listener</name>

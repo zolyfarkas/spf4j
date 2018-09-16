@@ -33,6 +33,7 @@ package org.spf4j.perf.aspects;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.util.concurrent.TimeUnit;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 import org.spf4j.annotations.PerformanceMonitor;
 import org.spf4j.annotations.RecorderSourceInstance;
+import org.spf4j.base.TimeSource;
 
 /**
  * Aspect that measures execution time and does performance logging
@@ -61,14 +63,15 @@ public final class PerformanceMonitorAspect {
             return (MeasurementRecorderSource) key.getField("INSTANCE").get(null);
         }
     });
-    @Around(value = "execution(@org.spf4j.annotations.PerformanceMonitor * *(..))"
-            + " && @annotation(org.spf4j.annotations.PerformanceMonitor annot)",
+    @Around(value = "@annotation(annot)"
+            + " && execution(@org.spf4j.annotations.PerformanceMonitor * *(..))",
             argNames = "pjp,annot")
     public Object performanceMonitoredMethod(final ProceedingJoinPoint pjp, final PerformanceMonitor annot)
             throws Throwable {
-        final long start = System.currentTimeMillis();
+        final long start = TimeSource.nanoTime();
         Object result = pjp.proceed();
-        final long elapsed = System.currentTimeMillis() - start;
+        final long elapsedNanos = TimeSource.nanoTime() - start;
+        final long elapsed = TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
         MeasurementRecorderSource mrs = REC_SOURCES.getUnchecked(annot.recorderSource());
         mrs.getRecorder(pjp.toLongString()).record(elapsed);
         final long warnThresholdMillis = annot.warnThresholdMillis();
