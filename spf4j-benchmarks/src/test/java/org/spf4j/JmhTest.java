@@ -32,7 +32,6 @@
 package org.spf4j;
 
 import java.io.IOException;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
