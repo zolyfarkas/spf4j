@@ -32,6 +32,7 @@
 package org.spf4j;
 
 import java.io.IOException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
@@ -54,7 +55,8 @@ public final class JmhTest {
   @Test
   public void runJmh() throws RunnerException, IOException {
     if (TestUtils.isExecutedInCI()
-            || "true".equalsIgnoreCase(System.getProperty("is.release", "false"))) {
+            || "true".equalsIgnoreCase(System.getProperty("is.release", "false"))
+            || !System.getProperty("project.version", "").contains("SNAPSHOT")) {
       LOG.info("Benchmarks disabled in travis, not enough resources for this...");
       return;
     }
