@@ -100,7 +100,7 @@ public final class SntpClientTest {
     long currentTimeMillis = 1530813879198L;
     SntpClient.writeTimeStamp(buffer, 0, currentTimeMillis);
     long readTimeStamp = SntpClient.readTimeStamp(buffer, 0);
-    Assert.assertEquals(1530813879197L, readTimeStamp);
+    Assert.assertTrue(Math.abs(currentTimeMillis - readTimeStamp) < 2);
   }
 
   public static Closeable runUdpServer(final boolean hickup) {
