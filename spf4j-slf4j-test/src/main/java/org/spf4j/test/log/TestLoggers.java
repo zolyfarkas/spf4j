@@ -17,6 +17,7 @@ package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -115,8 +117,15 @@ public final class TestLoggers implements ILoggerFactory {
       catHandlers = Collections.EMPTY_MAP;
     }
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
+    Set<String> expectingErrorsIn;
+    String vals = System.getProperty("spf4j.testLog.expectingErrorsIn");
+    if (vals != null) {
+      expectingErrorsIn = ImmutableSet.copyOf(vals.split(","));
+    } else {
+      expectingErrorsIn = Collections.EMPTY_SET;
+    }
     config = new LogConfigImpl(
-            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter()), catHandlers);
+            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter(expectingErrorsIn)), catHandlers);
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
