@@ -42,9 +42,6 @@ import org.spf4j.perf.impl.NopMeasurementRecorderSource;
 
 public abstract class RecorderSourceInstance {
 
-    private RecorderSourceInstance() {
-    }
-
     public static final class RsNop extends RecorderSourceInstance {
 
         public static final MeasurementRecorderSource INSTANCE = NopMeasurementRecorderSource.INSTANCE;
