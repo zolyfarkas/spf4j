@@ -229,6 +229,16 @@ public final class ExecutionContexts {
   }
 
   @Nonnegative
+  public static int getTimeToDeadlineInt(final TimeUnit unit) throws TimeoutException {
+    long timeRelativeToDeadline = getTimeToDeadline(unit);
+    if (timeRelativeToDeadline > Integer.MAX_VALUE) {
+      return Integer.MAX_VALUE;
+    } else {
+      return (int) timeRelativeToDeadline;
+    }
+  }
+
+  @Nonnegative
   public static long getMillisToDeadline() throws TimeoutException {
     return getTimeToDeadline(TimeUnit.MILLISECONDS);
   }
