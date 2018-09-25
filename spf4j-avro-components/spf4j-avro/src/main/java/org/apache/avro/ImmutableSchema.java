@@ -48,6 +48,8 @@ import org.codehaus.jackson.JsonNode;
 @Immutable
 public final class ImmutableSchema extends Schema {
 
+  private static final long serialVersionUID = 1L;
+
   private final Schema wrapped;
 
   private ImmutableSchema(final Schema schema) {
@@ -253,8 +255,7 @@ public final class ImmutableSchema extends Schema {
     return wrapped.toString(pretty);
   }
 
-  @Override
-  void setLogicalType(final LogicalType logicalType) {
+  public void setLogicalType(final LogicalType logicalType) {
     throw new UnsupportedOperationException();
   }
 

@@ -196,6 +196,12 @@ public final class ExecutionContexts {
     return nCtx;
   }
 
+  public static ExecutionContext createDetached(final String name,
+          @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
+    return CTX_FACTORY.start(name, parent, startTimeNanos, deadlineNanos, () -> { });
+  }
+
+
   public static long getContextDeadlineNanos() {
     ExecutionContext ec = ExecutionContexts.current();
     if (ec == null) {
