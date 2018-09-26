@@ -259,6 +259,14 @@ public final class ExecutionContexts {
     }
   }
 
+  public static long computeDeadline(final long timeout, final TimeUnit unit) {
+    return computeDeadline(current(), unit, timeout);
+  }
+
+  public static long computeTimeout(final long timeout, final TimeUnit unit) throws TimeoutException {
+    return unit.convert(computeTimeoutDeadline(current(), unit, timeout).getTimeoutNanos(), TimeUnit.NANOSECONDS);
+  }
+
   public static long computeDeadline(@Nullable final ExecutionContext current,
           final TimeUnit unit, final long timeout) {
     if (current == null) {
@@ -280,6 +288,14 @@ public final class ExecutionContexts {
     return (ctxDeadlinenanos - startTimeNanos < timeoutNanos) ? ctxDeadlinenanos : startTimeNanos + timeoutNanos;
   }
 
+  /**
+   * Compute the actual timeout taking in consideration the context deadline.
+   * @param current the context
+   * @param unit timeout unit
+   * @param timeout timeout value
+   * @return the earliest timeout (of the provided and context one)
+   * @throws TimeoutException
+   */
   public static TimeoutDeadline computeTimeoutDeadline(@Nullable final ExecutionContext current,
           final TimeUnit unit, final long timeout) throws TimeoutException {
     if (current == null) {
