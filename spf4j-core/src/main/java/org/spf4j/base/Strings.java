@@ -65,6 +65,9 @@ import javax.annotation.Nullable;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class Strings {
 
+  /**
+   * This field is byte[] in JDK11.
+   */
   private static final MethodHandle CHARS_FIELD_GET;
 
   //String(char[] value, boolean share) {
@@ -195,7 +198,7 @@ public final class Strings {
       }
     });
     MethodHandles.Lookup lookup = MethodHandles.lookup();
-    if (charsField != null) {
+    if (charsField != null && char[].class == charsField.getType()) {
       try {
         CHARS_FIELD_GET = lookup.unreflectGetter(charsField);
       } catch (IllegalAccessException ex) {
