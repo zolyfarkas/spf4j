@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -86,6 +87,11 @@ public class AppendableLimiterWithFileOverflowTest {
 
     LOG.debug("Destination: {}", destination);
     Assert.assertEquals(90, destination.length());
+    String suffix = "...@" + ovflow.getPath();
+    String destinationStr = destination.toString();
+    Assert.assertThat(destinationStr, Matchers.endsWith(suffix));
+    int strWritten = 90 - suffix.length();
+    Assert.assertEquals(testStr.substring(0, strWritten), destinationStr.substring(0, strWritten));
     String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
             StandardCharsets.UTF_8));
     Assert.assertEquals(testStr, oContent);
