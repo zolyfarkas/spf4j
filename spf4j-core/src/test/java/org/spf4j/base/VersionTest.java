@@ -76,8 +76,7 @@ public class VersionTest {
   @Test
   public void testVersion4() {
     Version version = new Version(org.spf4j.base.Runtime.JAVA_VERSION);
-    Assert.assertEquals(1, version.getMajor());
-    Assert.assertEquals(8, version.getMinor());
+    Assert.assertTrue(version.getMajor() > 0);
     Version clone = Objects.clone(version);
     Assert.assertEquals(version, clone);
   }

@@ -78,7 +78,13 @@ public final class StdOutToStringProcessHandler implements ProcessHandler<String
     BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));
     String line;
     while ((line = reader.readLine()) != null) {
-      log.severe(line);
+      if (line.startsWith("INFO")) {
+        log.info(line);
+      } else if (line.startsWith("WARN")) {
+        log.warning(line);
+      } else {
+        log.severe(line);
+      }
       result.append(line).append(Strings.EOL);
     }
     log.fine("done with stderr");
