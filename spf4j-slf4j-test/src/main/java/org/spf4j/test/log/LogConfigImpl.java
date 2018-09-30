@@ -92,7 +92,6 @@ final class LogConfigImpl implements LogConfig {
   @Nullable
   public LogConsumer getLogConsumer(final String category, final Level level) {
     ArrayList<LogHandler> res = new ArrayList<>(2);
-    res.clear();
     if (category.isEmpty() || logHandlers.isEmpty()) {
       addAll(level, rootHandler, res);
       return CompositeLogHandler.from(res);
