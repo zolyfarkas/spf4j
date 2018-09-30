@@ -16,3 +16,21 @@ SonarCloud: [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?pr
 Continuous integration: [![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)](https://travis-ci.org/zolyfarkas/spf4j)
 
 see more detail at: http://zolyfarkas.github.com/spf4j/
+
+
+Build/DEV of the spf4j libraries.
+
+IDE Preferences: Netbeans.
+For Eclipse you need https://bugs.eclipse.org/bugs/show_bug.cgi?id=538885 implemented for best experience.
+For InteliJ you need https://youtrack.jetbrains.com/oauth?state=%2Fissue%2FIDEA-190385  implemented for best experience.
+
+Buuild with Maven 3.5.2
+Run maven with JDK 1.8
+
+To build project all you need to do is: mvn install
+
+Please use -Dgpg.skip=true argument is you do not have gpg installed or configured.
+
+You can run the spf4j unit tests by activating the jdk-11-validation profile. (-P jdk-11-validation profile)
+please define java11.home property with the home of JDK 11 in your settings.xml
+
