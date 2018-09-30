@@ -333,8 +333,8 @@ public class TestLoggerFactoryTest {
   @Test
   public void testIntercept() throws InterruptedException {
     TestLoggers sys = TestLoggers.sys();
-    HandlerRegistration reg = sys.interceptAllLevels("org.spf4j.test.log", (l) -> null);
     LogAssert expect = sys.dontExpect("org.spf4j.test.log", Level.INFO, (Matcher) Matchers.anything());
+    HandlerRegistration reg = sys.interceptAllLevels("org.spf4j.test.log", (l) -> null);
     LOG.info("bla");
     expect.assertObservation();
     reg.close();

@@ -51,7 +51,7 @@ final class LogConfigImpl implements LogConfig {
     ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category.isEmpty()) {
-      rh = ImmutableList.<LogHandler>builder().addAll(rootHandler).add(handler).build();
+      rh = ImmutableList.<LogHandler>builder().add(handler).addAll(rootHandler).build();
       ch = logHandlers;
     } else {
       rh = rootHandler;
@@ -61,7 +61,7 @@ final class LogConfigImpl implements LogConfig {
         hndlrs = new ArrayList<>(2);
         ch.put(category, hndlrs);
       }
-      hndlrs.add(handler);
+      hndlrs.add(0, handler);
     }
     return new LogConfigImpl(rh, ch);
   }

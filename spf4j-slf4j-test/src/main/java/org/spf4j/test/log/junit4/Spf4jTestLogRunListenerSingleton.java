@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.WillNotClose;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -153,8 +154,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
           assertions.add(
                   sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
                           expect.expectationTimeout(), expect.timeUnit(),
-                  LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
-                  LogMatchers.hasLevel(expect.level())));
+                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
+                  LogMatchers.hasLevel(expect.level()))));
         }
         return assertions;
       } else {
@@ -163,8 +164,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
             return Collections.singletonList(
                   sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
                   expect.expectationTimeout(), expect.timeUnit(),
-                  LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
-                  LogMatchers.hasLevel(expect.level())));
+                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
+                  LogMatchers.hasLevel(expect.level()))));
           } else {
             return Collections.EMPTY_LIST;
           }
@@ -235,8 +236,9 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   @Override
   public void testFailure(final Failure failure) {
     Description description = failure.getDescription();
-    LogCollection<ArrayDeque<LogRecord>> handler = baggages.get(description).getLogCollection();
-    if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
+    TestBaggage bg = baggages.get(description);
+    if (bg != null) { // will Happen when a Uncaught Exception causes a test to fail.
+      LogCollection<ArrayDeque<LogRecord>> handler = bg.getLogCollection();
       try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
         dumpDebugInfo(h.get(), description);
       }
