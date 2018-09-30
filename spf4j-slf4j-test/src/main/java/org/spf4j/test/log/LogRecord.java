@@ -176,7 +176,7 @@ public final class LogRecord {
 
   @Override
   public String toString() {
-    return "LogRecord{ thread=" + thread + ", logger=" + logger + ", level="
+    return "LogRecord{ thread=" + thread.getName() + ", logger=" + logger + ", level="
             + level + ", timeStamp=" + timeStamp + ", marker=" + marker + ", format="
             + format + ", arguments=" + java.util.Arrays.toString(arguments) + '}';
   }
