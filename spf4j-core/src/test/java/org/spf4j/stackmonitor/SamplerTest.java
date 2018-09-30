@@ -53,10 +53,11 @@ public class SamplerTest {
   public void testSampler() throws InterruptedException {
     Sampler sampler = Sampler.getSampler(5, 2000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
     LogAssert expect = TestLoggers.sys()
-            .expect(Sampler.class.getName(), Level.INFO, LogMatchers.hasFormat("Stack samples written to {}"));
+            .expect(Sampler.class.getName(), Level.INFO,
+                    5000, TimeUnit.MILLISECONDS, LogMatchers.hasFormat("Stack samples written to {}"));
     sampler.start();
     LOG.debug("started sampling");
-    expect.assertObservation(5000, TimeUnit.MILLISECONDS);
+    expect.assertObservation();
     sampler.stop();
   }
 

@@ -18,7 +18,6 @@ package org.spf4j.test.log;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 
 /**
- *
  * @author Zoltan Farkas
  */
 public interface ObservationAssert {

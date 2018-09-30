@@ -48,7 +48,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Throwables;
-import org.spf4j.test.log.AsyncObservationAssert;
+import org.spf4j.test.log.ObservationAssert;
 import org.spf4j.test.log.TestLoggers;
 
 /**
@@ -200,7 +200,8 @@ public class LifoThreadPoolExecutorTest {
       }
     };
     long start = System.currentTimeMillis();
-    AsyncObservationAssert obs = TestLoggers.sys().expectUncaughtException(Matchers.hasProperty("throwable",
+    ObservationAssert obs = TestLoggers.sys().expectUncaughtException(10, TimeUnit.SECONDS,
+            Matchers.hasProperty("throwable",
             Matchers.any(IllegalStateException.class)));
     executor.execute(new Runnable() {
 
@@ -209,7 +210,7 @@ public class LifoThreadPoolExecutorTest {
         throw new IllegalStateException();
       }
     });
-    obs.assertObservation(10, TimeUnit.SECONDS);
+    obs.assertObservation();
     for (int i = 0; i < testCount; i++) {
       try {
         executor.execute(runnable);

@@ -17,7 +17,9 @@ package org.spf4j.test.log.junit4;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,14 +38,18 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.LogRecord;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.annotations.CollectLogs;
+import org.spf4j.test.log.annotations.ExpectLog;
+import org.spf4j.test.log.annotations.ExpectLogs;
 import org.spf4j.test.log.annotations.PrintLogs;
 import org.spf4j.test.log.annotations.PrintLogsConfigs;
+import org.spf4j.test.matchers.LogMatchers;
 
 /**
  *
@@ -64,9 +70,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final int maxDebugLogsCollected;
 
-  private final Map<Description, LogCollection<ArrayDeque<LogRecord>>> collections;
-
-  private final Map<Description, ExecutionContext> ctxts;
+  private final Map<Description, TestBaggage> baggages;
 
   private final boolean collectPrinted;
 
@@ -76,8 +80,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     minLogLevel = Level.valueOf(System.getProperty("spf4j.test.log.collectMinLevel", "DEBUG"));
     maxDebugLogsCollected = Integer.getInteger("spf4j.test.log.collectmaxLogs", 100);
     collectPrinted = Boolean.getBoolean("spf4j.test.log.collectPrintedLogs");
-    collections = new ConcurrentHashMap<>();
-    ctxts = new ConcurrentHashMap<>();
+    baggages = new ConcurrentHashMap<>();
     synchronized (Thread.class) {
       final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
       uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);
@@ -101,17 +104,6 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
                 ex.getThread(), throwable);
       }
       throw assertionError;
-    }
-  }
-
-  @Override
-  public void testFailure(final Failure failure) {
-    Description description = failure.getDescription();
-    LogCollection<ArrayDeque<LogRecord>> handler = collections.get(description);
-    if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
-      try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
-        dumpDebugInfo(h.get(), description);
-      }
     }
   }
 
@@ -143,38 +135,87 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     } else {
       ctx = ExecutionContexts.start(description.getDisplayName());
     }
+    TestLoggers sysTest = TestLoggers.sys();
+    LogCollection<ArrayDeque<LogRecord>> collectLogs = handleLogCollections(description, sysTest);
+    List<LogAssert> logExpectations = handleLogExpectations(description, sysTest);
+    baggages.put(description, new TestBaggage(ctx, collectLogs, logExpectations));
+    handlePrintLogAnnotations(description, sysTest);
+    super.testStarted(description);
+  }
+
+    private List<LogAssert> handleLogExpectations(final Description description,
+          final TestLoggers sysTest) {
+      ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);
+      if (expectLogs != null) {
+        ExpectLog[] value = expectLogs.value();
+        List<LogAssert> assertions = new ArrayList<>(value.length);
+        for (ExpectLog expect : value) {
+          assertions.add(
+                  sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
+                          expect.expectationTimeout(), expect.timeUnit(),
+                  LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
+                  LogMatchers.hasLevel(expect.level())));
+        }
+        return assertions;
+      } else {
+          ExpectLog expect = description.getAnnotation(ExpectLog.class);
+          if (expect != null) {
+            return Collections.singletonList(
+                  sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
+                  expect.expectationTimeout(), expect.timeUnit(),
+                  LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
+                  LogMatchers.hasLevel(expect.level())));
+          } else {
+            return Collections.EMPTY_LIST;
+          }
+      }
+    }
+
+  private LogCollection<ArrayDeque<LogRecord>> handleLogCollections(final Description description,
+          final TestLoggers sysTest) {
     CollectLogs ca = description.getAnnotation(CollectLogs.class);
     Level mll = ca == null ? minLogLevel : ca.minLevel();
     boolean clp = ca == null ? collectPrinted : ca.collectPrinted();
-    TestLoggers sysTest = TestLoggers.sys();
-    collections.put(description, sysTest.collect(mll, maxDebugLogsCollected, clp));
+    return sysTest.collect(mll, maxDebugLogsCollected, clp);
+  }
+
+  private void handlePrintLogAnnotations(final Description description, final TestLoggers sysTest) {
     PrintLogsConfigs prtAnnots = description.getAnnotation(PrintLogsConfigs.class);
     if (prtAnnots != null) {
-      PrintLogs[] value = prtAnnots.value();
-      for (PrintLogs prtAnnot : value) {
+      for (PrintLogs prtAnnot : prtAnnots.value()) {
         sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE
-              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
+                ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
       }
     } else {
       PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);
       if (prtAnnot != null) {
         sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE
-              ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
+                ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());
       }
     }
-    ctxts.put(description, ctx);
-    super.testStarted(description);
   }
 
 
   @Override
+  @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public synchronized void testFinished(final Description description) {
     TestTimeSource.clear();
-    LogCollection<ArrayDeque<LogRecord>> handler = collections.remove(description);
-    try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
+    TestBaggage baggage = baggages.remove(description);
+    try (LogCollection<ArrayDeque<LogRecord>> h = baggage.getLogCollection()) {
       handleUncaughtExceptions(description, h.get());
+    } finally {
+      try {
+        for (LogAssert assertion : baggage.getAssertions()) {
+          assertion.assertObservation();
+        }
+      } finally {
+        closeAllContextCloseables(baggage);
+      }
     }
-    ExecutionContext ctx = ctxts.remove(description);
+  }
+
+  private  void closeAllContextCloseables(final TestBaggage baggage) {
+    ExecutionContext ctx = baggage.getCtx();
     ExecutionContext currentThreadContext = ExecutionContexts.current();
     if (ctx == currentThreadContext) {
       ctx.close();
@@ -188,6 +229,17 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     } else {
       throw new IllegalStateException("JUnit Threading model not as expected " + ctx + " != "
               + currentThreadContext);
+    }
+  }
+
+  @Override
+  public void testFailure(final Failure failure) {
+    Description description = failure.getDescription();
+    LogCollection<ArrayDeque<LogRecord>> handler = baggages.get(description).getLogCollection();
+    if (handler != null) { // will Happen when a Uncaught Exception causes a test to fail.
+      try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
+        dumpDebugInfo(h.get(), description);
+      }
     }
   }
 
@@ -213,8 +265,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   @Override
   public String toString() {
     return "DetailOnFailureRunListener{" + "minLogLevel=" + minLogLevel
-            + ", maxDebugLogsCollected=" + maxDebugLogsCollected + ", collections="
-            + collections + ", collectPrinted=" + collectPrinted + '}';
+            + ", maxDebugLogsCollected=" + maxDebugLogsCollected + ", baggages="
+            + baggages + ", collectPrinted=" + collectPrinted + '}';
   }
 
 }

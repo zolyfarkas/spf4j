@@ -20,61 +20,53 @@ import org.hamcrest.Matcher;
 import org.spf4j.base.TimeSource;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-abstract class UncaughtExceptionAsserter implements LogAssert, UncaughtExceptionConsumer {
-
-  private final Matcher<UncaughtExceptionDetail> matcher;
-
-  private final Object sync;
-
-  private int seen;
+abstract class LogMatchingHandlerAsync extends LogMatchingHandler {
 
   private final long timeout;
-  private final TimeUnit unit;
+  private final TimeUnit tu;
 
-  UncaughtExceptionAsserter(final long timeout, final TimeUnit unit, final Matcher<UncaughtExceptionDetail> matcher) {
-    this.matcher = matcher;
-    this.seen = 0;
-    this.sync = new Object();
+  LogMatchingHandlerAsync(final boolean assertSeen, final String category,
+          final Level minLevel, final long timeout, final TimeUnit tu,  final Matcher<LogRecord>... matchers) {
+    super(assertSeen, category, minLevel, matchers);
     this.timeout = timeout;
-    this.unit = unit;
+    this.tu = tu;
+  }
+
+  public abstract void close();
+
+  @Override
+  public void matched() {
+    sync.notifyAll();
   }
 
   @Override
   public void assertObservation() {
-    long deadline = TimeSource.nanoTime() + unit.toNanos(timeout);
+    long deadline = TimeSource.nanoTime() + tu.toNanos(timeout);
     try {
       synchronized (sync) {
-        while (seen == 0) {
+        while (assertSeen ? at < matchers.length : at >= matchers.length) {
           long nanosToDeadline = deadline - TimeSource.nanoTime();
           if (nanosToDeadline <= 0) {
-              throw new AssertionError("Not seen uncaught exception matching " + matcher);
+            if (assertSeen) {
+              throw new AssertionError(seenDescription().toString());
+            } else {
+              throw new AssertionError(notSeenDescription().toString());
+            }
           }
           TimeUnit.NANOSECONDS.timedWait(sync, nanosToDeadline);
         }
       }
     } catch (InterruptedException ex) {
-      throw new AssertionError("Assertion interupted " + this, ex);
-    }
-  }
-
-
-  @Override
-  public boolean offer(final UncaughtExceptionDetail exDetail) {
-    synchronized (sync) {
-      if (matcher.matches(exDetail)) {
-        seen++;
-        sync.notifyAll();
-        return true;
-      }
-      return false;
+      throw new AssertionError("Interrupted " + this, ex);
     }
   }
 
   @Override
   public String toString() {
-    return "UncaughtExceptionAsserter{" + "matcher=" + matcher + '}';
+    return "LogMatchingHandlerAsync{" + "timeout=" + timeout + ", tu=" + tu + ", super = " + super.toString() + '}';
   }
 
 }

@@ -15,13 +15,10 @@
  */
 package org.spf4j.test.log;
 
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-
 /**
  *
  * @author Zoltan Farkas
  */
-@CleanupObligation
-public interface LogAssert extends ObservationAssert, AsyncObservationAssert, HandlerRegistration {
+public interface LogAssert extends ObservationAssert, HandlerRegistration {
 
 }

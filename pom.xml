@@ -66,14 +66,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <maven.compile.target>1.8</maven.compile.target>
-        <jacoco.version>0.8.0</jacoco.version>
+        <jacoco.version>0.8.2</jacoco.version>
         <jacoco.instruction.ratio>0.4</jacoco.instruction.ratio>
         <jacoco.class.ratio>0.5</jacoco.class.ratio>
         <jacoco.method.ratio>0.4</jacoco.method.ratio>
-        <argLine>-Djava.io.tmpdir=./target -Duser.dir=./target -XX:-OmitStackTraceInFastThrow</argLine>
+        <argLine> -XX:-OmitStackTraceInFastThrow</argLine>
         <skip.avrodoc>true</skip.avrodoc>
         <findbugs.excludeFilterFile>${basedir}/../findbugs_exclude.xml</findbugs.excludeFilterFile>
         <checkstyle.configLocation>${basedir}/../checkstyle_checks.xml</checkstyle.configLocation>
+        <java8.home>/Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home</java8.home>
+        <java11.home>/Library/Java/JavaVirtualMachines/jdk-11.jdk/Contents/Home</java11.home>
     </properties>
     
     <scm>
@@ -168,6 +170,40 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>jdk-11-validation</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+              <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                      <jvm>${java11.home}/bin/java</jvm>
+                    </configuration>
+              </plugin>
+              <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <configuration>
+                      <skip>true</skip>
+                    </configuration>
+              </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+      <dependencies>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
 
     <build>       
         <plugins>
@@ -573,7 +609,20 @@ java.util.Calendar#getInstance()
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.22.0</version>
+                    <executions>
+                      <execution>
+                        <id>jdk-11</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                          <goal>test</goal>
+                        </goals>
+                        <configuration>
+                          <jvm>${java11.home}/bin/java</jvm>
+                        </configuration>
+                      </execution>
+                    </executions>
                     <configuration>
+                      <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
                       <trimStackTrace>false</trimStackTrace>
                       <systemProperties>
                         <java.io.tmpdir>./target</java.io.tmpdir>

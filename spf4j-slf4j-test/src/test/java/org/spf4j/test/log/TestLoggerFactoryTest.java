@@ -33,11 +33,11 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Method;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.test.log.annotations.CollectLogs;
+import org.spf4j.test.log.annotations.ExpectLog;
 import org.spf4j.test.log.annotations.PrintLogs;
 import org.spf4j.test.log.annotations.PrintLogsConfigs;
 
 /**
- *
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS")
@@ -179,6 +179,13 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
+  @ExpectLog(level = Level.ERROR)
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  public void testLoggingAnnot() {
+    LOG.error("Booo", new RuntimeException());
+  }
+
+  @Test
   public void testLoggingJul() {
     LogAssert expect = TestLoggers.sys().expect("my.test", Level.DEBUG,
             LogMatchers.hasFormat("Bla Bla"),
@@ -264,22 +271,23 @@ public class TestLoggerFactoryTest {
       throw ex;
     });
     TestLoggers config = TestLoggers.sys();
-    AsyncObservationAssert obs = config
-            .expectUncaughtException(
-                    UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(ex)));
-    thread.start();
-    obs.assertObservation(5, TimeUnit.SECONDS);
+    try (LogAssert obs = config
+            .expectUncaughtException(5, TimeUnit.SECONDS,
+                    UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(ex)))) {
+      thread.start();
+      obs.assertObservation();
+    }
   }
 
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   @Test
   public void testUncaught2() throws InterruptedException {
     TestLoggers config = TestLoggers.sys();
-    AsyncObservationAssert obs = config
-            .expectUncaughtException(
+    LogAssert obs = config
+            .expectUncaughtException(3, TimeUnit.SECONDS,
                     UncaughtExceptionDetail.hasThrowable(Matchers.equalTo(new IllegalStateException())));
     try {
-      obs.assertObservation(3, TimeUnit.SECONDS);
+      obs.assertObservation();
       Assert.fail();
     } catch (AssertionError ex) {
       // expected
@@ -304,20 +312,22 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testAsyncLogging() throws InterruptedException {
-    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.ERROR, LogMatchers.hasFormat("async"));
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.ERROR, 3, TimeUnit.SECONDS,
+            LogMatchers.hasFormat("async"));
     new Thread(() -> {
       LOG.error("async");
     }).start();
-    expect.assertObservation(3, TimeUnit.SECONDS);
+    expect.assertObservation();
   }
 
   @Test(expected = AssertionError.class)
   public void testAsyncLogging2() throws InterruptedException {
-    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.ERROR, LogMatchers.hasFormat("async"));
+    LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.ERROR, 3, TimeUnit.SECONDS,
+            LogMatchers.hasFormat("async"));
     new Thread(() -> {
       LOG.info("coco");
     }).start();
-    expect.assertObservation(3, TimeUnit.SECONDS);
+    expect.assertObservation();
   }
 
   @Test

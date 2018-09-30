@@ -36,7 +36,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.spf4j.test.log.AsyncObservationAssert;
+import org.spf4j.test.log.ObservationAssert;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 
@@ -61,7 +61,7 @@ public class ExplorerTest {
   @Test
   @SuppressFBWarnings("MDM_THREAD_YIELD") // need to since assertj does not seem to apply things otherwise...
   public void testExplorer() throws InterruptedException {
-    AsyncObservationAssert expectation = TestLoggers.sys().expectUncaughtException(
+    ObservationAssert expectation = TestLoggers.sys().expectUncaughtException(2, TimeUnit.SECONDS,
             UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
     JFrame tFrame = GuiActionRunner.execute(() -> new Explorer());
     FrameFixture window = new FrameFixture(tFrame);
@@ -125,7 +125,7 @@ public class ExplorerTest {
     Assert.assertNotNull(window.internalFrame("text entry"));
     window.close();
     window.cleanUp();
-    expectation.assertObservation(2, TimeUnit.SECONDS);
+    expectation.assertObservation();
   }
 
 }

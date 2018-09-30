@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
@@ -309,6 +310,12 @@ public final class TestLoggers implements ILoggerFactory {
     return logAssert(true, minimumLogLevel, category, matchers);
   }
 
+  @CheckReturnValue
+  public LogAssert expect(final String category, final Level minimumLogLevel,
+          final long timeout, final TimeUnit unit, final Matcher<LogRecord>... matchers) {
+    return logAssert(true, minimumLogLevel, category, timeout, unit, matchers);
+  }
+
   /**
    * the opposite of expect.
    * @param category the category under which we should expect these messages.
@@ -323,7 +330,31 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
-          final String category, final Matcher<LogRecord>... matchers) {
+          final String category, final long timeout, final TimeUnit unit, final Matcher<LogRecord>... matchers) {
+    LogMatchingHandler handler =
+            new LogMatchingHandlerAsync(assertSeen, category, minimumLogLevel, timeout, unit, matchers) {
+
+      private boolean isClosed = false;
+
+      @Override
+      public void close() {
+        synchronized (sync) {
+          if (!isClosed) {
+            config = config.remove(category, this);
+            isClosed = true;
+            resetJulConfig();
+          }
+        }
+      }
+
+    };
+    addConfig(category, handler,  ExecutionContexts.current(), handler);
+    return handler;
+  }
+
+
+  private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
+          final String category,  final Matcher<LogRecord>... matchers) {
     LogMatchingHandler handler = new LogMatchingHandler(assertSeen, category, minimumLogLevel, matchers) {
 
       private boolean isClosed = false;
@@ -364,15 +395,30 @@ public final class TestLoggers implements ILoggerFactory {
     return expect(category, minimumLogLevel, newMatchers);
   }
 
+  public LogAssert expect(final String category, final Level minimumLogLevel,
+          final int nrTimes, final long timeout, final TimeUnit unit, final Matcher<LogRecord>... matchers) {
+    Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
+    for (int i = 0, j = 0; i < nrTimes; i++) {
+      for (Matcher<LogRecord> m : matchers) {
+        newMatchers[j++] = m;
+      }
+    }
+    return expect(category, minimumLogLevel, timeout, unit, newMatchers);
+  }
+
+
   /**
-   * Assert uncaught exceptions. (from threads)
+   * Assert uncaught exceptions.(from threads)
+   * @param timeout timeout to wait for this assertion. from the point in time of assertion invocation.
+   * @param unit
    * @param matcher the exception matcher.
    * @return the assertion handle.
    */
   @Beta
-  public AsyncObservationAssert expectUncaughtException(final Matcher<UncaughtExceptionDetail> matcher) {
+  public LogAssert expectUncaughtException(final long timeout, final TimeUnit unit,
+          final Matcher<UncaughtExceptionDetail> matcher) {
     ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
-    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(matcher) {
+    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(timeout, unit, matcher) {
 
       @Override
       public void close() {

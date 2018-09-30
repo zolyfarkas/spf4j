@@ -17,29 +17,28 @@ package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
-import org.spf4j.base.TimeSource;
 
 /**
  *
  * @author Zoltan Farkas
  */
+@SuppressWarnings("checkstyle:VisibilityModifier")
 abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final String category;
 
   private final Level minLevel;
 
-  private final Matcher<LogRecord>[] matchers;
+  protected final Matcher<LogRecord>[] matchers;
 
-  private int at;
+  protected int at;
 
-  private final boolean assertSeen;
+  protected final boolean assertSeen;
 
-  private final Object sync;
+  protected final Object sync;
 
   LogMatchingHandler(final boolean assertSeen, final String category,
           final Level minLevel, final Matcher<LogRecord>... matchers) {
@@ -69,10 +68,18 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
       if (at < matchers.length && matchers[at].matches(record)) {
         at++;
         record.attach(DefaultAsserter.ASSERTED);
-        sync.notifyAll();
+        matched();
       }
     }
     return record;
+  }
+
+  /**
+   * Override if you want to do a notify on the sync object.
+   * @param sync
+   */
+  @SuppressFBWarnings("ACEM_ABSTRACT_CLASS_EMPTY_METHODS")
+  public void matched() {
   }
 
   @Override
@@ -81,24 +88,6 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
       assertSeen();
     } else {
       assertNotSeen();
-    }
-  }
-
-  @Override
-  public void assertObservation(final long timeout, final TimeUnit unit) throws InterruptedException {
-    long deadline = TimeSource.nanoTime() + unit.toNanos(timeout);
-    synchronized (sync) {
-      while (assertSeen ? at < matchers.length :  at >= matchers.length) {
-        long nanosToDeadline = deadline - TimeSource.nanoTime();
-        if (nanosToDeadline <= 0) {
-          if (assertSeen) {
-            throw new AssertionError(seenDescription().toString());
-          } else {
-            throw new AssertionError(notSeenDescription().toString());
-          }
-        }
-        TimeUnit.NANOSECONDS.timedWait(sync, nanosToDeadline);
-      }
     }
   }
 
@@ -115,7 +104,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     }
   }
 
-  private Description seenDescription() {
+  Description seenDescription() {
     Description description = new StringDescription();
     description.appendText("Expected in category: ").appendText(category)
             .appendText(" and minLevel: ").appendText(minLevel.toString()).appendText(":\n");
@@ -140,7 +129,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     }
   }
 
-  private Description notSeenDescription() {
+  Description notSeenDescription() {
     Description description = new StringDescription();
     description.appendText("Not expected in category:").appendText(category)
             .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");

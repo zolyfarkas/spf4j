@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.test.log;
+package org.spf4j.test.log.annotations;
 
-import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- *
  * @author Zoltan Farkas
  */
-@CleanupObligation
-public interface HandlerRegistration extends AutoCloseable {
-  /**
-   * Will unregister this log handler.
-   */
-  @DischargesObligation
-  void close();
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ExpectLogs {
+    ExpectLog[] value();
 }

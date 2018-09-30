@@ -266,6 +266,7 @@ public class JdbcSemaphoreTest {
   }
 
   @Test
+
   public void testMultiProcess2()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
     Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
