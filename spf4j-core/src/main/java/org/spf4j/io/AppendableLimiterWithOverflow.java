@@ -139,26 +139,33 @@ public final class AppendableLimiterWithOverflow implements Appendable, Closeabl
   @Override
   public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
     int nrChars = end - start;
-    int charsToWrite = Math.min(directWriteLimit - count, nrChars);
-    int dwe = start + charsToWrite;
-    if (charsToWrite > 0) {
+    int charsToWriteDirect = Math.min(directWriteLimit - count, nrChars);
+    int dwe;
+    if (charsToWriteDirect > 0) {
+      dwe = start + charsToWriteDirect;
       destination.append(csq, start, dwe);
       if (buffer != null) {
-        buffer.append(csq, start, charsToWrite);
+        buffer.append(csq, start, dwe);
       }
-      count += charsToWrite;
+      count += charsToWriteDirect;
+    } else {
+      dwe = start;
     }
     int charsToWriteAside = Math.min(limit - count, end - dwe);
+    int dw2e;
     if (charsToWriteAside > 0) {
+      dw2e = dwe + charsToWriteAside;
       if (asideBuffer == null) {
         asideBuffer = new StringBuilder(limit - directWriteLimit);
       }
-      asideBuffer.append(csq, dwe, dwe + charsToWriteAside);
+      asideBuffer.append(csq, dwe, dw2e);
       count += charsToWriteAside;
+    } else {
+      dw2e = dwe;
     }
-    if (charsToWrite + charsToWriteAside < end) {
+    if (dw2e < end) {
       createOverflowIfNeeded();
-      overflowWriter.append(csq, charsToWrite + charsToWriteAside, end);
+      overflowWriter.append(csq, dw2e, end);
     }
     return this;
   }

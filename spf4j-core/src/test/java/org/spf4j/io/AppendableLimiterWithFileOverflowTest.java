@@ -35,6 +35,7 @@ import com.google.common.io.CharStreams;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.hamcrest.Matchers;
@@ -51,71 +52,54 @@ public class AppendableLimiterWithFileOverflowTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(AppendableLimiterWithFileOverflowTest.class);
 
-  @Test
-  public void testOverflow() throws IOException {
-    File ovflow = File.createTempFile("overflow", ".txt");
-    StringBuilder destination = new StringBuilder();
-    final String testStr
+  private static  final String TEST_STR
             = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
-    try (AppendableLimiterWithOverflow limiter
-            = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
-      limiter.append(testStr.subSequence(0, 45));
-      limiter.append(testStr.charAt(45));
-      limiter.append(testStr.subSequence(46, testStr.length()));
-    }
-    LOG.debug("Destination str {}", destination);
-    Assert.assertEquals(90, destination.length());
-    String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
-            StandardCharsets.UTF_8));
-    Assert.assertEquals(testStr, oContent);
-  }
 
   @Test
   public void testOverflowX() throws IOException {
-    File ovflow = File.createTempFile("overflow", ".txt");
-    StringBuilder destination = new StringBuilder();
-    final String testStr
-            = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-    int nr = 13;
-    try (AppendableLimiterWithOverflow limiter
-            = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
-      limiter.append(testStr.subSequence(0, nr));
-      limiter.append(testStr.charAt(nr));
-      limiter.append(testStr.subSequence(nr + 1, testStr.length()));
-    }
-
-    LOG.debug("Destination: {}", destination);
-    Assert.assertEquals(90, destination.length());
-    String suffix = "...@" + ovflow.getPath();
-    String destinationStr = destination.toString();
-    Assert.assertThat(destinationStr, Matchers.endsWith(suffix));
-    int strWritten = 90 - suffix.length();
-    Assert.assertEquals(testStr.substring(0, strWritten), destinationStr.substring(0, strWritten));
-    String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
-            StandardCharsets.UTF_8));
-    Assert.assertEquals(testStr, oContent);
+    testOverflowByX(90, TEST_STR, 0, new StringBuilder());
+    testOverflowByX(90, TEST_STR, 8, new StringBuilder());
+    testOverflowByX(90, TEST_STR, 13, new StringBuilder());
+    testOverflowByX(90, TEST_STR, 88, new StringBuilder());
+    testOverflowByX(90, TEST_STR, 90, new StringBuilder());
+    testOverflowByX(TEST_STR.length(), TEST_STR, 45, new StringBuilder());
+    testOverflowByX(90, TEST_STR, 0, new StringWriter());
+    testOverflowByX(90, TEST_STR, 8, new StringWriter());
+    testOverflowByX(90, TEST_STR, 13, new StringWriter());
+    testOverflowByX(90, TEST_STR, 88, new StringWriter());
+    testOverflowByX(90, TEST_STR, 90, new StringWriter());
+    testOverflowByX(TEST_STR.length(), TEST_STR, 45, new StringWriter());
   }
 
-  @Test
-  public void testOverflow2() throws IOException {
+  private void testOverflowByX(final int limit, final String testStr, final int splitIdx,
+          final Appendable destination) throws IOException {
     File ovflow = File.createTempFile("overflow", ".txt");
-    StringBuilder destination = new StringBuilder();
-    final String testStr
-            = "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    LOG.debug("Destination file: {}", ovflow.getPath());
     try (AppendableLimiterWithOverflow limiter
-            = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
-      limiter.append(testStr.subSequence(0, 45));
-      limiter.append(testStr.charAt(45));
-      limiter.append(testStr.subSequence(46, testStr.length()));
+            = new AppendableLimiterWithOverflow(limit, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
+      limiter.append(testStr.subSequence(0, splitIdx));
+      limiter.append(testStr.charAt(splitIdx));
+      limiter.append(testStr.subSequence(splitIdx + 1, testStr.length()));
     }
 
-    LOG.debug("Destination: {}", destination);
-    Assert.assertEquals(90, destination.length());
-    Assert.assertEquals(testStr, destination.toString());
-    String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
-            StandardCharsets.UTF_8));
-    Assert.assertEquals("", oContent);
+    LOG.debug("Result: {}", destination);
+    String destinationStr = destination.toString();
+    Assert.assertEquals(limit, destinationStr.length());
+    String suffix = "...@" + ovflow.getPath();
+    if (limit < testStr.length()) {
+      Assert.assertThat(destinationStr, Matchers.endsWith(suffix));
+      int strWritten = 90 - suffix.length();
+      Assert.assertEquals(testStr.substring(0, strWritten), destinationStr.substring(0, strWritten));
+      String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
+              StandardCharsets.UTF_8));
+      Assert.assertEquals(testStr, oContent);
+    } else {
+      Assert.assertEquals(testStr, destinationStr);
+            String oContent = CharStreams.toString(new InputStreamReader(Files.newInputStream(ovflow.toPath()),
+              StandardCharsets.UTF_8));
+      Assert.assertEquals("", oContent);
+    }
   }
 
 }
