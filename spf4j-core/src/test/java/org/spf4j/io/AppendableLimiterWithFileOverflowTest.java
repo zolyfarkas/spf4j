@@ -77,7 +77,7 @@ public class AppendableLimiterWithFileOverflowTest {
     StringBuilder destination = new StringBuilder();
     final String testStr
             = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-    int nr = ovflow.getPath().length() + 4;
+    int nr = 13;
     try (AppendableLimiterWithOverflow limiter
             = new AppendableLimiterWithOverflow(90, ovflow, "...@", StandardCharsets.UTF_8, destination)) {
       limiter.append(testStr.subSequence(0, nr));
