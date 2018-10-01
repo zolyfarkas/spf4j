@@ -222,7 +222,7 @@ public class RetryPolicyTest {
                 default:
                   throw new IllegalStateException("Unsupported " + resp.getType());
               }
-            }).withResultPartialPredicate((resp, sc)
+            }).withResultPartialPredicate((Response resp, ServerCall sc)
             -> (resp.getType() == Response.Type.ERROR)
             ? RetryDecision.retryDefault(sc)
             : RetryDecision.abort(), 3)
