@@ -186,6 +186,13 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
+  @ExpectLog(level = Level.ERROR)
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
+  @Ignore
+  public void testLoggingAnnot2() {
+  }
+
+  @Test
   public void testLoggingJul() {
     LogAssert expect = TestLoggers.sys().expect("my.test", Level.DEBUG,
             LogMatchers.hasFormat("Bla Bla"),

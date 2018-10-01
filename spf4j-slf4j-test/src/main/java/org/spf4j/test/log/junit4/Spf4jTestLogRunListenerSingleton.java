@@ -207,7 +207,11 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     } finally {
       try {
         for (LogAssert assertion : baggage.getAssertions()) {
-          assertion.assertObservation();
+          try {
+            assertion.assertObservation();
+          } catch (AssertionError ae) {
+            throw new AssertionError("Failed test " + description + ", " + ae.getMessage(), ae);
+          }
         }
       } finally {
         closeAllContextCloseables(baggage);
