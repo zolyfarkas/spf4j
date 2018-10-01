@@ -56,7 +56,7 @@ public class SyncRetryExecutorTest {
               TimeSource.nanoTime() - 10000000);
       Assert.fail();
     } catch (TimeoutException ex) {
-      LOG.debug("Expected excetion", ex);
+      LOG.debug("Expected exception", ex);
       Throwable[] suppressed = ex.getSuppressed();
       Assert.assertEquals(1, suppressed.length);
       Assert.assertEquals(runtimeException, suppressed[0]);
