@@ -67,6 +67,11 @@ public final class RuntimeTest {
     Assert.assertTrue(Runtime.haveJnaPlatform());
   }
 
+  @Test
+  public void testSpecVersion() {
+    Assert.assertEquals(Runtime.Version.V1_8,  Runtime.Version.fromSpecVersion("1.8.0_151"));
+  }
+
 
   @Test
   public void testMainClass() throws NoSuchMethodException {

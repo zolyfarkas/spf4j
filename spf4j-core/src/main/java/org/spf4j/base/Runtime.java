@@ -248,12 +248,11 @@ public final class Runtime {
     @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS") // not really redundant
     public static Version fromSpecVersion(final String specVersion) {
       String[] cmpnts = specVersion.split("\\.");
-      switch (cmpnts.length) {
-        case 2:
+      if  (cmpnts.length > 1) {
         return Version.values()[Integer.parseInt(cmpnts[1])];
-        case 1:
+      } else if (cmpnts.length == 1) {
         return Version.values()[Integer.parseInt(cmpnts[0])];
-        default:
+      } else {
         throw new IllegalArgumentException("Unsupported specVersion: " + specVersion);
       }
     }
