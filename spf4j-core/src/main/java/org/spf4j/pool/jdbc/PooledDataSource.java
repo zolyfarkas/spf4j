@@ -41,6 +41,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLTimeoutException;
+import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -63,6 +64,12 @@ public final class PooledDataSource implements DataSource, AutoCloseable {
           final String driverName, final String url, final String user, final String password)
           throws ObjectCreationException {
     this(initialSize, maxSize, new JdbcConnectionFactory(driverName, url, user, password));
+  }
+
+  public PooledDataSource(final int initialSize, final int maxSize,
+          final String driverName, final String url, final Properties properties, final int loginTimeoutSeconds)
+          throws ObjectCreationException {
+    this(initialSize, maxSize, new JdbcConnectionFactory(driverName, url, properties, loginTimeoutSeconds));
   }
 
   public PooledDataSource(final int initialSize, final int maxSize,

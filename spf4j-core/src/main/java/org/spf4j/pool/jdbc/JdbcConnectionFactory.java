@@ -35,6 +35,10 @@ import com.google.common.annotations.Beta;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
@@ -47,27 +51,48 @@ import org.spf4j.recyclable.RecyclingSupplier;
 public final class JdbcConnectionFactory implements RecyclingSupplier.Factory<Connection> {
 
   private final String url;
-  private final String user;
-  private final String password;
+  private final Properties props;
+  private final int loginTimeoutSeconds;
+
 
   public JdbcConnectionFactory(final String driverName, final String url,
           final String user, final String password) {
+    this(driverName, url, fromUserPassword(user, password), 15);
+  }
+
+
+  public JdbcConnectionFactory(final String driverName, final String url,
+          final String user, final String password, final int loginTimeoutSeconds) {
+    this(driverName, url, fromUserPassword(user, password), loginTimeoutSeconds);
+  }
+
+  public JdbcConnectionFactory(final String driverName, final String url,
+          final Properties props, final int loginTimeoutSeconds) {
     try {
       Class.forName(driverName);
     } catch (ClassNotFoundException ex) {
       throw new IllegalArgumentException("Invalid driver " + driverName, ex);
     }
     this.url = url;
-    this.password = password;
-    this.user = user;
+    this.props = props;
+    this.loginTimeoutSeconds = loginTimeoutSeconds;
+  }
+
+  private static Properties fromUserPassword(final String user, final String password) {
+    java.util.Properties info = new java.util.Properties();
+    info.setProperty("user", user);
+    info.setProperty("password", password);
+    return info;
   }
 
   @Override
   public Connection create() throws ObjectCreationException {
+    DriverManager.setLoginTimeout(loginTimeoutSeconds); // racy.... jdbc api sucks
     try {
-      return DriverManager.getConnection(url, user, password);
-    } catch (SQLException ex) {
-      throw new ObjectCreationException(ex);
+      return RetryPolicy.defaultPolicy().call(() -> DriverManager.getConnection(url, props),
+              SQLException.class, loginTimeoutSeconds, TimeUnit.SECONDS);
+    } catch (InterruptedException | TimeoutException | SQLException ex) {
+      throw new ObjectCreationException("Cannot connect to " + url  + " in " + loginTimeoutSeconds + " s", ex);
     }
   }
 
@@ -87,7 +112,7 @@ public final class JdbcConnectionFactory implements RecyclingSupplier.Factory<Co
 
   @Override
   public String toString() {
-    return "JdbcConnectionFactory{" + "url=" + url + ", user=" + user + '}';
+    return "JdbcConnectionFactory{" + "url=" + url + '}';
   }
 
 }
