@@ -199,7 +199,7 @@ public final class BufferedInputStream extends FilterInputStream {
         if (n <= 0) {
             return 0;
         }
-        long avail = count - pos;
+        long avail = (long) count - pos;
 
         if (avail <= 0) {
             // If no mark position set then don't keep in buffer
@@ -209,7 +209,7 @@ public final class BufferedInputStream extends FilterInputStream {
 
             // Fill in buffer to save bytes for reset
             fill();
-            avail = count - pos;
+            avail = (long) count - pos;
             if (avail <= 0) {
                 return 0;
             }
