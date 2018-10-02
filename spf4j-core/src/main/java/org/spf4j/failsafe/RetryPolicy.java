@@ -180,9 +180,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       this.log = NOPLogger.NOP_LOGGER;
       return this;
     }
-
-
-
+    
     @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate() {
       return withDefaultThrowableRetryPredicate(DEFAULT_MAX_NR_RETRIES);
