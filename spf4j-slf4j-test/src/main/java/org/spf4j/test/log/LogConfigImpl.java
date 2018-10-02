@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
@@ -47,7 +48,8 @@ final class LogConfigImpl implements LogConfig {
   }
 
   @Override
-  public LogConfigImpl add(final String category, final LogHandler handler) {
+  public LogConfigImpl add(final String category, final LogHandler handler,
+          final ToIntFunction<List<LogHandler>> whereTo) {
     ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category.isEmpty()) {
@@ -60,8 +62,10 @@ final class LogConfigImpl implements LogConfig {
       if (hndlrs == null) {
         hndlrs = new ArrayList<>(2);
         ch.put(category, hndlrs);
+        hndlrs.add(handler);
+      } else {
+        hndlrs.add(whereTo.applyAsInt(hndlrs), handler);
       }
-      hndlrs.add(0, handler);
     }
     return new LogConfigImpl(rh, ch);
   }

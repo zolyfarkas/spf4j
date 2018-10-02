@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
 import javax.annotation.CheckReturnValue;
@@ -228,6 +229,13 @@ public final class TestLoggers implements ILoggerFactory {
   public <T> LogCollection<T> collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
           final Collector<LogRecord, ?, T> collector) {
+    return collect(category, fromLevel, toLevel, passThrough, collector, (c) -> 0);
+  }
+
+  @CheckReturnValue
+  public <T> LogCollection<T> collect(final String category, final Level fromLevel, final Level toLevel,
+          final boolean passThrough,
+          final Collector<LogRecord, ?, T> collector, final ToIntFunction<List<LogHandler>> whereTo) {
     LogCollectorHandler handler = new LogCollectorHandler(fromLevel, toLevel, passThrough, collector) {
 
       private boolean isClosed = false;
@@ -249,8 +257,15 @@ public final class TestLoggers implements ILoggerFactory {
 
   private void addConfig(final String category, final LogHandler handler,
           @Nullable final ExecutionContext ctx, final HandlerRegistration reg) {
+    addConfig(category, handler, ctx, reg, (c) -> 0);
+  }
+
+
+  private void addConfig(final String category, final LogHandler handler,
+          @Nullable final ExecutionContext ctx, final HandlerRegistration reg,
+          final ToIntFunction<List<LogHandler>> whereTo) {
     synchronized (sync) {
-      config = config.add(category, handler);
+      config = config.add(category, handler, whereTo);
       resetJulConfig();
       if (ctx != null) {
         ctx.compute(AutoCloseable.class, (Class<AutoCloseable> k, ArrayList<AutoCloseable> v) -> {
@@ -447,17 +462,21 @@ public final class TestLoggers implements ILoggerFactory {
     if (!collectPrinted) {
       return collect(category,
             minimumLogLevel,
+            Level.ERROR,
             true,
             XCollectors.filtering(
                     (l) -> !l.hasAttachment(LogPrinter.PRINTED),
                     XCollectors.last(maxNrLogs,
-                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs))));
+                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs))),
+                    List::size);
     } else {
       return collect(category,
             minimumLogLevel,
+            Level.ERROR,
             true,
             (Collector<LogRecord, ?, ArrayDeque<LogRecord>>) XCollectors.last(maxNrLogs,
-                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs)));
+                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs)),
+            (c)  -> 0);
     }
   }
 

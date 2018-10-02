@@ -46,7 +46,7 @@ public class LogConfigImplTest {
     handlers = ((CompositeLogHandler) cfg.getLogConsumer("a.b", Level.INFO)).logHandlers;
     Assert.assertSame(h2, handlers.get(0));
     Assert.assertSame(h1, handlers.get(1));
-    cfg = cfg.add("a", h5);
+    cfg = (LogConfigImpl) cfg.add("a", h5);
     handlers = ((CompositeLogHandler) cfg.getLogConsumer("a.b", Level.INFO)).logHandlers;
     Assert.assertSame(h2, handlers.get(0));
     Assert.assertSame(h5, handlers.get(1));
@@ -55,6 +55,6 @@ public class LogConfigImplTest {
     handlers = ((CompositeLogHandler) cfg.getLogConsumer("a.b", Level.INFO)).logHandlers;
     Assert.assertSame(h2, handlers.get(0));
     Assert.assertSame(h1, handlers.get(1));
-  }
+ }
 
 }

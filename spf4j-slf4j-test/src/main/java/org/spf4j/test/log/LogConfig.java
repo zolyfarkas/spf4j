@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import java.util.List;
+import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -27,7 +29,11 @@ public interface LogConfig {
   @Nullable
   LogConsumer getLogConsumer(String category, Level level);
 
-  LogConfig add(String category, LogHandler handler);
+  LogConfig add(String category, LogHandler handler, ToIntFunction<List<LogHandler>> whereTo);
+
+  default LogConfig add(final String category, final LogHandler handler) {
+    return add(category, handler, (l) -> 0);
+  }
 
   LogConfig remove(String category, LogHandler handler);
 
