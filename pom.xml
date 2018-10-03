@@ -58,9 +58,6 @@
         <slf4j.version>1.7.25</slf4j.version>
         <jmh.version>1.21</jmh.version>
         <maven-plugin-plugin.version>3.5.2</maven-plugin-plugin.version>
-        <!-- avro 1.8.2 generated classes depend on org.apache.avro.message.* which is not yet ported to my fork. -->
-        <!--  need to use 1.8.0.51p or newer my for to validate the build, since this version is more correct -->
-        <!-- official avro version to build against is 1.8.1 -->
         <avro.version>1.8.1</avro.version>
         <guava.version>25.1-jre</guava.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -496,7 +493,7 @@ java.util.Calendar#getInstance()
                         <effort>Max</effort><!-- Min, Default, Max -->
                         <threshold>Exp</threshold><!-- High, Default, Low, Ignore -->
                         <xmlOutput>true</xmlOutput>
-                        <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+                        <detail>true</detail>
                         <excludeFilterFile>${findbugs.excludeFilterFile}</excludeFilterFile>
                         <includeTests>true</includeTests>
                         <plugins>
@@ -707,6 +704,16 @@ java.util.Calendar#getInstance()
             </plugin>
         </plugins>
     </reporting>
-
+    <profiles>
+        <profile>
+            <id>validate</id>
+            <properties>
+                <!-- avro 1.8.2 generated classes depend on org.apache.avro.message.* which is not yet ported to my fork. -->
+                <!--  need to use 1.8.0.51p or newer to validate the build, since this version is more correct -->
+                <!-- official avro version to build against is 1.8.1 -->
+                <avro.version>1.8.0.52p-SNAPSHOT</avro.version>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
