@@ -24,7 +24,7 @@ IDE Preferences: Netbeans.
 For Eclipse you need https://bugs.eclipse.org/bugs/show_bug.cgi?id=538885 implemented for best experience.
 For InteliJ you need https://youtrack.jetbrains.com/oauth?state=%2Fissue%2FIDEA-190385  implemented for best experience.
 
-Buuild with Maven 3.5.2
+Build with Maven 3.5.2
 Run maven with JDK 1.8
 
 To build project all you need to do is: mvn install
