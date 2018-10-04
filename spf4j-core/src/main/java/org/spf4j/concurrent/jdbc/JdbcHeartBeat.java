@@ -34,6 +34,7 @@ package org.spf4j.concurrent.jdbc;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -164,7 +165,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     void onClose() throws SQLException;
 
   }
-  
+
   private JdbcHeartBeat(final DataSource dataSource, final HeartBeatTableDesc hbTableDesc, final long intervalMillis,
           final int jdbcTimeoutSeconds, final double missedHBRatio) throws InterruptedException, SQLException {
     if (intervalMillis < 1000) {
@@ -293,7 +294,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     return heartbeatRunnable;
   }
 
-  public void scheduleHeartbeat() {
+  public void scheduleHeartbeat(final ListeningScheduledExecutorService scheduler) {
     synchronized (jdbc) {
       if (isClosed) {
         throw new IllegalStateException("Heartbeater is closed " + this);
@@ -308,7 +309,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         if (delayNanos < 0) {
           delayNanos = 0;
         }
-        ListenableScheduledFuture<?> scheduleFut = DefaultScheduler.LISTENABLE_INSTANCE.schedule(
+        ListenableScheduledFuture<?> scheduleFut = scheduler.schedule(
                 getHeartBeatRunnable(), delayNanos, TimeUnit.NANOSECONDS);
         scheduledHearbeat = scheduleFut;
         Futures.addCallback(scheduleFut, new FutureCallback() {
@@ -317,7 +318,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
             synchronized (jdbc) {
               if (!isClosed) {
                 scheduledHearbeat = null;
-                scheduleHeartbeat();
+                scheduleHeartbeat(scheduler);
               }
             }
           }
@@ -434,7 +435,18 @@ public final class JdbcHeartBeat implements AutoCloseable {
 
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
           final HeartBeatTableDesc hbTableDesc,
-          @Nullable final LifecycleHook hook, final int heartBeatIntevalMillis, final int jdbcTimeoutSeconds)
+          @Nullable final LifecycleHook hook,
+          final int heartBeatIntevalMillis, final int jdbcTimeoutSeconds)
+          throws InterruptedException, SQLException {
+    return getHeartBeatAndSubscribe(dataSource, hbTableDesc, hook, heartBeatIntevalMillis,
+            jdbcTimeoutSeconds, DefaultScheduler.listenableInstance());
+  }
+
+  public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
+          final HeartBeatTableDesc hbTableDesc,
+          @Nullable final LifecycleHook hook,
+          final int heartBeatIntevalMillis, final int jdbcTimeoutSeconds,
+          final ListeningScheduledExecutorService scheduler)
           throws InterruptedException, SQLException {
     JdbcHeartBeat beat;
     synchronized (HEARTBEATS) {
@@ -480,7 +492,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
     if (hook != null) {
       beat.addLyfecycleHook(hook);
     }
-    beat.scheduleHeartbeat();
+    beat.scheduleHeartbeat(scheduler);
     return beat;
   }
 
