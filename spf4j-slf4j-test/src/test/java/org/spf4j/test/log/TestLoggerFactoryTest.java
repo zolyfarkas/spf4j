@@ -18,6 +18,8 @@ package org.spf4j.test.log;
 import org.spf4j.test.matchers.LogMatchers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.hamcrest.Matcher;
@@ -345,6 +347,18 @@ public class TestLoggerFactoryTest {
     LOG.info("bla");
     expect.assertObservation();
     reg.close();
+  }
+
+  @Test
+  @SuppressFBWarnings("LO_SUSPECT_LOG_CLASS")
+  public void testGreedy()  {
+    LogCollection<HashSet<LogRecord>> logs
+            = TestLoggers.sys().collect("", Level.INFO, true, Collectors.toCollection(() -> new HashSet<>()));
+    Logger logger = LoggerFactory.getLogger("a.b.c.d");
+    logger.info("test");
+    Set<LogRecord> logSet = logs.get();
+    LogRecord rec = logSet.iterator().next();
+    Assert.assertTrue(rec.hasAttachment(LogPrinter.DO_NOT_PRINT));
   }
 
 

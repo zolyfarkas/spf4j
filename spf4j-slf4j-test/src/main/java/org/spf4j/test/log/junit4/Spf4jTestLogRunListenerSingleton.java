@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +44,7 @@ import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLogger;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.annotations.CollectLogs;
@@ -110,17 +112,19 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private void dumpDebugInfo(final Collection<LogRecord> logs,
           final Description description) {
-    synchronized (System.out) { // do not interleave other stuff.
-      boolean first = true;
-      if (!logs.isEmpty()) {
-        for (LogRecord record : logs) {
-          if (first) {
-            LOG.info("Dumping last {} logs collected for debug for {}", maxDebugLogsCollected, description);
-            first = false;
-          }
-          LogPrinter.printTo(System.out, record, "");
+    Iterator<LogRecord> iterator = logs.iterator();
+    if (iterator.hasNext()) {
+      synchronized (System.out) { // do not interleave other stuff.
+        LogPrinter.printTo(System.out, new LogRecord(new TestLogger("TestLogger", () -> null), Level.INFO,
+                "Dumping last {} logs collected for debug for {}", maxDebugLogsCollected, description), "DOD");
+        LogRecord record = iterator.next();
+        LogPrinter.printTo(System.out, record, "DOD");
+        while (iterator.hasNext()) {
+          record = iterator.next();
+          LogPrinter.printTo(System.out, record, "DOD");
         }
-        LOG.info("End dump for {}", description);
+        LogPrinter.printTo(System.out, new LogRecord(new TestLogger("TestLogger", () -> null), Level.INFO,
+                "End debug log dump for {}", description), "DOD");
       }
     }
 

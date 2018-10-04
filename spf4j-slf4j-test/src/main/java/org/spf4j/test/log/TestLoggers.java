@@ -111,7 +111,13 @@ public final class TestLoggers implements ILoggerFactory {
           if (pl.getCategory().isEmpty()) {
             rootPrintLevel = pl.getMinLevel();
           } else {
-            catHandlers.put(pl.getCategory(), Collections.singletonList((new LogPrinter(pl.getMinLevel()))));
+            LogHandler logPrinter;
+            if (pl.isGreedy()) {
+              logPrinter = new GreedyLogPrinter(new LogPrinter(pl.getMinLevel()));
+            } else {
+              logPrinter = new LogPrinter(pl.getMinLevel());
+            }
+            catHandlers.put(pl.getCategory(), Collections.singletonList(logPrinter));
           }
         }
 
