@@ -85,7 +85,7 @@ public final class JmhTest {
                     "-Djmh.fr.options=defaultrecording=true,settings=" + profile)
             .result(destinationFolder + "/" + "benchmarkResults.csv")
             .resultFormat(ResultFormatType.CSV)
-            .warmupIterations(5)
+            .warmupIterations(3)
             .measurementIterations(5)
             .forks(1)
             .build();
