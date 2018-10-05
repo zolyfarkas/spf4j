@@ -86,7 +86,7 @@ public final class JmhTest {
             .result(destinationFolder + "/" + "benchmarkResults.csv")
             .resultFormat(ResultFormatType.CSV)
             .warmupIterations(5)
-            .measurementIterations(10)
+            .measurementIterations(5)
             .forks(1)
             .build();
     new Runner(opt).run();
