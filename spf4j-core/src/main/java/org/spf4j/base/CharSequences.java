@@ -52,8 +52,7 @@ public final class CharSequences {
 
   /**
    * function that calculates the number of operations that are needed to transform s1 into s2. operations are: char
-   * add, char delete, char modify
-   * See https://en.wikipedia.org/wiki/Levenshtein_distance for more info.
+   * add, char delete, char modify See https://en.wikipedia.org/wiki/Levenshtein_distance for more info.
    *
    * @param s1
    * @param s2
@@ -533,9 +532,8 @@ public final class CharSequences {
   }
 
   /**
-   * regular wildcard matcher.
-   * * matches any number of consecutive characters.
-   * ? matches any single character.
+   * regular wildcard matcher. * matches any number of consecutive characters. ? matches any single character.
+   *
    * @param wildcard
    * @param cs2Match
    * @return
@@ -565,11 +563,10 @@ public final class CharSequences {
     return j == cs2Match.length();
   }
 
-
   /**
-   * Transform a wildcard expression 2 a java regular expression.
-   * * matches any number of consecutive characters.
-   * ? matches any single character.
+   * Transform a wildcard expression 2 a java regular expression. * matches any number of consecutive characters. ?
+   * matches any single character.
+   *
    * @param wildcard
    * @return
    */
@@ -601,14 +598,31 @@ public final class CharSequences {
     return buff;
   }
 
-
   public static int indexOf(final CharSequence cs, final int from, final int to, final char c) {
-      for (int i = from; i < to; i++) {
-        if (c == cs.charAt(i)) {
-          return i;
-        }
+    for (int i = from; i < to; i++) {
+      if (c == cs.charAt(i)) {
+        return i;
       }
-      return -1;
+    }
+    return -1;
+  }
+
+
+  public static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+    return indexOfIgnoreCase(str, searchStr) >= 0;
+  }
+
+  public static int indexOfIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+    final int length = searchStr.length();
+    if (length == 0) {
+      return 0;
+    }
+    for (int i = str.length() - length; i >= 0; i--) {
+      if (regionMatchesIgnoreCase(str, i, searchStr, 0, length)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
 }

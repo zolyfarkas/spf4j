@@ -89,4 +89,13 @@ public class CharSequencesTest {
             CharSequences.compare("cacablabla123", 4, 3, "ablabla/cucu", 2, 4));
   }
 
+  @Test
+  public void testCotains() {
+    Assert.assertTrue(CharSequences.containsIgnoreCase("asdgafsdHgas", ""));
+    Assert.assertTrue(CharSequences.containsIgnoreCase("asdgafsdHgas", "sdh"));
+    Assert.assertFalse(CharSequences.containsIgnoreCase("asdgafsdHgas", "sdhf"));
+  }
+
+
+
 }
