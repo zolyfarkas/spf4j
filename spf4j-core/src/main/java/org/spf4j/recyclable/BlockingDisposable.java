@@ -31,16 +31,33 @@
  */
 package org.spf4j.recyclable;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.spf4j.base.ExecutionContexts;
+
 /**
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public interface Disposable extends AutoCloseable {
+public interface BlockingDisposable extends Disposable {
+  default void dispose() throws ObjectDisposeException, InterruptedException {
+      try {
+        dispose(ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS));
+      } catch (TimeoutException ex) {
+        throw new ObjectDisposeException(ex);
+      }
+    }
 
-  void dispose() throws ObjectDisposeException, InterruptedException;
+  default void dispose(long timeoutMillis) throws ObjectDisposeException, InterruptedException, TimeoutException {
+    if (!tryDispose(timeoutMillis)) {
+      throw new TimeoutException("Unable to dispose  " + this + " within " + timeoutMillis + " miliseconds");
+    }
+  }
 
+  @Override
   default void close() throws ObjectDisposeException, InterruptedException {
     dispose();
   }
 
+  boolean tryDispose(long timeoutMillis) throws ObjectDisposeException, InterruptedException;
 }

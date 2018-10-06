@@ -31,9 +31,14 @@
  */
 package org.spf4j.recyclable;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeSource;
 
 /**
  * Object pool interface.
@@ -45,7 +50,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param <T> - type of recycled objects
  */
 @ParametersAreNonnullByDefault
-public interface RecyclingSupplier<T> extends NonValidatingRecyclingSupplier<T> {
+public interface RecyclingSupplier<T> extends NonValidatingRecyclingSupplier<T>, BlockingDisposable {
+
+    @Nonnull
+    default T get() throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException {
+      return get(ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+    }
+
+    @Nonnull
+    default T get(long timeout, TimeUnit unit) throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException {
+      T tryGet = tryGet(timeout, unit);
+      if (tryGet == null) {
+        throw new TimeoutException("Timed out after " + timeout + " " + unit);
+      } else {
+        return tryGet;
+      }
+    }
+
+    @Nullable
+    default T tryGet(long timeout, TimeUnit unit) throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException {
+      return tryGet(TimeSource.nanoTime() + unit.toNanos(timeout));
+    }
+    
+
+    @Nullable
+    T tryGet(long deadlineNanos) throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException;
+
 
     /**
      * return a object previously borrowed from the pool,

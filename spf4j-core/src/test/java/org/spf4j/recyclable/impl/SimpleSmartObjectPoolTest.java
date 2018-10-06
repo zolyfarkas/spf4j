@@ -32,7 +32,6 @@
 package org.spf4j.recyclable.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.recyclable.Disposable;
 import org.spf4j.recyclable.ObjectBorower;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.RecyclingSupplier;
@@ -43,6 +42,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.Either;
+import org.spf4j.recyclable.BlockingDisposable;
 import org.spf4j.recyclable.ObjectDisposeException;
 
 /**
@@ -123,7 +123,7 @@ public final class SimpleSmartObjectPoolTest implements ObjectBorower<SimpleSmar
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
-  public static final class TestObject implements Disposable {
+  public static final class TestObject implements BlockingDisposable {
 
     private boolean disposed = false;
     private final String data;

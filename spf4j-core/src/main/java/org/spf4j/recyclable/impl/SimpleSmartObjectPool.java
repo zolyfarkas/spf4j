@@ -39,12 +39,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import org.spf4j.base.Either;
-import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
@@ -90,8 +89,9 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
 
   @Override
   @SuppressFBWarnings({"RV_RETURN_VALUE_IGNORED_BAD_PRACTICE", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"})
-  public T get(final ObjectBorower borower) throws InterruptedException,
-          TimeoutException, ObjectCreationException {
+  @Nullable
+  public T tryGet(final ObjectBorower borower, final long deadlineNanos) throws InterruptedException,
+           ObjectCreationException {
     lock.lock();
     try {
       if (maxSize <= 0) {
@@ -163,18 +163,21 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             // probably was unable to acquire the locks
             do {
               available.await(1, TimeUnit.MILLISECONDS);
-              long millisToDeadline = ExecutionContexts.getTimeRelativeToDeadline(TimeUnit.MILLISECONDS);
-              if (millisToDeadline < 0) {
-                throw new TimeoutException("Object wait timeout expired by " + (-millisToDeadline));
+              long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();
+              if (nanosToDeadline < 0) {
+                return null;
               }
             } while (borrowedObjects.isEmpty());
           }
         }
         waitingForReturn++;
         while (availableObjects.isEmpty()) {
-          long waitTime = ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);
+          long waitTime = deadlineNanos - TimeSource.nanoTime();
+          if (waitTime <= 0) {
+            return null;
+          }
           if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
-            throw new TimeoutException("Object wait timeout expired, waitTime = " + waitTime);
+            return null;
           }
         }
         waitingForReturn--;

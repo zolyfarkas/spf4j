@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
@@ -47,7 +48,9 @@ import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 
 /**
- * a object sharing pool. this pool allows for non exclusive object sharing. TODO: synchronization is too coarse, can be
+ * a object sharing pool. this pool allows for non exclusive object sharing.
+ * will always return the least shared object.
+ * TODO: synchronization is too coarse, can be
  * improved.
  *
  * @author zoly
@@ -141,7 +144,8 @@ public final class SharingObjectPool<T> implements RecyclingSupplier<T> {
   }
 
   @Override
-  public synchronized T get() throws ObjectBorrowException, ObjectCreationException {
+  @Nullable
+  public synchronized T tryGet(final long deadlineNanos) throws ObjectBorrowException, ObjectCreationException {
     if (closed) {
       throw new ObjectBorrowException("Reclycler is closed " + this);
     }

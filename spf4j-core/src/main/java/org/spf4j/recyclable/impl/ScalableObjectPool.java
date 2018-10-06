@@ -36,7 +36,6 @@ import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Scanable;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnull;
 
 /**
@@ -70,8 +69,9 @@ final class ScalableObjectPool<T> implements RecyclingSupplier<T>,  Scanable<Obj
     @Override
     @Nonnull
     @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
-    public T get() throws ObjectCreationException, InterruptedException, TimeoutException {
-        return localPool.get().get();
+    public T tryGet(final long deadlineNanos) throws ObjectCreationException,
+            InterruptedException {
+        return localPool.get().tryGet(deadlineNanos);
     }
 
     @Override

@@ -31,13 +31,11 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.base.Throwables;
 import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Scanable;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
@@ -72,13 +70,12 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
 
 
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
     @Override
-    public T get()
-            throws ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
-        T result = pool.get();
+    public T tryGet(final long deadlineNanos)
+            throws ObjectCreationException, ObjectBorrowException, InterruptedException {
+        T result = pool.tryGet(deadlineNanos);
         try {
-            if (borrowHook != null) {
+            if (result != null && borrowHook != null) {
                 borrowHook.handle(result, Long.MAX_VALUE);
             }
             return result;
@@ -86,7 +83,8 @@ final class ObjectPoolWrapper<T> implements RecyclingSupplier<T>, Scanable<Objec
             try {
                 pool.recycle(result, e);
             } catch (RuntimeException ex) {
-                throw Throwables.suppress(ex, e);
+                ex.addSuppressed(ex);
+                throw ex;
             }
             throw new ObjectBorrowException("Exception while executing borrow hook " + borrowHook, e);
         }

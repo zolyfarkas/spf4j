@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
  *
  * @author Zoltan Farkas
  */
-public interface NonValidatingRecyclingSupplier<T> extends Disposable {
+public interface NonValidatingRecyclingSupplier<T> {
 
     /**
      * block until a object is available and return it.

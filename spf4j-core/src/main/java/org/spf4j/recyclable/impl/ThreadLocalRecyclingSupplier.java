@@ -72,15 +72,8 @@ public final class ThreadLocalRecyclingSupplier<T> implements NonValidatingRecyc
   }
 
   @Override
-  public boolean tryDispose(final long timeoutMillis) {
-    return true;
-  }
-
-  @Override
   public String toString() {
     return "ThreadLocalRecyclingSupplier{" + "supplier=" + supplier + ", threadLocal=" + threadLocal + '}';
   }
-
-
 
 }

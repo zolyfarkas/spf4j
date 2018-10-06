@@ -41,7 +41,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -79,15 +78,19 @@ final class LocalObjectPool<T> implements RecyclingSupplier<T>, ObjectBorower<Ob
   @Override
   @Nonnull
   @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
-  public T get() throws ObjectCreationException,
-          InterruptedException, TimeoutException {
+  @Nullable
+  public T tryGet(final long deadlineNanos) throws ObjectCreationException,
+          InterruptedException {
     lock.lock();
     try {
       T object;
       ObjectHolder<T> objectHolder;
       do {
         if (localObjects.isEmpty()) {
-          objectHolder = globalPool.get(this);
+          objectHolder = globalPool.tryGet(this, deadlineNanos);
+          if (objectHolder == null) {
+            return null;
+          }
         } else {
           objectHolder = localObjects.remove();
         }

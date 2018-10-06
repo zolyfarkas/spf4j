@@ -32,17 +32,21 @@
 package org.spf4j.recyclable;
 
 import com.google.common.annotations.Beta;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeSource;
 
 /**
  * @author zoly
  */
 @ThreadSafe
 @ParametersAreNonnullByDefault
-public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
+public interface SmartRecyclingSupplier<T> extends BlockingDisposable, Scanable<T> {
 
     /**
      * Borrow object from pool.
@@ -53,8 +57,35 @@ public interface SmartRecyclingSupplier<T> extends Disposable, Scanable<T> {
      * @throws ObjectCreationException
      */
     @Nonnull
-    T get(ObjectBorower borower) throws InterruptedException,
-            TimeoutException, ObjectCreationException;
+    default T get(ObjectBorower borower) throws InterruptedException,
+            TimeoutException, ObjectCreationException {
+      return get(borower, ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+    }
+
+
+    @Nonnull
+    default T get(ObjectBorower borower, long timeout, TimeUnit unit)
+            throws ObjectCreationException,
+            InterruptedException, TimeoutException {
+      T tryGet = tryGet(borower, timeout, unit);
+      if (tryGet == null) {
+        throw new TimeoutException("Timed out after " + timeout + " " + unit);
+      } else {
+        return tryGet;
+      }
+    }
+
+    @Nullable
+    default T tryGet(ObjectBorower borower, long timeout, TimeUnit unit) throws ObjectCreationException,
+            InterruptedException {
+      return tryGet(borower, TimeSource.nanoTime() + unit.toNanos(timeout));
+    }
+
+
+    @Nullable
+    T tryGet(ObjectBorower borower, long deadlineNanos) throws ObjectCreationException,
+            InterruptedException;
+
 
     /**
      * Return object to pool.
