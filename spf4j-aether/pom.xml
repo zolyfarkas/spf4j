@@ -97,6 +97,63 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>create avsc destination folder</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="target/generated-sources/spf4j-core" />
+                <copy todir="target/generated-sources/spf4j-core" verbose="true">
+                  <fileset dir="${project.build.directory}/../../spf4j-core/src/main/java/">
+                    <include name="org/spf4j/io/Streams.java" />
+                    <include name="org/spf4j/io/AppendableWriter.java" />
+                    <include name="org/spf4j/io/compress/Compress.java" />
+                    <include name="org/spf4j/io/BufferedInputStream.java" />
+                    <include name="org/spf4j/recyclable/impl/ArraySuppliers.java" />
+                    <include name="org/spf4j/recyclable/SizedRecyclingSupplier.java" />
+                    <include name="org/spf4j/recyclable/NonValidatingRecyclingSupplier.java" />
+                    <include name="org/spf4j/recyclable/impl/Powerof2ThreadLocalRecyclingSupplier.java" />
+                    <include name="org/spf4j/recyclable/impl/Powerof2SizedGlobalRecyclingSupplier.java" />
+                    <include name="org/spf4j/recyclable/Disposable.java" />
+                    <include name="org/spf4j/recyclable/*Exception.java" />
+                    <include name="org/spf4j/recyclable/impl/ThreadLocalRecyclingSupplier.java" />
+                    <include name="org/spf4j/base/IntMath.java" />
+                    <include name="org/spf4j/base/ReferenceType.java" />
+                    <include name="org/spf4j/base/IntSequence.java" />
+                  </fileset>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/spf4j-core/</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
