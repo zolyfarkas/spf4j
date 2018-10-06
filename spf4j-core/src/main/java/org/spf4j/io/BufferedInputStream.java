@@ -37,8 +37,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import org.spf4j.base.Base64;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -264,7 +264,7 @@ public final class BufferedInputStream extends FilterInputStream {
 
     @Override
     public String toString() {
-        return "BufferedInputStream{" + "buf=" + (buf != null ? Base64.encodeBase64(buf) : "null")
+        return "BufferedInputStream{" + "buf=" + (buf != null ? Base64.getEncoder().encodeToString(buf)  : "null")
                 + ", count=" + count + ", pos=" + pos
                 + ", markpos=" + markpos + ", marklimit=" + marklimit + ", bufferProvider=" + bufferProvider + '}';
     }

@@ -36,14 +36,11 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
-/**
- *
- * @author zoly
- */
+
 public enum ReferenceType {
 
-    WEAK((object) -> new WeakReference(object)),
-    SOFT((object) -> new SoftReference(object));
+    WEAK((Object object) -> new WeakReference<>(object)),
+    SOFT((Object object) -> new SoftReference<>(object));
 
 
     private final Function<Object, Reference<Object>> factory;
