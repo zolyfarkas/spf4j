@@ -243,11 +243,20 @@ public final class Runtime {
 
 <span class="fc" id="L244">  public enum Version {</span>
 
-<span class="fc" id="L246">    V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9_PLUSZ;</span>
+<span class="fc" id="L246">    V1_0, V1_1, V1_2, V1_3, V1_4, V1_5, V1_6, V1_7, V1_8, V1_9, V_10, V_11, V_12;</span>
 
+    @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;) // not really redundant
     public static Version fromSpecVersion(final String specVersion) {
-<span class="fc" id="L249">      return Version.values()[Integer.parseInt(specVersion.split(&quot;\\.&quot;)[1])];</span>
+<span class="fc" id="L250">      String[] cmpnts = specVersion.split(&quot;\\.&quot;);</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">      if  (cmpnts.length &gt; 1) {</span>
+<span class="fc" id="L252">        return Version.values()[Integer.parseInt(cmpnts[1])];</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">      } else if (cmpnts.length == 1) {</span>
+<span class="nc" id="L254">        return Version.values()[Integer.parseInt(cmpnts[0])];</span>
+      } else {
+<span class="nc" id="L256">        throw new IllegalArgumentException(&quot;Unsupported specVersion: &quot; + specVersion);</span>
+      }
     }
+
   }
 
   private Runtime() {
@@ -255,81 +264,81 @@ public final class Runtime {
 
   @SuppressWarnings(&quot;checkstyle:regexp&quot;)
   public static void error(final String message) {
-<span class="nc" id="L258">    System.err.println(message);</span>
-<span class="nc" id="L259">  }</span>
+<span class="nc" id="L267">    System.err.println(message);</span>
+<span class="nc" id="L268">  }</span>
 
   @SuppressWarnings(&quot;checkstyle:regexp&quot;)
   public static void error(final String message, final Throwable t) {
-<span class="fc" id="L263">    System.err.println(message);</span>
-<span class="nc" id="L264">    Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);</span>
-<span class="nc" id="L265">  }</span>
+<span class="fc" id="L272">    System.err.println(message);</span>
+<span class="nc" id="L273">    Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);</span>
+<span class="nc" id="L274">  }</span>
 
 
   public static void goDownWithError(final SysExits exitCode) {
-<span class="nc" id="L269">    goDownWithError(null, exitCode.exitCode());</span>
-<span class="nc" id="L270">  }</span>
+<span class="nc" id="L278">    goDownWithError(null, exitCode.exitCode());</span>
+<span class="nc" id="L279">  }</span>
 
   public static void goDownWithError(@Nullable final Throwable t, final SysExits exitCode) {
-<span class="nc" id="L273">    goDownWithError(t, exitCode.exitCode());</span>
-<span class="nc" id="L274">  }</span>
+<span class="nc" id="L282">    goDownWithError(t, exitCode.exitCode());</span>
+<span class="nc" id="L283">  }</span>
 
   // Calling Halt is the only sensible thing to do when the JVM is hosed.
   @SuppressFBWarnings(&quot;MDM_RUNTIME_EXIT_OR_HALT&quot;)
   public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
     try {
-<span class="nc bnc" id="L280" title="All 2 branches missed.">      if (t != null) {</span>
-<span class="nc" id="L281">        Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first</span>
-<span class="nc" id="L282">        error(&quot;Error, going down with exit code &quot; + exitCode, t);</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">      if (t != null) {</span>
+<span class="nc" id="L290">        Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first</span>
+<span class="nc" id="L291">        error(&quot;Error, going down with exit code &quot; + exitCode, t);</span>
         //Now we are pushing it...
-<span class="nc" id="L284">        Logger logger = Logger.getLogger(Runtime.class.getName());</span>
-<span class="nc" id="L285">        logger.log(Level.SEVERE, &quot;Error, going down with exit code {0}&quot;, exitCode);</span>
-<span class="nc" id="L286">        logger.log(Level.SEVERE, &quot;Exception detail&quot;, t);</span>
-<span class="nc" id="L287">      } else {</span>
-<span class="nc" id="L288">        error(&quot;Error, going down with exit code &quot; + exitCode);</span>
-<span class="nc" id="L289">        Logger.getLogger(Runtime.class.getName())</span>
-<span class="nc" id="L290">                .log(Level.SEVERE, &quot;Error, going down with exit code {0}&quot;, exitCode);</span>
+<span class="nc" id="L293">        Logger logger = Logger.getLogger(Runtime.class.getName());</span>
+<span class="nc" id="L294">        logger.log(Level.SEVERE, &quot;Error, going down with exit code {0}&quot;, exitCode);</span>
+<span class="nc" id="L295">        logger.log(Level.SEVERE, &quot;Exception detail&quot;, t);</span>
+<span class="nc" id="L296">      } else {</span>
+<span class="nc" id="L297">        error(&quot;Error, going down with exit code &quot; + exitCode);</span>
+<span class="nc" id="L298">        Logger.getLogger(Runtime.class.getName())</span>
+<span class="nc" id="L299">                .log(Level.SEVERE, &quot;Error, going down with exit code {0}&quot;, exitCode);</span>
       }
     } finally {
-<span class="nc" id="L293">      JAVA_RUNTIME.halt(exitCode);</span>
+<span class="nc" id="L302">      JAVA_RUNTIME.halt(exitCode);</span>
     }
-<span class="nc" id="L295">  }</span>
+<span class="nc" id="L304">  }</span>
 
   public static boolean isMacOsx() {
-<span class="fc" id="L298">    return IS_MAC_OSX;</span>
+<span class="fc" id="L307">    return IS_MAC_OSX;</span>
   }
 
   public static boolean isWindows() {
-<span class="fc" id="L302">    return IS_WINDOWS;</span>
+<span class="fc" id="L311">    return IS_WINDOWS;</span>
   }
 
   public static boolean isTestFramework() {
-<span class="nc" id="L306">    StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());</span>
-<span class="nc bnc" id="L307" title="All 2 branches missed.">    for (StackTraceElement[] sts : stackTraces) {</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">      if (sts != null) {</span>
-<span class="nc bnc" id="L309" title="All 2 branches missed.">        for (StackTraceElement ste : sts) {</span>
-<span class="nc" id="L310">          String className = ste.getClassName();</span>
-<span class="nc bnc" id="L311" title="All 4 branches missed.">          if (className.startsWith(&quot;org.junit&quot;) || className.startsWith(&quot;org.openjdk.jmh&quot;)) {</span>
-<span class="nc" id="L312">            return true;</span>
+<span class="nc" id="L315">    StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">    for (StackTraceElement[] sts : stackTraces) {</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">      if (sts != null) {</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        for (StackTraceElement ste : sts) {</span>
+<span class="nc" id="L319">          String className = ste.getClassName();</span>
+<span class="nc bnc" id="L320" title="All 4 branches missed.">          if (className.startsWith(&quot;org.junit&quot;) || className.startsWith(&quot;org.openjdk.jmh&quot;)) {</span>
+<span class="nc" id="L321">            return true;</span>
           }
         }
       }
     }
-<span class="nc" id="L317">    return false;</span>
+<span class="nc" id="L326">    return false;</span>
   }
 
 
   public static boolean haveJnaPlatform() {
-<span class="fc" id="L322">    URL resource = Thread.currentThread().getContextClassLoader().getResource(&quot;com/sun/jna/platform/package.html&quot;);</span>
-<span class="pc bpc" id="L323" title="1 of 2 branches missed.">    return (resource != null);</span>
+<span class="fc" id="L331">    URL resource = Thread.currentThread().getContextClassLoader().getResource(&quot;com/sun/jna/platform/package.html&quot;);</span>
+<span class="pc bpc" id="L332" title="1 of 2 branches missed.">    return (resource != null);</span>
   }
 
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_RETURN_FALSE&quot;)
   public static boolean haveJnaPlatformClib() {
     try {
-<span class="nc" id="L329">      Class.forName(&quot;com.sun.jna.platform.unix.LibC&quot;);</span>
-<span class="nc" id="L330">      return true;</span>
-<span class="nc" id="L331">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L332">      return false;</span>
+<span class="nc" id="L338">      Class.forName(&quot;com.sun.jna.platform.unix.LibC&quot;);</span>
+<span class="nc" id="L339">      return true;</span>
+<span class="nc" id="L340">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L341">      return false;</span>
     }
   }
 
@@ -342,7 +351,7 @@ public final class Runtime {
   @CheckReturnValue
   @Deprecated
   public static int getNrOpenFiles() {
-<span class="fc" id="L345">    return (int) OperatingSystem.getOpenFileDescriptorCount();</span>
+<span class="fc" id="L354">    return (int) OperatingSystem.getOpenFileDescriptorCount();</span>
   }
 
   /**
@@ -352,7 +361,7 @@ public final class Runtime {
   @CheckReturnValue
   @Deprecated
   public static CharSequence getLsofOutput() {
-<span class="fc" id="L355">    return Lsof.getLsofOutput();</span>
+<span class="fc" id="L364">    return Lsof.getLsofOutput();</span>
   }
 
   /**
@@ -376,7 +385,7 @@ public final class Runtime {
   @Deprecated
   public static CharSequence run(final String[] command,
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L379">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
+<span class="fc" id="L388">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
   }
 
   /**
@@ -386,7 +395,7 @@ public final class Runtime {
   public static int killProcess(final Process proc, final long terminateTimeoutMillis,
           final long forceTerminateTimeoutMillis)
           throws InterruptedException, TimeoutException {
-<span class="nc" id="L389">    return OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);</span>
+<span class="nc" id="L398">    return OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);</span>
   }
 
   /**
@@ -395,7 +404,7 @@ public final class Runtime {
   public static int run(final String[] command, final ProcOutputHandler handler,
           final long timeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L398">    return run(command, handler, timeoutMillis, 60000);</span>
+<span class="nc" id="L407">    return run(command, handler, timeoutMillis, 60000);</span>
   }
 
   /**
@@ -406,75 +415,75 @@ public final class Runtime {
   public static int run(final String[] command, final ProcOutputHandler handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L409">    ProcessResponse&lt;Void, Void&gt; resp = OperatingSystem.forkExec(command,</span>
-<span class="nc" id="L410">            new ProcessHandler&lt;Void, Void&gt;() {</span>
+<span class="nc" id="L418">    ProcessResponse&lt;Void, Void&gt; resp = OperatingSystem.forkExec(command,</span>
+<span class="nc" id="L419">            new ProcessHandler&lt;Void, Void&gt;() {</span>
       @Override
       public Void handleStdOut(final InputStream is) throws IOException {
         int cos;
-<span class="nc" id="L414">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);</span>
+<span class="nc" id="L423">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);</span>
         try {
-<span class="nc bnc" id="L416" title="All 2 branches missed.">          while ((cos = is.read(buffer)) &gt;= 0) {</span>
-<span class="nc" id="L417">            handler.handleStdOut(buffer, cos);</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">          while ((cos = is.read(buffer)) &gt;= 0) {</span>
+<span class="nc" id="L426">            handler.handleStdOut(buffer, cos);</span>
           }
         } finally {
-<span class="nc" id="L420">          ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
-<span class="nc" id="L421">          handler.stdOutDone();</span>
+<span class="nc" id="L429">          ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
+<span class="nc" id="L430">          handler.stdOutDone();</span>
         }
-<span class="nc" id="L423">        return null;</span>
+<span class="nc" id="L432">        return null;</span>
       }
 
       @Override
       public Void handleStdErr(final InputStream stderr) throws IOException {
         int cos;
-<span class="nc" id="L429">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);</span>
+<span class="nc" id="L438">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);</span>
         try {
-<span class="nc bnc" id="L431" title="All 2 branches missed.">          while ((cos = stderr.read(buffer)) &gt;= 0) {</span>
-<span class="nc" id="L432">            handler.handleStdErr(buffer, cos);</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">          while ((cos = stderr.read(buffer)) &gt;= 0) {</span>
+<span class="nc" id="L441">            handler.handleStdErr(buffer, cos);</span>
           }
         } finally {
-<span class="nc" id="L435">          ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
-<span class="nc" id="L436">          handler.stdErrDone();</span>
+<span class="nc" id="L444">          ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
+<span class="nc" id="L445">          handler.stdErrDone();</span>
         }
-<span class="nc" id="L438">        return null;</span>
+<span class="nc" id="L447">        return null;</span>
       }
     }, timeoutMillis, terminationTimeoutMillis);
-<span class="nc" id="L441">    return resp.getResponseCode();</span>
+<span class="nc" id="L450">    return resp.getResponseCode();</span>
   }
 
   public static void queueHookAtBeginning(final Runnable runnable) {
-<span class="fc" id="L445">    synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="fc" id="L446">      queueHook(Integer.MIN_VALUE, runnable);</span>
-<span class="fc" id="L447">    }</span>
-<span class="fc" id="L448">  }</span>
+<span class="fc" id="L454">    synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="fc" id="L455">      queueHook(Integer.MIN_VALUE, runnable);</span>
+<span class="fc" id="L456">    }</span>
+<span class="fc" id="L457">  }</span>
 
   public static void queueHookAtEnd(final Runnable runnable) {
-<span class="fc" id="L451">    queueHook(Integer.MAX_VALUE, runnable);</span>
-<span class="fc" id="L452">  }</span>
+<span class="fc" id="L460">    queueHook(Integer.MAX_VALUE, runnable);</span>
+<span class="fc" id="L461">  }</span>
 
   public static void queueHook(final int priority, final Runnable runnable) {
-<span class="fc" id="L455">    synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="fc" id="L456">      Integer pr = priority;</span>
-<span class="fc" id="L457">      Set&lt;Runnable&gt; runnables = SHUTDOWN_HOOKS.get(pr);</span>
-<span class="fc bfc" id="L458" title="All 2 branches covered.">      if (runnables == null) {</span>
-<span class="fc" id="L459">        runnables = new HashSet&lt;&gt;();</span>
-<span class="fc" id="L460">        SHUTDOWN_HOOKS.put(pr, runnables);</span>
+<span class="fc" id="L464">    synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="fc" id="L465">      Integer pr = priority;</span>
+<span class="fc" id="L466">      Set&lt;Runnable&gt; runnables = SHUTDOWN_HOOKS.get(pr);</span>
+<span class="fc bfc" id="L467" title="All 2 branches covered.">      if (runnables == null) {</span>
+<span class="fc" id="L468">        runnables = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L469">        SHUTDOWN_HOOKS.put(pr, runnables);</span>
       }
-<span class="fc" id="L462">      runnables.add(runnable);</span>
-<span class="fc" id="L463">    }</span>
-<span class="fc" id="L464">  }</span>
+<span class="fc" id="L471">      runnables.add(runnable);</span>
+<span class="fc" id="L472">    }</span>
+<span class="fc" id="L473">  }</span>
 
   public static boolean removeQueuedShutdownHook(final Runnable runnable) {
-<span class="pc bpc" id="L467" title="1 of 2 branches missed.">    if (&quot;spf4j queued shutdown&quot;.equals(Thread.currentThread().getName())) {</span>
-<span class="nc" id="L468">      return false;</span>
+<span class="pc bpc" id="L476" title="1 of 2 branches missed.">    if (&quot;spf4j queued shutdown&quot;.equals(Thread.currentThread().getName())) {</span>
+<span class="nc" id="L477">      return false;</span>
     }
-<span class="fc" id="L470">    synchronized (SHUTDOWN_HOOKS) {</span>
-<span class="pc bpc" id="L471" title="1 of 2 branches missed.">      for (Set&lt;Runnable&gt; entry : SHUTDOWN_HOOKS.values()) {</span>
-<span class="pc bpc" id="L472" title="1 of 2 branches missed.">        if (entry.remove(runnable)) {</span>
-<span class="fc" id="L473">          return true;</span>
+<span class="fc" id="L479">    synchronized (SHUTDOWN_HOOKS) {</span>
+<span class="pc bpc" id="L480" title="1 of 2 branches missed.">      for (Set&lt;Runnable&gt; entry : SHUTDOWN_HOOKS.values()) {</span>
+<span class="pc bpc" id="L481" title="1 of 2 branches missed.">        if (entry.remove(runnable)) {</span>
+<span class="fc" id="L482">          return true;</span>
         }
-<span class="nc" id="L475">      }</span>
-<span class="nc" id="L476">    }</span>
-<span class="nc" id="L477">    return false;</span>
+<span class="nc" id="L484">      }</span>
+<span class="nc" id="L485">    }</span>
+<span class="nc" id="L486">    return false;</span>
   }
 
   /**
@@ -483,7 +492,7 @@ public final class Runtime {
    */
   @Deprecated
   public static long getDeadline() {
-<span class="fc" id="L486">    return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ExecutionContexts.getContextDeadlineNanos());</span>
+<span class="fc" id="L495">    return Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ExecutionContexts.getContextDeadlineNanos());</span>
   }
 
   /**
@@ -492,7 +501,7 @@ public final class Runtime {
    */
   @Deprecated
   public static long millisToDeadline() throws TimeoutException {
-<span class="nc" id="L495">    return ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L504">    return ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   /**
@@ -503,74 +512,74 @@ public final class Runtime {
    */
   @SuppressFBWarnings
   public static boolean gc(final long timeoutMillis) {
-<span class="fc" id="L506">    WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(new Object());</span>
-<span class="fc" id="L507">    long deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
+<span class="fc" id="L515">    WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(new Object());</span>
+<span class="fc" id="L516">    long deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
     do {
-<span class="fc" id="L509">      System.gc();</span>
-<span class="pc bpc" id="L510" title="3 of 4 branches missed.">    } while (ref.get() != null &amp;&amp; TimeSource.nanoTime() &lt; deadline);</span>
-<span class="pc bpc" id="L511" title="1 of 2 branches missed.">    return ref.get() == null;</span>
+<span class="fc" id="L518">      System.gc();</span>
+<span class="pc bpc" id="L519" title="3 of 4 branches missed.">    } while (ref.get() != null &amp;&amp; TimeSource.nanoTime() &lt; deadline);</span>
+<span class="pc bpc" id="L520" title="1 of 2 branches missed.">    return ref.get() == null;</span>
   }
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain,
           final long timeoutMillis, final String... arguments)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L516">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
-<span class="fc" id="L517">    return jrun(classWithMain, classPath, timeoutMillis, arguments);</span>
+<span class="fc" id="L525">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
+<span class="fc" id="L526">    return jrun(classWithMain, classPath, timeoutMillis, arguments);</span>
   }
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-<span class="fc" id="L522">    String[] arr = getJvmArgsNoJMX();</span>
-<span class="fc" id="L523">    return jrun(classWithMain, classPath, timeoutMillis, arr, arguments);</span>
+<span class="fc" id="L531">    String[] arr = getJvmArgsNoJMX();</span>
+<span class="fc" id="L532">    return jrun(classWithMain, classPath, timeoutMillis, arr, arguments);</span>
   }
 
   private static String[] getJvmArgsNoJMX() {
-<span class="fc" id="L527">    List&lt;String&gt; jvmInputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
+<span class="fc" id="L536">    List&lt;String&gt; jvmInputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();</span>
     String[] arr;
-<span class="pc bpc" id="L529" title="1 of 2 branches missed.">    if (jvmInputArgs.isEmpty()) {</span>
-<span class="nc" id="L530">      arr = Arrays.EMPTY_STRING_ARRAY;</span>
+<span class="pc bpc" id="L538" title="1 of 2 branches missed.">    if (jvmInputArgs.isEmpty()) {</span>
+<span class="nc" id="L539">      arr = Arrays.EMPTY_STRING_ARRAY;</span>
     } else {
-<span class="fc" id="L532">      JVMArguments inputArguments = new JVMArguments(jvmInputArgs);</span>
-<span class="fc" id="L533">      inputArguments.removeAllSystemPropertiesStartingWith(&quot;com.sun.management.jmxremote&quot;);</span>
-<span class="fc" id="L534">      arr = inputArguments.toArray();</span>
+<span class="fc" id="L541">      JVMArguments inputArguments = new JVMArguments(jvmInputArgs);</span>
+<span class="fc" id="L542">      inputArguments.removeAllSystemPropertiesStartingWith(&quot;com.sun.management.jmxremote&quot;);</span>
+<span class="fc" id="L543">      arr = inputArguments.toArray();</span>
     }
-<span class="fc" id="L536">    return arr;</span>
+<span class="fc" id="L545">    return arr;</span>
   }
 
 
   public static CharSequence jrun(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String[] jvmArgs,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-<span class="fc" id="L543">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
-<span class="fc" id="L544">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
+<span class="fc" id="L552">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
+<span class="fc" id="L553">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
             jvmArgs,
-<span class="fc" id="L546">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
+<span class="fc" id="L555">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
             arguments);
-<span class="fc" id="L548">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
+<span class="fc" id="L557">    return OperatingSystem.forkExec(command, timeoutMillis);</span>
   }
 
  public static void jrunAndLog(final Class&lt;?&gt; classWithMain,
           final long timeoutMillis, final String... arguments)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L554">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
-<span class="fc" id="L555">    jrunAndLog(classWithMain, classPath, timeoutMillis, arguments);</span>
-<span class="fc" id="L556">  }</span>
+<span class="fc" id="L563">    final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();</span>
+<span class="fc" id="L564">    jrunAndLog(classWithMain, classPath, timeoutMillis, arguments);</span>
+<span class="fc" id="L565">  }</span>
 
   public static void jrunAndLog(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-<span class="fc" id="L560">    String[] arr = getJvmArgsNoJMX();</span>
-<span class="fc" id="L561">    jrun(classWithMain, classPath, timeoutMillis, arr, arguments);</span>
-<span class="fc" id="L562">  }</span>
+<span class="fc" id="L569">    String[] arr = getJvmArgsNoJMX();</span>
+<span class="fc" id="L570">    jrun(classWithMain, classPath, timeoutMillis, arr, arguments);</span>
+<span class="fc" id="L571">  }</span>
 
   public static void jrunAndLog(final Class&lt;?&gt; classWithMain, final String classPath, final long timeoutMillis,
           final String[] jvmArgs,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-<span class="nc" id="L567">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
-<span class="nc" id="L568">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
+<span class="nc" id="L576">    final String jvmPath = JAVA_HOME + File.separatorChar + &quot;bin&quot; + File.separatorChar + &quot;java&quot;;</span>
+<span class="nc" id="L577">    String[] command = Arrays.concat(new String[]{jvmPath},</span>
             jvmArgs,
-<span class="nc" id="L570">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
+<span class="nc" id="L579">            new String[]{&quot;-cp&quot;, classPath, classWithMain.getName()},</span>
             arguments);
-<span class="nc" id="L572">    OperatingSystem.forkExecLog(command, timeoutMillis);</span>
-<span class="nc" id="L573">  }</span>
+<span class="nc" id="L581">    OperatingSystem.forkExecLog(command, timeoutMillis);</span>
+<span class="nc" id="L582">  }</span>
 
   /**
    * get the main Thread.
@@ -578,13 +587,13 @@ public final class Runtime {
    */
   @Nullable
   public static Thread getMainThread() {
-<span class="fc" id="L581">    Thread[] threads = Threads.getThreads();</span>
-<span class="pc bpc" id="L582" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
-<span class="fc bfc" id="L583" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
-<span class="fc" id="L584">        return t;</span>
+<span class="fc" id="L590">    Thread[] threads = Threads.getThreads();</span>
+<span class="pc bpc" id="L591" title="1 of 2 branches missed.">    for (Thread t : threads) {</span>
+<span class="fc bfc" id="L592" title="All 2 branches covered.">      if (t.getId() == 1L) {</span>
+<span class="fc" id="L593">        return t;</span>
       }
     }
-<span class="nc" id="L587">    return null;</span>
+<span class="nc" id="L596">    return null;</span>
   }
 
   /**
@@ -592,38 +601,38 @@ public final class Runtime {
    */
   @Nullable
   public static Class&lt;?&gt; getMainClass() {
-<span class="fc" id="L595">    Thread mainThread = getMainThread();</span>
-<span class="pc bpc" id="L596" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
-<span class="nc" id="L597">      return null;</span>
+<span class="fc" id="L604">    Thread mainThread = getMainThread();</span>
+<span class="pc bpc" id="L605" title="1 of 2 branches missed.">    if (mainThread == null) {</span>
+<span class="nc" id="L606">      return null;</span>
     }
-<span class="fc" id="L599">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
-<span class="pc bpc" id="L600" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
-<span class="nc" id="L601">      return null;</span>
+<span class="fc" id="L608">    StackTraceElement[] stackTrace = mainThread.getStackTrace();</span>
+<span class="pc bpc" id="L609" title="1 of 2 branches missed.">    if (stackTrace.length == 0) {</span>
+<span class="nc" id="L610">      return null;</span>
     }
-<span class="fc" id="L603">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
+<span class="fc" id="L612">    String className = stackTrace[stackTrace.length - 1].getClassName();</span>
     try {
-<span class="fc" id="L605">      return Class.forName(className);</span>
-<span class="nc" id="L606">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L607">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
-<span class="nc" id="L608">      tex.initCause(ex);</span>
-<span class="nc" id="L609">      throw tex;</span>
+<span class="fc" id="L614">      return Class.forName(className);</span>
+<span class="nc" id="L615">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L616">      NoClassDefFoundError tex = new NoClassDefFoundError(&quot;Cannot find &quot; + className);</span>
+<span class="nc" id="L617">      tex.initCause(ex);</span>
+<span class="nc" id="L618">      throw tex;</span>
     }
   }
 
 
-<span class="nc" id="L614">  public static final class Jmx {</span>
+<span class="nc" id="L623">  public static final class Jmx {</span>
 
     @JmxExport
     public static PackageInfo getPackageInfo(@JmxExport(&quot;className&quot;) final String className) {
-<span class="fc" id="L618">      return PackageInfo.getPackageInfo(className);</span>
+<span class="fc" id="L627">      return PackageInfo.getPackageInfo(className);</span>
     }
 
     @JmxExport
     public static void restart() throws IOException {
-<span class="nc" id="L623">      UnixRuntime.restart();</span>
-<span class="nc" id="L624">    }</span>
+<span class="nc" id="L632">      UnixRuntime.restart();</span>
+<span class="nc" id="L633">    }</span>
 
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import java.util.List;
+import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -27,19 +29,23 @@ public interface LogConfig {
   @Nullable
   LogConsumer getLogConsumer(String category, Level level);
 
-  LogConfig add(String category, LogHandler handler);
+  LogConfig add(String category, LogHandler handler, ToIntFunction&lt;List&lt;LogHandler&gt;&gt; whereTo);
+
+  default LogConfig add(final String category, final LogHandler handler) {
+<span class="pc" id="L35">    return add(category, handler, (l) -&gt; 0);</span>
+  }
 
   LogConfig remove(String category, LogHandler handler);
 
   default Level minRootLevel() {
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">    for (Level l : Level.values()) {</span>
-<span class="fc bfc" id="L36" title="All 2 branches covered.">      if (getLogConsumer(&quot;&quot;, l) != null) {</span>
-<span class="fc" id="L37">        return l;</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">    for (Level l : Level.values()) {</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">      if (getLogConsumer(&quot;&quot;, l) != null) {</span>
+<span class="fc" id="L43">        return l;</span>
       }
     }
-<span class="nc" id="L40">    return Level.ERROR;</span>
+<span class="nc" id="L46">    return Level.ERROR;</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

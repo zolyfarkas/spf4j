@@ -38,6 +38,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import javax.sql.DataSource;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.UncheckedTimeoutException;
 import org.spf4j.concurrent.LockRuntimeException;
 
 /**
@@ -51,65 +52,69 @@ public final class JdbcLock implements Lock, AutoCloseable {
   private final int jdbcTimeoutSeconds;
 
   public JdbcLock(final DataSource dataSource, final SemaphoreTablesDesc semTableDesc,
-<span class="fc" id="L54">          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {</span>
-<span class="fc" id="L55">    this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);</span>
-<span class="fc" id="L56">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
-<span class="fc" id="L57">    this.semaphore.registerJmx();</span>
-<span class="fc" id="L58">  }</span>
+<span class="fc" id="L55">          final String lockName, final int jdbcTimeoutSeconds) throws InterruptedException, SQLException {</span>
+<span class="fc" id="L56">    this.semaphore = new JdbcSemaphore(dataSource, semTableDesc, lockName, 1, jdbcTimeoutSeconds, true);</span>
+<span class="fc" id="L57">    this.jdbcTimeoutSeconds = jdbcTimeoutSeconds;</span>
+<span class="fc" id="L58">    this.semaphore.registerJmx();</span>
+<span class="fc" id="L59">  }</span>
 
   @Override
   public void lock() {
     try {
-<span class="fc" id="L63">      semaphore.acquire(ExecutionContexts.getMillisToDeadline(), TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L64">    } catch (InterruptedException | TimeoutException ex) {</span>
-<span class="nc" id="L65">      throw new LockRuntimeException(ex);</span>
-<span class="fc" id="L66">    }</span>
-<span class="fc" id="L67">  }</span>
+<span class="fc" id="L64">        semaphore.acquire(ExecutionContexts.getMillisToDeadline(), TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L65">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L66">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L67">      throw new LockRuntimeException(ex);</span>
+<span class="nc" id="L68">    } catch (TimeoutException ex) {</span>
+<span class="nc" id="L69">        throw new UncheckedTimeoutException(ex);</span>
+<span class="fc" id="L70">    }</span>
+<span class="fc" id="L71">  }</span>
 
   @Override
   public void lockInterruptibly() throws InterruptedException {
     try {
-<span class="nc" id="L72">      semaphore.acquire(ExecutionContexts.getMillisToDeadline(), TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L73">    } catch (TimeoutException ex) {</span>
-<span class="nc" id="L74">      throw new LockRuntimeException(ex);</span>
-<span class="nc" id="L75">    }</span>
-<span class="nc" id="L76">  }</span>
+<span class="nc" id="L76">      semaphore.acquire(ExecutionContexts.getMillisToDeadline(), TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L77">    } catch (TimeoutException ex) {</span>
+<span class="nc" id="L78">      throw new UncheckedTimeoutException(ex);</span>
+<span class="nc" id="L79">    }</span>
+<span class="nc" id="L80">  }</span>
 
   @Override
   public boolean tryLock() {
     try {
-<span class="fc" id="L81">      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);</span>
-<span class="nc" id="L82">    } catch (InterruptedException ex) {</span>
-<span class="nc" id="L83">      throw new LockRuntimeException(ex);</span>
+<span class="fc" id="L85">      return semaphore.tryAcquire(((long) jdbcTimeoutSeconds) * 2, TimeUnit.SECONDS);</span>
+<span class="nc" id="L86">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L87">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L88">      throw new LockRuntimeException(ex);</span>
     }
   }
 
   @Override
   public boolean tryLock(final long time, final TimeUnit unit) throws InterruptedException {
-<span class="nc" id="L89">      return semaphore.tryAcquire(time, unit);</span>
+<span class="nc" id="L94">      return semaphore.tryAcquire(time, unit);</span>
   }
 
   @Override
   public void unlock() {
-<span class="fc" id="L94">    semaphore.release();</span>
-<span class="fc" id="L95">  }</span>
+<span class="fc" id="L99">    semaphore.release();</span>
+<span class="fc" id="L100">  }</span>
 
   @Override
   public Condition newCondition() {
-<span class="nc" id="L99">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L104">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public void close() {
-<span class="nc" id="L104">    semaphore.close();</span>
-<span class="nc" id="L105">  }</span>
+<span class="nc" id="L109">    semaphore.close();</span>
+<span class="nc" id="L110">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L109">    return &quot;JdbcLock{&quot; + &quot;semaphore=&quot; + semaphore + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + '}';</span>
+<span class="nc" id="L114">    return &quot;JdbcLock{&quot; + &quot;semaphore=&quot; + semaphore + &quot;, jdbcTimeoutSeconds=&quot; + jdbcTimeoutSeconds + '}';</span>
   }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

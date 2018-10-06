@@ -137,7 +137,7 @@ public final class LogPrinter implements LogHandler {
   @SuppressFBWarnings({ &quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;, &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot; })
   @Override
   public LogRecord handle(final LogRecord record) {
-<span class="pc bpc" id="L140" title="1 of 4 branches missed.">    if (record.hasAttachment(PRINTED) || record.hasAttachment(DO_NOT_PRINT)) {</span>
+<span class="fc bfc" id="L140" title="All 4 branches covered.">    if (record.hasAttachment(PRINTED) || record.hasAttachment(DO_NOT_PRINT)) {</span>
 <span class="fc" id="L141">      return record;</span>
     }
 <span class="fc" id="L143">    Buffer buff = TL_BUFFER.get();</span>
@@ -224,24 +224,24 @@ public final class LogPrinter implements LogHandler {
 <span class="fc" id="L224">      boolean first = true;</span>
 <span class="fc bfc" id="L225" title="All 2 branches covered.">      for (; i &lt; arguments.length; i++) {</span>
 <span class="fc" id="L226">        Object arg = arguments[i];</span>
-<span class="fc bfc" id="L227" title="All 2 branches covered.">        if (arg instanceof Throwable) {</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        if (arg instanceof Throwable) {</span>
 <span class="pc bpc" id="L228" title="1 of 2 branches missed.">          if (t == null) {</span>
 <span class="fc" id="L229">            t = (Throwable) arg;</span>
           } else {
 <span class="nc" id="L231">            t.addSuppressed(t); // not ideal</span>
           }
         } else {
-<span class="pc bpc" id="L234" title="1 of 2 branches missed.">          if (!first) {</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">          if (!first) {</span>
 <span class="nc" id="L235">            wr.append(&quot;, &quot;);</span>
           } else {
-<span class="fc" id="L237">            wr.append('[');</span>
-<span class="fc" id="L238">            first = false;</span>
+<span class="nc" id="L237">            wr.append('[');</span>
+<span class="nc" id="L238">            first = false;</span>
           }
-<span class="fc" id="L240">          printObject(arg, wr, wrapper);</span>
+<span class="nc" id="L240">          printObject(arg, wr, wrapper);</span>
         }
       }
-<span class="fc bfc" id="L243" title="All 2 branches covered.">      if (!first) {</span>
-<span class="fc" id="L244">        wr.append(']');</span>
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">      if (!first) {</span>
+<span class="nc" id="L244">        wr.append(']');</span>
       }
     }
 <span class="fc bfc" id="L247" title="All 2 branches covered.">    if (t != null) {</span>
@@ -253,20 +253,20 @@ public final class LogPrinter implements LogHandler {
 
   private static void printObject(@Nullable final Object obj,
           final Appendable wr, final EscapeJsonStringAppendableWrapper wrapper) throws IOException {
-<span class="pc bpc" id="L256" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">    if (obj == null) {</span>
 <span class="nc" id="L257">      wr.append(&quot;null&quot;);</span>
     } else {
-<span class="fc" id="L259">      ObjectAppender ostrApp = TO_STRINGER.get(obj.getClass());</span>
-<span class="fc" id="L260">      MimeType type = ostrApp.getAppendedType();</span>
-<span class="fc bfc" id="L261" title="All 2 branches covered.">      if (&quot;json&quot;.equalsIgnoreCase(type.getSubType())) {</span>
-<span class="fc" id="L262">        ostrApp.append(obj, wr);</span>
+<span class="nc" id="L259">      ObjectAppender ostrApp = TO_STRINGER.get(obj.getClass());</span>
+<span class="nc" id="L260">      MimeType type = ostrApp.getAppendedType();</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">      if (&quot;json&quot;.equalsIgnoreCase(type.getSubType())) {</span>
+<span class="nc" id="L262">        ostrApp.append(obj, wr);</span>
       } else {
-<span class="fc" id="L264">        wr.append('&quot;');</span>
-<span class="fc" id="L265">        ostrApp.append(obj, wrapper);</span>
-<span class="fc" id="L266">        wr.append('&quot;');</span>
+<span class="nc" id="L264">        wr.append('&quot;');</span>
+<span class="nc" id="L265">        ostrApp.append(obj, wrapper);</span>
+<span class="nc" id="L266">        wr.append('&quot;');</span>
       }
     }
-<span class="fc" id="L269">  }</span>
+<span class="nc" id="L269">  }</span>
 
   static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
 <span class="nc" id="L272">    String className = obj.getClass().getName();</span>
@@ -283,4 +283,4 @@ public final class LogPrinter implements LogHandler {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
