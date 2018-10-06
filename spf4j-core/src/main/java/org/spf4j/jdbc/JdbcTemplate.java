@@ -86,12 +86,17 @@ public final class JdbcTemplate {
     }
   }
 
+  public <R> R transactOnConnection(final HandlerNano<Connection, R, SQLException> handler,
+          final long timeout, final TimeUnit tu) throws SQLException, InterruptedException {
+    return transactOnConnection(handler, ExecutionContexts.computeDeadline(timeout, tu));
+  }
+
 
   @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
   public <R> R transactOnConnection(final HandlerNano<Connection, R, SQLException> handler,
-          final long timeout, final TimeUnit tu)
+           final long deadlineNanos)
           throws SQLException, InterruptedException {
-    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {
+    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), deadlineNanos)) {
       return (R) retryPolicy.call(new Callable() {
         @Override
         public R call() throws SQLException {

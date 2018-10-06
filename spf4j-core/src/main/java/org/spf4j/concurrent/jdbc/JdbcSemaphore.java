@@ -379,25 +379,12 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   @SuppressFBWarnings("UW_UNCOND_WAIT")
   @CheckReturnValue
   @Override
-  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos)
           throws InterruptedException {
     if (nrPermits < 1) {
       throw new IllegalArgumentException("You should try to acquire something! not " + nrPermits);
     }
-    if (timeout <= 0) {
-      throw new IllegalArgumentException("Illegal timeout, please reasonable values, and not: " + timeout);
-    }
     synchronized (syncObj) {
-      long toNanos = unit.toNanos(timeout);
-      long deadlineNanos;
-      if (toNanos < 0) {
-        deadlineNanos = Long.MAX_VALUE;
-      } else {
-        deadlineNanos = TimeSource.nanoTime() + toNanos;
-        if (deadlineNanos < 0) { //Overflow
-          deadlineNanos = Long.MAX_VALUE;
-        }
-      }
       boolean acquired = false;
       final MutableHolder<Boolean> beat = MutableHolder.of(Boolean.FALSE);
       do {
@@ -442,7 +429,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
                 return acquired;
               }
             }
-          }, timeout, unit);
+          }, deadlineNanos);
         } catch (SQLTimeoutException ex) {
           return false;
         } catch (SQLException ex) {

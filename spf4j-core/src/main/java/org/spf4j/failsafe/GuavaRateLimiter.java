@@ -33,6 +33,7 @@ package org.spf4j.failsafe;
 
 import com.google.common.util.concurrent.RateLimiter;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.PermitSupplier;
 
 /**
@@ -44,6 +45,15 @@ public final class GuavaRateLimiter implements PermitSupplier {
 
   public GuavaRateLimiter(final RateLimiter limiter) {
     this.limiter = limiter;
+  }
+
+  @Override
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();
+    if (nanosToDeadline <= 0) {
+      return false;
+    }
+    return tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS);
   }
 
   @Override

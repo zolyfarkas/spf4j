@@ -32,6 +32,7 @@
 package org.spf4j.concurrent;
 
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.TimeSource;
 
 /**
  * A process level semaphore implementation based on the JDK semaphore.
@@ -43,6 +44,15 @@ public final class LocalSemaphore implements Semaphore {
 
   public LocalSemaphore(final int nrPermits, final boolean fair) {
     semaphore = new java.util.concurrent.Semaphore(nrPermits, fair);
+  }
+
+  @Override
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();
+    if (nanosToDeadline <= 0) {
+      return false;
+    }
+    return tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS);
   }
 
 

@@ -91,13 +91,13 @@ public class RateLimiterTest {
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
             Mockito.eq(TimeUnit.MILLISECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(10, 10, mockExec, () -> 0L)) {
-      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, 10, TimeUnit.SECONDS);
+      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, TimeUnit.SECONDS.toNanos(10));
       LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayMs);
       Assert.assertEquals(900, tryAcquireGetDelayMs);
       Assert.assertEquals(-9, rateLimiter.getNrPermits(), 0.0001);
-      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, 10, TimeUnit.MILLISECONDS);
+      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, TimeUnit.MILLISECONDS.toNanos(10));
       Assert.assertTrue(tryAcquireGetDelayMs < 0);
-      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, 2000, TimeUnit.MILLISECONDS);
+      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, TimeUnit.MILLISECONDS.toNanos(2000));
       Assert.assertEquals(1000, tryAcquireGetDelayMs);
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
@@ -114,11 +114,11 @@ public class RateLimiterTest {
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000L), Mockito.eq(10000L),
             Mockito.eq(TimeUnit.MILLISECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(0.1, 10, mockExec, () -> 0L)) {
-      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(2, 10, TimeUnit.SECONDS);
+      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(2, TimeUnit.SECONDS.toNanos(10));
       LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayMs);
       Assert.assertEquals(10000, tryAcquireGetDelayMs);
       Assert.assertEquals(-1, rateLimiter.getNrPermits(), 0.0001);
-      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, 10, TimeUnit.MILLISECONDS);
+      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, TimeUnit.MILLISECONDS.toNanos(10));
       Assert.assertTrue(tryAcquireGetDelayMs < 0);
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000L), Mockito.eq(10000L),

@@ -203,9 +203,9 @@ public final class RateLimiter
 
     private int reTimeCount;
 
-    ReservationHandler(final long currTimeNanos, final long timeoutMillis, final int permits) {
+    ReservationHandler(final long currTimeNanos, final long deadlineNanos, final int permits) {
       this.currTimeNanos = currTimeNanos;
-      this.deadlineNanos = currTimeNanos + timeoutMillis;
+      this.deadlineNanos = deadlineNanos;
       this.permits = permits;
       this.msUntilResourcesAvailable = -1;
       this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;
@@ -267,8 +267,8 @@ public final class RateLimiter
 
   @Override
   @SuppressFBWarnings("MDM_THREAD_YIELD") //fb has a point here...
-  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {
-    long tryAcquireGetDelayMillis = tryAcquireGetDelayMillis(nrPermits, timeout, unit);
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+    long tryAcquireGetDelayMillis = tryAcquireGetDelayMillis(nrPermits, deadlineNanos);
     if (tryAcquireGetDelayMillis == 0) {
       return true;
     } else if (tryAcquireGetDelayMillis > 0) {
@@ -289,13 +289,13 @@ public final class RateLimiter
    * @throws InterruptedException
    */
   @Signed
-  long tryAcquireGetDelayMillis(final int nrPermits, final long timeout, final TimeUnit unit)
+  long tryAcquireGetDelayMillis(final int nrPermits, final long deadlineNanos)
           throws InterruptedException {
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
       return 0L;
     } else { // no curent permits available, reserve some slots and wait for them.
-      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), unit.toNanos(timeout), nrPermits);
+      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos, nrPermits);
       boolean accd;
       synchronized (sync) {
         accd = Atomics.maybeAccumulate(permits, rh, concurrencyLevel);

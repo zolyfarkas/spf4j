@@ -32,7 +32,6 @@
 package org.spf4j.concurrent;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 /**
  * allows to combine various resource limiters/semahores
@@ -71,14 +70,14 @@ public final class CompoundSemaphore implements Semaphore {
   }
 
   @Override
-  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos)
           throws InterruptedException {
     Semaphore[] acquired = new Semaphore[semaphores.length];
     int i = 0;
     for (Semaphore sem : semaphores) {
       boolean tryAcquire;
       try {
-        tryAcquire = sem.tryAcquire(nrPermits, timeout, unit);
+        tryAcquire = sem.tryAcquire(nrPermits, deadlineNanos);
       } catch (InterruptedException | RuntimeException ex) {
         release(acquired, i, nrPermits);
         throw ex;

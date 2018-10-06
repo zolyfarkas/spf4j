@@ -37,6 +37,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnegative;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.ExecutionContexts;
 
 /**
  *
@@ -98,8 +99,14 @@ public interface PermitSupplier {
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
-  boolean tryAcquire(int nrPermits, @Nonnegative long timeout, TimeUnit unit)
-          throws InterruptedException;
+  default boolean tryAcquire(@Nonnegative final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    return tryAcquire(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));
+  }
+
+  @CheckReturnValue
+  boolean tryAcquire(@Nonnegative int nrPermits, long deadlineNanos) throws InterruptedException;
+
 
   default Semaphore toSemaphore() {
     return new Semaphore() {
@@ -128,6 +135,11 @@ public interface PermitSupplier {
       @Override
       public void acquire(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
         PermitSupplier.this.acquire(timeout, unit);
+      }
+
+      @Override
+      public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+        return PermitSupplier.this.tryAcquire(nrPermits, deadlineNanos);
       }
 
     };

@@ -31,8 +31,9 @@
  */
 package org.spf4j.concurrent.jdbc;
 
-import org.spf4j.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.Semaphore;
 
 /**
  *
@@ -57,10 +58,14 @@ public final class ProcessLimitedJdbcSemaphore implements Semaphore {
 
 
   @Override
-  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {
-    if (semaphore.tryAcquire(nrPermits, timeout, unit)) {
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();
+    if (nanosToDeadline <= 0) {
+      return false;
+    }
+    if (semaphore.tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS)) {
       try {
-        return jdbcSemaphore.tryAcquire(nrPermits, timeout, unit);
+        return jdbcSemaphore.tryAcquire(nrPermits, deadlineNanos);
       } catch (InterruptedException | RuntimeException e) {
         semaphore.release();
         throw e;
