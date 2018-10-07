@@ -39,13 +39,13 @@ import java.util.concurrent.Callable;
  */
 final class DefaultAsyncExecutor {
 
-  private DefaultAsyncExecutor() {
-  }
-
   static final AsyncRetryExecutor<Object, Callable<? extends Object>> DEFAULT
           = RetryPolicy.defaultPolicy().async();
 
   static final AsyncRetryExecutor<Object, Callable<? extends Object>> NO_RETRY
           = RetryPolicy.noRetryPolicy().async();
+
+  private DefaultAsyncExecutor() {
+  }
 
 }
