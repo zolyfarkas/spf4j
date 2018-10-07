@@ -231,10 +231,8 @@ public final  class TSDBReader implements Closeable {
                     key.cancel();
                     break;
                 }
-                if (!key.pollEvents().isEmpty()) {
-                    if (reReadSize()) {
-                        readAll(handler);
-                    }
+                if (!key.pollEvents().isEmpty() && reReadSize()) {
+                  readAll(handler);
                 }
                 if (!key.reset()) {
                     key.cancel();

@@ -1012,9 +1012,9 @@ public final class AttributedString {
 
     final private class AttributeMap extends AbstractMap<Attribute,Object> {
 
-        final int runIndex;
-        final int beginIndex;
-        final int endIndex;
+        private final int runIndex;
+        private final int beginIndex;
+        private final int endIndex;
 
         AttributeMap(int runIndex, int beginIndex, int endIndex) {
             this.runIndex = runIndex;

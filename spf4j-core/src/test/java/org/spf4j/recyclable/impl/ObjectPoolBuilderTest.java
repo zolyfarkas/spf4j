@@ -71,6 +71,8 @@ public final class ObjectPoolBuilderTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ObjectPoolBuilderTest.class);
 
+  private volatile boolean isDeadlock = false;
+
   /**
    * Test of build method, of class RecyclingSupplierBuilder.
    */
@@ -206,8 +208,6 @@ public final class ObjectPoolBuilderTest {
     }
 
   }
-
-  private volatile boolean isDeadlock = false;
 
   private Thread startDeadlockMonitor(final RecyclingSupplier<ExpensiveTestObject> pool,
           final long deadlockTimeout) {
