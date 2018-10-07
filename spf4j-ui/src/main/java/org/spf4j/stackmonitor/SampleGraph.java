@@ -55,6 +55,32 @@ import org.spf4j.base.Pair;
 @Beta
 public final class SampleGraph {
 
+  /**
+   * index of Method -> Sample information.
+   */
+  private final SetMultimap<SampleKey, Sample> vertexMap;
+
+  /**
+   * index of Method -> Agregated sample information.
+   */
+  private final Map<SampleKey, AggSample> aggregates;
+
+  /**
+   * A graph representation of the stack trace tree.
+   */
+  private final MutableGraph<Sample> sampleTree;
+
+  /**
+   * An aggreagated representation of the stack trace tree;
+   */
+  private final MutableGraph<AggSample> aggGraph;
+
+  /**
+   * The root vertex.
+   */
+  private final Sample rootVertex;
+
+
   public static final class SampleKey {
 
     private final Method method;
@@ -175,31 +201,6 @@ public final class SampleGraph {
     }
 
   }
-
-  /**
-   * index of Method -> Sample information.
-   */
-  private final SetMultimap<SampleKey, Sample> vertexMap;
-
-  /**
-   * index of Method -> Agregated sample information.
-   */
-  private final Map<SampleKey, AggSample> aggregates;
-
-  /**
-   * A graph representation of the stack trace tree.
-   */
-  private final MutableGraph<Sample> sampleTree;
-
-  /**
-   * An aggreagated representation of the stack trace tree;
-   */
-  private final MutableGraph<AggSample> aggGraph;
-
-  /**
-   * The root vertex.
-   */
-  private final Sample rootVertex;
 
   public SampleGraph(final Method m, final SampleNode node) {
     int nrNodes = node.getNrNodes();
