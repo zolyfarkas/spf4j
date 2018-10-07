@@ -59,9 +59,9 @@ import org.spf4j.failsafe.RetryPolicy;
 @SuppressFBWarnings("PREDICTABLE_RANDOM")
 public final class SntpClient {
 
-  static final int ORIGINATE_TIME_OFFSET = 24;
-  static final int RECEIVE_TIME_OFFSET = 32;
-  static final int TRANSMIT_TIME_OFFSET = 40;
+  private static final int ORIGINATE_TIME_OFFSET = 24;
+  private static final int RECEIVE_TIME_OFFSET = 32;
+  private static final int TRANSMIT_TIME_OFFSET = 40;
   private static final int NTP_PACKET_SIZE = 48;
 
   private static final int NTP_PORT = 123;
