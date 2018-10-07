@@ -39,6 +39,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultScheduler;
 
 /**
@@ -71,7 +72,7 @@ public class Spf4jRateLimiterBenchmark {
 
 //  @Benchmark
   public final long acquireOverhead() throws InterruptedException {
-    return limiter.tryAcquireGetDelayMillis(1, 1, TimeUnit.SECONDS);
+    return limiter.tryAcquireGetDelayMillis(1, TimeSource.nanoTime() + 1000000000);
   }
 
 
