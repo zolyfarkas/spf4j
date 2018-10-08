@@ -197,6 +197,9 @@ public final class MavenRepositoryUtils {
     collectRequest.setRoot(new Dependency(artifact, scope));
     collectRequest.setRepositories(repos);
     DependencyFilter dependencyFilter = DependencyFilterUtils.classpathFilter(scope);
+    if (classifier != null) {
+      dependencyFilter = DependencyFilterUtils.andFilter(new ClassifierDependencyFilter(classifier));
+    }
     DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, dependencyFilter);
     DependencyResult depresult = repositorySystem
             .resolveDependencies(session, dependencyRequest);
