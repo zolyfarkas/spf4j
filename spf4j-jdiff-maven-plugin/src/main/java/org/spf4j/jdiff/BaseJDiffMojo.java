@@ -6,15 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.SystemUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -74,14 +71,6 @@ public abstract class BaseJDiffMojo
     return mavenSession;
   }
 
-  @SuppressWarnings("unchecked")
-  final Map<String, Artifact> getPluginArtifactMap() {
-    return mojoExecution.getMojoDescriptor().getPluginDescriptor().getArtifactMap();
-  }
-
-  final PluginDescriptor getPluginDescriptor() {
-    return mojoExecution.getMojoDescriptor().getPluginDescriptor();
-  }
 
   /**
    * Get the path of the Javadoc tool executable depending the user entry or try to find it depending the OS or the
