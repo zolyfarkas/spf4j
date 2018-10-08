@@ -51,6 +51,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -88,6 +89,17 @@ public final class Compress {
     return destFile;
   }
 
+  /**
+   * Zip a file or folder.
+   * @param fileOrFolderToCompress file or folder to compress.
+   * @param destFile the destination zip file.
+   * @throws IOException
+   */
+  @Nonnull
+  public static void zip(final Path fileOrFolderToCompress,
+          final Path destFile) throws IOException {
+    zip(fileOrFolderToCompress, destFile, (p) -> true);
+  }
 
   /**
    * Zip a file or folder.
@@ -96,7 +108,8 @@ public final class Compress {
    * @throws IOException
    */
   @Nonnull
-  public static void zip(final Path fileOrFolderToCompress, final Path destFile) throws IOException {
+  public static void zip(final Path fileOrFolderToCompress,
+          final Path destFile, final Predicate<Path> filter) throws IOException {
     Path parent = destFile.getParent();
     if (parent == null) {
       throw new IllegalArgumentException("Parent is null for: " + fileOrFolderToCompress);
@@ -114,6 +127,9 @@ public final class Compress {
           try (Stream<Path> ws = Files.walk(fileOrFolderToCompress)) {
             ws.forEach((path) -> {
               if (Files.isDirectory(path)) {
+                return;
+              }
+              if (!filter.test(path)) {
                 return;
               }
               String fileName = relativePath.relativize(path).toString();
@@ -186,6 +202,19 @@ public final class Compress {
    */
   @Nonnull
   public static List<Path> unzip(final Path zipFile, final Path destinationDirectory) throws IOException {
+    return unzip(zipFile, destinationDirectory, (p) -> true);
+  }
+
+  /**
+   * Unzip a zip file to a destination folder.
+   * @param zipFile
+   * @param destinationDirectory
+   * @return the list of files that were extracted.
+   * @throws IOException in case extraction fails for whatever reason.
+   */
+  @Nonnull
+  public static List<Path> unzip(final Path zipFile, final Path destinationDirectory,
+          final Predicate<Path> filter) throws IOException {
     if (!Files.exists(destinationDirectory)) {
       Files.createDirectories(destinationDirectory);
     }
@@ -201,6 +230,9 @@ public final class Compress {
           @Override
           public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                   throws IOException {
+            if (!filter.test(file)) {
+              return FileVisitResult.CONTINUE;
+            }
             Path destination = dest.resolve(root.relativize(file).toString());
             copyFileAtomic(file, destination);
             response.add(destination);

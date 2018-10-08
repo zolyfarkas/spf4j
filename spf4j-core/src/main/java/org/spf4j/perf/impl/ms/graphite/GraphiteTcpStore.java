@@ -153,7 +153,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
               socketWriterSupplier, RetryPolicy.defaultPolicy(), IOException.class);
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
-      return;
+      throw new IOException("Interupted while saving measurements to " + tableId, ex);
     } catch (TimeoutException ex) {
       throw new UncheckedTimeoutException(ex);
     }
@@ -168,7 +168,10 @@ public final class GraphiteTcpStore implements MeasurementStore {
   public void close() {
     try {
       socketWriterSupplier.dispose();
-    } catch (ObjectDisposeException | InterruptedException ex) {
+    }  catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      new UncheckedExecutionException(ex);
+    } catch (ObjectDisposeException ex) {
       throw new UncheckedExecutionException(ex);
     }
   }
