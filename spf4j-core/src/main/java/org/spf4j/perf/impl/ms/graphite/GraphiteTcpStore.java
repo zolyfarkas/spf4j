@@ -170,7 +170,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
       socketWriterSupplier.dispose();
     }  catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
-      new UncheckedExecutionException(ex);
+      throw new UncheckedExecutionException(ex);
     } catch (ObjectDisposeException ex) {
       throw new UncheckedExecutionException(ex);
     }
