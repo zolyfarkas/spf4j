@@ -42,9 +42,7 @@ import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -137,7 +135,7 @@ public final class Throwables {
   private static volatile Predicate<Throwable> isRetryablePredicate = new Predicate<Throwable>() {
 
     /**
-     * A default predicate that will return true if a exception is retriable...
+     * A default predicate that will return true if a exception is retry-able...
      * @param t
      * @return
      */
@@ -572,27 +570,38 @@ public final class Throwables {
   }
 
   public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
+          final String prefix) throws IOException {
+    writeTo(t, to, detail, DEFAULT_TRACE_ELEMENT_ABBREVIATION, prefix);
+  }
+
+  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
           final boolean abbreviatedTraceElement) throws IOException {
+    writeTo(t, to, detail, abbreviatedTraceElement, "");
+  }
 
-    Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedTraceElement, final String prefix) throws IOException {
+
+    Set<Throwable> dejaVu = new IdentityHashSet<Throwable>();
     dejaVu.add(t);
-
+    to.append(prefix);
     writeMessageString(to, t);
     to.append('\n');
     StackTraceElement[] trace = t.getStackTrace();
 
-    writeTo(trace, to, detail, abbreviatedTraceElement);
+    writeTo(trace, to, detail, abbreviatedTraceElement, prefix);
 
     // Print suppressed exceptions, if any
     for (Throwable se : getSuppressed(t)) {
-      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, "\t", dejaVu, detail, abbreviatedTraceElement);
+      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, prefix + "\t",
+              dejaVu, detail, abbreviatedTraceElement);
     }
 
     Throwable ourCause = t.getCause();
 
     // Print cause, if any
     if (ourCause != null) {
-      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, "", dejaVu, detail, abbreviatedTraceElement);
+      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedTraceElement);
     }
 
   }
@@ -608,9 +617,15 @@ public final class Throwables {
   public static void writeTo(final StackTraceElement[] trace, final Appendable to, final PackageDetail detail,
           final boolean abbreviatedTraceElement)
           throws IOException {
+    writeTo(trace, to, detail, abbreviatedTraceElement, "");
+  }
 
+  public static void writeTo(final StackTraceElement[] trace, final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedTraceElement, final String prefix)
+          throws IOException {
     StackTraceElement prevElem = null;
     for (StackTraceElement traceElement : trace) {
+      to.append(prefix);
       to.append("\tat ");
       writeTo(traceElement, prevElem, to, detail, abbreviatedTraceElement);
       to.append('\n');

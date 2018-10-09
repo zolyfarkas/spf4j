@@ -246,9 +246,10 @@ public final class LogPrinter implements LogHandler {
     }
     if (t != null) {
       wr.append('\n');
-      Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT);
+      Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT, "");
+    } else {
+      wr.append('\n');
     }
-    wr.append('\n');
   }
 
   private static void printObject(@Nullable final Object obj,
