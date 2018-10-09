@@ -239,24 +239,15 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   @CheckReturnValue
-  public <T> LogCollection<T> collect(final String category, final Level fromLevel, final Level toLevel,
+  public <R> LogCollection<R> collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-          final Collector<LogRecord, ?, T> collector, final ToIntFunction<List<LogHandler>> whereTo) {
-    LogCollectorHandler handler = new LogCollectorHandler(fromLevel, toLevel, passThrough, collector) {
-
-      private boolean isClosed = false;
-
-      @Override
-      public void close() {
-        synchronized (sync) {
-          if (!isClosed) {
-            config = config.remove(category, this);
-            resetJulConfig();
-            isClosed = true;
-          }
-        }
-      }
-    };
+          final Collector<LogRecord, ?, R> collector, final ToIntFunction<List<LogHandler>> whereTo) {
+    LogCollectorHandler<?, R> handler =
+            new LogCollectorHandler<>(fromLevel, toLevel, passThrough, collector,
+    (c) -> {
+       config = config.remove(category, c);
+       resetJulConfig();
+    });
     addConfig(category, handler, ExecutionContexts.current(),  handler);
     return handler;
   }

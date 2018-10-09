@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import javax.annotation.Nullable;
@@ -24,24 +25,28 @@ import javax.annotation.Nullable;
  *
  * @author Zoltan Farkas
  */
-abstract class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
+final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
 
-  private final A accObj;
-  private BiConsumer<A, LogRecord> acc;
   private final Level fromLevel;
   private final Level toLevel;
   private final boolean passThrough;
+  private final A accObj;
+  private final BiConsumer<A, LogRecord> acc;
   private final Function<A, T> finisher;
+  private final Consumer<LogCollectorHandler<A, T>> onClose;
+  private boolean isClosed;
 
   LogCollectorHandler(final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-          final Collector<LogRecord, A, T> collector) {
-    accObj = collector.supplier().get();
-    acc = collector.accumulator();
-    finisher = collector.finisher();
+          final Collector<LogRecord, A, T> collector, final Consumer<LogCollectorHandler<A, T>> onClose) {
     this.fromLevel = fromLevel;
     this.toLevel = toLevel;
     this.passThrough = passThrough;
+    this.accObj = collector.supplier().get();
+    this.acc = collector.accumulator();
+    this.finisher = collector.finisher();
+    this.onClose = onClose;
+    this.isClosed = false;
   }
 
   @Override
@@ -57,7 +62,9 @@ abstract class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T>
   @Nullable
   public LogRecord handle(final LogRecord record) {
     synchronized (accObj) {
-      acc.accept(accObj, record);
+      if (!isClosed) {
+        acc.accept(accObj, record);
+      }
     }
     if (passThrough) {
       return record;
@@ -71,6 +78,20 @@ abstract class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T>
     synchronized (accObj) {
       close();
       return finisher.apply(accObj);
+    }
+  }
+
+
+  @Override
+  public void close() {
+    synchronized (accObj) {
+      if (!isClosed) {
+        try {
+          onClose.accept(this);
+        } finally {
+          isClosed = true;
+        }
+      }
     }
   }
 
