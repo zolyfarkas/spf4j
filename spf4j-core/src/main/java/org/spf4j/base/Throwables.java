@@ -789,7 +789,7 @@ public final class Throwables {
     return null;
   }
 
-
+  
   public static Predicate<Throwable> getNonRecoverablePredicate() {
     return nonRecoverableClassificationPredicate;
   }
