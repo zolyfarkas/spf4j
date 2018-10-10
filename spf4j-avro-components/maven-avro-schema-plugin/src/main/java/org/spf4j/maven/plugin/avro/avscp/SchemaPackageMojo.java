@@ -3,6 +3,7 @@ package com.googlecode.maven.plugin.perl.par;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
@@ -47,7 +48,8 @@ public class SchemaPackageMojo extends SchemaMojoBase {
       throw new MojoExecutionException("Cannot package schemas and sources from " + this.generatedAvscTarget, ex);
     }
     DefaultArtifact schemas = new DefaultArtifact(mavenProject.getGroupId(),
-            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", "avsc", null);
+            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", "avsc",
+            new DefaultArtifactHandler("jar"));
     schemas.setFile(avsc.toFile());
     mavenProject.getAttachedArtifacts().add(schemas);
     Path sources = target.toPath().resolve(
@@ -58,7 +60,8 @@ public class SchemaPackageMojo extends SchemaMojoBase {
       throw new MojoExecutionException("Cannot package sources from " + this.sourceDirectory, ex);
     }
     DefaultArtifact avroSources = new DefaultArtifact(mavenProject.getGroupId(),
-            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", "avroSources", null);
+            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", "avroSources",
+            new DefaultArtifactHandler("jar"));
     avroSources.setFile(sources.toFile());
     mavenProject.getAttachedArtifacts().add(avroSources);
   }

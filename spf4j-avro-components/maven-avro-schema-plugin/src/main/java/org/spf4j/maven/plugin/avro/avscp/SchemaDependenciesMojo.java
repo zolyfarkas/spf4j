@@ -75,6 +75,7 @@ public final class SchemaDependenciesMojo
         throw new MojoExecutionException("Cannot unzip " + file, ex);
       }
     }
+    /**
     Artifact avro = mojoExecution.getMojoDescriptor().getPluginDescriptor()
             .getArtifactMap().get("org.apache.avro:avro");
     Dependency dependency = new Dependency();
@@ -85,6 +86,7 @@ public final class SchemaDependenciesMojo
     dependency.setScope("runtime");
     mavenProject.getDependencies().add(dependency);
     mavenProject.getArtifacts().add(avro);
+    */
   }
 
 
