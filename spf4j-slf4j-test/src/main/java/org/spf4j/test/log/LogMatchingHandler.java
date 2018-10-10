@@ -67,7 +67,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
     synchronized (sync) {
       if (at < matchers.length && matchers[at].matches(record)) {
         at++;
-        record.attach(DefaultAsserter.ASSERTED);
+        record.attach(Attachments.ASSERTED);
         matched();
       }
     }

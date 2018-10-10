@@ -43,7 +43,7 @@ public final class GreedyLogPrinter implements LogHandler {
     if (handler.handles(record.getLevel()) != Handling.NONE) {
       return handler.handle(record);
     }
-    record.attach(LogPrinter.DO_NOT_PRINT);
+    record.attach(Attachments.DO_NOT_PRINT);
     return record;
   }
 

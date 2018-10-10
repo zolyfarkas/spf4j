@@ -74,7 +74,11 @@ public final class LogMatchers {
   }
 
   public static Matcher<LogRecord> hasAttachment(final String attachment) {
-     return Matchers.hasProperty("attachments", Matchers.contains(attachment));
+     return Matchers.hasProperty("attachments", Matchers.hasItem(attachment));
+  }
+
+  public static Matcher<LogRecord> noAttachment(final String attachment) {
+     return Matchers.not(Matchers.hasProperty("attachments", Matchers.hasItem(attachment)));
   }
 
   public static Matcher<LogRecord> hasMatchingArguments(final Object objects) {

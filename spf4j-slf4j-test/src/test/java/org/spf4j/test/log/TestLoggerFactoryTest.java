@@ -50,7 +50,7 @@ public class TestLoggerFactoryTest {
   @Test
   public void testSomeHandler() {
     TestLoggers sys = TestLoggers.sys();
-    LogAssert expect = sys.expect("", Level.TRACE, LogMatchers.hasAttachment(LogPrinter.PRINTED));
+    LogAssert expect = sys.expect("", Level.TRACE, LogMatchers.hasAttachment(Attachments.PRINTED));
     sys.print("org.spf4j.test", Level.TRACE);
     LOG.trace("test");
     expect.assertObservation();
@@ -59,7 +59,7 @@ public class TestLoggerFactoryTest {
   @Test
   @PrintLogs(category = "org.spf4", ideMinLevel = Level.TRACE, minLevel = Level.TRACE)
   public void testSomeHandler2() {
-    LogAssert expect = TestLoggers.sys().expect("", Level.TRACE, LogMatchers.hasAttachment(LogPrinter.PRINTED));
+    LogAssert expect = TestLoggers.sys().expect("", Level.TRACE, LogMatchers.hasAttachment(Attachments.PRINTED));
     LOG.trace("test");
     expect.assertObservation();
   }
@@ -320,6 +320,20 @@ public class TestLoggerFactoryTest {
 
 
   @Test
+  @Ignore
+  @SuppressFBWarnings({"MDM_THREAD_YIELD", "UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT"})
+  public void testAsyncLogging3() throws InterruptedException {
+    new Thread(() -> {
+      try {
+      LOG.error("async");
+      } catch (Throwable ex) {
+
+      }
+    }).start();
+    Thread.sleep(1000);
+  }
+
+  @Test
   public void testAsyncLogging() throws InterruptedException {
     LogAssert expect = TestLoggers.sys().expect("org.spf4j.test.log", Level.ERROR, 3, TimeUnit.SECONDS,
             LogMatchers.hasFormat("async"));
@@ -358,7 +372,7 @@ public class TestLoggerFactoryTest {
     logger.info("test");
     Set<LogRecord> logSet = logs.get();
     LogRecord rec = logSet.iterator().next();
-    Assert.assertTrue(rec.hasAttachment(LogPrinter.DO_NOT_PRINT));
+    Assert.assertTrue(rec.hasAttachment(Attachments.DO_NOT_PRINT));
   }
 
 

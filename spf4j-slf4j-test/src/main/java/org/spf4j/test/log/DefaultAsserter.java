@@ -22,8 +22,6 @@ import java.util.Set;
  */
 final class DefaultAsserter implements LogHandler {
 
-  public static final String ASSERTED = "ASSERTED";
-
   private final Set<String> excludeCategories;
 
   DefaultAsserter(final Set<String> excludeCategories) {
@@ -37,7 +35,7 @@ final class DefaultAsserter implements LogHandler {
 
   @Override
   public LogRecord handle(final LogRecord record) {
-    if (!record.hasAttachment(ASSERTED) && !excludeCategories.contains(record.getLogger().getName())) {
+    if (!record.hasAttachment(Attachments.ASSERTED) && !excludeCategories.contains(record.getLogger().getName())) {
       throw new AssertionError("Most test should not log errors, if a error scenario is validated,"
               + " please assert this behavior using TestLoggers.expect, received:\n" + record,
               record.getExtraThrowable());

@@ -19,7 +19,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,7 @@ import org.spf4j.base.Closeables;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
+import org.spf4j.test.log.Attachments;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
@@ -150,10 +150,14 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
     private List<LogAssert> handleLogExpectations(final Description description,
           final TestLoggers sysTest) {
+      List<LogAssert> assertions = new ArrayList<>(2);
+      assertions.add(
+                  sysTest.dontExpect("", Level.ERROR,
+                  Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),
+                  LogMatchers.hasLevel(Level.ERROR))));
       ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);
       if (expectLogs != null) {
         ExpectLog[] value = expectLogs.value();
-        List<LogAssert> assertions = new ArrayList<>(value.length);
         for (ExpectLog expect : value) {
           assertions.add(
                   sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
@@ -161,19 +165,17 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
                   Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
                   LogMatchers.hasLevel(expect.level()))));
         }
-        return assertions;
       } else {
           ExpectLog expect = description.getAnnotation(ExpectLog.class);
           if (expect != null) {
-            return Collections.singletonList(
+            assertions.add(
                   sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
                   expect.expectationTimeout(), expect.timeUnit(),
                   Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
                   LogMatchers.hasLevel(expect.level()))));
-          } else {
-            return Collections.EMPTY_LIST;
           }
       }
+      return assertions;
     }
 
   private LogCollection<ArrayDeque<LogRecord>> handleLogCollections(final Description description,

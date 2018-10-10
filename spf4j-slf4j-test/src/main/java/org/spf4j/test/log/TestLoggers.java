@@ -462,7 +462,7 @@ public final class TestLoggers implements ILoggerFactory {
             Level.ERROR,
             true,
             XCollectors.filtering(
-                    (l) -> !l.hasAttachment(LogPrinter.PRINTED),
+                    (l) -> !l.hasAttachment(Attachments.PRINTED),
                     XCollectors.last(maxNrLogs,
                     new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs))),
                     List::size);

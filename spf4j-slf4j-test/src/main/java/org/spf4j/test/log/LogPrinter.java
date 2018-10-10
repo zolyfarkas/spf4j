@@ -54,10 +54,6 @@ import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
 @ParametersAreNonnullByDefault
 public final class LogPrinter implements LogHandler {
 
-  public static final String PRINTED = "PRINTED";
-
-  public static final String DO_NOT_PRINT = "DO_NOT_PRINT";
-
   private static final DateTimeFormatter FMT =
           TestUtils.isExecutedFromIDE() ? new DateTimeFormatterBuilder()
                 .appendValue(HOUR_OF_DAY, 2)
@@ -137,7 +133,7 @@ public final class LogPrinter implements LogHandler {
   @SuppressFBWarnings({ "CFS_CONFUSING_FUNCTION_SEMANTICS", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
   @Override
   public LogRecord handle(final LogRecord record) {
-    if (record.hasAttachment(PRINTED) || record.hasAttachment(DO_NOT_PRINT)) {
+    if (record.hasAttachment(Attachments.PRINTED) || record.hasAttachment(Attachments.DO_NOT_PRINT)) {
       return record;
     }
     Buffer buff = TL_BUFFER.get();
@@ -156,7 +152,7 @@ public final class LogPrinter implements LogHandler {
     } finally {
       TL_BUFFER.recycle(buff);
     }
-    record.attach(PRINTED);
+    record.attach(Attachments.PRINTED);
     return record;
   }
 
