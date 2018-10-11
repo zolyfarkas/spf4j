@@ -82,12 +82,12 @@ public final class RegistryTest {
 
     private final TestBean bean = new TestBean(3, "bla");
 
+    private final String[] array = {"a", "b"};
+
     @JmxExport
     public String[][] getMatrix() {
       return matrix.clone();
     }
-
-    private final String[] array = {"a", "b"};
 
     @JmxExport
     public String[] getArray() {
