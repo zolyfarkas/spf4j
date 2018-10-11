@@ -53,7 +53,7 @@ public final class PerformanceMonitorAspectTest {
    * Test of performanceMonitoredMethod method, of class PerformanceMonitorAspect.
    */
   @Test
-  @ExpectLog(category = "org.aspectj.weaver.bcel", level = Level.ERROR, nrTimes = 4 ) // aspectj bug.
+  @ExpectLog(category = "org.aspectj.weaver.bcel", level = Level.ERROR, nrTimes = 4) // aspectj bug.
   public void testPerformanceMonitoredMethod() throws Exception {
     Registry.export(this);
     LogAssert expect = TestLoggers.sys().expect("org.spf4j.perf.aspects.PerformanceMonitorAspect", Level.WARN,
