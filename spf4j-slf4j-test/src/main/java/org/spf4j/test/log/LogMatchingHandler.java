@@ -138,7 +138,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   Description notSeenDescription() {
     Description description = new StringDescription();
     description.appendText("Not expected in category:").appendText("\"").appendText(category).appendText("\"")
-            .appendText(" and minnLevel:").appendText(minLevel.toString()).appendText(":\n");
+            .appendText(" and minLevel:").appendText(minLevel.toString()).appendText(":\n");
     matchers[0].describeTo(description);
     for (int i = 1; i < matchers.length; i++) {
       description.appendText("\n");
