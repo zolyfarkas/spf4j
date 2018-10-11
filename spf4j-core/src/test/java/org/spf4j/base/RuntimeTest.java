@@ -54,6 +54,7 @@ import org.spf4j.os.StdOutToStringProcessHandler;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.log.annotations.ExpectLog;
 
 /**
  * @author zoly
@@ -105,10 +106,12 @@ public final class RuntimeTest {
   }
 
   @Test(expected = ExecutionException.class, timeout = 60000)
+  @ExpectLog(category = "org.spf4j.os", level = Level.ERROR, nrTimes = 2)
   public void testExitCode() throws IOException, InterruptedException, ExecutionException, TimeoutException {
     Runtime.jrun(RuntimeTest.TestError.class, 60000);
   }
 
+  @ExpectLog(category = "org.spf4j.os", level = Level.ERROR, nrTimes = 2)
   @Test(expected = ExecutionException.class, timeout = 60000)
   public void testExitCode2() throws IOException, InterruptedException, ExecutionException, TimeoutException {
     Runtime.jrun(RuntimeTest.TestError2.class, 60000);
