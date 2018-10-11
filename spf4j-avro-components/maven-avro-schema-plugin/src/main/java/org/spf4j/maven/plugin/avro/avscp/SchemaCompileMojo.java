@@ -60,6 +60,19 @@ public final class SchemaCompileMojo
   protected boolean createSetters;
 
 
+  /**
+   * add maven coordinates to the schema. (group:artifact:version)
+   */
+  @Parameter(name = "addMavenId",
+          defaultValue = "true")
+  protected boolean addMavenId = true;
+
+
+  private void attachMavenId(final Schema schema) {
+    schema.addProp("mvnId", mavenProject.getGroupId() + ':' + mavenProject.getArtifactId()
+            + ':' + mavenProject.getVersion());
+  }
+
 
   protected void doCompileIDL(String filename) throws IOException {
     try {
@@ -88,6 +101,9 @@ public final class SchemaCompileMojo
       Protocol protocol = parser.CompilationUnit();
       Collection<Schema> types = protocol.getTypes();
       for (Schema schema : types) {
+        if (addMavenId) {
+          attachMavenId(schema);
+        }
         String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
         Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
         Files.createDirectories(destinationFile.getParent());
@@ -114,10 +130,15 @@ public final class SchemaCompileMojo
     for (String fileName : filenames) {
       File src = new File(sourceDirectory, fileName);
       Schema schema = parser.parse(src);
+      if (addMavenId) {
+        attachMavenId(schema);
+      }
       String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
       Path destination = generatedAvscTarget.toPath().resolve(targetName);
       Files.createDirectories(destination.getParent());
-      Files.copy(src.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+      Files.write(destination,
+                schema.toString().getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE);
       SpecificCompiler compiler = new SpecificCompiler(schema);
       compiler.setTemplateDir(templateDirectory);
       compiler.setStringType(GenericData.StringType.String);
@@ -133,6 +154,9 @@ public final class SchemaCompileMojo
     Protocol protocol = Protocol.parse(src);
     Collection<Schema> types = protocol.getTypes();
     for (Schema schema : types) {
+      if (addMavenId) {
+        attachMavenId(schema);
+      }
       String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
       Files.createDirectories(destinationFile.getParent());
@@ -151,22 +175,29 @@ public final class SchemaCompileMojo
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log logger = this.getLog();
     logger.info("Generationg java code + schemas");
+    Path pSources = this.target.toPath().resolve("avro-sources");
     try {
-      doCompileSchemas(getFiles("**/*.avsc"));
+      doCompileSchemas(getSourceFiles("**/*.avsc"));
     } catch (IOException ex) {
       throw new MojoExecutionException("cannot compile schemas", ex);
     }
 
-    for (String file : getFiles("**/*.avpr")) {
+    for (String file : getSourceFiles("**/*.avpr")) {
       try {
         doCompileProtocol(file);
+        Path destination = pSources.resolve(file);
+        Files.createDirectories(destination.getParent());
+        Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException ex) {
         throw new MojoExecutionException("cannot compile protocol " + file, ex);
       }
     }
-    for (String file : getFiles("**/*.avdl")) {
+    for (String file : getSourceFiles("**/*.avdl")) {
       try {
         doCompileIDL(file);
+        Path destination = pSources.resolve(file);
+        Files.createDirectories(destination.getParent());
+        Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException ex) {
         throw new MojoExecutionException("cannot compile IDL " + file, ex);
       }
@@ -177,13 +208,13 @@ public final class SchemaCompileMojo
     resource.addInclude("**/*.avsc");
     mavenProject.addResource(resource);
     Resource resource2 = new Resource();
-    resource2.setDirectory(this.sourceDirectory.getAbsolutePath());
+    resource2.setDirectory(pSources.toString());
     resource2.addInclude("**/*.avpr");
     resource2.addInclude("**/*.avdl");
     mavenProject.addResource(resource2);
   }
 
-  public String[] getFiles(final String pattern) {
+  public String[] getSourceFiles(final String pattern) {
     FileSetManager fsm = new FileSetManager();
     FileSet fs = new FileSet();
     fs.setDirectory(sourceDirectory.getAbsolutePath());
