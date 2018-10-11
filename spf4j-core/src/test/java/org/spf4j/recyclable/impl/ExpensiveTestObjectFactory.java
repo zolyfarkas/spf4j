@@ -70,7 +70,7 @@ public final class ExpensiveTestObjectFactory implements RecyclingSupplier.Facto
     }
 
     @Override
-    public void dispose(final ExpensiveTestObject object) throws ObjectDisposeException {
+    public void dispose(final ExpensiveTestObject object) {
         try {
             object.close();
         } catch (ClosedChannelException ex) {
