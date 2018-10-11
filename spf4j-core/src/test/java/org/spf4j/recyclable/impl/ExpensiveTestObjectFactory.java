@@ -31,7 +31,6 @@
  */
 package org.spf4j.recyclable.impl;
 
-import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
