@@ -39,6 +39,7 @@ import org.spf4j.jmx.Registry;
 import org.spf4j.test.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.log.annotations.ExpectLog;
 import org.spf4j.test.matchers.LogMatchers;
 
 /**
@@ -52,6 +53,7 @@ public final class PerformanceMonitorAspectTest {
    * Test of performanceMonitoredMethod method, of class PerformanceMonitorAspect.
    */
   @Test
+  @ExpectLog(category = "org.aspectj.weaver.bcel", level = Level.ERROR) // aspectj bug.
   public void testPerformanceMonitoredMethod() throws Exception {
     Registry.export(this);
     LogAssert expect = TestLoggers.sys().expect("org.spf4j.perf.aspects.PerformanceMonitorAspect", Level.WARN,
