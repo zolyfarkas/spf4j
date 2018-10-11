@@ -60,6 +60,10 @@ import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 import org.spf4j.failsafe.AsyncRetryExecutor;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
+import org.spf4j.test.log.Level;
+import org.spf4j.test.log.LogAssert;
+import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.matchers.LogMatchers;
 
 /**
  *
@@ -184,10 +188,9 @@ public final class ObjectPoolBuilderTest {
     runTest(pool, 0, 10000);
     try {
       ExpensiveTestObject.setFailAll(true);
+      LogAssert expect = TestLoggers.sys().expect("", Level.WARN, LogMatchers.hasFormat("Cannot dispose object {}"));
       pool.dispose();
-      Assert.fail();
-    } catch (ObjectDisposeException ex) {
-      Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+      expect.assertObservation();
     } finally {
       ExpensiveTestObject.setFailAll(false);
     }

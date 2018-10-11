@@ -52,6 +52,7 @@ import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY") // this is with LogRecord...
 public final class LogPrinter implements LogHandler {
 
   private static final DateTimeFormatter FMT =
@@ -154,6 +155,14 @@ public final class LogPrinter implements LogHandler {
     }
     record.attach(Attachments.PRINTED);
     return record;
+  }
+
+  public static void printTo(final Appendable stream, final LogRecord record, final String annotate) {
+    try {
+      print(record, stream, new EscapeJsonStringAppendableWrapper(stream), annotate);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
   public static void printTo(final PrintStream stream, final LogRecord record, final String annotate) {

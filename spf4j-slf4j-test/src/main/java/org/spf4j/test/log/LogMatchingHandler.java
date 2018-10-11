@@ -16,7 +16,9 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
@@ -34,6 +36,8 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   protected final Matcher<LogRecord>[] matchers;
 
+  protected final List<LogRecord> matched;
+
   protected int at;
 
   protected final boolean assertSeen;
@@ -46,6 +50,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
       throw new IllegalArgumentException("You need to provide at least a matcher " + Arrays.toString(matchers));
     }
     this.matchers = matchers;
+    this.matched = new ArrayList<>(matchers.length);
     this.at = 0;
     this.minLevel = minLevel;
     this.assertSeen = assertSeen;
@@ -68,6 +73,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
       if (at < matchers.length && matchers[at].matches(record)) {
         at++;
         record.attach(Attachments.ASSERTED);
+        matched.add(record);
         matched();
       }
     }
@@ -138,6 +144,8 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
       description.appendText("\n");
       matchers[i].describeTo(description);
     }
+    description.appendText("\n");
+    description.appendValueList("But seen:\n", ",", " logs", matched);
     return description;
   }
 
