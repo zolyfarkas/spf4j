@@ -37,6 +37,8 @@ final class LogConfigImpl implements LogConfig {
 
   private static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
 
+  private static final int DEFAULT_HANDLER_COUNT = Integer.getInteger("spf4j.test.log.defaultNrOfHandlers", 4);
+
   private final ImmutableList<LogHandler> rootHandler;
 
   private final SortedMap<String, List<LogHandler>> logHandlers;
@@ -95,7 +97,7 @@ final class LogConfigImpl implements LogConfig {
   @Override
   @Nullable
   public LogConsumer getLogConsumer(final String category, final Level level) {
-    ArrayList<LogHandler> res = new ArrayList<>(2);
+    ArrayList<LogHandler> res = new ArrayList<>(DEFAULT_HANDLER_COUNT);
     if (category.isEmpty() || logHandlers.isEmpty()) {
       addAll(level, rootHandler, res);
       return CompositeLogHandler.from(res);
