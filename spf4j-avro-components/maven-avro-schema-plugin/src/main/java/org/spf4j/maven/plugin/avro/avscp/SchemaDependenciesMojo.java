@@ -69,8 +69,17 @@ public final class SchemaDependenciesMojo
     for (File file : deps) {
       try {
         List<Path> unzip = Compress.unzip(file.toPath(), dependenciesDirectory.toPath(), (Path p)
-                -> p.endsWith("avsc") || p.endsWith("avpr") || p.endsWith("avdl"));
-        log.info("Unzipped dependency schemas: " + unzip);
+                -> {
+          Path fileName = p.getFileName();
+          if (fileName == null) {
+            return false;
+          }
+          String fn = fileName.toString();
+          return fn.endsWith("avsc") || fn.endsWith("avpr") || fn.endsWith("avdl");
+        });
+        if (!unzip.isEmpty()) {
+          log.info("Found dependency schemas: " + unzip  + " from " + file);
+        }
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot unzip " + file, ex);
       }
