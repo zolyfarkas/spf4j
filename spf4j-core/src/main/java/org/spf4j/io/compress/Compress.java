@@ -50,7 +50,9 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -227,6 +229,9 @@ public final class Compress {
       for (Path root : zipFs.getRootDirectories()) {
         Path dest =  destinationDirectory.resolve(root.toString().substring(1));
         Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+
+          private final Set<Path> created = new HashSet<>();
+
           @Override
           public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
                   throws IOException {
@@ -235,7 +240,7 @@ public final class Compress {
             }
             Path destination = dest.resolve(root.relativize(file).toString());
             Path parent = destination.getParent();
-            if (parent != null) {
+            if (parent != null && created.add(parent)) {
               Files.createDirectories(parent);
             }
             copyFileAtomic(file, destination);
