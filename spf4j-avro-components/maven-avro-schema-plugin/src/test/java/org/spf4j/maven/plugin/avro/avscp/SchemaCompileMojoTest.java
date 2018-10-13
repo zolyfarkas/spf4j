@@ -33,7 +33,7 @@ public class SchemaCompileMojoTest {
 
   @Test
   public void testPlugin() throws VerificationException, IOException {
-    File testDir = ResourceExtractor.simpleExtractResources(getClass(), "/test-schema");
+    File testDir = ResourceExtractor.simpleExtractResources(getClass(), "/test-schemas");
     LOG.debug("Building in {}", testDir);
     Verifier verifier = new Verifier(testDir.getAbsolutePath(), true);
     verifier.deleteArtifact("org.spf4j", "test-schema", "1.0-SNAPSHOT", "jar");
