@@ -21,9 +21,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
- *
  * @author Zoltan Farkas
  */
+@SuppressWarnings("checkstyle:VisibilityModifier")
 public abstract class SchemaMojoBase extends AbstractMojo {
 
 

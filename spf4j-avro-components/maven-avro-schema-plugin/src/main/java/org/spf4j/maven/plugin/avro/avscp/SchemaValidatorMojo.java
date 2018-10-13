@@ -23,7 +23,7 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresProject = true)
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-public class SchemaValidatorMojo extends SchemaMojoBase {
+public final class SchemaValidatorMojo extends SchemaMojoBase {
 
 
   @Parameter(name = "excludes")

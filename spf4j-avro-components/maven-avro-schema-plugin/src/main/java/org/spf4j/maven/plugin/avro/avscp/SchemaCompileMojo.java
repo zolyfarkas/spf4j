@@ -79,7 +79,7 @@ public final class SchemaCompileMojo
   }
 
 
-  protected void doCompileIDL(String filename) throws IOException {
+  protected void doCompileIDL(final String filename) throws IOException {
     try {
       List<String> cpElements = mavenProject.getCompileClasspathElements();
       Idl parser;
@@ -133,7 +133,7 @@ public final class SchemaCompileMojo
     }
   }
 
-  protected void doCompileSchemas(String[] filenames)
+  protected void doCompileSchemas(final String[] filenames)
           throws IOException {
     Schema.Parser parser = new Schema.Parser();
     for (String fileName : filenames) {
@@ -161,7 +161,7 @@ public final class SchemaCompileMojo
     }
   }
 
-  protected void doCompileProtocol(String filename) throws IOException {
+  protected void doCompileProtocol(final String filename) throws IOException {
     File src = new File(sourceDirectory, filename);
     Protocol protocol = Protocol.parse(src);
     Collection<Schema> types = protocol.getTypes();
@@ -251,7 +251,5 @@ public final class SchemaCompileMojo
             + ", templateDirectory=" + templateDirectory + ", createSetters=" + createSetters
             + ", addMavenId=" + addMavenId + '}';
   }
-
-
 
 }

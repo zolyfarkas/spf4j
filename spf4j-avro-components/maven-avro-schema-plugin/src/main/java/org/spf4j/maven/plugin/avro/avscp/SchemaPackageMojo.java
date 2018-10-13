@@ -18,7 +18,7 @@ import org.spf4j.maven.plugin.avro.avscp.SchemaMojoBase;
  * Goal that packages a schema package and avro sources and attaches them as separate artifacts.
  */
 @Mojo(name = "avro-package", defaultPhase = LifecyclePhase.PACKAGE, requiresProject = true)
-public class SchemaPackageMojo extends SchemaMojoBase {
+public final class SchemaPackageMojo extends SchemaMojoBase {
 
   public String[] getSourceFiles() {
     FileSetManager fsm = new FileSetManager();

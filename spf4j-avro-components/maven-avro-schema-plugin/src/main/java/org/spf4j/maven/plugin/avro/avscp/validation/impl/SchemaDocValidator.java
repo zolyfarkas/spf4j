@@ -31,7 +31,7 @@ import org.spf4j.base.CharSequences;
 /**
  * @author Zoltan Farkas
  */
-public class SchemaDocValidator implements Validator<Schema> {
+public final class SchemaDocValidator implements Validator<Schema> {
 
   @Override
   public String getName() {
@@ -46,7 +46,7 @@ public class SchemaDocValidator implements Validator<Schema> {
   }
 
   @Nullable
-  private static Schema.Type getCollectionType(Schema unionSchema) {
+  private static Schema.Type getCollectionType(final Schema unionSchema) {
     for (Schema schema : unionSchema.getTypes()) {
       Schema.Type type = schema.getType();
       switch (type) {
@@ -65,12 +65,12 @@ public class SchemaDocValidator implements Validator<Schema> {
 
     private final List<String> issues;
 
-    public DocValidatorVisitor() {
+    DocValidatorVisitor() {
       issues = new ArrayList<>(4);
     }
 
     @Override
-    public SchemaVisitorAction visitTerminal(Schema schema) {
+    public SchemaVisitorAction visitTerminal(final Schema schema) {
       switch (schema.getType()) {
         case ENUM:
         case FIXED:
@@ -85,7 +85,7 @@ public class SchemaDocValidator implements Validator<Schema> {
     }
 
     @Override
-    public SchemaVisitorAction visitNonTerminal(Schema schema) {
+    public SchemaVisitorAction visitNonTerminal(final Schema schema) {
       if (schema.getType() == Schema.Type.RECORD) {
         String doc = schema.getDoc();
         if (doc == null || doc.trim().isEmpty()) {
@@ -114,15 +114,15 @@ public class SchemaDocValidator implements Validator<Schema> {
     }
 
     @Override
-    public SchemaVisitorAction afterVisitNonTerminal(Schema nonTerminal) {
+    public SchemaVisitorAction afterVisitNonTerminal(final Schema nonTerminal) {
       return SchemaVisitorAction.CONTINUE;
     }
 
     @Override
     @Nonnull
     public Result get() {
-      return issues.isEmpty() ? Result.valid() :
-              Result.failed("Schema Doc issues:\n" + String.join("\n", issues));
+      return issues.isEmpty() ? Result.valid()
+              : Result.failed("Schema Doc issues:\n" + String.join("\n", issues));
     }
   }
 

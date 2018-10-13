@@ -2,7 +2,11 @@ package org.spf4j.maven.plugin.avro.avscp;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +70,7 @@ public final class SchemaDependenciesMojo
       throw new MojoExecutionException("Cannot resolve dependencies for " + this, ex);
     }
     log.info("resolved schema dependencies: " + deps);
+    List<String> classes = new ArrayList<>(64);
     for (File file : deps) {
       try {
         List<Path> unzip = Compress.unzip(file.toPath(), dependenciesDirectory.toPath(), (Path p)
@@ -75,6 +80,16 @@ public final class SchemaDependenciesMojo
             return false;
           }
           String fn = fileName.toString();
+          if (fn.endsWith("class")) {
+            Path root = p.getRoot();
+            Path relativize;
+            if (root != null) {
+              relativize = root.relativize(p);
+            } else {
+              relativize = p;
+            }
+            classes.add(relativize.toString());
+          }
           return fn.endsWith("avsc") || fn.endsWith("avpr") || fn.endsWith("avdl");
         });
         if (!unzip.isEmpty()) {
@@ -84,18 +99,14 @@ public final class SchemaDependenciesMojo
         throw new MojoExecutionException("Cannot unzip " + file, ex);
       }
     }
-    /**
-    Artifact avro = mojoExecution.getMojoDescriptor().getPluginDescriptor()
-            .getArtifactMap().get("org.apache.avro:avro");
-    Dependency dependency = new Dependency();
-    dependency.setArtifactId(avro.getArtifactId());
-    dependency.setGroupId(avro.getGroupId());
-    dependency.setVersion(avro.getVersion());
-    dependency.setType(avro.getType());
-    dependency.setScope("runtime");
-    mavenProject.getDependencies().add(dependency);
-    mavenProject.getArtifacts().add(avro);
-    */
+    Path classesInfo = dependenciesDirectory.toPath().resolve("classes.txt");
+    try {
+      Files.write(classesInfo,
+              classes, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    } catch (IOException ex) {
+      throw new MojoExecutionException("Cannot write " + classesInfo, ex);
+    }
+
   }
 
   @Override

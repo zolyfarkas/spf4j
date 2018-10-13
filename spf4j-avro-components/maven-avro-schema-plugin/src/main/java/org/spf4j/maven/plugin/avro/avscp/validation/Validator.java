@@ -27,12 +27,12 @@ public interface Validator<T> {
 
     private static final Result VALID = new Result(true, null, null);
 
-    final boolean isValid;
-    final String validationErrorMessage;
-    final Exception validationException;
+    private final boolean isValid;
+    private final String validationErrorMessage;
+    private final Exception validationException;
 
-    private Result(boolean isValid, @Nullable String validationErrorMessage,
-            @Nullable Exception validationException) {
+    private Result(final boolean isValid, @Nullable final String validationErrorMessage,
+            @Nullable final Exception validationException) {
       this.isValid = isValid;
       this.validationErrorMessage = validationErrorMessage;
       this.validationException = validationException;
