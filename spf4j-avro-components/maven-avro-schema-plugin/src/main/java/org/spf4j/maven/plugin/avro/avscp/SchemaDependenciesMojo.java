@@ -88,5 +88,13 @@ public final class SchemaDependenciesMojo
     */
   }
 
+  @Override
+  public String toString() {
+    return "SchemaDependenciesMojo{" + "mavenSession=" + mavenSession + ", repoSystem="
+            + repoSystem + ", mojoExecution=" + mojoExecution + '}';
+  }
+
+
+
 
 }

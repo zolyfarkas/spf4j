@@ -1,5 +1,6 @@
 package org.spf4j.maven.plugin.avro.avscp;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -9,7 +10,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.avro.Protocol;
@@ -33,6 +37,7 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 @Mojo(name = "avro-compile", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
+@SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
 
@@ -50,14 +55,14 @@ public final class SchemaCompileMojo
    */
   @Parameter(name = "templateDirectory",
           defaultValue = "/org/apache/avro/compiler/specific/templates/java/classic/")
-  protected String templateDirectory;
+  private String templateDirectory;
 
   /**
    * Determines whether or not to create setters for the fields of the record. The default is to create setters.
    */
   @Parameter(name = "createSetters",
           defaultValue = "false")
-  protected boolean createSetters;
+  private boolean createSetters;
 
 
   /**
@@ -65,7 +70,7 @@ public final class SchemaCompileMojo
    */
   @Parameter(name = "addMavenId",
           defaultValue = "true")
-  protected boolean addMavenId = true;
+  private boolean addMavenId = true;
 
 
   private void attachMavenId(final Schema schema) {
@@ -94,8 +99,9 @@ public final class SchemaCompileMojo
         }
       }
 
-      URLClassLoader projPathLoader = new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
-              Thread.currentThread().getContextClassLoader());
+      URLClassLoader projPathLoader = AccessController.doPrivileged((PrivilegedAction<URLClassLoader>)
+              () -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
+              Thread.currentThread().getContextClassLoader()));
       File file = new File(sourceDirectory, filename);
       parser = new Idl(file, projPathLoader);
       Protocol protocol = parser.CompilationUnit();
@@ -106,7 +112,10 @@ public final class SchemaCompileMojo
         }
         String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
         Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
-        Files.createDirectories(destinationFile.getParent());
+        Path parent = destinationFile.getParent();
+        if (parent != null) {
+          Files.createDirectories(parent);
+        }
         Files.write(destinationFile,
                 schema.toString().getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE);
@@ -135,7 +144,10 @@ public final class SchemaCompileMojo
       }
       String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
       Path destination = generatedAvscTarget.toPath().resolve(targetName);
-      Files.createDirectories(destination.getParent());
+      Path parent = destination.getParent();
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
       Files.write(destination,
                 schema.toString().getBytes(StandardCharsets.UTF_8),
                 StandardOpenOption.CREATE);
@@ -159,7 +171,10 @@ public final class SchemaCompileMojo
       }
       String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
-      Files.createDirectories(destinationFile.getParent());
+      Path parent = destinationFile.getParent();
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
       Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
               StandardOpenOption.CREATE);
     }
@@ -176,17 +191,21 @@ public final class SchemaCompileMojo
     Log logger = this.getLog();
     logger.info("Generationg java code + schemas");
     Path pSources = this.target.toPath().resolve("avro-sources");
+    String[] sourceFiles = getSourceFiles("**/*.avsc");
     try {
-      doCompileSchemas(getSourceFiles("**/*.avsc"));
+      doCompileSchemas(sourceFiles);
     } catch (IOException ex) {
-      throw new MojoExecutionException("cannot compile schemas", ex);
+      throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
     }
 
     for (String file : getSourceFiles("**/*.avpr")) {
       try {
         doCompileProtocol(file);
         Path destination = pSources.resolve(file);
-        Files.createDirectories(destination.getParent());
+        Path folder = destination.getParent();
+        if (folder != null) {
+          Files.createDirectories(folder);
+        }
         Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException ex) {
         throw new MojoExecutionException("cannot compile protocol " + file, ex);
@@ -196,7 +215,10 @@ public final class SchemaCompileMojo
       try {
         doCompileIDL(file);
         Path destination = pSources.resolve(file);
-        Files.createDirectories(destination.getParent());
+        Path parent = destination.getParent();
+        if (parent != null) {
+          Files.createDirectories(parent);
+        }
         Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException ex) {
         throw new MojoExecutionException("cannot compile IDL " + file, ex);
@@ -222,5 +244,14 @@ public final class SchemaCompileMojo
     fs.setFollowSymlinks(false);
     return fsm.getIncludedFiles(fs);
   }
+
+  @Override
+  public String toString() {
+    return "SchemaCompileMojo{" + "fieldVisibility=" + fieldVisibility
+            + ", templateDirectory=" + templateDirectory + ", createSetters=" + createSetters
+            + ", addMavenId=" + addMavenId + '}';
+  }
+
+
 
 }

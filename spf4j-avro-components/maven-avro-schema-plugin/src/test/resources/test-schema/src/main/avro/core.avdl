@@ -6,9 +6,9 @@ protocol Core {
    /** record representing a jar archive info */
     record JPackageInfo {
       /** the package url */
-      union {null, string} url = null;
+      string url = "";
       /** version from manifest  */
-      union {null, string} version = null;
+      string version = "";
     }
 
     /** a location in a file */
@@ -25,9 +25,9 @@ protocol Core {
       string className;
       /** java method name */
       string methodName;
-      /** location */
+      /** location, null when no location available */
       union {null, JFileLocation} location;
-      /** package info */
+      /** package info, null when no package info is available */
       union {null, JPackageInfo} packageInfo;
     }
 
@@ -35,11 +35,11 @@ protocol Core {
     record JThrowable {
       /** exception class name */
       string className;
-      /** exception message */
+      /** exception message, java exception messages can be null */
       union { null, string } message = null;
       /** the stack trace */
       array<JStackTraceElement> stackTrace = [];
-      /** exception cause */
+      /** exception cause, null when there is no cause */
       union {null, JThrowable} cause = null;
       /** suppressed exceptions */
       array<JThrowable> suppressed = [];

@@ -16,6 +16,7 @@
 package org.spf4j.maven.plugin.avro.avscp.validation;
 
 import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * @author Zoltan Farkas
@@ -37,6 +38,22 @@ public interface Validator<T> {
       this.validationException = validationException;
     }
 
+    public boolean isValid() {
+      return isValid;
+    }
+
+    public boolean isFailed() {
+      return !isValid;
+    }
+
+    public String getValidationErrorMessage() {
+      return validationErrorMessage;
+    }
+
+    public Exception getValidationException() {
+      return validationException;
+    }
+
     public static Result valid() {
       return VALID;
     }
@@ -55,7 +72,10 @@ public interface Validator<T> {
 
   }
 
+  @NonNull
+  String getName();
 
+  @NonNull
   Result validate(T schema);
 
 }
