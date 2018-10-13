@@ -209,5 +209,17 @@ public final class Schemas {
     return false;
   }
 
+  public static boolean isNullableUnion(final Schema schema) {
+    if (!(schema.getType() == Schema.Type.UNION)) {
+      return false;
+    }
+    for (Schema ss : schema.getTypes()) {
+      if (ss.getType() == Schema.Type.NULL) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
 }
