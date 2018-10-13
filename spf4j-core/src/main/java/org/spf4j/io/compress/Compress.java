@@ -234,17 +234,20 @@ public final class Compress {
               return FileVisitResult.CONTINUE;
             }
             Path destination = dest.resolve(root.relativize(file).toString());
+            Path parent = destination.getParent();
+            if (parent != null) {
+              Files.createDirectories(parent);
+            }
             copyFileAtomic(file, destination);
             response.add(destination);
             return FileVisitResult.CONTINUE;
           }
 
           @Override
-          public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs)
-                  throws IOException {
-            String dirStr = dir.toString();
-            Path np = dest.resolve(dirStr.substring(1));
-            Files.createDirectories(np);
+          public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+            if (!filter.test(dir)) {
+              return FileVisitResult.CONTINUE;
+            }
             return FileVisitResult.CONTINUE;
           }
         });
