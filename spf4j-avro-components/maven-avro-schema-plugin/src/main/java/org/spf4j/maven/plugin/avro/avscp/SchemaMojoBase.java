@@ -15,15 +15,20 @@
  */
 package org.spf4j.maven.plugin.avro.avscp;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystem;
 
 /**
  * @author Zoltan Farkas
  */
 @SuppressWarnings("checkstyle:VisibilityModifier")
+@SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
 public abstract class SchemaMojoBase extends AbstractMojo {
 
 
@@ -66,5 +71,39 @@ public abstract class SchemaMojoBase extends AbstractMojo {
   @Parameter(name = "target",
           defaultValue = "${project.build.directory}")
   protected File target;
+
+  /**
+   * The current build mavenSession instance.
+   */
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  protected MavenSession mavenSession;
+
+  /**
+   * The entry point to Aether, i.e. the component doing all the work.
+   *
+   * @component
+   */
+  @Component
+  protected  RepositorySystem repoSystem;
+
+  public final RepositorySystem getRepoSystem() {
+    return repoSystem;
+  }
+
+  public final MavenSession getMavenSession() {
+    return mavenSession;
+  }
+
+  public final MavenProject getMavenProject() {
+    return mavenProject;
+  }
+
+  public final File getGeneratedAvscTarget() {
+    return generatedAvscTarget;
+  }
+
+  public final File getTarget() {
+    return target;
+  }
 
 }

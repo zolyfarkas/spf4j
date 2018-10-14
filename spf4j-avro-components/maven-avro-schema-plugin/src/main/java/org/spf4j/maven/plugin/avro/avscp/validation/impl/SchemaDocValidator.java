@@ -29,6 +29,11 @@ import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CharSequences;
 
 /**
+ * Validates schema documentation fields are not empty for:
+ * Records, Fixed, Enum, Record Fields.
+ * Additionally for record fields of union type where one type is null, the doc if validated is it contain an
+ * explanation for the meaning of the null value (null string present in doc field)
+ * 
  * @author Zoltan Farkas
  */
 public final class SchemaDocValidator implements Validator<Schema> {
@@ -59,6 +64,11 @@ public final class SchemaDocValidator implements Validator<Schema> {
       }
     }
     return null;
+  }
+
+  @Override
+  public Class<Schema> getValidationInput() {
+    return Schema.class;
   }
 
   private static class DocValidatorVisitor implements SchemaVisitor<Result> {

@@ -15,6 +15,7 @@
  */
 package org.spf4j.maven.plugin.avro.avscp.validation;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.avro.Schema;
+import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaCompatibilityValidator;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaDocValidator;
 
 /**
@@ -35,6 +36,8 @@ public final class Validators {
   static {
     SchemaDocValidator sdVal = new SchemaDocValidator();
     VALIDATORS.put(sdVal.getName(), sdVal);
+    SchemaCompatibilityValidator scVal = new SchemaCompatibilityValidator();
+    VALIDATORS.put(scVal.getName(), scVal);
     ServiceLoader<Validator> factories
             = ServiceLoader.load(Validator.class);
     Iterator<Validator> iterator = factories.iterator();
@@ -57,12 +60,14 @@ public final class Validators {
     }
   }
 
-  public Map<String,  Validator.Result> validate(final Schema s) {
+  public Map<String,  Validator.Result> validate(final Object obj) throws IOException {
     Map<String,  Validator.Result> result = new HashMap<>(4);
     for (Validator v : validators.values()) {
-      Validator.Result res = v.validate(s);
-      if (res.isFailed()) {
-        result.put(v.getName(), res);
+      if (v.getValidationInput().isAssignableFrom(obj.getClass())) {
+        Validator.Result res = v.validate(obj);
+        if (res.isFailed()) {
+          result.put(v.getName(), res);
+        }
       }
     }
     return result;
@@ -72,5 +77,5 @@ public final class Validators {
   public String toString() {
     return "Validators{" + "validators=" + validators + '}';
   }
-  
+
 }

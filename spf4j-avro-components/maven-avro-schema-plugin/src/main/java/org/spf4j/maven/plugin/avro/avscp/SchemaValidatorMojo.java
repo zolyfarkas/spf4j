@@ -22,12 +22,21 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  * Goal that packages a schema package and avro sources and attaches them as separate artifacts.
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresProject = true)
-@SuppressFBWarnings("PATH_TRAVERSAL_IN")
-public final class SchemaValidatorMojo extends SchemaMojoBase {
+@SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"})
+public final class SchemaValidatorMojo extends SchemaMojoBase implements ValidatorMojo {
 
 
-  @Parameter(name = "excludes")
-  private List<String> excludes = Collections.EMPTY_LIST;
+  @Parameter(name = "excludeValidators")
+  private List<String> excludeValidators = Collections.EMPTY_LIST;
+
+
+  @Parameter(name = "validatorConfigs")
+  private Map<String, String> validatorConfigs = Collections.EMPTY_MAP;
+
+  @Override
+  public Map<String, String> getValidatorConfigs() {
+    return validatorConfigs;
+  }
 
   /**
    * {@inheritDoc} running packaging of the current project may package a script for execution Dependencies libraries
@@ -39,7 +48,7 @@ public final class SchemaValidatorMojo extends SchemaMojoBase {
   public void execute() throws MojoExecutionException {
     Log logger = this.getLog();
     logger.info("Validating schemas");
-    Validators validators = new Validators(excludes);
+    Validators validators = new Validators(excludeValidators);
     for (String file : getSchemaFiles()) {
       try {
         File src = new File(generatedAvscTarget, file);
@@ -63,6 +72,11 @@ public final class SchemaValidatorMojo extends SchemaMojoBase {
         throw new MojoExecutionException("Cannot validate " + file, ex);
       }
     }
+    try {
+      validators.validate(this);
+    } catch (IOException ex) {
+       throw new MojoExecutionException("Cannot validate " + this, ex);
+    }
   }
 
   public String[] getSchemaFiles() {
@@ -76,7 +90,7 @@ public final class SchemaValidatorMojo extends SchemaMojoBase {
 
   @Override
   public String toString() {
-    return "SchemaValidatorMojo{" + "excludes=" + excludes + '}';
+    return "SchemaValidatorMojo{" + "excludes=" + excludeValidators + '}';
   }
 
 }

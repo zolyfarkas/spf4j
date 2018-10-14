@@ -10,19 +10,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.spf4j.io.compress.Compress;
@@ -33,19 +30,6 @@ import org.spf4j.maven.MavenRepositoryUtils;
 public final class SchemaDependenciesMojo
         extends SchemaMojoBase {
 
-  /**
-   * The current build mavenSession instance.
-   */
-  @Parameter(defaultValue = "${session}", required = true, readonly = true)
-  private MavenSession mavenSession;
-
-  /**
-   * The entry point to Aether, i.e. the component doing all the work.
-   *
-   * @component
-   */
-  @Component
-  private RepositorySystem repoSystem;
 
   @Parameter(defaultValue = "${mojoExecution}", required = true, readonly = true)
   private MojoExecution mojoExecution;

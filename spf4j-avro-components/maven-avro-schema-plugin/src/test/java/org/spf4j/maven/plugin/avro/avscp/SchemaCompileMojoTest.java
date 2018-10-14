@@ -36,9 +36,14 @@ public class SchemaCompileMojoTest {
     File testDir = ResourceExtractor.simpleExtractResources(getClass(), "/test-schemas");
     LOG.debug("Building in {}", testDir);
     Verifier verifier = new Verifier(testDir.getAbsolutePath(), true);
-    verifier.deleteArtifact("org.spf4j", "test-schema", "1.0-SNAPSHOT", "jar");
+    verifier.deleteArtifact("org.spf4j", "test-schema", "1.0", "jar");
+    verifier.deleteArtifact("org.spf4j", "test-schema", "2.0", "jar");
+    verifier.deleteArtifact("org.spf4j", "test-schema-common", "1.0", "jar");
     verifier.executeGoal("install");
     verifier.verifyErrorFreeLog();
+    verifier.assertArtifactPresent("org.spf4j", "test-schema-common", "1.0", "jar");
+    verifier.assertArtifactPresent("org.spf4j", "test-schema", "1.0", "jar");
+    verifier.assertArtifactPresent("org.spf4j", "test-schema", "2.0", "jar");
     verifier.resetStreams();
   }
 
