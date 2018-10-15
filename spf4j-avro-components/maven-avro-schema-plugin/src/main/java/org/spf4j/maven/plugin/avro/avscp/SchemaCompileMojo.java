@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.idl.Idl;
@@ -41,7 +44,6 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
 
-
   /**
    * The field visibility indicator for the fields of the generated class, as string values of
    * SpecificCompiler.FieldVisibility. The text is case insensitive.
@@ -64,7 +66,6 @@ public final class SchemaCompileMojo
           defaultValue = "false")
   private boolean createSetters;
 
-
   /**
    * add maven coordinates to the schema. (group:artifact:version)
    */
@@ -72,12 +73,16 @@ public final class SchemaCompileMojo
           defaultValue = "true")
   private boolean addMavenId = true;
 
+  /**
+   * add maven coordinates to the schema. (group:artifact:version)
+   */
+  @Parameter(name = "systemProperties")
+  private Properties systemProperties = new Properties();
 
   private void attachMavenId(final Schema schema) {
     schema.addProp("mvnId", mavenProject.getGroupId() + ':' + mavenProject.getArtifactId()
             + ':' + mavenProject.getVersion());
   }
-
 
   protected void doCompileIDL(final String filename) throws IOException {
     try {
@@ -99,8 +104,9 @@ public final class SchemaCompileMojo
         }
       }
       getLog().info("Compile classpath: " + runtimeUrls);
-      URLClassLoader projPathLoader = AccessController.doPrivileged((PrivilegedAction<URLClassLoader>)
-              () -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
+      URLClassLoader projPathLoader = AccessController.doPrivileged(
+              (PrivilegedAction<URLClassLoader>) ()
+                      -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
               Thread.currentThread().getContextClassLoader()));
       File file = new File(sourceDirectory, filename);
       parser = new Idl(file, projPathLoader);
@@ -149,8 +155,8 @@ public final class SchemaCompileMojo
         Files.createDirectories(parent);
       }
       Files.write(destination,
-                schema.toString().getBytes(StandardCharsets.UTF_8),
-                StandardOpenOption.CREATE);
+              schema.toString().getBytes(StandardCharsets.UTF_8),
+              StandardOpenOption.CREATE);
       SpecificCompiler compiler = new SpecificCompiler(schema);
       compiler.setTemplateDir(templateDirectory);
       compiler.setStringType(GenericData.StringType.String);
@@ -190,50 +196,55 @@ public final class SchemaCompileMojo
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log logger = this.getLog();
     logger.info("Generationg java code + schemas");
-    Path pSources = this.target.toPath().resolve("avro-sources");
-    String[] sourceFiles = getSourceFiles("**/*.avsc");
-    try {
-      doCompileSchemas(sourceFiles);
-    } catch (IOException ex) {
-      throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
-    }
+    synchronized (String.class) {
+      for (Map.Entry<String, String> entry : ((Set<Map.Entry<String, String>>) ((Set) systemProperties.entrySet()))) {
+        System.setProperty(entry.getKey(), entry.getValue());
+      }
+      Path pSources = this.target.toPath().resolve("avro-sources");
+      String[] sourceFiles = getSourceFiles("**/*.avsc");
+      try {
+        doCompileSchemas(sourceFiles);
+      } catch (IOException ex) {
+        throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
+      }
 
-    for (String file : getSourceFiles("**/*.avpr")) {
-      try {
-        doCompileProtocol(file);
-        Path destination = pSources.resolve(file);
-        Path folder = destination.getParent();
-        if (folder != null) {
-          Files.createDirectories(folder);
+      for (String file : getSourceFiles("**/*.avpr")) {
+        try {
+          doCompileProtocol(file);
+          Path destination = pSources.resolve(file);
+          Path folder = destination.getParent();
+          if (folder != null) {
+            Files.createDirectories(folder);
+          }
+          Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+          throw new MojoExecutionException("cannot compile protocol " + file, ex);
         }
-        Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException ex) {
-        throw new MojoExecutionException("cannot compile protocol " + file, ex);
       }
-    }
-    for (String file : getSourceFiles("**/*.avdl")) {
-      try {
-        doCompileIDL(file);
-        Path destination = pSources.resolve(file);
-        Path parent = destination.getParent();
-        if (parent != null) {
-          Files.createDirectories(parent);
+      for (String file : getSourceFiles("**/*.avdl")) {
+        try {
+          doCompileIDL(file);
+          Path destination = pSources.resolve(file);
+          Path parent = destination.getParent();
+          if (parent != null) {
+            Files.createDirectories(parent);
+          }
+          Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+          throw new MojoExecutionException("cannot compile IDL " + file, ex);
         }
-        Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException ex) {
-        throw new MojoExecutionException("cannot compile IDL " + file, ex);
       }
+      mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
+      Resource resource = new Resource();
+      resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
+      resource.addInclude("**/*.avsc");
+      mavenProject.addResource(resource);
+      Resource resource2 = new Resource();
+      resource2.setDirectory(pSources.toString());
+      resource2.addInclude("**/*.avpr");
+      resource2.addInclude("**/*.avdl");
+      mavenProject.addResource(resource2);
     }
-    mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
-    Resource resource = new Resource();
-    resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
-    resource.addInclude("**/*.avsc");
-    mavenProject.addResource(resource);
-    Resource resource2 = new Resource();
-    resource2.setDirectory(pSources.toString());
-    resource2.addInclude("**/*.avpr");
-    resource2.addInclude("**/*.avdl");
-    mavenProject.addResource(resource2);
   }
 
   public String[] getSourceFiles(final String pattern) {
