@@ -12,12 +12,16 @@
   <name>${project.artifactId} - ${project.version}</name>
   <inceptionYear>2018</inceptionYear>
 
-  <description>Avro plugin to allow to build avro schema project</description>
+  <description>Avro plugin for better avro schemas</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jdk-version>1.8</jdk-version>
+    <!-- 
     <avro.version>1.8.1.3p</avro.version>
+    -->
+    <spf4j.version>${project.version}</spf4j.version>
+    <skip.forbidenApi>true</skip.forbidenApi>
   </properties>
 
   <dependencies>
@@ -150,7 +154,9 @@
           <settingsFile>src/it/mrm/settings.xml</settingsFile>
           <filterProperties>
             <mrm.repository.url>${mrm.repository.url}</mrm.repository.url>
-             <mrm.distribution.url>${mrm.distribution.url}</mrm.distribution.url>
+            <mrm.distribution.url>${mrm.distribution.url}</mrm.distribution.url>
+            <avro.version>${avro.version}</avro.version>
+            <spf4j.version>${spf4j.version}</spf4j.version>
           </filterProperties>
         </configuration>
       </plugin>
@@ -203,7 +209,15 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
   </build>
 
 	
