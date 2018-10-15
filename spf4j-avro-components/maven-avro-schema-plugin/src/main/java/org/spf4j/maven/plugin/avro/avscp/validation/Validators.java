@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.CheckReturnValue;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaCompatibilityValidator;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaDocValidator;
 
@@ -60,6 +61,7 @@ public final class Validators {
     }
   }
 
+  @CheckReturnValue
   public Map<String,  Validator.Result> validate(final Object obj) throws IOException {
     Map<String,  Validator.Result> result = new HashMap<>(4);
     for (Validator v : validators.values()) {

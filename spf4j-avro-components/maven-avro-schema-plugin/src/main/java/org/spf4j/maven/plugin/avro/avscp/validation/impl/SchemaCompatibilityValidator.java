@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaCompatibility;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -64,11 +65,11 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public Result validate(final ValidatorMojo mojo) throws IOException {
     // loop through dependencies.
+    MavenProject mavenProject = mojo.getMavenProject();
     String versionRange = mojo.getValidatorConfigs().get("compatibiliy.versionRange");
     if (versionRange == null) {
-      versionRange = "[,${project.version})";
+      versionRange = "[," + mavenProject.getVersion() +  ')';
     }
-    MavenProject mavenProject = mojo.getMavenProject();
     String groupId = mavenProject.getGroupId();
     String artifactId = mavenProject.getArtifactId();
     List<RemoteRepository> remoteProjectRepositories = mavenProject.getRemoteProjectRepositories();
@@ -103,7 +104,8 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
           final RepositorySystemSession repositorySession,
           final ValidatorMojo mojo, final boolean deprecationRemoval, final Consumer<String> issues)
           throws IOException {
-    mojo.getLog().info("Validating compatibility with version: " + version);
+    Log log = mojo.getLog();
+    log.info("Validating compatibility with version: " + version);
     Path targetPath = mojo.getTarget().toPath();
     Path currSchemasPath = mojo.getGeneratedAvscTarget().toPath();
     File prevSchemaArchive;
@@ -121,22 +123,28 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
       Path relPath = dest.relativize(prevSchemaPath);
       Path newSchemaPath = currSchemasPath.resolve(relPath);
       Schema previousSchema = new Schema.Parser().parse(prevSchemaPath.toFile());
+      String previousSchemaName = previousSchema.getFullName();
+      log.info("Validating compatibility for " + previousSchemaName + " "
+              + prevSchemaPath + " -> "  + newSchemaPath);
       if (deprecationRemoval && !Files.exists(newSchemaPath) && previousSchema.getProp("deprecated") == null) {
-        issues.accept(previousSchema.getFullName() + " is being removed without being deprecated first");
+        issues.accept(previousSchemaName + " is being removed without being deprecated first");
       } else {
         Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());
         SchemaCompatibility.SchemaPairCompatibility o2n
                 = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
         if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE
                 && newSchema.getProp("noOldToNewCompatibility") == null) {
-          issues.accept(newSchema.getFullName() + " cannot convert previous versions " + version + "to current");
+          issues.accept(newSchema.getFullName() + " cannot convert previous versions " + version + " to current"
+                + " detail: " + o2n);
         }
         SchemaCompatibility.SchemaPairCompatibility n2o
                 = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
         if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE
                 && newSchema.getProp("noNewToOldCompatibility") == null) {
-          issues.accept(newSchema.getFullName() + " cannot convert  current to previos version " + version);
+          issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + version
+          + " detail: " + n2o);
         }
+
       }
     }
   }

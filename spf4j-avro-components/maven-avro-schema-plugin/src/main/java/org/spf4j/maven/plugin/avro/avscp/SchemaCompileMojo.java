@@ -98,7 +98,7 @@ public final class SchemaCompileMojo
           runtimeUrls.add(new File(element).toURI().toURL());
         }
       }
-
+      getLog().info("Compile classpath: " + runtimeUrls);
       URLClassLoader projPathLoader = AccessController.doPrivileged((PrivilegedAction<URLClassLoader>)
               () -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
               Thread.currentThread().getContextClassLoader()));

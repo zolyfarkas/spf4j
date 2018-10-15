@@ -17,6 +17,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jdk-version>1.8</jdk-version>
+    <avro.version>1.8.1.3p</avro.version>
   </properties>
 
   <dependencies>
@@ -25,6 +26,17 @@
       <artifactId>spf4j-slf4j-test</artifactId>
       <scope>test</scope>
       <version>${project.version}</version>
+    </dependency>
+    <!-- avro compiler -->
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-compiler</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.spf4j</groupId>
@@ -47,12 +59,6 @@
       <groupId>org.spf4j</groupId>
       <artifactId>spf4j-aether</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <!-- avro compiler -->
-    <dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro-compiler</artifactId>
-      <version>${avro.version}</version>
     </dependency>
    <!-- Maven Core -->
     <dependency>
@@ -121,6 +127,69 @@
             <goals>
               <goal>descriptor</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>install</goal>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <ignoreFailures>false</ignoreFailures>
+          <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+          <projectsDirectory>src/it/projects</projectsDirectory>
+          <settingsFile>src/it/mrm/settings.xml</settingsFile>
+          <filterProperties>
+            <mrm.repository.url>${mrm.repository.url}</mrm.repository.url>
+             <mrm.distribution.url>${mrm.distribution.url}</mrm.distribution.url>
+          </filterProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>mrm-maven-plugin</artifactId>
+        <version>1.1.0</version>
+        <executions>
+          <execution>
+            <id>distribution</id>
+            <goals>
+              <goal>start</goal>
+              <goal>stop</goal>
+            </goals>
+            <configuration>
+              <propertyName>mrm.distribution.url</propertyName>
+              <repositories>
+                <hostedRepo>
+                  <target>target/hosted-repo</target>
+                </hostedRepo>
+              </repositories>
+            </configuration>
+          </execution>
+          <execution>
+            <goals>
+              <goal>start</goal>
+              <goal>stop</goal>
+            </goals>
+        <configuration>
+          <repositories>
+            <mockRepo>
+              <source>src/it/mrm/repository</source>
+              <!-- cloneTo>target/mock-repo</cloneTo -->
+              <!-- cloneClean>true</cloneClean -->
+              <!-- lazyArchiver>false</lazyArchiver -->
+            </mockRepo>
+            <proxyRepo/>
+          </repositories>
+        </configuration>
           </execution>
         </executions>
       </plugin>

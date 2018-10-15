@@ -55,27 +55,33 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
         Schema.Parser parser = new Schema.Parser();
         Schema schema = parser.parse(src);
         Map<String, Validator.Result> vresult = validators.validate(schema);
-        if (!vresult.isEmpty()) {
-          logger.error("Schema validation failed for " + schema.getFullName());
-          for (Map.Entry<String, Validator.Result> res : vresult.entrySet()) {
-            Validator.Result vres = res.getValue();
-            String vName = res.getKey();
-            logger.error("Validator " + vName + " failed with error: " + vres.getValidationErrorMessage());
-            Exception ex = vres.getValidationException();
-            if (ex != null) {
-              logger.error("Validator " + vName + " exception", ex);
-            }
-            throw new MojoExecutionException("Failed to validate " + schema.getFullName());
-          }
-        }
+        handleValidation(vresult, logger, schema.getFullName());
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot validate " + file, ex);
       }
     }
     try {
-      validators.validate(this);
+      Map<String, Validator.Result> vresult = validators.validate(this);
+      handleValidation(vresult, logger, "compatibility");
     } catch (IOException ex) {
        throw new MojoExecutionException("Cannot validate " + this, ex);
+    }
+  }
+
+  public void handleValidation(final Map<String, Validator.Result> vresult, final Log logger, final String detail)
+          throws MojoExecutionException {
+    if (!vresult.isEmpty()) {
+      logger.error("Schema validation failed for " + detail);
+      for (Map.Entry<String, Validator.Result> res : vresult.entrySet()) {
+        Validator.Result vres = res.getValue();
+        String vName = res.getKey();
+        logger.error("Validator " + vName + " failed with error: " + vres.getValidationErrorMessage());
+        Exception ex = vres.getValidationException();
+        if (ex != null) {
+          logger.error("Validator " + vName + " exception", ex);
+        }
+        throw new MojoExecutionException("Failed to validate " + detail);
+      }
     }
   }
 
