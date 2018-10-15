@@ -12,9 +12,12 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -234,10 +237,19 @@ public final class SchemaCompileMojo
           throw new MojoExecutionException("cannot compile IDL " + file, ex);
         }
       }
+      Path codegenManifest = generatedAvscTarget.toPath().resolve("codegen.properties");
+      try {
+        Files.write(codegenManifest,
+             Collections.singletonList("codeGeneratedAt=" + DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
+             StandardCharsets.UTF_8);
+      } catch (IOException ex) {
+        throw new MojoExecutionException("Cannot create codegen manifest file " + codegenManifest, ex);
+      }
       mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
       Resource resource = new Resource();
       resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
       resource.addInclude("**/*.avsc");
+      resource.addInclude("codegen.properties");
       mavenProject.addResource(resource);
       Resource resource2 = new Resource();
       resource2.setDirectory(pSources.toString());
