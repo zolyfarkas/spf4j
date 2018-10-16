@@ -18,10 +18,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.idl.Idl;
@@ -46,6 +48,8 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
+
+   public static final String SCHEMA_MANIFEST = "codegen.properties";
 
   /**
    * The field visibility indicator for the fields of the generated class, as string values of
@@ -195,6 +199,40 @@ public final class SchemaCompileMojo
     compiler.compileToDestination(src, generatedJavaTarget);
   }
 
+  public void deleteGeneratedAvailableInDependencies() throws IOException {
+    Path classesInfo = dependenciesDirectory.toPath().resolve("classes.txt");
+    Set<String> classes = new HashSet(Files.readAllLines(classesInfo, StandardCharsets.UTF_8));
+    Path javaPath = generatedJavaTarget.toPath();
+    List<Path> dupes = Files.walk(javaPath)
+            .filter((p) -> {
+              Path relativize = javaPath.relativize(p);
+              return classes.contains(relativize.toString().replace(".java", ".class"));
+            }).collect(Collectors.toList());
+    for (Path p : dupes) {
+      Files.delete(p);
+    }
+    getLog().info("Deleted dupes: " + dupes);
+  }
+
+  public void deleteSchemasAvailableInDependencies(final Path schTargetPath) throws IOException {
+    Path classesInfo = dependenciesDirectory.toPath();
+    Set<Path> schemas = Files.walk(classesInfo).filter(
+            (p) -> {
+              Path fileName = p.getFileName();
+              return fileName == null ? false : fileName.toString().endsWith("avsc");
+            })
+            .map((p) -> classesInfo.relativize(p)).collect(Collectors.toSet());
+    List<Path> dupes = Files.walk(schTargetPath).filter((p) -> schemas.contains(schTargetPath.relativize(p)))
+            .collect(Collectors.toList());
+    for (Path p : dupes) {
+      Files.delete(p);
+    }
+    getLog().info("Deleted dupes: " + dupes);
+  }
+
+
+
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log logger = this.getLog();
@@ -237,19 +275,25 @@ public final class SchemaCompileMojo
           throw new MojoExecutionException("cannot compile IDL " + file, ex);
         }
       }
-      Path codegenManifest = generatedAvscTarget.toPath().resolve("codegen.properties");
+      Path codegenManifest = generatedAvscTarget.toPath().resolve(SCHEMA_MANIFEST);
       try {
         Files.write(codegenManifest,
-             Collections.singletonList("codeGeneratedAt=" + DateTimeFormatter.ISO_INSTANT.format(Instant.now())),
+             Collections.singletonList("Build-Time=" + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),
              StandardCharsets.UTF_8);
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot create codegen manifest file " + codegenManifest, ex);
+      }
+      try {
+        deleteGeneratedAvailableInDependencies();
+        deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());
+      } catch (IOException ex) {
+        throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
       }
       mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
       Resource resource = new Resource();
       resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
       resource.addInclude("**/*.avsc");
-      resource.addInclude("codegen.properties");
+      resource.addInclude(SCHEMA_MANIFEST);
       mavenProject.addResource(resource);
       Resource resource2 = new Resource();
       resource2.setDirectory(pSources.toString());

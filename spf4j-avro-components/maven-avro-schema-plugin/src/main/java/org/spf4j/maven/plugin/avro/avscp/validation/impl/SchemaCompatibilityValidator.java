@@ -16,13 +16,26 @@
 package org.spf4j.maven.plugin.avro.avscp.validation.impl;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.function.Consumer;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaCompatibility;
 import org.apache.maven.plugin.logging.Log;
@@ -35,6 +48,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.version.Version;
 import org.spf4j.io.compress.Compress;
 import org.spf4j.maven.MavenRepositoryUtils;
+import org.spf4j.maven.plugin.avro.avscp.SchemaCompileMojo;
 import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 
@@ -43,14 +57,13 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
  *
  * The following validations are performed:
  *
- * 1) When a schema published in a previous version is being removed,
- * we check that the previous released schema has been "deprecated". (deprecated attribute).
- *
- * 1) We check previously released schema for (reader -> writer) and (writer -> reader) compatibility
+ * 1) We check previously released schema for (reader to writer) and (writer to reader) compatibility
  * with the current schema. Unless compatibility is not desired (if schema has attribute "noCompatibility")
  * or only partial compatibility is desired "noOldToNewCompatibility"
  * (objects written with old schema don't need to be converted to new objects)
  * or "noNewToOldCompatibility" if (objects written with new schema don't need to be converted to old schema objects)
+ *
+ * Schema deprecation and removal policy check to be done at some point in the future.
  *
  * @author Zoltan Farkas
  */
@@ -66,9 +79,23 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
   public Result validate(final ValidatorMojo mojo) throws IOException {
     // loop through dependencies.
     MavenProject mavenProject = mojo.getMavenProject();
-    String versionRange = mojo.getValidatorConfigs().get("compatibiliy.versionRange");
+    Map<String, String> validatorConfigs = mojo.getValidatorConfigs();
+    String versionRange = validatorConfigs.get("compatibiliy.versionRange");
     if (versionRange == null) {
       versionRange = "[," + mavenProject.getVersion() +  ')';
+    }
+    int maxNrVersToCheck = 30;
+    String strNrVer = validatorConfigs.get("compatibiliy.maxNrOfVersionsToCheckForCompatibility");
+    if (strNrVer != null) {
+      maxNrVersToCheck = Integer.parseInt(strNrVer);
+    }
+    Instant instantToGoBack;
+    String strNrDays = validatorConfigs.get("compatibiliy.maxNrOfDaysBackCheckForCompatibility");
+    if (strNrDays == null) {
+      instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC).minus(1,  ChronoUnit.YEARS).toInstant();
+    } else {
+      instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC)
+              .minus(Integer.parseInt(strNrDays), ChronoUnit.DAYS).toInstant();
     }
     String groupId = mavenProject.getGroupId();
     String artifactId = mavenProject.getArtifactId();
@@ -82,14 +109,18 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
     } catch (VersionRangeResolutionException ex) {
       throw new RuntimeException("Invalid compatibiliy.versionRange = " + versionRange + " setting", ex);
     }
+    rangeVersions = rangeVersions.stream().filter((v) -> !v.toString().endsWith("SNAPSHOT"))
+            .collect(Collectors.toList());
     mojo.getLog().info("Validating compatibility with previous versions " + rangeVersions);
     if (rangeVersions.isEmpty()) {
       return Result.valid();
     }
     List<String> issues = new ArrayList<>(4);
-    for (Version version : rangeVersions) {
+    int size = rangeVersions.size();
+    for (int  i = size - 1, j = Math.max(size - maxNrVersToCheck, 0); i >= j; i--) {
+      Version version  = rangeVersions.get(i);
       validateCompatibility(groupId, artifactId, version,
-              remoteProjectRepositories, repoSystem, repositorySession, mojo, false, issues::add);
+              remoteProjectRepositories, repoSystem, repositorySession, mojo, false, instantToGoBack, issues::add);
     }
     if (issues.isEmpty()) {
       return Result.valid();
@@ -102,7 +133,8 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
   public void validateCompatibility(final String groupId, final String artifactId, final Version version,
           final List<RemoteRepository> remoteProjectRepositories, final RepositorySystem repoSystem,
           final RepositorySystemSession repositorySession,
-          final ValidatorMojo mojo, final boolean deprecationRemoval, final Consumer<String> issues)
+          final ValidatorMojo mojo,
+          final boolean deprecationRemoval, final Instant instantToGoBack, final Consumer<String> issues)
           throws IOException {
     Log log = mojo.getLog();
     log.info("Validating compatibility with version: " + version);
@@ -111,15 +143,35 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
     File prevSchemaArchive;
     try {
       prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(
-              groupId, artifactId, "avsc", "jar", version.toString(),
+              groupId, artifactId, null, "jar", version.toString(),
               remoteProjectRepositories, repoSystem, repositorySession);
     } catch (ArtifactResolutionException ex) {
       throw new RuntimeException("Cannot resolve previous version "  + version, ex);
     }
     Path dest = targetPath.resolve("prevSchemas").resolve(version.toString());
     Files.createDirectories(dest);
-    List<Path> prevSchemas = Compress.unzip(prevSchemaArchive.toPath(), dest);
+    List<Path> prevSchemas = Compress.unzip(prevSchemaArchive.toPath(), dest, (Path p) -> {
+      Path fileName = p.getFileName();
+      if (fileName == null) {
+        return false;
+      }
+      String fname = fileName.toString();
+      return (fname.endsWith("avsc")
+              || SchemaCompileMojo.SCHEMA_MANIFEST.equals(fname)
+              || "MANIFEST.MF".equals(fname));
+    });
+    Instant dependencyBuidTime = getDependencyBuidTime(dest, log);
+    if (dependencyBuidTime.isBefore(instantToGoBack)) {
+      return;
+    }
     for (Path prevSchemaPath : prevSchemas) {
+      Path fileName = prevSchemaPath.getFileName();
+      if (fileName == null) {
+        continue;
+      }
+      if (!fileName.toString().endsWith("avsc")) {
+        continue;
+      }
       Path relPath = dest.relativize(prevSchemaPath);
       Path newSchemaPath = currSchemasPath.resolve(relPath);
       Schema previousSchema = new Schema.Parser().parse(prevSchemaPath.toFile());
@@ -147,6 +199,42 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
 
       }
     }
+  }
+
+  @Nullable
+  private static Instant getDependencyBuidTime(final Path location, final Log log) throws IOException {
+    Path jarManifest = location.resolve("META-INF/MANIFEST.MF");
+    if (Files.exists(jarManifest)) {
+      try (BufferedInputStream bis = new BufferedInputStream(
+              Files.newInputStream(jarManifest))) {
+        Manifest manifest = new Manifest(bis);
+        Attributes mainAttributes = manifest.getMainAttributes();
+        String buildTime = mainAttributes.getValue("Build-Time");
+        if (buildTime != null) {
+          try {
+            return Instant.parse(buildTime);
+          } catch (DateTimeParseException ex) {
+            log.warn("Cannot parse manifest build time " + buildTime, ex);
+          }
+        }
+      }
+    }
+    Path codegenManifest = location.resolve(SchemaCompileMojo.SCHEMA_MANIFEST);
+    if (Files.exists(codegenManifest)) {
+      try (BufferedReader br = Files.newBufferedReader(codegenManifest, StandardCharsets.UTF_8)) {
+        Properties props = new Properties();
+        props.load(br);
+        String buildTime = props.getProperty("Build-Time");
+        if (buildTime != null) {
+          try {
+            return Instant.parse(buildTime);
+          } catch (DateTimeParseException ex) {
+            log.warn("Cannot parse manifest build time " + buildTime, ex);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @Override

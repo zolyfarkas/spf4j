@@ -80,8 +80,6 @@ public abstract class SchemaMojoBase extends AbstractMojo {
 
   /**
    * The entry point to Aether, i.e. the component doing all the work.
-   *
-   * @component
    */
   @Component
   protected  RepositorySystem repoSystem;
