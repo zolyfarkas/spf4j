@@ -119,6 +119,8 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
       description.appendText("\n");
       matchers[i].describeTo(description);
     }
+    description.appendText("\n");
+    description.appendText("Matched " + at);
     return description;
   }
 
