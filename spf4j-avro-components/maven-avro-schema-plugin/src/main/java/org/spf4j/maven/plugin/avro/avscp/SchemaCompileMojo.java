@@ -1,8 +1,10 @@
 package org.spf4j.maven.plugin.avro.avscp;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -79,6 +81,13 @@ public final class SchemaCompileMojo
   @Parameter(name = "addMavenId",
           defaultValue = "true")
   private boolean addMavenId = true;
+
+  /**
+   * add maven coordinates to the schema. (group:artifact:version)
+   */
+  @Parameter(name = "deleteProtocolInterface",
+          defaultValue = "true")
+  private boolean deleteProtocolInterface = true;
 
   /**
    * add maven coordinates to the schema. (group:artifact:version)
@@ -214,6 +223,32 @@ public final class SchemaCompileMojo
     getLog().info("Deleted dupes: " + dupes);
   }
 
+  public void deleteProtocolClasses() throws IOException {
+   String detectionString = "org.apache.avro.Protocol PROTOCOL";
+    Path javaPath = generatedJavaTarget.toPath();
+    List<Path> protocolFiles = Files.walk(javaPath)
+            .filter((p) -> {
+              Path fileName = p.getFileName();
+              if (fileName == null || !fileName.toString().endsWith(".java")) {
+                return false;
+              }
+              try (BufferedReader br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                  if (line.contains(detectionString)) {
+                    return true;
+                  }
+                }
+              } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+              }
+              return false;
+            }).collect(Collectors.toList());
+    for (Path p : protocolFiles) {
+      Files.delete(p);
+    }
+  }
+
   public void deleteSchemasAvailableInDependencies(final Path schTargetPath) throws IOException {
     Path classesInfo = dependenciesDirectory.toPath();
     Set<Path> schemas = Files.walk(classesInfo).filter(
@@ -286,6 +321,9 @@ public final class SchemaCompileMojo
       try {
         deleteGeneratedAvailableInDependencies();
         deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());
+        if (deleteProtocolInterface) {
+          deleteProtocolClasses();
+        }
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
       }
