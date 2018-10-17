@@ -15,6 +15,9 @@
  */
 package org.spf4j.test.matchers;
 
+import java.util.Objects;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.slf4j.Marker;
@@ -69,8 +72,28 @@ public final class LogMatchers {
      return Matchers.hasProperty("arguments", matcher);
   }
 
-  public static Matcher<LogRecord> hasArguments(final Object objects) {
+  public static Matcher<LogRecord> hasArguments(final Object... objects) {
      return Matchers.hasProperty("arguments", Matchers.arrayContaining(objects));
+  }
+
+  public static Matcher<LogRecord> hasArgumentAt(final int idx, final Object object) {
+     return Matchers.hasProperty("arguments", new BaseMatcher<LogRecord>() {
+       @Override
+       public boolean matches(final Object item) {
+         if (item instanceof LogRecord) {
+           LogRecord lr = (LogRecord) item;
+           Object[] arguments = lr.getArguments();
+           return idx < arguments.length && Objects.equals(arguments[idx], object);
+         } else {
+           return false;
+         }
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+         description.appendText("Message argument [").appendValue(idx).appendText("] is ").appendValue(object);
+       }
+     });
   }
 
   public static Matcher<LogRecord> hasAttachment(final String attachment) {
@@ -88,6 +111,27 @@ public final class LogMatchers {
   public static Matcher<LogRecord> hasExtraArguments(final Object... objects) {
      return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(objects));
   }
+
+    public static Matcher<LogRecord> hasExtraArgumentAt(final int idx, final Object object) {
+     return Matchers.hasProperty("extraArguments", new BaseMatcher<LogRecord>() {
+       @Override
+       public boolean matches(final Object item) {
+         if (item instanceof LogRecord) {
+           LogRecord lr = (LogRecord) item;
+           Object[] arguments = lr.getExtraArguments();
+           return idx < arguments.length && Objects.equals(arguments[idx], object);
+         } else {
+           return false;
+         }
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+         description.appendText("Log extra argument [").appendValue(idx).appendText("] is ").appendValue(object);
+       }
+     });
+  }
+
 
   public static Matcher<LogRecord> hasMatchingExtraArgumentsContaining(final Matcher<Object>... matcher) {
      return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(matcher));

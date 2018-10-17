@@ -32,11 +32,19 @@ public class LogMatchersTest {
 
   @Test(expected = AssertionError.class)
   public void testSomeMethod() {
-    LogRecord rec = new LogRecord(new TestLogger("test", () -> null), Level.ERROR, "", "a");
+    LogRecord rec = new LogRecord(new TestLogger("test", () -> null), Level.ERROR, "la la {} bla", "a", "b");
     rec.attach(Attachments.PRINTED);
     rec.attach(Attachments.ASSERTED);
     Assert.assertThat(rec, Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),
                   LogMatchers.hasLevel(Level.ERROR)));
+
+    Assert.assertThat(rec, Matchers.allOf(LogMatchers.hasMessageWithPattern("la la a .*"),
+                  LogMatchers.hasLevel(Level.ERROR)));
+    Assert.assertThat(rec, Matchers.allOf(LogMatchers.hasArgumentAt(0, "a"),
+                  LogMatchers.hasLevel(Level.ERROR)));
+    Assert.assertThat(rec, Matchers.allOf(LogMatchers.hasExtraArgumentAt(0, "b"),
+                  LogMatchers.hasLevel(Level.ERROR)));
+
   }
 
 }

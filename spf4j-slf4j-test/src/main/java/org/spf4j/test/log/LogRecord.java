@@ -96,6 +96,7 @@ public final class LogRecord {
   }
 
   @SuppressFBWarnings("EI_EXPOSE_REP") // risk I take...
+  @Nonnull
   public Object[] getArguments() {
     return arguments;
   }
