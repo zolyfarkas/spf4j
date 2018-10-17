@@ -2,6 +2,7 @@ package org.spf4j.maven.plugin.avro.avscp;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.spf4j.base.AppendableUtils;
 
 @Mojo(name = "avro-compile", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
@@ -95,9 +98,22 @@ public final class SchemaCompileMojo
   @Parameter(name = "systemProperties")
   private Properties systemProperties = new Properties();
 
+  private int idSequence = 0;
+
+  private final Map<String, Schema> index = new HashMap<>();
+
   private void attachMavenId(final Schema schema) {
-    schema.addProp("mvnId", mavenProject.getGroupId() + ':' + mavenProject.getArtifactId()
-            + ':' + mavenProject.getVersion());
+    if (schema.getProp("mvnId") == null) {
+      StringBuilder idBuilder = new StringBuilder(64);
+      idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
+              .append(':').append(mavenProject.getVersion()).append(':');
+      StringBuilder idb = new StringBuilder(4);
+      AppendableUtils.appendUnsignedString(idb, idSequence, 5);
+      idBuilder.append(idb);
+      schema.addProp("mvnId", idBuilder.toString());
+      index.put(idb.toString(), schema);
+      idSequence++;
+    }
   }
 
   protected void doCompileIDL(final String filename) throws IOException {
@@ -327,11 +343,23 @@ public final class SchemaCompileMojo
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
       }
+      Path indexFile = this.generatedAvscTarget.toPath().resolve("schema_index.properties");
+      try (BufferedWriter bw = Files.newBufferedWriter(indexFile,
+              StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        for (Map.Entry<String, Schema> entry : index.entrySet()) {
+            bw.append(entry.getKey());
+            bw.append('=');
+            bw.append(entry.getValue().getFullName());
+            bw.append('\n');
+        }
+      } catch (IOException ex) {
+        throw new MojoExecutionException("Cannot generate schema index " + this, ex);
+      }
       mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
       Resource resource = new Resource();
       resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
       resource.addInclude("**/*.avsc");
-      resource.addInclude(SCHEMA_MANIFEST);
+      resource.addInclude("*.properties");
       mavenProject.addResource(resource);
       Resource resource2 = new Resource();
       resource2.setDirectory(pSources.toString());
