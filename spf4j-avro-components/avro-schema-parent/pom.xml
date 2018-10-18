@@ -20,22 +20,47 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.spf4j</groupId>
-  <artifactId>spf4j-avro-components</artifactId>
+  <artifactId>avro-schema-parent</artifactId>
   <packaging>pom</packaging>
   <parent>
     <groupId>org.spf4j</groupId>
-    <artifactId>spf4j</artifactId>
+    <artifactId>spf4j-avro-components</artifactId>
     <version>8.5.6-SNAPSHOT</version>
   </parent>
   <name>${project.artifactId}</name>
-  <description>Avro utilities, more efficient GenericRecords, Schema traversal code...</description>
-  <modules>
-    <module>spf4j-avro</module>
-    <module>maven-avro-schema-plugin</module>
-    <module>avro-schema-parent</module>
-  </modules>
-  <properties>
-        <findbugs.excludeFilterFile>${basedir}/../../findbugs_exclude.xml</findbugs.excludeFilterFile>
-        <checkstyle.configLocation>${basedir}/../../checkstyle_checks.xml</checkstyle.configLocation>
-  </properties>
+  <description>Avro schema project parent</description>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.spf4j</groupId>
+        <artifactId>maven-avro-schema-plugin</artifactId>
+        <version>${project.version}</version>
+        <extensions>true</extensions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-compiler</artifactId>
+            <version>${avro.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency> <!-- necessary for zolyfarkas/avro fork -->
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+  </dependencies>
 </project>
