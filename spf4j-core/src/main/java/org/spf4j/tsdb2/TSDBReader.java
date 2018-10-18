@@ -32,7 +32,6 @@
 package org.spf4j.tsdb2;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CountingInputStream;
 import com.google.common.primitives.Longs;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -41,6 +40,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.channels.Channels;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
@@ -51,13 +52,16 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.spf4j.base.Either;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Handler;
+import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.io.MemorizingBufferedInputStream;
 import org.spf4j.tsdb2.avro.DataBlock;
@@ -73,22 +77,25 @@ public final  class TSDBReader implements Closeable {
 
     private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
 
-    private final CountingInputStream bis;
+    private CountingInputStream bis;
     private final Header header;
     private long size;
-    private final BinaryDecoder decoder;
+    private  BinaryDecoder decoder;
     private final SpecificDatumReader<Object> recordReader;
     private RandomAccessFile raf;
     private final File file;
+    private final Path filePath;
     private volatile boolean watch;
-
+    private final int bufferSize;
+    private final SeekableByteChannel byteChannel;
 
     public TSDBReader(final File file, final int bufferSize) throws IOException {
         this.file = file;
-        final InputStream fis = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()), bufferSize);
-        bis = new CountingInputStream(fis);
+        this.filePath = file.toPath();
+        this.bufferSize = bufferSize;
+        this.byteChannel = Files.newByteChannel(filePath);
+        resetStream(0);
         SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
-        decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
         TSDBWriter.validateType(bis);
         byte[] buff = new byte[8];
         ByteStreams.readFully(bis, buff);
@@ -99,6 +106,13 @@ public final  class TSDBReader implements Closeable {
                 Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));
     }
 
+
+    private void resetStream(final long position) throws IOException {
+      byteChannel.position(position);
+      bis = new CountingInputStream(new MemorizingBufferedInputStream(Channels.newInputStream(byteChannel),
+              bufferSize), position);
+      decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+    }
 
     /**
      * method useful when implementing tailing.
@@ -112,7 +126,12 @@ public final  class TSDBReader implements Closeable {
         raf.seek(TSDBWriter.MAGIC.length);
         long old = size;
         size = raf.readLong();
-        return size != old;
+        if  (size != old) {
+          resetStream(bis.getCount());
+          return true;
+        } else {
+          return false;
+        }
     }
 
 
@@ -165,11 +184,23 @@ public final  class TSDBReader implements Closeable {
         watch =  false;
     }
 
+    public synchronized <E extends Exception>  Future<Void> bgWatch(
+            final Handler<Either<TableDef, DataBlock>, E> handler,
+            final EventSensitivity es) {
+      return bgWatch(handler, es, ExecutionContexts.getContextDeadlineNanos());
+    }
+
+
+    public synchronized <E extends Exception>  Future<Void> bgWatch(
+            final Handler<Either<TableDef, DataBlock>, E> handler,
+            final EventSensitivity es, final long timeout, final TimeUnit unit) {
+      return bgWatch(handler, es, TimeSource.nanoTime() + unit.toNanos(timeout));
+    }
 
     //CHECKSTYLE:OFF
     public synchronized <E extends Exception>  Future<Void> bgWatch(
             final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es) {
+            final EventSensitivity es, final long deadlineNanos) {
         //CHECKSTYLE:ON
         return DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
 
@@ -186,11 +217,21 @@ public final  class TSDBReader implements Closeable {
         HIGH, MEDIUM, LOW
     }
 
+    public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+            final EventSensitivity es) throws IOException, InterruptedException, E {
+      watch(handler, es, ExecutionContexts.getContextDeadlineNanos());
+    }
+
+    public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+            final EventSensitivity es, final long timeout, final TimeUnit unit)
+            throws IOException, InterruptedException, E {
+      watch(handler, es,  TimeSource.nanoTime() + unit.toNanos(timeout));
+    }
 
     //CHECKSTYLE:OFF
     @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
     public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es)
+            final EventSensitivity es, final long deadlineNanos)
             throws IOException, InterruptedException, E {
         //CHECKSTYLE:ON
         synchronized (this) {
@@ -218,12 +259,16 @@ public final  class TSDBReader implements Closeable {
             path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,
                 StandardWatchEventKinds.OVERFLOW
             }, sensitivity);
-            readAll(handler);
+            readAll(handler, deadlineNanos);
             do {
-                WatchKey key = watchService.poll(1000, TimeUnit.MILLISECONDS);
+                long tNanos = deadlineNanos - TimeSource.nanoTime();
+                if (tNanos <= 0) {
+                  break;
+                }
+                WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
                 if (key == null) {
                     if (reReadSize()) {
-                        readAll(handler);
+                        readAll(handler, deadlineNanos);
                     }
                     continue;
                 }
@@ -232,7 +277,7 @@ public final  class TSDBReader implements Closeable {
                     break;
                 }
                 if (!key.pollEvents().isEmpty() && reReadSize()) {
-                  readAll(handler);
+                  readAll(handler, deadlineNanos);
                 }
                 if (!key.reset()) {
                     key.cancel();
@@ -245,12 +290,21 @@ public final  class TSDBReader implements Closeable {
     }
 
     //CHECKSTYLE:OFF
-    public synchronized <E extends Exception> void readAll(final Handler<Either<TableDef, DataBlock>, E> handler)
+    public synchronized <E extends Exception> void readAll(final Handler<Either<TableDef, DataBlock>, E> handler,
+            final long deadlineNanos)
             throws IOException, E {
-        //CHECKSTYLE:ON
+      //CHECKSTYLE:ON
         Either<TableDef, DataBlock> data;
         while ((data = read()) != null) {
-            handler.handle(data, Long.MAX_VALUE);
+            handler.handle(data, deadlineNanos);
+        }
+    }
+
+    public synchronized void readAll(final Consumer<Either<TableDef, DataBlock>> consumer)
+            throws IOException {
+        Either<TableDef, DataBlock> data;
+        while ((data = read()) != null) {
+            consumer.accept(data);
         }
     }
 
