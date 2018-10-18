@@ -37,10 +37,12 @@ public abstract class SchemaMojoBase extends AbstractMojo {
 
 
   /**
-   * The working directory for this plugin.
+   * The directory where all schema dependencies (avsc, avpr, avdl) are made vailable
    */
-  @Parameter(defaultValue = "${project.build.directory}/schema-dependencies", readonly = true)
+  @Parameter(name = "dependenciesDirectory",
+          defaultValue = "${project.build.directory}/schema-dependencies", readonly = true)
   protected File dependenciesDirectory;
+
   /**
    * The source directory of avro files. This directory is added to the classpath at schema compiling time. All files
    * can therefore be referenced as classpath resources following the directory structure under the source directory.
@@ -68,8 +70,7 @@ public abstract class SchemaMojoBase extends AbstractMojo {
   /**
    *  the target folder.
    */
-  @Parameter(name = "target",
-          defaultValue = "${project.build.directory}")
+  @Parameter(name = "target", defaultValue = "${project.build.directory}")
   protected File target;
 
   /**

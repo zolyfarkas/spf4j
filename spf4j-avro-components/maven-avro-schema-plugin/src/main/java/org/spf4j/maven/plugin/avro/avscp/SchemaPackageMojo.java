@@ -15,7 +15,7 @@ import org.spf4j.io.compress.Compress;
 import org.spf4j.maven.plugin.avro.avscp.SchemaMojoBase;
 
 /**
- * Goal that packages a schema package and avro sources and attaches them as separate artifacts.
+ * mojo that packages a schema package and avro sources and attaches them as separate artifacts.
  */
 @Mojo(name = "avro-package", defaultPhase = LifecyclePhase.PACKAGE, requiresProject = true)
 public final class SchemaPackageMojo extends SchemaMojoBase {

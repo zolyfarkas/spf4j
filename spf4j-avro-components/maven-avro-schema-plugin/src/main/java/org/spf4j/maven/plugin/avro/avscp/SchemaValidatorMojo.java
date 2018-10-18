@@ -19,7 +19,9 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 
 /**
- * Goal that packages a schema package and avro sources and attaches them as separate artifacts.
+ * Mojo that runs all Schema validators on this project schemas:
+ * Built in validators: docValidator (schema documentation), compatibility (schema compatibility)
+ *
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresProject = true)
 @SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"})

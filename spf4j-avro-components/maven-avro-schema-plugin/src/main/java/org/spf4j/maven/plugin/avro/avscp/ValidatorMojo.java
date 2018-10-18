@@ -23,8 +23,7 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 
 /**
- *
- * @author Zoltan Farkas
+ * Interface to abstract the Validator MOJO for the Validators.
  */
 public interface ValidatorMojo {
 

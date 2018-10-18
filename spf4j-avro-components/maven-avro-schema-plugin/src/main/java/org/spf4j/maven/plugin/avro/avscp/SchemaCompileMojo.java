@@ -48,6 +48,12 @@ import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.spf4j.base.AppendableUtils;
 
+/**
+ * Mojo that will compile the avro sources: *.avsc, *.avpr, *.avdl in:
+ * 1) java files.
+ * 2) avsc files.
+ * @author Zoltan Farkas
+ */
 @Mojo(name = "avro-compile", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(phase = LifecyclePhase.GENERATE_SOURCES)
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
@@ -79,21 +85,22 @@ public final class SchemaCompileMojo
   private boolean createSetters;
 
   /**
-   * add maven coordinates to the schema. (group:artifact:version)
+   * add maven coordinates to the schema. (group:artifact:version:ID)
+   * ID->Schema full name mapping file  schema_index.properties is packaged in the jar artifacts.
    */
   @Parameter(name = "addMavenId",
           defaultValue = "true")
   private boolean addMavenId = true;
 
   /**
-   * add maven coordinates to the schema. (group:artifact:version)
+   * delete Protocol java files, this is when only the schema definitions are relevant.
    */
   @Parameter(name = "deleteProtocolInterface",
           defaultValue = "true")
   private boolean deleteProtocolInterface = true;
 
   /**
-   * add maven coordinates to the schema. (group:artifact:version)
+   * set Java system properties that might control avro behavior.
    */
   @Parameter(name = "systemProperties")
   private Properties systemProperties = new Properties();

@@ -25,6 +25,11 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.spf4j.io.compress.Compress;
 import org.spf4j.maven.MavenRepositoryUtils;
 
+/**
+ * mojo that fetches all schema dependencies.
+ * All avro files will be made available at "dependenciesDirectory"
+ * @author Zoltan Farkas
+ */
 @Mojo(name = "avro-dependencies", requiresDependencyResolution = ResolutionScope.COMPILE)
 @Execute(phase = LifecyclePhase.INITIALIZE)
 public final class SchemaDependenciesMojo
@@ -98,8 +103,5 @@ public final class SchemaDependenciesMojo
     return "SchemaDependenciesMojo{" + "mavenSession=" + mavenSession + ", repoSystem="
             + repoSystem + ", mojoExecution=" + mojoExecution + '}';
   }
-
-
-
 
 }

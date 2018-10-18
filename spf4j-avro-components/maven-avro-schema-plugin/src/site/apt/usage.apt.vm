@@ -1,0 +1,48 @@
+Maven  Spf4j JDiff Plugin
+
+* Examples
+
+** Use the plugin.
+
+ Avro sources (avsc, avpr, avdl) should be located in: src/main/avro
+
+ Here is a example project:
+
++-------------------
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.spf4j</groupId>
+  <artifactId>test-schema</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0</version>
+  <name>${project.artifactId}-${project.version}</name>
+  <description>Avro utilities, more efficient GenericRecords, Schema traversal code...</description>ßß
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.spf4j</groupId>
+        <artifactId>maven-avro-schema-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>@avro.version@</version>
+    </dependency>
+    <dependency> <!-- reuse an existing data model-->
+        <groupId>org.spf4j</groupId>
+        <artifactId>test-schema-common</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <dependency> <!-- zolyfarkas/avro fork generated classes use @Nullable/@Nonnull -->
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+  </dependencies>
+</project>
++-------------------
