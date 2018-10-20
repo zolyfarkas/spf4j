@@ -113,12 +113,13 @@ public final class SchemaCompileMojo
     if (schema.getProp("mvnId") == null) {
       StringBuilder idBuilder = new StringBuilder(64);
       idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
-              .append(':').append(mavenProject.getVersion()).append(':');
+              .append(':').append(mavenProject.getVersion());
       StringBuilder idb = new StringBuilder(4);
       AppendableUtils.appendUnsignedString(idb, idSequence, 5);
-      idBuilder.append(idb);
       schema.addProp("mvnId", idBuilder.toString());
-      index.put(idb.toString(), schema);
+      String schemaPackId = idb.toString();
+      schema.addProp("pId", schemaPackId);
+      index.put(schemaPackId, schema);
       idSequence++;
     }
   }
