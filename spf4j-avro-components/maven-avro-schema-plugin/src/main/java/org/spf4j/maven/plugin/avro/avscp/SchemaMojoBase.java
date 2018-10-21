@@ -60,7 +60,7 @@ public abstract class SchemaMojoBase extends AbstractMojo {
 
 
   /**
-   * the destination for the avro schema json files.
+   * the destination for the generated avro schema json files (will be published along with the java code).
    */
   @Parameter(name = "generatedAvscTarget",
           defaultValue = "${project.build.directory}/generated-sources/avsc")
