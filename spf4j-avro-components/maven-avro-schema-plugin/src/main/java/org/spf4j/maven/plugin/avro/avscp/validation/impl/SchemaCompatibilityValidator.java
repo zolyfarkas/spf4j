@@ -65,6 +65,15 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
  *
  * Schema deprecation and removal policy check to be done at some point in the future.
  *
+ * this validator can supports the following configuration keys:
+ *
+ * compatibiliy.versionRange - maven version range to check compatibility against. (defaults to
+ * "[," + mavenProject.getVersion() +  ')' )
+ *
+ * compatibiliy.maxNrOfVersionsToCheckForCompatibility = max number oof versions to check against. (defaults to 30)
+ *
+ * compatibiliy.maxNrOfDaysBackCheckForCompatibility - max released time to check against (defaults to 1 year)
+ *
  * @author Zoltan Farkas
  */
 public final class SchemaCompatibilityValidator implements Validator<ValidatorMojo> {
