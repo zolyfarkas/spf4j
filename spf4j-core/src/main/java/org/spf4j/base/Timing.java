@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.jmx.JmxExport;
 
 /**
  * A Utility class that allows for quick conversion between nanotime and epoch relative time.
@@ -53,13 +54,18 @@ public final class Timing {
   private static final ScheduledFuture UPDATER;
 
   static {
-    latestTiming = new Timing();
-    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -> latestTiming = new Timing(),
+    updateTiming();
+    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
   }
 
   private final long nanoTimeRef;
   private final long currentTimeMillisRef;
+
+  @JmxExport
+  public static void updateTiming() {
+    latestTiming = new Timing();
+  }
 
   private Timing() {
     nanoTimeRef = TimeSource.nanoTime();
@@ -87,7 +93,7 @@ public final class Timing {
     return latestTiming;
   }
 
-
+  @JmxExport
   public static void stopUpdate() {
     UPDATER.cancel(false);
   }
