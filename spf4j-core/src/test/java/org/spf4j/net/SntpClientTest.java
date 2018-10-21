@@ -39,6 +39,7 @@ import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.Assert;
@@ -47,6 +48,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.failsafe.RetryPolicy;
 
 /**
  *
@@ -111,9 +113,10 @@ public final class SntpClientTest {
 
         @Override
         @SuppressFBWarnings("MDM_THREAD_YIELD") // not ideal
-        public void doRun() throws IOException, InterruptedException {
+        public void doRun() throws IOException, InterruptedException, TimeoutException {
           boolean first = true;
-          try (DatagramSocket socket = new DatagramSocket(50123)) {
+          try (DatagramSocket socket = RetryPolicy.defaultPolicy().call(
+                  () -> new DatagramSocket(50123), IOException.class, 2, TimeUnit.MINUTES)) {
             socket.setSoTimeout(1000);
             byte[] buffer = new byte[48];
             DatagramPacket request = new DatagramPacket(buffer, buffer.length);
