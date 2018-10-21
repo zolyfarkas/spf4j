@@ -44,6 +44,9 @@ public final class DateTimeFormats {
   public static final DateTimeFormatter TS_FORMAT = DateTimeFormatter
           .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withZone(DEFAULT_ZONE);
 
+  public static final DateTimeFormatter COMPACT_TS_FORMAT = DateTimeFormatter
+          .ofPattern("yyyyMMdd'T'HHmmss.SSSZZ").withZone(DEFAULT_ZONE);
+
   public static final DateTimeFormatter DT_FORMAT = DateTimeFormatter
           .ofPattern("yyyy-MM-dd").withZone(DEFAULT_ZONE);
 

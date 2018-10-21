@@ -273,8 +273,9 @@ public final class Sampler {
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
     String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
-            + DateTimeFormats.TS_FORMAT.format(Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
-            + '_' + DateTimeFormats.TS_FORMAT.format(Instant.now()));
+            + DateTimeFormats.COMPACT_TS_FORMAT.format(
+                    Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
+            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now()));
     File file = new File(dumpFolder, fileName);
     return dumpToFile(file);
   }
