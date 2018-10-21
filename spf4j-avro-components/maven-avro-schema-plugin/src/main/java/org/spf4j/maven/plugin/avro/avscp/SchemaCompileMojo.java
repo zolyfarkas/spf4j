@@ -116,10 +116,9 @@ public final class SchemaCompileMojo
               .append(':').append(mavenProject.getVersion());
       StringBuilder idb = new StringBuilder(4);
       AppendableUtils.appendUnsignedString(idb, idSequence, 5);
+      idBuilder.append(':').append(idb);
       schema.addProp("mvnId", idBuilder.toString());
-      String schemaPackId = idb.toString();
-      schema.addProp("pId", schemaPackId);
-      index.put(schemaPackId, schema);
+      index.put(idb.toString(), schema);
       idSequence++;
     }
   }
