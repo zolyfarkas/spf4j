@@ -296,7 +296,7 @@ public final class Sampler {
       if (pfile.getName().endsWith(".ssdump2")) {
         file = pfile;
       } else {
-        file = new File(pfile.getParentFile(), pfile.getName() + es.getKey()  + ".ssdump2");
+        file = new File(pfile.getParentFile(), pfile.getName() + '_' + es.getKey()  + ".ssdump2");
       }
       Converter.save(file, es.getValue());
       return file;

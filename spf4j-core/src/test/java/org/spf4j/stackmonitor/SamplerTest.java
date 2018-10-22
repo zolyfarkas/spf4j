@@ -32,7 +32,10 @@
 package org.spf4j.stackmonitor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,5 +63,16 @@ public class SamplerTest {
     expect.assertObservation();
     sampler.stop();
   }
+
+  @Test
+  public void testSampler2() throws InterruptedException, IOException {
+    Sampler sampler = Sampler.getSampler(5, 2000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
+    sampler.start();
+    File dumpToFile = sampler.dumpToFile("id");
+    LOG.debug("saved to file {}", dumpToFile);
+    Assert.assertThat(dumpToFile.getAbsolutePath(), Matchers.not(Matchers.containsString(":")));
+    sampler.stop();
+  }
+
 
 }
