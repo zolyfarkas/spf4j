@@ -309,7 +309,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
         throw ex1;
       }
     }
-    createOwnerRow();
+    createOwnerRowIfNotPresent();
   }
 
   public void registerJmx() {
@@ -329,7 +329,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   private void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-    try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {
+      try (PreparedStatement stmt = conn.prepareStatement(permitsSql)) {
         stmt.setNString(1, semName);
         stmt.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
         try (ResultSet rs = stmt.executeQuery()) {
@@ -360,20 +360,23 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
   }
 
-  private void createOwnerRow()
+  private void createOwnerRowIfNotPresent()
           throws SQLException, InterruptedException {
+    try {
+      jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
 
-    jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
-
-      try (PreparedStatement insert = conn.prepareStatement(insertPermitsByOwnerSql)) {
-        insert.setNString(1, this.semName);
-        insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
-        insert.setInt(3, 0);
-        insert.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
-        insert.executeUpdate();
-      }
-      return null;
-    }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+        try (PreparedStatement insert = conn.prepareStatement(insertPermitsByOwnerSql)) {
+          insert.setNString(1, this.semName);
+          insert.setNString(2, org.spf4j.base.Runtime.PROCESS_ID);
+          insert.setInt(3, 0);
+          insert.setQueryTimeout(JdbcTemplate.getTimeoutToDeadlineSeconds(deadlineNanos));
+          insert.executeUpdate();
+        }
+        return null;
+      }, jdbcTimeoutSeconds, TimeUnit.SECONDS);
+    } catch (SQLIntegrityConstraintViolationException ex) {
+      LOG.debug("Semaphore record for current process already there", ex);
+    }
   }
 
   @SuppressFBWarnings("UW_UNCOND_WAIT")
@@ -773,6 +776,13 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     unregisterJmx();
     this.heartBeat.removeLifecycleHook(failureHook);
     isHealthy = false;
+  }
+
+  @Override
+  protected void finalize() throws Throwable  {
+    try (AutoCloseable c = this) {
+      super.finalize();
+    }
   }
 
   @JmxExport
