@@ -37,8 +37,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-import org.spf4j.base.Base64;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -102,9 +102,9 @@ public final class BufferedInputStream extends FilterInputStream {
 <span class="fc" id="L102">    }</span>
 
     private void fill() throws IOException {
-<span class="nc" id="L105">        byte[] buffer = getBufIfOpen();</span>
-<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (markpos &lt; 0) {</span>
-<span class="nc" id="L107">            pos = 0;</span>
+<span class="fc" id="L105">        byte[] buffer = getBufIfOpen();</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (markpos &lt; 0) {</span>
+<span class="fc" id="L107">            pos = 0;</span>
 <span class="nc bnc" id="L108" title="All 2 branches missed.">        } else if (pos &gt;= buffer.length) {</span>
 <span class="nc bnc" id="L109" title="All 2 branches missed.">            if (markpos &gt; 0) {</span>
 <span class="nc" id="L110">                int sz = pos - markpos;</span>
@@ -129,12 +129,12 @@ public final class BufferedInputStream extends FilterInputStream {
 <span class="nc" id="L129">                buffer = nbuf;</span>
             }
         }
-<span class="nc" id="L132">        count = pos;</span>
-<span class="nc" id="L133">        int n = getInIfOpen().read(buffer, pos, buffer.length - pos);</span>
-<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (n &gt; 0) {</span>
-<span class="nc" id="L135">            count = n + pos;</span>
+<span class="fc" id="L132">        count = pos;</span>
+<span class="fc" id="L133">        int n = getInIfOpen().read(buffer, pos, buffer.length - pos);</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (n &gt; 0) {</span>
+<span class="fc" id="L135">            count = n + pos;</span>
         }
-<span class="nc" id="L137">    }</span>
+<span class="fc" id="L137">    }</span>
 
     @Override
     public synchronized int read() throws IOException {
@@ -149,20 +149,20 @@ public final class BufferedInputStream extends FilterInputStream {
 
     private int read1(final byte[] b, final int off, final int len) throws IOException {
 <span class="fc" id="L151">        int avail = count - pos;</span>
-<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (avail &lt;= 0) {</span>
-<span class="pc bpc" id="L153" title="2 of 4 branches missed.">            if (len &gt;= getBufIfOpen().length &amp;&amp; markpos &lt; 0) {</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (avail &lt;= 0) {</span>
+<span class="pc bpc" id="L153" title="1 of 4 branches missed.">            if (len &gt;= getBufIfOpen().length &amp;&amp; markpos &lt; 0) {</span>
 <span class="fc" id="L154">                return getInIfOpen().read(b, off, len);</span>
             }
-<span class="nc" id="L156">            fill();</span>
-<span class="nc" id="L157">            avail = count - pos;</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (avail &lt;= 0) {</span>
+<span class="fc" id="L156">            fill();</span>
+<span class="fc" id="L157">            avail = count - pos;</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            if (avail &lt;= 0) {</span>
 <span class="nc" id="L159">                return -1;</span>
             }
         }
-<span class="nc bnc" id="L162" title="All 2 branches missed.">        int cnt = (avail &lt; len) ? avail : len;</span>
-<span class="nc" id="L163">        System.arraycopy(getBufIfOpen(), pos, b, off, cnt);</span>
-<span class="nc" id="L164">        pos += cnt;</span>
-<span class="nc" id="L165">        return cnt;</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">        int cnt = (avail &lt; len) ? avail : len;</span>
+<span class="fc" id="L163">        System.arraycopy(getBufIfOpen(), pos, b, off, cnt);</span>
+<span class="fc" id="L164">        pos += cnt;</span>
+<span class="fc" id="L165">        return cnt;</span>
     }
 
     @Override
@@ -182,15 +182,15 @@ public final class BufferedInputStream extends FilterInputStream {
 <span class="pc bpc" id="L182" title="1 of 2 branches missed.">                return (n == 0) ? nread : n;</span>
             }
 <span class="fc" id="L184">            n += nread;</span>
-<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            if (n &gt;= len) {</span>
-<span class="nc" id="L186">                return n;</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">            if (n &gt;= len) {</span>
+<span class="fc" id="L186">                return n;</span>
             }
             // if not closed but no bytes available, return
 <span class="fc" id="L189">            InputStream input = in;</span>
-<span class="pc bpc" id="L190" title="2 of 4 branches missed.">            if (input != null &amp;&amp; input.available() &lt;= 0) {</span>
+<span class="pc bpc" id="L190" title="1 of 4 branches missed.">            if (input != null &amp;&amp; input.available() &lt;= 0) {</span>
 <span class="fc" id="L191">                return n;</span>
             }
-<span class="nc" id="L193">        }</span>
+<span class="fc" id="L193">        }</span>
     }
 
     @Override
@@ -264,7 +264,7 @@ public final class BufferedInputStream extends FilterInputStream {
 
     @Override
     public String toString() {
-<span class="nc bnc" id="L267" title="All 2 branches missed.">        return &quot;BufferedInputStream{&quot; + &quot;buf=&quot; + (buf != null ? Base64.encodeBase64(buf) : &quot;null&quot;)</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        return &quot;BufferedInputStream{&quot; + &quot;buf=&quot; + (buf != null ? Base64.getEncoder().encodeToString(buf)  : &quot;null&quot;)</span>
                 + &quot;, count=&quot; + count + &quot;, pos=&quot; + pos
                 + &quot;, markpos=&quot; + markpos + &quot;, marklimit=&quot; + marklimit + &quot;, bufferProvider=&quot; + bufferProvider + '}';
     }

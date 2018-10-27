@@ -203,9 +203,9 @@ public final class RateLimiter
 
     private int reTimeCount;
 
-<span class="fc" id="L206">    ReservationHandler(final long currTimeNanos, final long timeoutMillis, final int permits) {</span>
+<span class="fc" id="L206">    ReservationHandler(final long currTimeNanos, final long deadlineNanos, final int permits) {</span>
 <span class="fc" id="L207">      this.currTimeNanos = currTimeNanos;</span>
-<span class="fc" id="L208">      this.deadlineNanos = currTimeNanos + timeoutMillis;</span>
+<span class="fc" id="L208">      this.deadlineNanos = deadlineNanos;</span>
 <span class="fc" id="L209">      this.permits = permits;</span>
 <span class="fc" id="L210">      this.msUntilResourcesAvailable = -1;</span>
 <span class="fc" id="L211">      this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;</span>
@@ -267,8 +267,8 @@ public final class RateLimiter
 
   @Override
   @SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;) //fb has a point here...
-  public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="fc" id="L271">    long tryAcquireGetDelayMillis = tryAcquireGetDelayMillis(nrPermits, timeout, unit);</span>
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+<span class="fc" id="L271">    long tryAcquireGetDelayMillis = tryAcquireGetDelayMillis(nrPermits, deadlineNanos);</span>
 <span class="fc bfc" id="L272" title="All 2 branches covered.">    if (tryAcquireGetDelayMillis == 0) {</span>
 <span class="fc" id="L273">      return true;</span>
 <span class="fc bfc" id="L274" title="All 2 branches covered.">    } else if (tryAcquireGetDelayMillis &gt; 0) {</span>
@@ -289,13 +289,13 @@ public final class RateLimiter
    * @throws InterruptedException
    */
   @Signed
-  long tryAcquireGetDelayMillis(final int nrPermits, final long timeout, final TimeUnit unit)
+  long tryAcquireGetDelayMillis(final int nrPermits, final long deadlineNanos)
           throws InterruptedException {
 <span class="fc" id="L294">    boolean tryAcquire = tryAcquire(nrPermits);</span>
 <span class="fc bfc" id="L295" title="All 2 branches covered.">    if (tryAcquire) {</span>
 <span class="fc" id="L296">      return 0L;</span>
     } else { // no curent permits available, reserve some slots and wait for them.
-<span class="fc" id="L298">      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), unit.toNanos(timeout), nrPermits);</span>
+<span class="fc" id="L298">      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos, nrPermits);</span>
       boolean accd;
 <span class="fc" id="L300">      synchronized (sync) {</span>
 <span class="fc" id="L301">        accd = Atomics.maybeAccumulate(permits, rh, concurrencyLevel);</span>

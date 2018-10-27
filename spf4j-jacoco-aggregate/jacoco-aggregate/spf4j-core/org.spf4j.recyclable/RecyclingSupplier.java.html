@@ -31,9 +31,14 @@
  */
 package org.spf4j.recyclable;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.TimeSource;
 
 /**
  * Object pool interface.
@@ -45,7 +50,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @param &lt;T&gt; - type of recycled objects
  */
 @ParametersAreNonnullByDefault
-public interface RecyclingSupplier&lt;T&gt; extends NonValidatingRecyclingSupplier&lt;T&gt; {
+public interface RecyclingSupplier&lt;T&gt; extends NonValidatingRecyclingSupplier&lt;T&gt;, BlockingDisposable {
+
+    @Nonnull
+    default T get() throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException {
+<span class="fc" id="L58">      return get(ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);</span>
+    }
+
+    @Nonnull
+    default T get(long timeout, TimeUnit unit) throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException, TimeoutException {
+<span class="fc" id="L64">      T tryGet = tryGet(timeout, unit);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">      if (tryGet == null) {</span>
+<span class="nc" id="L66">        throw new TimeoutException(&quot;Timed out after &quot; + timeout + &quot; &quot; + unit);</span>
+      } else {
+<span class="fc" id="L68">        return tryGet;</span>
+      }
+    }
+
+    @Nullable
+    default T tryGet(long timeout, TimeUnit unit) throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException {
+<span class="fc" id="L75">      return tryGet(TimeSource.nanoTime() + unit.toNanos(timeout));</span>
+    }
+    
+
+    @Nullable
+    T tryGet(long deadlineNanos) throws ObjectCreationException, ObjectBorrowException,
+            InterruptedException;
+
 
     /**
      * return a object previously borrowed from the pool,
@@ -64,8 +98,8 @@ public interface RecyclingSupplier&lt;T&gt; extends NonValidatingRecyclingSuppli
      * @param object - object to recycle.
      */
     default void recycle(T object) {
-<span class="nc" id="L67">      recycle(object, null);</span>
-<span class="nc" id="L68">    }</span>
+<span class="nc" id="L101">      recycle(object, null);</span>
+<span class="nc" id="L102">    }</span>
 
 
     @ParametersAreNonnullByDefault

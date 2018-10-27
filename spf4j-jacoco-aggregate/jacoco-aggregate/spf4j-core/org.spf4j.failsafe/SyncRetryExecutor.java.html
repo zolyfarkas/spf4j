@@ -136,12 +136,12 @@ public interface SyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&g
 <span class="fc bfc" id="L136" title="All 2 branches covered.">            ? (decision = retryPredicate.getExceptionDecision(lastEx, what)).getDecisionType()</span>
               == RetryDecision.Type.Retry
 <span class="fc bfc" id="L138" title="All 2 branches covered.">            : (decision = retryPredicate.getDecision(result, what)).getDecisionType() == RetryDecision.Type.Retry) {</span>
-<span class="pc bpc" id="L139" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
-<span class="nc" id="L140">        InterruptedException ex = new InterruptedException();</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (lastExChain != null) {</span>
-<span class="nc" id="L142">          ex.addSuppressed(lastExChain);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">      if (Thread.interrupted()) {</span>
+<span class="fc" id="L140">        InterruptedException ex = new InterruptedException();</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (lastExChain != null) {</span>
+<span class="fc" id="L142">          ex.addSuppressed(lastExChain);</span>
         }
-<span class="nc" id="L144">        throw ex;</span>
+<span class="fc" id="L144">        throw ex;</span>
       }
 <span class="fc" id="L146">      long delayNanos = decision.getDelayNanos();</span>
 <span class="fc bfc" id="L147" title="All 2 branches covered.">      if (delayNanos &gt; 0) {</span>

@@ -36,7 +36,6 @@ import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.Scanable;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnull;
 
 /**
@@ -54,24 +53,25 @@ final class ScalableObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;,  
 
     ScalableObjectPool(final int initialSize, final int maxSize,
             @Nonnull final RecyclingSupplier.Factory&lt;T&gt; factory,
-<span class="fc" id="L57">            final boolean fair) throws ObjectCreationException {</span>
-<span class="fc" id="L58">        globalPool = new SimpleSmartObjectPool&lt;&gt;(initialSize, maxSize,</span>
+<span class="fc" id="L56">            final boolean fair) throws ObjectCreationException {</span>
+<span class="fc" id="L57">        globalPool = new SimpleSmartObjectPool&lt;&gt;(initialSize, maxSize,</span>
                 new ObjectHolderFactory&lt;&gt;(initialSize, factory), fair);
-<span class="fc" id="L60">        localPool = new ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L59">        localPool = new ThreadLocal&lt;LocalObjectPool&lt;T&gt;&gt;() {</span>
                     @Override
                     protected LocalObjectPool&lt;T&gt; initialValue() {
-<span class="fc" id="L63">                        return new LocalObjectPool&lt;&gt;(globalPool);</span>
+<span class="fc" id="L62">                        return new LocalObjectPool&lt;&gt;(globalPool);</span>
                     }
         };
-<span class="fc" id="L66">    }</span>
+<span class="fc" id="L65">    }</span>
 
 
 
     @Override
     @Nonnull
     @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;)
-    public T get() throws ObjectCreationException, InterruptedException, TimeoutException {
-<span class="fc" id="L74">        return localPool.get().get();</span>
+    public T tryGet(final long deadlineNanos) throws ObjectCreationException,
+            InterruptedException {
+<span class="fc" id="L74">        return localPool.get().tryGet(deadlineNanos);</span>
     }
 
     @Override

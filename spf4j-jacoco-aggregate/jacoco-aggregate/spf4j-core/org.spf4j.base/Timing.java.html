@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.jmx.JmxExport;
 
 /**
  * A Utility class that allows for quick conversion between nanotime and epoch relative time.
@@ -44,57 +45,62 @@ import org.spf4j.concurrent.DefaultScheduler;
 @Beta
 public final class Timing {
 
-<span class="fc" id="L47">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
+<span class="fc" id="L48">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
 
-<span class="fc" id="L49">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
+<span class="fc" id="L50">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
 
   private static volatile Timing latestTiming;
 
   private static final ScheduledFuture UPDATER;
 
   static {
-<span class="fc" id="L56">    latestTiming = new Timing();</span>
-<span class="pc" id="L57">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(() -&gt; latestTiming = new Timing(),</span>
+<span class="fc" id="L57">    updateTiming();</span>
+<span class="fc" id="L58">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,</span>
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
-<span class="fc" id="L59">  }</span>
+<span class="fc" id="L60">  }</span>
 
   private final long nanoTimeRef;
   private final long currentTimeMillisRef;
 
-<span class="fc" id="L64">  private Timing() {</span>
-<span class="fc" id="L65">    nanoTimeRef = TimeSource.nanoTime();</span>
-<span class="fc" id="L66">    currentTimeMillisRef = System.currentTimeMillis();</span>
-<span class="fc" id="L67">  }</span>
+  @JmxExport
+  public static void updateTiming() {
+<span class="fc" id="L67">    latestTiming = new Timing();</span>
+<span class="fc" id="L68">  }</span>
+
+<span class="fc" id="L70">  private Timing() {</span>
+<span class="fc" id="L71">    nanoTimeRef = TimeSource.nanoTime();</span>
+<span class="fc" id="L72">    currentTimeMillisRef = System.currentTimeMillis();</span>
+<span class="fc" id="L73">  }</span>
 
   public long fromNanoTimeToEpochMillis(final long nanoTime) {
-<span class="fc" id="L70">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
+<span class="fc" id="L76">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
   }
 
   public Instant fromNanoTimeToInstant(final long nanoTime) {
-<span class="fc" id="L74">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
+<span class="fc" id="L80">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
   }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
-<span class="fc" id="L78">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
-<span class="fc bfc" id="L79" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
-<span class="fc" id="L80">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
+<span class="fc" id="L84">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
+<span class="fc" id="L86">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
 //      throw new IllegalArgumentException(&quot;Epoch time millis cannot be converted to nanotime &quot; + epochTimeMillis);
     }
-<span class="fc" id="L83">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
+<span class="fc" id="L89">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
   }
 
   public static Timing getCurrentTiming() {
-<span class="fc" id="L87">    return latestTiming;</span>
+<span class="fc" id="L93">    return latestTiming;</span>
   }
 
-
+  @JmxExport
   public static void stopUpdate() {
-<span class="nc" id="L92">    UPDATER.cancel(false);</span>
-<span class="nc" id="L93">  }</span>
+<span class="nc" id="L98">    UPDATER.cancel(false);</span>
+<span class="nc" id="L99">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L97">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
+<span class="nc" id="L103">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
   }
 
 

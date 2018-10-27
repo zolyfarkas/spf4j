@@ -6,15 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.SystemUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -26,7 +23,7 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.repository.RemoteRepository;
 
 @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;)
-<span class="nc" id="L29">public abstract class BaseJDiffMojo</span>
+<span class="nc" id="L26">public abstract class BaseJDiffMojo</span>
         extends AbstractMojo {
 
   /**
@@ -44,7 +41,7 @@ import org.eclipse.aether.repository.RemoteRepository;
   /**
    * List of packages.
    */
-<span class="nc" id="L47">  @Parameter(property = &quot;includePackageNames&quot;)</span>
+<span class="nc" id="L44">  @Parameter(property = &quot;includePackageNames&quot;)</span>
   private ArrayList&lt;String&gt; includePackageNames = new ArrayList&lt;&gt;(2);
 
   @Component
@@ -71,17 +68,9 @@ import org.eclipse.aether.repository.RemoteRepository;
   private RepositorySystem repoSystem;
 
   final MavenSession getMavenSession() {
-<span class="nc" id="L74">    return mavenSession;</span>
+<span class="nc" id="L71">    return mavenSession;</span>
   }
 
-  @SuppressWarnings(&quot;unchecked&quot;)
-  final Map&lt;String, Artifact&gt; getPluginArtifactMap() {
-<span class="nc" id="L79">    return mojoExecution.getMojoDescriptor().getPluginDescriptor().getArtifactMap();</span>
-  }
-
-  final PluginDescriptor getPluginDescriptor() {
-<span class="nc" id="L83">    return mojoExecution.getMojoDescriptor().getPluginDescriptor();</span>
-  }
 
   /**
    * Get the path of the Javadoc tool executable depending the user entry or try to find it depending the OS or the
@@ -92,130 +81,130 @@ import org.eclipse.aether.repository.RemoteRepository;
    */
   final String getJavadocExecutable()
           throws IOException {
-<span class="nc" id="L95">    Toolchain tc = getToolchain();</span>
+<span class="nc" id="L84">    Toolchain tc = getToolchain();</span>
 
-<span class="nc bnc" id="L97" title="All 2 branches missed.">    if (tc != null) {</span>
-<span class="nc" id="L98">      getLog().info(&quot;Toolchain in jdiff-maven-plugin: &quot; + tc);</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">      if (javadocExecutable != null) {</span>
-<span class="nc" id="L100">        getLog().warn(&quot;Toolchains are ignored, 'javadocExecutable' parameter is set to &quot; + javadocExecutable);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">    if (tc != null) {</span>
+<span class="nc" id="L87">      getLog().info(&quot;Toolchain in jdiff-maven-plugin: &quot; + tc);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (javadocExecutable != null) {</span>
+<span class="nc" id="L89">        getLog().warn(&quot;Toolchains are ignored, 'javadocExecutable' parameter is set to &quot; + javadocExecutable);</span>
       } else {
-<span class="nc" id="L102">        javadocExecutable = tc.findTool(&quot;javadoc&quot;);</span>
+<span class="nc" id="L91">        javadocExecutable = tc.findTool(&quot;javadoc&quot;);</span>
       }
     }
 
-<span class="nc bnc" id="L106" title="All 2 branches missed.">    String javadocCommand = &quot;javadoc&quot; + (SystemUtils.IS_OS_WINDOWS ? &quot;.exe&quot; : &quot;&quot;);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    String javadocCommand = &quot;javadoc&quot; + (SystemUtils.IS_OS_WINDOWS ? &quot;.exe&quot; : &quot;&quot;);</span>
 
     File javadocExe;
 
     // ----------------------------------------------------------------------
     // The javadoc executable is defined by the user
     // ----------------------------------------------------------------------
-<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(javadocExecutable)) {</span>
-<span class="nc" id="L114">      javadocExe = new File(javadocExecutable);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (StringUtils.isNotEmpty(javadocExecutable)) {</span>
+<span class="nc" id="L103">      javadocExe = new File(javadocExecutable);</span>
 
-<span class="nc bnc" id="L116" title="All 2 branches missed.">      if (javadocExe.isDirectory()) {</span>
-<span class="nc" id="L117">        javadocExe = new File(javadocExe, javadocCommand);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">      if (javadocExe.isDirectory()) {</span>
+<span class="nc" id="L106">        javadocExe = new File(javadocExe, javadocCommand);</span>
       }
 
-<span class="nc bnc" id="L120" title="All 4 branches missed.">      if (SystemUtils.IS_OS_WINDOWS &amp;&amp; javadocExe.getName().indexOf('.') &lt; 0) {</span>
-<span class="nc" id="L121">        javadocExe = new File(javadocExe.getPath() + &quot;.exe&quot;);</span>
+<span class="nc bnc" id="L109" title="All 4 branches missed.">      if (SystemUtils.IS_OS_WINDOWS &amp;&amp; javadocExe.getName().indexOf('.') &lt; 0) {</span>
+<span class="nc" id="L110">        javadocExe = new File(javadocExe.getPath() + &quot;.exe&quot;);</span>
       }
 
-<span class="nc bnc" id="L124" title="All 2 branches missed.">      if (!javadocExe.isFile()) {</span>
-<span class="nc" id="L125">        throw new IOException(&quot;The javadoc executable '&quot; + javadocExe</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">      if (!javadocExe.isFile()) {</span>
+<span class="nc" id="L114">        throw new IOException(&quot;The javadoc executable '&quot; + javadocExe</span>
                 + &quot;' doesn't exist or is not a file. Verify the &lt;javadocExecutable/&gt; parameter.&quot;);
       }
 
-<span class="nc" id="L129">      return javadocExe.getAbsolutePath();</span>
+<span class="nc" id="L118">      return javadocExe.getAbsolutePath();</span>
     }
-<span class="nc" id="L131">    File javaHome = SystemUtils.getJavaHome();</span>
+<span class="nc" id="L120">    File javaHome = SystemUtils.getJavaHome();</span>
     // ----------------------------------------------------------------------
     // Try to find javadocExe from System.getProperty( &quot;java.home&quot; )
     // By default, System.getProperty( &quot;java.home&quot; ) = JRE_HOME and JRE_HOME
     // should be in the JDK_HOME
     // ----------------------------------------------------------------------
     // For IBM's JDK 1.2
-<span class="nc bnc" id="L138" title="All 2 branches missed.">    if (SystemUtils.IS_OS_AIX) {</span>
-<span class="nc" id="L139">      javadocExe</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    if (SystemUtils.IS_OS_AIX) {</span>
+<span class="nc" id="L128">      javadocExe</span>
               = new File(javaHome + File.separator + &quot;..&quot; + File.separator + &quot;sh&quot;, javadocCommand);
-<span class="nc bnc" id="L141" title="All 2 branches missed.">    } else if (SystemUtils.IS_OS_MAC_OSX) {</span>
-<span class="nc" id="L142">      javadocExe = new File(javaHome + File.separator + &quot;bin&quot;, javadocCommand);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    } else if (SystemUtils.IS_OS_MAC_OSX) {</span>
+<span class="nc" id="L131">      javadocExe = new File(javaHome + File.separator + &quot;bin&quot;, javadocCommand);</span>
     } else {
-<span class="nc" id="L144">      javadocExe</span>
+<span class="nc" id="L133">      javadocExe</span>
               = new File(javaHome + File.separator + &quot;..&quot; + File.separator + &quot;bin&quot;, javadocCommand);
     }
 
     // ----------------------------------------------------------------------
     // Try to find javadocExe from JAVA_HOME environment variable
     // ----------------------------------------------------------------------
-<span class="nc bnc" id="L151" title="All 4 branches missed.">    if (!javadocExe.exists() || !javadocExe.isFile()) {</span>
-<span class="nc" id="L152">      Properties env = CommandLineUtils.getSystemEnvVars();</span>
-<span class="nc" id="L153">      String javaHomeStr = env.getProperty(&quot;JAVA_HOME&quot;);</span>
-<span class="nc bnc" id="L154" title="All 2 branches missed.">      if (StringUtils.isEmpty(javaHomeStr)) {</span>
-<span class="nc" id="L155">        throw new IOException(&quot;The environment variable JAVA_HOME is not correctly set: javahome='&quot;</span>
+<span class="nc bnc" id="L140" title="All 4 branches missed.">    if (!javadocExe.exists() || !javadocExe.isFile()) {</span>
+<span class="nc" id="L141">      Properties env = CommandLineUtils.getSystemEnvVars();</span>
+<span class="nc" id="L142">      String javaHomeStr = env.getProperty(&quot;JAVA_HOME&quot;);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (StringUtils.isEmpty(javaHomeStr)) {</span>
+<span class="nc" id="L144">        throw new IOException(&quot;The environment variable JAVA_HOME is not correctly set: javahome='&quot;</span>
                 + javaHomeStr + '\'');
       }
-<span class="nc" id="L158">      File javaHomeFile = new File(javaHomeStr);</span>
-<span class="nc bnc" id="L159" title="All 4 branches missed.">      if ((!javaHomeFile.exists()) || (!javaHomeFile.isDirectory())) {</span>
-<span class="nc" id="L160">        throw new IOException(&quot;The environment variable JAVA_HOME=&quot; + javaHome</span>
+<span class="nc" id="L147">      File javaHomeFile = new File(javaHomeStr);</span>
+<span class="nc bnc" id="L148" title="All 4 branches missed.">      if ((!javaHomeFile.exists()) || (!javaHomeFile.isDirectory())) {</span>
+<span class="nc" id="L149">        throw new IOException(&quot;The environment variable JAVA_HOME=&quot; + javaHome</span>
                 + &quot; doesn't exist or is not a valid directory.&quot;);
       }
 
-<span class="nc" id="L164">      javadocExe = new File(javaHomeStr + File.separator + &quot;bin&quot;, javadocCommand);</span>
+<span class="nc" id="L153">      javadocExe = new File(javaHomeStr + File.separator + &quot;bin&quot;, javadocCommand);</span>
     }
 
-<span class="nc bnc" id="L167" title="All 4 branches missed.">    if (!javadocExe.exists() || !javadocExe.isFile()) {</span>
-<span class="nc" id="L168">      throw new IOException(&quot;The javadoc executable '&quot; + javadocExe</span>
+<span class="nc bnc" id="L156" title="All 4 branches missed.">    if (!javadocExe.exists() || !javadocExe.isFile()) {</span>
+<span class="nc" id="L157">      throw new IOException(&quot;The javadoc executable '&quot; + javadocExe</span>
               + &quot;' doesn't exist or is not a file. Verify the JAVA_HOME environment variable.&quot;);
     }
 
-<span class="nc" id="L172">    return javadocExe.getAbsolutePath();</span>
+<span class="nc" id="L161">    return javadocExe.getAbsolutePath();</span>
   }
 
   private Toolchain getToolchain() {
-<span class="nc" id="L176">    Toolchain tc = null;</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">    if (toolchainManager != null) {</span>
-<span class="nc" id="L178">      tc = toolchainManager.getToolchainFromBuildContext(&quot;jdk&quot;, mavenSession);</span>
+<span class="nc" id="L165">    Toolchain tc = null;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">    if (toolchainManager != null) {</span>
+<span class="nc" id="L167">      tc = toolchainManager.getToolchainFromBuildContext(&quot;jdk&quot;, mavenSession);</span>
     }
 
-<span class="nc" id="L181">    return tc;</span>
+<span class="nc" id="L170">    return tc;</span>
   }
 
   final List&lt;String&gt; getCompileSourceRoots() {
-<span class="nc bnc" id="L185" title="All 2 branches missed.">    if (&quot;pom&quot;.equalsIgnoreCase(mavenProject.getPackaging())) {</span>
-<span class="nc" id="L186">      return Collections.emptyList();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    if (&quot;pom&quot;.equalsIgnoreCase(mavenProject.getPackaging())) {</span>
+<span class="nc" id="L175">      return Collections.emptyList();</span>
     } else {
-<span class="nc" id="L188">      List&lt;String&gt; compileSourceRoots = mavenProject.getCompileSourceRoots();</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">      return compileSourceRoots == null ? Collections.EMPTY_LIST : compileSourceRoots;</span>
+<span class="nc" id="L177">      List&lt;String&gt; compileSourceRoots = mavenProject.getCompileSourceRoots();</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">      return compileSourceRoots == null ? Collections.EMPTY_LIST : compileSourceRoots;</span>
     }
   }
 
   final MavenProject getMavenProject() {
-<span class="nc" id="L194">    return mavenProject;</span>
+<span class="nc" id="L183">    return mavenProject;</span>
   }
 
   final File getWorkingDirectory() {
-<span class="nc" id="L198">    return workingDirectory;</span>
+<span class="nc" id="L187">    return workingDirectory;</span>
   }
 
   final MojoExecution getMojoExecution() {
-<span class="nc" id="L202">    return mojoExecution;</span>
+<span class="nc" id="L191">    return mojoExecution;</span>
   }
 
   final List&lt;RemoteRepository&gt; getProjectRepos() {
-<span class="nc" id="L206">    return mavenProject.getRemoteProjectRepositories();</span>
+<span class="nc" id="L195">    return mavenProject.getRemoteProjectRepositories();</span>
   }
 
   final RepositorySystem getRepoSystem() {
-<span class="nc" id="L210">    return repoSystem;</span>
+<span class="nc" id="L199">    return repoSystem;</span>
   }
 
   final ArrayList&lt;String&gt; getIncludePackageNames() {
-<span class="nc" id="L214">    return includePackageNames;</span>
+<span class="nc" id="L203">    return includePackageNames;</span>
   }
 
   final ToolchainManager getToolchainManager() {
-<span class="nc" id="L218">    return toolchainManager;</span>
+<span class="nc" id="L207">    return toolchainManager;</span>
   }
 
 
@@ -225,7 +214,7 @@ import org.eclipse.aether.repository.RemoteRepository;
    */
   @Override
   public String toString() {
-<span class="nc" id="L228">    return &quot;BaseJDiffMojo{&quot; + &quot;workingDirectory=&quot; + workingDirectory + &quot;, javadocExecutable=&quot;</span>
+<span class="nc" id="L217">    return &quot;BaseJDiffMojo{&quot; + &quot;workingDirectory=&quot; + workingDirectory + &quot;, javadocExecutable=&quot;</span>
             + javadocExecutable + &quot;, includePackageNames=&quot; + includePackageNames + '}';
   }
 

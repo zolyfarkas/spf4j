@@ -120,17 +120,17 @@ public final class ObjectHolder&lt;T&gt; {
 <span class="fc" id="L120">        obj = null;</span>
         try {
 <span class="fc" id="L122">          factory.dispose(object);</span>
-<span class="fc" id="L123">        } catch (ObjectDisposeException ex1) {</span>
-<span class="fc" id="L124">          LOG.warn(&quot;Failed to dispose {}&quot;, object, ex1);</span>
+<span class="nc" id="L123">        } catch (ObjectDisposeException ex1) {</span>
+<span class="nc" id="L124">          LOG.warn(&quot;Failed to dispose {}&quot;, object, ex1);</span>
 <span class="nc" id="L125">        } catch (RuntimeException ex1) {</span>
 <span class="nc" id="L126">          LOG.error(&quot;Failed to dispose {}&quot;, object, ex1);</span>
-<span class="fc" id="L127">        }</span>
+<span class="pc" id="L127">        }</span>
       }
     }
 <span class="fc" id="L130">  }</span>
 
   public synchronized void validateObjectIfNotBorrowed() throws ObjectDisposeException {
-<span class="pc bpc" id="L133" title="2 of 4 branches missed.">    if (!borrowed &amp;&amp; obj != null) {</span>
+<span class="pc bpc" id="L133" title="1 of 4 branches missed.">    if (!borrowed &amp;&amp; obj != null) {</span>
       boolean isValid;
 <span class="fc" id="L135">      Exception vex = null;</span>
       try {
@@ -144,7 +144,7 @@ public final class ObjectHolder&lt;T&gt; {
 <span class="fc" id="L144">        LOG.warn(&quot;Validation of {} failed, detail {} &quot;, obj, vex);</span>
 <span class="fc" id="L145">        T object = obj;</span>
 <span class="fc" id="L146">        obj = null;</span>
-<span class="nc" id="L147">        factory.dispose(object);</span>
+<span class="fc" id="L147">        factory.dispose(object);</span>
       }
     }
 <span class="fc" id="L150">  }</span>

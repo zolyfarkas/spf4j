@@ -15,7 +15,6 @@
  */
 package org.spf4j.jdiff;
 
-import org.spf4j.jdiff.utils.Compress;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
@@ -46,6 +45,7 @@ import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.version.Version;
+import org.spf4j.io.compress.Compress;
 import org.spf4j.maven.MavenRepositoryUtils;
 
 /**

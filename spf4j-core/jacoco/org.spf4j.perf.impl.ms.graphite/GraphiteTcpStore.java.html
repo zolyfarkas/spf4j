@@ -153,7 +153,7 @@ public final class GraphiteTcpStore implements MeasurementStore {
 <span class="nc" id="L153">              socketWriterSupplier, RetryPolicy.defaultPolicy(), IOException.class);</span>
 <span class="nc" id="L154">    } catch (InterruptedException ex) {</span>
 <span class="nc" id="L155">      Thread.currentThread().interrupt();</span>
-<span class="nc" id="L156">      return;</span>
+<span class="nc" id="L156">      throw new IOException(&quot;Interupted while saving measurements to &quot; + tableId, ex);</span>
 <span class="nc" id="L157">    } catch (TimeoutException ex) {</span>
 <span class="nc" id="L158">      throw new UncheckedTimeoutException(ex);</span>
 <span class="nc" id="L159">    }</span>
@@ -168,10 +168,13 @@ public final class GraphiteTcpStore implements MeasurementStore {
   public void close() {
     try {
 <span class="nc" id="L170">      socketWriterSupplier.dispose();</span>
-<span class="nc" id="L171">    } catch (ObjectDisposeException | InterruptedException ex) {</span>
-<span class="nc" id="L172">      throw new UncheckedExecutionException(ex);</span>
-<span class="nc" id="L173">    }</span>
-<span class="nc" id="L174">  }</span>
+<span class="nc" id="L171">    }  catch (InterruptedException ex) {</span>
+<span class="nc" id="L172">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L173">      throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L174">    } catch (ObjectDisposeException ex) {</span>
+<span class="nc" id="L175">      throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L176">    }</span>
+<span class="nc" id="L177">  }</span>
 
   private static class HandlerImpl implements HandlerNano&lt;Writer, Void, IOException&gt; {
 
@@ -180,28 +183,28 @@ public final class GraphiteTcpStore implements MeasurementStore {
     private final long timeStampMillis;
 
     HandlerImpl(final long[] measurements, final MeasurementsInfo measurementInfo,
-<span class="nc" id="L183">            final long timeStampMillis) {</span>
-<span class="nc" id="L184">      this.measurements = measurements;</span>
-<span class="nc" id="L185">      this.measurementInfo = measurementInfo;</span>
-<span class="nc" id="L186">      this.timeStampMillis = timeStampMillis;</span>
-<span class="nc" id="L187">    }</span>
+<span class="nc" id="L186">            final long timeStampMillis) {</span>
+<span class="nc" id="L187">      this.measurements = measurements;</span>
+<span class="nc" id="L188">      this.measurementInfo = measurementInfo;</span>
+<span class="nc" id="L189">      this.timeStampMillis = timeStampMillis;</span>
+<span class="nc" id="L190">    }</span>
 
     @Override
     @Nullable
     public Void handle(final Writer socketWriter, final long deadline) throws IOException {
-<span class="nc bnc" id="L192" title="All 2 branches missed.">      for (int i = 0; i &lt; measurements.length; i++) {</span>
-<span class="nc" id="L193">        writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">      for (int i = 0; i &lt; measurements.length; i++) {</span>
+<span class="nc" id="L196">        writeMetric(measurementInfo, measurementInfo.getMeasurementName(i),</span>
                 measurements[i], timeStampMillis, socketWriter);
       }
-<span class="nc" id="L196">      socketWriter.flush();</span>
-<span class="nc" id="L197">      return null;</span>
+<span class="nc" id="L199">      socketWriter.flush();</span>
+<span class="nc" id="L200">      return null;</span>
     }
   }
 
   @Override
   public void flush() {
     // No buffering yet
-<span class="nc" id="L204">  }</span>
+<span class="nc" id="L207">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

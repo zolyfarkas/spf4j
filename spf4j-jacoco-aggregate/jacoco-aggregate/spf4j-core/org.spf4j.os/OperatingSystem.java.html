@@ -225,9 +225,9 @@ public final class OperatingSystem {
 <span class="fc" id="L225">        esh = DefaultExecutor.INSTANCE.submit(() -&gt; {</span>
           try {
 <span class="fc" id="L227">            return handler.handleStdErr(pes);</span>
-<span class="fc" id="L228">          } catch (Throwable t) {</span>
-<span class="fc" id="L229">            eex.set(t);</span>
-<span class="fc" id="L230">            throw t;</span>
+<span class="nc" id="L228">          } catch (Throwable t) {</span>
+<span class="nc" id="L229">            eex.set(t);</span>
+<span class="nc" id="L230">            throw t;</span>
           }
         });
 <span class="nc" id="L233">      } catch (RuntimeException ex) { // Executor might Reject</span>
@@ -301,8 +301,8 @@ public final class OperatingSystem {
       }
 <span class="fc" id="L302">      rem = unit.toNanos(timeout) - (TimeSource.nanoTime() - startTime);</span>
 <span class="fc" id="L303">      Throwable get = exr.get();</span>
-<span class="fc bfc" id="L304" title="All 2 branches covered.">      if (get != null) {</span>
-<span class="fc" id="L305">        throw new ExecutionException(get);</span>
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">      if (get != null) {</span>
+<span class="nc" id="L305">        throw new ExecutionException(get);</span>
       }
 <span class="fc bfc" id="L307" title="All 2 branches covered.">    } while (rem &gt; 0);</span>
 <span class="fc" id="L308">    throw new TimeoutException(&quot;Process &quot; + process + &quot; timed out after &quot; + timeout + &quot; &quot; + unit);</span>
@@ -314,9 +314,9 @@ public final class OperatingSystem {
           final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
 <span class="fc" id="L315">    ProcessResponse&lt;String, String&gt; resp</span>
 <span class="fc" id="L316">            = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);</span>
-<span class="pc bpc" id="L317" title="1 of 2 branches missed.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
-<span class="nc" id="L318">      throw new ExecutionException(&quot;Failed to execute &quot; + Arrays.toString(command)</span>
-<span class="nc" id="L319">              + &quot;, exitCode = &quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">    if (resp.getResponseExitCode() != SysExits.OK) {</span>
+<span class="fc" id="L318">      throw new ExecutionException(&quot;Failed to execute &quot; + Arrays.toString(command)</span>
+<span class="fc" id="L319">              + &quot;, exitCode = &quot; + resp.getResponseCode() + &quot;, stderr = &quot; + resp.getErrOutput(), null);</span>
     }
 <span class="fc" id="L321">    return resp.getOutput();</span>
   }
