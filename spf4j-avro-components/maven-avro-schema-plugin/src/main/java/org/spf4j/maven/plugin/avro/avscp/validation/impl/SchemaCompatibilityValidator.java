@@ -185,7 +185,7 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
       Path newSchemaPath = currSchemasPath.resolve(relPath);
       Schema previousSchema = new Schema.Parser().parse(prevSchemaPath.toFile());
       String previousSchemaName = previousSchema.getFullName();
-      log.info("Validating compatibility for " + previousSchemaName + " "
+      log.debug("Validating compatibility for " + previousSchemaName + " "
               + prevSchemaPath + " -> "  + newSchemaPath);
       if (deprecationRemoval && !Files.exists(newSchemaPath) && previousSchema.getProp("deprecated") == null) {
         issues.accept(previousSchemaName + " is being removed without being deprecated first");
