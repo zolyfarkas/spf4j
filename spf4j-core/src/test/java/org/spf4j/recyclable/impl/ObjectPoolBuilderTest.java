@@ -115,6 +115,23 @@ public final class ObjectPoolBuilderTest {
     }
   }
 
+  @Test(timeout = 10000, expected = TimeoutException.class)
+  public void testGetTimeout()
+          throws ObjectCreationException, ObjectBorrowException,
+          InterruptedException, TimeoutException, ObjectReturnException, ObjectDisposeException, ExecutionException {
+    RecyclingSupplier<ExpensiveTestObject> pool
+            = new RecyclingSupplierBuilder(1, new ExpensiveTestObjectFactory()).build();
+    LOG.debug("pool = {}", pool);
+    Future<ExpensiveTestObject> fut = DefaultExecutor.instance().submit(() -> pool.get());
+    fut.get();
+    LOG.debug("pool = {}", pool);
+    try (ExecutionContext start = ExecutionContexts.start(1, TimeUnit.SECONDS)) {
+      pool.get();
+      LOG.debug("pool = {}", pool);
+    }
+  }
+
+
   @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testBuild2() throws ObjectCreationException, InterruptedException,
