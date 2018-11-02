@@ -176,7 +176,7 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
           if (waitTime <= 0) {
             return null;
           }
-          if (!available.await(waitTime, TimeUnit.MILLISECONDS)) {
+          if (!available.await(waitTime, TimeUnit.NANOSECONDS)) {
             return null;
           }
         }
