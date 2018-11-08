@@ -58,8 +58,8 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
  * The following validations are performed:
  *
  * 1) We check previously released schema for (reader to writer) and (writer to reader) compatibility
- * with the current schema. Unless compatibility is not desired (if schema has attribute "noCompatibility")
- * or only partial compatibility is desired "noOldToNewCompatibility"
+ * with the current schema. Unless compatibility is not desired "beta", or only partial compatibility is desired
+ * "noNewToOldCompatibility" "noOldToNewCompatibility"
  * (objects written with old schema don't need to be converted to new objects)
  * or "noNewToOldCompatibility" if (objects written with new schema don't need to be converted to old schema objects)
  *
@@ -185,27 +185,36 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
       Path newSchemaPath = currSchemasPath.resolve(relPath);
       Schema previousSchema = new Schema.Parser().parse(prevSchemaPath.toFile());
       String previousSchemaName = previousSchema.getFullName();
+      if (previousSchema.getProp("beta") != null) {
+        log.debug("Skipping beta schema " + previousSchemaName);
+        continue;
+      }
       log.debug("Validating compatibility for " + previousSchemaName + " "
               + prevSchemaPath + " -> "  + newSchemaPath);
       if (deprecationRemoval && !Files.exists(newSchemaPath) && previousSchema.getProp("deprecated") == null) {
         issues.accept(previousSchemaName + " is being removed without being deprecated first");
       } else {
         Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());
-        SchemaCompatibility.SchemaPairCompatibility o2n
-                = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
-        if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE
-                && newSchema.getProp("noOldToNewCompatibility") == null) {
-          issues.accept(newSchema.getFullName() + " cannot convert previous versions " + version + " to current"
-                + " detail: " + o2n);
+        if (newSchema.getProp("beta") != null) {
+          log.debug("Skipping beta schema " + newSchema.getFullName());
+        } else {
+          if (newSchema.getProp("noOldToNewCompatibility") == null) {
+            SchemaCompatibility.SchemaPairCompatibility o2n
+                    = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
+            if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
+              issues.accept(newSchema.getFullName() + " cannot convert previous versions " + version + " to current"
+                    + " detail: " + o2n);
+            }
+          }
+          if (newSchema.getProp("noNewToOldCompatibility") == null) {
+            SchemaCompatibility.SchemaPairCompatibility n2o
+                    = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
+            if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
+              issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + version
+              + " detail: " + n2o);
+            }
+          }
         }
-        SchemaCompatibility.SchemaPairCompatibility n2o
-                = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
-        if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE
-                && newSchema.getProp("noNewToOldCompatibility") == null) {
-          issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + version
-          + " detail: " + n2o);
-        }
-
       }
     }
   }

@@ -20,32 +20,41 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.spf4j</groupId>
-  <artifactId>test-1</artifactId>
-  <version>1.0</version>
-  <packaging>pom</packaging>
-  <name>${project.artifactId}</name>
+  <artifactId>test-schema</artifactId>
+  <packaging>jar</packaging>
+  <version>3.0</version>
+  <name>${project.artifactId}-${project.version}</name>
   <description>Avro utilities, more efficient GenericRecords, Schema traversal code...</description>
-  <distributionManagement>
-    <repository>
-      <id>mrm</id>
-      <url>@mrm.distribution.url@</url>
-    </repository>
-  </distributionManagement>
+  <parent>
+    <groupId>org.spf4j</groupId>
+    <artifactId>test-1</artifactId>
+    <version>1.0</version>
+  </parent>
+
   <build>
-   <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.spf4j</groupId>
-          <artifactId>maven-avro-schema-plugin</artifactId>
-          <version>@ap.version@</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.spf4j</groupId>
+        <artifactId>maven-avro-schema-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
   </build>
-  <modules>
-    <module>test-common</module>
-    <module>test-schema</module>
-    <module>test-schema-2</module>
-    <module>test-schema-3</module>
-  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>@avro.version@</version>
+    </dependency>
+    <dependency>
+        <groupId>org.spf4j</groupId>
+        <artifactId>test-schema-common</artifactId>
+        <version>1.0</version>
+    </dependency>
+     <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+  </dependencies>
 </project>
