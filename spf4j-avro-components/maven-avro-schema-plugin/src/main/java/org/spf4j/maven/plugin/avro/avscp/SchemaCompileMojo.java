@@ -187,7 +187,7 @@ public final class SchemaCompileMojo
       if (addMavenId) {
         attachMavenId(schema);
       }
-      String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
+      String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
       Path destination = generatedAvscTarget.toPath().resolve(targetName);
       Path parent = destination.getParent();
       if (parent != null) {
@@ -214,7 +214,7 @@ public final class SchemaCompileMojo
       if (addMavenId) {
         attachMavenId(schema);
       }
-      String targetName = schema.getFullName().replaceAll("\\.", File.separator) + ".avsc";
+      String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
       Path parent = destinationFile.getParent();
       if (parent != null) {
