@@ -135,7 +135,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (issues.isEmpty()) {
       return Result.valid();
     } else {
-      if (Boolean.parseBoolean(validatorConfigs.getOrDefault("compatibiliy.failOnCmpatibilityIssue", "true"))) {
+      if (Boolean.parseBoolean(validatorConfigs.getOrDefault("compatibiliy.failOnIssue", "true"))) {
         return Result.failed("Schema compatibility issues:\n" + String.join("\n", issues));
       } else {
         log.info("Schema compatibility issues:");
