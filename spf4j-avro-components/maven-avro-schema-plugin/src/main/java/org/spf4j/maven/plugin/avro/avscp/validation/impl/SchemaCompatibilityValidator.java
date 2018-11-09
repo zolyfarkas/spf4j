@@ -89,17 +89,19 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     // loop through dependencies.
     MavenProject mavenProject = mojo.getMavenProject();
     Map<String, String> validatorConfigs = mojo.getValidatorConfigs();
-    String versionRange = validatorConfigs.get("compatibiliy.versionRange");
+    Log log = mojo.getLog();
+    log.debug("Validator " + this + " config is: " + validatorConfigs);
+    String versionRange = validatorConfigs.get("versionRange");
     if (versionRange == null) {
       versionRange = "[," + mavenProject.getVersion() +  ')';
     }
     int maxNrVersToCheck = 30;
-    String strNrVer = validatorConfigs.get("compatibiliy.maxNrOfVersionsToCheckForCompatibility");
+    String strNrVer = validatorConfigs.get("maxNrOfVersionsToCheckForCompatibility");
     if (strNrVer != null) {
       maxNrVersToCheck = Integer.parseInt(strNrVer);
     }
     Instant instantToGoBack;
-    String strNrDays = validatorConfigs.get("compatibiliy.maxNrOfDaysBackCheckForCompatibility");
+    String strNrDays = validatorConfigs.get("maxNrOfDaysBackCheckForCompatibility");
     if (strNrDays == null) {
       instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC).minus(1,  ChronoUnit.YEARS).toInstant();
     } else {
@@ -120,7 +122,6 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     }
     rangeVersions = rangeVersions.stream().filter((v) -> !v.toString().endsWith("SNAPSHOT"))
             .collect(Collectors.toList());
-    Log log = mojo.getLog();
     log.info("Validating compatibility with previous versions " + rangeVersions);
     if (rangeVersions.isEmpty()) {
       return Result.valid();
@@ -135,7 +136,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (issues.isEmpty()) {
       return Result.valid();
     } else {
-      if (Boolean.parseBoolean(validatorConfigs.getOrDefault("compatibiliy.failOnIssue", "true"))) {
+      if (Boolean.parseBoolean(validatorConfigs.getOrDefault("failOnIssue", "true"))) {
         return Result.failed("Schema compatibility issues:\n" + String.join("\n", issues));
       } else {
         log.info("Schema compatibility issues:");

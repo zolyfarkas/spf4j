@@ -15,6 +15,7 @@
  */
 package org.spf4j.maven.plugin.avro.avscp.validation;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,7 +24,13 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystem;
+import org.spf4j.base.Pair;
 import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaCompatibilityValidator;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaDocValidator;
@@ -68,7 +75,8 @@ public final class Validators {
     for (Validator v : validators.values()) {
       if ((obj == null && v.getValidationInput() == Void.class)
               || (obj != null && v.getValidationInput().isAssignableFrom(obj.getClass()))) {
-        Validator.Result res = v.validate(obj, mojo);
+        String name = v.getName() + '.';
+        Validator.Result res = v.validate(obj, new ConfiguredValidatorMojo(mojo, name));
         if (res.isFailed()) {
           result.put(v.getName(), res);
         }
@@ -80,6 +88,57 @@ public final class Validators {
   @Override
   public String toString() {
     return "Validators{" + "validators=" + validators + '}';
+  }
+
+  private static class ConfiguredValidatorMojo implements ValidatorMojo {
+
+    private final ValidatorMojo mojo;
+    private final String name;
+    private final int l;
+
+    ConfiguredValidatorMojo(final ValidatorMojo mojo, final String name) {
+      this.mojo = mojo;
+      this.name = name;
+      this.l = name.length();
+    }
+
+    @Override
+    public Map<String, String> getValidatorConfigs() {
+      return mojo.getValidatorConfigs().entrySet().stream()
+              .filter((entry) -> entry.getKey().startsWith(name))
+              .map((entry) -> Pair.of(entry.getKey().substring(l), entry.getValue()))
+              .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+    }
+
+    @Override
+    public RepositorySystem getRepoSystem() {
+      return mojo.getRepoSystem();
+    }
+
+    @Override
+    public MavenSession getMavenSession() {
+      return mojo.getMavenSession();
+    }
+
+    @Override
+    public MavenProject getMavenProject() {
+      return mojo.getMavenProject();
+    }
+
+    @Override
+    public File getGeneratedAvscTarget() {
+      return mojo.getGeneratedAvscTarget();
+    }
+
+    @Override
+    public File getTarget() {
+      return mojo.getTarget();
+    }
+
+    @Override
+    public Log getLog() {
+      return mojo.getLog();
+    }
   }
 
 }

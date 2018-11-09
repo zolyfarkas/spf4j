@@ -18,10 +18,12 @@ package org.spf4j.maven.plugin.avro.avscp.validation.impl;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.maven.plugin.logging.Log;
 import org.spf4j.avro.schema.SchemaVisitor;
 import org.spf4j.avro.schema.SchemaVisitorAction;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
@@ -44,16 +46,17 @@ public final class SchemaDocValidator implements Validator<Schema> {
     return "docValidator";
   }
 
-
-
   @Override
   @Nonnull
   @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // not in this case
   public Result validate(final Schema schema, final ValidatorMojo mojo) {
+    Log log = mojo.getLog();
+    Map<String, String> validatorConfigs = mojo.getValidatorConfigs();
+    log.debug("Validator " + this + " config is: " + validatorConfigs);
     Result res = Schemas.visit(schema, new DocValidatorVisitor());
-    if (res.isFailed() && !Boolean.parseBoolean(mojo.getValidatorConfigs()
-            .getOrDefault("docValidator.failOnIssue", "true"))) {
-      mojo.getLog().info(res.getValidationErrorMessage());
+    if (res.isFailed() && !Boolean.parseBoolean(
+            validatorConfigs.getOrDefault("failOnIssue", "true"))) {
+      log.info(res.getValidationErrorMessage());
       return Result.valid();
     }
     return res;
