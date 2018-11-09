@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -171,6 +172,7 @@ public final class SchemaCompileMojo
       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
       compiler.setCreateSetters(createSetters);
       compiler.compileToDestination(null, generatedJavaTarget);
+      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
     } catch (ParseException e) {
       throw new IOException(e);
     } catch (DependencyResolutionRequiredException drre) {
@@ -229,6 +231,7 @@ public final class SchemaCompileMojo
     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
     compiler.setCreateSetters(createSetters);
     compiler.compileToDestination(src, generatedJavaTarget);
+    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
   }
 
   public void deleteGeneratedAvailableInDependencies() throws IOException {
@@ -249,13 +252,20 @@ public final class SchemaCompileMojo
   public void deleteProtocolClasses() throws IOException {
    String detectionString = "org.apache.avro.Protocol PROTOCOL";
     Path javaPath = generatedJavaTarget.toPath();
+    String mSourceEncoding = mavenProject.getProperties().getProperty("project.build.sourceEncoding");
+    String sourceEncoding;
+    if (mSourceEncoding == null) {
+      sourceEncoding = Charset.defaultCharset().name();
+    } else {
+      sourceEncoding = mSourceEncoding;
+    }
     List<Path> protocolFiles = Files.walk(javaPath)
             .filter((p) -> {
               Path fileName = p.getFileName();
               if (fileName == null || !fileName.toString().endsWith(".java")) {
                 return false;
               }
-              try (BufferedReader br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
+              try (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                   if (line.contains(detectionString)) {
