@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -167,12 +166,12 @@ public final class SchemaCompileMojo
                 StandardOpenOption.CREATE);
       }
       SpecificCompiler compiler = new SpecificCompiler(protocol);
+      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setStringType(GenericData.StringType.String);
       compiler.setTemplateDir(templateDirectory);
       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
       compiler.setCreateSetters(createSetters);
       compiler.compileToDestination(null, generatedJavaTarget);
-      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
     } catch (ParseException e) {
       throw new IOException(e);
     } catch (DependencyResolutionRequiredException drre) {
@@ -199,11 +198,11 @@ public final class SchemaCompileMojo
               schema.toString().getBytes(StandardCharsets.UTF_8),
               StandardOpenOption.CREATE);
       SpecificCompiler compiler = new SpecificCompiler(schema);
+      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setTemplateDir(templateDirectory);
       compiler.setStringType(GenericData.StringType.String);
       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
       compiler.setCreateSetters(createSetters);
-      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.compileToDestination(src, generatedJavaTarget);
     }
   }
@@ -226,12 +225,12 @@ public final class SchemaCompileMojo
               StandardOpenOption.CREATE);
     }
     SpecificCompiler compiler = new SpecificCompiler(protocol);
+    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.setTemplateDir(templateDirectory);
     compiler.setStringType(GenericData.StringType.String);
     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
     compiler.setCreateSetters(createSetters);
     compiler.compileToDestination(src, generatedJavaTarget);
-    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
   }
 
   public void deleteGeneratedAvailableInDependencies() throws IOException {
@@ -273,7 +272,7 @@ public final class SchemaCompileMojo
                   }
                 }
               } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                getLog().info("cannot read file " + p + ", ignoring for cleanup", ex);
               }
               return false;
             }).collect(Collectors.toList());
