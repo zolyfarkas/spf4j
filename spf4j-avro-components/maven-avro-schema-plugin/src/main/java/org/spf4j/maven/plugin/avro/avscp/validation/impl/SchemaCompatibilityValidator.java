@@ -120,7 +120,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     }
     rangeVersions = rangeVersions.stream().filter((v) -> !v.toString().endsWith("SNAPSHOT"))
             .collect(Collectors.toList());
-    mojo.getLog().info("Validating compatibility with previous versions " + rangeVersions);
+    Log log = mojo.getLog();
+    log.info("Validating compatibility with previous versions " + rangeVersions);
     if (rangeVersions.isEmpty()) {
       return Result.valid();
     }
@@ -134,7 +135,15 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (issues.isEmpty()) {
       return Result.valid();
     } else {
-      return Result.failed("Schema compatibility issues:\n" + String.join("\n", issues));
+      if (Boolean.parseBoolean(validatorConfigs.getOrDefault("compatibiliy.failOnCmpatibilityIssue", "true"))) {
+        return Result.failed("Schema compatibility issues:\n" + String.join("\n", issues));
+      } else {
+        log.info("Schema compatibility issues:");
+        for (String issue : issues) {
+          log.info(issue);
+        }
+        return Result.valid();
+      }
     }
   }
 

@@ -51,7 +51,8 @@ public final class SchemaDocValidator implements Validator<Schema> {
   @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // not in this case
   public Result validate(final Schema schema, final ValidatorMojo mojo) {
     Result res = Schemas.visit(schema, new DocValidatorVisitor());
-    if (res.isFailed() &&  "false".equalsIgnoreCase(mojo.getValidatorConfigs().get("docValidator.failOnIssue"))) {
+    if (res.isFailed() && !Boolean.parseBoolean(mojo.getValidatorConfigs()
+            .getOrDefault("docValidator.failOnIssue", "true"))) {
       mojo.getLog().info(res.getValidationErrorMessage());
       return Result.valid();
     }
