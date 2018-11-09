@@ -24,6 +24,7 @@ import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
+import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaCompatibilityValidator;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaDocValidator;
 
@@ -62,11 +63,12 @@ public final class Validators {
   }
 
   @CheckReturnValue
-  public Map<String,  Validator.Result> validate(final Object obj) throws IOException {
+  public Map<String,  Validator.Result> validate(final Object obj, final ValidatorMojo mojo) throws IOException {
     Map<String,  Validator.Result> result = new HashMap<>(4);
     for (Validator v : validators.values()) {
-      if (v.getValidationInput().isAssignableFrom(obj.getClass())) {
-        Validator.Result res = v.validate(obj);
+      if ((obj == null && v.getValidationInput() == Void.class)
+              || (obj != null && v.getValidationInput().isAssignableFrom(obj.getClass()))) {
+        Validator.Result res = v.validate(obj, mojo);
         if (res.isFailed()) {
           result.put(v.getName(), res);
         }

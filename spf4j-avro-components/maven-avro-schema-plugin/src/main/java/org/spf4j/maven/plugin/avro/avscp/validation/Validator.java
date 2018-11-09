@@ -19,6 +19,7 @@ import java.io.IOException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 
 /**
  * @author Zoltan Farkas
@@ -81,6 +82,6 @@ public interface Validator<T> {
 
   @NonNull
   @CheckReturnValue
-  Result validate(T object) throws IOException;
+  Result validate(T object, ValidatorMojo mojo) throws IOException;
 
 }

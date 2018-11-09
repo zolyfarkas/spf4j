@@ -63,15 +63,15 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
         File src = new File(generatedAvscTarget, file);
         Schema.Parser parser = new Schema.Parser();
         Schema schema = parser.parse(src);
-        Map<String, Validator.Result> vresult = validators.validate(schema);
+        Map<String, Validator.Result> vresult = validators.validate(schema, this);
         handleValidation(vresult, logger, schema.getFullName());
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot validate " + file, ex);
       }
     }
     try {
-      Map<String, Validator.Result> vresult = validators.validate(this);
-      handleValidation(vresult, logger, "compatibility");
+      Map<String, Validator.Result> vresult = validators.validate(null, this);
+      handleValidation(vresult, logger, "project");
     } catch (IOException ex) {
        throw new MojoExecutionException("Cannot validate " + this, ex);
     }

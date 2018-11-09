@@ -76,7 +76,7 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
  *
  * @author Zoltan Farkas
  */
-public final class SchemaCompatibilityValidator implements Validator<ValidatorMojo> {
+public final class SchemaCompatibilityValidator implements Validator<Void> {
 
   @Override
   public String getName() {
@@ -85,7 +85,7 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
 
   @Override
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public Result validate(final ValidatorMojo mojo) throws IOException {
+  public Result validate(final Void nv, final ValidatorMojo mojo) throws IOException {
     // loop through dependencies.
     MavenProject mavenProject = mojo.getMavenProject();
     Map<String, String> validatorConfigs = mojo.getValidatorConfigs();
@@ -256,8 +256,8 @@ public final class SchemaCompatibilityValidator implements Validator<ValidatorMo
   }
 
   @Override
-  public Class<ValidatorMojo> getValidationInput() {
-    return ValidatorMojo.class;
+  public Class<Void> getValidationInput() {
+    return Void.class;
   }
 
 }

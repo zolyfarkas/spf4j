@@ -27,13 +27,14 @@ import org.spf4j.avro.schema.SchemaVisitorAction;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CharSequences;
+import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 
 /**
  * Validates schema documentation fields are not empty for:
  * Records, Fixed, Enum, Record Fields.
  * Additionally for record fields of union type where one type is null, the doc if validated is it contain an
  * explanation for the meaning of the null value (null string present in doc field)
- * 
+ *
  * @author Zoltan Farkas
  */
 public final class SchemaDocValidator implements Validator<Schema> {
@@ -43,11 +44,18 @@ public final class SchemaDocValidator implements Validator<Schema> {
     return "docValidator";
   }
 
+
+
   @Override
   @Nonnull
   @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // not in this case
-  public Result validate(final Schema schema) {
-    return Schemas.visit(schema, new DocValidatorVisitor());
+  public Result validate(final Schema schema, final ValidatorMojo mojo) {
+    Result res = Schemas.visit(schema, new DocValidatorVisitor());
+    if (res.isFailed() &&  "false".equalsIgnoreCase(mojo.getValidatorConfigs().get("docValidator.failOnIssue"))) {
+      mojo.getLog().info(res.getValidationErrorMessage());
+      return Result.valid();
+    }
+    return res;
   }
 
   @Nullable
