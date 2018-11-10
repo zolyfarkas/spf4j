@@ -39,7 +39,6 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -47,6 +46,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.spf4j.base.AppendableUtils;
+import org.spf4j.base.PackageInfo;
 
 /**
  * Mojo that will compile the avro sources: *.avsc, *.avpr, *.avdl in:
@@ -54,8 +54,9 @@ import org.spf4j.base.AppendableUtils;
  * 2) avsc files.
  * @author Zoltan Farkas
  */
-@Mojo(name = "avro-compile", requiresDependencyResolution = ResolutionScope.COMPILE)
-@Execute(phase = LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name = "avro-compile",
+        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
@@ -303,7 +304,8 @@ public final class SchemaCompileMojo
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log logger = this.getLog();
-    logger.info("Generationg java code + schemas");
+    logger.info("Generationg java code + schemas, using avro "
+            + PackageInfo.getPackageInfo(org.apache.avro.Schema.class.getName()));
     synchronized (String.class) {
       for (Map.Entry<String, String> entry : ((Set<Map.Entry<String, String>>) ((Set) systemProperties.entrySet()))) {
         System.setProperty(entry.getKey(), entry.getValue());
