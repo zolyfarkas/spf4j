@@ -19,22 +19,20 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 
 /**
- * Mojo that runs all Schema validators on this project schemas:
- * Built in validators: docValidator (schema documentation), compatibility (schema compatibility)
- * Custom validators can be built and used. A custom validator, will need to implement the
- * org.spf4j.maven.plugin.avro.avscp.validation.Validator interface, and will be loaded via the java Service Loader api.
+ * Mojo that runs all Schema validators on this project schemas: Built in validators: docValidator (schema
+ * documentation), compatibility (schema compatibility) Custom validators can be built and used. A custom validator,
+ * will need to implement the org.spf4j.maven.plugin.avro.avscp.validation.Validator interface, and will be loaded via
+ * the java Service Loader api.
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.TEST, requiresProject = true)
 @SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"})
 public final class SchemaValidatorMojo extends SchemaMojoBase implements ValidatorMojo {
-
 
   /**
    * you can exclude certain validators from execution.
    */
   @Parameter(name = "excludeValidators")
   private List<String> excludeValidators = Collections.EMPTY_LIST;
-
 
   /**
    * You can configure validators, see individual validator doc (javadoc) for supported configuration keys.
@@ -57,23 +55,33 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
   public void execute() throws MojoExecutionException {
     Log logger = this.getLog();
     logger.info("Validating schemas");
-    Validators validators = new Validators(excludeValidators);
-    for (String file : getSchemaFiles()) {
+    synchronized (String.class) {
+      String orig = System.getProperty("allowUndefinedLogicalTypes");
       try {
-        File src = new File(generatedAvscTarget, file);
-        Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(src);
-        Map<String, Validator.Result> vresult = validators.validate(schema, this);
-        handleValidation(vresult, logger, schema.getFullName());
-      } catch (IOException ex) {
-        throw new MojoExecutionException("Cannot validate " + file, ex);
+        System.setProperty("allowUndefinedLogicalTypes", "true");
+        Validators validators = new Validators(excludeValidators);
+        for (String file : getSchemaFiles()) {
+          try {
+            File src = new File(generatedAvscTarget, file);
+            Schema.Parser parser = new Schema.Parser();
+            Schema schema = parser.parse(src);
+            Map<String, Validator.Result> vresult = validators.validate(schema, this);
+            handleValidation(vresult, logger, schema.getFullName());
+          } catch (IOException ex) {
+            throw new MojoExecutionException("Cannot validate " + file, ex);
+          }
+        }
+        try {
+          Map<String, Validator.Result> vresult = validators.validate(null, this);
+          handleValidation(vresult, logger, "project");
+        } catch (IOException ex) {
+          throw new MojoExecutionException("Cannot validate " + this, ex);
+        }
+      } finally {
+        if (orig != null) {
+          System.setProperty("allowUndefinedLogicalTypes", orig);
+        }
       }
-    }
-    try {
-      Map<String, Validator.Result> vresult = validators.validate(null, this);
-      handleValidation(vresult, logger, "project");
-    } catch (IOException ex) {
-       throw new MojoExecutionException("Cannot validate " + this, ex);
     }
   }
 

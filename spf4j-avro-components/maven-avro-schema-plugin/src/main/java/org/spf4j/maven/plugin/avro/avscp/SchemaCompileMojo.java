@@ -49,9 +49,8 @@ import org.spf4j.base.AppendableUtils;
 import org.spf4j.base.PackageInfo;
 
 /**
- * Mojo that will compile the avro sources: *.avsc, *.avpr, *.avdl in:
- * 1) java files.
- * 2) avsc files.
+ * Mojo that will compile the avro sources: *.avsc, *.avpr, *.avdl in: 1) java files. 2) avsc files.
+ *
  * @author Zoltan Farkas
  */
 @Mojo(name = "avro-compile",
@@ -61,7 +60,7 @@ import org.spf4j.base.PackageInfo;
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
 
-   public static final String SCHEMA_MANIFEST = "codegen.properties";
+  public static final String SCHEMA_MANIFEST = "codegen.properties";
 
   /**
    * The field visibility indicator for the fields of the generated class, as string values of
@@ -86,8 +85,8 @@ public final class SchemaCompileMojo
   private boolean createSetters;
 
   /**
-   * add maven coordinates to the schema. (group:artifact:version:ID)
-   * ID->Schema full name mapping file  schema_index.properties is packaged in the jar artifacts.
+   * add maven coordinates to the schema. (group:artifact:version:ID) ID->Schema full name mapping file
+   * schema_index.properties is packaged in the jar artifacts.
    */
   @Parameter(name = "addMavenId",
           defaultValue = "true")
@@ -146,8 +145,8 @@ public final class SchemaCompileMojo
       getLog().info("Compile classpath: " + runtimeUrls);
       URLClassLoader projPathLoader = AccessController.doPrivileged(
               (PrivilegedAction<URLClassLoader>) ()
-                      -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
-              Thread.currentThread().getContextClassLoader()));
+              -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
+                      Thread.currentThread().getContextClassLoader()));
       File file = new File(sourceDirectory, filename);
       parser = new Idl(file, projPathLoader);
       Protocol protocol = parser.CompilationUnit();
@@ -250,7 +249,7 @@ public final class SchemaCompileMojo
   }
 
   public void deleteProtocolClasses() throws IOException {
-   String detectionString = "org.apache.avro.Protocol PROTOCOL";
+    String detectionString = "org.apache.avro.Protocol PROTOCOL";
     Path javaPath = generatedJavaTarget.toPath();
     String mSourceEncoding = mavenProject.getProperties().getProperty("project.build.sourceEncoding");
     String sourceEncoding;
@@ -298,92 +297,94 @@ public final class SchemaCompileMojo
     getLog().info("Deleted dupes: " + dupes);
   }
 
-
-
-
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log logger = this.getLog();
     logger.info("Generationg java code + schemas, using avro "
             + PackageInfo.getPackageInfo(org.apache.avro.Schema.class.getName()));
     synchronized (String.class) {
-      for (Map.Entry<String, String> entry : ((Set<Map.Entry<String, String>>) ((Set) systemProperties.entrySet()))) {
-        System.setProperty(entry.getKey(), entry.getValue());
-      }
-      Path pSources = this.target.toPath().resolve("avro-sources");
-      String[] sourceFiles = getSourceFiles("**/*.avsc");
+      Properties properties = new Properties(System.getProperties());
       try {
-        doCompileSchemas(sourceFiles);
-      } catch (IOException ex) {
-        throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
-      }
+        for (Map.Entry<String, String> entry : ((Set<Map.Entry<String, String>>) ((Set) systemProperties.entrySet()))) {
+          System.setProperty(entry.getKey(), entry.getValue());
+        }
+        Path pSources = this.target.toPath().resolve("avro-sources");
+        String[] sourceFiles = getSourceFiles("**/*.avsc");
+        try {
+          doCompileSchemas(sourceFiles);
+        } catch (IOException ex) {
+          throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
+        }
 
-      for (String file : getSourceFiles("**/*.avpr")) {
-        try {
-          doCompileProtocol(file);
-          Path destination = pSources.resolve(file);
-          Path folder = destination.getParent();
-          if (folder != null) {
-            Files.createDirectories(folder);
+        for (String file : getSourceFiles("**/*.avpr")) {
+          try {
+            doCompileProtocol(file);
+            Path destination = pSources.resolve(file);
+            Path folder = destination.getParent();
+            if (folder != null) {
+              Files.createDirectories(folder);
+            }
+            Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
+          } catch (IOException ex) {
+            throw new MojoExecutionException("cannot compile protocol " + file, ex);
           }
-          Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ex) {
-          throw new MojoExecutionException("cannot compile protocol " + file, ex);
         }
-      }
-      for (String file : getSourceFiles("**/*.avdl")) {
-        try {
-          doCompileIDL(file);
-          Path destination = pSources.resolve(file);
-          Path parent = destination.getParent();
-          if (parent != null) {
-            Files.createDirectories(parent);
+        for (String file : getSourceFiles("**/*.avdl")) {
+          try {
+            doCompileIDL(file);
+            Path destination = pSources.resolve(file);
+            Path parent = destination.getParent();
+            if (parent != null) {
+              Files.createDirectories(parent);
+            }
+            Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
+          } catch (IOException ex) {
+            throw new MojoExecutionException("cannot compile IDL " + file, ex);
           }
-          Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+        Path codegenManifest = generatedAvscTarget.toPath().resolve(SCHEMA_MANIFEST);
+        try {
+          Files.write(codegenManifest,
+                  Collections.singletonList("Build-Time=" + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),
+                  StandardCharsets.UTF_8);
         } catch (IOException ex) {
-          throw new MojoExecutionException("cannot compile IDL " + file, ex);
+          throw new MojoExecutionException("Cannot create codegen manifest file " + codegenManifest, ex);
         }
-      }
-      Path codegenManifest = generatedAvscTarget.toPath().resolve(SCHEMA_MANIFEST);
-      try {
-        Files.write(codegenManifest,
-             Collections.singletonList("Build-Time=" + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),
-             StandardCharsets.UTF_8);
-      } catch (IOException ex) {
-        throw new MojoExecutionException("Cannot create codegen manifest file " + codegenManifest, ex);
-      }
-      try {
-        deleteGeneratedAvailableInDependencies();
-        deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());
-        if (deleteProtocolInterface) {
-          deleteProtocolClasses();
+        try {
+          deleteGeneratedAvailableInDependencies();
+          deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());
+          if (deleteProtocolInterface) {
+            deleteProtocolClasses();
+          }
+        } catch (IOException ex) {
+          throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
         }
-      } catch (IOException ex) {
-        throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
-      }
-      Path indexFile = this.generatedAvscTarget.toPath().resolve("schema_index.properties");
-      try (BufferedWriter bw = Files.newBufferedWriter(indexFile,
-              StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-        for (Map.Entry<String, Schema> entry : index.entrySet()) {
+        Path indexFile = this.generatedAvscTarget.toPath().resolve("schema_index.properties");
+        try (BufferedWriter bw = Files.newBufferedWriter(indexFile,
+                StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+          for (Map.Entry<String, Schema> entry : index.entrySet()) {
             bw.append(entry.getKey());
             bw.append('=');
             bw.append(entry.getValue().getFullName());
             bw.append('\n');
+          }
+        } catch (IOException ex) {
+          throw new MojoExecutionException("Cannot generate schema index " + this, ex);
         }
-      } catch (IOException ex) {
-        throw new MojoExecutionException("Cannot generate schema index " + this, ex);
+        mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
+        Resource resource = new Resource();
+        resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
+        resource.addInclude("**/*.avsc");
+        resource.addInclude("*.properties");
+        mavenProject.addResource(resource);
+        Resource resource2 = new Resource();
+        resource2.setDirectory(pSources.toString());
+        resource2.addInclude("**/*.avpr");
+        resource2.addInclude("**/*.avdl");
+        mavenProject.addResource(resource2);
+      } finally {
+        System.setProperties(properties);
       }
-      mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
-      Resource resource = new Resource();
-      resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());
-      resource.addInclude("**/*.avsc");
-      resource.addInclude("*.properties");
-      mavenProject.addResource(resource);
-      Resource resource2 = new Resource();
-      resource2.setDirectory(pSources.toString());
-      resource2.addInclude("**/*.avpr");
-      resource2.addInclude("**/*.avdl");
-      mavenProject.addResource(resource2);
     }
   }
 
