@@ -105,6 +105,13 @@ public final class SchemaCompileMojo
   @Parameter(name = "systemProperties")
   private Properties systemProperties = new Properties();
 
+
+  /**
+   * string type
+   */
+  @Parameter(name = "stringType", defaultValue = "String")
+  private String stringType = "String";
+
   private int idSequence = 0;
 
   private final Map<String, Schema> index = new HashMap<>();
@@ -167,7 +174,7 @@ public final class SchemaCompileMojo
       }
       SpecificCompiler compiler = new SpecificCompiler(protocol);
       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
-      compiler.setStringType(GenericData.StringType.String);
+      compiler.setStringType(GenericData.StringType.valueOf(stringType));
       compiler.setTemplateDir(templateDirectory);
       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
       compiler.setCreateSetters(createSetters);
@@ -200,7 +207,7 @@ public final class SchemaCompileMojo
       SpecificCompiler compiler = new SpecificCompiler(schema);
       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setTemplateDir(templateDirectory);
-      compiler.setStringType(GenericData.StringType.String);
+      compiler.setStringType(GenericData.StringType.valueOf(stringType));
       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
       compiler.setCreateSetters(createSetters);
       compiler.compileToDestination(src, generatedJavaTarget);
@@ -227,7 +234,7 @@ public final class SchemaCompileMojo
     SpecificCompiler compiler = new SpecificCompiler(protocol);
     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.setTemplateDir(templateDirectory);
-    compiler.setStringType(GenericData.StringType.String);
+    compiler.setStringType(GenericData.StringType.valueOf(stringType));
     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
     compiler.setCreateSetters(createSetters);
     compiler.compileToDestination(src, generatedJavaTarget);
