@@ -116,12 +116,21 @@ public final class SchemaDocValidator implements Validator<Schema> {
         for (Field field : schema.getFields()) {
           doc = field.doc();
           if (doc == null || doc.trim().isEmpty()) {
-            issues.add("Please document " + field.name() + '@' + schema.getFullName());
+            String errText = "Please document " + field.name() + '@' + schema.getFullName();
+            String source = schema.getProp("sourceIdl");
+            if (source != null) {
+              errText += " from " + source;
+            }
+            issues.add(errText);
           } else {
             Schema fs = field.schema();
             if (Schemas.isNullableUnion(fs) && !CharSequences.containsIgnoreCase(doc, "null")) {
               String issue = "please document the meaning of null for field " + field.name() + '@'
                       + schema.getFullName();
+              String source = schema.getProp("sourceIdl");
+              if (source != null) {
+                issue += " from " + source;
+              }
               Schema.Type collectionType = getCollectionType(fs);
               if (collectionType != null) {
                 issue += " and explain how its meaning is different from empty " + collectionType;
