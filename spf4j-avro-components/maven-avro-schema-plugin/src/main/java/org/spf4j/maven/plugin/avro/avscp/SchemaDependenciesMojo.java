@@ -30,7 +30,7 @@ import org.spf4j.maven.MavenRepositoryUtils;
  * All avro files will be made available at "dependenciesDirectory"
  * @author Zoltan Farkas
  */
-@Mojo(name = "avro-dependencies", requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "avro-dependencies", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @Execute(phase = LifecyclePhase.INITIALIZE)
 public final class SchemaDependenciesMojo
         extends SchemaMojoBase {
