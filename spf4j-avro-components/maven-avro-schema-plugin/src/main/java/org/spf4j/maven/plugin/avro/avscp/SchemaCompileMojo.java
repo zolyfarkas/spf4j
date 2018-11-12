@@ -42,6 +42,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.spf4j.base.AppendableUtils;
@@ -53,7 +54,8 @@ import org.spf4j.base.PackageInfo;
  * @author Zoltan Farkas
  */
 @Mojo(name = "avro-compile",
-        defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
@@ -138,7 +140,6 @@ public final class SchemaCompileMojo
       // Add the source directory of avro files to the classpath so that
       // imports can refer to other idl files as classpath resources
       runtimeUrls.add(sourceDirectory.toURI().toURL());
-      runtimeUrls.add(dependenciesDirectory.toURI().toURL());
 
       // If runtimeClasspathElements is not empty values add its values to Idl path.
       if (cpElements != null && !cpElements.isEmpty()) {
