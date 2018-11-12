@@ -156,21 +156,7 @@ public final class SchemaCompileMojo
       File file = new File(sourceDirectory, filename);
       parser = new Idl(file, projPathLoader);
       Protocol protocol = parser.CompilationUnit();
-      Collection<Schema> types = protocol.getTypes();
-      for (Schema schema : types) {
-        if (addMavenId) {
-          attachMavenId(schema);
-        }
-        String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
-        Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
-        Path parent = destinationFile.getParent();
-        if (parent != null) {
-          Files.createDirectories(parent);
-        }
-        Files.write(destinationFile,
-                schema.toString().getBytes(StandardCharsets.UTF_8),
-                StandardOpenOption.CREATE);
-      }
+      publishSchemas(protocol);
       SpecificCompiler compiler = new SpecificCompiler(protocol);
       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setStringType(GenericData.StringType.valueOf(stringType));
@@ -216,6 +202,17 @@ public final class SchemaCompileMojo
   protected void doCompileProtocol(final String filename) throws IOException {
     File src = new File(sourceDirectory, filename);
     Protocol protocol = Protocol.parse(src);
+    publishSchemas(protocol);
+    SpecificCompiler compiler = new SpecificCompiler(protocol);
+    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
+    compiler.setTemplateDir(templateDirectory);
+    compiler.setStringType(GenericData.StringType.valueOf(stringType));
+    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
+    compiler.setCreateSetters(createSetters);
+    compiler.compileToDestination(src, generatedJavaTarget);
+  }
+
+  private void publishSchemas(Protocol protocol) throws IOException {
     Collection<Schema> types = protocol.getTypes();
     for (Schema schema : types) {
       if (addMavenId) {
@@ -230,13 +227,6 @@ public final class SchemaCompileMojo
       Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
               StandardOpenOption.CREATE);
     }
-    SpecificCompiler compiler = new SpecificCompiler(protocol);
-    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
-    compiler.setTemplateDir(templateDirectory);
-    compiler.setStringType(GenericData.StringType.valueOf(stringType));
-    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
-    compiler.setCreateSetters(createSetters);
-    compiler.compileToDestination(src, generatedJavaTarget);
   }
 
   public void deleteGeneratedAvailableInDependencies() throws IOException {
