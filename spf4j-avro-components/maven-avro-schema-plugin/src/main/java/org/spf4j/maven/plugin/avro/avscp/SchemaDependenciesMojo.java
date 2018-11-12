@@ -7,9 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -40,10 +42,32 @@ public final class SchemaDependenciesMojo
   private MojoExecution mojoExecution;
 
 
+  @Parameter(name = "excludes")
+  private List<String> excludes = Collections.EMPTY_LIST;
+
+
+  private static List<Pattern> getPatterns(final List<String> patterns) {
+    List<Pattern> result = new ArrayList<>(patterns.size());
+    for (String sp : patterns) {
+      result.add(Pattern.compile(sp));
+    }
+    return result;
+  }
+
+  private static boolean matches(final List<Pattern> patterns, final String what) {
+    for (Pattern p : patterns) {
+      if (p.matcher(what).matches()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log log = this.getLog();
     log.info("Resolving schema dependencies");
+    List<Pattern> patterns = getPatterns(excludes);
     Set<File> deps = new HashSet();
     RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
     List<Dependency> dependencies = mavenProject.getDependencies();
@@ -78,6 +102,9 @@ public final class SchemaDependenciesMojo
               relativize = p;
             }
             classes.add(relativize.toString());
+          }
+          if (matches(patterns, p.toString())) {
+            return false;
           }
           return fn.endsWith("avsc") || fn.endsWith("avpr") || fn.endsWith("avdl");
         });
