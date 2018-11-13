@@ -181,7 +181,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
               || SchemaCompileMojo.SCHEMA_MANIFEST.equals(fname)
               || "MANIFEST.MF".equals(fname));
     });
-    Instant dependencyBuildTime = getDependencyBuidTime(dest, log);
+    Instant dependencyBuildTime = getDependencyBuildTime(dest, log);
     if (dependencyBuildTime == null) {
       log.info("Package " + dest + " build time missing from manifest");
     } else if (dependencyBuildTime.isBefore(instantToGoBack)) {
@@ -234,7 +234,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
   }
 
   @Nullable
-  private static Instant getDependencyBuidTime(final Path location, final Log log) throws IOException {
+  private static Instant getDependencyBuildTime(final Path location, final Log log) throws IOException {
     Path jarManifest = location.resolve("META-INF/MANIFEST.MF");
     if (Files.exists(jarManifest)) {
       try (BufferedInputStream bis = new BufferedInputStream(
