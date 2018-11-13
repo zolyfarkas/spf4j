@@ -122,13 +122,15 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     }
     rangeVersions = rangeVersions.stream().filter((v) -> !v.toString().endsWith("SNAPSHOT"))
             .collect(Collectors.toList());
-    log.info("Validating compatibility with previous versions " + rangeVersions);
+    int tSize = rangeVersions.size();
+    rangeVersions = rangeVersions.subList(Math.max(tSize - maxNrVersToCheck, 0), tSize);
+    log.info("Validating compatibility with previous versions " + rangeVersions + " newer than " + instantToGoBack);
     if (rangeVersions.isEmpty()) {
       return Result.valid();
     }
     List<String> issues = new ArrayList<>(4);
     int size = rangeVersions.size();
-    for (int  i = size - 1, j = Math.max(size - maxNrVersToCheck, 0); i >= j; i--) {
+    for (int  i = size - 1; i >= 0; i--) {
       Version version  = rangeVersions.get(i);
       validateCompatibility(groupId, artifactId, version,
               remoteProjectRepositories, repoSystem, repositorySession, mojo, false, instantToGoBack, issues::add);
