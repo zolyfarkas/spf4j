@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
@@ -118,45 +119,35 @@ public final class SchemaCompileMojo
 
   private void attachMavenId(final Schema schema) {
     if (schema.getProp("mvnId") == null) {
-      StringBuilder idBuilder = new StringBuilder(64);
-      idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
-              .append(':').append(mavenProject.getVersion());
-      StringBuilder idb = new StringBuilder(4);
-      AppendableUtils.appendUnsignedString(idb, idSequence, 5);
-      idBuilder.append(':').append(idb);
-      schema.addProp("mvnId", idBuilder.toString());
-      index.put(idb.toString(), schema);
-      idSequence++;
+      schema.addProp("mvnId", genMnvId(schema));
     }
   }
 
-  protected void doCompileIDL(final String filename) throws IOException {
+  public String genMnvId(final Schema schema) {
+    StringBuilder idBuilder = new StringBuilder(64);
+    idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
+            .append(':').append(mavenProject.getVersion());
+    StringBuilder idb = new StringBuilder(4);
+    AppendableUtils.appendUnsignedString(idb, idSequence, 5);
+    idBuilder.append(':').append(idb);
+    idSequence++;
+    index.put(idb.toString(), schema);
+    return idBuilder.toString();
+  }
+
+  protected void doCompileIDL(final File sourceDir,  final String filename) throws IOException {
+    Thread currentThread = Thread.currentThread();
+    ClassLoader contextClassLoader = currentThread.getContextClassLoader();
     try {
-      List<String> cpElements = mavenProject.getCompileClasspathElements();
-      Idl parser;
-
-      List<URL> runtimeUrls = new ArrayList<URL>();
-
-      // Add the source directory of avro files to the classpath so that
-      // imports can refer to other idl files as classpath resources
-      runtimeUrls.add(sourceDirectory.toURI().toURL());
-
-      // If runtimeClasspathElements is not empty values add its values to Idl path.
-      if (cpElements != null && !cpElements.isEmpty()) {
-        for (Object runtimeClasspathElement : cpElements) {
-          String element = (String) runtimeClasspathElement;
-          runtimeUrls.add(new File(element).toURI().toURL());
-        }
-      }
-      getLog().info("Compile classpath: " + runtimeUrls);
+      List<URL> runtimeUrls = createPathUrls(sourceDir);
       URLClassLoader projPathLoader = AccessController.doPrivileged(
               (PrivilegedAction<URLClassLoader>) ()
-              -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]),
-                      Thread.currentThread().getContextClassLoader()));
-      File file = new File(sourceDirectory, filename);
-      parser = new Idl(file, projPathLoader);
+              -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));
+      currentThread.setContextClassLoader(projPathLoader);
+      File file = new File(sourceDir, filename);
+      Idl parser = new Idl(file, projPathLoader);
       Protocol protocol = parser.CompilationUnit();
-      publishSchemas(protocol);
+      publishSchemasAndAttachMvnIdToProtocol(protocol, false);
       SpecificCompiler compiler = new SpecificCompiler(protocol);
       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setStringType(GenericData.StringType.valueOf(stringType));
@@ -168,8 +159,65 @@ public final class SchemaCompileMojo
       throw new IOException(e);
     } catch (DependencyResolutionRequiredException drre) {
       throw new IOException(drre);
+    } finally {
+      currentThread.setContextClassLoader(contextClassLoader);
     }
   }
+
+  public List<URL> createPathUrls(final File sourceFolder)
+          throws MalformedURLException, DependencyResolutionRequiredException {
+    List<String> cpElements = mavenProject.getCompileClasspathElements();
+    List<URL> runtimeUrls = new ArrayList<URL>();
+    runtimeUrls.add(sourceFolder.toURI().toURL());
+    // If runtimeClasspathElements is not empty values add its values to Idl path.
+    if (cpElements != null && !cpElements.isEmpty()) {
+      for (Object runtimeClasspathElement : cpElements) {
+        String element = (String) runtimeClasspathElement;
+        runtimeUrls.add(new File(element).toURI().toURL());
+      }
+    }
+    return runtimeUrls;
+  }
+
+  private File addMvnIdsToIdl(final File idl, final URLClassLoader cl)
+          throws IOException, ParseException {
+    if (!addMavenId) {
+      return idl;
+    }
+    String charsetStr = mavenProject.getProperties().getProperty("project.build.sourceEncoding");
+    Charset charset = charsetStr == null ? Charset.defaultCharset() : Charset.forName(charsetStr);
+    List<String> readAllLines = Files.readAllLines(idl.toPath(), charset);
+    Idl parser = new Idl(idl, cl);
+    Protocol protocol = parser.CompilationUnit();
+    for (Schema s : protocol.getTypes()) {
+      if (s.getProp("mvnId") != null) {
+        continue;
+      }
+      String sourceIdl = s.getProp("sourceIdl");
+      if (sourceIdl == null) {
+        getLog().warn("sourceIdl not available, will not attach mvnId for IDLs");
+        continue;
+      }
+      int cidxS = sourceIdl.lastIndexOf(':');
+      int colIndex = Integer.parseInt(sourceIdl.substring(cidxS + 1)) - 1;
+      int ridxS = sourceIdl.lastIndexOf(':', cidxS - 1);
+      int rowIndex = Integer.parseInt(sourceIdl.substring(ridxS + 1, cidxS)) - 1;
+      String substring = sourceIdl.substring(0, ridxS);
+      if (!substring.endsWith(idl.getName())) {
+        continue;
+      }
+      String line = readAllLines.get(rowIndex);
+      getLog().debug("inserting mvnId at "
+              + rowIndex + ':' + colIndex + " for line \"" + line + "\" schema: " + s);
+      readAllLines.set(rowIndex, line.substring(0, colIndex)
+              + " @mvnId(\"" + genMnvId(s) + "\") "
+              + line.substring(colIndex, line.length()));
+    }
+    Path tempIdl = Files.createTempFile(this.target.toPath(), idl.getName(), ".tmp");
+    Files.write(tempIdl, readAllLines, charset);
+    return tempIdl.toFile();
+  }
+
 
   protected void doCompileSchemas(final String[] filenames)
           throws IOException {
@@ -199,10 +247,10 @@ public final class SchemaCompileMojo
     }
   }
 
-  protected void doCompileProtocol(final String filename) throws IOException {
+  protected void doCompileProtocol(final String filename, final Path destination) throws IOException {
     File src = new File(sourceDirectory, filename);
     Protocol protocol = Protocol.parse(src);
-    publishSchemas(protocol);
+    publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId);
     SpecificCompiler compiler = new SpecificCompiler(protocol);
     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.setTemplateDir(templateDirectory);
@@ -210,12 +258,17 @@ public final class SchemaCompileMojo
     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
     compiler.setCreateSetters(createSetters);
     compiler.compileToDestination(src, generatedJavaTarget);
+    Files.write(destination,
+            protocol.toString(true).getBytes(StandardCharsets.UTF_8));
   }
 
-  private void publishSchemas(Protocol protocol) throws IOException {
+
+
+  private void publishSchemasAndAttachMvnIdToProtocol(final Protocol protocol,
+          final boolean addMvnId) throws IOException {
     Collection<Schema> types = protocol.getTypes();
     for (Schema schema : types) {
-      if (addMavenId) {
+      if (addMvnId) {
         attachMavenId(schema);
       }
       String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
@@ -312,32 +365,10 @@ public final class SchemaCompileMojo
           throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
         }
 
-        for (String file : getSourceFiles("**/*.avpr")) {
-          try {
-            doCompileProtocol(file);
-            Path destination = pSources.resolve(file);
-            Path folder = destination.getParent();
-            if (folder != null) {
-              Files.createDirectories(folder);
-            }
-            Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
-          } catch (IOException ex) {
-            throw new MojoExecutionException("cannot compile protocol " + file, ex);
-          }
-        }
-        for (String file : getSourceFiles("**/*.avdl")) {
-          try {
-            doCompileIDL(file);
-            Path destination = pSources.resolve(file);
-            Path parent = destination.getParent();
-            if (parent != null) {
-              Files.createDirectories(parent);
-            }
-            Files.copy(sourceDirectory.toPath().resolve(file), destination, StandardCopyOption.REPLACE_EXISTING);
-          } catch (IOException ex) {
-            throw new MojoExecutionException("cannot compile IDL " + file, ex);
-          }
-        }
+        compileAvpr(pSources);
+        addMvnIdToIdlsAndModeToDestination(pSources);
+        compileIdl(pSources);
+
         Path codegenManifest = generatedAvscTarget.toPath().resolve(SCHEMA_MANIFEST);
         try {
           Files.write(codegenManifest,
@@ -384,10 +415,71 @@ public final class SchemaCompileMojo
     }
   }
 
+  public void compileIdl(final Path pSources) throws MojoExecutionException {
+    for (String file : getFiles(pSources.toFile(), "**/*.avdl")) {
+      try {
+        doCompileIDL(pSources.toFile(), file);
+      } catch (IOException ex) {
+        throw new MojoExecutionException("cannot compile " + file, ex);
+      }
+    }
+  }
+
+  public void addMvnIdToIdlsAndModeToDestination(final Path pSources) throws MojoExecutionException {
+    Thread currentThread = Thread.currentThread();
+    ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+    try {
+      List<URL> runtimeUrls = createPathUrls(this.sourceDirectory);
+      getLog().info("Compile classpath: " + runtimeUrls);
+      URLClassLoader projPathLoader = AccessController.doPrivileged(
+              (PrivilegedAction<URLClassLoader>) ()
+                      -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));
+      currentThread.setContextClassLoader(projPathLoader);
+      for (String file : getSourceFiles("**/*.avdl")) {
+        Path destination = pSources.resolve(file);
+        Path parent = destination.getParent();
+        if (parent != null) {
+          Files.createDirectories(parent);
+        }
+        File ff = new File(sourceDirectory, file);
+        ff = addMvnIdsToIdl(ff, projPathLoader);
+        Files.copy(ff.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+      }
+    } catch (IOException | DependencyResolutionRequiredException | ParseException ex) {
+      throw new MojoExecutionException("cannot add mvnId to  IDL " + this, ex);
+    } finally {
+      currentThread.setContextClassLoader(contextClassLoader);
+    }
+  }
+
+  public void compileAvpr(final Path pSources) throws MojoExecutionException {
+    for (String file : getSourceFiles("**/*.avpr")) {
+      try {
+        Path destination = pSources.resolve(file);
+        Path folder = destination.getParent();
+        if (folder != null) {
+          Files.createDirectories(folder);
+        }
+        doCompileProtocol(file, destination);
+      } catch (IOException ex) {
+        throw new MojoExecutionException("cannot compile protocol " + file, ex);
+      }
+    }
+  }
+
   public String[] getSourceFiles(final String pattern) {
     FileSetManager fsm = new FileSetManager();
     FileSet fs = new FileSet();
     fs.setDirectory(sourceDirectory.getAbsolutePath());
+    fs.addInclude(pattern);
+    fs.setFollowSymlinks(false);
+    return fsm.getIncludedFiles(fs);
+  }
+
+  public static String[] getFiles(final File directory, final String pattern) {
+    FileSetManager fsm = new FileSetManager();
+    FileSet fs = new FileSet();
+    fs.setDirectory(directory.getAbsolutePath());
     fs.addInclude(pattern);
     fs.setFollowSymlinks(false);
     return fsm.getIncludedFiles(fs);
