@@ -179,8 +179,10 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
               || SchemaCompileMojo.SCHEMA_MANIFEST.equals(fname)
               || "MANIFEST.MF".equals(fname));
     });
-    Instant dependencyBuidTime = getDependencyBuidTime(dest, log);
-    if (dependencyBuidTime.isBefore(instantToGoBack)) {
+    Instant dependencyBuildTime = getDependencyBuidTime(dest, log);
+    if (dependencyBuildTime == null) {
+      log.info("Package " + dest + " build time missing from manifest");
+    } else if (dependencyBuildTime.isBefore(instantToGoBack)) {
       return;
     }
     for (Path prevSchemaPath : prevSchemas) {
