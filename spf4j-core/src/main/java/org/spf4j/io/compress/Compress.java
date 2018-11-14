@@ -227,7 +227,7 @@ public final class Compress {
     }
     final List<Path> response = new ArrayList<>();
     URI zipUri = URI.create("jar:" + zipFile.toUri().toURL());
-    synchronized (zipUri.toString().intern()) {
+    synchronized (zipUri.toString().intern()) { // newFileSystem fails if already one there...
       try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {
         for (Path root : zipFs.getRootDirectories()) {
           Path dest =  destinationDirectory.resolve(root.toString().substring(1));
