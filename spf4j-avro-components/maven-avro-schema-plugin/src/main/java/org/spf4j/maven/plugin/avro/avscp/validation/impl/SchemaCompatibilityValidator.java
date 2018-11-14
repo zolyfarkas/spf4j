@@ -171,7 +171,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     }
     Path dest = targetPath.resolve("prevSchemas").resolve(version.toString());
     Files.createDirectories(dest);
-    List<Path> prevSchemas = Compress.unzip(prevSchemaArchive.toPath(), dest, (Path p) -> {
+    List<Path> prevSchemas = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -> {
       Path fileName = p.getFileName();
       if (fileName == null) {
         return false;

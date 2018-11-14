@@ -45,6 +45,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -56,6 +57,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -225,49 +227,89 @@ public final class Compress {
     }
     final List<Path> response = new ArrayList<>();
     URI zipUri = URI.create("jar:" + zipFile.toUri().toURL());
-    try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {
-      for (Path root : zipFs.getRootDirectories()) {
-        Path dest =  destinationDirectory.resolve(root.toString().substring(1));
-        Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+    synchronized (zipUri.toString().intern()) {
+      try (FileSystem zipFs = FileSystems.newFileSystem(zipUri, Collections.emptyMap())) {
+        for (Path root : zipFs.getRootDirectories()) {
+          Path dest =  destinationDirectory.resolve(root.toString().substring(1));
+          Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
 
-          private final Set<Path> created = new HashSet<>();
+            private final Set<Path> created = new HashSet<>();
 
-          @Override
-          public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
-                  throws IOException {
-            if (!filter.test(file)) {
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs)
+                    throws IOException {
+              if (!filter.test(file)) {
+                return FileVisitResult.CONTINUE;
+              }
+              Path destination = dest.resolve(root.relativize(file).toString());
+              Path parent = destination.getParent();
+              if (parent != null && created.add(parent)) {
+                Files.createDirectories(parent);
+              }
+              copyFileAtomic(file, destination);
+              response.add(destination);
               return FileVisitResult.CONTINUE;
             }
-            Path destination = dest.resolve(root.relativize(file).toString());
-            Path parent = destination.getParent();
-            if (parent != null && created.add(parent)) {
-              Files.createDirectories(parent);
-            }
-            copyFileAtomic(file, destination);
-            response.add(destination);
-            return FileVisitResult.CONTINUE;
-          }
 
-          @Override
-          public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
-            if (!filter.test(dir)) {
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+              if (!filter.test(dir)) {
+                return FileVisitResult.CONTINUE;
+              }
               return FileVisitResult.CONTINUE;
             }
-            return FileVisitResult.CONTINUE;
-          }
-        });
-      }
-    } catch (IOException | RuntimeException ex) {
-      for (Path path : response) {
-        try {
-          Files.delete(path);
-        } catch (IOException | RuntimeException ex2) {
-          ex.addSuppressed(ex2);
+          });
         }
+      } catch (IOException | RuntimeException ex) {
+        for (Path path : response) {
+          try {
+            Files.delete(path);
+          } catch (IOException | RuntimeException ex2) {
+            ex.addSuppressed(ex2);
+          }
+        }
+        throw ex;
       }
-      throw ex;
     }
     return response;
   }
+
+  @Nonnull
+  public static List<Path> unzip2(final Path zipFile, final Path destinationDirectory) throws IOException {
+    return unzip2(zipFile, destinationDirectory, (p) -> true);
+  }
+
+  @Nonnull
+  @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+  public static List<Path> unzip2(final Path zipFile, final Path destDir,
+          final Predicate<Path> filter) throws IOException {
+    final List<Path> response = new ArrayList<>();
+    final Set<Path> created = new HashSet<>();
+    try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile))) {
+      ZipEntry zipEntry = zis.getNextEntry();
+      while (zipEntry != null) {
+        String fName = zipEntry.getName();
+        if (fName.contains("..")) {
+          throw new IllegalArgumentException("Backreference " + fName + "not allowed in " + zipFile);
+        }
+        if (filter.test(Paths.get(fName))) {
+          Path newFile = destDir.resolve(fName);
+          Path parent = newFile.getParent();
+          if (parent != null && created.add(parent)) {
+            Files.createDirectories(parent);
+          }
+          try (OutputStream fos = new BufferedOutputStream(Files.newOutputStream(newFile))) {
+            Streams.copy(zis, fos);
+          }
+          response.add(newFile);
+        }
+        zipEntry = zis.getNextEntry();
+      }
+      zis.closeEntry();
+    }
+    return response;
+  }
+
+
 
 }

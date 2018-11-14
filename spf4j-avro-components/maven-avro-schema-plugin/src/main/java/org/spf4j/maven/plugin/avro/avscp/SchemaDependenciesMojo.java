@@ -86,7 +86,7 @@ public final class SchemaDependenciesMojo
     List<String> classes = new ArrayList<>(64);
     for (File file : deps) {
       try {
-        List<Path> unzip = Compress.unzip(file.toPath(), dependenciesDirectory.toPath(), (Path p)
+        List<Path> unzip = Compress.unzip2(file.toPath(), dependenciesDirectory.toPath(), (Path p)
                 -> {
           Path fileName = p.getFileName();
           if (fileName == null) {
