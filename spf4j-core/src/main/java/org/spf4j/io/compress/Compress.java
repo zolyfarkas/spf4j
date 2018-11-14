@@ -285,12 +285,12 @@ public final class Compress {
           final Predicate<Path> filter) throws IOException {
     final List<Path> response = new ArrayList<>();
     final Set<Path> created = new HashSet<>();
-    try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile))) {
+    try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(Files.newInputStream(zipFile)))) {
       ZipEntry zipEntry = zis.getNextEntry();
       while (zipEntry != null) {
         String fName = zipEntry.getName();
         if (fName.contains("..")) {
-          throw new IllegalArgumentException("Backreference " + fName + "not allowed in " + zipFile);
+          throw new IllegalArgumentException("Backreference " + fName + " not allowed in " + zipFile);
         }
         if (filter.test(Paths.get(fName))) {
           Path newFile = destDir.resolve(fName);
