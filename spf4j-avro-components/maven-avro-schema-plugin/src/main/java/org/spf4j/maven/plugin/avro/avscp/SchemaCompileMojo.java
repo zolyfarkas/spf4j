@@ -166,7 +166,7 @@ public final class SchemaCompileMojo
 
   public List<URL> createPathUrls(final File sourceFolder)
           throws MalformedURLException, DependencyResolutionRequiredException {
-    List<String> cpElements = mavenProject.getCompileClasspathElements();
+    List<String> cpElements = mavenProject.getRuntimeClasspathElements();
     List<URL> runtimeUrls = new ArrayList<URL>();
     runtimeUrls.add(sourceFolder.toURI().toURL());
     // If runtimeClasspathElements is not empty values add its values to Idl path.
