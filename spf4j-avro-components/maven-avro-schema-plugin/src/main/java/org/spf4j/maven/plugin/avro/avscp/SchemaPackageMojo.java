@@ -71,6 +71,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
             schemaArtifactExtension, schemaArtifactClassifier,
             new DefaultArtifactHandler(schemaArtifactExtension));
     schemas.setFile(avsc.toFile());
+    logger.debug("Attaching " + schemas  + " from " + avsc);
     mavenProject.getAttachedArtifacts().add(schemas);
     Path sources = target.toPath().resolve(
               mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avroSources.jar");
