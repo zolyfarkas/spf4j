@@ -128,11 +128,15 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (rangeVersions.isEmpty()) {
       return Result.valid();
     }
+    String schemaArtifactClassifier = validatorConfigs.get("schemasArtifactClassifier");
+    if (schemaArtifactClassifier != null && schemaArtifactClassifier.trim().isEmpty()) {
+      schemaArtifactClassifier = null;
+    }
     List<String> issues = new ArrayList<>(4);
     int size = rangeVersions.size();
     for (int  i = size - 1; i >= 0; i--) {
       Version version  = rangeVersions.get(i);
-      validateCompatibility(groupId, artifactId, version,
+      validateCompatibility(groupId, artifactId, schemaArtifactClassifier, version,
               remoteProjectRepositories, repoSystem, repositorySession, mojo, false, instantToGoBack, issues::add);
     }
     if (issues.isEmpty()) {
@@ -151,7 +155,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
   }
 
   @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP")
-  public void validateCompatibility(final String groupId, final String artifactId, final Version version,
+  public void validateCompatibility(final String groupId, final String artifactId,
+          @Nullable final String classifier, final Version version,
           final List<RemoteRepository> remoteProjectRepositories, final RepositorySystem repoSystem,
           final RepositorySystemSession repositorySession,
           final ValidatorMojo mojo,
@@ -164,7 +169,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     File prevSchemaArchive;
     try {
       prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(
-              groupId, artifactId, null, "jar", version.toString(),
+              groupId, artifactId, classifier, "jar", version.toString(),
               remoteProjectRepositories, repoSystem, repositorySession);
     } catch (ArtifactResolutionException ex) {
       throw new RuntimeException("Cannot resolve previous version "  + version, ex);
