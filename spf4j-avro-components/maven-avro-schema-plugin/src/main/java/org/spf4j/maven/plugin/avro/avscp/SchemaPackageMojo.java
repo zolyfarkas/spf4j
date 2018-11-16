@@ -28,7 +28,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
    *  the target folder.
    */
   @Parameter(name = "schemaArtifactClassifier", defaultValue = "avsc")
-  protected String schemaArtifactClassifier = "avsc";
+  private String schemaArtifactClassifier = "avsc";
 
   public String[] getSourceFiles() {
     FileSetManager fsm = new FileSetManager();
@@ -79,6 +79,14 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
     avroSources.setFile(sources.toFile());
     mavenProject.getAttachedArtifacts().add(avroSources);
   }
+
+  @Override
+  public String toString() {
+    return "SchemaPackageMojo{" + "schemaArtifactClassifier=" + schemaArtifactClassifier + ", " +
+            super.toString() + '}';
+  }
+
+
 
 
 }

@@ -494,7 +494,7 @@ public final class SchemaCompileMojo
   public String toString() {
     return "SchemaCompileMojo{" + "fieldVisibility=" + fieldVisibility
             + ", templateDirectory=" + templateDirectory + ", createSetters=" + createSetters
-            + ", addMavenId=" + addMavenId + '}';
+            + ", addMavenId=" + addMavenId + ", " + super.toString() + '}';
   }
 
 }

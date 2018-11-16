@@ -105,4 +105,13 @@ public abstract class SchemaMojoBase extends AbstractMojo {
     return target;
   }
 
+  @Override
+  public String toString() {
+    return "SchemaMojoBase{" + "dependenciesDirectory=" + dependenciesDirectory
+            + ", sourceDirectory=" + sourceDirectory + ", generatedJavaTarget="
+            + generatedJavaTarget + ", generatedAvscTarget=" + generatedAvscTarget + ", target=" + target + '}';
+  }
+
+
+
 }
