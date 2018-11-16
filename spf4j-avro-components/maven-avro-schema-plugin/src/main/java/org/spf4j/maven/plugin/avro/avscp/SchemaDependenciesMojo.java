@@ -2,6 +2,7 @@ package org.spf4j.maven.plugin.avro.avscp;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,10 +84,16 @@ public final class SchemaDependenciesMojo
       throw new MojoExecutionException("Cannot resolve dependencies for " + this, ex);
     }
     log.info("resolved schema dependencies: " + deps);
+    Path dependenciesTargetPath = dependenciesDirectory.toPath();
+    try {
+      Files.createDirectories(dependenciesTargetPath);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
     List<String> classes = new ArrayList<>(64);
     for (File file : deps) {
       try {
-        List<Path> unzip = Compress.unzip2(file.toPath(), dependenciesDirectory.toPath(), (Path p)
+        List<Path> unzip = Compress.unzip2(file.toPath(), dependenciesTargetPath, (Path p)
                 -> {
           Path fileName = p.getFileName();
           if (fileName == null) {
@@ -115,7 +122,7 @@ public final class SchemaDependenciesMojo
         throw new MojoExecutionException("Cannot unzip " + file, ex);
       }
     }
-    Path classesInfo = dependenciesDirectory.toPath().resolve("classes.txt");
+    Path classesInfo = dependenciesTargetPath.resolve("classes.txt");
     try {
       Files.write(classesInfo,
               classes, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);

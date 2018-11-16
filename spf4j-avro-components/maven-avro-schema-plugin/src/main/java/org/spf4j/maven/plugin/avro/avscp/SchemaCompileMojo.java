@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
@@ -359,8 +357,9 @@ public final class SchemaCompileMojo
         for (Map.Entry<String, String> entry : ((Set<Map.Entry<String, String>>) ((Set) systemProperties.entrySet()))) {
           System.setProperty(entry.getKey(), entry.getValue());
         }
-        Path targetPath = generatedAvscTarget.toPath();
-        Files.createDirectories(targetPath);
+        Path generatedAvscTargetPath = generatedAvscTarget.toPath();
+        Files.createDirectories(generatedAvscTargetPath);
+        Files.createDirectories(generatedJavaTarget.toPath());
         Path pSources = this.target.toPath().resolve("avro-sources");
         String[] sourceFiles = getSourceFiles("**/*.avsc");
         try {
@@ -373,7 +372,7 @@ public final class SchemaCompileMojo
         addMvnIdToIdlsAndModeToDestination(pSources);
         compileIdl(pSources);
 
-        Path codegenManifest = targetPath.resolve(SCHEMA_MANIFEST);
+        Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);
         try {
           Files.write(codegenManifest,
                   Collections.singletonList("Build-Time=" + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),
@@ -390,7 +389,7 @@ public final class SchemaCompileMojo
         } catch (IOException ex) {
           throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
         }
-        Path indexFile = targetPath.resolve("schema_index.properties");
+        Path indexFile = generatedAvscTargetPath.resolve("schema_index.properties");
         try (BufferedWriter bw = Files.newBufferedWriter(indexFile,
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
           for (Map.Entry<String, Schema> entry : index.entrySet()) {
@@ -414,7 +413,7 @@ public final class SchemaCompileMojo
         resource2.addInclude("**/*.avdl");
         mavenProject.addResource(resource2);
       } catch (IOException ex) {
-        throw new MojoExecutionException("cannot compile schemas", ex);
+        throw new MojoExecutionException("cannot compile schemas, cfg = " + this, ex);
       } finally {
         System.setProperties(properties);
       }
