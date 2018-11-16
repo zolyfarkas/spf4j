@@ -141,7 +141,9 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     for (int  i = size - 1; i >= 0; i--) {
       Version version  = rangeVersions.get(i);
       validateCompatibility(groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version,
-              remoteProjectRepositories, repoSystem, repositorySession, mojo, false, instantToGoBack, issues::add);
+              remoteProjectRepositories, repoSystem, repositorySession, mojo,
+              Boolean.parseBoolean(validatorConfigs.getOrDefault("deprecationRemoval", "false")),
+              instantToGoBack, issues::add);
     }
     if (issues.isEmpty()) {
       return Result.valid();
@@ -218,8 +220,10 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
       }
       log.debug("Validating compatibility for " + previousSchemaName + " "
               + prevSchemaPath + " -> "  + newSchemaPath);
-      if (deprecationRemoval && !Files.exists(newSchemaPath) && previousSchema.getProp("deprecated") == null) {
-        issues.accept(previousSchemaName + " is being removed without being deprecated first");
+      if (!Files.exists(newSchemaPath)) {
+        if (deprecationRemoval && previousSchema.getProp("deprecated") == null) {
+          issues.accept(previousSchemaName + " is being removed without being deprecated first");
+        }
       } else {
         Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());
         if (newSchema.getProp("beta") != null) {
