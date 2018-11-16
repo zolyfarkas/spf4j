@@ -45,7 +45,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
               mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc.jar");
     Path sourcePath = this.sourceDirectory.toPath();
     try {
-      if (!Files.notExists(sourcePath)) {
+      if (Files.notExists(sourcePath)) {
         return;
       }
       Compress.zip(this.generatedAvscTarget.toPath(), avsc);
