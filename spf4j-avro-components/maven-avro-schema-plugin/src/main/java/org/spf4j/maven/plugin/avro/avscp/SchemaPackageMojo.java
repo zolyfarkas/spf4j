@@ -1,6 +1,7 @@
 package com.googlecode.maven.plugin.perl.par;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
@@ -42,7 +43,11 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
     logger.info("Packaging schemas");
     Path avsc = target.toPath().resolve(
               mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc.jar");
+    Path sourcePath = this.sourceDirectory.toPath();
     try {
+      if (!Files.notExists(sourcePath)) {
+        return;
+      }
       Compress.zip(this.generatedAvscTarget.toPath(), avsc);
     } catch (IOException ex) {
       throw new MojoExecutionException("Cannot package schemas and sources from " + this.generatedAvscTarget, ex);
@@ -55,7 +60,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
     Path sources = target.toPath().resolve(
               mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avroSources.jar");
     try {
-      Compress.zip(this.sourceDirectory.toPath(), sources);
+      Compress.zip(sourcePath, sources);
     } catch (IOException ex) {
       throw new MojoExecutionException("Cannot package sources from " + this.sourceDirectory, ex);
     }
