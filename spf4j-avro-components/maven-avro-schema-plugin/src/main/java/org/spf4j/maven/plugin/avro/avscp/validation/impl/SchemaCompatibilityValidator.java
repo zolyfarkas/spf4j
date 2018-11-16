@@ -132,11 +132,15 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (schemaArtifactClassifier != null && schemaArtifactClassifier.trim().isEmpty()) {
       schemaArtifactClassifier = null;
     }
+    String schemaArtifactExtension = validatorConfigs.get("schemaArtifactExtension");
+    if (schemaArtifactExtension == null || schemaArtifactExtension.trim().isEmpty()) {
+      schemaArtifactExtension = "jar";
+    }
     List<String> issues = new ArrayList<>(4);
     int size = rangeVersions.size();
     for (int  i = size - 1; i >= 0; i--) {
       Version version  = rangeVersions.get(i);
-      validateCompatibility(groupId, artifactId, schemaArtifactClassifier, version,
+      validateCompatibility(groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version,
               remoteProjectRepositories, repoSystem, repositorySession, mojo, false, instantToGoBack, issues::add);
     }
     if (issues.isEmpty()) {
@@ -157,26 +161,29 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
   @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP") // Schema.Parser is mutable, false positive.
   @SuppressWarnings("checkstyle:ParameterNumber") // valid will address later.
   public void validateCompatibility(final String groupId, final String artifactId,
-          @Nullable final String classifier, final Version version,
+          @Nullable final String classifier, final String extension,
+          final Version version,
           final List<RemoteRepository> remoteProjectRepositories, final RepositorySystem repoSystem,
           final RepositorySystemSession repositorySession,
           final ValidatorMojo mojo,
           final boolean deprecationRemoval, final Instant instantToGoBack, final Consumer<String> issues)
           throws IOException {
     Log log = mojo.getLog();
-    log.info("Validating compatibility with version: " + version);
+    log.info("Validating compatibility with version: " + version + ", " + groupId + ':' + artifactId
+            + ':' + classifier + ':' + extension);
     Path targetPath = mojo.getTarget().toPath();
     Path currSchemasPath = mojo.getGeneratedAvscTarget().toPath();
     File prevSchemaArchive;
     try {
       prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(
-              groupId, artifactId, classifier, "jar", version.toString(),
+              groupId, artifactId, classifier, extension, version.toString(),
               remoteProjectRepositories, repoSystem, repositorySession);
     } catch (ArtifactResolutionException ex) {
       throw new RuntimeException("Cannot resolve previous version "  + version, ex);
     }
     Path dest = targetPath.resolve("prevSchemas").resolve(version.toString());
     Files.createDirectories(dest);
+    log.debug("Unzipping " + prevSchemaArchive + " to " + dest);
     List<Path> prevSchemas = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -> {
       Path fileName = p.getFileName();
       if (fileName == null) {

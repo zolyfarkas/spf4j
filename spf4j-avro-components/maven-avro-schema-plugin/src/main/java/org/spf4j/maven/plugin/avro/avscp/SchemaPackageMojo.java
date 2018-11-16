@@ -23,10 +23,17 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
 
 
   /**
-   *  the target folder.
+   *  the schema artifact classifier.
    */
   @Parameter(name = "schemaArtifactClassifier", defaultValue = "avsc")
   private String schemaArtifactClassifier = "avsc";
+
+  /**
+   *  the schema artifact extension.
+   */
+  @Parameter(name = "schemaArtifactExtension", defaultValue = "jar")
+  private String schemaArtifactExtension = "jar";
+
 
   public String[] getSourceFiles() {
     FileSetManager fsm = new FileSetManager();
@@ -49,7 +56,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
     Log logger = this.getLog();
     logger.info("Packaging schemas");
     Path avsc = target.toPath().resolve(
-              mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc.jar");
+              mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc." + schemaArtifactExtension);
     Path sourcePath = this.sourceDirectory.toPath();
     try {
       if (Files.notExists(sourcePath)) {
@@ -60,8 +67,9 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
       throw new MojoExecutionException("Cannot package schemas and sources from " + this.generatedAvscTarget, ex);
     }
     DefaultArtifact schemas = new DefaultArtifact(mavenProject.getGroupId(),
-            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", schemaArtifactClassifier,
-            new DefaultArtifactHandler("jar"));
+            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile",
+            schemaArtifactExtension, schemaArtifactClassifier,
+            new DefaultArtifactHandler(schemaArtifactExtension));
     schemas.setFile(avsc.toFile());
     mavenProject.getAttachedArtifacts().add(schemas);
     Path sources = target.toPath().resolve(
