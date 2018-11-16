@@ -1,6 +1,5 @@
-package com.googlecode.maven.plugin.perl.par;
+package org.spf4j.maven.plugin.avro.avscp;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +14,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.spf4j.io.compress.Compress;
-import org.spf4j.maven.plugin.avro.avscp.SchemaMojoBase;
 
 /**
  * mojo that packages a schema package and avro sources and attaches them as separate artifacts.
