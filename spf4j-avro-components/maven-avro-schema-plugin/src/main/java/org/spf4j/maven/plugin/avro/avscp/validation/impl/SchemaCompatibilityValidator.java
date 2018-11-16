@@ -128,7 +128,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (rangeVersions.isEmpty()) {
       return Result.valid();
     }
-    String schemaArtifactClassifier = validatorConfigs.get("schemasArtifactClassifier");
+    String schemaArtifactClassifier = validatorConfigs.get("schemaArtifactClassifier");
     if (schemaArtifactClassifier != null && schemaArtifactClassifier.trim().isEmpty()) {
       schemaArtifactClassifier = null;
     }
