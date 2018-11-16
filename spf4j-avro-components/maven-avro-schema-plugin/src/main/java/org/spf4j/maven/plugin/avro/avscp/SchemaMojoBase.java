@@ -105,6 +105,9 @@ public abstract class SchemaMojoBase extends AbstractMojo {
     return target;
   }
 
+  /**
+   * will be overwritten as needed, and override will include this result.
+   */
   @Override
   public String toString() {
     return "SchemaMojoBase{" + "dependenciesDirectory=" + dependenciesDirectory

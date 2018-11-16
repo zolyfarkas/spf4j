@@ -80,11 +80,8 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
 
   @Override
   public String toString() {
-    return "SchemaPackageMojo{" + "schemaArtifactClassifier=" + schemaArtifactClassifier + ", " +
-            super.toString() + '}';
+    return "SchemaPackageMojo{" + "schemaArtifactClassifier=" + schemaArtifactClassifier + ", "
+          + super.toString() + '}';
   }
-
-
-
 
 }

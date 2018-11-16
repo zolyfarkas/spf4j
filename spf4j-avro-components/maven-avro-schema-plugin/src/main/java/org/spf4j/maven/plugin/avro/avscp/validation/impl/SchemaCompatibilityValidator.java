@@ -154,7 +154,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     }
   }
 
-  @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP")
+  @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP") // Schema.Parser is mutable, false positive.
+  @SuppressWarnings("checkstyle:ParameterNumber") // valid will address later.
   public void validateCompatibility(final String groupId, final String artifactId,
           @Nullable final String classifier, final Version version,
           final List<RemoteRepository> remoteProjectRepositories, final RepositorySystem repoSystem,

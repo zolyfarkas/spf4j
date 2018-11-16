@@ -113,7 +113,7 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
 
   @Override
   public String toString() {
-    return "SchemaValidatorMojo{" + "excludes=" + excludeValidators+ ", " + super.toString()  + '}';
+    return "SchemaValidatorMojo{" + "excludes=" + excludeValidators + ", " + super.toString() + '}';
   }
 
 }
