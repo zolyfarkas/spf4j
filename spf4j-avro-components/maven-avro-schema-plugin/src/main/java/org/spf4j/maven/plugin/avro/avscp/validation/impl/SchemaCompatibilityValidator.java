@@ -53,19 +53,9 @@ import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 
 /**
- * Validates all previously released schemas for backward compatibility.
+ * Validates previously released schemas for backward compatibility.
  *
- * The following validations are performed:
- *
- * 1) We check previously released schema for (reader to writer) and (writer to reader) compatibility
- * with the current schema. Unless compatibility is not desired "beta", or only partial compatibility is desired
- * "noNewToOldCompatibility" "noOldToNewCompatibility"
- * (objects written with old schema don't need to be converted to new objects)
- * or "noNewToOldCompatibility" if (objects written with new schema don't need to be converted to old schema objects)
- *
- * Schema deprecation and removal policy check to be done at some point in the future.
- *
- * this validator can supports the following configuration keys:
+ * What previously released schemas we validate against can be configured with :
  *
  * compatibiliy.versionRange - maven version range to check compatibility against. (defaults to
  * "[," + mavenProject.getVersion() +  ')' )
@@ -74,6 +64,20 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
  *
  * compatibiliy.maxNrOfDaysBackCheckForCompatibility - max released time to check against (defaults to 1 year)
  *
+ *
+ * The following validations are performed:
+ *
+ * 1) We check previously released schema for (reader to writer) and (writer to reader) compatibility
+ * with the current schema. Unless compatibility is not desired ( via "beta" schema annotation,
+ * or only partial compatibility is desired with  "noNewToOldCompatibility" "noOldToNewCompatibility"
+ * schema annotations. (objects written with old schema don't need to be converted to new objects)
+ * or "noNewToOldCompatibility" if (objects written with new schema don't need to be converted to old schema objects)
+ *
+ * </p>
+ *
+ * 2) Schema deprecation and removal policy can also enabled with compatibiliy.deprecationRemoval = true,
+ * this will validate that a schema has been deprecated during the entire compatibility interval.
+
  * @author Zoltan Farkas
  */
 public final class SchemaCompatibilityValidator implements Validator<Void> {
