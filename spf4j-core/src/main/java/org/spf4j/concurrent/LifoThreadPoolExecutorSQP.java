@@ -99,8 +99,10 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @GuardedBy("stateLock")
   private final ZArrayDequeue<QueuedThread> threadQueue;
 
+  @GuardedBy("stateLock")
   private int maxIdleTimeMillis;
 
+  @GuardedBy("stateLock")
   private int maxThreadCount;
 
   @GuardedBy("stateLock")
@@ -110,14 +112,17 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
   private final Condition stateCondition;
 
+  @GuardedBy("stateLock")
   private int queueSizeLimit;
 
   private final String poolName;
 
   private final RejectedExecutionHandler rejectionHandler;
 
+  @GuardedBy("stateLock")
   private boolean daemonThreads;
 
+  @GuardedBy("stateLock")
   private int threadPriority;
 
   public LifoThreadPoolExecutorSQP(final int maxNrThreads, final String name) {
@@ -307,7 +312,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @JmxExport
   @Override
   public boolean isDaemonThreads() {
-    return daemonThreads;
+    stateLock.lock();
+    try {
+      return daemonThreads;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
@@ -335,7 +345,23 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @JmxExport
   @Override
   public int getMaxThreadCount() {
-    return maxThreadCount;
+    stateLock.lock();
+    try {
+      return maxThreadCount;
+    } finally {
+      stateLock.unlock();
+    }
+  }
+
+  @JmxExport
+  @Override
+  public int getCoreThreadCount() {
+    stateLock.lock();
+    try {
+      return state.getCoreThreads();
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
@@ -359,7 +385,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @JmxExport
   @Override
   public int getQueueSizeLimit() {
-    return queueSizeLimit;
+    stateLock.lock();
+    try {
+      return queueSizeLimit;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
@@ -370,31 +401,67 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @Override
   @JmxExport
   public void setDaemonThreads(final boolean daemonThreads) {
-    this.daemonThreads = daemonThreads;
+    stateLock.lock();
+    try {
+      this.daemonThreads = daemonThreads;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
   @JmxExport
   public void setMaxIdleTimeMillis(final int maxIdleTimeMillis) {
-    this.maxIdleTimeMillis = maxIdleTimeMillis;
+    stateLock.lock();
+    try {
+      this.maxIdleTimeMillis = maxIdleTimeMillis;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
   @JmxExport
   public void setMaxThreadCount(final int maxThreadCount) {
-    this.maxThreadCount = maxThreadCount;
+    stateLock.lock();
+    try {
+      this.maxThreadCount = maxThreadCount;
+    } finally {
+      stateLock.unlock();
+    }
+  }
+
+  @Override
+  @JmxExport
+  public void setCoreThreadCount(final int coreThreadCount) {
+    stateLock.lock();
+    try {
+      this.state.setCoreThreads(coreThreadCount);
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
   @JmxExport
   public void setQueueSizeLimit(final int queueSizeLimit) {
-    this.queueSizeLimit = queueSizeLimit;
+    stateLock.lock();
+    try {
+      this.queueSizeLimit = queueSizeLimit;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @Override
   @JmxExport
   public void setThreadPriority(final int threadPriority) {
-    this.threadPriority = threadPriority;
+    stateLock.lock();
+    try {
+      this.threadPriority = threadPriority;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
@@ -577,7 +644,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     private boolean shutdown;
 
-    private final int coreThreads;
+    private int coreThreads;
 
     private final Set<QueuedThread> allThreads;
 
@@ -611,6 +678,9 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       return coreThreads;
     }
 
+    public void setCoreThreads(final int setCoreThreads) {
+       coreThreads = setCoreThreads;
+    }
 
     public boolean isShutdown() {
       return shutdown;
@@ -648,7 +718,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @JmxExport
   @Override
   public int getMaxIdleTimeMillis() {
-    return maxIdleTimeMillis;
+    stateLock.lock();
+    try {
+      return maxIdleTimeMillis;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
   @JmxExport
@@ -660,7 +735,12 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @JmxExport
   @Override
   public int getThreadPriority() {
-    return threadPriority;
+    stateLock.lock();
+    try {
+     return threadPriority;
+    } finally {
+      stateLock.unlock();
+    }
   }
 
 }

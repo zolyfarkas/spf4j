@@ -46,6 +46,9 @@ public interface MutableLifoThreadPool extends LifoThreadPool {
   void setMaxIdleTimeMillis(int maxIdleTimeMillis);
 
   @JmxExport
+  void setCoreThreadCount(int coreThreadCount);
+
+  @JmxExport
   void setMaxThreadCount(int maxThreadCount);
 
   @JmxExport

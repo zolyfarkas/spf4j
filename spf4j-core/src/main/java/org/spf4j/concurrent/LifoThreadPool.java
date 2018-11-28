@@ -54,6 +54,9 @@ public interface LifoThreadPool extends ExecutorService {
     int getMaxThreadCount();
 
     @JmxExport
+    int getCoreThreadCount();
+
+    @JmxExport
     int getNrQueuedTasks();
 
     @JmxExport
