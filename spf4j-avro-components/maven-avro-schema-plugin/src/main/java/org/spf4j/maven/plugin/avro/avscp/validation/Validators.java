@@ -26,7 +26,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
+import org.apache.avro.Schema;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
@@ -70,15 +72,27 @@ public final class Validators {
   }
 
   @CheckReturnValue
-  public Map<String,  Validator.Result> validate(final Object obj, final ValidatorMojo mojo) throws IOException {
+  public Map<String,  Validator.Result> validate(final Object obj, final ValidatorMojo mojo)
+          throws IOException, MojoExecutionException {
+    Log log = mojo.getLog();
     Map<String,  Validator.Result> result = new HashMap<>(4);
     for (Validator v : validators.values()) {
       if ((obj == null && v.getValidationInput() == Void.class)
               || (obj != null && v.getValidationInput().isAssignableFrom(obj.getClass()))) {
-        String name = v.getName() + '.';
-        Validator.Result res = v.validate(obj, new ConfiguredValidatorMojo(mojo, name));
+        String name = v.getName();
+        ConfiguredValidatorMojo cMojo = new ConfiguredValidatorMojo(mojo, name + '.');
+        Map<String, String> validatorConfigs = cMojo.getValidatorConfigs();
+        log.debug("Validator " + name + " config is: " + validatorConfigs);
+        if (obj instanceof Schema && name.equals(((Schema) obj).getProp("ignoreValidator"))) {
+          continue;
+        }
+        Validator.Result res = v.validate(obj, cMojo);
         if (res.isFailed()) {
-          result.put(v.getName(), res);
+          if (!Boolean.parseBoolean(validatorConfigs.getOrDefault("failOnIssue", "true"))) {
+            log.info(res.getValidationErrorMessage());
+          } else {
+            result.put(v.getName(), res);
+          }
         }
       }
     }
@@ -95,19 +109,24 @@ public final class Validators {
     private final ValidatorMojo mojo;
     private final String name;
     private final int l;
+    private Map<String, String> configs;
 
     ConfiguredValidatorMojo(final ValidatorMojo mojo, final String name) {
       this.mojo = mojo;
       this.name = name;
       this.l = name.length();
+      this.configs = null;
     }
 
     @Override
     public Map<String, String> getValidatorConfigs() {
-      return mojo.getValidatorConfigs().entrySet().stream()
+      if (configs == null) {
+        configs =  mojo.getValidatorConfigs().entrySet().stream()
               .filter((entry) -> entry.getKey().startsWith(name))
               .map((entry) -> Pair.of(entry.getKey().substring(l), entry.getValue()))
               .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+      }
+      return configs;
     }
 
     @Override

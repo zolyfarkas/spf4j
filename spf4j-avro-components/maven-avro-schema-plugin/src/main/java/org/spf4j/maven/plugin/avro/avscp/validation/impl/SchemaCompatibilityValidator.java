@@ -94,7 +94,6 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     MavenProject mavenProject = mojo.getMavenProject();
     Map<String, String> validatorConfigs = mojo.getValidatorConfigs();
     Log log = mojo.getLog();
-    log.debug("Validator " + this + " config is: " + validatorConfigs);
     String versionRange = validatorConfigs.get("versionRange");
     if (versionRange == null) {
       versionRange = "[," + mavenProject.getVersion() +  ')';
@@ -152,15 +151,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     if (issues.isEmpty()) {
       return Result.valid();
     } else {
-      if (Boolean.parseBoolean(validatorConfigs.getOrDefault("failOnIssue", "true"))) {
-        return Result.failed("Schema compatibility issues:\n" + String.join("\n", issues));
-      } else {
-        log.info("Schema compatibility issues:");
-        for (String issue : issues) {
-          log.info(issue);
-        }
-        return Result.valid();
-      }
+      return Result.failed("Schema compatibility issues:\n" + String.join("\n", issues));
     }
   }
 

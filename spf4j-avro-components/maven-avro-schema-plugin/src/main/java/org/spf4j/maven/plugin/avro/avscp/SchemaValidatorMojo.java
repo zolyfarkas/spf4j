@@ -19,10 +19,27 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 
 /**
- * Mojo that runs all Schema validators on this project schemas: Built in validators: docValidator (schema
- * documentation), compatibility (schema compatibility) Custom validators can be built and used. A custom validator,
+ * Mojo that runs all Schema validators on this project schemas: Built in validators:
+ * </p>
+ * docValidator (schema documentation),
+ * compatibility (schema compatibility),
+ * namesValidator (schema and field name validation)
+ * </p>
+ * By default validation issues will fail the build. This can be disabled at validator level with:
+ * <validatorConfigs>
+ *  <[validatorName].failOnIssue></[validatorName].failOnIssue>
+ * </validatorConfigs>
+ *
+ * A particular validator can be sckipped at schema level with:
+ *
+ * @ignoreValidator("[validatorname]")
+ * 
+ * </p>
+ * Custom validators can be built and used. A custom validator,
  * will need to implement the org.spf4j.maven.plugin.avro.avscp.validation.Validator interface, and will be loaded via
  * the java Service Loader api.
+ * </p>
+ *
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.TEST, requiresProject = true)
 @SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"})
