@@ -35,11 +35,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.CharSequences;
@@ -117,6 +120,14 @@ public final class Csv {
   public static <T> T read(final Reader preader,
           final CsvMapHandler<T> handler) throws IOException, CsvParseException {
     return CSV.read(preader, handler);
+  }
+
+  public static List<String> readRow(final String row) throws CsvParseException {
+    try {
+      return readRow(new StringReader(row));
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
   public static List<String> readRow(final Reader reader) throws IOException, CsvParseException {
