@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.sql.BatchUpdateException;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -139,6 +140,15 @@ public final class ThrowablesTest {
     Throwables.writeAbreviatedClassName("Class", sb);
     Assert.assertEquals("Class", sb.toString());
 
+  }
+
+  @Test
+  public void testFirst() throws IOException {
+    Exception ex = new Exception();
+    SQLIntegrityConstraintViolationException sqlEx = new SQLIntegrityConstraintViolationException();
+    ex.addSuppressed(sqlEx);
+    Throwable first = Throwables.first(ex, (t) -> t instanceof SQLIntegrityConstraintViolationException);
+    Assert.assertSame(sqlEx, first);
   }
 
 }
