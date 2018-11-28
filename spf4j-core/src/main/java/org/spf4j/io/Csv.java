@@ -41,8 +41,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.CharSequences;
