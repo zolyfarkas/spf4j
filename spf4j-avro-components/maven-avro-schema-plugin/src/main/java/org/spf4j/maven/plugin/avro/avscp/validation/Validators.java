@@ -36,6 +36,7 @@ import org.spf4j.base.Pair;
 import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaCompatibilityValidator;
 import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaDocValidator;
+import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaNamesValidator;
 
 /**
  * @author Zoltan Farkas
@@ -47,8 +48,11 @@ public final class Validators {
   static {
     SchemaDocValidator sdVal = new SchemaDocValidator();
     VALIDATORS.put(sdVal.getName(), sdVal);
+    SchemaNamesValidator snVal = new SchemaNamesValidator();
+    VALIDATORS.put(snVal.getName(), snVal);
     SchemaCompatibilityValidator scVal = new SchemaCompatibilityValidator();
     VALIDATORS.put(scVal.getName(), scVal);
+
     ServiceLoader<Validator> factories
             = ServiceLoader.load(Validator.class);
     Iterator<Validator> iterator = factories.iterator();
