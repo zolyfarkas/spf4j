@@ -146,7 +146,9 @@ public final class ThrowablesTest {
   public void testFirst() throws IOException {
     Exception ex = new Exception();
     SQLIntegrityConstraintViolationException sqlEx = new SQLIntegrityConstraintViolationException();
-    ex.addSuppressed(sqlEx);
+    SQLException sex = new SQLException();
+    sex.setNextException(sqlEx);
+    ex.addSuppressed(sex);
     Throwable first = Throwables.first(ex, (t) -> t instanceof SQLIntegrityConstraintViolationException);
     Assert.assertSame(sqlEx, first);
   }

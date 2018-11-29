@@ -42,7 +42,6 @@ import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -384,7 +383,8 @@ public final class Throwables {
   /**
    * Utility to get suppressed exceptions.
    *
-   * In java 1.7 it will return t.getSuppressed() + in case it is Iterable<Throwable> any other linked exceptions (see
+   * In java 1.7 it will return t.getSuppressed()
+   * + in case it is Iterable<Throwable> any other linked exceptions (see
    * SQLException)
    *
    * java 1.6 behavior is deprecated.
@@ -396,7 +396,7 @@ public final class Throwables {
     if (t instanceof Iterable) {
       // see SQLException
       List<Throwable> suppressed = new ArrayList<>(java.util.Arrays.asList(t.getSuppressed()));
-      Set<Throwable> ignore = new HashSet<>();
+      Set<Throwable> ignore = new IdentityHashSet<>();
       ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));
       Iterator it = ((Iterable) t).iterator();
       while (it.hasNext()) {
@@ -410,6 +410,12 @@ public final class Throwables {
         } else {
           break;
         }
+      }
+      for (Throwable st : t.getSuppressed()) {
+        if (ignore.contains((Throwable) st)) {
+          continue;
+        }
+        suppressed.add(st);
       }
       return suppressed.toArray(new Throwable[suppressed.size()]);
     } else {
@@ -736,7 +742,8 @@ public final class Throwables {
   }
 
   /**
-   * Returns the first Throwable that matches the predicate in the causal and suppressed chain.
+   * Returns the first Throwable that matches the predicate in the causal and suppressed chain,
+   * the suppressed chain includes the supression mechanism included in SQLException.
    * @param t the Throwable
    * @param predicate the Predicate
    * @return the Throwable the first matches the predicate or null is none matches.
@@ -759,7 +766,7 @@ public final class Throwables {
         if (cause != null) {
           toScan.addFirst(cause);
         }
-        for (Throwable supp : th.getSuppressed()) {
+        for (Throwable supp : getSuppressed(th)) {
           toScan.addLast(supp);
         }
       }
@@ -789,7 +796,7 @@ public final class Throwables {
     return null;
   }
 
-  
+
   public static Predicate<Throwable> getNonRecoverablePredicate() {
     return nonRecoverableClassificationPredicate;
   }
