@@ -33,8 +33,9 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 /**
  * Validates schema documentation fields are not empty for:
  * Records, Fixed, Enum, Record Fields.
- * Additionally for record fields of union type where one type is null, the doc if validated is it contain an
- * explanation for the meaning of the null value (null string present in doc field)
+ * <p> Additionally for record fields of union type where one type is null, the doc is validated for the
+ * presence of the "null" string, with the expectation that  the documentation contains a explanation on what
+ * in means. </p>
  *
  * @author Zoltan Farkas
  */

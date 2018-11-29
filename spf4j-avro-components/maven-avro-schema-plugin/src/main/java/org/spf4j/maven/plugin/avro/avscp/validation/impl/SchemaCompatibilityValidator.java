@@ -55,15 +55,25 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 /**
  * Validates previously released schemas for backward compatibility.
  *
- * <p>What previously released schemas we validate against can be configured with :</p>
+ * <p>The following configurations are available for this "compatibility" validator:</p>
  * <ul>
- * <li>compatibiliy.versionRange - maven version range to check compatibility against. (defaults to
+ * <li>versionRange - maven version range to check compatibility against. (defaults to
  * "[," + mavenProject.getVersion() +  ')' )</li>
  *
- * <li>compatibiliy.maxNrOfVersionsToCheckForCompatibility = max number oof versions to check against.
+ * <li>maxNrOfVersionsToCheckForCompatibility = max number oof versions to check against.
  * (defaults to 30)</li>
  *
- * <li>compatibiliy.maxNrOfDaysBackCheckForCompatibility - max released time to check against (defaults to 1 year)</li>
+ * <li>maxNrOfDaysBackCheckForCompatibility - max released time to check against (defaults to 1 year)</li>
+ *
+ * <li>deprecationRemoval - validates  that a removed schema
+ * has been previously deprecated (false by default)</li>
+ *
+ * <li>schemaArtifactClassifier - the classifier of the artifact that contains the schema files.
+ * defaults to null (the main jar)</li>
+ *
+ * <li>schemaArtifactExtension - the extension of the artifact that contains the schema files.
+ * defaults to jar </li>
+ *
  * </ul>
  *
  * <p>The following validations are performed:</p>

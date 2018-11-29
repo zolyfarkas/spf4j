@@ -19,7 +19,9 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 
 /**
- * <p>Mojo that runs all Schema validators on this project schemas: Built in validators:</p>
+ * <p>Mojo that runs all Schema validators on this project schemas</p>
+ *
+ * <p>Built in validators:</p>
  *
  * <ul>
  * <li>docValidator (schema documentation),</li>
@@ -38,7 +40,7 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  * <p>A particular validator can be sckipped at schema level with:</p>
  * <pre>
  *
- * {@literal @}ignoreValidator("[validatorname]")
+ * {@literal @}ignoreValidators(["validatorname"])
  *
  * </pre>
  * <p>
@@ -46,6 +48,8 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  * will need to implement the org.spf4j.maven.plugin.avro.avscp.validation.Validator interface, and will be loaded via
  * the java Service Loader api.</p>
  *
+ * @see org.spf4j.maven.plugin.avro.avscp.validation.Validator Interface to implement a custom validator.
+ * @see org.spf4j.maven.plugin.avro.avscp.validation.impl Built in validator implementations.
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.TEST, requiresProject = true)
 @SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"})
@@ -59,6 +63,7 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
 
   /**
    * You can configure validators, see individual validator doc (javadoc) for supported configuration keys.
+   * @see org.spf4j.maven.plugin.avro.avscp.validation.impl
    */
   @Parameter(name = "validatorConfigs")
   private Map<String, String> validatorConfigs = Collections.EMPTY_MAP;
@@ -68,12 +73,6 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
     return validatorConfigs;
   }
 
-  /**
-   * {@inheritDoc} running packaging of the current project may package a script for execution Dependencies libraries
-   * are copied in the
-   *
-   *
-   */
   @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP")
   public void execute() throws MojoExecutionException {
     Log logger = this.getLog();

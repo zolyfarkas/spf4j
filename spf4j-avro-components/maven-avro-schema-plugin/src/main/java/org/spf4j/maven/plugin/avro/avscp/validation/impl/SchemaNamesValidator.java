@@ -39,6 +39,15 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  * Validates schema names to be compliant with: no underscores in names (camel case should bd used instead) names must
  * have a minimum size.
  *
+ * <p>this validator ("namesValidator") has the following configurations:</p>
+ * <ul>
+ *  <li>minNameSize - minimum number of characters that a name must have </li>
+ *  <li>camelCase - validate the use of camel case, will complain if names contain '_'</li>
+ *  <li>validTypeNames - a comma separated list of allowed type names, defaults to ""</li>
+ *  <li>invalidTypeNames - a comma separated list of type names that are not allowed, default to "" </li>
+ *  <li>validFieldNames - a comma separated list of allowed field names, defaults to ""</li>
+ *  <li>invalidFieldNames - a comma separated list of field names that are not allowed, default to "" </li>
+ * </ul>
  * @author Zoltan Farkas
  */
 public final class SchemaNamesValidator implements Validator<Schema> {
