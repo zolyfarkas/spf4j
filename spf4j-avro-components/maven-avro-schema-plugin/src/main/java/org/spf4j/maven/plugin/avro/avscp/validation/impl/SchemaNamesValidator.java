@@ -33,11 +33,11 @@ import org.spf4j.avro.schema.Schemas;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
+import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 
 /**
- * Validates schema names to be compliant with:
- * no underscores in names (camel case should bd used instead)
- * names must have a minimum size.
+ * Validates schema names to be compliant with: no underscores in names (camel case should bd used instead) names must
+ * have a minimum size.
  *
  * @author Zoltan Farkas
  */
@@ -156,6 +156,9 @@ public final class SchemaNamesValidator implements Validator<Schema> {
     @Override
     public SchemaVisitorAction visitNonTerminal(final Schema schema) {
       if (schema.getType() == Schema.Type.RECORD) {
+        if (Validators.skipValidator(schema, "namesValidator")) {
+          return SchemaVisitorAction.CONTINUE;
+        }
         validateTypeName(schema.getName());
         for (Field field : schema.getFields()) {
           validateFieldName(field.name());

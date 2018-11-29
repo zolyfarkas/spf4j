@@ -15,6 +15,7 @@
  */
 package org.spf4j.maven.plugin.avro.avscp.validation;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -87,8 +88,10 @@ public final class Validators {
         ConfiguredValidatorMojo cMojo = new ConfiguredValidatorMojo(mojo, name + '.');
         Map<String, String> validatorConfigs = cMojo.getValidatorConfigs();
         log.debug("Validator " + name + " config is: " + validatorConfigs);
-        if (obj instanceof Schema && name.equals(((Schema) obj).getProp("ignoreValidator"))) {
-          continue;
+        if (obj instanceof Schema) {
+          if (skipValidator((Schema) obj, name)) {
+            continue;
+          }
         }
         Validator.Result res = v.validate(obj, cMojo);
         if (res.isFailed()) {
@@ -101,6 +104,17 @@ public final class Validators {
       }
     }
     return result;
+  }
+
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+  public static boolean skipValidator(final Schema obj, final String validatorName) {
+    Object iVal = obj.getObjectProp("ignoreValidators");
+    if (iVal instanceof String && validatorName.equals(iVal)) {
+      return true;
+    } else if (iVal instanceof List && ((List) iVal).contains(validatorName)) {
+      return true;
+    }
+    return false;
   }
 
   @Override

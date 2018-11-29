@@ -28,6 +28,7 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
 import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CharSequences;
 import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
+import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
 
 /**
  * Validates schema documentation fields are not empty for:
@@ -101,6 +102,9 @@ public final class SchemaDocValidator implements Validator<Schema> {
     @Override
     public SchemaVisitorAction visitNonTerminal(final Schema schema) {
       if (schema.getType() == Schema.Type.RECORD) {
+        if (Validators.skipValidator(schema, "docValidator")) {
+          return SchemaVisitorAction.CONTINUE;
+        }
         String doc = schema.getDoc();
         if (doc == null || doc.trim().isEmpty()) {
           issues.add("Please document " + schema.getFullName());

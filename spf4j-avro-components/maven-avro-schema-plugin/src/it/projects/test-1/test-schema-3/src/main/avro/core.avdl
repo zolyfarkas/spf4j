@@ -6,6 +6,7 @@ protocol Core {
     import idl "common_local.avdl";
 
    /** record representing a jar archive info */
+    @ignoreValidators(["namesValidator"])
     record JPackageInfo {
       /** the package url */
       string url = "";
@@ -13,7 +14,7 @@ protocol Core {
       string version = "";
 
       /** some key value for test*/
-      LocalKeyValue kv = {"key" : "la", "value" : null};
+      LocalKeyValue @aliases(["keyValue"]) kv = {"key" : "la", "value" : null};
     }
 
     /** a location in a file */
@@ -27,6 +28,7 @@ protocol Core {
     }
 
     /** record representing the samples where a particular method was executed */
+    @ignoreValidators(["namesValidator"])
     record JStackTraceElement {
       /** java class name */
       string className;
@@ -40,6 +42,7 @@ protocol Core {
 
     /** a throwable */
     @beta("")
+    @ignoreValidators(["namesValidator"])
     record JThrowable {
       /** exception class name */
       string className;
