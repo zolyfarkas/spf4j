@@ -425,7 +425,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="fc" id="L425">                  acquired = Boolean.FALSE;</span>
                 }
 <span class="fc" id="L427">                long currNanoTime = TimeSource.nanoTime();</span>
-<span class="fc bfc" id="L428" title="All 2 branches covered.">                if (deadlineNanos - currNanoTime &gt; heartBeat.getBeatDurationNanos()) {</span>
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">                if (deadlineNanos - currNanoTime &gt; heartBeat.getBeatDurationNanos()) {</span>
                   // do a heartbeat if have time, and if it makes sense.
 <span class="fc" id="L430">                  beat.setValue(heartBeat.tryBeat(conn, currNanoTime, deadlineNanos));</span>
                 }
@@ -470,10 +470,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="pc bpc" id="L470" title="1 of 2 branches missed.">            if (releaseDeadOwnerPermits(nrPermits) &lt;= 0) { //wait of we did not find anything dead to release.</span>
 <span class="fc" id="L471">              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - TimeSource.nanoTime()),</span>
 <span class="fc" id="L472">                      ThreadLocalRandom.current().nextLong(acquirePollMillis));</span>
-<span class="fc bfc" id="L473" title="All 2 branches covered.">              if (wtimeMilis &gt; 0) {</span>
+<span class="pc bpc" id="L473" title="1 of 2 branches missed.">              if (wtimeMilis &gt; 0) {</span>
 <span class="fc" id="L474">                syncObj.wait(wtimeMilis);</span>
               } else {
-<span class="fc" id="L476">                break;</span>
+<span class="nc" id="L476">                break;</span>
               }
             }
 <span class="nc" id="L479">          } catch (SQLException ex) {</span>
