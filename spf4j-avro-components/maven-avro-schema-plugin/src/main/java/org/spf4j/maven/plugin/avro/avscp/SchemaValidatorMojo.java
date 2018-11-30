@@ -26,7 +26,7 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  * <ul>
  * <li>docValidator (schema documentation),</li>
  * <li>compatibility (schema compatibility),</li>
- * <li>namesValidator (schema and field name validation)</li>
+ * <li>namesValidator (schema named types and field name validation)</li>
  * </ul>
  *
  * <p>By default validation issues will fail the build. This can be disabled at validator level with:</p>
