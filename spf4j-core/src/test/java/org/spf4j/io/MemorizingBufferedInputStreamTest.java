@@ -31,6 +31,7 @@
  */
 package org.spf4j.io;
 
+import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
@@ -152,8 +153,7 @@ public class MemorizingBufferedInputStreamTest {
       int val = mbis.read();
       Assert.assertEquals(val, mbis.getReadBytesFromBuffer()[0]);
       byte[] buff = new byte[8];
-      int read = mbis.read(buff);
-      Assert.assertEquals(8, read);
+      ByteStreams.readFully(mbis, buff);
       Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
       int result;
       do {
