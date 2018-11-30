@@ -31,7 +31,6 @@
  */
 package org.spf4j.io.csv;
 
-import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.BufferedReader;
@@ -74,8 +73,9 @@ public final class CharSeparatedValues {
   private final char[] toEscape;
 
   public CharSeparatedValues(final char separator) {
-    Preconditions.checkArgument(separator != '\n' && separator != '\r' && separator != '"',
-            "Illegal separator character %s", separator);
+    if (separator == '\n' || separator == '\r' || separator == '"') {
+      throw new IllegalArgumentException("Illegal separator character " + separator);
+    }
     this.separator = separator;
     this.toEscape = new char[]{separator, '\n', '\r', '"'};
   }
