@@ -238,7 +238,9 @@ public final class Runtime {
       }
     }, "spf4j queued shutdown"));
     JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
-    Registry.export(Jmx.class);
+    if (Boolean.getBoolean("spf4j.runtime.jmx")) {
+      Registry.export(Jmx.class);
+    }
   }
 
   public enum Version {
