@@ -65,6 +65,7 @@ import org.spf4j.jmx.Registry;
 import org.spf4j.os.ProcessHandler;
 import org.spf4j.os.ProcessResponse;
 import org.spf4j.recyclable.impl.ArraySuppliers;
+import org.spf4j.unix.CLibrary;
 import org.spf4j.unix.JVMArguments;
 import org.spf4j.unix.Lsof;
 import org.spf4j.unix.UnixRuntime;
@@ -547,6 +548,16 @@ public final class Runtime {
     return arr;
   }
 
+  public static synchronized void setCurrentDir(final String sourceAbsolutePath) {
+    if (haveJnaPlatformClib()) {
+      CLibrary.INSTANCE.chdir(sourceAbsolutePath);
+    }
+    System.setProperty("user.dir", sourceAbsolutePath);
+  }
+
+  public static synchronized String getCurrentDir() {
+    return System.getProperty("user.dir");
+  }
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String[] jvmArgs,
