@@ -145,7 +145,17 @@ public final class SchemaCompileMojo
               -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));
       currentThread.setContextClassLoader(projPathLoader);
       File file = new File(sourceDir, filename);
-      Idl parser = new Idl(file, projPathLoader);
+      String sourceAbsolutePath = sourceDir.getAbsolutePath();
+      // set the current dir do that sourceIdl will be computed relative to it.
+      // This makes this plugin not thread safe.
+      Idl parser;
+      String origCurrentDir = org.spf4j.base.Runtime.getCurrentDir();
+      org.spf4j.base.Runtime.setCurrentDir(sourceAbsolutePath);
+      try {
+        parser = new Idl(file, projPathLoader);
+      } finally {
+        org.spf4j.base.Runtime.setCurrentDir(origCurrentDir);
+      }
       Protocol protocol = parser.CompilationUnit();
       publishSchemasAndAttachMvnIdToProtocol(protocol, false);
       SpecificCompiler compiler = new SpecificCompiler(protocol);
@@ -360,17 +370,16 @@ public final class SchemaCompileMojo
         Path generatedAvscTargetPath = generatedAvscTarget.toPath();
         Files.createDirectories(generatedAvscTargetPath);
         Files.createDirectories(generatedJavaTarget.toPath());
-        Path pSources = this.target.toPath().resolve("avro-sources");
         String[] sourceFiles = getSourceFiles("**/*.avsc");
         try {
           doCompileSchemas(sourceFiles);
         } catch (IOException ex) {
           throw new MojoExecutionException("cannot compile schemas " + Arrays.toString(sourceFiles), ex);
         }
-
-        compileAvpr(pSources);
-        addMvnIdToIdlsAndModeToDestination(pSources);
-        compileIdl(pSources);
+        Path tmpSourceTarget = this.target.toPath().resolve("avro-sources");
+        compileAvpr(tmpSourceTarget);
+        addMvnIdToIdlsAndModeToDestination(tmpSourceTarget);
+        compileIdl(tmpSourceTarget);
 
         Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);
         try {
@@ -408,7 +417,7 @@ public final class SchemaCompileMojo
         resource.addInclude("*.properties");
         mavenProject.addResource(resource);
         Resource resource2 = new Resource();
-        resource2.setDirectory(pSources.toString());
+        resource2.setDirectory(tmpSourceTarget.toString());
         resource2.addInclude("**/*.avpr");
         resource2.addInclude("**/*.avdl");
         mavenProject.addResource(resource2);
@@ -430,7 +439,7 @@ public final class SchemaCompileMojo
     }
   }
 
-  public void addMvnIdToIdlsAndModeToDestination(final Path pSources) throws MojoExecutionException {
+  public void addMvnIdToIdlsAndModeToDestination(final Path destPath) throws MojoExecutionException {
     Thread currentThread = Thread.currentThread();
     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
     try {
@@ -441,14 +450,14 @@ public final class SchemaCompileMojo
                       -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));
       currentThread.setContextClassLoader(projPathLoader);
       for (String file : getSourceFiles("**/*.avdl")) {
-        Path destination = pSources.resolve(file);
+        Path destination = destPath.resolve(file);
         Path parent = destination.getParent();
         if (parent != null) {
           Files.createDirectories(parent);
         }
-        File ff = new File(sourceDirectory, file);
-        ff = addMvnIdsToIdl(ff, projPathLoader);
-        Files.copy(ff.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+        File idlFile = new File(sourceDirectory, file);
+        idlFile = addMvnIdsToIdl(idlFile, projPathLoader);
+        Files.copy(idlFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
       }
     } catch (IOException | DependencyResolutionRequiredException | ParseException ex) {
       throw new MojoExecutionException("cannot add mvnId to  IDL " + this, ex);
