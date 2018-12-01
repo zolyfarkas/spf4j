@@ -87,11 +87,14 @@ public final class Validators {
         String name = v.getName();
         ConfiguredValidatorMojo cMojo = new ConfiguredValidatorMojo(mojo, name + '.');
         Map<String, String> validatorConfigs = cMojo.getValidatorConfigs();
-        log.debug("Validator " + name + " config is: " + validatorConfigs);
         if (obj instanceof Schema) {
           if (skipValidator((Schema) obj, name)) {
             continue;
           }
+          log.info("Validating " + name + " for " +  ((Schema) obj).getFullName()
+                  + ", config is: " + validatorConfigs);
+        } else {
+          log.info("Validating " + name + " for " +  obj + ", config is: " + validatorConfigs);
         }
         Validator.Result res = v.validate(obj, cMojo);
         if (res.isFailed()) {
