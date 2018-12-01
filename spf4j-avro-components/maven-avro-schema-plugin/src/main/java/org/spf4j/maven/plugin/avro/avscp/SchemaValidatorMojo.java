@@ -88,7 +88,9 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
             Schema.Parser parser = new Schema.Parser();
             Schema schema = parser.parse(src);
             Map<String, Validator.Result> vresult = validators.validate(schema, this);
-            handleValidation(vresult, logger, schema.getFullName());
+            String sIdl = schema.getProp("sourceIdl");
+            handleValidation(vresult, logger,
+                    schema.getFullName() +  (sIdl != null ? " from " + sIdl : ""));
           } catch (IOException ex) {
             throw new MojoExecutionException("Cannot validate " + file, ex);
           }
