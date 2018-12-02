@@ -379,6 +379,81 @@ public final class CharSequences {
     return negative ? result : -result;
   }
 
+
+  /**
+   * will parse a unsigned integer from a char sequence from idxFrom.
+   * @param cs
+   * @param radix
+   * @param idxFrom
+   * @return
+   */
+  @SuppressWarnings("checkstyle:InnerAssignment")
+  public static int parseUnsignedInt(@Nonnull final CharSequence cs, final int radix, final int idxFrom) {
+    if (radix < Character.MIN_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " less than Character.MIN_RADIX");
+    }
+    if (radix > Character.MAX_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " greater than Character.MAX_RADIX");
+    }
+
+    int result = 0;
+    int i = idxFrom;
+    int limit = -Integer.MAX_VALUE;
+    int multmin = limit / radix;
+    int length = cs.length();
+    int digit;
+    while (i < length && (digit = Character.digit(cs.charAt(i++), radix)) >= 0) {
+      if (result < multmin) {
+        throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
+      }
+      result *= radix;
+      if (result < limit + digit) {
+        throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
+      }
+      result -= digit;
+    }
+    if (i == idxFrom) {
+      throw new NumberFormatException("No numnber in \"" + cs + "\" at " + idxFrom);
+    }
+    return -result;
+  }
+
+
+ @SuppressWarnings("checkstyle:InnerAssignment")
+  public static long parseUnsignedLong(@Nonnull final CharSequence cs, final int radix, final int idxFrom) {
+    if (radix < Character.MIN_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " less than Character.MIN_RADIX");
+    }
+    if (radix > Character.MAX_RADIX) {
+      throw new NumberFormatException("radix " + radix
+              + " greater than Character.MAX_RADIX");
+    }
+
+    long result = 0;
+    int i = idxFrom;
+    long limit = -Long.MAX_VALUE;
+    long multmin = limit / radix;
+    int digit;
+    int length = cs.length();
+    while (i < length && (digit = Character.digit(cs.charAt(i++), radix)) >= 0) {
+      if (result < multmin) {
+        throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
+      }
+      result *= radix;
+      if (result < limit + digit) {
+        throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
+      }
+      result -= digit;
+    }
+    if (i == idxFrom) {
+      throw new NumberFormatException("No numnber in " + cs + " at " + idxFrom);
+    }
+    return -result;
+  }
+
   /**
    * A more flexible version of Long.parseLong.
    *

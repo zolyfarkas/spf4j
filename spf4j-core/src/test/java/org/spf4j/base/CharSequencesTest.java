@@ -96,6 +96,33 @@ public class CharSequencesTest {
     Assert.assertFalse(CharSequences.containsIgnoreCase("asdgafsdHgas", "sdhf"));
   }
 
+  @Test
+  public void testUnsignedIntegerParsing() {
+    int val = CharSequences.parseUnsignedInt("  1234  ", 10, 2);
+    Assert.assertEquals(1234, val);
+    val = CharSequences.parseUnsignedInt("  " + Integer.MAX_VALUE + "  ", 10, 2);
+    Assert.assertEquals(Integer.MAX_VALUE, val);
+    try {
+      CharSequences.parseUnsignedInt("  " + Integer.MAX_VALUE + "1  ", 10, 2);
+      Assert.fail();
+    } catch (NumberFormatException ex) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testUnsignedLongParsing() {
+    long val = CharSequences.parseUnsignedLong("  1234  ", 10, 2);
+    Assert.assertEquals(1234L, val);
+    val = CharSequences.parseUnsignedLong("  " + Long.MAX_VALUE + "  ", 10, 2);
+    Assert.assertEquals(Long.MAX_VALUE, val);
+    try {
+      CharSequences.parseUnsignedLong("  " + Long.MAX_VALUE + "1  ", 10, 2);
+      Assert.fail();
+    } catch (NumberFormatException ex) {
+      // expected
+    }
+  }
 
 
 }
