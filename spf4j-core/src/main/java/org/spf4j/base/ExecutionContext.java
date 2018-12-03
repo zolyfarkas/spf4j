@@ -63,6 +63,11 @@ public interface ExecutionContext extends AutoCloseable {
   @Nullable
   ExecutionContext getParent();
 
+  void detach();
+
+  void attach();
+
+
   @Nonnegative
   default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
      long result = getTimeRelativeToDeadline(unit);

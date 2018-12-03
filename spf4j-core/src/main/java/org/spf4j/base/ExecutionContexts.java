@@ -162,16 +162,9 @@ public final class ExecutionContexts {
     ExecutionContext localCtx = EXEC_CTX.get();
     long nanoTime = TimeSource.nanoTime();
     ExecutionContext nCtx;
-    if (localCtx == null) {
-      nCtx = CTX_FACTORY.startThreadRoot(name, parent,
-              nanoTime, computeDeadline(nanoTime, parent, tu, timeout), () -> ExecutionContexts.setCurrent(null));
-    } else if (parent == null) {
-      nCtx = CTX_FACTORY.start(name, localCtx, nanoTime, computeDeadline(nanoTime, localCtx, tu, timeout),
-              () -> ExecutionContexts.setCurrent(localCtx));
-    } else {
-      nCtx = CTX_FACTORY.start(name, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),
-              () -> ExecutionContexts.setCurrent(localCtx));
-    }
+    nCtx = CTX_FACTORY.start(name, parent == null  ? localCtx  : parent,
+            localCtx, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),
+              ThreadLocalScopeImpl.INSTANCE);
     EXEC_CTX.set(nCtx);
     return nCtx;
   }
@@ -185,20 +178,15 @@ public final class ExecutionContexts {
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
     ExecutionContext localCtx = EXEC_CTX.get();
     ExecutionContext nCtx;
-    if (localCtx == null) {
-      nCtx = CTX_FACTORY.startThreadRoot(name, parent,
-              startTimeNanos, deadlineNanos, () -> ExecutionContexts.setCurrent(null));
-    } else {
-      nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent,
-              startTimeNanos, deadlineNanos, () -> ExecutionContexts.setCurrent(localCtx));
-    }
+    nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent, localCtx,
+              startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
     EXEC_CTX.set(nCtx);
     return nCtx;
   }
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, parent, startTimeNanos, deadlineNanos, () -> { });
+    return CTX_FACTORY.start(name, parent, null, startTimeNanos, deadlineNanos, ThreadLocalScope.NOP);
   }
 
 
@@ -313,9 +301,10 @@ public final class ExecutionContexts {
   private static class BasicExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
 
     @Override
-    public ExecutionContext start(final String name, final ExecutionContext parent,
-            final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
-      return new BasicExecutionContext(name, parent, startTimeNanos, deadlineNanos, onClose);
+    public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
+            @Nullable final ExecutionContext previous,
+            final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
+      return new BasicExecutionContext(name, parent, previous, startTimeNanos, deadlineNanos, onClose);
     }
 
   }
@@ -420,6 +409,24 @@ public final class ExecutionContexts {
       try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
         task.run();
       }
+    }
+  }
+
+  private static class ThreadLocalScopeImpl implements ThreadLocalScope {
+
+    private static final ThreadLocalScope INSTANCE = new ThreadLocalScopeImpl();
+
+    @Override
+    public void set(final ExecutionContext ctx) {
+      ExecutionContexts.setCurrent(ctx);
+    }
+
+    @Nullable
+    @Override
+    public ExecutionContext getAndSet(final ExecutionContext ctx) {
+      ExecutionContext prev = current();
+      setCurrent(ctx);
+      return prev;
     }
   }
 

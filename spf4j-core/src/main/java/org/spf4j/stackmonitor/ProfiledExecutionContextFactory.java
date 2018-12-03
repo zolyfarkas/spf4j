@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContextFactory;
+import org.spf4j.base.ThreadLocalScope;
 
 /**
  * @author Zoltan Farkas
@@ -55,7 +56,7 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
   }
 
   private static int compare(final Thread o1, final Thread o2) {
-     return Long.compare(o1.getId(), o2.getId());
+    return Long.compare(o1.getId(), o2.getId());
   }
 
   public Iterable<Thread> getCurrentThreads() {
@@ -66,24 +67,34 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
     return currentContexts.entrySet();
   }
 
-
-  @Override
   public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
-          final long startTimeNanos, final long deadlineNanos,
-          final Runnable onClose) {
-    return wrapped.start(name, parent, startTimeNanos, deadlineNanos, onClose);
-  }
+          @Nullable final ExecutionContext previous,
+          final  long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
+    if (previous == null) {
+      ExecutionContext ctx = wrapped.start(name, parent, null,
+              startTimeNanos, deadlineNanos, new ThreadLocalScope() {
+        @Override
+        public void set(final ExecutionContext ctx) {
+          if (ctx == null) {
+            currentContexts.remove(Thread.currentThread());
+          }
+          onClose.set(ctx);
+        }
 
-  @Override
-  public ExecutionContext startThreadRoot(final String name, @Nullable final ExecutionContext parent,
-          final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
-    Thread currentThread = Thread.currentThread();
-    ExecutionContext ctx = wrapped.startThreadRoot(name, parent, startTimeNanos, deadlineNanos, () -> {
-      currentContexts.remove(currentThread);
-      onClose.run();
-    });
-    currentContexts.put(currentThread, ctx);
-    return ctx;
+        @Override
+        public ExecutionContext getAndSet(final ExecutionContext ctx) {
+          if (ctx == null) {
+            currentContexts.remove(Thread.currentThread());
+          }
+          return onClose.getAndSet(ctx);
+        }
+      });
+      currentContexts.put(Thread.currentThread(), ctx);
+      return ctx;
+    } else {
+      return wrapped.start(name, parent, previous, startTimeNanos, deadlineNanos, onClose);
+    }
+
   }
 
   @Override
@@ -91,7 +102,5 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
     return "ProfiledExecutionContextFactory{" + "currentContexts="
             + currentContexts + ", wrapped=" + wrapped + '}';
   }
-
-
 
 }

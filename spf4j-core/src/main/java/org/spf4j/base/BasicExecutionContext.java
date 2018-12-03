@@ -58,18 +58,21 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final long deadlineNanos;
 
-  private final Runnable onClose;
+  private final ThreadLocalScope tlScope;
 
   private Map<Object, Object> baggage;
 
   private boolean isClosed = false;
 
+  private ExecutionContext previous;
+
   @SuppressWarnings("unchecked")
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-          final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
+          @Nullable final ExecutionContext previous,
+          final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope tlScope) {
     this.isClosed = false;
     this.name = name;
-    this.onClose = onClose;
+    this.tlScope = tlScope;
     this.startTimeNanos = startTimeNanos;
     if (parent != null) {
       long parentDeadline = parent.getDeadlineNanos();
@@ -83,6 +86,7 @@ public class BasicExecutionContext implements ExecutionContext {
     }
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
+    this.previous = previous;
   }
 
   @Override
@@ -140,14 +144,24 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   /**
-   * Close might be overridable to close any additional stuff added in the extendsd class.
+   * Close might be overridable to close any additional stuff added in the extended class.
    */
   @Override
   public void close() {
     if (!isClosed) {
-      onClose.run();
+      detach();
       isClosed = true;
     }
+  }
+
+  @Override
+  public final synchronized void detach() {
+    tlScope.set(previous);
+  }
+
+  @Override
+  public final synchronized void attach() {
+    previous = tlScope.getAndSet(this);
   }
 
   /**

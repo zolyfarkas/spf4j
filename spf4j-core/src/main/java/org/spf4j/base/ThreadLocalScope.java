@@ -32,23 +32,32 @@
 package org.spf4j.base;
 
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
-@ParametersAreNonnullByDefault
-public interface ExecutionContextFactory<T extends ExecutionContext> {
+public interface ThreadLocalScope {
 
   /**
-   * Create a ExecutionContext.
-   * @param name name of the context.
-   * @param parent parent execution context. (null if this is root)
-   * @param deadlineNanos the deadline of the context.
-   * @param onClose a callback that needs to be executed when context is closed.
-   * @return
+   * Attach to current thread;
    */
-   T start(String name, @Nullable ExecutionContext parent, @Nullable ExecutionContext previous,
-           long startTimeNanos, long deadlineNanos, ThreadLocalScope onClose);
+  void set(@Nullable ExecutionContext ctx);
+
+
+  @Nullable
+  ExecutionContext getAndSet(ExecutionContext ctx);
+
+  ThreadLocalScope NOP = new ThreadLocalScope() {
+    
+    @Override
+    public void set(final ExecutionContext ctx) {
+     //do nothing
+    }
+
+    @Override
+    public ExecutionContext getAndSet(final ExecutionContext ctx) {
+      return null;
+    }
+  };
 
 }
