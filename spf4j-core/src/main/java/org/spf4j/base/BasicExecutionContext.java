@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,6 +43,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.spf4j.io.AppendableWriter;
 
 /**
  * The simplest execution context possible.
@@ -67,6 +71,13 @@ public class BasicExecutionContext implements ExecutionContext {
   private boolean isClosed = false;
 
   private ExecutionContext previous;
+
+  private static final class Lazy {
+
+    private static final JsonFactory JSON = new JsonFactory();
+
+    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);
+  }
 
   @SuppressWarnings("unchecked")
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
@@ -184,6 +195,15 @@ public class BasicExecutionContext implements ExecutionContext {
     return "BasicExecutionContext{" + "name=" + name + ", parent="
             + parent + ", deadline=" + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)
             + ", baggage=" + baggage + '}';
+  }
+
+  /**
+   * Overwrite this method to change default json format.
+   * @param appendable
+   */
+  @Override
+  public void writeTo(final Appendable appendable) throws IOException {
+    Lazy.MAPPER.writeValue(new AppendableWriter(appendable), this);
   }
 
 }

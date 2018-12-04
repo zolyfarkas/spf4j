@@ -48,7 +48,7 @@ import javax.annotation.Signed;
  */
 @CleanupObligation
 @ParametersAreNonnullByDefault
-public interface ExecutionContext extends AutoCloseable {
+public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @DischargesObligation
   void close();
