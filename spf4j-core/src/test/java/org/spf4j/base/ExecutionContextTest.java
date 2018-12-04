@@ -48,6 +48,13 @@ import org.spf4j.concurrent.DefaultExecutor;
 @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public class ExecutionContextTest {
 
+  private static final ExecutionContext.Tag<String> KEY_TAG = new ExecutionContext.Tag<String>() {
+    @Override
+    public String toString() {
+      return "KEY";
+    }
+  };
+
   @Test
   public void testExecutionContext() throws InterruptedException, ExecutionException, TimeoutException {
     ExecutionContext orig = ExecutionContexts.current();
@@ -75,8 +82,8 @@ public class ExecutionContextTest {
       long secs = start.getTimeToDeadline(TimeUnit.SECONDS);
       Assert.assertTrue(secs >= 9);
       Assert.assertTrue(secs <= 10);
-      start.put("KEY", "BAGAGE");
-      Assert.assertEquals("BAGAGE", start.get("KEY", String.class));
+      start.put(KEY_TAG, "BAGAGE");
+      Assert.assertEquals("BAGAGE", start.get(KEY_TAG));
     }
 
 
@@ -90,8 +97,8 @@ public class ExecutionContextTest {
       long secs = (Runtime.getDeadline() - System.currentTimeMillis()) / 1000;
       Assert.assertTrue("secs = " + secs,  secs >= 9);
       Assert.assertTrue("secs = " + secs, secs <= 10);
-      start.put("KEY", "BAGAGE");
-      Assert.assertEquals("BAGAGE", start.get("KEY", String.class));
+      start.put(KEY_TAG, "BAGAGE");
+      Assert.assertEquals("BAGAGE", start.get(KEY_TAG));
     }
 
 

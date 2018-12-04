@@ -51,6 +51,14 @@ import org.spf4j.base.Threads;
 @NotThreadSafe
 public final class TracingExecutionContextStackCollector implements ISampler {
 
+  public static final ExecutionContext.Tag<SampleNode> STACK_SAMPLES = new ExecutionContext.Tag<SampleNode>() {
+    @Override
+    public String toString() {
+      return "ss";
+    }
+
+  };
+
   private final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier;
 
   private Thread[] requestFor;
@@ -92,7 +100,7 @@ public final class TracingExecutionContextStackCollector implements ISampler {
       StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
       if (stackTrace != null && stackTrace.length > 0) {
         c.collect(stackTrace);
-        context.compute("TSS", (String k, SampleNode v) -> {
+        context.compute(STACK_SAMPLES, (k, v) -> {
           if (v == null) {
             return SampleNode.createSampleNode(stackTrace);
           } else {

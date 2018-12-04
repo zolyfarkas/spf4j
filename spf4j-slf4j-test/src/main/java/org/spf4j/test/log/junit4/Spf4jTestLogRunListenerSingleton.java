@@ -44,6 +44,7 @@ import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestExecutionContextTags;
 import org.spf4j.test.log.TestLogger;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.UncaughtExceptionDetail;
@@ -230,7 +231,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     ExecutionContext currentThreadContext = ExecutionContexts.current();
     if (ctx == currentThreadContext) {
       ctx.close();
-      List<AutoCloseable> closeables = (List<AutoCloseable>) ctx.get(AutoCloseable.class);
+      List<AutoCloseable> closeables = (List<AutoCloseable>) ctx.get(TestExecutionContextTags.CLOSEABLES);
       if (closeables != null) {
         Exception ex = Closeables.closeAll(closeables);
         if (ex != null) {

@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
@@ -44,6 +43,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.spf4j.io.AppendableWriter;
 
@@ -66,7 +66,7 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final ThreadLocalScope tlScope;
 
-  private Map<Object, Object> baggage;
+  private Map<Tag, Object> baggage;
 
   private boolean isClosed = false;
 
@@ -101,13 +101,13 @@ public class BasicExecutionContext implements ExecutionContext {
     this.baggage = Collections.EMPTY_MAP;
     this.previous = previous;
     if (parent != null) {
-      parent.compute("children",
-            (String k, List x) -> {
-              if (x == null) {
-                x = new ArrayList();
+      parent.compute(StandardTags.CHILDREN,
+            (k, v) -> {
+              if (v == null) {
+                v = new ArrayList<>(2);
               }
-              x.add(BasicExecutionContext.this);
-              return x;
+              v.add(BasicExecutionContext.this);
+              return v;
             });
     }
   }
@@ -129,7 +129,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Nullable
   @Beta
   @Override
-  public final synchronized <T> T put(@Nonnull final Object key, @Nonnull final T data) {
+  public final synchronized <T> T put(@Nonnull final Tag<T> key, @Nonnull final T data) {
     if (baggage == Collections.EMPTY_MAP) {
       baggage = new HashMap<>(4);
     }
@@ -139,7 +139,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Nullable
   @Beta
   @Override
-  public final synchronized Object get(@Nonnull final Object key) {
+  public final synchronized <T> T get(@Nonnull final Tag<T> key) {
     Object res = baggage.get(key);
     if (res == null) {
       if (parent != null) {
@@ -148,13 +148,13 @@ public class BasicExecutionContext implements ExecutionContext {
         return null;
       }
     } else {
-      return res;
+      return (T) res;
     }
   }
 
   @Override
   @Nullable
-  public final synchronized <K, V> V compute(@Nonnull final K key, final BiFunction<K, V, V> compute) {
+  public final synchronized <V> V compute(@Nonnull final Tag<V> key, final BiFunction<Tag<V>, V, V> compute) {
     if (baggage == Collections.EMPTY_MAP) {
       baggage = new HashMap(4);
     }
@@ -192,9 +192,9 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   public String toString() {
-    return "BasicExecutionContext{" + "name=" + name + ", parent="
-            + parent + ", deadline=" + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)
-            + ", baggage=" + baggage + '}';
+    StringBuilder sb = new StringBuilder(64);
+    writeTo(sb);
+    return sb.toString();
   }
 
   /**
@@ -202,8 +202,23 @@ public class BasicExecutionContext implements ExecutionContext {
    * @param appendable
    */
   @Override
-  public void writeTo(final Appendable appendable) throws IOException {
-    Lazy.MAPPER.writeValue(new AppendableWriter(appendable), this);
+  public synchronized void writeTo(final Appendable appendable) throws IOException {
+    JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));
+    gen.setCodec(Lazy.MAPPER);
+    gen.writeStartObject();
+    gen.writeFieldName("name");
+    gen.writeString(name);
+    gen.writeFieldName("startTs");
+    Timing currentTiming = Timing.getCurrentTiming();
+    gen.writeString(currentTiming.fromNanoTimeToInstant(startTimeNanos).toString());
+    gen.writeFieldName("deadlineTs");
+    gen.writeString(currentTiming.fromNanoTimeToInstant(deadlineNanos).toString());
+    for (Map.Entry<Tag, Object> entry : baggage.entrySet()) {
+      gen.writeFieldName(entry.getKey().toString());
+      gen.writeObject(entry.getValue());
+    }
+    gen.writeEndObject();
+    gen.flush();
   }
 
 }

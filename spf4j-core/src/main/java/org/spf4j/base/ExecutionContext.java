@@ -34,9 +34,11 @@ package org.spf4j.base;
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
+import java.util.logging.LogRecord;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,6 +51,33 @@ import javax.annotation.Signed;
 @CleanupObligation
 @ParametersAreNonnullByDefault
 public interface ExecutionContext extends AutoCloseable, JsonWriteable {
+
+  public interface Tag<T> {
+
+    String toString();
+
+  }
+
+  final class StandardTags  {
+
+    private StandardTags() { }
+
+    public static final Tag<List<ExecutionContext>> CHILDREN  = new Tag<List<ExecutionContext>>() {
+      @Override
+      public String toString() {
+        return "children";
+      }
+    };
+
+    public static final Tag<List<LogRecord>> LOGS  = new Tag<List<LogRecord>>() {
+      @Override
+      public String toString() {
+        return "logs";
+      }
+    };
+
+  }
+
 
   @DischargesObligation
   void close();
@@ -106,22 +135,6 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
     }
   }
 
-
-  /**
-   * Method to get context associated data.
-   * if current context does not have baggage, the parent context is queried.
-   * @param <T> type of baggage.
-   * @param key key of baggage.
-   * @param clasz class of baggage value.
-   * @return the baggage
-   */
-  @Nullable
-  @Beta
-  default <T> T get(Object key, Class<T> clasz) {
-    return (T) get(key);
-  }
-
-
   /**
    * Method to get context associated data.
    * if current context does not have baggage, the parent context is queried.
@@ -131,7 +144,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  Object get(Object key);
+  <T> T get(Tag<T> key);
 
 
   /**
@@ -143,8 +156,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  <T> T put(Object key, T data);
-
+  <T> T put(Tag<T> tag, T data);
 
   /**
    * Method to put context associated data to the root context.
@@ -155,7 +167,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  default <T> T putToRoot(final Object key, final T data) {
+  default <T> T putToRoot(final Tag<T> key, final T data) {
     ExecutionContext curr = this;
     ExecutionContext parent;
     while ((parent = curr.getParent()) != null) {
@@ -174,6 +186,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Beta
   @Nullable
-  <K, V> V compute(K key, BiFunction<K, V, V> compute);
+  <V> V compute(Tag<V> key, BiFunction<Tag<V>, V, V> compute);
+
 
 }
