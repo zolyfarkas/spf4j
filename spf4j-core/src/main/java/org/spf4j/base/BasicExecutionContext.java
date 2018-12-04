@@ -32,8 +32,10 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
@@ -87,6 +89,16 @@ public class BasicExecutionContext implements ExecutionContext {
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
     this.previous = previous;
+    if (parent != null) {
+      parent.compute("children",
+            (String k, List x) -> {
+              if (x == null) {
+                x = new ArrayList();
+              }
+              x.add(BasicExecutionContext.this);
+              return x;
+            });
+    }
   }
 
   @Override
