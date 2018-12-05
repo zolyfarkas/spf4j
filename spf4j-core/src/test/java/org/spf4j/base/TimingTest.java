@@ -31,6 +31,8 @@
  */
 package org.spf4j.base;
 
+import java.math.BigInteger;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,6 +45,8 @@ public class TimingTest {
 
   @Test
   public void testTiming() {
+    long nanoTime = TimeSource.nanoTime();
+    Instant inst = Instant.now();
     Timing currentTiming = Timing.getCurrentTiming();
     long currNanos = TimeSource.nanoTime();
     long currMillis = System.currentTimeMillis();
@@ -56,6 +60,15 @@ public class TimingTest {
     long expectNanoTimeIn100ms = currNanos + TimeUnit.MILLISECONDS.toNanos(100);
     Assert.assertTrue("expected = " + expectNanoTimeIn100ms + ", actual =" + nanoTimeIn100ms,
             Math.abs(expectNanoTimeIn100ms - nanoTimeIn100ms) < TimeUnit.MILLISECONDS.toNanos(1));
+    Instant instant = currentTiming.fromNanoTimeToInstant(nanoTime);
+
+    BigInteger i1 =  BigInteger.valueOf(instant.getEpochSecond()).multiply(BigInteger.valueOf(1000000000L))
+            .add(BigInteger.valueOf(instant.getNano()));
+
+    BigInteger i2 =  BigInteger.valueOf(inst.getEpochSecond()).multiply(BigInteger.valueOf(1000000000L))
+            .add(BigInteger.valueOf(inst.getNano()));
+    BigInteger diff = i2.subtract(i1).abs();
+    Assert.assertTrue(diff.compareTo(BigInteger.valueOf(1000)) < 0);
 
   }
 

@@ -59,7 +59,9 @@ public final class Timing {
   }
 
   public Instant fromNanoTimeToInstant(final long nanoTime) {
-    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));
+    long relNanos = nanoTime - nanoTimeRef;
+    return Instant.ofEpochSecond(currentTimeMillisRef / 1000
+            + relNanos / 1000000000, (currentTimeMillisRef % 1000) * 1000000 + relNanos %  1000000000);
   }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {

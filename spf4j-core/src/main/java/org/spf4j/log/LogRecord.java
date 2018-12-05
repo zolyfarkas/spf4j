@@ -1,5 +1,21 @@
 /*
- * Copyright 2018 SPF4J.
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,184 +32,42 @@
 package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.time.Instant;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.ThreadSafe;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Marker;
-import org.spf4j.base.Arrays;
-import org.spf4j.base.JsonWriteable;
-import org.spf4j.base.Slf4jMessageFormatter;
-import org.spf4j.base.Throwables;
-import org.spf4j.io.AppendableWriter;
-import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-@ParametersAreNonnullByDefault
-@ThreadSafe
-public final class LogRecord implements JsonWriteable {
+public interface LogRecord {
 
-
-  private final String threadName;
-  private final String loggerName;
-  private final Level level;
-  private final long timeStamp;
-  private final Marker marker;
-  private final String format;
-  private final Object[] arguments;
-  private int startExtra;
-  @Nullable
-  private String message;
-
-  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
-  public LogRecord(final String logger, final Level level,
-          final String format, final Object... arguments) {
-    this(logger, level, null, format, arguments);
-  }
-
-  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
-  public LogRecord(final String logger, final Level level,
-          @Nullable final Marker marker, final String format, final Object... arguments) {
-    this.loggerName = logger;
-    this.level = level;
-    this.timeStamp = System.currentTimeMillis();
-    this.marker = marker;
-    this.format = format;
-    this.arguments = arguments;
-    this.threadName = Thread.currentThread().getName();
-    this.startExtra = -1;
-    this.message = null;
-  }
-
-  public String getLoggerName() {
-    return loggerName;
-  }
-
-  public Level getLevel() {
-    return level;
-  }
-
-  public long getTimeStamp() {
-    return timeStamp;
-  }
-
-  @Nullable
-  public Marker getMarker() {
-    return marker;
-  }
-
-  public String getFormat() {
-    return format;
-  }
-
-  @SuppressFBWarnings("EI_EXPOSE_REP") // risk I take...
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   @Nonnull
-  public Object[] getArguments() {
-    return arguments;
-  }
-
-  public String getThreadName() {
-    return threadName;
-  }
+  Object[] getArguments();
 
   @Nonnull
-  public synchronized String getMessage() {
-    materializeMessage();
-    return message;
-  }
-
-  private synchronized void materializeMessage() {
-    if (message == null) {
-      StringBuilder sb = new StringBuilder(format.length() + arguments.length * 8);
-      try {
-        this.startExtra = Slf4jMessageFormatter.format(0, sb, format,
-                ObjectAppenderSupplier.TO_STRINGER, arguments);
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-      message = sb.toString();
-    }
-  }
-
-  @Nonnull
-  public synchronized Object[] getExtraArguments() {
-    materializeMessage();
-    if (startExtra < arguments.length) {
-      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
-    } else {
-      return Arrays.EMPTY_OBJ_ARRAY;
-    }
-  }
+  Object[] getExtraArguments();
 
   @Nullable
-  public synchronized Throwable getExtraThrowable() {
-    materializeMessage();
-    Throwable result = null;
-    for (int i = startExtra; i < arguments.length; i++) {
-      Object argument = arguments[i];
-      if (argument instanceof Throwable) {
-        if (result == null) {
-          result = (Throwable) argument;
-        } else {
-          result.addSuppressed((Throwable) argument);
-        }
-      }
-    }
-    return result;
-  }
+  Throwable getExtraThrowable();
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder(64);
-    writeTo(sb);
-    return sb.toString();
-  }
+  Level getLevel();
 
-  @Override
-  public void writeTo(final Appendable appendable) throws IOException {
-    JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));
-    gen.setCodec(Lazy.MAPPER);
-    gen.writeStartObject();
-    gen.writeFieldName("ts");
-    gen.writeString(Instant.ofEpochMilli(timeStamp).toString());
-    gen.writeFieldName("logger");
-    gen.writeString(loggerName);
-    gen.writeFieldName("thread");
-    gen.writeString(threadName);
-    gen.writeFieldName("msg");
-    gen.writeString(getMessage());
-    Object[] extraArguments = getExtraArguments();
-    if (extraArguments.length > 0) {
-      gen.writeFieldName("xObj");
-      gen.writeStartArray();
-      for (Object  obj : extraArguments) {
-        gen.writeObject(obj);
-      }
-      gen.writeEndArray();
-    }
-    Throwable t = getExtraThrowable();
-    if (t != null) {
-      gen.writeFieldName("throwable");
-      gen.writeString(Throwables.toString(t));
-    }
-    gen.writeEndObject();
-    gen.flush();
-  }
+  String getLoggerName();
 
-  private static final class Lazy {
+  @Nullable
+  Marker getMarker();
 
-    private static final JsonFactory JSON = new JsonFactory();
+  @Nonnull
+  String getMessage();
 
-    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);
-  }
+  String getMessageFormat();
 
+  int getNrMessageArguments();
+
+  String getThreadName();
+
+  long getTimeStamp();
 
 }
