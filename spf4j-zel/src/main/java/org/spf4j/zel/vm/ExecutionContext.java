@@ -31,6 +31,7 @@
  */
 package org.spf4j.zel.vm;
 
+import org.spf4j.ds.SimpleStack;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.MathContext;
@@ -45,6 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.FutureBean;
+import org.spf4j.ds.SimpleStackNullSupport;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.operators.Operator;
 import static org.spf4j.zel.vm.Program.ExecutionType.SYNC;
@@ -61,6 +63,14 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     @Override
     public String toString() {
       return "VOID";
+    }
+
+  };
+
+  public static final Object NULL = new Object() {
+    @Override
+    public String toString() {
+      return "NULL";
     }
 
   };
@@ -96,7 +106,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   /**
    * The main stack
    */
-  private final SimpleStack<Object> stack;
+  private final SimpleStackNullSupport<Object> stack;
 
   /**
    * Standard Input
@@ -113,7 +123,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     this.mem = localMem;
     this.globalMem = parent.globalMem;
     this.execService = service;
-    this.stack = new SimpleStack<>(8);
+    this.stack = new SimpleStackNullSupport<>(8);
     this.code = program;
     this.resultCache = parent.resultCache;
     this.ip = 0;

@@ -55,7 +55,7 @@ import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
 import org.spf4j.base.UncheckedExecutionException;
 import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXEC_HANDLER;
-import org.spf4j.ds.ZArrayDequeue;
+import org.spf4j.ds.SimpleStack;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.stackmonitor.StackTrace;
@@ -97,7 +97,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   private final Queue<Runnable> taskQueue;
 
   @GuardedBy("stateLock")
-  private final ZArrayDequeue<QueuedThread> threadQueue;
+  private final SimpleStack<QueuedThread> threadQueue;
 
   @GuardedBy("stateLock")
   private int maxIdleTimeMillis;
@@ -172,7 +172,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     this.maxIdleTimeMillis = maxIdleTimeMillis;
     this.taskQueue = new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD));
     this.queueSizeLimit = queueSizeLimit;
-    this.threadQueue = new ZArrayDequeue<>(Math.min(1024, maxSize));
+    this.threadQueue = new SimpleStack<>(Math.min(1024, maxSize));
     this.threadPriority = threadPriority;
     state = new PoolState(coreSize, new THashSet<>(Math.min(maxSize, 2048)));
     this.stateCondition = stateLock.newCondition();
@@ -469,7 +469,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
     private static final AtomicInteger COUNT = new AtomicInteger();
 
-    private final ZArrayDequeue<QueuedThread> threadQueue;
+    private final SimpleStack<QueuedThread> threadQueue;
 
     private final Queue<Runnable> taskQueue;
 
@@ -489,7 +489,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     @Nullable
     private Runnable toRun;
 
-    QueuedThread(final String nameBase, final ZArrayDequeue<QueuedThread> threadQueue,
+    QueuedThread(final String nameBase, final SimpleStack<QueuedThread> threadQueue,
             final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
             @Nullable final Runnable runFirst, final PoolState state,
             final ReentrantLock submitMonitor, final Condition submitCondition) {
@@ -560,7 +560,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                 timeoutNanos = CORE_MINWAIT_NANOS;
               }
             }
-            int ptr = threadQueue.addLastAndGetPtr(this);
+            int ptr = threadQueue.pushAndGetIdx(this);
             try {
               timeoutNanos = submitCondition.awaitNanos(timeoutNanos);
             } catch (InterruptedException ex) {
@@ -578,8 +578,15 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
                   toRun = null;
                 }
             } else {
-                threadQueue.delete(ptr, this);
-                if (timeoutNanos <= 0) {
+              QueuedThread qt = threadQueue.get(ptr);
+              if (qt == this) {
+                threadQueue.remove(ptr);
+              } else {
+                if (!threadQueue.remove(this))  {
+                  throw new IllegalStateException("Thread "  + this + " not present in " +  threadQueue);
+                }
+              }
+              if (timeoutNanos <= 0) {
                   final int tc = state.getThreadCount();
                   if (state.isShutdown() || tc > state.getCoreThreads()) {
                     removeThread();
