@@ -31,8 +31,6 @@
  */
 package org.spf4j.base;
 
-import javax.annotation.Nullable;
-
 /**
  * @author Zoltan Farkas
  */
@@ -41,23 +39,9 @@ public interface ThreadLocalScope {
   /**
    * Attach to current thread;
    */
-  void set(@Nullable ExecutionContext ctx);
+  ExecutionContext detach(ExecutionContext ctx);
 
 
-  @Nullable
-  ExecutionContext getAndSet(ExecutionContext ctx);
-
-  ThreadLocalScope NOP = new ThreadLocalScope() {
-    
-    @Override
-    public void set(final ExecutionContext ctx) {
-     //do nothing
-    }
-
-    @Override
-    public ExecutionContext getAndSet(final ExecutionContext ctx) {
-      return null;
-    }
-  };
+  ExecutionContext attach(ExecutionContext ctx);
 
 }

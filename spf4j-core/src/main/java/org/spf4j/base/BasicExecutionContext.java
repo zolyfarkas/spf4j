@@ -70,8 +70,6 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private boolean isClosed = false;
 
-  private ExecutionContext previous;
-
   private static final class Lazy {
 
     private static final JsonFactory JSON = new JsonFactory();
@@ -81,7 +79,6 @@ public class BasicExecutionContext implements ExecutionContext {
 
   @SuppressWarnings("unchecked")
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-          @Nullable final ExecutionContext previous,
           final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope tlScope) {
     this.isClosed = false;
     this.name = name;
@@ -99,7 +96,6 @@ public class BasicExecutionContext implements ExecutionContext {
     }
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
-    this.previous = previous;
     if (parent != null) {
       parent.compute(StandardTags.CHILDREN,
             (k, v) -> {
@@ -179,12 +175,12 @@ public class BasicExecutionContext implements ExecutionContext {
 
   @Override
   public final synchronized void detach() {
-    tlScope.set(previous);
+    tlScope.detach(this);
   }
 
   @Override
   public final synchronized void attach() {
-    previous = tlScope.getAndSet(this);
+    tlScope.attach(this);
   }
 
   /**

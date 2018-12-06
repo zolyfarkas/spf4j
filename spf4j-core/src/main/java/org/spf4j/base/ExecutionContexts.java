@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.ds.SimpleStack;
 
 /**
  * @author Zoltan Farkas
@@ -54,7 +55,14 @@ public final class ExecutionContexts {
   public static final long DEFAULT_TIMEOUT_NANOS
           = Long.getLong("spf4j.execContext.defaultTimeoutNanos", TimeUnit.HOURS.toNanos(8));
 
-  private static final ThreadLocal<ExecutionContext> EXEC_CTX = new ThreadLocal<ExecutionContext>();
+  private static final ThreadLocal<SimpleStack<ExecutionContext>> EXEC_CTX =
+          new ThreadLocal<SimpleStack<ExecutionContext>>() {
+    @Override
+    protected SimpleStack<ExecutionContext> initialValue() {
+      return new SimpleStack<>(4);
+    }
+
+  };
 
   private static final ExecutionContextFactory<ExecutionContext> CTX_FACTORY = initFactory();
 
@@ -92,11 +100,7 @@ public final class ExecutionContexts {
 
   @Nullable
   public static ExecutionContext current() {
-    return EXEC_CTX.get();
-  }
-
-  private static void setCurrent(@Nullable final ExecutionContext current) {
-    EXEC_CTX.set(current);
+    return EXEC_CTX.get().peek();
   }
 
   /**
@@ -159,13 +163,14 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
-    ExecutionContext localCtx = EXEC_CTX.get();
+    SimpleStack<ExecutionContext> ctxStack = EXEC_CTX.get();
+    ExecutionContext localCtx = ctxStack.peek();
     long nanoTime = TimeSource.nanoTime();
     ExecutionContext nCtx;
     nCtx = CTX_FACTORY.start(name, parent == null  ? localCtx  : parent,
             localCtx, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),
               ThreadLocalScopeImpl.INSTANCE);
-    EXEC_CTX.set(nCtx);
+    ctxStack.push(nCtx);
     return nCtx;
   }
 
@@ -176,17 +181,18 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    ExecutionContext localCtx = EXEC_CTX.get();
+    SimpleStack<ExecutionContext> lctxStack = EXEC_CTX.get();
+    ExecutionContext localCtx = lctxStack.peek();
     ExecutionContext nCtx;
     nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent, localCtx,
               startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
-    EXEC_CTX.set(nCtx);
+    lctxStack.push(nCtx);
     return nCtx;
   }
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, parent, null, startTimeNanos, deadlineNanos, ThreadLocalScope.NOP);
+    return CTX_FACTORY.start(name, parent, null, startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
   }
 
 
@@ -304,7 +310,7 @@ public final class ExecutionContexts {
     public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
             @Nullable final ExecutionContext previous,
             final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
-      return new BasicExecutionContext(name, parent, previous, startTimeNanos, deadlineNanos, onClose);
+      return new BasicExecutionContext(name, parent, startTimeNanos, deadlineNanos, onClose);
     }
 
   }
@@ -417,16 +423,21 @@ public final class ExecutionContexts {
     private static final ThreadLocalScope INSTANCE = new ThreadLocalScopeImpl();
 
     @Override
-    public void set(final ExecutionContext ctx) {
-      ExecutionContexts.setCurrent(ctx);
+    public ExecutionContext detach(final ExecutionContext ctx) {
+      SimpleStack<ExecutionContext> exStack = ExecutionContexts.EXEC_CTX.get();
+      ExecutionContext xctx = exStack.pop();
+      if (xctx != ctx) {
+        throw new IllegalStateException("Detaching contect that is noot current " + ctx + " != " + xctx);
+      }
+      return exStack.peek();
     }
 
-    @Nullable
     @Override
-    public ExecutionContext getAndSet(final ExecutionContext ctx) {
-      ExecutionContext prev = current();
-      setCurrent(ctx);
-      return prev;
+    public ExecutionContext attach(final ExecutionContext ctx) {
+      SimpleStack<ExecutionContext> get = ExecutionContexts.EXEC_CTX.get();
+      ExecutionContext peek = get.peek();
+      get.push(ctx);
+      return peek;
     }
   }
 

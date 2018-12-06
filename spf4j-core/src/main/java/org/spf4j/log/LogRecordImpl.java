@@ -65,7 +65,7 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
    this(logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
-  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
+  @SuppressFBWarnings({"LO_SUSPECT_LOG_PARAMETER", "EI_EXPOSE_REP2"})
   public LogRecordImpl(final String logger, final Level level,
           @Nullable final Marker marker,  final long timestampMillis,
           final String format, final Object... arguments) {
@@ -97,36 +97,36 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
 
   @Nullable
   @Override
-  public Marker getMarker() {
+  public final Marker getMarker() {
     return marker;
   }
 
   @Override
-  public String getMessageFormat() {
+  public final String getMessageFormat() {
     return messageFormat;
   }
 
   @SuppressFBWarnings("EI_EXPOSE_REP") // risk I take...
   @Nonnull
   @Override
-  public Object[] getArguments() {
+  public final Object[] getArguments() {
     return arguments;
   }
 
   @Override
-  public int getNrMessageArguments() {
+  public final int getNrMessageArguments() {
     materializeMessage();
     return this.startExtra;
   }
 
   @Override
-  public String getThreadName() {
+  public final String getThreadName() {
     return threadName;
   }
 
   @Nonnull
   @Override
-  public String getMessage() {
+  public final String getMessage() {
     materializeMessage();
     return message;
   }
@@ -150,7 +150,7 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
 
   @Nonnull
   @Override
-  public Object[] getExtraArguments() {
+  public final Object[] getExtraArguments() {
     materializeMessage();
     if (startExtra < arguments.length) {
       return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
@@ -161,7 +161,7 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
 
   @Nullable
   @Override
-  public Throwable getExtraThrowable() {
+  public final Throwable getExtraThrowable() {
     materializeMessage();
     Throwable result = null;
     for (int i = startExtra; i < arguments.length; i++) {
@@ -177,6 +177,10 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
     return result;
   }
 
+  /**
+   * can be sub-classed to change the string representation.
+   * @return
+   */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder(64);
@@ -184,6 +188,10 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
     return sb.toString();
   }
 
+  /**
+   * can be sub-classed to change the json representation.
+   * @return
+   */
   @Override
   public void writeTo(final Appendable appendable) throws IOException {
     JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));

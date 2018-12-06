@@ -61,11 +61,11 @@ public class TimingTest {
     Assert.assertTrue("expected = " + expectNanoTimeIn100ms + ", actual =" + nanoTimeIn100ms,
             Math.abs(expectNanoTimeIn100ms - nanoTimeIn100ms) < TimeUnit.MILLISECONDS.toNanos(1));
     Instant instant = currentTiming.fromNanoTimeToInstant(nanoTime);
-
-    BigInteger i1 =  BigInteger.valueOf(instant.getEpochSecond()).multiply(BigInteger.valueOf(1000000000L))
+    BigInteger oneMil = BigInteger.valueOf(1000000000L);
+    BigInteger i1 =  BigInteger.valueOf(instant.getEpochSecond()).multiply(oneMil)
             .add(BigInteger.valueOf(instant.getNano()));
 
-    BigInteger i2 =  BigInteger.valueOf(inst.getEpochSecond()).multiply(BigInteger.valueOf(1000000000L))
+    BigInteger i2 =  BigInteger.valueOf(inst.getEpochSecond()).multiply(oneMil)
             .add(BigInteger.valueOf(inst.getNano()));
     BigInteger diff = i2.subtract(i1).abs();
     Assert.assertTrue(diff.compareTo(BigInteger.valueOf(1000)) < 0);

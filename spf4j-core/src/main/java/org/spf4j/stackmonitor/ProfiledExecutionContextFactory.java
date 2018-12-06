@@ -70,31 +70,33 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
   public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
           @Nullable final ExecutionContext previous,
           final  long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
-    if (previous == null) {
-      ExecutionContext ctx = wrapped.start(name, parent, null,
-              startTimeNanos, deadlineNanos, new ThreadLocalScope() {
+      ThreadLocalScope threadLocalScope = new ThreadLocalScope() {
         @Override
-        public void set(final ExecutionContext ctx) {
-          if (ctx == null) {
+        public ExecutionContext detach(final ExecutionContext ctx) {
+          ExecutionContext left = onClose.detach(ctx);
+          if (left == null) {
             currentContexts.remove(Thread.currentThread());
           }
-          onClose.set(ctx);
+          return left;
         }
 
         @Override
-        public ExecutionContext getAndSet(final ExecutionContext ctx) {
-          if (ctx == null) {
-            currentContexts.remove(Thread.currentThread());
+        public ExecutionContext attach(final ExecutionContext ctx) {
+          ExecutionContext attach = onClose.attach(ctx);
+          if (attach == null) {
+            currentContexts.put(Thread.currentThread(), ctx);
           }
-          return onClose.getAndSet(ctx);
+          return attach;
         }
-      });
+      };
+    if (previous == null) {
+      ExecutionContext ctx = wrapped.start(name, parent, null,
+              startTimeNanos, deadlineNanos, threadLocalScope);
       currentContexts.put(Thread.currentThread(), ctx);
       return ctx;
     } else {
-      return wrapped.start(name, parent, previous, startTimeNanos, deadlineNanos, onClose);
+      return wrapped.start(name, parent, previous, startTimeNanos, deadlineNanos, threadLocalScope);
     }
-
   }
 
   @Override
