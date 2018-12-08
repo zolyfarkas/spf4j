@@ -52,7 +52,7 @@ public class ExecContextLoggerTest {
     log.trace("msg1");
     List<Slf4jLogRecord> logs = new ArrayList<>(2);
     ExecutionContexts.current().streamLogs(logs::add);
-    Assert.assertEquals("test", logs.get(0).getMessageFormat());
+    Assert.assertEquals("msg1", logs.get(0).getMessageFormat());
   }
 
 }
