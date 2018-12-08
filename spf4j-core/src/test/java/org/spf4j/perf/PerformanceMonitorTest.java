@@ -33,7 +33,6 @@ package org.spf4j.perf;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.matchers.LogMatchers;
 
 /**
  *
@@ -54,8 +54,8 @@ public final class PerformanceMonitorTest {
   @Test
   public void testSomeMethod() throws Exception {
     LogAssert expect = TestLoggers.sys().expect("org.spf4j.perf.PerformanceMonitor",
-            Level.ERROR, Matchers.hasProperty("format",
-              Matchers.equalTo("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}")));
+            Level.ERROR,
+            LogMatchers.hasFormat("Execution time  {} ms for {} exceeds error threshold of {} ms, detail: {}"));
     String result = PerformanceMonitor.callAndMonitor(
             1, 2, new Callable<String>() {
 
