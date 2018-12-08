@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas

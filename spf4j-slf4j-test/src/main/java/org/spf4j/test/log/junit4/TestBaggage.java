@@ -20,18 +20,18 @@ import java.util.List;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogCollection;
-import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLogRecord;
 
 /**
  * @author Zoltan Farkas
  */
 final class TestBaggage {
   private final ExecutionContext ctx;
-  private final LogCollection<ArrayDeque<LogRecord>> logCollection;
+  private final LogCollection<ArrayDeque<TestLogRecord>> logCollection;
   private final List<LogAssert> assertions;
 
   TestBaggage(final ExecutionContext ctx,
-          final LogCollection<ArrayDeque<LogRecord>> logCollection, final List<LogAssert> assertions) {
+          final LogCollection<ArrayDeque<TestLogRecord>> logCollection, final List<LogAssert> assertions) {
     this.ctx = ctx;
     this.logCollection = logCollection;
     this.assertions = assertions;
@@ -41,7 +41,7 @@ final class TestBaggage {
     return ctx;
   }
 
-  public LogCollection<ArrayDeque<LogRecord>> getLogCollection() {
+  public LogCollection<ArrayDeque<TestLogRecord>> getLogCollection() {
     return logCollection;
   }
 

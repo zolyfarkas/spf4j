@@ -60,7 +60,7 @@ import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 import org.spf4j.failsafe.AsyncRetryExecutor;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.matchers.LogMatchers;

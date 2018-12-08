@@ -39,13 +39,13 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
 import org.spf4j.test.log.Attachments;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
-import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLogRecordImpl;
 import org.spf4j.test.log.TestExecutionContextTags;
-import org.spf4j.test.log.TestLogger;
+import org.spf4j.test.log.TestLogRecord;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.annotations.CollectLogs;
@@ -111,20 +111,20 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  private void dumpDebugInfo(final Collection<LogRecord> logs,
+  private void dumpDebugInfo(final Collection<TestLogRecord> logs,
           final Description description) {
-    Iterator<LogRecord> iterator = logs.iterator();
+    Iterator<TestLogRecord> iterator = logs.iterator();
     if (iterator.hasNext()) {
       synchronized (System.out) { // do not interleave other stuff.
-        LogPrinter.printTo(System.out, new LogRecord(new TestLogger("TestLogger", () -> null), Level.INFO,
+        LogPrinter.printTo(System.out, new TestLogRecordImpl("test", Level.INFO,
                 "Dumping last {} logs collected for debug for {}", maxDebugLogsCollected, description), "");
-        LogRecord record = iterator.next();
+        TestLogRecord record = iterator.next();
         LogPrinter.printTo(System.out, record, "");
         while (iterator.hasNext()) {
           record = iterator.next();
           LogPrinter.printTo(System.out, record, "");
         }
-        LogPrinter.printTo(System.out, new LogRecord(new TestLogger("TestLogger", () -> null), Level.INFO,
+        LogPrinter.printTo(System.out, new TestLogRecordImpl("test", Level.INFO,
                 "End debug log dump for {}", description), "");
       }
     }
@@ -142,7 +142,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       ctx = ExecutionContexts.start(description.getDisplayName());
     }
     TestLoggers sysTest = TestLoggers.sys();
-    LogCollection<ArrayDeque<LogRecord>> collectLogs = handleLogCollections(description, sysTest);
+    LogCollection<ArrayDeque<TestLogRecord>> collectLogs = handleLogCollections(description, sysTest);
     List<LogAssert> logExpectations = handleLogExpectations(description, sysTest);
     baggages.put(description, new TestBaggage(ctx, collectLogs, logExpectations));
     handlePrintLogAnnotations(description, sysTest);
@@ -179,7 +179,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       return assertions;
     }
 
-  private LogCollection<ArrayDeque<LogRecord>> handleLogCollections(final Description description,
+  private LogCollection<ArrayDeque<TestLogRecord>> handleLogCollections(final Description description,
           final TestLoggers sysTest) {
     CollectLogs ca = description.getAnnotation(CollectLogs.class);
     Level mll = ca == null ? minLogLevel : ca.minLevel();
@@ -209,7 +209,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   public synchronized void testFinished(final Description description) {
     TestTimeSource.clear();
     TestBaggage baggage = baggages.remove(description);
-    try (LogCollection<ArrayDeque<LogRecord>> h = baggage.getLogCollection()) {
+    try (LogCollection<ArrayDeque<TestLogRecord>> h = baggage.getLogCollection()) {
       handleUncaughtExceptions(description, h.get());
     } finally {
       try {
@@ -249,15 +249,15 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     Description description = failure.getDescription();
     TestBaggage bg = baggages.get(description);
     if (bg != null) { // will Happen when a Uncaught Exception causes a test to fail.
-      LogCollection<ArrayDeque<LogRecord>> handler = bg.getLogCollection();
-      try (LogCollection<ArrayDeque<LogRecord>> h = handler) {
+      LogCollection<ArrayDeque<TestLogRecord>> handler = bg.getLogCollection();
+      try (LogCollection<ArrayDeque<TestLogRecord>> h = handler) {
         dumpDebugInfo(h.get(), description);
       }
     }
   }
 
   private void handleUncaughtExceptions(final Description description,
-          @WillNotClose final Collection<LogRecord> logs) {
+          @WillNotClose final Collection<TestLogRecord> logs) {
     List<UncaughtExceptionDetail> exceptions = uncaughtExceptionHandler.getUncaughtExceptions();
     if (!exceptions.isEmpty()) {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);

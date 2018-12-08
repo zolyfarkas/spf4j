@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.log;
 
+import org.spf4j.log.Level;
+
 /**
  * @author Zoltan Farkas
  */

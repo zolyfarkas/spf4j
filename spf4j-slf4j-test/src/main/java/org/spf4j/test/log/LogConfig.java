@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas

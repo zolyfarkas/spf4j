@@ -23,7 +23,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +43,7 @@ import org.spf4j.log.SLF4JBridgeHandler;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.XCollectors;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
 //CHECKSTYLE:OFF
 import sun.misc.Contended;
@@ -56,19 +56,6 @@ import sun.misc.Contended;
 public final class TestLoggers implements ILoggerFactory {
 
   public static final  boolean EXECUTED_FROM_IDE = TestUtils.isExecutedFromIDE();
-
-  private static final Map<Level, java.util.logging.Level> LEV_MAP = new EnumMap<>(Level.class);
-
-  /**
-   * FINEST -> TRACE FINER -> DEBUG FINE -> DEBUG INFO -> INFO WARNING -> WARN SEVERE -> ERROR
-   */
-  static {
-    LEV_MAP.put(Level.TRACE, java.util.logging.Level.FINEST);
-    LEV_MAP.put(Level.DEBUG, java.util.logging.Level.FINER);
-    LEV_MAP.put(Level.INFO, java.util.logging.Level.INFO);
-    LEV_MAP.put(Level.WARN, java.util.logging.Level.WARNING);
-    LEV_MAP.put(Level.ERROR, java.util.logging.Level.SEVERE);
-  }
 
   private static final TestLoggers INSTANCE = new TestLoggers();
 
@@ -143,7 +130,7 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   private void resetJulConfig() {
-    java.util.logging.Level julLevel = LEV_MAP.get(config.minRootLevel());
+    java.util.logging.Level julLevel = config.minRootLevel().getJulLevel();
     julGlobal.setLevel(julLevel);
     julRoot.setLevel(julLevel);
   }
@@ -217,7 +204,7 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public <T> LogCollection<T> collect(final String category, final Level fromLevel,
           final boolean passThrough,
-          final Collector<LogRecord, ?, T> collector) {
+          final Collector<TestLogRecord, ?, T> collector) {
     return collect(category, fromLevel, Level.ERROR, passThrough, collector);
   }
 
@@ -234,14 +221,14 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public <T> LogCollection<T> collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-          final Collector<LogRecord, ?, T> collector) {
+          final Collector<TestLogRecord, ?, T> collector) {
     return collect(category, fromLevel, toLevel, passThrough, collector, (c) -> 0);
   }
 
   @CheckReturnValue
   public <R> LogCollection<R> collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-          final Collector<LogRecord, ?, R> collector, final ToIntFunction<List<LogHandler>> whereTo) {
+          final Collector<TestLogRecord, ?, R> collector, final ToIntFunction<List<LogHandler>> whereTo) {
     LogCollectorHandler<?, R> handler =
             new LogCollectorHandler<>(fromLevel, toLevel, passThrough, collector,
     (c) -> {
@@ -318,13 +305,13 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
-          final Matcher<LogRecord>... matchers) {
+          final Matcher<TestLogRecord>... matchers) {
     return logAssert(true, minimumLogLevel, category, matchers);
   }
 
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
-          final long timeout, final TimeUnit unit, final Matcher<LogRecord>... matchers) {
+          final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
     return logAssert(true, minimumLogLevel, category, timeout, unit, matchers);
   }
 
@@ -337,12 +324,12 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public LogAssert dontExpect(final String category, final Level minimumLogLevel,
-          final Matcher<LogRecord>... matchers) {
+          final Matcher<TestLogRecord>... matchers) {
     return logAssert(false, minimumLogLevel, category, matchers);
   }
 
   private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
-          final String category, final long timeout, final TimeUnit unit, final Matcher<LogRecord>... matchers) {
+          final String category, final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
     LogMatchingHandler handler =
             new LogMatchingHandlerAsync(assertSeen, category, minimumLogLevel, timeout, unit, matchers) {
 
@@ -366,7 +353,7 @@ public final class TestLoggers implements ILoggerFactory {
 
 
   private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
-          final String category,  final Matcher<LogRecord>... matchers) {
+          final String category,  final Matcher<TestLogRecord>... matchers) {
     LogMatchingHandler handler = new LogMatchingHandler(assertSeen, category, minimumLogLevel, matchers) {
 
       private boolean isClosed = false;
@@ -397,10 +384,10 @@ public final class TestLoggers implements ILoggerFactory {
    * @return the assertion handle.
    */
   public LogAssert expect(final String category, final Level minimumLogLevel,
-          final int nrTimes, final Matcher<LogRecord>... matchers) {
-    Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
+          final int nrTimes, final Matcher<TestLogRecord>... matchers) {
+    Matcher<TestLogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
     for (int i = 0, j = 0; i < nrTimes; i++) {
-      for (Matcher<LogRecord> m : matchers) {
+      for (Matcher<TestLogRecord> m : matchers) {
         newMatchers[j++] = m;
       }
     }
@@ -408,10 +395,10 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   public LogAssert expect(final String category, final Level minimumLogLevel,
-          final int nrTimes, final long timeout, final TimeUnit unit, final Matcher<LogRecord>... matchers) {
-    Matcher<LogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
+          final int nrTimes, final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
+    Matcher<TestLogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
     for (int i = 0, j = 0; i < nrTimes; i++) {
-      for (Matcher<LogRecord> m : matchers) {
+      for (Matcher<TestLogRecord> m : matchers) {
         newMatchers[j++] = m;
       }
     }
@@ -448,12 +435,12 @@ public final class TestLoggers implements ILoggerFactory {
    * @param collectPrinted collect messages that have been printed or not.
    * @return the collection of messages.
    */
-  public LogCollection<ArrayDeque<LogRecord>> collect(final Level minimumLogLevel, final int maxNrLogs,
+  public LogCollection<ArrayDeque<TestLogRecord>> collect(final Level minimumLogLevel, final int maxNrLogs,
           final boolean collectPrinted) {
     return collect("", minimumLogLevel, maxNrLogs, collectPrinted);
   }
 
-  private LogCollection<ArrayDeque<LogRecord>> collect(final String category, final Level minimumLogLevel,
+  private LogCollection<ArrayDeque<TestLogRecord>> collect(final String category, final Level minimumLogLevel,
           final int maxNrLogs,
           final boolean collectPrinted) {
     if (!collectPrinted) {
@@ -462,17 +449,17 @@ public final class TestLoggers implements ILoggerFactory {
             Level.ERROR,
             true,
             XCollectors.filtering(
-                    (l) -> !l.hasAttachment(Attachments.PRINTED),
-                    XCollectors.last(maxNrLogs,
-                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs))),
-                    List::size);
+                 (l) -> !l.hasAttachment(Attachments.PRINTED),
+                 XCollectors.last(maxNrLogs,
+                 new TestLogRecordImpl("test", Level.INFO, "Truncated beyond {} ", maxNrLogs))),
+                 List::size);
     } else {
       return collect(category,
             minimumLogLevel,
             Level.ERROR,
             true,
-            (Collector<LogRecord, ?, ArrayDeque<LogRecord>>) XCollectors.last(maxNrLogs,
-                    new LogRecord(new TestLogger("test", () -> null), Level.INFO, "Truncated beyond {} ", maxNrLogs)),
+            XCollectors.last(maxNrLogs,
+                 new TestLogRecordImpl("test", Level.INFO, "Truncated beyond {} ", maxNrLogs)),
             (c)  -> 0);
     }
   }

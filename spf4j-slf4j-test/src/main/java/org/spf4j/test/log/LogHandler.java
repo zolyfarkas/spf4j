@@ -18,6 +18,7 @@ package org.spf4j.test.log;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas
@@ -49,6 +50,6 @@ public interface LogHandler  {
    * or null if the handler does not want to pass the message downstream.
    */
   @Nullable
-  LogRecord handle(LogRecord record);
+  TestLogRecord handle(TestLogRecord record);
 
 }

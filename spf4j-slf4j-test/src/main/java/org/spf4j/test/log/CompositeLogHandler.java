@@ -51,8 +51,8 @@ final class CompositeLogHandler implements LogConsumer {
   }
 
   @Override
-  public void accept(final LogRecord record) {
-    LogRecord logRecord = record;
+  public void accept(final TestLogRecord record) {
+    TestLogRecord logRecord = record;
     for (LogHandler handler : logHandlers) {
       logRecord = handler.handle(logRecord);
       if (logRecord == null) {

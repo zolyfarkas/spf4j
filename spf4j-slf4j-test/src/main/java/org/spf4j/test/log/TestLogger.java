@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.spf4j.log.Level;
 //CHECKSTYLE:OFF
 import sun.misc.Contended;
 //CHECKSTYLE:ON
@@ -108,7 +109,7 @@ public final class TestLogger implements Logger {
   public void log(final Level level, final Marker marker, final String msg, final Object... args) {
     LogConsumer consumer = consumers.get(level).get();
     if (consumer != null) {
-      consumer.accept(new LogRecord(this, level, marker, msg, args));
+      consumer.accept(new TestLogRecordImpl(name, level, marker, msg, args));
     }
   }
 

@@ -18,6 +18,7 @@ package org.spf4j.test.log;
 import java.util.concurrent.TimeUnit;
 import org.hamcrest.Matcher;
 import org.spf4j.base.TimeSource;
+import org.spf4j.log.Level;
 
 /**
  *
@@ -29,7 +30,7 @@ abstract class LogMatchingHandlerAsync extends LogMatchingHandler {
   private final TimeUnit tu;
 
   LogMatchingHandlerAsync(final boolean assertSeen, final String category,
-          final Level minLevel, final long timeout, final TimeUnit tu,  final Matcher<LogRecord>... matchers) {
+          final Level minLevel, final long timeout, final TimeUnit tu,  final Matcher<TestLogRecord>... matchers) {
     super(assertSeen, category, minLevel, matchers);
     this.timeout = timeout;
     this.tu = tu;

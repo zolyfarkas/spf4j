@@ -40,7 +40,7 @@ import org.slf4j.Marker;
  *
  * @author Zoltan Farkas
  */
-public interface LogRecord {
+public interface Slf4jLogRecord {
 
   @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   @Nonnull

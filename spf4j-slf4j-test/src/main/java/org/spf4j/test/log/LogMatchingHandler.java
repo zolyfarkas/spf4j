@@ -22,6 +22,7 @@ import java.util.List;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
+import org.spf4j.log.Level;
 
 /**
  *
@@ -34,9 +35,9 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final Level minLevel;
 
-  protected final Matcher<LogRecord>[] matchers;
+  protected final Matcher<TestLogRecord>[] matchers;
 
-  protected final List<LogRecord> matched;
+  protected final List<TestLogRecord> matched;
 
   protected int at;
 
@@ -45,7 +46,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   protected final Object sync;
 
   LogMatchingHandler(final boolean assertSeen, final String category,
-          final Level minLevel, final Matcher<LogRecord>... matchers) {
+          final Level minLevel, final Matcher<TestLogRecord>... matchers) {
     if (matchers.length < 1) {
       throw new IllegalArgumentException("You need to provide at least a matcher " + Arrays.toString(matchers));
     }
@@ -68,7 +69,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   @Override
   @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
-  public LogRecord handle(final LogRecord record) {
+  public TestLogRecord handle(final TestLogRecord record) {
     synchronized (sync) {
       if (at < matchers.length && matchers[at].matches(record)) {
         at++;

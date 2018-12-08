@@ -20,7 +20,7 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 
 /**
  * Annotation to specify custom log collection for a particular unit test.

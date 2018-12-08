@@ -22,5 +22,5 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public interface LogConsumer extends Consumer<LogRecord> {
+public interface LogConsumer extends Consumer<TestLogRecord> {
 }

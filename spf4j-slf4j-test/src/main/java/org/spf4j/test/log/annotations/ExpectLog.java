@@ -21,7 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 
 /**
  * Annotation to assert log behavior.

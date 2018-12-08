@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import java.util.Set;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas
@@ -34,8 +35,8 @@ final class DefaultAsserter implements LogHandler {
   }
 
   @Override
-  public LogRecord handle(final LogRecord record) {
-    if (!record.hasAttachment(Attachments.ASSERTED) && !excludeCategories.contains(record.getLogger().getName())) {
+  public TestLogRecord handle(final TestLogRecord record) {
+    if (!record.hasAttachment(Attachments.ASSERTED) && !excludeCategories.contains(record.getLoggerName())) {
       throw new AssertionError("Most test should not log errors, if a error scenario is validated,"
               + " please assert this behavior using TestLoggers.expect, received:\n" + record,
               record.getExtraThrowable());

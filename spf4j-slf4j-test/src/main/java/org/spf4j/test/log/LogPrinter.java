@@ -42,6 +42,7 @@ import org.spf4j.base.Throwables;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
+import org.spf4j.log.Level;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
 
@@ -133,7 +134,7 @@ public final class LogPrinter implements LogHandler {
    */
   @SuppressFBWarnings({ "CFS_CONFUSING_FUNCTION_SEMANTICS", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
   @Override
-  public LogRecord handle(final LogRecord record) {
+  public TestLogRecord handle(final TestLogRecord record) {
     if (record.hasAttachment(Attachments.PRINTED) || record.hasAttachment(Attachments.DO_NOT_PRINT)) {
       return record;
     }
@@ -157,7 +158,7 @@ public final class LogPrinter implements LogHandler {
     return record;
   }
 
-  public static void printTo(final Appendable stream, final LogRecord record, final String annotate) {
+  public static void printTo(final Appendable stream, final TestLogRecord record, final String annotate) {
     try {
       print(record, stream, new EscapeJsonStringAppendableWrapper(stream), annotate);
     } catch (IOException ex) {
@@ -165,7 +166,7 @@ public final class LogPrinter implements LogHandler {
     }
   }
 
-  public static void printTo(final PrintStream stream, final LogRecord record, final String annotate) {
+  public static void printTo(final PrintStream stream, final TestLogRecord record, final String annotate) {
     Buffer buff = TL_BUFFER.get();
     buff.clear();
     try {
@@ -202,7 +203,7 @@ public final class LogPrinter implements LogHandler {
    }
 
 
-  static void print(final LogRecord record, final Appendable wr,
+  static void print(final TestLogRecord record, final Appendable wr,
           final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
           throws IOException {
     wr.append(annotate);
@@ -216,12 +217,12 @@ public final class LogPrinter implements LogHandler {
       printMarker(marker, wr, wrapper);
       wr.append(' ');
     }
-    Throwables.writeAbreviatedClassName(record.getLogger().getName(), wr);
+    Throwables.writeAbreviatedClassName(record.getLoggerName(), wr);
     wr.append(" \"");
-    wrapper.append(record.getThread().getName());
+    wrapper.append(record.getThreadName());
     wr.append("\" \"");
     Object[] arguments = record.getArguments();
-    int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getFormat(),
+    int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getMessageFormat(),
             TO_STRINGER, arguments);
     wr.append("\" ");
     Throwable t = null;

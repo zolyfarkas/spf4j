@@ -36,7 +36,7 @@ import org.spf4j.annotations.PerformanceMonitor;
 import org.junit.Test;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.annotations.ExpectLog;

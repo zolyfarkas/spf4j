@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.os.StdOutToStringProcessHandler;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.annotations.ExpectLog;

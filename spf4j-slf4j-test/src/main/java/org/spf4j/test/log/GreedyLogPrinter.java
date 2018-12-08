@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.spf4j.log.Level;
 
 /**
  * A Greedy log printer.
@@ -39,7 +40,7 @@ public final class GreedyLogPrinter implements LogHandler {
 
   @Override
   @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
-  public LogRecord handle(final LogRecord record) {
+  public TestLogRecord handle(final TestLogRecord record) {
     if (handler.handles(record.getLevel()) != Handling.NONE) {
       return handler.handle(record);
     }

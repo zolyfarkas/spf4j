@@ -27,6 +27,7 @@ import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas

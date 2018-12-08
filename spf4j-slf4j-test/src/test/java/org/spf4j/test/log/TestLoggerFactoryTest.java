@@ -34,6 +34,7 @@ import org.slf4j.MarkerFactory;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Method;
 import org.spf4j.io.MimeTypes;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.annotations.CollectLogs;
 import org.spf4j.test.log.annotations.ExpectLog;
 import org.spf4j.test.log.annotations.PrintLogs;
@@ -305,7 +306,7 @@ public class TestLoggerFactoryTest {
 
   @Test
   public void testLogging5() {
-    LogCollection<ArrayDeque<LogRecord>> collect = TestLoggers.sys().collect(Level.DEBUG, 10, true);
+    LogCollection<ArrayDeque<TestLogRecord>> collect = TestLoggers.sys().collect(Level.DEBUG, 10, true);
     LOG.debug("log {}", 1);
     LOG.debug("log {} {}", 1, 2);
     LOG.debug("log {} {} {}", 1, 2, 3);
@@ -366,12 +367,12 @@ public class TestLoggerFactoryTest {
   @Test
   @SuppressFBWarnings("LO_SUSPECT_LOG_CLASS")
   public void testGreedy()  {
-    LogCollection<HashSet<LogRecord>> logs
+    LogCollection<HashSet<TestLogRecord>> logs
             = TestLoggers.sys().collect("", Level.INFO, true, Collectors.toCollection(() -> new HashSet<>()));
     Logger logger = LoggerFactory.getLogger("a.b.c.d");
     logger.info("test");
-    Set<LogRecord> logSet = logs.get();
-    LogRecord rec = logSet.iterator().next();
+    Set<TestLogRecord> logSet = logs.get();
+    TestLogRecord rec = logSet.iterator().next();
     Assert.assertTrue(rec.hasAttachment(Attachments.DO_NOT_PRINT));
   }
 

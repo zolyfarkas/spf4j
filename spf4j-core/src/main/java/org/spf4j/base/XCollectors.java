@@ -63,7 +63,7 @@ public final class XCollectors {
     );
   }
 
-  public static <T> Collector<T, ?, ArrayDeque<T>> last(final int limit, final T addIfLimited) {
+  public static <T, X extends T> Collector<T, ?, ArrayDeque<T>> last(final int limit, final X addIfLimited) {
     return Collector.of(
             ArrayDeque<T>::new,
             (l, e) -> {

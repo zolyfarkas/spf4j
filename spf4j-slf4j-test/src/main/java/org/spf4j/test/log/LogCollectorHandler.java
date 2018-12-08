@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import javax.annotation.Nullable;
+import org.spf4j.log.Level;
 
 /**
  *
@@ -31,14 +32,14 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
   private final Level toLevel;
   private final boolean passThrough;
   private final A accObj;
-  private final BiConsumer<A, LogRecord> acc;
+  private final BiConsumer<A, TestLogRecord> acc;
   private final Function<A, T> finisher;
   private final Consumer<LogCollectorHandler<A, T>> onClose;
   private boolean isClosed;
 
   LogCollectorHandler(final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-          final Collector<LogRecord, A, T> collector, final Consumer<LogCollectorHandler<A, T>> onClose) {
+          final Collector<TestLogRecord, A, T> collector, final Consumer<LogCollectorHandler<A, T>> onClose) {
     this.fromLevel = fromLevel;
     this.toLevel = toLevel;
     this.passThrough = passThrough;
@@ -60,7 +61,7 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
 
   @Override
   @Nullable
-  public LogRecord handle(final LogRecord record) {
+  public TestLogRecord handle(final TestLogRecord record) {
     synchronized (accObj) {
       if (!isClosed) {
         acc.accept(accObj, record);

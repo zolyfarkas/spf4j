@@ -34,10 +34,10 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultContextAwareExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.matchers.LogMatchers;
-import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLogRecord;
 import org.spf4j.test.log.TestLoggers;
 
 /**
@@ -64,7 +64,7 @@ public class RetryPolicyTest {
 
   @Test
   public void testNoRetryPolicy() throws IOException, InterruptedException, TimeoutException {
-    LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
+    LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(TestLogRecord.class));
     try (LogAssert expect = vex) {
       RetryPolicy.noRetryPolicy().run(() -> {
         throw new IOException();
@@ -79,7 +79,7 @@ public class RetryPolicyTest {
 
   @Test
   public void testNoRetryPolicyAsync() throws IOException, InterruptedException, TimeoutException {
-    LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(LogRecord.class));
+    LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(TestLogRecord.class));
     try (LogAssert expect = vex) {
       RetryPolicy.newBuilder().buildAsync().submit(() -> {
         throw new IOException();

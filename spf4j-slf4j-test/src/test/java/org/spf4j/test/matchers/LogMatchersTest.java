@@ -19,9 +19,8 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spf4j.test.log.Attachments;
-import org.spf4j.test.log.Level;
-import org.spf4j.test.log.LogRecord;
-import org.spf4j.test.log.TestLogger;
+import org.spf4j.log.Level;
+import org.spf4j.test.log.TestLogRecordImpl;
 
 /**
  *
@@ -32,7 +31,7 @@ public class LogMatchersTest {
 
   @Test(expected = AssertionError.class)
   public void testSomeMethod() {
-    LogRecord rec = new LogRecord(new TestLogger("test", () -> null), Level.ERROR, "la la {} bla", "a", "b");
+    TestLogRecordImpl rec = new TestLogRecordImpl("test", Level.ERROR, "la la {} bla", "a", "b");
     rec.attach(Attachments.PRINTED);
     rec.attach(Attachments.ASSERTED);
     Assert.assertThat(rec, Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),

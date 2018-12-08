@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import java.util.Objects;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas

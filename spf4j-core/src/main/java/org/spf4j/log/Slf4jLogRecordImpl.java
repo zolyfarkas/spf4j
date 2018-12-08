@@ -41,7 +41,7 @@ import org.spf4j.io.ObjectAppenderSupplier;
 @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
 @ParametersAreNonnullByDefault
 @ThreadSafe
-public class LogRecordImpl implements JsonWriteable, LogRecord {
+public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   private final String threadName;
   private final String loggerName;
@@ -54,19 +54,19 @@ public class LogRecordImpl implements JsonWriteable, LogRecord {
   @Nullable
   private volatile String message;
 
-  public LogRecordImpl(final String logger, final Level level,
+  public Slf4jLogRecordImpl(final String logger, final Level level,
           final String format, final Object... arguments) {
     this(logger, level, null, format, arguments);
   }
 
   @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
-  public LogRecordImpl(final String logger, final Level level,
+  public Slf4jLogRecordImpl(final String logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
    this(logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
   @SuppressFBWarnings({"LO_SUSPECT_LOG_PARAMETER", "EI_EXPOSE_REP2"})
-  public LogRecordImpl(final String logger, final Level level,
+  public Slf4jLogRecordImpl(final String logger, final Level level,
           @Nullable final Marker marker,  final long timestampMillis,
           final String format, final Object... arguments) {
     this.loggerName = logger;

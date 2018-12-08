@@ -34,9 +34,9 @@ package org.spf4j.base;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.test.log.Level;
+import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
-import org.spf4j.test.log.LogRecord;
+import org.spf4j.test.log.TestLogRecord;
 import org.spf4j.test.log.TestLoggers;
 
 /**
@@ -63,7 +63,7 @@ public final class StringsTest {
   @Test
   public void testUnsafeOps() {
     LogAssert dontExpect = TestLoggers.sys()
-            .dontExpect(Strings.class.getName(), Level.INFO,  Matchers.any(LogRecord.class));
+            .dontExpect(Strings.class.getName(), Level.INFO,  Matchers.any(TestLogRecord.class));
     String testString = "dfjgdjshfgsjdhgfskhdfkdshf\ndfs@#$%^&\u63A5\u53D7*($%^&*()(*&^%$#@!>::><>?{PLKJHGFDEWSDFG";
     char[] chars = Strings.steal(testString);
     String otherString = Strings.wrap(chars);
