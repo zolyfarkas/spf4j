@@ -25,6 +25,8 @@ import org.spf4j.log.Level;
 
 /**
  * Annotation to assert log behavior.
+ * This annotation will describe a expected log event. If this expected log event will not happen during the
+ * unit test execution, the unit test will fail.
  * @author Zoltan Farkas
  */
 @Retention(RetentionPolicy.RUNTIME)
