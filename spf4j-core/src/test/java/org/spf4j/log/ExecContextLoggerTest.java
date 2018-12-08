@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.test.log.annotations.ExpectLog;
 
 /**
  * @author Zoltan Farkas
@@ -47,6 +48,7 @@ public class ExecContextLoggerTest {
 
 
   @Test
+  @ExpectLog(level = Level.TRACE, messageRegexp = "msg1")
   public void testTrace() {
     ExecContextLogger log = new ExecContextLogger(LoggerFactory.getLogger("test"));
     log.trace("msg1");
