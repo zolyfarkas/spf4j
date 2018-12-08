@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
+import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
@@ -71,9 +72,32 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   ExecutionContext getParent();
 
+  @Beta
   void addChild(ExecutionContext ctxt);
 
+  @Beta
   void addLog(Slf4jLogRecord log);
+
+  /**
+   * The minimum log level accepted by this execution context;
+   * The logs that we will store in this context.
+   * @return
+   */
+  @Beta
+  Level getContextMinLogLevel(String loggerName);
+
+  /**
+   * The minimum log level overwrite.
+   * An execution context can overwrite the backend configured log level.
+   * @return null if not specified.
+   */
+  @Beta
+  @Nullable
+  Level getBackendMinLogLevel(String loggerName);
+
+  @Beta
+  @Nullable
+  Level setBackendMinLogLevel(String loggerName, Level level);
 
   void streamLogs(Consumer<Slf4jLogRecord> to);
 

@@ -45,6 +45,7 @@ public final class TestLogRecordImpl extends Slf4jLogRecordImpl implements TestL
   public TestLogRecordImpl(final String loggerName, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
     super(loggerName, level, marker, format, arguments);
+    this.attachments = Collections.EMPTY_SET;
   }
 
 

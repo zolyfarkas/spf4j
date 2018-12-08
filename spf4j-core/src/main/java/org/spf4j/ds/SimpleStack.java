@@ -50,6 +50,20 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
   public SimpleStack() {
   }
 
+  /**
+   * take a look at the top of stack
+   * returns null if there is no element.
+   * @return Object
+   */
+  @Nullable
+  public T peek() {
+    if (top > 0) {
+      return elems[top - 1];
+    } else {
+      return null;
+    }
+  }
+
   @Nullable
   public T pollLast() {
     if (size() <= 0) {
@@ -61,7 +75,7 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
 
   @Override
   public boolean remove(final Object o) {
-    for (int i = 0, l = size(); i < l; i++) {
+    for (int i = 0, l = top; i < l; i++) {
       if (o.equals(elems[i])) {
         fastRemove(i);
         return true;
@@ -75,7 +89,7 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
    */
   @Override
   public int indexOf(final Object o) {
-    for (int i = 0, l = size(); i < l; i++) {
+    for (int i = 0, l = top; i < l; i++) {
       if (o.equals(elems[i])) {
         return i;
       }

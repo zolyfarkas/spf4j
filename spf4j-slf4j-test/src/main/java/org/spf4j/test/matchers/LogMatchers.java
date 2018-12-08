@@ -33,15 +33,15 @@ public final class LogMatchers {
   private LogMatchers() { }
 
   public static Matcher<TestLogRecord> hasMatchingFormat(final Matcher<String> tMatcher) {
-    return Matchers.hasProperty("format", tMatcher);
+    return Matchers.hasProperty("messageFormat", tMatcher);
   }
 
   public static Matcher<TestLogRecord> hasFormat(final String format) {
-    return Matchers.hasProperty("format", Matchers.equalTo(format));
+    return Matchers.hasProperty("messageFormat", Matchers.equalTo(format));
   }
 
   public static Matcher<TestLogRecord> hasFormatWithPattern(final String formatPattern) {
-    return Matchers.hasProperty("format", PatternMatcher.matchesPattern(formatPattern));
+    return Matchers.hasProperty("messageFormat", PatternMatcher.matchesPattern(formatPattern));
   }
 
   public static Matcher<TestLogRecord> hasMatchingMarker(final Matcher<Marker> tMatcher) {

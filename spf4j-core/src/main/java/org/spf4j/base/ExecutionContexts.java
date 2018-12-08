@@ -423,16 +423,18 @@ public final class ExecutionContexts {
     private static final ThreadLocalScope INSTANCE = new ThreadLocalScopeImpl();
 
     @Override
+    @Nullable
     public ExecutionContext detach(final ExecutionContext ctx) {
       SimpleStack<ExecutionContext> exStack = ExecutionContexts.EXEC_CTX.get();
       ExecutionContext xctx = exStack.pop();
       if (xctx != ctx) {
-        throw new IllegalStateException("Detaching contect that is noot current " + ctx + " != " + xctx);
+        throw new IllegalStateException("Detaching content that is noot current " + ctx + " != " + xctx);
       }
       return exStack.peek();
     }
 
     @Override
+    @Nullable
     public ExecutionContext attach(final ExecutionContext ctx) {
       SimpleStack<ExecutionContext> get = ExecutionContexts.EXEC_CTX.get();
       ExecutionContext peek = get.peek();

@@ -61,7 +61,7 @@ public class SimpleStackNullSupport<T>
   /**
    * the top element position
    */
-  private int top;
+  int top;
 
   /**
    * construct a stack with specified size
@@ -190,12 +190,17 @@ public class SimpleStackNullSupport<T>
     return result;
   }
 
+  public final boolean hasElements() {
+    return top > 0;
+  }
+
   /**
-   * take a look at the top of stack
+   * take a look at the top of stack.
+   * Throws exception if there is no element.
    *
    * @return Object
    */
-  public final T peek() {
+  public T peek() {
     return elems[top - 1];
   }
 

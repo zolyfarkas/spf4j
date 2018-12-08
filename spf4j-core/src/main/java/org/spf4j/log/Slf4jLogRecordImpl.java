@@ -53,6 +53,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   private volatile int startExtra;
   @Nullable
   private volatile String message;
+  private volatile boolean isLogged;
 
   public Slf4jLogRecordImpl(final String logger, final Level level,
           final String format, final Object... arguments) {
@@ -62,11 +63,17 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
   public Slf4jLogRecordImpl(final String logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
-   this(logger, level, marker, System.currentTimeMillis(), format, arguments);
+   this(false, logger, level, marker, System.currentTimeMillis(), format, arguments);
+  }
+
+  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
+  public Slf4jLogRecordImpl(final boolean  isLogged, final String logger, final Level level,
+          @Nullable final Marker marker, final String format, final Object... arguments) {
+   this(isLogged, logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
   @SuppressFBWarnings({"LO_SUSPECT_LOG_PARAMETER", "EI_EXPOSE_REP2"})
-  public Slf4jLogRecordImpl(final String logger, final Level level,
+  public Slf4jLogRecordImpl(final boolean isLogged, final String logger, final Level level,
           @Nullable final Marker marker,  final long timestampMillis,
           final String format, final Object... arguments) {
     this.loggerName = logger;
@@ -78,6 +85,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     this.threadName = Thread.currentThread().getName();
     this.startExtra = -1;
     this.message = null;
+    this.isLogged = isLogged;
   }
 
   @Override
@@ -221,6 +229,16 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     }
     gen.writeEndObject();
     gen.flush();
+  }
+
+  @Override
+  public final boolean isLogged() {
+    return isLogged;
+  }
+
+  @Override
+  public final void setIsLogged() {
+    isLogged =  true;
   }
 
   private static final class Lazy {

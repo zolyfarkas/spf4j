@@ -49,6 +49,7 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.spf4j.io.AppendableWriter;
+import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
@@ -61,6 +62,9 @@ import org.spf4j.log.Slf4jLogRecord;
 public class BasicExecutionContext implements ExecutionContext {
 
   private static final int MX_NR_LOGS_PER_CTXT = Integer.getInteger("spf4j.execContext.maxNrLogsPerContext", 100);
+
+  private static final Level MIN_LOG_LEVEL
+          = Level.valueOf(System.getProperty("spf4j.execContext.minLogLevel", "TRACE"));
 
   private final String name;
 
@@ -79,6 +83,8 @@ public class BasicExecutionContext implements ExecutionContext {
   private Map<Tag, Object> baggage;
 
   private boolean isClosed = false;
+
+  private Level minBackendLogLevel;
 
 
   @SuppressWarnings("unchecked")
@@ -102,6 +108,7 @@ public class BasicExecutionContext implements ExecutionContext {
     this.baggage = Collections.EMPTY_MAP;
     this.children = Collections.EMPTY_LIST;
     this.logs = null;
+    this.minBackendLogLevel = null;
     if (parent != null) {
       parent.addChild(this);
     }
@@ -247,6 +254,38 @@ public class BasicExecutionContext implements ExecutionContext {
     for (ExecutionContext ec : children) {
       ec.streamLogs(to);
     }
+  }
+
+  /**
+   * Overwrite for more configurable implementation.
+   * @param loggerName
+   * @return
+   */
+  @Override
+  public Level getContextMinLogLevel(final String loggerName) {
+    return MIN_LOG_LEVEL;
+  }
+
+  /**
+   * Overwrite for more configurable implementation.
+   * @param loggerName
+   * @return
+   */
+  @Override
+  public synchronized Level getBackendMinLogLevel(final String loggerName) {
+    return minBackendLogLevel;
+  }
+
+  /**
+   * Overwrite for more configurable implementation.
+   * @param loggerName
+   * @return
+   */
+  @Override
+  public Level setBackendMinLogLevel(final String loggerName, final Level level) {
+    Level result = minBackendLogLevel;
+    minBackendLogLevel = level;
+    return result;
   }
 
   private static final class Lazy {

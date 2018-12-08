@@ -32,50 +32,27 @@
 package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.slf4j.Marker;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.ExecutionContexts;
 
 /**
- *
  * @author Zoltan Farkas
  */
-public interface Slf4jLogRecord {
+@SuppressFBWarnings("LO_SUSPECT_LOG_CLASS")
+public class ExecContextLoggerTest {
 
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP")
-  @Nonnull
-  Object[] getArguments();
 
-  @Nonnull
-  Object[] getExtraArguments();
-
-  @Nullable
-  Throwable getExtraThrowable();
-
-  Level getLevel();
-
-  String getLoggerName();
-
-  @Nullable
-  Marker getMarker();
-
-  @Nonnull
-  String getMessage();
-
-  String getMessageFormat();
-
-  int getNrMessageArguments();
-
-  String getThreadName();
-
-  long getTimeStamp();
-
-  /**
-   * Indicates that this log record has been sent to the logging backend to persist.
-   * @return
-   */
-  boolean isLogged();
-
-  void setIsLogged();
+  @Test
+  public void testTrace() {
+    ExecContextLogger log = new ExecContextLogger(LoggerFactory.getLogger("test"));
+    log.trace("msg1");
+    List<Slf4jLogRecord> logs = new ArrayList<>(2);
+    ExecutionContexts.current().streamLogs(logs::add);
+    Assert.assertEquals("test", logs.get(0).getMessageFormat());
+  }
 
 }

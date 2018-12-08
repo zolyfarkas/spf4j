@@ -31,6 +31,8 @@
  */
 package org.spf4j.base;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Zoltan Farkas
  */
@@ -39,9 +41,10 @@ public interface ThreadLocalScope {
   /**
    * Attach to current thread;
    */
+  @Nullable
   ExecutionContext detach(ExecutionContext ctx);
 
-
+  @Nullable
   ExecutionContext attach(ExecutionContext ctx);
 
 }
