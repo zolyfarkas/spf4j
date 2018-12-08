@@ -34,16 +34,16 @@ package org.spf4j.base;
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
-import java.util.logging.LogRecord;
+import java.util.function.Consumer;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
+import org.spf4j.log.Slf4jLogRecord;
 
 /**
  * @author Zoltan Farkas
@@ -58,27 +58,6 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   }
 
-  final class StandardTags  {
-
-    private StandardTags() { }
-
-    public static final Tag<List<ExecutionContext>> CHILDREN  = new Tag<List<ExecutionContext>>() {
-      @Override
-      public String toString() {
-        return "children";
-      }
-    };
-
-    public static final Tag<List<LogRecord>> LOGS  = new Tag<List<LogRecord>>() {
-      @Override
-      public String toString() {
-        return "logs";
-      }
-    };
-
-  }
-
-
   @DischargesObligation
   void close();
 
@@ -91,6 +70,12 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @Nullable
   ExecutionContext getParent();
+
+  void addChild(ExecutionContext ctxt);
+
+  void addLog(Slf4jLogRecord log);
+
+  void streamLogs(Consumer<Slf4jLogRecord> to);
 
   void detach();
 

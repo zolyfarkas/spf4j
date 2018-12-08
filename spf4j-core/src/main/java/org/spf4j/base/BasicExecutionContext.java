@@ -33,11 +33,14 @@ package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -46,6 +49,7 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.spf4j.io.AppendableWriter;
+import org.spf4j.log.Slf4jLogRecord;
 
 /**
  * The simplest execution context possible.
@@ -56,9 +60,13 @@ import org.spf4j.io.AppendableWriter;
 @ParametersAreNonnullByDefault
 public class BasicExecutionContext implements ExecutionContext {
 
+  private static final int MX_NR_LOGS_PER_CTXT = Integer.getInteger("spf4j.execContext.maxNrLogsPerContext", 100);
+
   private final String name;
 
   private final ExecutionContext parent;
+
+  private List<ExecutionContext> children;
 
   private final long startTimeNanos;
 
@@ -66,16 +74,12 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final ThreadLocalScope tlScope;
 
+  private ArrayDeque<Slf4jLogRecord> logs;
+
   private Map<Tag, Object> baggage;
 
   private boolean isClosed = false;
 
-  private static final class Lazy {
-
-    private static final JsonFactory JSON = new JsonFactory();
-
-    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);
-  }
 
   @SuppressWarnings("unchecked")
   public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
@@ -96,15 +100,10 @@ public class BasicExecutionContext implements ExecutionContext {
     }
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
+    this.children = Collections.EMPTY_LIST;
+    this.logs = null;
     if (parent != null) {
-      parent.compute(StandardTags.CHILDREN,
-            (k, v) -> {
-              if (v == null) {
-                v = new ArrayList<>(2);
-              }
-              v.add(BasicExecutionContext.this);
-              return v;
-            });
+      parent.addChild(this);
     }
   }
 
@@ -166,7 +165,7 @@ public class BasicExecutionContext implements ExecutionContext {
    * Close might be overridable to close any additional stuff added in the extended class.
    */
   @Override
-  public void close() {
+  public synchronized void close() {
     if (!isClosed) {
       detach();
       isClosed = true;
@@ -215,6 +214,46 @@ public class BasicExecutionContext implements ExecutionContext {
     }
     gen.writeEndObject();
     gen.flush();
+  }
+
+  @Override
+  public final synchronized void addChild(final ExecutionContext ctxt) {
+    if (this.children.isEmpty()) {
+      this.children = new ArrayList<>(4);
+    }
+    children.add(ctxt);
+  }
+
+  @Override
+  public final synchronized void addLog(final Slf4jLogRecord log) {
+    if (logs == null) {
+      logs = new ArrayDeque<>(4);
+    }
+    if (logs.size() >= MX_NR_LOGS_PER_CTXT) {
+      logs.removeFirst();
+      logs.addLast(log);
+    } else {
+      logs.addLast(log);
+    }
+  }
+
+  @Override
+  public final synchronized void streamLogs(final Consumer<Slf4jLogRecord> to) {
+    if (logs != null) {
+      for (Slf4jLogRecord log : logs) {
+        to.accept(log);
+      }
+    }
+    for (ExecutionContext ec : children) {
+      ec.streamLogs(to);
+    }
+  }
+
+  private static final class Lazy {
+
+    private static final JsonFactory JSON = new JsonFactory();
+
+    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);
   }
 
 }
