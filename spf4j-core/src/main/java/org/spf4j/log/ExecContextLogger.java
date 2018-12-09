@@ -32,28 +32,119 @@
 package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.spf4j.base.Arrays;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.Pair;
 
 /**
- *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
 public final class ExecContextLogger implements Logger {
+
+  interface Log {
+
+   void log(@Nullable Marker marker, Level level, String format, Object... args);
+
+  }
 
   private final Logger wrapped;
 
-  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
+  private final Log traceLogger;
+
   public ExecContextLogger(final Logger wrapped) {
-    this.wrapped = wrapped;
+    this(wrapped, new Log() {
+      @Override
+      @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
+      public void log(@Nullable final  Marker marker, final Level level, final String format, final Object... pargs) {
+        Object[] args = pargs;
+        switch (level) {
+          case TRACE:
+            if (wrapped.isTraceEnabled()) {
+              if (marker == null) {
+                wrapped.trace(format, args);
+              } else {
+                wrapped.trace(marker, format, args);
+              }
+              break;
+            } else {
+              if (args == pargs) {
+                args = Arrays.append(args, Pair.of("originalLevel", level));
+              }
+            }
+          case DEBUG:
+            if (wrapped.isDebugEnabled()) {
+              if (marker == null) {
+                wrapped.debug(format, args);
+              } else {
+                wrapped.debug(marker, format, args);
+              }
+              break;
+            } else {
+              if (args == pargs) {
+                args = Arrays.append(args, Pair.of("originalLevel", level));
+              }
+            }
+          case INFO:
+            if (wrapped.isInfoEnabled()) {
+              if (marker == null) {
+                wrapped.info(format, args);
+              } else {
+                wrapped.info(marker, format, args);
+              }
+              break;
+            } else {
+              if (args == pargs) {
+                args = Arrays.append(args, Pair.of("originalLevel", level));
+              }
+            }
+          case WARN:
+            if (wrapped.isWarnEnabled()) {
+              if (marker == null) {
+                wrapped.warn(format, args);
+              } else {
+                wrapped.warn(marker, format, args);
+              }
+              break;
+            } else {
+              if (args == pargs) {
+                args = Arrays.append(args, Pair.of("originalLevel", level));
+              }
+            }
+          case ERROR:
+            if (wrapped.isErrorEnabled()) {
+              if (marker == null) {
+                wrapped.error(format, args);
+              } else {
+                wrapped.error(marker, format, args);
+              }
+              break;
+            } else {
+              throw new IllegalStateException("Error not enabled for  " + wrapped.getName());
+            }
+          default:
+            throw new IllegalStateException("Invalid level " + level);
+        }
+      }
+    });
   }
+
+  public ExecContextLogger(final Logger wrapped, final Log traceLogger) {
+    this.wrapped = wrapped;
+    this.traceLogger = traceLogger;
+  }
+
+
 
   @Override
   public String getName() {
     return wrapped.getName();
   }
+
 
   @Override
   public boolean isTraceEnabled() {
@@ -89,7 +180,7 @@ public final class ExecContextLogger implements Logger {
       if (backendOverwrite == null) {
         logged = false;
       } else if (backendOverwrite.ordinal() <= Level.TRACE.ordinal()) {
-        wrapped.trace(msg);
+        traceLogger.log(null, Level.TRACE, msg);
         logged = true;
       } else {
         logged = false;

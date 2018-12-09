@@ -149,6 +149,13 @@ public final class Arrays {
     return copy;
   }
 
+  public static <T> T[] append(final T[] array, final T value) {
+    T[] result = java.util.Arrays.copyOf(array, array.length + 1);
+    result[array.length] = value;
+    return result;
+  }
+
+
   public static <T> T[] concat(final T[]... arrays) {
     if (arrays.length < 2) {
       throw new IllegalArgumentException("You should concatenate at least 2 arrays: "

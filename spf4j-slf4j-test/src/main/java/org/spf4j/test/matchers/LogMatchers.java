@@ -113,7 +113,7 @@ public final class LogMatchers {
   }
 
     public static Matcher<TestLogRecord> hasExtraArgumentAt(final int idx, final Object object) {
-     return Matchers.hasProperty("extraArguments", new BaseMatcher<TestLogRecord>() {
+     return new BaseMatcher<TestLogRecord>() {
        @Override
        public boolean matches(final Object item) {
          if (item instanceof TestLogRecord) {
@@ -129,7 +129,7 @@ public final class LogMatchers {
        public void describeTo(final Description description) {
          description.appendText("Log extra argument [").appendValue(idx).appendText("] is ").appendValue(object);
        }
-     });
+     };
   }
 
 
