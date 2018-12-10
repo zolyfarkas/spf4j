@@ -42,7 +42,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +63,7 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.os.ProcessHandler;
 import org.spf4j.os.ProcessResponse;
+import org.spf4j.os.ProcessUtil;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.unix.CLibrary;
 import org.spf4j.unix.JVMArguments;
@@ -89,9 +89,10 @@ public final class Runtime {
   /**
    * Unix PID identifying your process in the OC image it is running.
    */
-  public static final int PID;
-  public static final String OS_NAME;
+  public static final int PID = ProcessUtil.getPid();
   public static final String PROCESS_NAME;
+  public static final String OS_NAME = OperatingSystem.getOsName();
+
   /**
    * a unique ID for this JVM process.
    * PID@HOSTNAME:HEXNR
@@ -101,8 +102,6 @@ public final class Runtime {
   public static final Version JAVA_PLATFORM;
 
   private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
-  private static final boolean IS_MAC_OSX;
-  private static final boolean IS_WINDOWS;
   private static final List<Class<?>> PRELOADED = new ArrayList<>(2);
   private static final java.lang.Runtime JAVA_RUNTIME = java.lang.Runtime.getRuntime();
 
@@ -129,115 +128,12 @@ public final class Runtime {
     boolean useUIDGeneratorForJvmId = Boolean.getBoolean("spf4j.useUIDForProcessId");
     PROCESS_ID = useUIDGeneratorForJvmId ? UIDGenerator.generateIdBase("J", '-').toString()
             : mxBeanName + ':' + Long.toHexString((System.currentTimeMillis() - 1509741164184L) / 1000);
-    int atIdx = mxBeanName.indexOf('@');
-    if (atIdx < 0) {
-      PID = -1;
-    } else {
-      PID = Integer.parseInt(mxBeanName.substring(0, atIdx));
-    }
-    final String osName = System.getProperty("os.name");
-    OS_NAME = osName;
-    IS_MAC_OSX = "Mac OS X".equals(osName);
-    IS_WINDOWS = osName.startsWith("Windows");
     final boolean dumpNonDaemonThreadInfoOnShutdown = Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown");
     if (dumpNonDaemonThreadInfoOnShutdown) { // prime class...
       PRELOADED.add(Threads.class);
     }
-    JAVA_RUNTIME.addShutdownHook(new Thread(new AbstractRunnable(false) {
-      @Override
-      public void doRun() throws Exception {
-        Exception rex = null;
-        SortedMap<Integer, Set<Runnable>> hooks;
-        synchronized (SHUTDOWN_HOOKS) {
-          hooks = new TreeMap<>(SHUTDOWN_HOOKS);
-          for (Map.Entry<Integer, Set<Runnable>> entry : hooks.entrySet()) {
-            entry.setValue(new HashSet<>(entry.getValue()));
-          }
-        }
-        for (Map.Entry<Integer, Set<Runnable>> runnables : hooks.entrySet()) {
-          final Set<Runnable> values = runnables.getValue();
-          if (values.size() <= 1) {
-            for (Runnable runnable : values) {
-              try {
-                runnable.run();
-              } catch (RuntimeException ex) {
-                if (rex == null) {
-                  rex = ex;
-                } else {
-                  rex.addSuppressed(ex);
-                }
-              }
-            }
-          } else if (((int) runnables.getKey()) >= Integer.MAX_VALUE) {
-            Thread[] threads = new Thread[values.size()];
-            int i = 0;
-            for (Runnable runnable : values) {
-              Thread thread = new Thread(runnable);
-              thread.start();
-              threads[i++] = thread;
-            }
-            long deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
-            for (Thread thread : threads) {
-              try {
-                thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
-              } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-                if (rex == null) {
-                  rex = ex;
-                } else {
-                  rex.addSuppressed(ex);
-                }
-                break;
-              }
-            }
-          } else {
-            List<Future<?>> futures = new ArrayList<>(values.size());
-            for (Runnable runnable : values) {
-              futures.add(DefaultExecutor.INSTANCE.submit(runnable));
-            }
-            for (Future<?> future : futures) {
-              try {
-                future.get();
-              }  catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-                if (rex == null) {
-                  rex = ex;
-                } else {
-                  rex.addSuppressed(ex);
-                }
-                break;
-              } catch (ExecutionException | RuntimeException ex) {
-                if (rex == null) {
-                  rex = ex;
-                } else {
-                  rex.addSuppressed(ex);
-                }
-              }
-            }
-          }
-        }
-        // print out info on all remaining non daemon threads.
-        if (dumpNonDaemonThreadInfoOnShutdown) {
-          Thread[] threads = Threads.getThreads();
-          Thread current = Thread.currentThread();
-          boolean first = true;
-          for (Thread thread : threads) {
-            if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
-                    && !thread.getName().contains("DestroyJavaVM")) {
-              if (first) {
-                error("Non daemon threads still running:");
-                first = false;
-              }
-              error("Non daemon thread " + thread + ", stackTrace = "
-                      + java.util.Arrays.toString(thread.getStackTrace()));
-            }
-          }
-        }
-        if (rex != null) {
-          throw rex;
-        }
-      }
-    }, "spf4j queued shutdown"));
+    JAVA_RUNTIME.addShutdownHook(new Thread(new ShutdownRunnable(false, dumpNonDaemonThreadInfoOnShutdown),
+            "spf4j queued shutdown"));
     JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
     if (Boolean.getBoolean("spf4j.runtime.jmx")) {
       Registry.export(Jmx.class);
@@ -306,12 +202,23 @@ public final class Runtime {
     }
   }
 
+  /**
+   * @return true on macosx.
+   * @deprecated use OperatingSystem
+   */
+  @Deprecated
   public static boolean isMacOsx() {
-    return IS_MAC_OSX;
+    return OperatingSystem.isMacOsx();
   }
 
+  /**
+   *
+   * @return true on windows.
+   * @deprecated use OperatingSystem
+   */
+  @Deprecated
   public static boolean isWindows() {
-    return IS_WINDOWS;
+    return OperatingSystem.isWindows();
   }
 
   public static boolean isTestFramework() {
@@ -329,20 +236,22 @@ public final class Runtime {
     return false;
   }
 
-
+  /**
+   * @return true if jna platform is present.
+   * @deprecated use JNA instead
+   */
+  @Deprecated
   public static boolean haveJnaPlatform() {
-    URL resource = Thread.currentThread().getContextClassLoader().getResource("com/sun/jna/platform/package.html");
-    return (resource != null);
+    return JNA.haveJnaPlatform();
   }
 
-  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_RETURN_FALSE")
+  /**
+   * @return true if jna platform clib is present.
+   * @deprecated use JNA instead.
+   */
+  @Deprecated
   public static boolean haveJnaPlatformClib() {
-    try {
-      Class.forName("com.sun.jna.platform.unix.LibC");
-      return true;
-    } catch (ClassNotFoundException ex) {
-      return false;
-    }
+    return JNA.haveJnaPlatformClib();
   }
 
   /**
@@ -645,6 +554,110 @@ public final class Runtime {
       UnixRuntime.restart();
     }
 
+  }
+
+  private static class ShutdownRunnable extends AbstractRunnable {
+
+    private final boolean dumpNonDaemonThreadInfoOnShutdown;
+
+    ShutdownRunnable(final boolean lenient, final boolean dumpNonDaemonThreadInfoOnShutdown) {
+      super(lenient);
+      this.dumpNonDaemonThreadInfoOnShutdown = dumpNonDaemonThreadInfoOnShutdown;
+    }
+
+    @Override
+    public void doRun() throws Exception {
+      Exception rex = null;
+      SortedMap<Integer, Set<Runnable>> hooks;
+      synchronized (SHUTDOWN_HOOKS) {
+        hooks = new TreeMap<>(SHUTDOWN_HOOKS);
+        for (Map.Entry<Integer, Set<Runnable>> entry : hooks.entrySet()) {
+          entry.setValue(new HashSet<>(entry.getValue()));
+        }
+      }
+      for (Map.Entry<Integer, Set<Runnable>> runnables : hooks.entrySet()) {
+        final Set<Runnable> values = runnables.getValue();
+        if (values.size() <= 1) {
+          for (Runnable runnable : values) {
+            try {
+              runnable.run();
+            } catch (RuntimeException ex) {
+              if (rex == null) {
+                rex = ex;
+              } else {
+                rex.addSuppressed(ex);
+              }
+            }
+          }
+        } else if (((int) runnables.getKey()) >= Integer.MAX_VALUE) {
+          Thread[] threads = new Thread[values.size()];
+          int i = 0;
+          for (Runnable runnable : values) {
+            Thread thread = new Thread(runnable);
+            thread.start();
+            threads[i++] = thread;
+          }
+          long deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
+          for (Thread thread : threads) {
+            try {
+              thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
+            } catch (InterruptedException ex) {
+              Thread.currentThread().interrupt();
+              if (rex == null) {
+                rex = ex;
+              } else {
+                rex.addSuppressed(ex);
+              }
+              break;
+            }
+          }
+        } else {
+          List<Future<?>> futures = new ArrayList<>(values.size());
+          for (Runnable runnable : values) {
+            futures.add(DefaultExecutor.INSTANCE.submit(runnable));
+          }
+          for (Future<?> future : futures) {
+            try {
+              future.get();
+            }  catch (InterruptedException ex) {
+              Thread.currentThread().interrupt();
+              if (rex == null) {
+                rex = ex;
+              } else {
+                rex.addSuppressed(ex);
+              }
+              break;
+            } catch (ExecutionException | RuntimeException ex) {
+              if (rex == null) {
+                rex = ex;
+              } else {
+                rex.addSuppressed(ex);
+              }
+            }
+          }
+        }
+      }
+      // print out info on all remaining non daemon threads.
+      if (dumpNonDaemonThreadInfoOnShutdown) {
+        Thread[] threads = Threads.getThreads();
+        Thread current = Thread.currentThread();
+        boolean first = true;
+        for (Thread thread : threads) {
+          if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
+                  && !thread.getName().contains("DestroyJavaVM")) {
+            if (first) {
+              error("Non daemon threads still running:");
+              first = false;
+            }
+            error("Non daemon thread " + thread + ", stackTrace = "
+                    + java.util.Arrays.toString(thread.getStackTrace()));
+          }
+        }
+      }
+      if (rex != null) {
+        throw rex;
+      }
+    }
   }
 
 }

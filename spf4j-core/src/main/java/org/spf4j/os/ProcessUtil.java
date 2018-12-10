@@ -17,7 +17,7 @@
  *
  * Additionally licensed with:
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache Licens e, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -34,19 +34,44 @@ package org.spf4j.os;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Field;
+import javax.annotation.Signed;
 import org.spf4j.base.UncheckedExecutionException;
 
 /**
- * PID is exposed in jdk 9... this will go away.
+ * PID is exposed in jdk 9... some of this will go away.
  * @author Zoltan Farkas
  */
 public final class ProcessUtil {
 
+  private static final int PID = parsePid();
+
   private ProcessUtil() { }
 
+  private static int parsePid()  {
+    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+    String mxBeanName = runtimeMxBean.getName();
+    int atIdx = mxBeanName.indexOf('@');
+    if (atIdx < 0) {
+      return -1;
+    } else {
+      return Integer.parseInt(mxBeanName.substring(0, atIdx));
+    }
+  }
+
+  /**
+   * @return the jvm process ID, -1 if it cannot be figured out.
+   */
+  @Signed
+  public static int getPid() {
+    return PID;
+  }
+
+
   public static int getPid(final Process p) {
-    if (org.spf4j.base.Runtime.isWindows()) {
+    if (OperatingSystem.isWindows()) {
       return getWindowsPid(p);
     }
     return getUnixPid(p);

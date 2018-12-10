@@ -38,6 +38,7 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Pair;
 import org.spf4j.test.log.LogAssert;
@@ -68,11 +69,12 @@ public class ExecContextLoggerTest {
     LogAssert expect = TestLoggers.sys().expect("test", Level.DEBUG,
             Matchers.allOf(LogMatchers.hasExtraArgumentAt(0, Pair.of("originalLevel", Level.TRACE)),
             LogMatchers.hasMessage("msg1")));
-    ExecutionContexts.current().setBackendMinLogLevel("test", Level.TRACE);
+    ExecutionContext current = ExecutionContexts.current();
+    current.setBackendMinLogLevel("test", Level.TRACE);
     log.trace("msg1");
     expect.assertObservation();
     List<Slf4jLogRecord> logs = new ArrayList<>(2);
-    ExecutionContexts.current().streamLogs(logs::add);
+    current.streamLogs(logs::add);
     Assert.assertEquals("msg1", logs.get(0).getMessageFormat());
   }
 

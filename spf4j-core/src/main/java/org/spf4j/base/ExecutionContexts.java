@@ -43,6 +43,8 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.concurrent.ScalableSequence;
+import org.spf4j.concurrent.UIDGenerator;
 import org.spf4j.ds.SimpleStack;
 
 /**
@@ -51,6 +53,8 @@ import org.spf4j.ds.SimpleStack;
 @ThreadSafe
 @ParametersAreNonnullByDefault
 public final class ExecutionContexts {
+
+  private static final UIDGenerator ID_GEN = new UIDGenerator(new ScalableSequence(0, 10), "X", 1544368928196L);
 
   public static final long DEFAULT_TIMEOUT_NANOS
           = Long.getLong("spf4j.execContext.defaultTimeoutNanos", TimeUnit.HOURS.toNanos(8));
@@ -310,7 +314,9 @@ public final class ExecutionContexts {
     public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
             @Nullable final ExecutionContext previous,
             final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
-      return new BasicExecutionContext(name, parent, startTimeNanos, deadlineNanos, onClose);
+      return new BasicExecutionContext(name,
+              parent == null ? ID_GEN.next() : null,
+              parent, startTimeNanos, deadlineNanos, onClose);
     }
 
   }

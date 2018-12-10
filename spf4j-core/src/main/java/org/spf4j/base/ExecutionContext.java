@@ -47,6 +47,12 @@ import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
+ * Execution context information encapsulated a place to store execution related information:
+ * <ul>
+ * <li>deadline/timeout</li>
+ * <li>context logs/overrides</li>
+ * <li>tagged attachments (profiling info, etc..)</li>
+ * </ul>
  * @author Zoltan Farkas
  */
 @CleanupObligation
@@ -65,6 +71,8 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nonnull
   String getName();
 
+  CharSequence getId();
+
   long getStartTimeNanos();
 
   long getDeadlineNanos();
@@ -73,7 +81,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   ExecutionContext getParent();
 
   @Beta
-  void addChild(ExecutionContext ctxt);
+  int addChild(ExecutionContext ctxt);
 
   @Beta
   void addLog(Slf4jLogRecord log);

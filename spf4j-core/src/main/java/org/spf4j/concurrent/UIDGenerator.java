@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.AppendableUtils;
+import org.spf4j.os.ProcessUtil;
 
 /**
  * Unique ID Generator Based on the assumptions: 1. host MAC address is used. (each network interface has a Unique ID)
@@ -147,7 +148,7 @@ public final class UIDGenerator implements Supplier<CharSequence> {
     }
     sb.append(baseEncoding.encode(intfMac)).append(separator);
 
-    AppendableUtils.appendUnsignedString(sb, org.spf4j.base.Runtime.PID, 5);
+    AppendableUtils.appendUnsignedString(sb, ProcessUtil.getPid(), 5);
     sb.append(separator);
     AppendableUtils.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);
     sb.append(separator);

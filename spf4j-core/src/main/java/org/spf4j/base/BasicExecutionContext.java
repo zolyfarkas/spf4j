@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -68,6 +69,8 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final String name;
 
+  private final CharSequence id;
+
   private final ExecutionContext parent;
 
   private List<ExecutionContext> children;
@@ -88,7 +91,9 @@ public class BasicExecutionContext implements ExecutionContext {
 
 
   @SuppressWarnings("unchecked")
-  public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
+  @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
+  public BasicExecutionContext(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent,
           final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope tlScope) {
     this.isClosed = false;
     this.name = name;
@@ -110,7 +115,16 @@ public class BasicExecutionContext implements ExecutionContext {
     this.logs = null;
     this.minBackendLogLevel = null;
     if (parent != null) {
-      parent.addChild(this);
+      int idx = parent.addChild(this);
+      if (id == null) {
+        StringBuilder sb = new StringBuilder(20).append(parent.getId()).append('/');
+        AppendableUtils.appendUnsignedString(sb, idx, 5);
+        this.id  = sb;
+      } else {
+        this.id  = id;
+      }
+    }  else {
+      this.id  = id;
     }
   }
 
@@ -224,11 +238,12 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public final synchronized void addChild(final ExecutionContext ctxt) {
+  public final synchronized int addChild(final ExecutionContext ctxt) {
     if (this.children.isEmpty()) {
       this.children = new ArrayList<>(4);
     }
     children.add(ctxt);
+    return children.size();
   }
 
   @Override
@@ -286,6 +301,11 @@ public class BasicExecutionContext implements ExecutionContext {
     Level result = minBackendLogLevel;
     minBackendLogLevel = level;
     return result;
+  }
+
+  @Override
+  public final CharSequence getId() {
+    return id;
   }
 
   private static final class Lazy {

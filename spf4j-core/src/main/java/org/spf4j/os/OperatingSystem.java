@@ -54,11 +54,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
+import org.spf4j.base.JNA;
 import org.spf4j.base.Pair;
-import org.spf4j.base.Runtime;
 import org.spf4j.base.Throwables;
-import static org.spf4j.base.Runtime.PID;
-import static org.spf4j.base.Runtime.isMacOsx;
 import org.spf4j.base.SysExits;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -77,7 +75,7 @@ public final class OperatingSystem {
 
   private static final long ABORT_TIMEOUT_MILLIS = Long.getLong("spf4j.os.abortTimeoutMillis", 5000);
 
-  private static final Path FD_FOLDER = Paths.get("/proc/" + PID + "/fd");
+  private static final Path FD_FOLDER = Paths.get("/proc/" + ProcessUtil.getPid() + "/fd");
 
   private static final OperatingSystemMXBean OS_MBEAN;
 
@@ -87,7 +85,15 @@ public final class OperatingSystem {
 
   public static final long MAX_NR_OPENFILES;
 
+  private static final boolean IS_MAC_OSX;
+  private static final boolean IS_WINDOWS;
+  private static final String OS_NAME;
+
   static {
+    final String osName = System.getProperty("os.name");
+    OS_NAME = osName;
+    IS_MAC_OSX = "Mac OS X".equals(osName);
+    IS_WINDOWS = osName.startsWith("Windows");
     OS_MBEAN = ManagementFactory.getOperatingSystemMXBean();
     if (OS_MBEAN instanceof com.sun.management.OperatingSystemMXBean) {
       SUN_OS_MBEAN = (com.sun.management.OperatingSystemMXBean) OS_MBEAN;
@@ -99,9 +105,9 @@ public final class OperatingSystem {
       MAX_NR_OPENFILES = UNIX_OS_MBEAN.getMaxFileDescriptorCount();
     } else {
       UNIX_OS_MBEAN = null;
-      if (Runtime.isWindows()) {
+      if (IS_WINDOWS) {
         MAX_NR_OPENFILES = Integer.MAX_VALUE;
-      } else if (Runtime.haveJnaPlatformClib()) {
+      } else if (JNA.haveJnaPlatformClib()) {
         try {
           MAX_NR_OPENFILES = UnixResources.RLIMIT_NOFILE.getSoftLimit();
         } catch (UnixException ex) {
@@ -115,6 +121,20 @@ public final class OperatingSystem {
 
   private OperatingSystem() {
   }
+
+  public static boolean isMacOsx() {
+    return IS_MAC_OSX;
+  }
+
+  public static boolean isWindows() {
+    return IS_WINDOWS;
+  }
+
+  public static String getOsName() {
+    return OS_NAME;
+  }
+
+
 
   public static OperatingSystemMXBean getOSMbean() {
     return OS_MBEAN;
