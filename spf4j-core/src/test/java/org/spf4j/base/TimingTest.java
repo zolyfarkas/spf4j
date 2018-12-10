@@ -68,7 +68,7 @@ public class TimingTest {
     BigInteger i2 =  BigInteger.valueOf(inst.getEpochSecond()).multiply(oneMil)
             .add(BigInteger.valueOf(inst.getNano()));
     BigInteger diff = i2.subtract(i1).abs();
-    Assert.assertTrue(diff.compareTo(BigInteger.valueOf(1000)) < 0);
+    Assert.assertTrue("Diff is " + diff, diff.compareTo(BigInteger.valueOf(1000)) < 0);
 
   }
 
