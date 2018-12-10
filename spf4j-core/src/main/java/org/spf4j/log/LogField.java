@@ -31,6 +31,7 @@
  */
 package org.spf4j.log;
 
+import java.time.Instant;
 import org.spf4j.base.Pair;
 
 /**
@@ -52,6 +53,10 @@ public final class LogField extends Pair<String, Object> {
 
   public static LogField origLevel(final Level level) {
     return new LogField("origLevel", level);
+  }
+
+  public static LogField origTime(final Instant instant) {
+    return new LogField("origTs", instant);
   }
 
 }
