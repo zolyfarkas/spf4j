@@ -57,7 +57,15 @@ public final class Converters {
     }
     PackageInfo packageInfo = PackageInfo.getPackageInfo(className);
     if (!packageInfo.equals(PackageInfo.NONE)) {
-      builder.setPackageInfo(new JPackageInfo(packageInfo.getUrl(), packageInfo.getVersion()));
+      String url = packageInfo.getUrl();
+      if (url == null) {
+        url = "";
+      }
+      String version = packageInfo.getVersion();
+      if (version == null) {
+        version = "";
+      }
+      builder.setPackageInfo(new JPackageInfo(url, version));
     }
     return builder.build();
   }

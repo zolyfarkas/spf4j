@@ -107,6 +107,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   Level setBackendMinLogLevel(String loggerName, Level level);
 
+  @Beta
   void streamLogs(Consumer<Slf4jLogRecord> to);
 
   void detach();
