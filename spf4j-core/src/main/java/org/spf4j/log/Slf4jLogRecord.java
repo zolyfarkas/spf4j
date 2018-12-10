@@ -78,4 +78,15 @@ public interface Slf4jLogRecord {
 
   void setIsLogged();
 
+  static int compareByTimestamp(Slf4jLogRecord a, Slf4jLogRecord b) {
+    long timeDiff = a.getTimeStamp() - b.getTimeStamp();
+    if (timeDiff > 0) {
+      return 1;
+    } else if (timeDiff < 0) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+
 }

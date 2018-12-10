@@ -31,32 +31,31 @@
  */
 package org.spf4j.log;
 
-import java.time.Instant;
 import org.spf4j.base.Pair;
 
 /**
  * @author Zoltan Farkas
  */
-public final class LogField extends Pair<String, Object> {
+public final class LogAttribute extends Pair<String, Object> {
 
-  public LogField(final String first, final Object second) {
+  public LogAttribute(final String first, final Object second) {
     super(first, second);
   }
 
-  public static LogField of(final String val, final Object obj) {
-    return new LogField(val, obj);
+  public static LogAttribute of(final String val, final Object obj) {
+    return new LogAttribute(val, obj);
   }
 
-  public static LogField traceId(final CharSequence id) {
-    return new LogField("trId", id);
+  public static LogAttribute traceId(final CharSequence id) {
+    return new LogAttribute("trId", id);
   }
 
-  public static LogField origLevel(final Level level) {
-    return new LogField("origLevel", level);
+  public static LogAttribute origLevel(final Level level) {
+    return new LogAttribute("origLevel", level);
   }
 
-  public static LogField origTime(final Instant instant) {
-    return new LogField("origTs", instant);
+  public static LogAttribute log(final Slf4jLogRecord record) {
+    return new LogAttribute("log", record);
   }
 
 }

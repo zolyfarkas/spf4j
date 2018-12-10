@@ -35,7 +35,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
-import org.spf4j.base.Arrays;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 
@@ -60,74 +59,7 @@ public final class ExecContextLogger implements Logger {
       @Override
       @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
       public void log(@Nullable final  Marker marker, final Level level, final String format, final Object... pargs) {
-        Object[] args = pargs;
-        switch (level) {
-          case TRACE:
-            if (wrapped.isTraceEnabled()) {
-              if (marker == null) {
-                wrapped.trace(format, args);
-              } else {
-                wrapped.trace(marker, format, args);
-              }
-              break;
-            } else {
-              if (args == pargs) {
-                args = Arrays.append(args, LogField.origLevel(level));
-              }
-            }
-          case DEBUG:
-            if (wrapped.isDebugEnabled()) {
-              if (marker == null) {
-                wrapped.debug(format, args);
-              } else {
-                wrapped.debug(marker, format, args);
-              }
-              break;
-            } else {
-              if (args == pargs) {
-                args = Arrays.append(args, LogField.origLevel(level));
-              }
-            }
-          case INFO:
-            if (wrapped.isInfoEnabled()) {
-              if (marker == null) {
-                wrapped.info(format, args);
-              } else {
-                wrapped.info(marker, format, args);
-              }
-              break;
-            } else {
-              if (args == pargs) {
-                args = Arrays.append(args, LogField.origLevel(level));
-              }
-            }
-          case WARN:
-            if (wrapped.isWarnEnabled()) {
-              if (marker == null) {
-                wrapped.warn(format, args);
-              } else {
-                wrapped.warn(marker, format, args);
-              }
-              break;
-            } else {
-              if (args == pargs) {
-                args = Arrays.append(args, LogField.origLevel(level));
-              }
-            }
-          case ERROR:
-            if (wrapped.isErrorEnabled()) {
-              if (marker == null) {
-                wrapped.error(format, args);
-              } else {
-                wrapped.error(marker, format, args);
-              }
-              break;
-            } else {
-              throw new IllegalStateException("Error not enabled for  " + wrapped.getName());
-            }
-          default:
-            throw new IllegalStateException("Invalid level " + level);
-        }
+        LogUtils.logUpgrade(wrapped, marker, level, format, pargs);
       }
     });
   }
@@ -137,13 +69,10 @@ public final class ExecContextLogger implements Logger {
     this.traceLogger = traceLogger;
   }
 
-
-
   @Override
   public String getName() {
     return wrapped.getName();
   }
-
 
   @Override
   public boolean isTraceEnabled() {
@@ -172,14 +101,14 @@ public final class ExecContextLogger implements Logger {
     String name = wrapped.getName();
     boolean logged;
     if (wrapped.isTraceEnabled()) {
-      wrapped.trace(msg, LogField.traceId(ctx.getId()));
+      wrapped.trace(msg, LogAttribute.traceId(ctx.getId()));
       logged = true;
     } else {
       Level backendOverwrite = ctx.getBackendMinLogLevel(name);
       if (backendOverwrite == null) {
         logged = false;
       } else if (backendOverwrite.ordinal() <= Level.TRACE.ordinal()) {
-        traceLogger.log(null, Level.TRACE, msg, LogField.traceId(ctx.getId()));
+        traceLogger.log(null, Level.TRACE, msg, LogAttribute.traceId(ctx.getId()));
         logged = true;
       } else {
         logged = false;

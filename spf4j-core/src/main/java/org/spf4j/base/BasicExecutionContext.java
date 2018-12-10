@@ -218,7 +218,7 @@ public class BasicExecutionContext implements ExecutionContext {
    * @param appendable
    */
   @Override
-  public synchronized void writeTo(final Appendable appendable) throws IOException {
+  public synchronized void writeJsonTo(final Appendable appendable) throws IOException {
     JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));
     gen.setCodec(Lazy.MAPPER);
     gen.writeStartObject();

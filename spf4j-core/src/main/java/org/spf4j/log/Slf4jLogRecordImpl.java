@@ -201,7 +201,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
    * @return
    */
   @Override
-  public void writeTo(final Appendable appendable) throws IOException {
+  public void writeJsonTo(final Appendable appendable) throws IOException {
     JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));
     gen.setCodec(Lazy.MAPPER);
     gen.writeStartObject();

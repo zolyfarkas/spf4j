@@ -286,7 +286,7 @@ public final class SampleNode implements Serializable, JsonWriteable {
   }
 
   @Override
-  public void writeTo(final Appendable appendable) throws IOException {
+  public void writeJsonTo(final Appendable appendable) throws IOException {
     writeTo(Method.ROOT, appendable);
   }
 

@@ -31,10 +31,27 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Zoltan Farkas
  */
 public interface JsonWriteable extends Writeable {
+
+  void writeJsonTo(@Nonnull Appendable appendable) throws IOException;
+
+  default void writeJsonTo(@Nonnull StringBuilder builder) {
+    try {
+      writeJsonTo((Appendable) builder);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  default void writeTo(@Nonnull Appendable appendable) throws IOException {
+    writeJsonTo(appendable);
+  }
 
 }

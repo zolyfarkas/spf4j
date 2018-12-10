@@ -45,7 +45,7 @@ public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable
 
   @Override
   public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
-    object.writeTo(appendTo);
+    object.writeJsonTo(appendTo);
   }
 
   @Override
