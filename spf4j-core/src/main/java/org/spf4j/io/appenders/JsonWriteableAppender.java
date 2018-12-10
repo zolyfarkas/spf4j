@@ -38,7 +38,6 @@ import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 
 /**
- *
  * @author zoly
  */
 public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
