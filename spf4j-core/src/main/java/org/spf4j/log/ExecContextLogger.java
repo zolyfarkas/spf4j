@@ -38,7 +38,6 @@ import org.slf4j.Marker;
 import org.spf4j.base.Arrays;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.Pair;
 
 /**
  * @author Zoltan Farkas
@@ -73,7 +72,7 @@ public final class ExecContextLogger implements Logger {
               break;
             } else {
               if (args == pargs) {
-                args = Arrays.append(args, Pair.of("originalLevel", level));
+                args = Arrays.append(args, LogField.origLevel(level));
               }
             }
           case DEBUG:
@@ -86,7 +85,7 @@ public final class ExecContextLogger implements Logger {
               break;
             } else {
               if (args == pargs) {
-                args = Arrays.append(args, Pair.of("originalLevel", level));
+                args = Arrays.append(args, LogField.origLevel(level));
               }
             }
           case INFO:
@@ -99,7 +98,7 @@ public final class ExecContextLogger implements Logger {
               break;
             } else {
               if (args == pargs) {
-                args = Arrays.append(args, Pair.of("originalLevel", level));
+                args = Arrays.append(args, LogField.origLevel(level));
               }
             }
           case WARN:
@@ -112,7 +111,7 @@ public final class ExecContextLogger implements Logger {
               break;
             } else {
               if (args == pargs) {
-                args = Arrays.append(args, Pair.of("originalLevel", level));
+                args = Arrays.append(args, LogField.origLevel(level));
               }
             }
           case ERROR:
@@ -148,46 +147,46 @@ public final class ExecContextLogger implements Logger {
 
   @Override
   public boolean isTraceEnabled() {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current ==  null) {
+    ExecutionContext ctx = ExecutionContexts.current();
+    if (ctx ==  null) {
       return wrapped.isTraceEnabled();
     }
     String name = wrapped.getName();
-    Level backendOverwrite = current.getBackendMinLogLevel(name);
+    Level backendOverwrite = ctx.getBackendMinLogLevel(name);
     if (backendOverwrite == null) {
-      return wrapped.isTraceEnabled() || Level.TRACE.ordinal() >= current.getContextMinLogLevel(name).ordinal();
+      return wrapped.isTraceEnabled() || Level.TRACE.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
     } else {
       return wrapped.isTraceEnabled()
               || Level.TRACE.ordinal()
-                  >= Math.min(current.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
+                  >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
     }
   }
 
   @Override
   public void trace(final String msg) {
-    ExecutionContext current = ExecutionContexts.current();
-    if (current ==  null) {
+    ExecutionContext ctx = ExecutionContexts.current();
+    if (ctx ==  null) {
       wrapped.trace(msg);
       return;
     }
     String name = wrapped.getName();
     boolean logged;
     if (wrapped.isTraceEnabled()) {
-      wrapped.trace(msg);
+      wrapped.trace(msg, LogField.traceId(ctx.getId()));
       logged = true;
     } else {
-      Level backendOverwrite = current.getBackendMinLogLevel(name);
+      Level backendOverwrite = ctx.getBackendMinLogLevel(name);
       if (backendOverwrite == null) {
         logged = false;
       } else if (backendOverwrite.ordinal() <= Level.TRACE.ordinal()) {
-        traceLogger.log(null, Level.TRACE, msg);
+        traceLogger.log(null, Level.TRACE, msg, LogField.traceId(ctx.getId()));
         logged = true;
       } else {
         logged = false;
       }
     }
-    if (current.getContextMinLogLevel(name).ordinal() <= Level.TRACE.ordinal()) {
-      current.addLog(new Slf4jLogRecordImpl(logged, name, Level.TRACE, (Marker) null, msg));
+    if (ctx.getContextMinLogLevel(name).ordinal() <= Level.TRACE.ordinal()) {
+      ctx.addLog(new Slf4jLogRecordImpl(logged, name, Level.TRACE, (Marker) null, msg));
     }
   }
 
