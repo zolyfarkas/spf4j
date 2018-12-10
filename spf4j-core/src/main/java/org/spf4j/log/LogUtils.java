@@ -119,4 +119,21 @@ public final class LogUtils {
     }
   }
 
+  @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
+  public static void logUpgrade(final java.util.logging.Logger log, final Level plevel,
+          final String format, final Object... pargs) {
+    Level[] values = Level.values();
+    Level level = plevel;
+    while (true) {
+      java.util.logging.Level julLevel = level.getJulLevel();
+      if (log.isLoggable(julLevel)) {
+        log.log(julLevel, format, pargs);
+        return;
+      }
+      if (level == Level.ERROR) {
+        throw new IllegalStateException();
+      }
+      level = values[level.ordinal() + 1];
+    }
+  }
 }
