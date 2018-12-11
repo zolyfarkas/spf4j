@@ -31,15 +31,58 @@
  */
 package org.spf4j.os;
 
+import com.google.common.util.concurrent.MoreExecutors;
+import com.sun.management.UnixOperatingSystemMXBean;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
+import org.spf4j.base.JNA;
+import org.spf4j.base.Pair;
+import org.spf4j.base.Throwables;
+import org.spf4j.base.SysExits;
+import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.Futures;
+import org.spf4j.unix.UnixException;
+import org.spf4j.unix.UnixResources;
 
 /**
  * Utility to wrap access to JDK specific Operating system Mbean attributes.
  *
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
+@SuppressFBWarnings({"FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY", "HES_EXECUTOR_NEVER_SHUTDOWN"})
 public final class OperatingSystem {
+
+  private static final ExecutorService EXEC =
+          MoreExecutors.getExitingExecutorService(new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                      60L, TimeUnit.SECONDS,
+                                      new SynchronousQueue<Runnable>()));
+
+  private static final long ABORT_TIMEOUT_MILLIS = Long.getLong("spf4j.os.abortTimeoutMillis", 5000);
+
+  private static final OperatingSystemMXBean OS_MBEAN;
+
+  private static final com.sun.management.OperatingSystemMXBean SUN_OS_MBEAN;
+
+  private static final UnixOperatingSystemMXBean UNIX_OS_MBEAN;
+
+  public static final long MAX_NR_OPENFILES;
 
   private static final boolean IS_MAC_OSX;
   private static final boolean IS_WINDOWS;
@@ -50,7 +93,29 @@ public final class OperatingSystem {
     OS_NAME = osName;
     IS_MAC_OSX = "Mac OS X".equals(osName);
     IS_WINDOWS = osName.startsWith("Windows");
-
+    OS_MBEAN = ManagementFactory.getOperatingSystemMXBean();
+    if (OS_MBEAN instanceof com.sun.management.OperatingSystemMXBean) {
+      SUN_OS_MBEAN = (com.sun.management.OperatingSystemMXBean) OS_MBEAN;
+    } else {
+      SUN_OS_MBEAN = null;
+    }
+    if (OS_MBEAN instanceof UnixOperatingSystemMXBean) {
+      UNIX_OS_MBEAN = (UnixOperatingSystemMXBean) OS_MBEAN;
+      MAX_NR_OPENFILES = UNIX_OS_MBEAN.getMaxFileDescriptorCount();
+    } else {
+      UNIX_OS_MBEAN = null;
+      if (IS_WINDOWS) {
+        MAX_NR_OPENFILES = Integer.MAX_VALUE;
+      } else if (JNA.haveJnaPlatformClib()) {
+        try {
+          MAX_NR_OPENFILES = UnixResources.RLIMIT_NOFILE.getSoftLimit();
+        } catch (UnixException ex) {
+          throw new ExceptionInInitializerError(ex);
+        }
+      } else {
+        MAX_NR_OPENFILES = Integer.MAX_VALUE;
+      }
+    }
   }
 
   private OperatingSystem() {
@@ -68,5 +133,188 @@ public final class OperatingSystem {
     return OS_NAME;
   }
 
+
+
+  public static OperatingSystemMXBean getOSMbean() {
+    return OS_MBEAN;
+  }
+
+  @Nullable
+  public static com.sun.management.OperatingSystemMXBean getSunJdkOSMBean() {
+    return SUN_OS_MBEAN;
+  }
+
+  @Nullable
+  public static UnixOperatingSystemMXBean getUnixOsMBean() {
+    return UNIX_OS_MBEAN;
+  }
+
+  public static long getOpenFileDescriptorCount() {
+    if (UNIX_OS_MBEAN != null) {
+      return UNIX_OS_MBEAN.getOpenFileDescriptorCount();
+    } else {
+      return -1;
+    }
+  }
+
+  public static long getMaxFileDescriptorCount() {
+    return MAX_NR_OPENFILES;
+  }
+
+  public static int killProcess(final Process proc, final long terminateTimeoutMillis,
+          final long forceTerminateTimeoutMillis)
+          throws InterruptedException, TimeoutException {
+
+    proc.destroy();
+    if (proc.waitFor(terminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
+      return proc.exitValue();
+    } else {
+      proc.destroyForcibly();
+      if (!proc.waitFor(forceTerminateTimeoutMillis, TimeUnit.MILLISECONDS)) {
+        throw new TimeoutException("Cannot terminate " + proc);
+      } else {
+        return proc.exitValue();
+      }
+    }
+  }
+
+  /**
+   * Process execution utility.
+   * @param <T> type the stdout is reduced to.
+   * @param <E> type stderr is reduced to.
+   * @param command the command to execute.
+   * @param handler handler for child stdin, stdout and stderr. stdout and stderr handling will be done in 2 threads
+   * from the DefaultExecutor thread pool. while stdin handling will execute in the current thread.
+   * @param timeoutMillis time to wait for the process to execute.
+   * @param terminationTimeoutMillis this is the timeout used when trying to terminate the process gracefully.
+   * @return the response (respCode, stdout reduction, stderr reduction)
+   * @throws IOException
+   * @throws InterruptedException
+   * @throws ExecutionException
+   * @throws TimeoutException when timeout happens.
+   */
+  @SuppressFBWarnings({ "COMMAND_INJECTION", "CC_CYCLOMATIC_COMPLEXITY" })
+  public static <T, E> ProcessResponse<T, E> forkExec(final String[] command, final ProcessHandler<T, E> handler,
+          final long timeoutMillis, final long terminationTimeoutMillis)
+          throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    final Process proc = java.lang.Runtime.getRuntime().exec(command);
+    handler.started(proc);
+    try (InputStream pos = proc.getInputStream();
+            InputStream pes = proc.getErrorStream();
+            OutputStream pis = proc.getOutputStream()) {
+      Future<E> esh;
+      Future<T> osh;
+      final AtomicReference<Throwable> eex = new AtomicReference<>();
+      try {
+        esh = EXEC.submit(() -> {
+          try {
+            return handler.handleStdErr(pes);
+          } catch (Throwable t) {
+            eex.set(t);
+            throw t;
+          }
+        });
+      } catch (RuntimeException ex) { // Executor might Reject
+        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
+        throw new ExecutionException("Cannot execute stderr handler, killed process returned " + result, ex);
+      }
+      try {
+        osh = EXEC.submit(() -> {
+          try {
+          return handler.handleStdOut(pos);
+          } catch (Throwable t) {
+            eex.set(t);
+            throw t;
+          }
+        });
+      } catch (RuntimeException ex) { // Executor might Reject
+        RuntimeException cex = Futures.cancelAll(true, esh);
+        if (cex != null) {
+          ex.addSuppressed(cex);
+        }
+        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
+        throw new ExecutionException("Cannot execute stdout handler, killed process returned " + result, ex);
+      }
+      long deadlineNanos = TimeSource.nanoTime() + TimeUnit.NANOSECONDS.convert(timeoutMillis, TimeUnit.MILLISECONDS);
+      try {
+        handler.writeStdIn(pis);
+      } catch (RuntimeException | IOException ex) {
+        RuntimeException cex = Futures.cancelAll(true, esh, osh);
+        if (cex != null) {
+          ex.addSuppressed(cex);
+        }
+        int result = killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
+        throw new ExecutionException("Failure executing stdin handler, killed process returned " + result, ex);
+      }
+      try {
+        int result = waitFor(eex, proc, timeoutMillis, TimeUnit.MILLISECONDS);
+        Pair<Map<Future, Object>, Exception> results = Futures.getAllWithDeadlineNanos(deadlineNanos, osh, esh);
+        Exception hex = results.getSecond();
+        Map<Future, Object> asyncRes = results.getFirst();
+        if (hex == null) {
+          return new ProcessResponse<>(result, (T) asyncRes.get(osh), (E) asyncRes.get(esh));
+        } else {
+          Throwables.throwException(hex);
+          throw new IllegalStateException();
+        }
+      } catch (TimeoutException | ExecutionException | InterruptedException ex) {
+        killProcess(proc, terminationTimeoutMillis, ABORT_TIMEOUT_MILLIS);
+        RuntimeException cex = Futures.cancelAll(true, osh, esh);
+        if (cex != null) {
+          ex.addSuppressed(cex);
+        }
+        throw ex;
+      }
+    }
+  }
+
+  @SuppressFBWarnings("MDM_THREAD_YIELD") // best I can come up with so far. (same as JDK)
+  private static int waitFor(final AtomicReference<Throwable> exr,
+          final Process process,
+          final long timeout, final TimeUnit unit)
+          throws InterruptedException, ExecutionException, TimeoutException {
+    long startTime = TimeSource.nanoTime();
+    long rem = unit.toNanos(timeout);
+    do {
+      try {
+        return process.exitValue();
+      } catch (IllegalThreadStateException ex) {
+        if (rem > 0) {
+          Thread.sleep(Math.min(TimeUnit.NANOSECONDS.toMillis(rem) + 1, 100));
+        }
+      }
+      rem = unit.toNanos(timeout) - (TimeSource.nanoTime() - startTime);
+      Throwable get = exr.get();
+      if (get != null) {
+        throw new ExecutionException(get);
+      }
+    } while (rem > 0);
+    throw new TimeoutException("Process " + process + " timed out after " + timeout + " " + unit);
+  }
+
+
+  @CheckReturnValue
+  public static String forkExec(final String[] command,
+          final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    ProcessResponse<String, String> resp
+            = forkExec(command, new StdOutToStringProcessHandler(), timeoutMillis, 60000);
+    if (resp.getResponseExitCode() != SysExits.OK) {
+      throw new ExecutionException("Failed to execute " + Arrays.toString(command)
+              + ", exitCode = " + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
+    }
+    return resp.getOutput();
+  }
+
+  public static void forkExecLog(final String[] command,
+          final long timeoutMillis) throws IOException, InterruptedException, ExecutionException, TimeoutException {
+    ProcessResponse<Void, Void> resp
+            = forkExec(command,
+                    new LoggingProcessHandler(Logger.getLogger("fork." + command[0])),
+                    timeoutMillis, 60000);
+    if (resp.getResponseExitCode() != SysExits.OK) {
+      throw new ExecutionException("Failed to execute " + java.util.Arrays.toString(command)
+              + ", exitCode = " + resp.getResponseCode() + ", stderr = " + resp.getErrOutput(), null);
+    }
+  }
 
 }
