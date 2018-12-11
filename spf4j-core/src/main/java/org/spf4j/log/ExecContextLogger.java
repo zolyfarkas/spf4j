@@ -181,14 +181,47 @@ public final class ExecContextLogger implements Logger {
 
   @Override
   public boolean isDebugEnabled() {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    ExecutionContext ctx = ExecutionContexts.current();
+    if (ctx ==  null) {
+      return wrapped.isDebugEnabled();
+    }
+    String name = wrapped.getName();
+    Level backendOverwrite = ctx.getBackendMinLogLevel(name);
+    if (backendOverwrite == null) {
+      return wrapped.isDebugEnabled() || Level.DEBUG.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
+    } else {
+      return wrapped.isDebugEnabled()
+              || Level.DEBUG.ordinal()
+                  >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
+    }
   }
 
   @Override
   public void debug(final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    ExecutionContext ctx = ExecutionContexts.current();
+    if (ctx ==  null) {
+      wrapped.debug(msg);
+      return;
+    }
+    String name = wrapped.getName();
+    boolean logged;
+    if (wrapped.isDebugEnabled()) {
+      wrapped.debug(msg, LogAttribute.traceId(ctx.getId()));
+      logged = true;
+    } else {
+      Level backendOverwrite = ctx.getBackendMinLogLevel(name);
+      if (backendOverwrite == null) {
+        logged = false;
+      } else if (backendOverwrite.ordinal() <= Level.DEBUG.ordinal()) {
+        traceLogger.log(null, Level.DEBUG, msg, LogAttribute.traceId(ctx.getId()));
+        logged = true;
+      } else {
+        logged = false;
+      }
+    }
+    if (ctx.getContextMinLogLevel(name).ordinal() <= Level.DEBUG.ordinal()) {
+      ctx.addLog(new Slf4jLogRecordImpl(logged, name, Level.DEBUG, (Marker) null, msg));
+    }
   }
 
   @Override
