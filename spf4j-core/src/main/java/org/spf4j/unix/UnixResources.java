@@ -34,7 +34,7 @@ package org.spf4j.unix;
 import com.sun.jna.Native;
 import com.sun.jna.platform.unix.Resource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.base.Runtime;
+import org.spf4j.os.OperatingSystem;
 
 /**
  * Possible values of the first parameter to getrlimit()/setrlimit()
@@ -157,9 +157,9 @@ public enum UnixResources {
   }
 
   private static Resource.Rlimit getRLimit(final UnixResources resourceId) throws UnixException {
-    int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
+    int id = OperatingSystem.isMacOsx() ? resourceId.macId : resourceId.gnuId;
     if (id < 0) {
-      throw new UnixException("Unsupported " + id + " limit on " + Runtime.OS_NAME, 0);
+      throw new UnixException("Unsupported " + id + " limit on " + OperatingSystem.getOsName(), 0);
     }
     final Resource.Rlimit limit = new Resource.Rlimit();
     int err = CLibrary.INSTANCE.getrlimit(id, limit);
@@ -173,9 +173,9 @@ public enum UnixResources {
 
   private static void setRLimit(final UnixResources resourceId, final long softValue, final long hardValue)
           throws UnixException {
-    int id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
+    int id = OperatingSystem.isMacOsx() ? resourceId.macId : resourceId.gnuId;
     if (id < 0) {
-      throw new UnixException("Unsupported " + id + " limit on " + Runtime.OS_NAME, 0);
+      throw new UnixException("Unsupported " + id + " limit on " + OperatingSystem.getOsName(), 0);
     }
     final Resource.Rlimit limit = new Resource.Rlimit();
     limit.rlim_cur = softValue;

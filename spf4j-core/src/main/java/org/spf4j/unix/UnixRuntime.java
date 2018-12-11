@@ -33,7 +33,7 @@ package org.spf4j.unix;
 
 import com.sun.jna.Native;
 import java.io.IOException;
-import static org.spf4j.base.Runtime.haveJnaPlatformClib;
+import org.spf4j.base.JNA;
 
 /**
  * @author Zoltan Farkas
@@ -60,7 +60,7 @@ public final class UnixRuntime {
    * @throws IOException
    */
   public static void restart(final JVMArguments newArguments) throws IOException {
-    if (haveJnaPlatformClib()) {
+    if (JNA.haveJnaPlatformClib()) {
       newArguments.createOrUpdateSystemProperty("spf4j.restart",
               (old) -> old == null ? "1" :  Integer.toString(Integer.parseInt(old) + 1));
       // close all files upon exec, except stdin, stdout, and stderr
