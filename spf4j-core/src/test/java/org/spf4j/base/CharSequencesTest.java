@@ -124,5 +124,13 @@ public class CharSequencesTest {
     }
   }
 
+  @Test
+  public void testOccurenceCount() {
+    Assert.assertEquals(3, CharSequences.countIgnoreCase(" aab Aab aaab", "aab"));
+    Assert.assertEquals(0, CharSequences.countIgnoreCase("", "aab"));
+    Assert.assertEquals(0, CharSequences.countIgnoreCase(" ", "aab"));
+    Assert.assertEquals(0, CharSequences.countIgnoreCase(" ", ""));
+  }
+
 
 }

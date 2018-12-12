@@ -684,10 +684,10 @@ public final class CharSequences {
 
 
   public static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
-    return indexOfIgnoreCase(str, searchStr) >= 0;
+    return lastIndexOfIgnoreCase(str, searchStr) >= 0;
   }
 
-  public static int indexOfIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+  public static int lastIndexOfIgnoreCase(final CharSequence str, final CharSequence searchStr) {
     final int length = searchStr.length();
     if (length == 0) {
       return 0;
@@ -699,5 +699,35 @@ public final class CharSequences {
     }
     return -1;
   }
+
+  public static int indexOfIgnoreCase(final CharSequence str, final CharSequence searchStr, final int idxStart) {
+    final int sLen = searchStr.length();
+    if (sLen == 0) {
+      return 0;
+    }
+    for (int i = idxStart, l = str.length() - sLen; i <= l; i++) {
+      if (regionMatchesIgnoreCase(str, i, searchStr, 0, sLen)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+
+  public static int countIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+    int result = 0;
+    int sLen = searchStr.length();
+    if (sLen == 0) {
+      return 0;
+    }
+    int from = 0;
+    int idx;
+    while ((idx = indexOfIgnoreCase(str, searchStr, from)) >= 0) {
+      result++;
+      from = idx + sLen;
+    }
+    return result;
+  }
+
 
 }
