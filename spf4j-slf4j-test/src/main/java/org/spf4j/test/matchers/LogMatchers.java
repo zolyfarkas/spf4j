@@ -96,6 +96,27 @@ public final class LogMatchers {
      });
   }
 
+  public static Matcher<TestLogRecord> hasMatchingArgumentAt(final int idx, final Matcher<Object> matcher) {
+     return Matchers.hasProperty("arguments", new BaseMatcher<TestLogRecord>() {
+       @Override
+       public boolean matches(final Object item) {
+         if (item instanceof TestLogRecord) {
+           TestLogRecord lr = (TestLogRecord) item;
+           Object[] arguments = lr.getArguments();
+           return idx < arguments.length && matcher.matches(arguments[idx]);
+         } else {
+           return false;
+         }
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+         description.appendText("Message argument [").appendValue(idx).appendText("] matches ");
+         matcher.describeTo(description);
+       }
+     });
+  }
+
   public static Matcher<TestLogRecord> hasAttachment(final String attachment) {
      return Matchers.hasProperty("attachments", Matchers.hasItem(attachment));
   }
