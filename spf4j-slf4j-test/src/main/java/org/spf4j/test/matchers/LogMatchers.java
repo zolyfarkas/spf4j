@@ -104,10 +104,6 @@ public final class LogMatchers {
      return Matchers.not(Matchers.hasProperty("attachments", Matchers.hasItem(attachment)));
   }
 
-  public static Matcher<TestLogRecord> hasMatchingArguments(final Object objects) {
-     return Matchers.hasProperty("arguments", Matchers.arrayContaining(objects));
-  }
-
   public static Matcher<TestLogRecord> hasExtraArguments(final Object... objects) {
      return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(objects));
   }
