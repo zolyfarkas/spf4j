@@ -15,6 +15,8 @@
  */
 package org.spf4j.test.matchers;
 
+import java.util.Arrays;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +32,7 @@ public class LogMatchersTest {
 
 
   @Test(expected = AssertionError.class)
-  public void testSomeMethod() {
+  public void testMatching() {
     TestLogRecordImpl rec = new TestLogRecordImpl("test", Level.ERROR, "la la {} bla", "a", "b");
     rec.attach(Attachments.PRINTED);
     rec.attach(Attachments.ASSERTED);
@@ -43,6 +45,18 @@ public class LogMatchersTest {
                   LogMatchers.hasLevel(Level.ERROR)));
     Assert.assertThat(rec, Matchers.allOf(LogMatchers.hasExtraArgumentAt(0, "b"),
                   LogMatchers.hasLevel(Level.ERROR)));
+
+  }
+
+  @Test
+  public void testArgumentMatch() {
+    TestLogRecordImpl rec = new TestLogRecordImpl("test", Level.ERROR, "la la {} bla", "a", "b", 5L);
+    Assert.assertThat(rec, Matchers.allOf(LogMatchers.hasMatchingArguments(
+            Matchers.arrayContaining((Matcher) Matchers.equalTo("a"),
+                    (Matcher) Matchers.equalTo("b"),
+                    (Matcher) Matchers.allOf(Matchers.greaterThan(1L), Matchers.lessThan(7L)))
+    )));
+
 
   }
 
