@@ -77,7 +77,7 @@ public final class LogMatchers {
   }
 
   public static Matcher<TestLogRecord> hasArgumentAt(final int idx, final Object object) {
-     return Matchers.hasProperty("arguments", new BaseMatcher<TestLogRecord>() {
+     return new BaseMatcher<TestLogRecord>() {
        @Override
        public boolean matches(final Object item) {
          if (item instanceof TestLogRecord) {
@@ -93,11 +93,11 @@ public final class LogMatchers {
        public void describeTo(final Description description) {
          description.appendText("Message argument [").appendValue(idx).appendText("] is ").appendValue(object);
        }
-     });
+     };
   }
 
   public static Matcher<TestLogRecord> hasMatchingArgumentAt(final int idx, final Matcher<Object> matcher) {
-     return Matchers.hasProperty("arguments", new BaseMatcher<TestLogRecord>() {
+     return new BaseMatcher<TestLogRecord>() {
        @Override
        public boolean matches(final Object item) {
          if (item instanceof TestLogRecord) {
@@ -114,7 +114,7 @@ public final class LogMatchers {
          description.appendText("Message argument [").appendValue(idx).appendText("] matches ");
          matcher.describeTo(description);
        }
-     });
+     };
   }
 
   public static Matcher<TestLogRecord> hasAttachment(final String attachment) {
