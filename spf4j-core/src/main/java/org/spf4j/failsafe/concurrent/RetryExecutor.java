@@ -61,7 +61,7 @@ import org.spf4j.concurrent.FutureBean;
 public final class RetryExecutor implements AutoCloseable {
 
   private final ExecutorService executionService;
-  private final DelayQueue<FailedExecutionResult> executionEvents = new DelayQueue<>();
+  private final DelayQueue<DelayedExecution> executionEvents = new DelayQueue<>();
   private volatile RetryManager retryManager;
   private Future<?> retryManagerFuture;
   @Nullable
@@ -91,13 +91,13 @@ public final class RetryExecutor implements AutoCloseable {
   /**
    * this class represents either a execution failure notification or a retry command.
    */
-  private static class FailedExecutionResult implements Delayed {
+  private static class DelayedExecution implements Delayed {
 
     private final ExecutionException exception;
     private final RetryableCallable<Object> callable;
     private final long deadlineNanos;
 
-    FailedExecutionResult(@Nullable final ExecutionException exception,
+    DelayedExecution(@Nullable final ExecutionException exception,
             final RetryableCallable callable, final long delayNanos) {
       this.exception = exception;
       this.callable = callable;
@@ -127,8 +127,8 @@ public final class RetryExecutor implements AutoCloseable {
       if (obj == null) {
         return false;
       } else {
-        if (obj instanceof FailedExecutionResult) {
-          return this.compareTo((FailedExecutionResult) obj) == 0;
+        if (obj instanceof DelayedExecution) {
+          return this.compareTo((DelayedExecution) obj) == 0;
         } else {
           return false;
         }
@@ -156,11 +156,11 @@ public final class RetryExecutor implements AutoCloseable {
     private volatile Callable<T> callable;
     @Nullable
     private final FutureBean<T> future;
-    private volatile FailedExecutionResult previousResult;
+    private volatile DelayedExecution previousResult;
     private final RetryPredicate<T, Callable<T>> resultRetryPredicate;
 
     RetryableCallable(final Callable<T> callable, @Nullable final FutureBean<T> future,
-            final FailedExecutionResult previousResult,
+            final DelayedExecution previousResult,
             final RetryPredicate<T, Callable<T>> resultRetryPredicate) {
       this.callable = callable;
       this.future = future;
@@ -169,7 +169,7 @@ public final class RetryExecutor implements AutoCloseable {
     }
 
     RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean<T> future,
-            @Nullable final FailedExecutionResult previousResult,
+            @Nullable final DelayedExecution previousResult,
             final RetryPredicate<T, Callable<T>> resultRetryPredicate) {
       this(new Callable() {
 
@@ -204,7 +204,7 @@ public final class RetryExecutor implements AutoCloseable {
             startRetryManager();
             final long delayNanos = decision.getDelayNanos();
             this.callable = decision.getNewCallable();
-            executionEvents.add(new FailedExecutionResult(null, this, delayNanos));
+            executionEvents.add(new DelayedExecution(null, this, delayNanos));
             break;
           case Abort:
             if (future != null) {
@@ -235,7 +235,7 @@ public final class RetryExecutor implements AutoCloseable {
                 e = Throwables.suppress(e, exception);
               }
             }
-            executionEvents.add(new FailedExecutionResult(new ExecutionException(e), this, delayNanos));
+            executionEvents.add(new DelayedExecution(new ExecutionException(e), this, delayNanos));
             break;
           case Abort:
             if (future != null) {
@@ -255,11 +255,11 @@ public final class RetryExecutor implements AutoCloseable {
       }
     }
 
-    public FailedExecutionResult getPreviousResult() {
+    public DelayedExecution getPreviousResult() {
       return previousResult;
     }
 
-    public void setPreviousResult(final FailedExecutionResult previousResult) {
+    public void setPreviousResult(final DelayedExecution previousResult) {
       this.previousResult = previousResult;
     }
 
@@ -290,7 +290,7 @@ public final class RetryExecutor implements AutoCloseable {
       thread = Thread.currentThread();
       while (isRunning) {
         try {
-          FailedExecutionResult event = executionEvents.poll(1, TimeUnit.MINUTES);
+          DelayedExecution event = executionEvents.poll(1, TimeUnit.MINUTES);
           if (event != null) {
             final RetryableCallable<Object> callable = event.getCallable();
             callable.setPreviousResult(event);
@@ -332,14 +332,14 @@ public final class RetryExecutor implements AutoCloseable {
     shutdownRetryManager();
   }
 
-  private FutureBean<?> createFutureBean() {
-    if (completionQueue == null) {
+  private static FutureBean<?> createFutureBean(@Nullable final BlockingQueue<Future<?>> queue) {
+    if (queue == null) {
       return new FutureBean<>();
     } else {
       return new FutureBean<Object>() {
         @Override
         public void done() {
-          completionQueue.add(this);
+          queue.add(this);
         }
       };
     }
@@ -359,14 +359,14 @@ public final class RetryExecutor implements AutoCloseable {
   }
 
   public <A, C extends Callable<? extends A>> Future<A> submit(final C task, final RetryPredicate<A, C> predicate) {
-    FutureBean<?> result = createFutureBean();
+    FutureBean<?> result = createFutureBean(completionQueue);
     executionService.execute(new RetryableCallable(task, result, null, predicate));
     return (Future<A>) result;
   }
 
   public <A> Future<A> submit(final Runnable task, final A result,
           final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
-    FutureBean<?> resultFuture = createFutureBean();
+    FutureBean<?> resultFuture = createFutureBean(completionQueue);
     executionService.execute(new RetryableCallable(task, result, resultFuture, null,
             predicate));
     return (Future<A>) resultFuture;
@@ -377,14 +377,13 @@ public final class RetryExecutor implements AutoCloseable {
   }
 
   public void execute(final Runnable command, final RetryPredicate<Void, Callable<Void>> predicate) {
-    FutureBean<?> future = createFutureBeanIfCompletionQueue();
-    executionService.execute(new RetryableCallable(command, null, future, null, predicate));
+    executionService.execute(new RetryableCallable(command, null, createFutureBeanIfCompletionQueue(),
+            null, predicate));
   }
 
   public <A, C extends Callable<? extends A>> void execute(final C command,
           final RetryPredicate<A, C> predicate) {
-    FutureBean<?> future = createFutureBeanIfCompletionQueue();
-    executionService.execute(new RetryableCallable(command, future, null, predicate));
+    executionService.execute(new RetryableCallable(command, createFutureBeanIfCompletionQueue(), null, predicate));
   }
 
   @Override
