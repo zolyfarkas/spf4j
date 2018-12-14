@@ -58,7 +58,7 @@ public final class DefaultExecutor {
     final String value = System.getProperty(impParam, "spf4j");
     switch (value) {
       case "spf4j":
-        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defaultExecutor", coreThreads,
+        LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defExec", coreThreads,
                 Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon);
         lifoExec.exportJmx();
         INSTANCE = lifoExec;
@@ -68,7 +68,7 @@ public final class DefaultExecutor {
         break;
       case "legacy":
         INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
-                new SynchronousQueue<Runnable>(), new CustomThreadFactory("DefaultExecutor", isDaemon));
+                new SynchronousQueue<Runnable>(), new CustomThreadFactory("defExec", isDaemon));
         break;
       default:
         throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
