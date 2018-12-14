@@ -54,7 +54,7 @@ public class RetryPolicyTest {
 
   @BeforeClass
   public static void init() {
-    es = new RetryExecutor(DefaultContextAwareExecutor.instance(), null);
+    es = new RetryExecutor(DefaultContextAwareExecutor.instance());
   }
 
   @AfterClass
@@ -165,6 +165,7 @@ public class RetryPolicyTest {
       res.get(100, TimeUnit.MILLISECONDS);
       Assert.fail();
     } catch (CancellationException ex) {
+      LOG.debug("exception detail ", ex);
       Assert.assertThat(ex.getSuppressed(), Matchers.arrayWithSize(1));
     }
   }

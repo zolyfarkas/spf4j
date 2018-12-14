@@ -119,17 +119,17 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
           throws InterruptedException, TimeoutException, E {
     C what = pwhat;
     T result;
-    Exception lastEx; // last exception
+    Throwable lastEx; // last exception
     try {
       result = what.call();
       lastEx = null;
     } catch (InterruptedException ex1) {
       throw ex1;
-    } catch (Exception e) { // only EX and RuntimeException
+    } catch (Throwable e) { // only EX and RuntimeException
       lastEx = e;
       result = null;
     }
-    Exception lastExChain = lastEx; // last exception chained with all previous exceptions
+    Throwable lastExChain = lastEx; // last exception chained with all previous exceptions
     RetryDecision<T, C> decision;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
     while ((lastEx != null)
@@ -169,7 +169,7 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
       }
     }
     if (decision.getDecisionType() == RetryDecision.Type.Abort) {
-        Either<Exception, T> r = decision.getResult();
+        Either<Throwable, T> r = decision.getResult();
         if (r != null) {
           if (r.isLeft()) {
             lastEx = r.getLeft();

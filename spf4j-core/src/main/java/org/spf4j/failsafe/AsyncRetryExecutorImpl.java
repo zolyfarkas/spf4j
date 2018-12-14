@@ -34,6 +34,7 @@ package org.spf4j.failsafe;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 
@@ -47,23 +48,40 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
 
   private final RetryPolicy<T, C> retryPolicy;
 
+  private final HedgePolicy hedgePolicy;
+
   private final RetryExecutor executor;
 
-  AsyncRetryExecutorImpl(final RetryPolicy<T, C> retryPolicy,
+  AsyncRetryExecutorImpl(final RetryPolicy<T, C> retryPolicy, final HedgePolicy hedgePolicy,
           final RetryExecutor executor) {
     this.executor = executor;
     this.retryPolicy = retryPolicy;
+    this.hedgePolicy =  hedgePolicy;
   }
 
 
   @Override
   public <R extends T, W extends C> Future<R> submit(final W pwhat,
           final long startTimeNanos, final long deadlineNanos) {
-    return (Future<R>) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+    Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);
+    int hedgeCount = hedge.getHedgeCount();
+    if (hedgeCount <= 0) {
+      return (Future<R>) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+    } else {
+      return (Future<R>) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),
+              hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
+    }
   }
 
   public <W extends C> void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
-    executor.execute(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+    Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);
+    int hedgeCount = hedge.getHedgeCount();
+    if (hedgeCount <= 0) {
+      executor.execute(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+    } else {
+      executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),
+              hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
+    }
   }
 
   @Override

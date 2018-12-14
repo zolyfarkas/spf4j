@@ -182,7 +182,7 @@ public final class Throwables {
    * @param value
    * @return
    */
-  public static boolean isRetryable(final Exception value) {
+  public static boolean isRetryable(final Throwable value) {
     return isRetryablePredicate.test(value);
   }
 

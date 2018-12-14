@@ -24,7 +24,7 @@ import org.spf4j.base.Callables;
  */
 @FunctionalInterface
 public interface PartialExceptionRetryPredicate<T, C extends Callable<? extends T>>
-        extends PartialTypedExceptionRetryPredicate<T, C, Exception> {
+        extends PartialTypedExceptionRetryPredicate<T, C, Throwable> {
 
   /**
    * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
@@ -34,11 +34,15 @@ public interface PartialExceptionRetryPredicate<T, C extends Callable<? extends 
           final Callables.AdvancedRetryPredicate<Exception> oldStyle) {
     return new PartialExceptionRetryPredicate<Object, Callable<? extends Object>>() {
       @Override
-      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
-        Callables.AdvancedAction aa = oldStyle.apply(value);
+      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Throwable value, final Callable what) {
+        RetryDecision abort = org.spf4j.failsafe.RetryDecision.abort();
+        if (!(value instanceof Exception)) {
+          return abort;
+        }
+        Callables.AdvancedAction aa = oldStyle.apply((Exception) value);
         switch (aa) {
           case ABORT:
-            return org.spf4j.failsafe.RetryDecision.abort();
+            return abort;
           case RETRY:
           case RETRY_DELAYED:
             return org.spf4j.failsafe.RetryDecision.retryDefault(what);

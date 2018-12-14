@@ -31,46 +31,26 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.Callable;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.concurrent.TimeUnit;
 
 /**
- * A retry predicate.
  * @author Zoltan Farkas
  */
-public interface RetryPredicate<T, C extends Callable<? extends T>> {
+public interface HedgePolicy {
 
-  /**
-   * Simple predicate that does not retry anything.
-   */
-  RetryPredicate NORETRY = new RetryPredicate<Object, Callable<Object>>() {
+    Hedge getHedge(long startTimeNanos, long deadlineNanos);
 
-    @Override
-    public RetryDecision getDecision(final Object value,
-            final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
+    HedgePolicy NONE = new HedgePolicy() {
+      @Override
+      public Hedge getHedge(final long startTimeNanos, final long deadlineNanos) {
+        return Hedge.NONE;
+      }
+    };
 
-    @Override
-    public RetryDecision getExceptionDecision(final Throwable value, final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
-
-  };
-
-  /**
-   * Get the RetryDecision for the result value returned by Callable C.
-   * @param value the operation result.
-   * @param what the operation.
-   * @return
-   */
-  @Nonnull
-  RetryDecision<T, C> getDecision(@Nullable T value, @Nonnull C what);
-
-
-  @Nonnull
-  RetryDecision<T, C> getExceptionDecision(@Nonnull Throwable value, @Nonnull C what);
-
+    HedgePolicy DEFAULT = new TimeoutRelativeHedge(
+            Integer.getInteger("spf4j.failsafe.hedge.default.timeoutHedgeFraction", 3),
+            Long.getLong("spf4j.failsafe.hedge.default.minHedgeDelayNanos", TimeUnit.MILLISECONDS.toNanos(100)),
+            Long.getLong("spf4j.failsafe.hedge.default.maxHedgeDelayNanos", Long.MAX_VALUE),
+            Integer.getInteger("spf4j.failsafe.hedge.default.hedgeCount", 1));
 
 }

@@ -98,13 +98,14 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   @Override
   @Nonnull
-  public RetryDecision<T, Callable<T>> getExceptionDecision(final Exception value, final Callable<T> what) {
+  public RetryDecision<T, Callable<T>> getExceptionDecision(final Throwable value, final Callable<T> what) {
     for (PartialExceptionRetryPredicate<T, Callable<T>> predicate : exceptionPredicates) {
       RetryDecision<T, Callable<T>> decision = predicate.getExceptionDecision(value, what);
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
           Callable<?> newCallable = decision.getNewCallable();
-          LOG.debug("Result {} for {} retrying {}", value.getClass().getName(), what, newCallable, value);
+          LOG.debug("Result {} for {} retrying {}", value.getClass().getName(), what, newCallable,
+                  new RuntimeException(value));
           if (decision.getDelayNanos() < 0) {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
             return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);

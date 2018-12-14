@@ -49,7 +49,7 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
   }
 
   @Override
-  public RetryDecision<T, C> getExceptionDecision(final Exception value, final C what) {
+  public RetryDecision<T, C> getExceptionDecision(final Throwable value, final C what) {
     RetryDecision<T, C> decision = predicate.getExceptionDecision(value, what);
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);

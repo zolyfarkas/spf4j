@@ -25,7 +25,7 @@ public final class DefaultContextAwareRetryExecutor {
 
   private DefaultContextAwareRetryExecutor() { }
 
-  private static final RetryExecutor R_EXEC = new RetryExecutor(DefaultContextAwareExecutor.instance(), null);
+  private static final RetryExecutor R_EXEC = new RetryExecutor(DefaultContextAwareExecutor.instance());
 
   static {
     org.spf4j.base.Runtime.queueHook(0, () -> {

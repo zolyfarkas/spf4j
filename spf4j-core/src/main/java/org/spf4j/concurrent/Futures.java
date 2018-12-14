@@ -82,7 +82,7 @@ public final class Futures {
     return ex;
   }
 
-  @CheckReturnValue
+  @Nullable
   public static RuntimeException cancelAll(final boolean mayInterrupt, final Iterator<Future> iterator) {
     RuntimeException ex = null;
     while (iterator.hasNext()) {
@@ -99,7 +99,6 @@ public final class Futures {
     }
     return ex;
   }
-
 
   @CheckReturnValue
   @Nonnull

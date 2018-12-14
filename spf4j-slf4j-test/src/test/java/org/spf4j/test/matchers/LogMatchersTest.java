@@ -15,7 +15,6 @@
  */
 package org.spf4j.test.matchers;
 
-import java.util.Arrays;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;

@@ -106,7 +106,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
   }
 
   public final AsyncRetryExecutor<T, C> async(final RetryExecutor exec) {
-    return new AsyncRetryExecutorImpl<>(this, exec);
+    return new AsyncRetryExecutorImpl<>(this, HedgePolicy.DEFAULT, exec);
+  }
+
+  public final AsyncRetryExecutor<T, C> async(final HedgePolicy hedgePolicy, final RetryExecutor exec) {
+    return new AsyncRetryExecutorImpl<>(this, hedgePolicy, exec);
   }
 
 
@@ -180,7 +184,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       this.log = NOPLogger.NOP_LOGGER;
       return this;
     }
-    
+
     @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate() {
       return withDefaultThrowableRetryPredicate(DEFAULT_MAX_NR_RETRIES);
@@ -217,9 +221,9 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
             final long maxTime, final TimeUnit tu) {
       return withExceptionPartialPredicateSupplier((s, d)
               -> {
-        TimeLimitedPartialRetryPredicate<T, Exception, C> p =
+        TimeLimitedPartialRetryPredicate<T, Throwable, C> p =
                 new TimeLimitedPartialRetryPredicate<>(s, d, maxTime, tu, predicate);
-        return (PartialExceptionRetryPredicate<T, C>) (Exception value, C what) -> p.apply(value, what);
+        return (PartialExceptionRetryPredicate<T, C>) (Throwable value, C what) -> p.apply(value, what);
       });
     }
 
@@ -256,9 +260,9 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
             final PartialExceptionRetryPredicate<T, C> predicate,
             final int maxRetries) {
       return withExceptionPartialPredicateSupplier((s, e) -> {
-        CountLimitedPartialRetryPredicate<T, Exception, C> p
-                = new CountLimitedPartialRetryPredicate<T, Exception, C>(maxRetries, predicate);
-        return (Exception value, C what) -> p.apply(value, what);
+        CountLimitedPartialRetryPredicate<T, Throwable, C> p
+                = new CountLimitedPartialRetryPredicate<T, Throwable, C>(maxRetries, predicate);
+        return (Throwable value, C what) -> p.apply(value, what);
       });
     }
 

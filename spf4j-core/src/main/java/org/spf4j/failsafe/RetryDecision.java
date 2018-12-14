@@ -112,7 +112,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
       }
 
       @Override
-      public Either<Exception, T> getResult() {
+      public Either<Throwable, T> getResult() {
         return Either.right(result);
       }
 
@@ -145,7 +145,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
      }
 
      @Override
-     public Either<Exception, T> getResult() {
+     public Either<Throwable, T> getResult() {
        throw new UnsupportedOperationException();
      }
 
@@ -172,7 +172,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
      }
 
      @Override
-     public Either<Exception, T> getResult() {
+     public Either<Throwable, T> getResult() {
        throw new UnsupportedOperationException();
      }
 
@@ -205,7 +205,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
 
   @CheckReturnValue
   @Nullable
-  Either<Exception, T> getResult();
+  Either<Throwable, T> getResult();
 
   @CheckReturnValue
   @Nonnull

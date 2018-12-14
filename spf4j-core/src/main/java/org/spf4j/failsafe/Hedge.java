@@ -31,46 +31,34 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.Callable;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 /**
- * A retry predicate.
  * @author Zoltan Farkas
  */
-public interface RetryPredicate<T, C extends Callable<? extends T>> {
+public final class Hedge {
 
-  /**
-   * Simple predicate that does not retry anything.
-   */
-  RetryPredicate NORETRY = new RetryPredicate<Object, Callable<Object>>() {
+  public static final Hedge NONE = new Hedge(0, 0);
 
-    @Override
-    public RetryDecision getDecision(final Object value,
-            final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
+  private final long hedgeDelayNanos;
 
-    @Override
-    public RetryDecision getExceptionDecision(final Throwable value, final Callable<Object> what) {
-      return RetryDecision.abort();
-    }
+  private final int hedgeCount;
 
-  };
+  public Hedge(final long hedgeDelayNanos, final int hedgeCount) {
+    this.hedgeDelayNanos = hedgeDelayNanos;
+    this.hedgeCount = hedgeCount;
+  }
 
-  /**
-   * Get the RetryDecision for the result value returned by Callable C.
-   * @param value the operation result.
-   * @param what the operation.
-   * @return
-   */
-  @Nonnull
-  RetryDecision<T, C> getDecision(@Nullable T value, @Nonnull C what);
+  public long getHedgeDelayNanos() {
+    return hedgeDelayNanos;
+  }
 
+  public int getHedgeCount() {
+    return hedgeCount;
+  }
 
-  @Nonnull
-  RetryDecision<T, C> getExceptionDecision(@Nonnull Throwable value, @Nonnull C what);
+  @Override
+  public String toString() {
+    return "Hedge{" + "hedgeDelayNanos=" + hedgeDelayNanos + ", hedgeCount=" + hedgeCount + '}';
+  }
 
 
 }

@@ -54,8 +54,11 @@ public class FutureBean<T> implements Future<T> {
     private volatile boolean isCanceled;
 
 
+    /**
+     * May overwrite if extra actions on cancel are desired.
+     */
     @Override
-    public final boolean cancel(final boolean mayInterruptIfRunning) {
+    public boolean cancel(final boolean mayInterruptIfRunning) {
       if (isDone()) {
         return false;
       } else {

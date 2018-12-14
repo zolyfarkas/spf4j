@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * @author Zoltan Farkas
  */
 @FunctionalInterface
-public interface PartialTypedExceptionRetryPredicate<T, C extends Callable<? extends T>, E extends Exception>
+public interface PartialTypedExceptionRetryPredicate<T, C extends Callable<? extends T>, E extends Throwable>
         extends BiFunction<E, C, RetryDecision<T, C>> {
 
   @Nullable

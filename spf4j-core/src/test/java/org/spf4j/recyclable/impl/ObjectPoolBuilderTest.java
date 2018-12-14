@@ -39,11 +39,10 @@ import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.recyclable.ObjectReturnException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.concurrent.BlockingQueue;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -53,9 +52,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.concurrent.Futures;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 import org.spf4j.failsafe.AsyncRetryExecutor;
 import org.spf4j.failsafe.RetryPolicy;
@@ -250,26 +251,27 @@ public final class ObjectPoolBuilderTest {
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
   private void runTest(final RecyclingSupplier<ExpensiveTestObject> pool,
-          final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException, ExecutionException {
+          final long sleepBetweenSubmit, final long deadlockTimeout) throws InterruptedException {
     Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
     ExecutorService execService = new LifoThreadPoolExecutorSQP("test", 10, 10,
             5000, 1024, true);
-    BlockingQueue<Future<?>> completionQueue = new LinkedBlockingDeque<>();
-    RetryExecutor exec = new RetryExecutor(execService, completionQueue);
+    RetryExecutor exec = new RetryExecutor(execService);
     AsyncRetryExecutor policy = RetryPolicy.newBuilder()
             .withDefaultThrowableRetryPredicate().buildAsync(exec);
     int nrTests = 1000;
+    Future<Integer>[] futures = new Future[nrTests];
     for (int i = 0; i < nrTests; i++) {
-      policy.execute(new TestCallable(pool, i));
+      futures[i] = policy.submit(new TestCallable(pool, i));
       Thread.sleep(sleepBetweenSubmit);
     }
+    Pair<Map<Future, Object>, Exception> all = Futures.getAll(10000, futures);
+    Assert.assertNotNull(all.getSecond());
     for (int i = 0; i < nrTests; i++) {
-      LOG.debug("Done({})", completionQueue.take().get());
+      LOG.debug("Done({})", futures);
     }
     monitor.interrupt();
     monitor.join();
     Thread.sleep(100);
-    Assert.assertEquals(0, completionQueue.size());
     if (isDeadlock) {
       Assert.fail("deadlock detected");
     }

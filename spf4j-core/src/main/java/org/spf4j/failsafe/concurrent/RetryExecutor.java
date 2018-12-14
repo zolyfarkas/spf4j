@@ -32,25 +32,23 @@
 package org.spf4j.failsafe.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
-import org.spf4j.base.Either;
-import org.spf4j.base.Throwables;
-import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPredicate;
-import org.spf4j.base.TimeSource;
 import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.concurrent.DefaultExecutor;
-import org.spf4j.concurrent.FutureBean;
 
 /**
  * Executor that will call Callables with retry. This executor cannot be used inside a Completion service.
@@ -60,20 +58,49 @@ import org.spf4j.concurrent.FutureBean;
  */
 public final class RetryExecutor implements AutoCloseable {
 
+  private static final Logger LOG = LoggerFactory.getLogger(RetryExecutor.class);
+
+  private static final Future<?> SHUTDOWN = new Future() {
+    @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isCancelled() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isDone() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object get()  {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object get(final long timeout, final TimeUnit unit) {
+      throw new UnsupportedOperationException();
+    }
+  };
+
   private final ExecutorService executionService;
-  private final DelayQueue<DelayedExecution> executionEvents = new DelayQueue<>();
-  private volatile RetryManager retryManager;
-  private Future<?> retryManagerFuture;
-  @Nullable
-  private final BlockingQueue<Future<?>> completionQueue;
+  private final DelayQueue<DelayedTask<RetryFutureTask<?>>> executionEvents = new DelayQueue<>();
+  private volatile Future<?> retryManagerFuture;
   private final Object sync = new Object();
 
   private void startRetryManager() {
-    if (this.retryManager == null) {
+    Future<?> rm = retryManagerFuture;
+    if (rm == null) {
       synchronized (sync) {
-        if (this.retryManager == null) {
-          this.retryManager = new RetryManager();
-          this.retryManagerFuture = DefaultExecutor.INSTANCE.submit(retryManager);
+        rm = retryManagerFuture;
+        if (rm == null) {
+          rm = DefaultExecutor.INSTANCE.submit(new RetryManager());
+          this.retryManagerFuture = rm;
+          LOG.debug("Retry manager started {}", rm);
         }
       }
     }
@@ -81,223 +108,31 @@ public final class RetryExecutor implements AutoCloseable {
 
   private void shutdownRetryManager() {
     synchronized (sync) {
-      if (this.retryManager != null) {
-        retryManager.shutdown();
-        retryManager = null;
+      Future<?> rmf = this.retryManagerFuture;
+      if (rmf != null && rmf != SHUTDOWN) {
+        rmf.cancel(true);
+        retryManagerFuture = SHUTDOWN;
       }
     }
-  }
-
-  /**
-   * this class represents either a execution failure notification or a retry command.
-   */
-  private static class DelayedExecution implements Delayed {
-
-    private final ExecutionException exception;
-    private final RetryableCallable<Object> callable;
-    private final long deadlineNanos;
-
-    DelayedExecution(@Nullable final ExecutionException exception,
-            final RetryableCallable callable, final long delayNanos) {
-      this.exception = exception;
-      this.callable = callable;
-      this.deadlineNanos = TimeSource.getDeadlineNanos(delayNanos, TimeUnit.NANOSECONDS);
-    }
-
-    @Override
-    public long getDelay(final TimeUnit unit) {
-      return TimeSource.getTimeToDeadline(deadlineNanos, unit);
-    }
-
-    @Override
-    public int compareTo(final Delayed o) {
-      long tDelay = getDelay(TimeUnit.NANOSECONDS);
-      long oDelay = o.getDelay(TimeUnit.NANOSECONDS);
-      if (tDelay > oDelay) {
-        return 1;
-      } else if (tDelay < oDelay) {
-        return -1;
-      } else {
-        return 0;
-      }
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-      if (obj == null) {
-        return false;
-      } else {
-        if (obj instanceof DelayedExecution) {
-          return this.compareTo((DelayedExecution) obj) == 0;
-        } else {
-          return false;
-        }
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return 53 + (this.callable != null ? this.callable.hashCode() : 0);
-    }
-
-    @Nullable
-    public ExecutionException getException() {
-      return exception;
-    }
-
-    public RetryableCallable<Object> getCallable() {
-      return callable;
-    }
-
-  }
-
-  private class RetryableCallable<T> implements Runnable {
-
-    private volatile Callable<T> callable;
-    @Nullable
-    private final FutureBean<T> future;
-    private volatile DelayedExecution previousResult;
-    private final RetryPredicate<T, Callable<T>> resultRetryPredicate;
-
-    RetryableCallable(final Callable<T> callable, @Nullable final FutureBean<T> future,
-            final DelayedExecution previousResult,
-            final RetryPredicate<T, Callable<T>> resultRetryPredicate) {
-      this.callable = callable;
-      this.future = future;
-      this.previousResult = previousResult;
-      this.resultRetryPredicate = resultRetryPredicate;
-    }
-
-    RetryableCallable(final Runnable task, final Object result, @Nullable final FutureBean<T> future,
-            @Nullable final DelayedExecution previousResult,
-            final RetryPredicate<T, Callable<T>> resultRetryPredicate) {
-      this(new Callable() {
-
-        @Override
-        public Object call() {
-          task.run();
-          return result;
-        }
-      }, future, previousResult, resultRetryPredicate);
-    }
-
-    @Override
-    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
-    public void run() {
-      if (future != null && future.isCancelled()) {
-        CancellationException cex = new CancellationException();
-        if (previousResult != null) {
-          final ExecutionException exception = previousResult.getException();
-          if (exception != null) {
-            cex = Throwables.suppress(cex, exception);
-          }
-        }
-        future.setCancelationResult(cex);
-        return;
-      }
-      try {
-        T result = callable.call();
-        RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getDecision(result, callable);
-        final RetryDecision.Type decisionType = decision.getDecisionType();
-        switch (decisionType) {
-          case Retry:
-            startRetryManager();
-            final long delayNanos = decision.getDelayNanos();
-            this.callable = decision.getNewCallable();
-            executionEvents.add(new DelayedExecution(null, this, delayNanos));
-            break;
-          case Abort:
-            if (future != null) {
-              Either<Exception, T> newRes = decision.getResult();
-              if (newRes == null) {
-                future.setResult(result);
-              } else if (newRes.isLeft()) {
-                future.setExceptionResult(new ExecutionException(newRes.getLeft()));
-              } else {
-                future.setResult(newRes.getRight());
-              }
-            }
-            break;
-          default:
-            throw new IllegalStateException("Invalid decision type" + decisionType);
-        }
-      } catch (Exception e) {
-        RetryDecision<T, Callable<T>> decision = this.resultRetryPredicate.getExceptionDecision(e, callable);
-        final RetryDecision.Type decisionType = decision.getDecisionType();
-        switch (decisionType) {
-          case Retry:
-            startRetryManager();
-            final long delayNanos = decision.getDelayNanos();
-            this.callable = decision.getNewCallable();
-            if (previousResult != null) {
-              final ExecutionException exception = previousResult.getException();
-              if (exception != null) {
-                e = Throwables.suppress(e, exception);
-              }
-            }
-            executionEvents.add(new DelayedExecution(new ExecutionException(e), this, delayNanos));
-            break;
-          case Abort:
-            if (future != null) {
-              Either<Exception, T> newRes = decision.getResult();
-              if (newRes == null) {
-                future.setExceptionResult(new ExecutionException(e));
-              } else if (newRes.isLeft()) {
-                future.setExceptionResult(new ExecutionException(newRes.getLeft()));
-              } else {
-                future.setResult(newRes.getRight());
-              }
-            }
-            break;
-          default:
-            throw new IllegalStateException("Invalid decision type" + decisionType, e);
-        }
-      }
-    }
-
-    public DelayedExecution getPreviousResult() {
-      return previousResult;
-    }
-
-    public void setPreviousResult(final DelayedExecution previousResult) {
-      this.previousResult = previousResult;
-    }
-
   }
 
   private class RetryManager extends AbstractRunnable {
 
-    private volatile boolean isRunning;
-    private volatile Thread thread;
-
     RetryManager() {
       super("RetryManager");
-      isRunning = true;
-    }
-
-    public void shutdown() {
-      if (isRunning) {
-        isRunning = false;
-        Thread th = thread;
-        if (th != null) {
-          th.interrupt();
-        }
-      }
     }
 
     @Override
     public void doRun() {
-      thread = Thread.currentThread();
-      while (isRunning) {
+      Thread thread = Thread.currentThread();
+      while (!thread.isInterrupted()) {
         try {
-          DelayedExecution event = executionEvents.poll(1, TimeUnit.MINUTES);
+          DelayedTask<RetryFutureTask<?>>  event = executionEvents.poll(1, TimeUnit.MINUTES);
           if (event != null) {
-            final RetryableCallable<Object> callable = event.getCallable();
-            callable.setPreviousResult(event);
-            executionService.execute(callable);
+            RetryFutureTask<?> runnable = event.getRunnable();
+            executionService.execute(runnable);
           }
         } catch (InterruptedException ex) {
-          isRunning = false;
           break;
         }
       }
@@ -306,21 +141,16 @@ public final class RetryExecutor implements AutoCloseable {
   }
 
   public RetryExecutor(final ExecutorService exec) {
-    this(exec, null);
-  }
-
-  public RetryExecutor(final ExecutorService exec,
-          @Nullable final BlockingQueue<Future<?>> completionQueue) {
     executionService = exec;
-    this.completionQueue = completionQueue;
   }
 
   public void close() throws InterruptedException {
     synchronized (sync) {
       shutdownRetryManager();
-      if (this.retryManagerFuture != null) {
+      Future<?> rmf = this.retryManagerFuture;
+      if (rmf != null && rmf != SHUTDOWN) {
         try {
-          this.retryManagerFuture.get();
+          rmf.get();
         } catch (ExecutionException ex) {
           throw new UncheckedExecutionException(ex);
         }
@@ -332,67 +162,178 @@ public final class RetryExecutor implements AutoCloseable {
     shutdownRetryManager();
   }
 
-  private static FutureBean<?> createFutureBean(@Nullable final BlockingQueue<Future<?>> queue) {
-    if (queue == null) {
-      return new FutureBean<>();
-    } else {
-      return new FutureBean<Object>() {
-        @Override
-        public void done() {
-          queue.add(this);
-        }
-      };
-    }
-  }
-
-  @Nullable
-  private FutureBean<?> createFutureBeanIfCompletionQueue() {
-    if (completionQueue != null) {
-      return new FutureBean<Object>() {
-        @Override
-        public void done() {
-          completionQueue.add(this);
-        }
-      };
-    }
-    return null;
-  }
 
   public <A, C extends Callable<? extends A>> Future<A> submit(final C task, final RetryPredicate<A, C> predicate) {
-    FutureBean<?> result = createFutureBean(completionQueue);
-    executionService.execute(new RetryableCallable(task, result, null, predicate));
+    RetryFutureTask<A> result =
+            new RetryFutureTask(task, (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents,
+              this::startRetryManager);
+
+    executionService.execute(result);
     return (Future<A>) result;
   }
 
-  public <A> Future<A> submit(final Runnable task, final A result,
-          final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
-    FutureBean<?> resultFuture = createFutureBean(completionQueue);
-    executionService.execute(new RetryableCallable(task, result, resultFuture, null,
-            predicate));
-    return (Future<A>) resultFuture;
+  public <A, C extends Callable<? extends A>> Future<A> submit(final C task,
+          final RetryPredicate<A, C> predicate, final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
+    if (nrHedges <= 0) {
+      return submit(task, predicate);
+    }
+    int nrFut = nrHedges + 1;
+    final AtomicReferenceArray<Future<A>> futures = new AtomicReferenceArray<>(nrFut);
+    ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
+    Consumer<Future<A>> resultHandler = new FirstConsumer<>(queue, nrHedges, futures);
+    FutureToQueue<A> future =  new FutureToQueue(resultHandler, task,
+            (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
+    startRetryManager();
+    futures.set(0, future);
+    executionService.execute(future);
+    for (int i = 1; i < nrFut; i++) {
+      if (hedgeDelay > 0) {
+        FutureToQueue<A> f = new FutureToQueue(
+                resultHandler, task, (RetryPredicate) predicate, executionEvents,
+                this::startRetryManager);
+        futures.set(i, f);
+        DelayedTask<RetryFutureTask<?>>  delayedExecution = new DelayedTask<RetryFutureTask<?>>(
+                f, unit.toNanos(hedgeDelay));
+        f.setExec(delayedExecution);
+        executionEvents.add(delayedExecution);
+      } else {
+        future = new FutureToQueue<>(resultHandler, (Callable<A>) task,
+                (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
+        futures.set(i, future);
+        executionService.execute(future);
+      }
+    }
+    return new FirstFuture<A>(futures, queue);
   }
 
-  public Future<?> submit(final Runnable task, final RetryPredicate<Void, Callable<Void>> predicate) {
-    return submit(task, null, predicate);
-  }
 
-  public void execute(final Runnable command, final RetryPredicate<Void, Callable<Void>> predicate) {
-    executionService.execute(new RetryableCallable(command, null, createFutureBeanIfCompletionQueue(),
-            null, predicate));
-  }
-
-  public <A, C extends Callable<? extends A>> void execute(final C command,
+  public <A, C extends Callable<? extends A>> void execute(final C task,
           final RetryPredicate<A, C> predicate) {
-    executionService.execute(new RetryableCallable(command, createFutureBeanIfCompletionQueue(), null, predicate));
+    RetryFutureTask<A> result = new RetryFutureTask(task, predicate, executionEvents, this::startRetryManager);
+    executionService.execute(result);
   }
+
 
   @Override
   public String toString() {
     return "RetryExecutor{" + "executionService=" + executionService + ", executionEvents=" + executionEvents
-            + ", retryManager=" + retryManager + ", retryManagerFuture=" + retryManagerFuture
-            + ", completionQueue=" + completionQueue + ", sync=" + sync + '}';
+            + ", retryManagerFuture=" + retryManagerFuture
+            + ", sync=" + sync + '}';
   }
 
+  private static class FirstFuture<T> implements Future<T> {
 
+    private final AtomicReferenceArray<Future<T>> futures;
+    private final BlockingQueue<Future<T>> queue;
+
+    FirstFuture(final AtomicReferenceArray<Future<T>> futures, final BlockingQueue<Future<T>> queue) {
+      this.futures = futures;
+      this.queue = queue;
+    }
+
+    @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+      boolean result = true;
+      for (int i = 0, l =  futures.length(); i < l; i++) {
+        Future f  = futures.get(i);
+        if (!f.cancel(mayInterruptIfRunning)) {
+          result =  false;
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public boolean isCancelled() {
+      boolean result = true;
+      for (int i = 0, l =  futures.length(); i < l; i++) {
+        Future f  = futures.get(i);
+        if (!f.isCancelled()) {
+          result =  false;
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public boolean isDone() {
+      boolean result = true;
+      for (int i = 0, l =  futures.length(); i < l; i++) {
+        Future f  = futures.get(i);
+        if (!f.isDone()) {
+          result =  false;
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+      return queue.take().get();
+    }
+
+    @Override
+    public T get(final long timeout, final TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+      Future<T> poll = queue.poll(timeout, unit);
+      if (poll == null) {
+        throw new TimeoutException("Timed out after " + timeout + " " + unit);
+      } else {
+        return poll.get();
+      }
+    }
+  }
+
+  private static class FutureToQueue<T> extends RetryFutureTask<T> {
+
+    private final Consumer<Future<T>> queue;
+
+    FutureToQueue(final Consumer<Future<T>> queue, final Callable<T> callable,
+            final RetryPredicate<T, Callable<? extends T>> retryPredicate,
+            final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks,
+            final Runnable onRetry) {
+      super(callable, retryPredicate, delayedTasks, onRetry);
+      this.queue = queue;
+    }
+
+    @Override
+    public void done() {
+      queue.accept(this);
+    }
+  }
+
+  private static class FirstConsumer<A> implements Consumer<Future<A>> {
+
+    private final BlockingQueue<Future<A>> queue;
+    private final int nrHedges;
+    private final AtomicReferenceArray<Future<A>> futures;
+    private boolean first = true;
+
+    FirstConsumer(final BlockingQueue<Future<A>> queue, final int nrHedges,
+            final AtomicReferenceArray<Future<A>> futures) {
+      this.queue = queue;
+      this.nrHedges = nrHedges;
+      this.futures = futures;
+    }
+
+    @Override
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // Actually I own it...
+    public void accept(final Future<A> finished) {
+      synchronized (this) {
+        if (first) {
+          first = false;
+          queue.add(finished);
+          for (int i = 0;  i < nrHedges; i++) {
+            Future f = futures.get(i);
+            if (f != null && f != finished) {
+              f.cancel(true);
+            }
+          }
+        } else {
+          return;
+        }
+      }
+    }
+  }
 
 }
