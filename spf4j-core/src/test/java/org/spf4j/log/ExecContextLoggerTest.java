@@ -40,7 +40,6 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.Pair;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.annotations.ExpectLog;

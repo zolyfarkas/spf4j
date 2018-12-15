@@ -147,9 +147,9 @@ public abstract class Either<A, B> {
             Exception e = result.getRight();
             if (e instanceof RuntimeException) {
               throw (RuntimeException) e;
-            } if (e instanceof ExecutionException) {
+            } else if (e instanceof ExecutionException) {
               throw (ExecutionException) e;
-            }  else {
+            } else {
               throw new ExecutionException(e);
             }
         }
