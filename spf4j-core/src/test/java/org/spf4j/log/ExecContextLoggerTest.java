@@ -67,7 +67,7 @@ public class ExecContextLoggerTest {
   public void testTrace2() {
     ExecContextLogger log = new ExecContextLogger(LoggerFactory.getLogger("test"));
     LogAssert expect = TestLoggers.sys().expect("test", Level.DEBUG,
-            Matchers.allOf(LogMatchers.hasExtraArgumentAt(0, Pair.of("originalLevel", Level.TRACE)),
+            Matchers.allOf(LogMatchers.hasExtraArgument(LogAttribute.origLevel(Level.TRACE)),
             LogMatchers.hasMessage("msg1")));
     ExecutionContext current = ExecutionContexts.current();
     current.setBackendMinLogLevel("test", Level.TRACE);

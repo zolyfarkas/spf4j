@@ -149,6 +149,29 @@ public final class LogMatchers {
      };
   }
 
+    public static Matcher<TestLogRecord> hasExtraArgument(final Object object) {
+     return new BaseMatcher<TestLogRecord>() {
+       @Override
+       public boolean matches(final Object item) {
+         if (item instanceof TestLogRecord) {
+           TestLogRecord lr = (TestLogRecord) item;
+           Object[] arguments = lr.getExtraArguments();
+           for (Object arg : arguments) {
+             if (Objects.equals(arg, object)) {
+               return true;
+             }
+           }
+         }
+         return false;
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+         description.appendText("Log extra argument is ").appendValue(object);
+       }
+     };
+  }
+
 
   public static Matcher<TestLogRecord> hasMatchingExtraArgumentsContaining(final Matcher<Object>... matcher) {
      return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(matcher));
