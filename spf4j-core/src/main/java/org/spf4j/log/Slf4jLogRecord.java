@@ -46,9 +46,21 @@ public interface Slf4jLogRecord {
   @Nonnull
   Object[] getArguments();
 
+  /**
+   * @return all extra arguments. (arguments that are not parameters for the message)
+   */
+  @Nonnull
+  Object[] getExtraArgumentsRaw();
+
+  /**
+   * @return all non Throwable extra arguments.
+   */
   @Nonnull
   Object[] getExtraArguments();
 
+  /**
+   * @return Throwable from extra arguments. If multiple, will return first will all others as suppressed.
+   */
   @Nullable
   Throwable getExtraThrowable();
 

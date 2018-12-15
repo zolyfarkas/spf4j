@@ -158,13 +158,49 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   @Nonnull
   @Override
-  public final Object[] getExtraArguments() {
+  public final Object[] getExtraArgumentsRaw() {
     materializeMessage();
     if (startExtra < arguments.length) {
-      return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
+        return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
     } else {
       return Arrays.EMPTY_OBJ_ARRAY;
     }
+  }
+
+  @Nonnull
+  @Override
+  public final Object[] getExtraArguments() {
+    materializeMessage();
+    if (startExtra < arguments.length) {
+      int nrExtraThrowables = getNrExtraThrowables();
+      if (nrExtraThrowables <= 0) {
+        return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
+      } else {
+        Object[] result = new Object[arguments.length - startExtra - nrExtraThrowables];
+        int i = 0;
+        for (int j = startExtra; j < arguments.length; j++) {
+          Object argument = arguments[j];
+          if (!(argument instanceof Throwable)) {
+            result[i++]  =  argument;
+          }
+        }
+        return result;
+      }
+    } else {
+      return Arrays.EMPTY_OBJ_ARRAY;
+    }
+  }
+
+  private  int getNrExtraThrowables() {
+    materializeMessage();
+    int count = 0;
+    for (int i = startExtra; i < arguments.length; i++) {
+      Object argument = arguments[i];
+      if (argument instanceof Throwable) {
+        count++;
+      }
+    }
+    return count;
   }
 
   @Nullable
