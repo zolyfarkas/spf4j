@@ -48,6 +48,7 @@ public class LogMatchersTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testArgumentMatch() {
     TestLogRecordImpl rec = new TestLogRecordImpl("test", Level.ERROR, "la la {} bla", "a", "b", 5L);
     Assert.assertThat(rec, Matchers.allOf(LogMatchers.hasMatchingArguments(
@@ -62,7 +63,11 @@ public class LogMatchersTest {
     TestLogRecordImpl rec = new TestLogRecordImpl("test", Level.ERROR, "la la {} bla", "a", "b", 5L,
             new IllegalStateException("My exception"));
     Assert.assertThat(rec, Matchers.allOf(
-            LogMatchers.hasMatchingExtraThrowable(Matchers.hasProperty("message", Matchers.equalTo("My exception")))
+            LogMatchers.hasMatchingExtraThrowable(Matchers.hasProperty("message", Matchers.equalTo("My exception"))),
+            LogMatchers.hasMatchingExtraArguments(
+            Matchers.arrayContaining(
+                    (Matcher) Matchers.equalTo("b"),
+                    (Matcher) Matchers.allOf(Matchers.greaterThan(1L), Matchers.lessThan(7L))))
             ));
   }
 
