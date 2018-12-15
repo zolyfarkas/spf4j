@@ -105,6 +105,12 @@ public class TestLoggerFactoryTest {
     LOG.warn("Hello logger {}", 1);
     LOG.warn("Hello logger {} {} {}", 1, 2, 3);
     LOG.warn("Hello logger {} {} {}", 1, 2, 3, new RuntimeException());
+    LOG.debug("Some message with {}", new Object() {
+      @Override
+      public String toString() {
+        throw new IllegalStateException();
+      }
+    });
     LogAssert expect = TestLoggers.sys().expect("org.spf4j.test", Level.ERROR, 5,
             LogMatchers.hasMatchingFormat(Matchers.containsString("Hello logger")));
     LOG.error("Hello logger", new RuntimeException());
@@ -375,6 +381,5 @@ public class TestLoggerFactoryTest {
     TestLogRecord rec = logSet.iterator().next();
     Assert.assertTrue(rec.hasAttachment(Attachments.DO_NOT_PRINT));
   }
-
 
 }
