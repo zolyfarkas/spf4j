@@ -55,8 +55,15 @@ public class LogMatchersTest {
                     (Matcher) Matchers.equalTo("b"),
                     (Matcher) Matchers.allOf(Matchers.greaterThan(1L), Matchers.lessThan(7L)))
     )));
+  }
 
-
+  @Test
+  public void testAssertThrowable() {
+    TestLogRecordImpl rec = new TestLogRecordImpl("test", Level.ERROR, "la la {} bla", "a", "b", 5L,
+            new IllegalStateException("My exception"));
+    Assert.assertThat(rec, Matchers.allOf(
+            LogMatchers.hasMatchingExtraThrowable(Matchers.hasProperty("message", Matchers.equalTo("My exception")))
+            ));
   }
 
 }
