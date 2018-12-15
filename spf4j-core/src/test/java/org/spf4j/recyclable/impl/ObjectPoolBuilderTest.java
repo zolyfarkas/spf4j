@@ -265,10 +265,11 @@ public final class ObjectPoolBuilderTest {
       Thread.sleep(sleepBetweenSubmit);
     }
     Pair<Map<Future, Object>, Exception> all = Futures.getAll(10000, futures);
-    Assert.assertNotNull(all.getSecond());
-    for (int i = 0; i < nrTests; i++) {
-      LOG.debug("Done({})", futures);
+    Exception ex = all.getSecond();
+    if (ex != null) {
+      throw new RuntimeException(ex);
     }
+    LOG.debug("Done({})", futures.length);
     monitor.interrupt();
     monitor.join();
     Thread.sleep(100);
