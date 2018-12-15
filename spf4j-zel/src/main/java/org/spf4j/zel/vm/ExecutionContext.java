@@ -45,7 +45,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Either;
 import org.spf4j.base.Throwables;
-import org.spf4j.concurrent.FutureBean;
 import org.spf4j.ds.SimpleStackNullSupport;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.operators.Operator;
@@ -303,7 +302,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
       Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
       if (resultStore != null) {
         this.stack.remove();
-        return FutureBean.processResult(resultStore);
+        return Either.processResult(resultStore);
       } else {
         suspend(resFut);
         throw new IllegalThreadStateException();
@@ -323,7 +322,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
         suspend(resFut);
         throw new IllegalThreadStateException();
       } else {
-        this.stack.replaceFromTop(0, FutureBean.processResult(resultStore));
+        this.stack.replaceFromTop(0, Either.processResult(resultStore));
       }
     }
   }
@@ -338,7 +337,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
           suspend(resFut);
           throw new IllegalThreadStateException();
         } else {
-          this.stack.replaceFromTop(i, FutureBean.processResult(resultStore));
+          this.stack.replaceFromTop(i, Either.processResult(resultStore));
         }
       }
     }
@@ -387,7 +386,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
         final VMFuture<Object> resFut = (VMFuture<Object>) obj;
         Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
         if (resultStore != null) {
-          final Object processResult = FutureBean.processResult(resultStore);
+          final Object processResult = Either.processResult(resultStore);
           stack.replaceFromTop(i, processResult);
           vals[j] = processResult;
         } else {

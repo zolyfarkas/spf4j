@@ -42,11 +42,13 @@ import org.spf4j.base.Either;
 import org.spf4j.base.TimeSource;
 
 /**
- * bean like implementation of a future
+ * bean like implementation of a future that is not cancellable.
  * @author zoly
+ * @deprecated use FutureTask instead.
  */
 @ThreadSafe
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
+@Deprecated
 public class FutureBean<T> implements Future<T> {
 
     private volatile Either<T, ? extends Exception> resultStore;

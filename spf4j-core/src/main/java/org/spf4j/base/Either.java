@@ -31,6 +31,8 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 
 /**
@@ -134,6 +136,23 @@ public abstract class Either<A, B> {
 
     public static <A, B> Either<A, B> right(final B b) {
         return new Right<A, B>(b);
+    }
+
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    public static <T> T processResult(final Either<T, ? extends Exception> result)
+            throws ExecutionException {
+        if (result.isLeft()) {
+            return result.getLeft();
+        } else {
+            Exception e = result.getRight();
+            if (e instanceof RuntimeException) {
+              throw (RuntimeException) e;
+            } if (e instanceof ExecutionException) {
+              throw (ExecutionException) e;
+            }  else {
+              throw new ExecutionException(e);
+            }
+        }
     }
 
 }

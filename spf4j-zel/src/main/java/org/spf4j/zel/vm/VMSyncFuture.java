@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
-import static org.spf4j.concurrent.FutureBean.processResult;
 
 /**
  * bean like implementation of a future
@@ -63,7 +62,7 @@ public class VMSyncFuture<T> implements VMFuture<T> {
     public final boolean isDone() {
         return resultStore != null;
     }
-    
+
     @Override
     public final Either<T, ? extends ExecutionException> getResultStore() {
         return resultStore;
@@ -76,7 +75,7 @@ public class VMSyncFuture<T> implements VMFuture<T> {
         while (resultStore == null) {
             this.wait();
         }
-        return processResult(resultStore);
+        return Either.processResult(resultStore);
     }
 
     @Override
@@ -93,7 +92,7 @@ public class VMSyncFuture<T> implements VMFuture<T> {
             if (resultStore == null) {
                 throw new TimeoutException();
             }
-            return processResult(resultStore);
+            return Either.processResult(resultStore);
         }
     }
 
@@ -105,7 +104,7 @@ public class VMSyncFuture<T> implements VMFuture<T> {
         resultStore = Either.left(result);
         this.notifyAll();
     }
-    
+
     @Override
     public final synchronized void setExceptionResult(final ExecutionException result) {
         if (Throwables.getRootCause(result) == ExecAbortException.INSTANCE) {
@@ -122,5 +121,5 @@ public class VMSyncFuture<T> implements VMFuture<T> {
     public final String toString() {
         return "VMSyncFuture{" + "resultStore=" + resultStore + '}';
     }
-    
+
 }
