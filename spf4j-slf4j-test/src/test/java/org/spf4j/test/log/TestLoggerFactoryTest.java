@@ -48,7 +48,7 @@ public class TestLoggerFactoryTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest.class);
 
-  @Test
+  @Test(timeout = 1000)
   public void testSomeHandler() {
     TestLoggers sys = TestLoggers.sys();
     LogAssert expect = sys.expect("", Level.TRACE, LogMatchers.hasAttachment(Attachments.PRINTED));

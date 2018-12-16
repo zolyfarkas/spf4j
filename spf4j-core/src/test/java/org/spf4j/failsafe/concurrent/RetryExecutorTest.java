@@ -90,7 +90,7 @@ public class RetryExecutorTest {
     }
   }
 
-  @Test(timeout = 1000000)
+  @Test(timeout = 1000)
   public void testHedgedretryExecution4() throws InterruptedException, ExecutionException {
     AtomicInteger ai = new AtomicInteger();
     try (RetryExecutor exec = new RetryExecutor(DefaultExecutor.INSTANCE)) {

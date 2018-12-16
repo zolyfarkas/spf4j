@@ -105,7 +105,7 @@ public class TSDBReaderTest {
 
   }
 
-  @Test(timeout = 5000000)
+  @Test(timeout = 5000)
   public void testTailing() throws IOException, InterruptedException, ExecutionException, TimeoutException {
     File testFile = File.createTempFile("test", ".tsdb2");
     try (TSDBWriter writer = new TSDBWriter(testFile, 4, "test", true);
