@@ -17,6 +17,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestTimedOutException;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.test.log.TestUtils;
 
 @ParametersAreNonnullByDefault
@@ -126,6 +128,7 @@ public final class FailOnTimeout extends Statement {
           return;
         }
         CallableStatement callable = new CallableStatement();
+        callable.setCtx(ExecutionContexts.current());
         FutureTask<Throwable> task = new FutureTask<Throwable>(callable);
         threadGroup = new ThreadGroup("FailOnTimeoutGroup");
         Thread thread = new Thread(threadGroup, task, "Time-limited test");
@@ -299,8 +302,17 @@ public final class FailOnTimeout extends Statement {
     private class CallableStatement implements Callable<Throwable> {
         private final CountDownLatch startLatch = new CountDownLatch(1);
 
+        private  ExecutionContext  ctx;
+
+        public void setCtx(ExecutionContext ctx) {
+          this.ctx = ctx;
+        }
+
         @Nullable
         public Throwable call() throws Exception {
+            if (ctx != null) {
+              ctx.attach();
+            }
             try {
                 startLatch.countDown();
                 originalStatement.evaluate();
@@ -308,6 +320,10 @@ public final class FailOnTimeout extends Statement {
                 throw e;
             } catch (Throwable e) {
                 return e;
+            } finally {
+              if (ctx != null) {
+                ctx.detach();
+              }
             }
             return null;
         }
