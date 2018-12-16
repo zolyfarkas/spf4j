@@ -151,10 +151,11 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private static void registerDeadlockLogger(final Description description,
           final ExecutionContext ctx, final long delay, final TimeUnit tu) {
+    final long delayMillis = Math.max(tu.toMillis(delay) - 10,  0);
     ScheduledFuture<?> future = SCHEDULER.schedule(() -> {
       LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
       Threads.dumpToPrintStream(System.err);
-    }, delay, tu);
+    }, delayMillis, TimeUnit.MILLISECONDS);
     ctx.compute(TestExecutionContextTags.CLOSEABLES, (k, v) -> {
       if (v == null) {
         ArrayList<AutoCloseable> res = new ArrayList(2);
