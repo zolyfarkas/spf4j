@@ -171,21 +171,25 @@ public final class Threads {
     return TI_SUPP.getStackTraces(threads);
   }
 
-  public static void dumpToPrintStream(final PrintStream stream) {
-    StringBuilder sb = new StringBuilder(1024);
+  public static void dumpTo(final Appendable stream) throws IOException {
     Thread[] threads = getThreads();
     StackTraceElement[][] stackTraces = getStackTraces(threads);
     for (int i = 0; i < threads.length; i++) {
       StackTraceElement[] stackTrace = stackTraces[i];
       if (stackTrace != null && stackTrace.length > 0) {
         Thread thread = threads[i];
-        sb.append("Thread ").append(thread.getName()).append('\n');
-        try {
-          Throwables.writeTo(stackTrace, sb, Throwables.PackageDetail.SHORT, true);
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
+        stream.append("Thread ").append(thread.getName()).append('\n');
+        Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);
       }
+    }
+  }
+
+  public static void dumpToPrintStream(final PrintStream stream) {
+    StringBuilder sb = new StringBuilder(1024);
+    try {
+      dumpTo(sb);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
     stream.append(sb);
   }
