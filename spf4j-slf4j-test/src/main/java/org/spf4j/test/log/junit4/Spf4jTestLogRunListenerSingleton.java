@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log.junit4;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -23,6 +24,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.WillNotClose;
 import org.hamcrest.Matchers;
@@ -37,6 +41,8 @@ import org.spf4j.base.Closeables;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
+import org.spf4j.base.Threads;
+import org.spf4j.concurrent.CustomThreadFactory;
 import org.spf4j.test.log.Attachments;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.log.Level;
@@ -47,6 +53,7 @@ import org.spf4j.test.log.TestLogRecordImpl;
 import org.spf4j.test.log.TestExecutionContextTags;
 import org.spf4j.test.log.TestLogRecord;
 import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 import org.spf4j.test.log.annotations.CollectLogs;
 import org.spf4j.test.log.annotations.ExpectLog;
@@ -61,6 +68,13 @@ import org.spf4j.test.matchers.LogMatchers;
  */
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class Spf4jTestLogRunListenerSingleton extends RunListener {
+
+  private static final ScheduledExecutorService SCHEDULER  =
+          MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(
+                  Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
+                  new CustomThreadFactory("DefaultScheduler",
+                          Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
+                          Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY))));
 
   private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);
 
@@ -80,9 +94,13 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final ExceptionAsserterUncaughtExceptionHandler uncaughtExceptionHandler;
 
+  private  final long defaultTestTimeoutMillis;
+
+
   private Spf4jTestLogRunListenerSingleton() {
     minLogLevel = Level.valueOf(System.getProperty("spf4j.test.log.collectMinLevel", "DEBUG"));
     maxDebugLogsCollected = Integer.getInteger("spf4j.test.log.collectmaxLogs", 100);
+    defaultTestTimeoutMillis =  Long.getLong("spf4j.test.log.defaultTestTimeoutMillis", 120000);
     collectPrinted = Boolean.getBoolean("spf4j.test.log.collectPrintedLogs");
     baggages = new ConcurrentHashMap<>();
     synchronized (Thread.class) {
@@ -131,15 +149,41 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   }
 
+  private static void registerDeadlockLogger(final Description description,
+          final ExecutionContext ctx, final long delay, final TimeUnit tu) {
+    ScheduledFuture<?> future = SCHEDULER.schedule(() -> {
+      LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
+      Threads.dumpToPrintStream(System.err);
+    }, delay, tu);
+    ctx.compute(TestExecutionContextTags.CLOSEABLES, (k, v) -> {
+      if (v == null) {
+        ArrayList<AutoCloseable> res = new ArrayList(2);
+        res.add(() -> {
+          future.cancel(true);
+        });
+        return res;
+      } else {
+        v.add(() -> {
+          future.cancel(true);
+        });
+        return v;
+      }
+    });
+  }
+
   @Override
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testStarted(final Description description) throws Exception {
     Test ta = description.getAnnotation(Test.class);
     ExecutionContext ctx;
-    if (ta != null && ta.timeout() > 0) {
-      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);
-    } else {
+    if (TestUtils.isExecutedWithDebuggerAgent()) {
       ctx = ExecutionContexts.start(description.getDisplayName());
+    } else if (ta != null && ta.timeout() > 0) {
+      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);
+      registerDeadlockLogger(description, ctx, ta.timeout(), TimeUnit.MILLISECONDS);
+    } else {
+      ctx = ExecutionContexts.start(description.getDisplayName(), defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);
+      registerDeadlockLogger(description, ctx, defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);
     }
     TestLoggers sysTest = TestLoggers.sys();
     LogCollection<ArrayDeque<TestLogRecord>> collectLogs = handleLogCollections(description, sysTest);
