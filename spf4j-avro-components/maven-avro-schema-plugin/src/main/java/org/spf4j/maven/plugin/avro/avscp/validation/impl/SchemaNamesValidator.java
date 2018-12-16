@@ -135,18 +135,18 @@ public final class SchemaNamesValidator implements Validator<Schema> {
       }
     }
 
-    private void validateFieldName(final String name) {
+    private void validateFieldName(final  String schemaName, final String name) {
       if (validFieldNames.contains(name)) {
         return;
       }
       if (invalidFieldNames.contains(name)) {
-        issues.add("Invalid field name: " + name);
+        issues.add("Invalid field name: " + name  + " in " + schemaName);
       }
       if (name.length() < minNameSize) {
-        issues.add("Invalid field name, too short: " + name);
+        issues.add("Invalid field name, too short: " + name  + " in " + schemaName);
       }
       if (camelCase && name.contains("_")) {
-        issues.add("Invalid field name, use camel case: " + name);
+        issues.add("Invalid field name, use camel case: " + name   + " in " + schemaName);
       }
     }
 
@@ -168,9 +168,10 @@ public final class SchemaNamesValidator implements Validator<Schema> {
         if (Validators.skipValidator(schema, "namesValidator")) {
           return SchemaVisitorAction.CONTINUE;
         }
-        validateTypeName(schema.getName());
+        String name = schema.getName();
+        validateTypeName(name);
         for (Field field : schema.getFields()) {
-          validateFieldName(field.name());
+          validateFieldName(name, field.name());
         }
       }
       return SchemaVisitorAction.CONTINUE;
