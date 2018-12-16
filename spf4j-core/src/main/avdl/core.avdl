@@ -43,4 +43,47 @@ protocol Core {
       array<JThrowable> suppressed = [];
     }
 
+    /** a log record */
+    record ALogRecord {
+      /** trace id */
+      string trId = "";
+      /** log record timestamp*/
+      @logicalType("instant")
+      string ts;
+      /** logger name */
+      string logger;
+      /** thread name */
+      string thr;
+      /** log message */
+      string msg;
+      /** a optional throwable, null when none */
+      union {null, JThrowable} throwable = null;
+      /** extra log message payload */
+      @logicalType("json_array")
+      bytes xtra;
+    }
+
+    /** a record that describes debug detail */
+    record DebugDetail {
+      /** origin detail */
+      string origin = "";
+
+      /** logs */
+      array<ALogRecord> logs = [];
+
+      /** a optional throwable, null when none */
+      union {null, JThrowable} throwable = null;
+    }
+
+    /** a record to describe a service error */
+    record ServiceError {
+      /** a error code*/
+      int code = 500;
+      /** a tring describing the type of the error, ex: the exception type */
+      string type = "";
+      /** a error message */
+      string message;
+      /** optional debug detail, will be missing across security boundaries */
+      union {null, DebugDetail} detail = null;
+    }
 }

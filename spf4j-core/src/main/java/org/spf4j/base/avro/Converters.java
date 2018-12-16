@@ -118,4 +118,8 @@ public final class Converters {
     return new RemoteException(source, throwable);
   }
 
+// public static ALogRecord convert(final Slf4jLogRecord logRecord) {
+//    return new ALogRecord(trId, ts, logger, thr, msg, throwable, xtra)
+// }
+
 }
