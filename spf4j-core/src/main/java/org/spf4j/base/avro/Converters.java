@@ -35,10 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.PackageInfo;
 
 /**
- *
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
@@ -46,57 +44,46 @@ public final class Converters {
 
   private Converters() { }
 
-  public static JStackTraceElement convert(final StackTraceElement stackTrace) {
+  public static StackTraceElement convert(final java.lang.StackTraceElement stackTrace) {
     String className = stackTrace.getClassName();
-    JStackTraceElement.Builder builder = JStackTraceElement.newBuilder()
+    StackTraceElement.Builder builder = StackTraceElement.newBuilder()
             .setClassName(className)
             .setMethodName(stackTrace.getMethodName());
     String fileName = stackTrace.getFileName();
     if (fileName != null) {
-      builder.setLocation(new JFileLocation(fileName, stackTrace.getLineNumber()));
+      builder.setLocation(new FileLocation(fileName, stackTrace.getLineNumber(), -1));
     }
-    PackageInfo packageInfo = PackageInfo.getPackageInfo(className);
-    if (!packageInfo.equals(PackageInfo.NONE)) {
-      String url = packageInfo.getUrl();
-      if (url == null) {
-        url = "";
-      }
-      String version = packageInfo.getVersion();
-      if (version == null) {
-        version = "";
-      }
-      builder.setPackageInfo(new JPackageInfo(url, version));
-    }
+    builder.setPackageInfo(org.spf4j.base.PackageInfo.getPackageInfo(className));
     return builder.build();
   }
 
-  public static List<JStackTraceElement> convert(final StackTraceElement[] stackTraces) {
+  public static List<StackTraceElement> convert(final java.lang.StackTraceElement[] stackTraces) {
     int l = stackTraces.length;
     if (l == 0) {
       return Collections.EMPTY_LIST;
     }
-    List<JStackTraceElement> result = new ArrayList<>(l);
-    for (StackTraceElement st : stackTraces) {
+    List<StackTraceElement> result = new ArrayList<>(l);
+    for (java.lang.StackTraceElement st : stackTraces) {
       result.add(convert(st));
     }
     return result;
   }
 
-  public static List<JThrowable> convert(final Throwable[] throwables) {
+  public static List<Throwable> convert(final java.lang.Throwable[] throwables) {
     int l = throwables.length;
     if (l == 0) {
       return Collections.EMPTY_LIST;
     }
-    List<JThrowable> result = new ArrayList<>(l);
-    for (Throwable t : throwables) {
+    List<Throwable> result = new ArrayList<>(l);
+    for (java.lang.Throwable t : throwables) {
       result.add(convert(t));
     }
     return result;
   }
 
-  public static JThrowable convert(final Throwable throwable) {
+  public static Throwable convert(final java.lang.Throwable throwable) {
     if (throwable instanceof RemoteException) {
-          return JThrowable.newBuilder()
+          return Throwable.newBuilder()
             .setClassName(throwable.getClass().getName())
             .setMessage(throwable.getMessage())
             .setStackTrace(convert(throwable.getStackTrace()))
@@ -104,8 +91,8 @@ public final class Converters {
             .setCause(((RemoteException) throwable).getRemoteCause())
             .build();
     }
-    Throwable cause = throwable.getCause();
-    return JThrowable.newBuilder()
+    java.lang.Throwable cause = throwable.getCause();
+    return Throwable.newBuilder()
             .setClassName(throwable.getClass().getName())
             .setMessage(throwable.getMessage())
             .setCause(cause == null ? null : convert(cause))
@@ -114,7 +101,7 @@ public final class Converters {
             .build();
   }
 
-  public static RemoteException convert(final String source, final JThrowable throwable) {
+  public static RemoteException convert(final String source, final Throwable throwable) {
     return new RemoteException(source, throwable);
   }
 

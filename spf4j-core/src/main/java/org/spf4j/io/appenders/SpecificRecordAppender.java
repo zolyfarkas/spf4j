@@ -42,7 +42,7 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.avro.Converters;
-import org.spf4j.base.avro.JThrowable;
+import org.spf4j.base.avro.Throwable;
 import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
@@ -107,7 +107,7 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
     sb.setLength(0);
     sb.append("{\"SerializationError\":\n");
     try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {
-      JThrowable at = Converters.convert(ex);
+      Throwable at = Converters.convert(ex);
       Schema schema = at.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
       JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);

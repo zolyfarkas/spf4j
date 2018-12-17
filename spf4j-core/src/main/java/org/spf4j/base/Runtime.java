@@ -545,7 +545,7 @@ public final class Runtime {
   public static final class Jmx {
 
     @JmxExport
-    public static PackageInfo getPackageInfo(@JmxExport("className") final String className) {
+    public static org.spf4j.base.avro.PackageInfo getPackageInfo(@JmxExport("className") final String className) {
       return PackageInfo.getPackageInfo(className);
     }
 

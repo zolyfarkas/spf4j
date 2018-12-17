@@ -465,16 +465,16 @@ public final class Throwables {
       to.append("[^]");
       return;
     }
-    PackageInfo pInfo = PackageInfo.getPackageInfo(currClassName);
+    org.spf4j.base.avro.PackageInfo pInfo = PackageInfo.getPackageInfo(currClassName);
     if (abbreviatedTraceElement && prevClassName != null && pInfo.equals(PackageInfo.getPackageInfo(prevClassName))) {
       to.append("[^]");
       return;
     }
-    if (pInfo.hasInfo()) {
+    if (!pInfo.getUrl().isEmpty() || !pInfo.getVersion().isEmpty()) {
       String jarSourceUrl = pInfo.getUrl();
       String version = pInfo.getVersion();
       to.append('[');
-      if (jarSourceUrl != null) {
+      if (!jarSourceUrl.isEmpty()) {
         if (detail == PackageDetail.SHORT) {
           String url = jarSourceUrl;
           int lastIndexOf = url.lastIndexOf('/');
@@ -499,7 +499,7 @@ public final class Throwables {
       } else {
         to.append("na");
       }
-      if (version != null) {
+      if (!version.isEmpty()) {
         to.append(':');
         to.append(version);
       }

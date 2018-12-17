@@ -39,7 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.avro.JThrowable;
+import org.spf4j.base.avro.Throwable;
 
 /**
  * @author Zoltan Farkas
@@ -52,7 +52,7 @@ public class SpecificRecordAppenderTest {
   @Test
   @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // this is exactly what we are testing
   public void testSpecificRecordAppender() throws IOException {
-    JThrowable jThrowable = new JThrowable(null,
+    Throwable jThrowable = new Throwable(null,
             null, Collections.EMPTY_LIST, null, Collections.EMPTY_LIST);
     LOG.debug("Broken Object", jThrowable);
     SpecificRecordAppender ap = new SpecificRecordAppender();

@@ -34,9 +34,6 @@ package org.spf4j.base;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.beans.ConstructorProperties;
-import java.io.Serializable;
 import java.net.URL;
 import java.security.CodeSource;
 import javax.annotation.Nonnull;
@@ -45,77 +42,26 @@ import javax.annotation.Nullable;
 /**
  * @author Zoltan Farkas
  */
-public final class PackageInfo implements Serializable {
+public final class PackageInfo  {
 
-  private static final long serialVersionUID = 1L;
+  public static final org.spf4j.base.avro.PackageInfo NONE = new org.spf4j.base.avro.PackageInfo("", "");
 
-  private static final LoadingCache<String, PackageInfo> CACHE = CacheBuilder.newBuilder()
-          .weakKeys().weakValues().build(new CacheLoader<String, PackageInfo>() {
+  private static final LoadingCache<String, org.spf4j.base.avro.PackageInfo> CACHE = CacheBuilder.newBuilder()
+          .weakKeys().weakValues().build(new CacheLoader<String, org.spf4j.base.avro.PackageInfo>() {
 
             @Override
-            public PackageInfo load(final String key) {
+            public org.spf4j.base.avro.PackageInfo load(final String key) {
               return getPackageInfoDirect(key);
             }
           });
 
 
-  public static final PackageInfo NONE = new PackageInfo(null, null);
-
-  private final String url;
-  private final String version;
-
-  @ConstructorProperties({"url", "version"})
-  public PackageInfo(@Nullable final String url, @Nullable final String version) {
-    this.url = url;
-    this.version = version;
+  private PackageInfo() {
   }
 
-  @Nullable
-  public String getUrl() {
-    return url;
-  }
-
-  @Nullable
-  public String getVersion() {
-    return version;
-  }
-
-  @Override
-  @SuppressFBWarnings("DMI_BLOCKING_METHODS_ON_URL")
-  public int hashCode() {
-    if (url != null) {
-      return url.hashCode();
-    } else {
-      return 0;
-    }
-  }
-
-  public boolean hasInfo() {
-    return url != null || version != null;
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final PackageInfo other = (PackageInfo) obj;
-    if (!java.util.Objects.equals(this.url, other.url)) {
-      return false;
-    }
-    return java.util.Objects.equals(this.version, other.version);
-  }
-
-  @Override
-  public String toString() {
-    return "PackageInfo{" + "url=" + url + ", version=" + version + '}';
-  }
 
   @Nonnull
-  public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
+  public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class<?> aClass;
     try {
       aClass = Class.forName(className);
@@ -126,18 +72,19 @@ public final class PackageInfo implements Serializable {
   }
 
   @Nonnull
-  public static PackageInfo getPackageInfoDirect(@Nonnull final Class<?> aClass) {
+  public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final Class<?> aClass) {
     URL jarSourceUrl = getJarSourceUrl(aClass);
     final Package aPackage = aClass.getPackage();
     if (aPackage == null) {
       return NONE;
     }
     String version = aPackage.getImplementationVersion();
-    return new PackageInfo(jarSourceUrl == null ? "" : jarSourceUrl.toString(), version);
+    return new org.spf4j.base.avro.PackageInfo(jarSourceUrl == null ? "" : jarSourceUrl.toString(),
+            version  == null ? "" : version);
   }
 
   @Nonnull
-  public static PackageInfo getPackageInfo(@Nonnull final String className) {
+  public static org.spf4j.base.avro.PackageInfo getPackageInfo(@Nonnull final String className) {
     return CACHE.getUnchecked(className);
   }
   /**

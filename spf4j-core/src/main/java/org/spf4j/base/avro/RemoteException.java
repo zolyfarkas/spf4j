@@ -36,14 +36,14 @@ package org.spf4j.base.avro;
  */
 public class RemoteException extends Exception {
 
-  private final JThrowable remote;
+  private final Throwable remote;
 
-  public RemoteException(final String source, final JThrowable remote) {
+  public RemoteException(final String source, final Throwable remote) {
     super(source);
     this.remote = remote;
   }
 
-  public final JThrowable getRemoteCause() {
+  public final Throwable getRemoteCause() {
     return remote;
   }
 
