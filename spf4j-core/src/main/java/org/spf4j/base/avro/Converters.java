@@ -115,8 +115,12 @@ public final class Converters {
     extraThrowable == null ? null : convert(extraThrowable), Arrays.asList(logRecord.getExtraArguments()));
   }
 
-// public static ALogRecord convert(final Slf4jLogRecord logRecord) {
-//    return new ALogRecord(trId, ts, logger, thr, msg, throwable, xtra)
-// }
+  public static List<LogRecord> convert(final String traceId, final List<Slf4jLogRecord> logRecords) {
+    List<LogRecord> result = new ArrayList<>(logRecords.size());
+    for (Slf4jLogRecord log : logRecords) {
+      result.add(convert(traceId, log));
+    }
+    return result;
+  }
 
 }
