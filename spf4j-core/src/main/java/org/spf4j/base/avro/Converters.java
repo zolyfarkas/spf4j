@@ -31,10 +31,13 @@
  */
 package org.spf4j.base.avro;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.log.Slf4jLogRecord;
 
 /**
  * @author Zoltan Farkas
@@ -103,6 +106,13 @@ public final class Converters {
 
   public static RemoteException convert(final String source, final Throwable throwable) {
     return new RemoteException(source, throwable);
+  }
+
+  public static LogRecord convert(final String traceId, final Slf4jLogRecord logRecord) {
+    java.lang.Throwable extraThrowable = logRecord.getExtraThrowable();
+    return new LogRecord(traceId, Instant.ofEpochMilli(logRecord.getTimeStamp()),
+    logRecord.getLoggerName(), logRecord.getThreadName(), logRecord.getMessage(),
+    extraThrowable == null ? null : convert(extraThrowable), Arrays.asList(logRecord.getExtraArguments()));
   }
 
 // public static ALogRecord convert(final Slf4jLogRecord logRecord) {
