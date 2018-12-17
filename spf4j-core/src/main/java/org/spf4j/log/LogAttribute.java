@@ -31,6 +31,7 @@
  */
 package org.spf4j.log;
 
+import java.util.concurrent.TimeUnit;
 import org.spf4j.base.Pair;
 
 /**
@@ -56,6 +57,14 @@ public final class LogAttribute extends Pair<String, Object> {
 
   public static LogAttribute log(final Slf4jLogRecord record) {
     return new LogAttribute("log", record);
+  }
+
+  public static LogAttribute execTimeMicros(final long time, final TimeUnit tu) {
+    return new LogAttribute("execUs", tu.toMicros(time));
+  }
+
+  public static LogAttribute value(String what, final long value) {
+    return new LogAttribute(what, value);
   }
 
 }
