@@ -63,7 +63,7 @@ public final class LogAttribute extends Pair<String, Object> {
     return new LogAttribute("execUs", tu.toMicros(time));
   }
 
-  public static LogAttribute value(String what, final long value) {
+  public static LogAttribute value(final String what, final long value) {
     return new LogAttribute(what, value);
   }
 
