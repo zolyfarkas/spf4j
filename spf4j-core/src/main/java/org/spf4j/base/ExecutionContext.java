@@ -34,6 +34,8 @@ package org.spf4j.base;
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
@@ -205,6 +207,19 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   @Nullable
   <V> V compute(Tag<V> key, BiFunction<Tag<V>, V, V> compute);
+
+
+  @Nullable
+  @Beta
+  default <T> List<T> add(final Tag<List<T>> tag, final T data) {
+    return compute(tag, (k, v) -> {
+      if (v == null)  {
+        v = new ArrayList<>(2);
+      }
+      v.add(data);
+      return v;
+    });
+  }
 
 
 }

@@ -156,20 +156,9 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
       Threads.dumpToPrintStream(System.err);
     }, delayMillis, TimeUnit.MILLISECONDS);
-    ctx.compute(TestExecutionContextTags.CLOSEABLES, (k, v) -> {
-      if (v == null) {
-        ArrayList<AutoCloseable> res = new ArrayList(2);
-        res.add(() -> {
+    ctx.add(TestExecutionContextTags.CLOSEABLES, () -> {
           future.cancel(true);
         });
-        return res;
-      } else {
-        v.add(() -> {
-          future.cancel(true);
-        });
-        return v;
-      }
-    });
   }
 
   @Override

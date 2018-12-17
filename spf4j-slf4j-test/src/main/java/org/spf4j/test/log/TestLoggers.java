@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -252,16 +251,7 @@ public final class TestLoggers implements ILoggerFactory {
       config = config.add(category, handler, whereTo);
       resetJulConfig();
       if (ctx != null) {
-        ctx.compute(TestExecutionContextTags.CLOSEABLES, (k, v) -> {
-          if  (v == null) {
-            ArrayList<AutoCloseable> res = new ArrayList(2);
-            res.add(reg);
-            return res;
-          } else {
-            v.add(reg);
-            return v;
-          }
-        });
+        ctx.add(TestExecutionContextTags.CLOSEABLES, reg);
       }
     }
   }
