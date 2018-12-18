@@ -218,7 +218,7 @@ public final class SLF4JBridgeHandler extends Handler {
   private static void callPlainSLF4JLogger(final Logger slf4jLogger, final LogRecord record) {
     Pair<String, Object[]> message = getMessageI18N(record);
     Object[] args = message.getSecond();
-    if (args.length == 0) {
+    if (args == null || args.length == 0) {
       logEfficient(message.getFirst(), record, slf4jLogger);
     } else {
       int julLevelValue = record.getLevel().intValue();
