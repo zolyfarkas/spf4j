@@ -1192,7 +1192,7 @@ public final class MessageFormat extends Format {
    */
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"}) // Unfortunately I have no other way to write this
   // without code duplication to work for StringBuilder and StringBuffer....
-   private <T extends Appendable & CharSequence> boolean[] subformat(@Nullable Object[] arguments, @Nonnull T result,
+  private <T extends Appendable & CharSequence> boolean[] subformat(@Nullable Object[] arguments, @Nonnull T result,
           @Nullable FieldPosition fp,
           @Nullable List<AttributedCharacterIterator> characterIterators)
           throws IOException {

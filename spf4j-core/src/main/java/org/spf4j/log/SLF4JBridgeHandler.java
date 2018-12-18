@@ -34,6 +34,8 @@ package org.spf4j.log;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -74,6 +76,16 @@ public final class SLF4JBridgeHandler extends Handler {
   private static final int DEBUG_LEVEL_THRESHOLD = Level.FINE.intValue();
   private static final int INFO_LEVEL_THRESHOLD = Level.INFO.intValue();
   private static final int WARN_LEVEL_THRESHOLD = Level.WARNING.intValue();
+
+  private static final ThreadLocal<Reference<StringBuilder>> SB = new
+          ThreadLocal<Reference<StringBuilder>>() {
+    @Override
+    protected Reference<StringBuilder> initialValue() {
+      return new SoftReference<>(new StringBuilder(64));
+    }
+
+  };
+
 
   private static final boolean ALWAYS_TRY_INFER = Boolean.getBoolean("spf4j.jul2slf4jBridge.alwaysTryInferSource");
 
@@ -353,7 +365,13 @@ public final class SLF4JBridgeHandler extends Handler {
       }
     }
     Object[] params = record.getParameters();
-    StringBuilder msg = new StringBuilder(64);
+    StringBuilder msg = SB.get().get();
+    if (msg == null) {
+      msg = new StringBuilder(64);
+      SB.set(new SoftReference<>(msg));
+    } else  {
+      msg.setLength(0);
+    }
     if (params != null && params.length > 0) {
       try {
         boolean[] used;
