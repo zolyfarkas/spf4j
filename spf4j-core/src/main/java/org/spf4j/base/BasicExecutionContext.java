@@ -46,9 +46,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.spf4j.io.AppendableWriter;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
@@ -219,8 +217,8 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   public synchronized void writeJsonTo(final Appendable appendable) throws IOException {
-    JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));
-    gen.setCodec(Lazy.MAPPER);
+    JsonGenerator gen = Json.FACTORY.createJsonGenerator(new AppendableWriter(appendable));
+    gen.setCodec(Json.MAPPER);
     gen.writeStartObject();
     gen.writeFieldName("name");
     gen.writeString(name);
@@ -308,11 +306,5 @@ public class BasicExecutionContext implements ExecutionContext {
     return id;
   }
 
-  private static final class Lazy {
-
-    private static final JsonFactory JSON = new JsonFactory();
-
-    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);
-  }
 
 }

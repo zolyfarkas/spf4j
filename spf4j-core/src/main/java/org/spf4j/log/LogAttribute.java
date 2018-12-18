@@ -31,16 +31,26 @@
  */
 package org.spf4j.log;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import org.codehaus.jackson.JsonGenerator;
+import org.spf4j.base.Json;
+import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
+import org.spf4j.io.AppendableWriter;
 
 /**
  * @author Zoltan Farkas
  */
-public final class LogAttribute extends Pair<String, Object> {
+public final class LogAttribute extends Pair<String, Object>
+  implements JsonWriteable {
 
   public LogAttribute(final String first, final Object second) {
     super(first, second);
+  }
+
+  public String getName() {
+    return first;
   }
 
   public static LogAttribute of(final String val, final Object obj) {
@@ -65,6 +75,17 @@ public final class LogAttribute extends Pair<String, Object> {
 
   public static LogAttribute value(final String what, final long value) {
     return new LogAttribute(what, value);
+  }
+
+  @Override
+  public void writeJsonTo(final Appendable appendable) throws IOException {
+    JsonGenerator gen = Json.FACTORY.createJsonGenerator(new AppendableWriter(appendable));
+    gen.setCodec(Json.MAPPER);
+    gen.writeStartObject();
+    gen.writeFieldName(first);
+    gen.writeObject(second);
+    gen.writeEndObject();
+    gen.flush();
   }
 
 }
