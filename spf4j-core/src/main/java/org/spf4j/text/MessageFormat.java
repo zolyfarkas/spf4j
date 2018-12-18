@@ -873,12 +873,12 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final <T extends CharSequence & Appendable> T format(Object[] arguments, T result,
+  public final <T extends CharSequence & Appendable> boolean[] format(Object[] arguments, T result,
           @Nullable FieldPosition pos) throws IOException {
     return subformat(arguments, result, pos, null);
   }
 
-  public final <T extends CharSequence & Appendable> T format(Object[] arguments, T result) throws IOException {
+  public final <T extends CharSequence & Appendable> boolean[] format(Object[] arguments, T result) throws IOException {
     return format(arguments, result, null);
   }
 
@@ -915,7 +915,7 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final <T extends CharSequence & Appendable> T format(Object arguments, T result,
+  public final <T extends CharSequence & Appendable> boolean[] format(Object arguments, T result,
           FieldPosition pos) throws IOException {
     if (arguments instanceof Object[]) {
       return subformat((Object[]) arguments, result, pos, null);
@@ -1168,13 +1168,14 @@ public final class MessageFormat extends Format {
   @Override
   public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
     try {
-      return syntethicFormat(obj, toAppendTo, pos);
+      syntethicFormat(obj, toAppendTo, pos);
+      return toAppendTo;
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
   }
 
-  private <T extends CharSequence & Appendable> T syntethicFormat(Object obj, T toAppendTo, FieldPosition pos)
+  private <T extends CharSequence & Appendable> boolean[] syntethicFormat(Object obj, T toAppendTo, FieldPosition pos)
           throws IOException {
     return format(obj, toAppendTo, pos);
   }
@@ -1189,14 +1190,20 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  @SuppressFBWarnings({"PDP_POORLY_DEFINED_PARAMETER", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"}) // Unfortunately I have no other way to write this
+  @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"}) // Unfortunately I have no other way to write this
   // without code duplication to work for StringBuilder and StringBuffer....
-   private <T extends Appendable & CharSequence> T subformat(@Nullable Object[] arguments, @Nonnull T result,
+   private <T extends Appendable & CharSequence> boolean[] subformat(@Nullable Object[] arguments, @Nonnull T result,
           @Nullable FieldPosition fp,
           @Nullable List<AttributedCharacterIterator> characterIterators)
           throws IOException {
     int lastOffset = 0;
     int last = result.length();
+    boolean[] used;
+    if (arguments == null)  {
+      used = org.spf4j.base.Arrays.EMPTY_BOOLEAN_ARRAY;
+    } else {
+      used = new boolean[arguments.length];
+    }
     for (int i = 0; i <= maxOffset; ++i) {
       FormatInfo finfo = formats[i];
       int offset = finfo.getOffset();
@@ -1207,6 +1214,7 @@ public final class MessageFormat extends Format {
         result.append('{').append(Integer.toString(argumentNumber)).append('}');
         continue;
       }
+      used[argumentNumber] = true;
       Object obj = arguments[argumentNumber];
       String arg = null;
       Format subFormatter = null;
@@ -1291,7 +1299,7 @@ public final class MessageFormat extends Format {
     if (characterIterators != null && last != result.length()) {
       characterIterators.add(createAttributedCharacterIterator(result.subSequence(last, result.length()).toString()));
     }
-    return result;
+    return used;
   }
 
   /**

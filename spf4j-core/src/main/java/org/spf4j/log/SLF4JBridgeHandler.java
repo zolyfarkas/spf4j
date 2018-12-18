@@ -31,6 +31,9 @@
  */
 package org.spf4j.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -46,16 +49,20 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
+import org.spf4j.base.Arrays;
 import org.spf4j.base.Method;
+import org.spf4j.base.Pair;
 import org.spf4j.text.MessageFormat;
 
 /**
  * <p>
  * Bridge/route all JUL log records to the SLF4J API.</p>
- * <p> Implementation based on jul-to-slf4j bridge but at least 20% faster. Speed improvements come from
- * using spf4j improved MessageFormatter + code cleanup. Also unlike jul-to-slf4j the sorce class and source method
- * information is not being dropped. </p>
- * <p> Implementation is interchangeable with the jul-to-slf4j implementation </p>
+ * <p>
+ * Implementation based on jul-to-slf4j bridge but at least 20% faster. Speed improvements come from using spf4j
+ * improved MessageFormatter + code cleanup. Also unlike jul-to-slf4j the sorce class and source method information is
+ * not being dropped. </p>
+ * <p>
+ * Implementation is interchangeable with the jul-to-slf4j implementation </p>
  *
  */
 public final class SLF4JBridgeHandler extends Handler {
@@ -151,7 +158,6 @@ public final class SLF4JBridgeHandler extends Handler {
     }
   }
 
-
   @Override
   public void close() {
     // NOOP
@@ -187,17 +193,60 @@ public final class SLF4JBridgeHandler extends Handler {
     } else {
       slf4jLevel = LocationAwareLogger.ERROR_INT;
     }
-    String i18nMessage = getMessageI18N(record);
+    Pair<String, Object[]> messageArgs = getMessageI18N(record);
     Method m = getSourceMethodInfo(record);
     if (m != null) {
-      lal.log(null, m.toString(), slf4jLevel, i18nMessage, null, record.getThrown());
+      lal.log(null, m.toString(), slf4jLevel, messageArgs.getFirst(), messageArgs.getSecond(), record.getThrown());
     } else {
-      lal.log(null, FQCN, slf4jLevel, i18nMessage, null, record.getThrown());
+      lal.log(null, FQCN, slf4jLevel, messageArgs.getFirst(), messageArgs.getSecond(), record.getThrown());
     }
   }
 
+  @SuppressFBWarnings("UCC_UNRELATED_COLLECTION_CONTENTS") // nature of log args
   private static void callPlainSLF4JLogger(final Logger slf4jLogger, final LogRecord record) {
-    String i18nMessage = getMessageI18N(record);
+    Pair<String, Object[]> message = getMessageI18N(record);
+    Object[] args = message.getSecond();
+    if (args.length == 0) {
+      logEfficient(message.getFirst(), record, slf4jLogger);
+    } else {
+      int julLevelValue = record.getLevel().intValue();
+      Throwable thrown = record.getThrown();
+      Method m = getSourceMethodInfo(record);
+      Object[] pargs;
+      if (m == null) {
+        if (thrown == null) {
+          pargs = args;
+        } else {
+          pargs = java.util.Arrays.copyOf(args, args.length + 1);
+          pargs[args.length] = thrown;
+        }
+      } else {
+        if (thrown == null) {
+          pargs = java.util.Arrays.copyOf(args, args.length + 1);
+          pargs[args.length] = m;
+        } else {
+          pargs = java.util.Arrays.copyOf(args, args.length + 2);
+          pargs[args.length] = m;
+          pargs[args.length + 1] = thrown;
+        }
+      }
+      if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
+        slf4jLogger.trace(message.getFirst(), pargs);
+      } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
+        slf4jLogger.debug(message.getFirst(), pargs);
+      } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
+        slf4jLogger.info(message.getFirst(), pargs);
+      } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
+        slf4jLogger.warn(message.getFirst(), pargs);
+      } else {
+        slf4jLogger.error(message.getFirst(), pargs);
+      }
+
+    }
+  }
+
+  public static void logEfficient(final String i18nMessage,
+          final LogRecord record, final Logger slf4jLogger) {
     int julLevelValue = record.getLevel().intValue();
     Throwable thrown = record.getThrown();
     Method m = getSourceMethodInfo(record);
@@ -234,7 +283,7 @@ public final class SLF4JBridgeHandler extends Handler {
         }
       }
     } else {
-       if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
+      if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
         if (m != null) {
           slf4jLogger.trace(i18nMessage, m);
         } else {
@@ -290,10 +339,10 @@ public final class SLF4JBridgeHandler extends Handler {
    * @return
    */
   @Nonnull
-  private static String getMessageI18N(final LogRecord record) {
+  private static Pair<String, Object[]> getMessageI18N(final LogRecord record) {
     String message = record.getMessage();
     if (message == null) {
-      return "";
+      return Pair.of("", record.getParameters());
     }
 
     ResourceBundle bundle = record.getResourceBundle();
@@ -304,15 +353,39 @@ public final class SLF4JBridgeHandler extends Handler {
       }
     }
     Object[] params = record.getParameters();
+    StringBuilder msg = new StringBuilder(64);
     if (params != null && params.length > 0) {
       try {
-        message = MessageFormat.format(message, params);
+        boolean[] used;
+        try {
+          used = new MessageFormat(message).format(params, msg);
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
+        }
+        int nrLeft = 0;
+        for (boolean u : used) {
+          if (!u) {
+            nrLeft++;
+          }
+        }
+        if (nrLeft == 0) {
+          return Pair.of(msg.toString(), Arrays.EMPTY_OBJ_ARRAY);
+        } else {
+          Object[] left = new Object[nrLeft];
+          for (int i = 0, j = 0; i < used.length; i++) {
+            if (!used[i]) {
+              left[j++] = params[i];
+            }
+          }
+          return Pair.of(msg.toString(), left);
+        }
       } catch (IllegalArgumentException e) {
         LoggerFactory.getLogger(SLF4JBridgeHandler.class).warn("Unable to format {} with {}", message, params, e);
-        return message;
+         return Pair.of(message, Arrays.EMPTY_OBJ_ARRAY);
       }
+    } else {
+      return Pair.of(message, Arrays.EMPTY_OBJ_ARRAY);
     }
-    return message;
   }
 
   public void publish(final LogRecord record) {
