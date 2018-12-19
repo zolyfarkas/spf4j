@@ -67,7 +67,8 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
     return currentContexts.entrySet();
   }
 
-  public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
+  public ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent,
           @Nullable final ExecutionContext previous,
           final  long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
       ThreadLocalScope threadLocalScope = new ThreadLocalScope() {
@@ -90,12 +91,12 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
         }
       };
     if (previous == null) {
-      ExecutionContext ctx = wrapped.start(name, parent, null,
+      ExecutionContext ctx = wrapped.start(name, id, parent, null,
               startTimeNanos, deadlineNanos, threadLocalScope);
       currentContexts.put(Thread.currentThread(), ctx);
       return ctx;
     } else {
-      return wrapped.start(name, parent, previous, startTimeNanos, deadlineNanos, threadLocalScope);
+      return wrapped.start(name, id, parent, previous, startTimeNanos, deadlineNanos, threadLocalScope);
     }
   }
 

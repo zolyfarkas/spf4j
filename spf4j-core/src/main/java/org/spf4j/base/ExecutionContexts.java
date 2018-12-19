@@ -167,15 +167,13 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
-    SimpleStack<ExecutionContext> ctxStack = EXEC_CTX.get();
-    ExecutionContext localCtx = ctxStack.peek();
+    return start(name, null, parent, timeout, tu);
+  }
+
+  public static ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
     long nanoTime = TimeSource.nanoTime();
-    ExecutionContext nCtx;
-    nCtx = CTX_FACTORY.start(name, parent == null  ? localCtx  : parent,
-            localCtx, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),
-              ThreadLocalScopeImpl.INSTANCE);
-    ctxStack.push(nCtx);
-    return nCtx;
+    return start(name, id, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout));
   }
 
   public static ExecutionContext start(final String name,
@@ -185,10 +183,15 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
+    return start(name, null, parent, startTimeNanos, deadlineNanos);
+  }
+
+  public static ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
     SimpleStack<ExecutionContext> lctxStack = EXEC_CTX.get();
     ExecutionContext localCtx = lctxStack.peek();
     ExecutionContext nCtx;
-    nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent, localCtx,
+    nCtx = CTX_FACTORY.start(name, id, parent == null ? localCtx : parent, localCtx,
               startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
     lctxStack.push(nCtx);
     return nCtx;
@@ -196,7 +199,7 @@ public final class ExecutionContexts {
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, parent, null, startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
+    return CTX_FACTORY.start(name, null, parent, null, startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
   }
 
 
@@ -311,11 +314,12 @@ public final class ExecutionContexts {
   private static class BasicExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
 
     @Override
-    public ExecutionContext start(final String name, @Nullable final ExecutionContext parent,
+    public ExecutionContext start(final String name, @Nullable final CharSequence id,
+            @Nullable final ExecutionContext parent,
             @Nullable final ExecutionContext previous,
             final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
       return new BasicExecutionContext(name,
-              parent == null ? ID_GEN.next() : null,
+              id != null  ? id : parent == null ? ID_GEN.next() : null,
               parent, startTimeNanos, deadlineNanos, onClose);
     }
 
