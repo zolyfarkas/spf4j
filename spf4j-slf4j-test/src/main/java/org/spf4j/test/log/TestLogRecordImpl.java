@@ -17,9 +17,7 @@ package org.spf4j.test.log;
 
 import com.google.common.base.Throwables;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,8 +33,6 @@ import org.spf4j.log.Slf4jLogRecordImpl;
 @ThreadSafe
 public final class TestLogRecordImpl extends Slf4jLogRecordImpl implements TestLogRecord {
 
-  private Set<Object> attachments;
-
   public TestLogRecordImpl(final String loggerName, final Level level,
           final String format, final Object... arguments) {
     this(loggerName, level, null, format, arguments);
@@ -45,7 +41,6 @@ public final class TestLogRecordImpl extends Slf4jLogRecordImpl implements TestL
   public TestLogRecordImpl(final String loggerName, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
     super(loggerName, level, marker, format, arguments);
-    this.attachments = Collections.EMPTY_SET;
   }
 
 
@@ -57,24 +52,6 @@ public final class TestLogRecordImpl extends Slf4jLogRecordImpl implements TestL
       return Collections.EMPTY_LIST;
     }
     return Throwables.getCausalChain(extraThrowable);
-  }
-
-  @Override
-  public synchronized void attach(final Object obj) {
-    if (attachments.isEmpty()) {
-      attachments = new HashSet<>(2);
-    }
-    attachments.add(obj);
-  }
-
-  @Override
-  public synchronized boolean hasAttachment(final Object obj) {
-    return attachments.contains(obj);
-  }
-
-  @Override
-  public synchronized Set<Object> getAttachments() {
-    return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);
   }
 
   @Override

@@ -32,6 +32,7 @@
 package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
@@ -89,6 +90,12 @@ public interface Slf4jLogRecord {
   boolean isLogged();
 
   void setIsLogged();
+
+  void attach(Object obj);
+
+  Set<Object> getAttachments();
+
+  boolean hasAttachment(Object obj);
 
   static int compareByTimestamp(Slf4jLogRecord a, Slf4jLogRecord b) {
     long timeDiff = a.getTimeStamp() - b.getTimeStamp();

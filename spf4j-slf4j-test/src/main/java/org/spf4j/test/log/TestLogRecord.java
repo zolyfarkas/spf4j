@@ -16,7 +16,6 @@
 package org.spf4j.test.log;
 
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import org.spf4j.log.Slf4jLogRecord;
 
@@ -26,13 +25,8 @@ import org.spf4j.log.Slf4jLogRecord;
  */
 public interface TestLogRecord extends Slf4jLogRecord {
 
-  void attach(Object obj);
-
-  Set<Object> getAttachments();
-
   @Nonnull
   List<Throwable> getExtraThrowableChain();
 
-  boolean hasAttachment(Object obj);
 
 }

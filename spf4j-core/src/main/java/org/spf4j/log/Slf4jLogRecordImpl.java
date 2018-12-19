@@ -19,6 +19,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -54,6 +57,8 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   @Nullable
   private volatile String message;
   private volatile boolean isLogged;
+  private Set<Object> attachments;
+
 
   public Slf4jLogRecordImpl(final String logger, final Level level,
           final String format, final Object... arguments) {
@@ -86,6 +91,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     this.startExtra = -1;
     this.message = null;
     this.isLogged = isLogged;
+    this.attachments = Collections.EMPTY_SET;
   }
 
   @Override
@@ -275,6 +281,24 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   @Override
   public final void setIsLogged() {
     isLogged =  true;
+  }
+
+  @Override
+  public final synchronized void attach(final Object obj) {
+    if (attachments.isEmpty()) {
+      attachments = new HashSet<>(2);
+    }
+    attachments.add(obj);
+  }
+
+  @Override
+  public final synchronized boolean hasAttachment(final Object obj) {
+    return attachments.contains(obj);
+  }
+
+  @Override
+  public final synchronized Set<Object> getAttachments() {
+    return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);
   }
 
   private static final class Lazy {
