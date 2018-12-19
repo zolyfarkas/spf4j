@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.CheckReturnValue;
@@ -125,6 +124,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @GuardedBy("stateLock")
   private int threadPriority;
 
+  private int threadCreationCount;
+
   public LifoThreadPoolExecutorSQP(final int maxNrThreads, final String name) {
     this(name, 0, maxNrThreads, 5000, 0);
   }
@@ -178,7 +179,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     this.stateCondition = stateLock.newCondition();
     this.daemonThreads = daemonThreads;
     for (int i = 0; i < coreSize; i++) {
-      QueuedThread qt = new QueuedThread(poolName, threadQueue,
+      QueuedThread qt = new QueuedThread(poolName + '-' + (threadCreationCount++), threadQueue,
               taskQueue, maxIdleTimeMillis, null, state, stateLock, stateCondition);
       qt.setDaemon(daemonThreads);
       qt.setPriority(threadPriority);
@@ -218,8 +219,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       if (tc < maxThreadCount) {
         QueuedThread qt;
         try {
-          qt = new QueuedThread(poolName, threadQueue, taskQueue, maxIdleTimeMillis, command,
-                  state, stateLock, stateCondition);
+          qt = new QueuedThread(poolName  + '-' + (threadCreationCount++), threadQueue, taskQueue, maxIdleTimeMillis,
+                  command, state, stateLock, stateCondition);
           qt.setDaemon(daemonThreads);
           qt.setPriority(threadPriority);
           state.addThread(qt);
@@ -467,8 +468,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
   private static final class QueuedThread extends Thread {
 
-    private static final AtomicInteger COUNT = new AtomicInteger();
-
     private final SimpleStack<QueuedThread> threadQueue;
 
     private final Queue<Runnable> taskQueue;
@@ -489,11 +488,11 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     @Nullable
     private Runnable toRun;
 
-    QueuedThread(final String nameBase, final SimpleStack<QueuedThread> threadQueue,
+    QueuedThread(final String name, final SimpleStack<QueuedThread> threadQueue,
             final Queue<Runnable> taskQueue, final int maxIdleTimeMillis,
             @Nullable final Runnable runFirst, final PoolState state,
             final ReentrantLock submitMonitor, final Condition submitCondition) {
-      super(nameBase + COUNT.getAndIncrement());
+      super(name);
       this.threadQueue = threadQueue;
       this.taskQueue = taskQueue;
       this.maxIdleTimeMillis = maxIdleTimeMillis;
