@@ -226,7 +226,13 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name, @Nullable final CharSequence id,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    ExecutionContext nCtx = CTX_FACTORY.start(name, id, parent, Relation.CHILD_OF,
+    return start(name, id, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);
+  }
+
+  public static ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent, final Relation relation,
+          final long startTimeNanos, final long deadlineNanos) {
+    ExecutionContext nCtx = CTX_FACTORY.start(name, id, parent, relation,
               startTimeNanos, deadlineNanos);
     nCtx.attach();
     return nCtx;
@@ -234,7 +240,12 @@ public final class ExecutionContexts {
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, null, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);
+    return createDetached(name, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);
+  }
+
+  public static ExecutionContext createDetached(final String name, @Nullable final ExecutionContext parent,
+          final Relation relation, final long startTimeNanos, final long deadlineNanos) {
+    return CTX_FACTORY.start(name, null, parent, relation, startTimeNanos, deadlineNanos);
   }
 
 

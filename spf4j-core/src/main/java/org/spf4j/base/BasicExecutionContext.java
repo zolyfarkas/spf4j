@@ -183,7 +183,7 @@ public class BasicExecutionContext implements ExecutionContext {
   public synchronized void close() {
     if (!isClosed) {
       detach();
-      if (relation == Relation.CHILD_OF) {
+      if (parent != null &&  logs != null && relation == Relation.CHILD_OF) {
         for (Slf4jLogRecord log : logs) {
           parent.addLog(log);
         }
