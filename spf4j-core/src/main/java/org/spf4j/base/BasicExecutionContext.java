@@ -86,7 +86,7 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private Level minBackendLogLevel;
 
-  private volatile Attached attached;
+  private Attached attached;
 
   @SuppressWarnings("unchecked")
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
@@ -182,7 +182,9 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public synchronized void close() {
     if (!isClosed) {
-      detach();
+      if (attached !=  null) {
+        detach();
+      }
       if (parent != null &&  logs != null && relation == Relation.CHILD_OF) {
         for (Slf4jLogRecord log : logs) {
           parent.addLog(log);
@@ -193,12 +195,13 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public final void detach() {
+  public final synchronized void detach() {
     attached.detach();
+    attached = null;
   }
 
   @Override
-  public final void attach() {
+  public final synchronized void attach() {
     attached = ExecutionContexts.threadLocalAttacher().attach(this);
   }
 
