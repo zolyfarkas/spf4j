@@ -406,6 +406,7 @@ public final class SLF4JBridgeHandler extends Handler {
     }
   }
 
+  @Override
   public void publish(final LogRecord record) {
     try {
       Logger slf4jLogger = getSLF4JLogger(record);
