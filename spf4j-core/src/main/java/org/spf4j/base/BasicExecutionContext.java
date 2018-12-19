@@ -35,10 +35,8 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -72,7 +70,7 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final ExecutionContext parent;
 
-  private List<ExecutionContext> children;
+  private final Relation relation;
 
   private final long startTimeNanos;
 
@@ -81,6 +79,8 @@ public class BasicExecutionContext implements ExecutionContext {
   private ArrayDeque<Slf4jLogRecord> logs;
 
   private Map<Tag, Object> baggage;
+
+  private long childCount;
 
   private boolean isClosed = false;
 
@@ -91,9 +91,10 @@ public class BasicExecutionContext implements ExecutionContext {
   @SuppressWarnings("unchecked")
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
   public BasicExecutionContext(final String name, @Nullable final CharSequence id,
-          @Nullable final ExecutionContext parent,
+          @Nullable final ExecutionContext parent, final Relation relation,
           final long startTimeNanos, final long deadlineNanos) {
     this.isClosed = false;
+    this.relation = relation;
     this.name = name;
     this.startTimeNanos = startTimeNanos;
     if (parent != null) {
@@ -103,11 +104,10 @@ public class BasicExecutionContext implements ExecutionContext {
       } else {
         this.deadlineNanos = deadlineNanos;
       }
-      int idx = parent.addChild(this);
       if (id == null) {
         CharSequence pId = parent.getId();
         StringBuilder sb = new StringBuilder(pId.length() + 2).append(pId).append('/');
-        AppendableUtils.appendUnsignedString(sb, idx, 5);
+        AppendableUtils.appendUnsignedString(sb, parent.nextChildId(), 5);
         this.id  = sb;
       } else {
         this.id  = id;
@@ -118,7 +118,6 @@ public class BasicExecutionContext implements ExecutionContext {
     }
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
-    this.children = Collections.EMPTY_LIST;
     this.logs = null;
     this.minBackendLogLevel = null;
   }
@@ -184,6 +183,11 @@ public class BasicExecutionContext implements ExecutionContext {
   public synchronized void close() {
     if (!isClosed) {
       detach();
+      if (relation == Relation.CHILD_OF) {
+        for (Slf4jLogRecord log : logs) {
+          parent.addLog(log);
+        }
+      }
       isClosed = true;
     }
   }
@@ -233,15 +237,6 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public final synchronized int addChild(final ExecutionContext ctxt) {
-    if (this.children.isEmpty()) {
-      this.children = new ArrayList<>(4);
-    }
-    children.add(ctxt);
-    return children.size();
-  }
-
-  @Override
   public final synchronized void addLog(final Slf4jLogRecord log) {
     if (logs == null) {
       logs = new ArrayDeque<>(4);
@@ -260,9 +255,6 @@ public class BasicExecutionContext implements ExecutionContext {
       for (Slf4jLogRecord log : logs) {
         to.accept(log);
       }
-    }
-    for (ExecutionContext ec : children) {
-      ec.streamLogs(to);
     }
   }
 
@@ -301,6 +293,11 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public final CharSequence getId() {
     return id;
+  }
+
+  @Override
+  public final synchronized long nextChildId() {
+    return childCount++;
   }
 
 

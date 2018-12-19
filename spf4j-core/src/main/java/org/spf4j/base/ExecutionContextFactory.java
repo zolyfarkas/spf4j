@@ -33,6 +33,7 @@ package org.spf4j.base;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.ExecutionContext.Relation;
 
 /**
  * @author Zoltan Farkas
@@ -49,7 +50,7 @@ public interface ExecutionContextFactory<T extends ExecutionContext> {
    * @return
    */
    T start(String name, @Nullable CharSequence id,
-           @Nullable ExecutionContext parent,
+           @Nullable ExecutionContext parent, Relation relation,
            long startTimeNanos, long deadlineNanos);
 
 

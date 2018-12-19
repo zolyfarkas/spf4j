@@ -67,6 +67,10 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   }
 
+  enum Relation {
+    CHILD_OF, FOLLOWS
+  }
+
   @DischargesObligation
   void close();
 
@@ -81,9 +85,6 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @Nullable
   ExecutionContext getParent();
-
-  @Beta
-  int addChild(ExecutionContext ctxt);
 
   @Beta
   void addLog(Slf4jLogRecord log);
@@ -229,5 +230,16 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   default ExecutionContext startChild(final String operationName) {
     return ExecutionContexts.start(operationName, this);
   }
+
+  default ExecutionContext detachedChild(final String operationName,
+          final long timeout, final TimeUnit tu) {
+    return ExecutionContexts.createDetached(operationName, this, timeout, tu);
+  }
+
+  default ExecutionContext detachedChild(final String operationName) {
+    return ExecutionContexts.createDetached(operationName, this, TimeSource.nanoTime(), this.getDeadlineNanos());
+  }
+
+  long nextChildId();
 
 }

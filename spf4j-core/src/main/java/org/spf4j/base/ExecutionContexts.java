@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.ExecutionContext.Relation;
 import org.spf4j.concurrent.ScalableSequence;
 import org.spf4j.concurrent.UIDGenerator;
 import org.spf4j.ds.SimpleStack;
@@ -207,6 +208,12 @@ public final class ExecutionContexts {
     return start(name, id, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout));
   }
 
+  public static ExecutionContext createDetached(final String name,
+          @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+    long nanoTime = TimeSource.nanoTime();
+    return createDetached(name, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout));
+  }
+
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long deadlineNanos) {
     return start(name, parent, TimeSource.nanoTime(), deadlineNanos);
@@ -219,7 +226,7 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name, @Nullable final CharSequence id,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    ExecutionContext nCtx = CTX_FACTORY.start(name, id, parent,
+    ExecutionContext nCtx = CTX_FACTORY.start(name, id, parent, Relation.CHILD_OF,
               startTimeNanos, deadlineNanos);
     nCtx.attach();
     return nCtx;
@@ -227,7 +234,7 @@ public final class ExecutionContexts {
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, null, parent, startTimeNanos, deadlineNanos);
+    return CTX_FACTORY.start(name, null, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);
   }
 
 
@@ -343,9 +350,9 @@ public final class ExecutionContexts {
 
     @Override
     public ExecutionContext start(final String name, @Nullable final CharSequence id,
-            @Nullable final ExecutionContext parent,
+            @Nullable final ExecutionContext parent, final Relation relation,
             final long startTimeNanos, final long deadlineNanos) {
-      return new BasicExecutionContext(name, id, parent, startTimeNanos, deadlineNanos);
+      return new BasicExecutionContext(name, id, parent, relation, startTimeNanos, deadlineNanos);
     }
 
   }
