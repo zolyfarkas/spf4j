@@ -221,5 +221,13 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
     });
   }
 
+  default ExecutionContext startChild(final String operationName,
+          final long timeout, final TimeUnit tu) {
+    return ExecutionContexts.start(operationName, this, timeout, tu);
+  }
+
+  default ExecutionContext startChild(final String operationName) {
+    return ExecutionContexts.start(operationName, this);
+  }
 
 }
