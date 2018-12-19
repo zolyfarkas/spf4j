@@ -108,7 +108,7 @@ public class SimpleStackNullSupport<T>
     return t;
   }
 
-  private void ensureCapacity(final int minCapacity) {
+  final void ensureCapacity(final int minCapacity) {
     int oldCapacity = elems.length;
     if (minCapacity > oldCapacity) {
       int newCapacity = (oldCapacity * 3) / 2 + 1;

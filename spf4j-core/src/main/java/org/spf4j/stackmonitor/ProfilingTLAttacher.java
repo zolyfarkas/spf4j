@@ -34,25 +34,23 @@ package org.spf4j.stackmonitor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContext;
-import org.spf4j.base.ExecutionContextFactory;
-import org.spf4j.base.ThreadLocalScope;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.ThreadLocalContextAttacher;
 
 /**
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public final class ProfiledExecutionContextFactory implements ExecutionContextFactory<ExecutionContext> {
+public final class ProfilingTLAttacher implements ThreadLocalContextAttacher {
 
   private final ConcurrentNavigableMap<Thread, ExecutionContext> currentContexts;
 
-  private final ExecutionContextFactory<ExecutionContext> wrapped;
+  private final ThreadLocalContextAttacher defAttacher = ExecutionContexts.defaultThreadLocalAttacher();
 
-  public ProfiledExecutionContextFactory(final ExecutionContextFactory<ExecutionContext> wrapped) {
-    this.wrapped = wrapped;
-    this.currentContexts = new ConcurrentSkipListMap<>(ProfiledExecutionContextFactory::compare);
+  public ProfilingTLAttacher() {
+    this.currentContexts = new ConcurrentSkipListMap<>(ProfilingTLAttacher::compare);
   }
 
   private static int compare(final Thread o1, final Thread o2) {
@@ -67,43 +65,36 @@ public final class ProfiledExecutionContextFactory implements ExecutionContextFa
     return currentContexts.entrySet();
   }
 
-  public ExecutionContext start(final String name, @Nullable final CharSequence id,
-          @Nullable final ExecutionContext parent,
-          @Nullable final ExecutionContext previous,
-          final  long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
-      ThreadLocalScope threadLocalScope = new ThreadLocalScope() {
+  @Override
+  public ThreadLocalContextAttacher.Attached attach(final ExecutionContext ctx) {
+    ThreadLocalContextAttacher.Attached attached = defAttacher.attach(ctx);
+    if (attached.isTopOfStack()) {
+      currentContexts.put(attached.attachedThread(), ctx);
+      return new ThreadLocalContextAttacher.Attached() {
         @Override
-        public ExecutionContext detach(final ExecutionContext ctx) {
-          ExecutionContext left = onClose.detach(ctx);
-          if (left == null) {
-            currentContexts.remove(Thread.currentThread());
-          }
-          return left;
+        public void detach() {
+          currentContexts.remove(attached.attachedThread());
+          attached.detach();
         }
 
         @Override
-        public ExecutionContext attach(final ExecutionContext ctx) {
-          ExecutionContext attach = onClose.attach(ctx);
-          if (attach == null) {
-            currentContexts.put(Thread.currentThread(), ctx);
-          }
-          return attach;
+        public boolean isTopOfStack() {
+          return attached.isTopOfStack();
+        }
+
+        @Override
+        public Thread attachedThread() {
+          return attached.attachedThread();
         }
       };
-    if (previous == null) {
-      ExecutionContext ctx = wrapped.start(name, id, parent, null,
-              startTimeNanos, deadlineNanos, threadLocalScope);
-      currentContexts.put(Thread.currentThread(), ctx);
-      return ctx;
     } else {
-      return wrapped.start(name, id, parent, previous, startTimeNanos, deadlineNanos, threadLocalScope);
+      return attached;
     }
   }
 
   @Override
   public String toString() {
-    return "ProfiledExecutionContextFactory{" + "currentContexts="
-            + currentContexts + ", wrapped=" + wrapped + '}';
+    return "ProfilingTLAttacher{" + "currentContexts=" + currentContexts + '}';
   }
 
 }

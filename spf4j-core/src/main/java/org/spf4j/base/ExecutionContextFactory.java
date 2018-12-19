@@ -49,8 +49,8 @@ public interface ExecutionContextFactory<T extends ExecutionContext> {
    * @return
    */
    T start(String name, @Nullable CharSequence id,
-           @Nullable ExecutionContext parent, @Nullable ExecutionContext threadParentCtx,
-           long startTimeNanos, long deadlineNanos, ThreadLocalScope onClose);
+           @Nullable ExecutionContext parent,
+           long startTimeNanos, long deadlineNanos);
 
 
 }

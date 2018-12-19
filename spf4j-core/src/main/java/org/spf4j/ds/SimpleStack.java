@@ -65,6 +65,21 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
   }
 
   @Nullable
+  public T peekAndPush(final T o) {
+    int t = top + 1;
+    ensureCapacity(t);
+    elems[top] = o;
+    T result;
+    if (top >= 0) {
+      result = elems[top - 1];
+    } else {
+      result = null;
+    }
+    top = t;
+    return result;
+  }
+
+  @Nullable
   public T pollLast() {
     if (size() <= 0) {
       return null;

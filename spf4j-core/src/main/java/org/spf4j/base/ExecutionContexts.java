@@ -68,13 +68,32 @@ public final class ExecutionContexts {
 
   };
 
+  private static final ThreadLocalContextAttacher DEFAULT_TL_ATTACHER = new ThreadLocalScopeImpl();
+
   private static final ExecutionContextFactory<ExecutionContext> CTX_FACTORY = initFactory();
+
+  private static final ThreadLocalContextAttacher TL_ATTACHER =  initTLAttacher();
 
   private ExecutionContexts() {
   }
 
-  private static ExecutionContextFactory<ExecutionContext> initFactory() {
-    String factoryClass = System.getProperty("spf4j.execContentFactoryClass");
+  private static ThreadLocalContextAttacher initTLAttacher() {
+    String factoryClass = System.getProperty("spf4j.execContext.tlAttacherClass");
+    ThreadLocalContextAttacher factory;
+    if (factoryClass == null) {
+      factory = DEFAULT_TL_ATTACHER;
+    } else {
+      try {
+        factory = ((Class<ThreadLocalContextAttacher>) Class.forName(factoryClass)).newInstance();
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        throw new ExceptionInInitializerError(ex);
+      }
+    }
+    return factory;
+  }
+
+ private static ExecutionContextFactory<ExecutionContext> initFactory() {
+    String factoryClass = System.getProperty("spf4j.execContext.factoryClass");
     ExecutionContextFactory<ExecutionContext> factory;
     if (factoryClass == null) {
       factory = new BasicExecutionContextFactory();
@@ -85,7 +104,7 @@ public final class ExecutionContexts {
         throw new ExceptionInInitializerError(ex);
       }
     }
-    String factoryWrapperClass = System.getProperty("spf4j.execContentFactoryWrapperClass");
+    String factoryWrapperClass = System.getProperty("spf4j.execContext.factoryWrapperClass");
     if (factoryWrapperClass != null) {
       try {
         factory = (ExecutionContextFactory<ExecutionContext>) Class.forName(factoryWrapperClass)
@@ -96,6 +115,18 @@ public final class ExecutionContexts {
       }
     }
     return factory;
+  }
+
+  public static ThreadLocalContextAttacher defaultThreadLocalAttacher() {
+    return DEFAULT_TL_ATTACHER;
+  }
+
+  public static ThreadLocalContextAttacher threadLocalAttacher() {
+    return TL_ATTACHER;
+  }
+
+  public static CharSequence genId() {
+    return ID_GEN.next();
   }
 
   public static ExecutionContextFactory<ExecutionContext> getContextFactory() {
@@ -188,18 +219,15 @@ public final class ExecutionContexts {
 
   public static ExecutionContext start(final String name, @Nullable final CharSequence id,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    SimpleStack<ExecutionContext> lctxStack = EXEC_CTX.get();
-    ExecutionContext localCtx = lctxStack.peek();
-    ExecutionContext nCtx;
-    nCtx = CTX_FACTORY.start(name, id, parent == null ? localCtx : parent, localCtx,
-              startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
-    lctxStack.push(nCtx);
+    ExecutionContext nCtx = CTX_FACTORY.start(name, id, parent,
+              startTimeNanos, deadlineNanos);
+    nCtx.attach();
     return nCtx;
   }
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, null, parent, null, startTimeNanos, deadlineNanos, ThreadLocalScopeImpl.INSTANCE);
+    return CTX_FACTORY.start(name, null, parent, startTimeNanos, deadlineNanos);
   }
 
 
@@ -316,11 +344,8 @@ public final class ExecutionContexts {
     @Override
     public ExecutionContext start(final String name, @Nullable final CharSequence id,
             @Nullable final ExecutionContext parent,
-            @Nullable final ExecutionContext previous,
-            final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope onClose) {
-      return new BasicExecutionContext(name,
-              id != null  ? id : parent == null ? ID_GEN.next() : null,
-              parent, startTimeNanos, deadlineNanos, onClose);
+            final long startTimeNanos, final long deadlineNanos) {
+      return new BasicExecutionContext(name, id, parent, startTimeNanos, deadlineNanos);
     }
 
   }
@@ -428,28 +453,52 @@ public final class ExecutionContexts {
     }
   }
 
-  private static class ThreadLocalScopeImpl implements ThreadLocalScope {
-
-    private static final ThreadLocalScope INSTANCE = new ThreadLocalScopeImpl();
+  private static class ThreadLocalScopeImpl implements ThreadLocalContextAttacher {
 
     @Override
-    @Nullable
-    public ExecutionContext detach(final ExecutionContext ctx) {
-      SimpleStack<ExecutionContext> exStack = ExecutionContexts.EXEC_CTX.get();
-      ExecutionContext xctx = exStack.pop();
-      if (xctx != ctx) {
-        throw new IllegalStateException("Detaching content that is noot current " + ctx + " != " + xctx);
-      }
-      return exStack.peek();
+    public Attached attach(final ExecutionContext ctx) {
+      final Thread currentThread = Thread.currentThread();
+      SimpleStack<ExecutionContext> contextStack = ExecutionContexts.EXEC_CTX.get();
+      int stackPtr = contextStack.pushAndGetIdx(ctx);
+      return new AttachedImpl(currentThread, contextStack, ctx, stackPtr);
     }
 
-    @Override
-    @Nullable
-    public ExecutionContext attach(final ExecutionContext ctx) {
-      SimpleStack<ExecutionContext> get = ExecutionContexts.EXEC_CTX.get();
-      ExecutionContext peek = get.peek();
-      get.push(ctx);
-      return peek;
+    private static class AttachedImpl implements Attached {
+
+      private final Thread thread;
+      private final SimpleStack<ExecutionContext> contextStack;
+      private final ExecutionContext ctx;
+      private final int stackPtr;
+
+      AttachedImpl(final Thread currentThread,
+              final SimpleStack<ExecutionContext> contextStack,
+              final ExecutionContext ctx, final int stackPtr) {
+        this.thread = currentThread;
+        this.contextStack = contextStack;
+        this.ctx = ctx;
+        this.stackPtr = stackPtr;
+      }
+
+      @Override
+      public void detach() {
+        Thread now = Thread.currentThread();
+        if (now != thread) {
+          throw  new IllegalStateException("Detaching in different thread " + thread + " != " + now);
+        }
+        ExecutionContext pop = contextStack.pop();
+        if (pop != ctx) {
+          contextStack.push(pop);
+          throw  new IllegalStateException("Detaching ctx that is not attached " + ctx);
+        }
+      }
+
+      public boolean isTopOfStack() {
+        return stackPtr == 0;
+      }
+
+      public Thread attachedThread() {
+        return thread;
+      }
     }
   }
 

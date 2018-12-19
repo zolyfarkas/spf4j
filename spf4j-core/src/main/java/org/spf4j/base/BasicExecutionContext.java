@@ -50,6 +50,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.spf4j.io.AppendableWriter;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
+import org.spf4j.base.ThreadLocalContextAttacher.Attached;
 
 /**
  * The simplest execution context possible.
@@ -77,8 +78,6 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final long deadlineNanos;
 
-  private final ThreadLocalScope tlScope;
-
   private ArrayDeque<Slf4jLogRecord> logs;
 
   private Map<Tag, Object> baggage;
@@ -87,15 +86,15 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private Level minBackendLogLevel;
 
+  private volatile Attached attached;
 
   @SuppressWarnings("unchecked")
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
   public BasicExecutionContext(final String name, @Nullable final CharSequence id,
           @Nullable final ExecutionContext parent,
-          final long startTimeNanos, final long deadlineNanos, final ThreadLocalScope tlScope) {
+          final long startTimeNanos, final long deadlineNanos) {
     this.isClosed = false;
     this.name = name;
-    this.tlScope = tlScope;
     this.startTimeNanos = startTimeNanos;
     if (parent != null) {
       long parentDeadline = parent.getDeadlineNanos();
@@ -104,26 +103,24 @@ public class BasicExecutionContext implements ExecutionContext {
       } else {
         this.deadlineNanos = deadlineNanos;
       }
+      int idx = parent.addChild(this);
+      if (id == null) {
+        CharSequence pId = parent.getId();
+        StringBuilder sb = new StringBuilder(pId.length() + 2).append(pId).append('/');
+        AppendableUtils.appendUnsignedString(sb, idx, 5);
+        this.id  = sb;
+      } else {
+        this.id  = id;
+      }
     } else {
       this.deadlineNanos = deadlineNanos;
+      this.id  = id == null ? ExecutionContexts.genId() : id;
     }
     this.parent = parent;
     this.baggage = Collections.EMPTY_MAP;
     this.children = Collections.EMPTY_LIST;
     this.logs = null;
     this.minBackendLogLevel = null;
-    if (parent != null) {
-      int idx = parent.addChild(this);
-      if (id == null) {
-        StringBuilder sb = new StringBuilder(20).append(parent.getId()).append('/');
-        AppendableUtils.appendUnsignedString(sb, idx, 5);
-        this.id  = sb;
-      } else {
-        this.id  = id;
-      }
-    }  else {
-      this.id  = id;
-    }
   }
 
   @Override
@@ -192,13 +189,13 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public final synchronized void detach() {
-    tlScope.detach(this);
+  public final void detach() {
+    attached.detach();
   }
 
   @Override
-  public final synchronized void attach() {
-    tlScope.attach(this);
+  public final void attach() {
+    attached = ExecutionContexts.threadLocalAttacher().attach(this);
   }
 
   /**

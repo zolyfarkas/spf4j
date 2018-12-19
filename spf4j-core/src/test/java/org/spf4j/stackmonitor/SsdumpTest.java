@@ -45,8 +45,8 @@ import org.spf4j.ssdump2.Converter;
 public final class SsdumpTest {
 
   static {
-    System.setProperty("spf4j.execContentFactoryWrapperClass",
-            "org.spf4j.stackmonitor.ProfiledExecutionContextFactory");
+    System.setProperty("spf4j.execContext.tlAttacherClass",
+            "org.spf4j.stackmonitor.ProfilingTLAttacher");
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
@@ -54,9 +54,7 @@ public final class SsdumpTest {
 
   @Test
   public void testDumpExecContexts() throws InterruptedException, IOException {
-    ProfiledExecutionContextFactory contextFactory =
-            (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
-
+    ProfilingTLAttacher contextFactory = (ProfilingTLAttacher) ExecutionContexts.threadLocalAttacher();
     Sampler sampler = new Sampler(1, (t) -> new ThreadStackSampler(contextFactory::getCurrentThreads));
     Map<String, SampleNode> collected = sampleTest(sampler, "ecStackSample");
     Assert.assertEquals("Actual: " + collected,  1, collected.size());
@@ -64,8 +62,8 @@ public final class SsdumpTest {
 
   @Test
   public void testTracingDumpExecContexts() throws InterruptedException, IOException {
-    ProfiledExecutionContextFactory contextFactory =
-            (ProfiledExecutionContextFactory) ExecutionContexts.getContextFactory();
+    ProfilingTLAttacher contextFactory =
+            (ProfilingTLAttacher) ExecutionContexts.threadLocalAttacher();
 
     Sampler sampler = new Sampler(1,
             (t) -> new TracingExecutionContextStackCollector(contextFactory::getCurrentThreadContexts));

@@ -31,20 +31,22 @@
  */
 package org.spf4j.base;
 
-import javax.annotation.Nullable;
+import com.google.common.annotations.Beta;
 
 /**
  * @author Zoltan Farkas
  */
-public interface ThreadLocalScope {
+@Beta
+public interface ThreadLocalContextAttacher {
 
-  /**
-   * Attach to current thread;
-   */
-  @Nullable
-  ExecutionContext detach(ExecutionContext ctx);
+  public interface Attached {
+    void detach();
 
-  @Nullable
-  ExecutionContext attach(ExecutionContext ctx);
+    boolean isTopOfStack();
+
+    Thread attachedThread();
+  }
+
+  Attached attach(ExecutionContext ctx);
 
 }
