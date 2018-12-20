@@ -31,6 +31,7 @@
  */
 package org.spf4j.tsdb2;
 
+import org.spf4j.io.CountingInputStream;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
 import com.sun.nio.file.SensitivityWatchEventModifier;

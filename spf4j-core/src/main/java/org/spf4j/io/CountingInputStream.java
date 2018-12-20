@@ -13,7 +13,7 @@
  * the License.
  */
 
-package org.spf4j.tsdb2;
+package org.spf4j.io;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -40,12 +40,12 @@ public final class CountingInputStream extends FilterInputStream {
   }
 
   /** Returns the number of bytes read. */
-  public long getCount() {
+  public synchronized long getCount() {
     return count;
   }
 
   @Override
-  public int read() throws IOException {
+  public synchronized int read() throws IOException {
     int result = in.read();
     if (result != -1) {
       count++;
@@ -54,7 +54,7 @@ public final class CountingInputStream extends FilterInputStream {
   }
 
   @Override
-  public int read(final byte[] b, final int off, final int len) throws IOException {
+  public  synchronized int read(final byte[] b, final int off, final int len) throws IOException {
     int result = in.read(b, off, len);
     if (result != -1) {
       count += result;
@@ -63,7 +63,7 @@ public final class CountingInputStream extends FilterInputStream {
   }
 
   @Override
-  public long skip(final long n) throws IOException {
+  public synchronized long skip(final long n) throws IOException {
     long result = in.skip(n);
     count += result;
     return result;
