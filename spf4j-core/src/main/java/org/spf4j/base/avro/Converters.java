@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.slf4j.Marker;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
@@ -110,9 +111,25 @@ public final class Converters {
 
   public static LogRecord convert(final String traceId, final Slf4jLogRecord logRecord) {
     java.lang.Throwable extraThrowable = logRecord.getExtraThrowable();
+    Marker marker = logRecord.getMarker();
+    Object[] extraArguments = logRecord.getExtraArguments();
+    List<Object> xArgs;
+    if (marker == null) {
+      xArgs = extraArguments.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(logRecord.getExtraArguments());
+    } else {
+      if (extraArguments.length == 0) {
+        xArgs = Collections.singletonList(marker);
+      } else {
+        xArgs = new ArrayList<>(extraArguments.length + 1);
+        xArgs.add(marker);
+        for (Object obj : extraArguments) {
+          xArgs.add(obj);
+        }
+      }
+    }
     return new LogRecord(traceId, Instant.ofEpochMilli(logRecord.getTimeStamp()),
     logRecord.getLoggerName(), logRecord.getThreadName(), logRecord.getMessage(),
-    extraThrowable == null ? null : convert(extraThrowable), Arrays.asList(logRecord.getExtraArguments()));
+    extraThrowable == null ? null : convert(extraThrowable), xArgs);
   }
 
   public static List<LogRecord> convert(final String traceId, final List<Slf4jLogRecord> logRecords) {
