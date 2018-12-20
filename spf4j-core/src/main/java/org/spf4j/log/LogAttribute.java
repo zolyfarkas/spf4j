@@ -31,9 +31,18 @@
  */
 package org.spf4j.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.io.Serializable;
+import java.io.UncheckedIOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.slf4j.Marker;
+import org.spf4j.base.CharSequences;
 import org.spf4j.base.Json;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
@@ -42,10 +51,13 @@ import org.spf4j.io.AppendableWriter;
 /**
  * @author Zoltan Farkas
  */
-public final class LogAttribute extends Pair<String, Object>
-  implements JsonWriteable {
+@SuppressFBWarnings({ "PIS_POSSIBLE_INCOMPLETE_SERIALIZATION", "SE_NO_SUITABLE_CONSTRUCTOR" })
+public final class LogAttribute<T> extends Pair<String, T>
+  implements JsonWriteable, Marker {
 
-  public LogAttribute(final String first, final Object second) {
+  private static final long serialVersionUID = 1L;
+
+  public LogAttribute(final String first, final T second) {
     super(first, second);
   }
 
@@ -53,39 +65,127 @@ public final class LogAttribute extends Pair<String, Object>
     return first;
   }
 
-  public static LogAttribute of(final String val, final Object obj) {
+  public static <T> LogAttribute<T> of(final String val, final T obj) {
     return new LogAttribute(val, obj);
   }
 
-  public static LogAttribute traceId(final CharSequence id) {
+  public static LogAttribute<CharSequence> traceId(final CharSequence id) {
     return new LogAttribute("trId", id);
   }
 
-  public static LogAttribute origLevel(final Level level) {
+  public static LogAttribute<Level> origLevel(final Level level) {
     return new LogAttribute("origLevel", level);
   }
 
-  public static LogAttribute log(final Slf4jLogRecord record) {
+  public static LogAttribute<Slf4jLogRecord> log(final Slf4jLogRecord record) {
     return new LogAttribute("log", record);
   }
 
-  public static LogAttribute execTimeMicros(final long time, final TimeUnit tu) {
+  public static LogAttribute<Long> execTimeMicros(final long time, final TimeUnit tu) {
     return new LogAttribute("execUs", tu.toMicros(time));
   }
 
-  public static LogAttribute value(final String what, final long value) {
+  public static LogAttribute<Long> value(final String what, final long value) {
     return new LogAttribute(what, value);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder(32);
+    writeJsonTo(result);
+    return result.toString();
   }
 
   @Override
   public void writeJsonTo(final Appendable appendable) throws IOException {
     JsonGenerator gen = Json.FACTORY.createJsonGenerator(new AppendableWriter(appendable));
     gen.setCodec(Json.MAPPER);
+    writeJsonTo(gen);
+    gen.flush();
+  }
+
+  public void writeJsonTo(final JsonGenerator gen) throws IOException {
     gen.writeStartObject();
     gen.writeFieldName(first);
     gen.writeObject(second);
     gen.writeEndObject();
-    gen.flush();
+  }
+
+  public static LogAttribute<Object> fromJson(final CharSequence jsonStr) {
+    try {
+      JsonParser parser = Json.FACTORY.createJsonParser(CharSequences.reader(jsonStr));
+      parser.setCodec(Json.MAPPER);
+      Map<String, Object> val = parser.readValueAs(Map.class);
+      return fromMap(val);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  public static LogAttribute<Object> fromMap(final Map<String, Object> val) {
+    if (val.size() != 1) {
+      throw new IllegalArgumentException("No Log Attribute: " + val);
+    }
+    Map.Entry<String, Object> entry = val.entrySet().iterator().next();
+    Object value = entry.getValue();
+    return LogAttribute.of(entry.getKey(), value);
+  }
+
+  @Override
+  public void add(final Marker reference) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean remove(final Marker reference) {
+    return false;
+  }
+
+  @Override
+  public boolean hasChildren() {
+    return false;
+  }
+
+  @Override
+  public boolean hasReferences() {
+    return false;
+  }
+
+  @Override
+  public Iterator<Marker> iterator() {
+    return Collections.emptyListIterator();
+  }
+
+  @Override
+  public boolean contains(final Marker other) {
+    return false;
+  }
+
+  @Override
+  public boolean contains(final String name) {
+    return false;
+  }
+
+  private Object writeReplace()
+          throws java.io.ObjectStreamException {
+    StringBuilder sb = new StringBuilder(32);
+    writeJsonTo(sb);
+    return new AttrProxy(sb);
+  }
+
+  private static final class AttrProxy implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    private StringBuilder json;
+
+    AttrProxy(final StringBuilder json) {
+      this.json = json;
+    }
+
+    private Object readResolve() {
+      return LogAttribute.fromJson(json);
+    }
+
   }
 
 }

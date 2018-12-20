@@ -32,79 +32,40 @@
 package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.slf4j.Marker;
+import java.util.Collection;
+import java.util.Collections;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Zoltan Farkas
  */
-public interface Slf4jLogRecord {
+@SuppressFBWarnings("LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS")
+public class LogAttributeTest {
 
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP")
-  @Nonnull
-  Object[] getArguments();
+  private static final Logger LOG = LoggerFactory.getLogger(LogAttributeTest.class);
 
-  /**
-   * @return all extra arguments. (arguments that are not parameters for the message)
-   */
-  @Nonnull
-  Object[] getExtraArgumentsRaw();
+  @Test
+  public void testLogAttribute() {
+    LogAttribute<LogAttribute<String>> test = LogAttribute.of("text", LogAttribute.of("nested", "nextsed val"));
+    StringBuilder json = new StringBuilder();
+    test.writeJsonTo(json);
+    LOG.debug("Json", json);
+    LogAttribute<Object> fromJson = LogAttribute.fromJson(json);
+    Assert.assertEquals(json.toString(), fromJson.toString());
+  }
 
-  /**
-   * @return all non Throwable extra arguments.
-   */
-  @Nonnull
-  Object[] getExtraArguments();
-
-  /**
-   * @return Throwable from extra arguments. If multiple, will return first will all others as suppressed.
-   */
-  @Nullable
-  Throwable getExtraThrowable();
-
-  Level getLevel();
-
-  String getLoggerName();
-
-  @Nullable
-  Marker getMarker();
-
-  @Nonnull
-  String getMessage();
-
-  String getMessageFormat();
-
-  int getNrMessageArguments();
-
-  String getThreadName();
-
-  long getTimeStamp();
-
-  /**
-   * Indicates that this log record has been sent to the logging backend to persist.
-   * @return
-   */
-  boolean isLogged();
-
-  void setIsLogged();
-
-  void attach(Object obj);
-
-  Set<Object> getAttachments();
-
-  boolean hasAttachment(Object obj);
-
-  static int compareByTimestamp(Slf4jLogRecord a, Slf4jLogRecord b) {
-    long timeDiff = a.getTimeStamp() - b.getTimeStamp();
-    if (timeDiff > 0) {
-      return 1;
-    } else if (timeDiff < 0) {
-      return -1;
-    } else {
-      return 0;
-    }
+  @Test
+  public void testLogAttribute2() {
+    LogAttribute<Collection<LogAttribute<String>>> test = LogAttribute.of("text", Collections.singletonList(
+            LogAttribute.of("nested", "nextsed val")));
+    StringBuilder json = new StringBuilder();
+    test.writeJsonTo(json);
+    LOG.debug("Json", json);
+    LogAttribute<Object> fromJson = LogAttribute.fromJson(json);
+    Assert.assertEquals(json.toString(), fromJson.toString());
   }
 
 }

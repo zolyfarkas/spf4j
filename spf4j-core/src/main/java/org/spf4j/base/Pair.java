@@ -129,8 +129,12 @@ public class Pair<A, B> implements Map.Entry<A, B>, Writeable {
     return Objects.hashCode(first, second);
   }
 
+  /**
+   * Overwrite to change string image.
+   * @return
+   */
   @Override
-  public final String toString() {
+  public String toString() {
     StringBuilder result = new StringBuilder(32);
     writeTo(result);
     return result.toString();

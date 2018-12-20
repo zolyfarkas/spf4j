@@ -31,8 +31,13 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.module.SimpleModule;
 
 /**
  * @author Zoltan Farkas
@@ -44,4 +49,27 @@ public final class Json {
   public static final JsonFactory FACTORY = new JsonFactory();
 
   public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+
+  static {
+    SimpleModule module = new SimpleModule("spf4j", new org.codehaus.jackson.Version(1, 0, 0, ""));
+    module.addSerializer(JsonWriteable.class, new JsonSerializer<JsonWriteable>() {
+      @Override
+      public void serialize(final JsonWriteable value, final JsonGenerator jgen, final SerializerProvider provider)
+              throws IOException {
+        Object outputTarget = jgen.getOutputTarget();
+        if (outputTarget instanceof Appendable) {
+          jgen.flush();
+          if (jgen.getOutputContext().getCurrentName() != null) {
+            ((Appendable) outputTarget).append(':');
+          }
+          value.writeJsonTo((Appendable) outputTarget);
+          return;
+        }
+        StringBuilder json = new StringBuilder(32);
+        value.writeJsonTo(json);
+        jgen.writeRawValue(json.toString());
+      }
+    });
+    MAPPER.registerModule(module);
+  }
 }

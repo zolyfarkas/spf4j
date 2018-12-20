@@ -32,8 +32,10 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.io.CharSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
@@ -727,6 +729,15 @@ public final class CharSequences {
       from = idx + sLen;
     }
     return result;
+  }
+
+
+  public static Reader reader(final CharSequence cs) {
+    try {
+      return CharSource.wrap(cs).openStream();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
 
