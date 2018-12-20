@@ -35,6 +35,7 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -88,6 +89,9 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @Beta
   void addLog(Slf4jLogRecord log);
+
+  @Beta
+  void addLogs(Collection<Slf4jLogRecord> log);
 
   /**
    * The minimum log level accepted by this execution context;

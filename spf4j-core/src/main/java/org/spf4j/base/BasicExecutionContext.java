@@ -35,6 +35,7 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -186,9 +187,7 @@ public class BasicExecutionContext implements ExecutionContext {
         detach();
       }
       if (parent != null &&  logs != null && relation == Relation.CHILD_OF) {
-        for (Slf4jLogRecord log : logs) {
-          parent.addLog(log);
-        }
+        parent.addLogs(logs);
       }
       isClosed = true;
     }
@@ -246,10 +245,26 @@ public class BasicExecutionContext implements ExecutionContext {
     }
     if (logs.size() >= MX_NR_LOGS_PER_CTXT) {
       logs.removeFirst();
-      logs.addLast(log);
-    } else {
-      logs.addLast(log);
     }
+    logs.addLast(log);
+  }
+
+  @Override
+  public final synchronized void addLogs(final Collection<Slf4jLogRecord> log) {
+    if (logs == null) {
+      logs = new ArrayDeque<>(log);
+      return;
+    }
+    int xNrLogs = logs.size();
+    int toRemove = xNrLogs + log.size() - MX_NR_LOGS_PER_CTXT;
+    if (toRemove >= xNrLogs) {
+      logs.clear();
+    } else {
+      for (int i = 0; i < toRemove; i++) { // TODO
+        logs.removeFirst();
+      }
+    }
+    logs.addAll(log);
   }
 
   @Override
