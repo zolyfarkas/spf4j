@@ -230,10 +230,6 @@ public class BasicExecutionContext implements ExecutionContext {
     gen.writeString(currentTiming.fromNanoTimeToInstant(startTimeNanos).toString());
     gen.writeFieldName("deadlineTs");
     gen.writeString(currentTiming.fromNanoTimeToInstant(deadlineNanos).toString());
-    for (Map.Entry<Tag, Object> entry : baggage.entrySet()) {
-      gen.writeFieldName(entry.getKey().toString());
-      gen.writeObject(entry.getValue());
-    }
     gen.writeEndObject();
     gen.flush();
   }
