@@ -139,6 +139,11 @@ public final class ExecutionContexts {
     return EXEC_CTX.get().peek();
   }
 
+  @Nullable
+  public static void clearCurrentThread() {
+     EXEC_CTX.get().clear();
+  }
+
   /**
    * start a execution context.
    *
