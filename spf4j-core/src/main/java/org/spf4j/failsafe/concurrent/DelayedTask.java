@@ -35,6 +35,8 @@ import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.ScalableSequence;
+import org.spf4j.concurrent.Sequence;
 
 /**
  *
@@ -42,12 +44,16 @@ import org.spf4j.base.TimeSource;
  */
 class DelayedTask<R extends Runnable> implements Delayed {
 
+  private static final Sequence SEQUENCE = new ScalableSequence(0, 50);
+
   private final R runnable;
   private final long deadlineNanos;
+  private final long seq;
 
   DelayedTask(final R runnable, final long delayNanos) {
     this.runnable = runnable;
     this.deadlineNanos = TimeSource.getDeadlineNanos(delayNanos, TimeUnit.NANOSECONDS);
+    this.seq = SEQUENCE.next();
   }
 
   @Override
@@ -57,11 +63,14 @@ class DelayedTask<R extends Runnable> implements Delayed {
 
   @Override
   public int compareTo(final Delayed o) {
-    long tDelay = getDelay(TimeUnit.NANOSECONDS);
-    long oDelay = o.getDelay(TimeUnit.NANOSECONDS);
-    if (tDelay > oDelay) {
+    DelayedTask<R> other = (DelayedTask<R>) o;
+    if (this.deadlineNanos > other.deadlineNanos) {
       return 1;
-    } else if (tDelay < oDelay) {
+    } else if (this.deadlineNanos < other.deadlineNanos) {
+      return -1;
+    } else if (this.seq > other.seq) {
+      return 1;
+    } else if (this.seq > other.seq) {
       return -1;
     } else {
       return 0;
