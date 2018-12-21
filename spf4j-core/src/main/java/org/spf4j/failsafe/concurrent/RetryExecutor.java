@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -172,6 +173,25 @@ public final class RetryExecutor implements AutoCloseable {
     return (Future<A>) result;
   }
 
+  public <A, C extends Callable<? extends A>> CompletableFuture<A> submitRx(final C task,
+          final RetryPredicate<A, C> predicate) {
+    InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
+    ConsumableRetryFutureTask<A> rft =
+            new ConsumableRetryFutureTask<>(f -> {
+              try {
+                A r = f.get();
+                result.complete(r);
+              } catch (Exception ex)  {
+                result.completeExceptionally(ex);
+              }
+            }, (Callable<A>) task,
+                    (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents,
+              this::startRetryManager);
+    result.setToCancel(rft);
+    executionService.execute(rft);
+    return result;
+  }
+
   public <A, C extends Callable<? extends A>> Future<A> submit(final C task,
           final RetryPredicate<A, C> predicate, final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
     if (nrHedges <= 0) {
@@ -181,14 +201,14 @@ public final class RetryExecutor implements AutoCloseable {
     final AtomicReferenceArray<Future<A>> futures = new AtomicReferenceArray<>(nrFut);
     ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
     Consumer<Future<A>> resultHandler = new FirstConsumer<>(queue, nrHedges, futures);
-    FutureToQueue<A> future =  new FutureToQueue(resultHandler, task,
+    ConsumableRetryFutureTask<A> future =  new ConsumableRetryFutureTask(resultHandler, task,
             (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
     startRetryManager();
     futures.set(0, future);
     executionService.execute(future);
     for (int i = 1; i < nrFut; i++) {
       if (hedgeDelay > 0) {
-        FutureToQueue<A> f = new FutureToQueue(
+        ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
                 resultHandler, task, (RetryPredicate) predicate, executionEvents,
                 this::startRetryManager);
         futures.set(i, f);
@@ -197,7 +217,7 @@ public final class RetryExecutor implements AutoCloseable {
         f.setExec(delayedExecution);
         executionEvents.add(delayedExecution);
       } else {
-        future = new FutureToQueue<>(resultHandler, (Callable<A>) task,
+        future = new ConsumableRetryFutureTask<>(resultHandler, (Callable<A>) task,
                 (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
         futures.set(i, future);
         executionService.execute(future);
@@ -284,21 +304,21 @@ public final class RetryExecutor implements AutoCloseable {
     }
   }
 
-  private static class FutureToQueue<T> extends RetryFutureTask<T> {
+  private static class ConsumableRetryFutureTask<T> extends RetryFutureTask<T> {
 
-    private final Consumer<Future<T>> queue;
+    private final Consumer<Future<T>> consumer;
 
-    FutureToQueue(final Consumer<Future<T>> queue, final Callable<T> callable,
+    ConsumableRetryFutureTask(final Consumer<Future<T>> consumer, final Callable<T> callable,
             final RetryPredicate<T, Callable<? extends T>> retryPredicate,
             final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks,
             final Runnable onRetry) {
       super(callable, retryPredicate, delayedTasks, onRetry);
-      this.queue = queue;
+      this.consumer = consumer;
     }
 
     @Override
     public void done() {
-      queue.accept(this);
+      consumer.accept(this);
     }
   }
 
@@ -334,6 +354,31 @@ public final class RetryExecutor implements AutoCloseable {
         }
       }
     }
+  }
+
+  private static class InterruptibleCompletableFuture<A> extends CompletableFuture<A> {
+
+    private volatile Future<A> toCancel;
+
+    @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+      boolean result = super.cancel(mayInterruptIfRunning);
+      Future<A> tc = toCancel;
+      if (tc != null) {
+        result = tc.cancel(mayInterruptIfRunning);
+      }
+      return result;
+    }
+
+    public void setToCancel(final Future<A> toCancel) {
+      this.toCancel = toCancel;
+    }
+
+    @Override
+    public String toString() {
+      return "InterruptibleCompletableFuture{" + "toCancel=" + toCancel + '}';
+    }
+
   }
 
 }
