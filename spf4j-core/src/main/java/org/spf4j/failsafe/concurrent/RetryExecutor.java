@@ -200,8 +200,8 @@ public final class RetryExecutor implements AutoCloseable {
     int nrFut = nrHedges + 1;
     final AtomicReferenceArray<Future<A>> futures = new AtomicReferenceArray<>(nrFut);
     ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
-    Consumer<Future<A>> resultHandler = new FirstConsumer<>(queue, nrHedges, futures);
-    ConsumableRetryFutureTask<A> future =  new ConsumableRetryFutureTask(resultHandler, task,
+    FirstFuture<A> result = new FirstFuture<A>(futures, queue);
+    ConsumableRetryFutureTask<A> future =  new ConsumableRetryFutureTask(result, task,
             (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
     startRetryManager();
     futures.set(0, future);
@@ -209,7 +209,7 @@ public final class RetryExecutor implements AutoCloseable {
     for (int i = 1; i < nrFut; i++) {
       if (hedgeDelay > 0) {
         ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
-                resultHandler, task, (RetryPredicate) predicate, executionEvents,
+                result, task, (RetryPredicate) predicate, executionEvents,
                 this::startRetryManager);
         futures.set(i, f);
         DelayedTask<RetryFutureTask<?>>  delayedExecution = new DelayedTask<RetryFutureTask<?>>(
@@ -217,13 +217,13 @@ public final class RetryExecutor implements AutoCloseable {
         f.setExec(delayedExecution);
         executionEvents.add(delayedExecution);
       } else {
-        future = new ConsumableRetryFutureTask<>(resultHandler, (Callable<A>) task,
+        future = new ConsumableRetryFutureTask<>(result, (Callable<A>) task,
                 (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
         futures.set(i, future);
         executionService.execute(future);
       }
     }
-    return new FirstFuture<A>(futures, queue);
+    return result;
   }
 
 
@@ -241,14 +241,37 @@ public final class RetryExecutor implements AutoCloseable {
             + ", sync=" + sync + '}';
   }
 
-  private static class FirstFuture<T> implements Future<T> {
+  private static class FirstFuture<T> implements Future<T>, Consumer<Future<T>> {
 
     private final AtomicReferenceArray<Future<T>> futures;
     private final BlockingQueue<Future<T>> queue;
+    private boolean first = true;
+    private final int nrHedges;
 
-    FirstFuture(final AtomicReferenceArray<Future<T>> futures, final BlockingQueue<Future<T>> queue) {
+    FirstFuture(final AtomicReferenceArray<Future<T>> futures,
+            final BlockingQueue<Future<T>> queue) {
       this.futures = futures;
       this.queue = queue;
+      this.nrHedges = futures.length() - 1;
+    }
+
+    @Override
+    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // Actually I own it...
+    public void accept(final Future<T> finished) {
+      synchronized (this) {
+        if (first) {
+          first = false;
+          queue.add(finished);
+          for (int i = 0;  i < nrHedges; i++) {
+            Future f = futures.get(i);
+            if (f != null && f != finished) {
+              f.cancel(true);
+            }
+          }
+        } else {
+          return;
+        }
+      }
     }
 
     @Override
@@ -319,40 +342,6 @@ public final class RetryExecutor implements AutoCloseable {
     @Override
     public void done() {
       consumer.accept(this);
-    }
-  }
-
-  private static class FirstConsumer<A> implements Consumer<Future<A>> {
-
-    private final BlockingQueue<Future<A>> queue;
-    private final int nrHedges;
-    private final AtomicReferenceArray<Future<A>> futures;
-    private boolean first = true;
-
-    FirstConsumer(final BlockingQueue<Future<A>> queue, final int nrHedges,
-            final AtomicReferenceArray<Future<A>> futures) {
-      this.queue = queue;
-      this.nrHedges = nrHedges;
-      this.futures = futures;
-    }
-
-    @Override
-    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // Actually I own it...
-    public void accept(final Future<A> finished) {
-      synchronized (this) {
-        if (first) {
-          first = false;
-          queue.add(finished);
-          for (int i = 0;  i < nrHedges; i++) {
-            Future f = futures.get(i);
-            if (f != null && f != finished) {
-              f.cancel(true);
-            }
-          }
-        } else {
-          return;
-        }
-      }
     }
   }
 

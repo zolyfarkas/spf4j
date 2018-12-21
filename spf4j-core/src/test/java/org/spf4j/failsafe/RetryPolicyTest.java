@@ -86,6 +86,7 @@ public class RetryPolicyTest {
       }).get();
       Assert.fail();
     } catch (ExecutionException ex) {
+      LOG.debug("Expected exception in testNoRetryPolicyAsync", ex);
       Assert.assertEquals(IOException.class, ex.getCause().getClass());
       // expected
       vex.assertObservation();

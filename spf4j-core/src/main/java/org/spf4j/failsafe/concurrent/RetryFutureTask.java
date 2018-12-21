@@ -31,6 +31,7 @@
  */
 package org.spf4j.failsafe.concurrent;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.DelayQueue;
@@ -49,7 +50,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
 
   private final RetryPredicate<T, Callable<? extends T>> retryPredicate;
 
-  final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks;
+  private final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks;
 
   private Either<Throwable, T> previousResult;
 
@@ -83,21 +84,24 @@ class RetryFutureTask<T> extends FutureTask<T> {
 
 
   @SuppressWarnings("unchecked")
+  @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
   protected T report(final int s) throws ExecutionException {
     try {
       return super.report(s);
     } catch (CancellationException ex) {
-      CancellationException at = ex;
-      if (previousResult != null && previousResult.isLeft()) {
-        at = Throwables.suppress(at, previousResult.getLeft());
+      synchronized (this) {
+        CancellationException at = ex;
+        if (previousResult != null && previousResult.isLeft()) {
+          at = Throwables.suppress(at, previousResult.getLeft());
+        }
+        throw at;
       }
-      throw at;
     }
   }
 
 
   @Override
-  protected boolean setException(final Throwable t) {
+  protected synchronized boolean setException(final Throwable t) {
     RetryDecision<T, Callable<? extends T>> decision = this.retryPredicate.getExceptionDecision(t, getCallable());
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
@@ -130,7 +134,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
   }
 
   @Override
-  protected boolean set(final T v) {
+  protected synchronized boolean set(final T v) {
     RetryDecision<T, Callable<? extends T>> decision = this.retryPredicate.getDecision(v, getCallable());
     final RetryDecision.Type decisionType = decision.getDecisionType();
     switch (decisionType) {
