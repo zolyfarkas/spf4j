@@ -364,6 +364,19 @@ public final class Throwables {
   @CheckReturnValue
   public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed,
           final int maxSuppressed) {
+    t.addSuppressed(suppressed);
+    while (getNrRecursiveSuppressedExceptions(t) > maxSuppressed) {
+      if (removeOldestSuppressedRecursive(t) == null) {
+        throw new IllegalArgumentException("Impossible state for " + t);
+      }
+    }
+    return t;
+  }
+
+
+  @CheckReturnValue
+  public static <T extends Throwable> T cloneSuppress(@Nonnull final T t, @Nonnull final Throwable suppressed,
+          final int maxSuppressed) {
     T clone;
     try {
       clone = Objects.clone(t);
