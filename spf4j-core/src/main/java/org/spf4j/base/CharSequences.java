@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
 import com.google.common.io.CharSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -732,6 +733,7 @@ public final class CharSequences {
   }
 
 
+  @GwtIncompatible
   public static Reader reader(final CharSequence cs) {
     try {
       return CharSource.wrap(cs).openStream();
