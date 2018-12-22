@@ -226,6 +226,56 @@ public final class RetryExecutor implements AutoCloseable {
     return result;
   }
 
+  public <A, C extends Callable<? extends A>> CompletableFuture<A> submitRx(final C task,
+          final RetryPredicate<A, C> predicate, final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
+    if (nrHedges <= 0) {
+      return submitRx(task, predicate);
+    }
+    InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
+    int nrFut = nrHedges + 1;
+    final AtomicReferenceArray<Future<A>> futures = new AtomicReferenceArray<>(nrFut);
+    ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
+    FirstFuture<A> resultX = new FirstFuture<A>(futures, queue) {
+      @Override
+      public void accept(Future<A> finished) {
+        super.accept(finished);
+        if (!result.isDone()) {
+          try {
+            A r = finished.get();
+            result.complete(r);
+          } catch (Exception ex) {
+            result.completeExceptionally(ex);
+          }
+        }
+      }
+    };
+    result.setToCancel(resultX);
+    ConsumableRetryFutureTask<A> future =  new ConsumableRetryFutureTask(resultX, task,
+            (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
+    startRetryManager();
+    futures.set(0, future);
+    executionService.execute(future);
+    for (int i = 1; i < nrFut; i++) {
+      if (hedgeDelay > 0) {
+        ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
+                resultX, task, (RetryPredicate) predicate, executionEvents,
+                this::startRetryManager);
+        futures.set(i, f);
+        DelayedTask<RetryFutureTask<?>>  delayedExecution = new DelayedTask<RetryFutureTask<?>>(
+                f, unit.toNanos(hedgeDelay));
+        f.setExec(delayedExecution);
+        executionEvents.add(delayedExecution);
+      } else {
+        future = new ConsumableRetryFutureTask<>(resultX, (Callable<A>) task,
+                (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
+        futures.set(i, future);
+        executionService.execute(future);
+      }
+    }
+    return result;
+  }
+
+
 
   public <A, C extends Callable<? extends A>> void execute(final C task,
           final RetryPredicate<A, C> predicate) {

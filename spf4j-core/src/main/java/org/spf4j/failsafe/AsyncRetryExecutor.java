@@ -32,6 +32,7 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
@@ -58,14 +59,25 @@ public interface AsyncRetryExecutor<T, C extends Callable<? extends T>> extends 
   }
 
   @CheckReturnValue
-  <R extends T, W extends C> Future<R> submit(W pwhat, long startTimeNanos, long deadlineNanos);
-  
-  @CheckReturnValue
   default <R extends T, W extends C> Future<R> submit(W pwhat, long timeout, TimeUnit tu) {
     long nanoTime = TimeSource.nanoTime();
     return submit(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime,
             ExecutionContexts.current(), tu, timeout));
   }
+
+  @CheckReturnValue
+  <R extends T, W extends C> Future<R> submit(W pwhat, long startTimeNanos, long deadlineNanos);
+
+  @CheckReturnValue
+  default <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long timeout, TimeUnit tu) {
+    long nanoTime = TimeSource.nanoTime();
+    return submitRx(pwhat, nanoTime, ExecutionContexts.computeDeadline(nanoTime,
+            ExecutionContexts.current(), tu, timeout));
+  }
+
+  @CheckReturnValue
+  <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long startTimeNanos, long deadlineNanos);
+
 
   default <W extends C> void execute(W pwhat) {
     long nanoTime = TimeSource.nanoTime();

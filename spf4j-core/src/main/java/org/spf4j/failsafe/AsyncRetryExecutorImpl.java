@@ -33,6 +33,7 @@ package org.spf4j.failsafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -72,6 +73,21 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
               hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
     }
   }
+
+  @Override
+  public <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long startTimeNanos, long deadlineNanos) {
+    Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);
+    int hedgeCount = hedge.getHedgeCount();
+    if (hedgeCount <= 0) {
+      return  (CompletableFuture<R>) executor.submitRx(pwhat,
+              retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+    } else {
+      return (CompletableFuture<R>) executor.submitRx(pwhat,
+              retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),
+              hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
+    }
+  }
+
 
   public <W extends C> void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
     Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);
