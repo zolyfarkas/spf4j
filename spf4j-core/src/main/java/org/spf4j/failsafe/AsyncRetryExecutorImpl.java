@@ -75,7 +75,8 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
   }
 
   @Override
-  public <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long startTimeNanos, long deadlineNanos) {
+  public <R extends T, W extends C> CompletableFuture<R> submitRx(final W pwhat,
+          final long startTimeNanos, final long deadlineNanos) {
     Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);
     int hedgeCount = hedge.getHedgeCount();
     if (hedgeCount <= 0) {

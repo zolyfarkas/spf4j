@@ -42,7 +42,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,30 +197,31 @@ public final class RetryExecutor implements AutoCloseable {
       return submit(task, predicate);
     }
     int nrFut = nrHedges + 1;
-    final AtomicReferenceArray<Future<A>> futures = new AtomicReferenceArray<>(nrFut);
+    final Future[] futures = new Future[nrFut];
     ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
     FirstFuture<A> result = new FirstFuture<A>(futures, queue);
     ConsumableRetryFutureTask<A> future =  new ConsumableRetryFutureTask(result, task,
             (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
     startRetryManager();
-    futures.set(0, future);
-    executionService.execute(future);
+    futures[0] = future;
+    Runnable[] submits = new Runnable[nrFut];
+    submits[0] = () -> executionService.execute(future);
     for (int i = 1; i < nrFut; i++) {
-      if (hedgeDelay > 0) {
-        ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
+      ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
                 result, task, (RetryPredicate) predicate, executionEvents,
                 this::startRetryManager);
-        futures.set(i, f);
+      futures[i] = f;
+      if (hedgeDelay > 0) {
         DelayedTask<RetryFutureTask<?>>  delayedExecution = new DelayedTask<RetryFutureTask<?>>(
                 f, unit.toNanos(hedgeDelay));
         f.setExec(delayedExecution);
-        executionEvents.add(delayedExecution);
+        submits[i] = () -> executionEvents.add(delayedExecution);
       } else {
-        future = new ConsumableRetryFutureTask<>(result, (Callable<A>) task,
-                (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
-        futures.set(i, future);
-        executionService.execute(future);
+        submits[i] = () -> executionService.execute(f);
       }
+    }
+    for (Runnable submit : submits) {
+      submit.run();
     }
     return result;
   }
@@ -233,18 +233,21 @@ public final class RetryExecutor implements AutoCloseable {
     }
     InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
     int nrFut = nrHedges + 1;
-    final AtomicReferenceArray<Future<A>> futures = new AtomicReferenceArray<>(nrFut);
+    final Future<A>[] futures = new Future[nrFut];
     ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
     FirstFuture<A> resultX = new FirstFuture<A>(futures, queue) {
       @Override
-      public void accept(Future<A> finished) {
+      @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
+      public void accept(final Future<A> finished) {
         super.accept(finished);
-        if (!result.isDone()) {
-          try {
-            A r = finished.get();
-            result.complete(r);
-          } catch (Exception ex) {
-            result.completeExceptionally(ex);
+        synchronized (this) {
+          if (!result.isDone()) {
+            try {
+              A r = finished.get();
+              result.complete(r);
+            } catch (Exception ex) {
+              result.completeExceptionally(ex);
+            }
           }
         }
       }
@@ -253,24 +256,25 @@ public final class RetryExecutor implements AutoCloseable {
     ConsumableRetryFutureTask<A> future =  new ConsumableRetryFutureTask(resultX, task,
             (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
     startRetryManager();
-    futures.set(0, future);
-    executionService.execute(future);
+    futures[0] = future;
+    Runnable[] submits = new Runnable[nrFut];
+    submits[0] = () -> executionService.execute(future);
     for (int i = 1; i < nrFut; i++) {
-      if (hedgeDelay > 0) {
-        ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
+      ConsumableRetryFutureTask<A> f = new ConsumableRetryFutureTask(
                 resultX, task, (RetryPredicate) predicate, executionEvents,
                 this::startRetryManager);
-        futures.set(i, f);
+      futures[i] = f;
+      if (hedgeDelay > 0) {
         DelayedTask<RetryFutureTask<?>>  delayedExecution = new DelayedTask<RetryFutureTask<?>>(
                 f, unit.toNanos(hedgeDelay));
         f.setExec(delayedExecution);
-        executionEvents.add(delayedExecution);
+        submits[i] = () -> executionEvents.add(delayedExecution);
       } else {
-        future = new ConsumableRetryFutureTask<>(resultX, (Callable<A>) task,
-                (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents, this::startRetryManager);
-        futures.set(i, future);
-        executionService.execute(future);
+        submits[i] = () -> executionService.execute(f);
       }
+    }
+    for (Runnable submit : submits) {
+      submit.run();
     }
     return result;
   }
@@ -293,16 +297,16 @@ public final class RetryExecutor implements AutoCloseable {
 
   private static class FirstFuture<T> implements Future<T>, Consumer<Future<T>> {
 
-    private final AtomicReferenceArray<Future<T>> futures;
+    private final Future<T>[] futures;
     private final BlockingQueue<Future<T>> queue;
     private boolean first = true;
     private final int nrHedges;
 
-    FirstFuture(final AtomicReferenceArray<Future<T>> futures,
+    FirstFuture(final Future<T>[] futures,
             final BlockingQueue<Future<T>> queue) {
       this.futures = futures;
       this.queue = queue;
-      this.nrHedges = futures.length() - 1;
+      this.nrHedges = futures.length - 1;
     }
 
     @Override
@@ -313,8 +317,8 @@ public final class RetryExecutor implements AutoCloseable {
           first = false;
           queue.add(finished);
           for (int i = 0;  i < nrHedges; i++) {
-            Future f = futures.get(i);
-            if (f != null && f != finished) {
+            Future f = futures[i];
+            if (f != finished) {
               f.cancel(true);
             }
           }
@@ -327,8 +331,8 @@ public final class RetryExecutor implements AutoCloseable {
     @Override
     public boolean cancel(final boolean mayInterruptIfRunning) {
       boolean result = true;
-      for (int i = 0, l =  futures.length(); i < l; i++) {
-        Future f  = futures.get(i);
+      for (int i = 0, l =  futures.length; i < l; i++) {
+        Future f  = futures[i];
         if (!f.cancel(mayInterruptIfRunning)) {
           result =  false;
         }
@@ -339,8 +343,8 @@ public final class RetryExecutor implements AutoCloseable {
     @Override
     public boolean isCancelled() {
       boolean result = true;
-      for (int i = 0, l =  futures.length(); i < l; i++) {
-        Future f  = futures.get(i);
+      for (int i = 0, l =  futures.length; i < l; i++) {
+        Future f  = futures[i];
         if (!f.isCancelled()) {
           result =  false;
         }
@@ -351,8 +355,8 @@ public final class RetryExecutor implements AutoCloseable {
     @Override
     public boolean isDone() {
       boolean result = true;
-      for (int i = 0, l =  futures.length(); i < l; i++) {
-        Future f  = futures.get(i);
+      for (int i = 0, l =  futures.length; i < l; i++) {
+        Future f  = futures[i];
         if (!f.isDone()) {
           result =  false;
         }
