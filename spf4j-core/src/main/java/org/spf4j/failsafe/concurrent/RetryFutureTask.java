@@ -92,7 +92,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
       synchronized (this) {
         CancellationException at = ex;
         if (previousResult != null && previousResult.isLeft()) {
-          at = Throwables.suppress(at, previousResult.getLeft());
+          Throwables.suppressLimited(at, previousResult.getLeft());
         }
         throw at;
       }
@@ -111,7 +111,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
             this.setCallable((Callable<T>) decision.getNewCallable());
             Throwable at = t;
             if (previousResult != null && previousResult.isLeft()) {
-              at = Throwables.suppress(at, previousResult.getLeft());
+                Throwables.suppressLimited(at, previousResult.getLeft());
             }
             previousResult = Either.left(at);
             DelayedTask<RetryFutureTask<?>> delayedTask = new DelayedTask<>(this, delayNanos);
@@ -119,6 +119,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
             delayedTasks.add(delayedTask);
             return false;
           case Abort:
+            this.exec = null;
             Either<Throwable, T> newRes = decision.getResult();
             if (newRes == null) {
               super.setException(t);
@@ -148,6 +149,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
         this.previousResult = Either.right(v);
         return false;
       case Abort:
+        this.exec = null;
         Either<Throwable, T> newRes = decision.getResult();
         if (newRes == null) {
           super.set(v);

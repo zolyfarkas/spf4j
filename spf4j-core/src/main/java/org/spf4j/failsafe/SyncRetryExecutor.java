@@ -162,10 +162,9 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
         lastEx = e;
         result = null;
         if (lastExChain != null) {
-          lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
-        } else {
-          lastExChain = lastEx;
+          Throwables.suppressLimited(lastEx, lastExChain, maxExceptionChain);
         }
+        lastExChain = lastEx;
       }
     }
     if (decision.getDecisionType() == RetryDecision.Type.Abort) {
@@ -174,10 +173,9 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
           if (r.isLeft()) {
             lastEx = r.getLeft();
             if (lastExChain != null) {
-              lastExChain = Throwables.suppress(lastEx, lastExChain, maxExceptionChain);
-            } else {
-              lastExChain = lastEx;
+              Throwables.suppressLimited(lastEx, lastExChain, maxExceptionChain);
             }
+            lastExChain = lastEx;
           } else {
             result = r.getRight();
             lastEx = null;

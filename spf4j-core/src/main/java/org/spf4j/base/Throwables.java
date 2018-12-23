@@ -361,21 +361,29 @@ public final class Throwables {
     return suppress(t, suppressed, MAX_THROWABLE_CHAIN);
   }
 
-  @CheckReturnValue
-  public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed,
+  public static void suppressLimited(@Nonnull final Throwable t, @Nonnull final Throwable suppressed) {
+    suppressLimited(t, suppressed, MAX_THROWABLE_CHAIN);
+  }
+
+  @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
+  public static void suppressLimited(@Nonnull final Throwable t, @Nonnull final Throwable suppressed,
           final int maxSuppressed) {
-    t.addSuppressed(suppressed);
-    while (getNrRecursiveSuppressedExceptions(t) > maxSuppressed) {
-      if (removeOldestSuppressedRecursive(t) == null) {
-        throw new IllegalArgumentException("Impossible state for " + t);
+    if (t == suppressed) {
+      return;
+    }
+    synchronized (t) {
+      t.addSuppressed(suppressed);
+      while (getNrRecursiveSuppressedExceptions(t) > maxSuppressed) {
+        if (removeOldestSuppressedRecursive(t) == null) {
+          throw new IllegalArgumentException("Impossible state for " + t);
+        }
       }
     }
-    return t;
   }
 
 
   @CheckReturnValue
-  public static <T extends Throwable> T cloneSuppress(@Nonnull final T t, @Nonnull final Throwable suppressed,
+  public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed,
           final int maxSuppressed) {
     T clone;
     try {

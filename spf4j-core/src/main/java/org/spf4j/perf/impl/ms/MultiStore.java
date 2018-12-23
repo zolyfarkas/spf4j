@@ -77,11 +77,10 @@ public final class MultiStore implements MeasurementStore {
           try {
             ids[i++] = store.alocateMeasurements(measurement, sampleTimeMillis);
           } catch (IOException e) {
-            if (ex == null) {
-              ex = e;
-            } else {
-              ex = Throwables.suppress(e, ex);
+            if (ex != null) {
+              Throwables.suppressLimited(e, ex);
             }
+            ex = e;
           }
         }
         if (ex != null) {
@@ -111,11 +110,10 @@ public final class MultiStore implements MeasurementStore {
       try {
         store.saveMeasurements(ids[i++], timeStampMillis, measurements);
       } catch (IOException e) {
-        if (ex == null) {
-          ex = e;
-        } else {
-          ex = Throwables.suppress(e, ex);
+        if (ex != null) {
+          Throwables.suppressLimited(e, ex);
         }
+        ex = e;
       }
     }
     if (ex != null) {
@@ -130,11 +128,10 @@ public final class MultiStore implements MeasurementStore {
       try {
         store.flush();
       } catch (IOException e) {
-        if (ex == null) {
-          ex = e;
-        } else {
-          ex = Throwables.suppress(e, ex);
+        if (ex != null) {
+          Throwables.suppressLimited(e, ex);
         }
+        ex = e;
       }
     }
     if (ex != null) {
@@ -149,11 +146,10 @@ public final class MultiStore implements MeasurementStore {
       try {
         store.close();
       } catch (IOException e) {
-        if (ex == null) {
-          ex = e;
-        } else {
-          ex = Throwables.suppress(e, ex);
+        if (ex != null) {
+          Throwables.suppressLimited(e, ex);
         }
+        ex = e;
       }
     }
     if (ex != null) {

@@ -75,7 +75,7 @@ public final class Futures {
         if (ex == null) {
           ex = e;
         } else {
-          ex = Throwables.suppress(ex, e);
+          Throwables.suppressLimited(ex, e);
         }
       }
     }
@@ -93,7 +93,7 @@ public final class Futures {
         if (ex == null) {
           ex = e;
         } else {
-          ex = Throwables.suppress(ex, e);
+          Throwables.suppressLimited(ex, e);
         }
       }
     }
@@ -130,17 +130,18 @@ public final class Futures {
         if (exception == null) {
           exception = ex;
         } else {
-          exception = Throwables.suppress(ex, exception);
+          Throwables.suppressLimited(ex, exception);
+          exception = ex;
         }
         RuntimeException cex = cancelAll(true, futures, i + 1);
         if (cex != null) {
-          exception = Throwables.suppress(exception, cex);
+          Throwables.suppressLimited(exception, cex);
         }
       } catch (TimeoutException | ExecutionException | RuntimeException ex) {
         if (exception == null) {
           exception = ex;
         } else {
-          exception = Throwables.suppress(exception, ex);
+          Throwables.suppressLimited(exception, ex);
         }
       }
     }
@@ -177,18 +178,19 @@ public final class Futures {
         if (exception == null) {
           exception = ex;
         } else {
-          exception = Throwables.suppress(ex, exception);
+          Throwables.suppressLimited(ex, exception);
+          exception = ex;
         }
         RuntimeException cex = cancelAll(true, iterator);
         if (cex != null) {
-          exception = Throwables.suppress(exception, cex);
+          Throwables.suppressLimited(exception, cex);
         }
         break;
       } catch (TimeoutException | ExecutionException | RuntimeException ex) {
         if (exception == null) {
           exception = ex;
         } else {
-          exception = Throwables.suppress(exception, ex);
+          Throwables.suppressLimited(exception, ex);
         }
       }
     }

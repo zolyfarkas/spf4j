@@ -59,7 +59,8 @@ public final class Iterables {
           if (ex == null) {
             hex.setValue(ex1);
           } else {
-            hex.setValue(Throwables.suppress(ex1, ex));
+            Throwables.suppressLimited(ex1, ex);
+            hex.setValue(ex1);
           }
         }
       }

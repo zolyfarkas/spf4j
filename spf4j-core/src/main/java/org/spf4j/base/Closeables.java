@@ -65,7 +65,8 @@ public final class Closeables {
         if (ex == null) {
           ex = ex1;
         } else {
-          ex = Throwables.suppress(ex1, ex);
+          Throwables.suppressLimited(ex1, ex);
+          ex = ex1;
         }
       }
     }
@@ -93,11 +94,10 @@ public final class Closeables {
       try {
         closeable.close();
       } catch (IOException ex1) {
-        if (ex == null) {
-          ex = ex1;
-        } else {
-          ex = Throwables.suppress(ex1, ex);
+        if (ex != null) {
+          Throwables.suppressLimited(ex1, ex);
         }
+        ex = ex1;
       }
     }
     return ex;
@@ -118,11 +118,10 @@ public final class Closeables {
       try {
         closeable.close();
       } catch (Exception ex1) {
-        if (ex == null) {
-          ex = ex1;
-        } else {
-          ex = Throwables.suppress(ex1, ex);
+        if (ex != null) {
+          Throwables.suppressLimited(ex1, ex);
         }
+        ex = ex1;
       }
     }
     return ex;
@@ -143,11 +142,10 @@ public final class Closeables {
       try {
         channel.close();
       } catch (IOException ex2) {
-        if (ex == null) {
-          ex = ex2;
-        } else {
-          ex = Throwables.suppress(ex, ex2);
+        if (ex != null) {
+          Throwables.suppressLimited(ex2, ex);
         }
+        ex = ex2;
       }
     }
     return ex;

@@ -653,10 +653,9 @@ public final class Callables {
       } catch (Exception e) { // only EX and RuntimeException
         lastEx = e;
         if (lastExChain != null) {
-          lastExChain = Throwables.suppress(lastEx, lastExChain);
-        } else {
-          lastExChain = lastEx;
+          Throwables.suppressLimited(lastEx, lastExChain);
         }
+        lastExChain = lastEx;
       }
     }
     if (decision == null) {

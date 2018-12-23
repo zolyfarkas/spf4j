@@ -18,6 +18,8 @@ package org.spf4j.failsafe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -25,6 +27,7 @@ import java.util.function.Function;
  */
 public final class Server {
 
+  private static final Logger LOG = LoggerFactory.getLogger(Server.class);
 
   private final Map<String, Function<Request, Response>> responses;
 
@@ -45,6 +48,7 @@ public final class Server {
 
   public Response execute(final Request request) throws Exception {
     if (breakException != null) {
+      LOG.debug("broken, throwing exception");
       throw breakException;
     }
     long deadlineMSEpoch = request.getDeadlineMSEpoch();
@@ -54,10 +58,10 @@ public final class Server {
     }
     Response resp = responses.get(request.getUrl()).apply(request);
     if (resp == null) {
-      return new Response(Response.Type.CLIENT_ERROR, null);
-    } else {
-      return resp;
+      resp = new Response(Response.Type.CLIENT_ERROR, null);
     }
+    LOG.debug("Response compleete {}", resp);
+    return resp;
   }
 
   @Override

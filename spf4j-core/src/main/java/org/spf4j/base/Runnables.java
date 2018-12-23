@@ -51,7 +51,8 @@ public final class Runnables {
         if (ex == null) {
           ex = ex1;
         } else {
-          ex = Throwables.suppress(ex1, ex);
+          Throwables.suppressLimited(ex1, ex);
+          ex = ex1;
         }
       }
     }

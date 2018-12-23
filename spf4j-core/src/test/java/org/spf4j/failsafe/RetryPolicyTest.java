@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultContextAwareExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.failsafe.concurrent.DefaultRetryExecutor;
 import org.spf4j.failsafe.concurrent.RetryExecutor;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
@@ -81,7 +82,8 @@ public class RetryPolicyTest {
   public void testNoRetryPolicyAsync() throws IOException, InterruptedException, TimeoutException {
     LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(TestLogRecord.class));
     try (LogAssert expect = vex) {
-      RetryPolicy.newBuilder().buildAsync().submit(() -> {
+      RetryPolicy.noRetryPolicy().async(HedgePolicy.NONE, DefaultRetryExecutor.instance())
+              .submit(() -> {
         throw new IOException();
       }).get();
       Assert.fail();
@@ -311,7 +313,7 @@ public class RetryPolicyTest {
                     "Result java.net.SocketException for ServerCall.*"))) {
       try {
         rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
-                1000, TimeUnit.MILLISECONDS).get();
+                1000, TimeUnit.MILLISECONDS).get(1000, TimeUnit.MILLISECONDS);
         Assert.fail();
       } catch (ExecutionException ex) {
         LOG.debug("Expected exception", ex);
@@ -346,11 +348,11 @@ public class RetryPolicyTest {
 
   @Test
   public void testSpecificExceptionRetryPolicy() throws TimeoutException, InterruptedException {
-    LogAssert expect = TestLoggers.sys().expect(LOG.getName(), Level.DEBUG, LogMatchers.hasFormat("encontered"));
+    LogAssert expect = TestLoggers.sys().expect(LOG.getName(), Level.DEBUG, LogMatchers.hasFormat("encountered"));
     RetryPolicy<Object, Callable<Object>> policy =
             RetryPolicy.newBuilder().withExceptionPartialPredicate(IllegalStateException.class,
             (ex, call) -> {
-              LOG.debug("encontered", ex);
+              LOG.debug("encountered", ex);
               return RetryDecision.abort();
             }).build();
     try {

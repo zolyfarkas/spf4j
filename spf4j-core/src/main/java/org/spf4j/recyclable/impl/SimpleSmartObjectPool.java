@@ -281,16 +281,17 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
       try {
         factory.dispose(obj);
       } catch (ObjectDisposeException ex) {
-        if (result == null) {
-          result = ex;
-        } else {
-          result = Throwables.suppress(ex, result);
+        if (result != null) {
+          Throwables.suppressLimited(ex, result);
         }
+        result = ex;
       } catch (Exception ex) {
         if (result == null) {
           result = new ObjectDisposeException(ex);
         } else {
-          result = Throwables.suppress(new ObjectDisposeException(ex), result);
+          ObjectDisposeException nex = new ObjectDisposeException(ex);
+          Throwables.suppressLimited(nex, result);
+          result = nex;
         }
       }
     }
@@ -310,11 +311,10 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             return false;
           }
         } catch (Exception e) {
-          if (resEx == null) {
-            resEx = e;
-          } else {
-            resEx = Throwables.suppress(e, resEx);
+          if (resEx != null) {
+            Throwables.suppressLimited(e, resEx);
           }
+          resEx = e;
         }
 
         Collection<T> returned = objectBorower.tryReturnObjectsIfNotNeededAnymore();
@@ -332,11 +332,10 @@ final class SimpleSmartObjectPool<T> implements SmartRecyclingSupplier<T> {
             return false;
           }
         } catch (Exception e) {
-          if (resEx == null) {
-            resEx = e;
-          } else {
-            resEx = Throwables.suppress(e, resEx);
+          if (resEx != null) {
+            Throwables.suppressLimited(e, resEx);
           }
+          resEx = e;
         }
       }
       if (resEx != null) {

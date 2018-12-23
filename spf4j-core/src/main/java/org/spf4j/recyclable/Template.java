@@ -94,14 +94,16 @@ public final class Template<T, R, E extends Exception> {
       try {
         pool.recycle(object, e);
       } catch (RuntimeException ex) {
-        throw Throwables.suppress(ex, e);
+        Throwables.suppressLimited(ex, e);
+        throw ex;
       }
       throw e;
     } catch (Exception e) {
       try {
         pool.recycle(object, e);
       } catch (RuntimeException ex) {
-        throw Throwables.suppress(ex, e);
+        Throwables.suppressLimited(ex, e);
+        throw ex;
       }
       if (exClass.isAssignableFrom(e.getClass())) {
         throw (E) e;
