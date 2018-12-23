@@ -32,6 +32,7 @@
 package org.spf4j.base;
 
 import java.io.IOException;
+import java.util.ServiceLoader;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
@@ -52,7 +53,20 @@ public final class Json {
 
   static {
     SimpleModule module = new SimpleModule("spf4j", new org.codehaus.jackson.Version(1, 0, 0, ""));
-    module.addSerializer(JsonWriteable.class, new JsonSerializer<JsonWriteable>() {
+    loadServices(module);
+    module.addSerializer(JsonWriteable.class, jsonWritableSerializer());
+    MAPPER.registerModule(module);
+  }
+
+  private static void loadServices(final SimpleModule module) {
+    ServiceLoader<JsonSerializer> loader = ServiceLoader.load(JsonSerializer.class);
+    for (JsonSerializer ser : loader) {
+      module.addSerializer(ser);
+    }
+  }
+
+  public static JsonSerializer<JsonWriteable> jsonWritableSerializer() {
+    return new JsonSerializer<JsonWriteable>() {
       @Override
       public void serialize(final JsonWriteable value, final JsonGenerator jgen, final SerializerProvider provider)
               throws IOException {
@@ -69,7 +83,8 @@ public final class Json {
         value.writeJsonTo(json);
         jgen.writeRawValue(json.toString());
       }
-    });
-    MAPPER.registerModule(module);
+    };
   }
+
+
 }
