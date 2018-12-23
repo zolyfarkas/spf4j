@@ -117,6 +117,7 @@ public final class Throwables {
     public boolean test(final Throwable t) {
 
       if (t instanceof Error && !(t instanceof StackOverflowError)
+              && !(t instanceof AssertionError)
               && !(t.getClass().getName().endsWith("TokenMgrError"))) {
         return true;
       }
