@@ -251,7 +251,7 @@ public final class TestLoggers implements ILoggerFactory {
       config = config.add(category, handler, whereTo);
       resetJulConfig();
       if (ctx != null) {
-        ctx.add(TestExecutionContextTags.CLOSEABLES, reg);
+        ctx.addCloseable(reg);
       }
     }
   }

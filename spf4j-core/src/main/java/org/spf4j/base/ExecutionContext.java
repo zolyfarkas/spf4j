@@ -94,6 +94,14 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   void addLogs(Collection<Slf4jLogRecord> log);
 
   /**
+   * Attach a AutoCloseable to execution context.
+   * All of them will be closed when context is closed, in reverse registration order.
+   * @param closeable
+   */
+  @Beta
+  void addCloseable(AutoCloseable closeable);
+
+  /**
    * The minimum log level accepted by this execution context;
    * The logs that we will store in this context.
    * @return

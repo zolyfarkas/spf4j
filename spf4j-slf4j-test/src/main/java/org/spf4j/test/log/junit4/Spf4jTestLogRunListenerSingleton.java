@@ -37,7 +37,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Closeables;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
@@ -50,7 +49,6 @@ import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.TestLogRecordImpl;
-import org.spf4j.test.log.TestExecutionContextTags;
 import org.spf4j.test.log.TestLogRecord;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.TestUtils;
@@ -156,7 +154,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
       Threads.dumpToPrintStream(System.err);
     }, delayMillis, TimeUnit.MILLISECONDS);
-    ctx.add(TestExecutionContextTags.CLOSEABLES, () -> {
+    ctx.addCloseable(() -> {
           future.cancel(true);
         });
   }
@@ -265,13 +263,6 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     ExecutionContext currentThreadContext = ExecutionContexts.current();
     if (ctx == currentThreadContext) {
       ctx.close();
-      List<AutoCloseable> closeables = (List<AutoCloseable>) ctx.get(TestExecutionContextTags.CLOSEABLES);
-      if (closeables != null) {
-        Exception ex = Closeables.closeAll(closeables);
-        if (ex != null) {
-          throw new IllegalStateException("cannot close " + closeables, ex);
-        }
-      }
     } else {
       throw new IllegalStateException("JUnit Threading model not as expected " + ctx + " != "
               + currentThreadContext);

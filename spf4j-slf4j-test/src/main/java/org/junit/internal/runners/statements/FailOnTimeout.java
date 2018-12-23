@@ -310,20 +310,14 @@ public final class FailOnTimeout extends Statement {
 
         @Nullable
         public Throwable call() throws Exception {
-            if (ctx != null) {
-              ctx.attach();
-            }
-            try {
+
+            try (ExecutionContext aCtx = ExecutionContexts.start("asyncTest", ctx)) {
                 startLatch.countDown();
                 originalStatement.evaluate();
             } catch (Exception e) {
                 throw e;
             } catch (Throwable e) {
                 return e;
-            } finally {
-              if (ctx != null) {
-                ctx.detach();
-              }
             }
             return null;
         }

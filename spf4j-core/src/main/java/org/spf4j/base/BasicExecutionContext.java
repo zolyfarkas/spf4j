@@ -35,9 +35,11 @@ import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -78,6 +80,8 @@ public class BasicExecutionContext implements ExecutionContext {
   private final long deadlineNanos;
 
   private ArrayDeque<Slf4jLogRecord> logs;
+
+  private List<AutoCloseable> closeables;
 
   private Map<Tag, Object> baggage;
 
@@ -121,6 +125,7 @@ public class BasicExecutionContext implements ExecutionContext {
     this.baggage = Collections.EMPTY_MAP;
     this.logs = null;
     this.minBackendLogLevel = null;
+    this.closeables = Collections.EMPTY_LIST;
   }
 
   @Override
@@ -186,10 +191,28 @@ public class BasicExecutionContext implements ExecutionContext {
       if (attached !=  null) {
         detach();
       }
+      Exception ex = null;
+      for (int i = closeables.size() - 1; i >= 0; i--) {
+        try {
+          closeables.get(i).close();
+        } catch (Exception e) {
+          if (ex != null) {
+            Throwables.suppressLimited(e, ex);
+          }
+          ex = e;
+        }
+      }
       if (parent != null &&  logs != null && relation == Relation.CHILD_OF) {
         parent.addLogs(logs);
       }
       isClosed = true;
+      if (ex != null) {
+        if (ex instanceof RuntimeException) {
+          throw (RuntimeException) ex;
+        } else {
+          throw new RuntimeException(ex);
+        }
+      }
     }
   }
 
@@ -201,6 +224,10 @@ public class BasicExecutionContext implements ExecutionContext {
 
   @Override
   public final synchronized void attach() {
+    if (attached != null) {
+      throw new IllegalStateException("Context already attached, can only be attached to one thread at a time: "
+              + attached);
+    }
     attached = ExecutionContexts.threadLocalAttacher().attach(this);
   }
 
@@ -243,6 +270,15 @@ public class BasicExecutionContext implements ExecutionContext {
       logs.removeFirst();
     }
     logs.addLast(log);
+  }
+
+  @Beta
+  @Override
+  public final synchronized void addCloseable(final AutoCloseable closeable) {
+    if (this.closeables.isEmpty()) {
+      this.closeables = new ArrayList<>(4);
+    }
+    this.closeables.add(closeable);
   }
 
   @Override
