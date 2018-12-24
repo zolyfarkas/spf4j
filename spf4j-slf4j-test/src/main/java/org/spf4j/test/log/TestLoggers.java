@@ -32,6 +32,7 @@ import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -206,6 +207,24 @@ public final class TestLoggers implements ILoggerFactory {
           final Collector<TestLogRecord, ?, T> collector) {
     return collect(category, fromLevel, Level.ERROR, passThrough, collector);
   }
+
+  /**
+   * Collect matching logs.
+   * @return
+   */
+  @CheckReturnValue
+  public <T> LogCollection<T> collect(final String category, final Level fromLevel,
+          final boolean passThrough, final Matcher<TestLogRecord> matcher,
+          final Collector<TestLogRecord, ?, T> collector) {
+    return collect(category, fromLevel, passThrough, XCollectors.filtering((log) -> {
+              if (matcher.matches(log)) {
+                log.attach(Attachments.ASSERTED);
+                return true;
+              }
+              return false;
+            }, collector));
+  }
+
 
   /**
    * Collect a bunch of logs.
