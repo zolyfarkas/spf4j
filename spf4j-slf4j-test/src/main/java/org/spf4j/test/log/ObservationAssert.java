@@ -16,6 +16,9 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.base.TimeSource;
 
 /**
  * @author Zoltan Farkas
@@ -28,5 +31,30 @@ public interface ObservationAssert {
    */
   @DischargesObligation
   void assertObservation();
+
+
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
+  default void assertObservation(final long time, final TimeUnit tu) {
+    long deadline = TimeSource.nanoTime() + tu.toNanos(time);
+    AssertionError rae;
+    do  {
+      try {
+        assertObservation();
+        rae = null;
+      } catch (AssertionError ae) {
+        rae = ae;
+      }
+      if (rae == null) {
+        return;
+      }
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        throw new AssertionError(ex);
+      }
+    } while (TimeSource.nanoTime() < deadline);
+    throw rae;
+  }
 
 }
