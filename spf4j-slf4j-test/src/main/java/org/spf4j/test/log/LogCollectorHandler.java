@@ -77,7 +77,6 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
   @Override
   public T get() {
     synchronized (accObj) {
-      close();
       return finisher.apply(accObj);
     }
   }
