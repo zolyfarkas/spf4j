@@ -32,10 +32,12 @@ import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.spf4j.log.SLF4JBridgeHandler;
@@ -209,6 +211,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   /**
    * Collect matching logs.
+   * matched logs are asserted.
    * @return
    */
   @CheckReturnValue
@@ -222,6 +225,36 @@ public final class TestLoggers implements ILoggerFactory {
               }
               return false;
             }, collector));
+  }
+
+
+  /**
+   * expect a stream of logs filtered by a matcher, this strem will be matched against the matchedMatcher.
+   * @return
+   */
+  @CheckReturnValue
+  public LogAssert expect(final String category, final Level fromLevel,
+          final boolean passThrough, final Matcher<TestLogRecord> matcher,
+          final Matcher<Iterable<TestLogRecord>> matchedMatcher) {
+    LogCollection<List<TestLogRecord>> lc = collect(category, fromLevel, passThrough, XCollectors.filtering((log) -> {
+      if (matcher.matches(log)) {
+        log.attach(Attachments.ASSERTED);
+        return true;
+      }
+      return false;
+    }, Collectors.toList()));
+    return new LogAssert() {
+      @Override
+      public void assertObservation() {
+        MatcherAssert.assertThat(lc.get(), matchedMatcher);
+      }
+
+      @Override
+      public void close() {
+        assertObservation();
+        lc.close();
+      }
+    };
   }
 
 
