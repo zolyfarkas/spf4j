@@ -37,12 +37,14 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.Wrapper;
 
 /**
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
-public final class ExecContextLogger implements Logger {
+public final class ExecContextLogger implements Logger, Wrapper<Logger> {
+
 
   interface Log {
 
@@ -67,6 +69,16 @@ public final class ExecContextLogger implements Logger {
   public ExecContextLogger(final Logger wrapped, final Log traceLogger) {
     this.wrapped = wrapped;
     this.traceLogger = traceLogger;
+  }
+
+  @Override
+  public Logger getWrapped() {
+    return wrapped;
+  }
+
+  @Override
+  public Logger wrap(final Logger toWrap) {
+    return new ExecContextLogger(wrapped);
   }
 
   @Override
