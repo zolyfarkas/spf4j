@@ -19,12 +19,13 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.Nonnull;
+import org.spf4j.base.Wrapper;
 
 /**
  * An {@link InputStream} that counts the number of bytes read.
  * initial count can be provided
  */
-public final class CountingInputStream extends FilterInputStream {
+public final class CountingInputStream extends FilterInputStream implements Wrapper<InputStream> {
 
   private long count;
   private long mark = -1;
@@ -37,6 +38,10 @@ public final class CountingInputStream extends FilterInputStream {
   public CountingInputStream(@Nonnull final InputStream in, final long count) {
     super(in);
     this.count = count;
+  }
+
+  public CountingInputStream(final InputStream in) {
+    super(in);
   }
 
   /** Returns the number of bytes read. */
@@ -92,6 +97,16 @@ public final class CountingInputStream extends FilterInputStream {
   @Override
   public String toString() {
     return "CountingInputStream{" + "count=" + count + ", mark=" + mark + '}';
+  }
+
+  @Override
+  public InputStream getWrapped() {
+    return this.in;
+  }
+
+  @Override
+  public InputStream wrap(final InputStream toWrap) {
+    return new CountingInputStream(toWrap);
   }
 
 

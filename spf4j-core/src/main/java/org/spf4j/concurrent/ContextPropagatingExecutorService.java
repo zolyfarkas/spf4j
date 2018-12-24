@@ -42,63 +42,64 @@ import java.util.concurrent.TimeoutException;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeoutDeadline;
+import org.spf4j.base.Wrapper;
 
 /**
  * @author Zoltan Farkas
  */
-public class ContextPropagatingExecutorService implements ExecutorService {
+public class ContextPropagatingExecutorService implements ExecutorService, Wrapper<ExecutorService> {
 
-  private final ExecutorService wrapped;
+  private final ExecutorService es;
 
   public ContextPropagatingExecutorService(final ExecutorService wrapped) {
-    this.wrapped = wrapped;
+    this.es = wrapped;
   }
 
   @Override
   public final void shutdown() {
-    wrapped.shutdown();
+    es.shutdown();
   }
 
   @Override
   public final List<Runnable> shutdownNow() {
-    return wrapped.shutdownNow();
+    return es.shutdownNow();
   }
 
   @Override
   public final boolean isShutdown() {
-    return wrapped.isShutdown();
+    return es.isShutdown();
   }
 
   @Override
   public final boolean isTerminated() {
-    return wrapped.isTerminated();
+    return es.isTerminated();
   }
 
   @Override
   public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-    return wrapped.awaitTermination(timeout, unit);
+    return es.awaitTermination(timeout, unit);
   }
 
   @Override
   public final <T> Future<T> submit(final Callable<T> task) {
-    return wrapped.submit(ExecutionContexts.propagatingCallable(task));
+    return es.submit(ExecutionContexts.propagatingCallable(task));
   }
 
   @Override
   public final <T> Future<T> submit(final Runnable task, final T result) {
-    return wrapped.submit(ExecutionContexts.propagatingRunnable(task), result);
+    return es.submit(ExecutionContexts.propagatingRunnable(task), result);
   }
 
   @Override
   public final Future<?> submit(final Runnable task) {
-    return wrapped.submit(ExecutionContexts.propagatingRunnable(task));
+    return es.submit(ExecutionContexts.propagatingRunnable(task));
   }
 
   @Override
   public final <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks)
           throws InterruptedException {
 
-    return wrapped.invokeAll(ExecutionContexts.propagatingCallables(tasks));
+    return es.invokeAll(ExecutionContexts.propagatingCallables(tasks));
   }
 
   @Override
@@ -107,7 +108,7 @@ public class ContextPropagatingExecutorService implements ExecutorService {
           throws InterruptedException {
     ExecutionContext current = ExecutionContexts.current();
     if (current == null) {
-      return wrapped.invokeAll(tasks, timeout, unit);
+      return es.invokeAll(tasks, timeout, unit);
     } else {
       TimeoutDeadline td;
       try {
@@ -115,7 +116,7 @@ public class ContextPropagatingExecutorService implements ExecutorService {
       } catch (TimeoutException ex) {
         return Futures.timedOutFutures(tasks.size(), ex);
       }
-      return wrapped.invokeAll(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),
+      return es.invokeAll(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),
               td.getTimeoutNanos(), TimeUnit.NANOSECONDS);
     }
   }
@@ -123,7 +124,7 @@ public class ContextPropagatingExecutorService implements ExecutorService {
   @Override
   public final <T> T invokeAny(final Collection<? extends Callable<T>> tasks)
           throws InterruptedException, ExecutionException {
-    return wrapped.invokeAny(ExecutionContexts.propagatingCallables(tasks));
+    return es.invokeAny(ExecutionContexts.propagatingCallables(tasks));
   }
 
   @Override
@@ -131,22 +132,38 @@ public class ContextPropagatingExecutorService implements ExecutorService {
           throws InterruptedException, ExecutionException, TimeoutException {
     ExecutionContext current = ExecutionContexts.current();
     if (current == null) {
-      return wrapped.invokeAny(tasks, timeout, unit);
+      return es.invokeAny(tasks, timeout, unit);
     } else {
       TimeoutDeadline td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);
-      return wrapped.invokeAny(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),
+      return es.invokeAny(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),
               td.getTimeoutNanos(), TimeUnit.NANOSECONDS);
     }
   }
 
   @Override
   public final void execute(final Runnable command) {
-    wrapped.execute(ExecutionContexts.propagatingRunnable(command));
+    es.execute(ExecutionContexts.propagatingRunnable(command));
   }
 
   @Override
   public final String toString() {
-    return "ContextPropagatingExecutorService{" + "wrapped=" + wrapped + '}';
+    return "ContextPropagatingExecutorService{" + "wrapped=" + es + '}';
+  }
+
+  /**
+   * Overwrite as needed for a ScheduledExecutorService, etc
+   */
+  @Override
+  public ExecutorService getWrapped() {
+    return es;
+  }
+
+  /**
+   * Overwrite as needed for a ScheduledExecutorService, etc
+   */
+  @Override
+  public ExecutorService wrap(final ExecutorService toWrap) {
+    return new ContextPropagatingExecutorService(toWrap);
   }
 
 }
