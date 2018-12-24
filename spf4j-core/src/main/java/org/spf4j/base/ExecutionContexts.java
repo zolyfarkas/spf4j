@@ -162,15 +162,15 @@ public final class ExecutionContexts {
    * @return
    */
   public static ExecutionContext start(final long timeout, final TimeUnit tu) {
-    return start("anon", null, timeout, tu);
+    return start("anon", current(), timeout, tu);
   }
 
   public static ExecutionContext start(final String opname) {
-    return start(opname, null, DEFAULT_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);
+    return start(opname, current(), DEFAULT_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);
   }
 
   public static ExecutionContext start(final String opname, final long timeout, final TimeUnit tu) {
-    return start(opname, null, timeout, tu);
+    return start(opname, current(), timeout, tu);
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
@@ -188,11 +188,11 @@ public final class ExecutionContexts {
   }
 
   public static ExecutionContext start(final String name, final long startTimeNanos, final long deadlineNanos) {
-    return start(name, null, startTimeNanos, deadlineNanos);
+    return start(name, current(), startTimeNanos, deadlineNanos);
   }
 
   public static ExecutionContext start(final String name, final long deadlineNanos) {
-    return start(name, null, TimeSource.nanoTime(), deadlineNanos);
+    return start(name, current(), TimeSource.nanoTime(), deadlineNanos);
   }
 
   public static ExecutionContext start(final String name,
@@ -430,7 +430,7 @@ public final class ExecutionContexts {
 
     @Override
     public T call() throws Exception {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
+      try (ExecutionContext ctx = current.startChild(task.toString())) {
         return task.call();
       }
     }
@@ -470,7 +470,7 @@ public final class ExecutionContexts {
 
     @Override
     public void run() {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {
+      try (ExecutionContext ctx = current.startChild(task.toString())) {
         task.run();
       }
     }
