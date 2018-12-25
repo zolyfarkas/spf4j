@@ -86,10 +86,11 @@ public final class Converters {
   }
 
   public static Throwable convert(final java.lang.Throwable throwable) {
+    String message = throwable.getMessage();
     if (throwable instanceof RemoteException) {
           return Throwable.newBuilder()
             .setClassName(throwable.getClass().getName())
-            .setMessage(throwable.getMessage())
+            .setMessage(message == null ? "" : message)
             .setStackTrace(convert(throwable.getStackTrace()))
             .setSuppressed(convert(throwable.getSuppressed()))
             .setCause(((RemoteException) throwable).getRemoteCause())
@@ -98,7 +99,7 @@ public final class Converters {
     java.lang.Throwable cause = throwable.getCause();
     return Throwable.newBuilder()
             .setClassName(throwable.getClass().getName())
-            .setMessage(throwable.getMessage())
+            .setMessage(message == null ? "" : message)
             .setCause(cause == null ? null : convert(cause))
             .setStackTrace(convert(throwable.getStackTrace()))
             .setSuppressed(convert(throwable.getSuppressed()))
@@ -109,7 +110,7 @@ public final class Converters {
     return new RemoteException(source, throwable);
   }
 
-  public static LogRecord convert(final String traceId, final Slf4jLogRecord logRecord) {
+  public static LogRecord convert(final String origin, final String traceId, final Slf4jLogRecord logRecord) {
     java.lang.Throwable extraThrowable = logRecord.getExtraThrowable();
     Marker marker = logRecord.getMarker();
     Object[] extraArguments = logRecord.getExtraArguments();
@@ -127,15 +128,16 @@ public final class Converters {
         }
       }
     }
-    return new LogRecord(traceId, Instant.ofEpochMilli(logRecord.getTimeStamp()),
+    return new LogRecord(origin, traceId, Instant.ofEpochMilli(logRecord.getTimeStamp()),
     logRecord.getLoggerName(), logRecord.getThreadName(), logRecord.getMessage(),
     extraThrowable == null ? null : convert(extraThrowable), xArgs);
   }
 
-  public static List<LogRecord> convert(final String traceId, final List<Slf4jLogRecord> logRecords) {
+  public static List<LogRecord> convert(final String origin, final String traceId,
+          final List<Slf4jLogRecord> logRecords) {
     List<LogRecord> result = new ArrayList<>(logRecords.size());
     for (Slf4jLogRecord log : logRecords) {
-      result.add(convert(traceId, log));
+      result.add(convert(origin, traceId, log));
     }
     return result;
   }
