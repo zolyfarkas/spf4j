@@ -60,7 +60,7 @@ import org.spf4j.concurrent.Futures;
 import org.spf4j.concurrent.LifoThreadPoolExecutorSQP;
 import org.spf4j.failsafe.AsyncRetryExecutor;
 import org.spf4j.failsafe.RetryPolicy;
-import org.spf4j.failsafe.concurrent.RetryExecutor;
+import org.spf4j.failsafe.concurrent.FailSafeExecutorImpl;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.log.TestLoggers;
@@ -255,7 +255,7 @@ public final class ObjectPoolBuilderTest {
     Thread monitor = startDeadlockMonitor(pool, deadlockTimeout);
     ExecutorService execService = new LifoThreadPoolExecutorSQP("test", 10, 10,
             5000, 1024, true);
-    RetryExecutor exec = new RetryExecutor(execService);
+    FailSafeExecutorImpl exec = new FailSafeExecutorImpl(execService);
     AsyncRetryExecutor policy = RetryPolicy.newBuilder()
             .withDefaultThrowableRetryPredicate().buildAsync(exec);
     int nrTests = 1000;

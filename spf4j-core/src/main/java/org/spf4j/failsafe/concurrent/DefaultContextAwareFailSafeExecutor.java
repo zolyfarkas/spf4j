@@ -15,25 +15,28 @@
  */
 package org.spf4j.failsafe.concurrent;
 
-import org.spf4j.concurrent.DefaultContextAwareExecutor;
-
 /**
  * A default context aware retry executor.
  * @author Zoltan Farkas
  */
-public final class DefaultContextAwareRetryExecutor {
+public final class DefaultContextAwareFailSafeExecutor {
 
-  private DefaultContextAwareRetryExecutor() { }
+  private DefaultContextAwareFailSafeExecutor() { }
 
-  private static final RetryExecutor R_EXEC = new RetryExecutor(DefaultContextAwareExecutor.instance());
+  private static final FailSafeExecutor R_EXEC =
+          new ContextPropagatingFailSafeExecutor(DefaultFailSafeExecutor.instance());
 
   static {
     org.spf4j.base.Runtime.queueHook(0, () -> {
-      R_EXEC.initiateClose();
+      try {
+        R_EXEC.close();
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
     });
   }
 
-  public static RetryExecutor instance() {
+  public static FailSafeExecutor instance() {
     return R_EXEC;
   }
 

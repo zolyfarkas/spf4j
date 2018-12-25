@@ -56,9 +56,9 @@ import org.spf4j.concurrent.DefaultExecutor;
  *
  * @author zoly
  */
-public final class RetryExecutor implements AutoCloseable {
+public final class FailSafeExecutorImpl implements FailSafeExecutor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RetryExecutor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FailSafeExecutorImpl.class);
 
   private static final Future<?> SHUTDOWN = new Future() {
     @Override
@@ -140,10 +140,11 @@ public final class RetryExecutor implements AutoCloseable {
 
   }
 
-  public RetryExecutor(final ExecutorService exec) {
+  public FailSafeExecutorImpl(final ExecutorService exec) {
     executionService = exec;
   }
 
+  @Override
   public void close() throws InterruptedException {
     synchronized (sync) {
       shutdownRetryManager();
@@ -163,7 +164,9 @@ public final class RetryExecutor implements AutoCloseable {
   }
 
 
-  public <A, C extends Callable<? extends A>> Future<A> submit(final C task, final RetryPredicate<A, C> predicate) {
+  @Override
+  public <A> Future<A> submit(final Callable<? extends A> task,
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
     RetryFutureTask<A> result =
             new RetryFutureTask(task, (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents,
               this::startRetryManager);
@@ -172,8 +175,9 @@ public final class RetryExecutor implements AutoCloseable {
     return (Future<A>) result;
   }
 
-  public <A, C extends Callable<? extends A>> CompletableFuture<A> submitRx(final C task,
-          final RetryPredicate<A, C> predicate) {
+  @Override
+  public <A> CompletableFuture<A> submitRx(final Callable<? extends A> task,
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
     InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
     ConsumableRetryFutureTask<A> rft =
             new ConsumableRetryFutureTask<>(f -> {
@@ -191,8 +195,10 @@ public final class RetryExecutor implements AutoCloseable {
     return result;
   }
 
-  public <A, C extends Callable<? extends A>> Future<A> submit(final C task,
-          final RetryPredicate<A, C> predicate, final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
+  @Override
+  public <A> Future<A> submit(final Callable<? extends A> task,
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate,
+          final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
     if (nrHedges <= 0) {
       return submit(task, predicate);
     }
@@ -226,8 +232,10 @@ public final class RetryExecutor implements AutoCloseable {
     return result;
   }
 
-  public <A, C extends Callable<? extends A>> CompletableFuture<A> submitRx(final C task,
-          final RetryPredicate<A, C> predicate, final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
+  @Override
+  public <A> CompletableFuture<A> submitRx(final Callable<? extends A> task,
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate,
+          final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
     if (nrHedges <= 0) {
       return submitRx(task, predicate);
     }
@@ -281,8 +289,9 @@ public final class RetryExecutor implements AutoCloseable {
 
 
 
-  public <A, C extends Callable<? extends A>> void execute(final C task,
-          final RetryPredicate<A, C> predicate) {
+  @Override
+  public <A> void execute(final Callable<? extends A> task,
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
     RetryFutureTask<A> result = new RetryFutureTask(task, predicate, executionEvents, this::startRetryManager);
     executionService.execute(result);
   }

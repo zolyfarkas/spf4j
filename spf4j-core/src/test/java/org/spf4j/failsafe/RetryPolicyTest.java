@@ -33,8 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultContextAwareExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
-import org.spf4j.failsafe.concurrent.DefaultRetryExecutor;
-import org.spf4j.failsafe.concurrent.RetryExecutor;
+import org.spf4j.failsafe.concurrent.DefaultFailSafeExecutor;
+import org.spf4j.failsafe.concurrent.FailSafeExecutorImpl;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
 import org.spf4j.test.matchers.LogMatchers;
@@ -51,11 +51,11 @@ public class RetryPolicyTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPolicyTest.class);
 
-  private static RetryExecutor es;
+  private static FailSafeExecutorImpl es;
 
   @BeforeClass
   public static void init() {
-    es = new RetryExecutor(DefaultContextAwareExecutor.instance());
+    es = new FailSafeExecutorImpl(DefaultContextAwareExecutor.instance());
   }
 
   @AfterClass
@@ -82,7 +82,7 @@ public class RetryPolicyTest {
   public void testNoRetryPolicyAsync() throws IOException, InterruptedException, TimeoutException {
     LogAssert vex =  TestLoggers.sys().dontExpect(PREDICATE_CLASS, Level.DEBUG, Matchers.any(TestLogRecord.class));
     try (LogAssert expect = vex) {
-      RetryPolicy.noRetryPolicy().async(HedgePolicy.NONE, DefaultRetryExecutor.instance())
+      RetryPolicy.noRetryPolicy().async(HedgePolicy.NONE, DefaultFailSafeExecutor.instance())
               .submit(() -> {
         throw new IOException();
       }).get();

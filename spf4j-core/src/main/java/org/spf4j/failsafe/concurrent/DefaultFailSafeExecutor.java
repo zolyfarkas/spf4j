@@ -21,11 +21,11 @@ import org.spf4j.concurrent.DefaultExecutor;
  * a default Retry executor.
  * @author Zoltan Farkas
  */
-public final class DefaultRetryExecutor {
+public final class DefaultFailSafeExecutor {
 
-  private DefaultRetryExecutor() { }
+  private DefaultFailSafeExecutor() { }
 
-  private static final RetryExecutor R_EXEC = new RetryExecutor(DefaultExecutor.instance());
+  private static final FailSafeExecutorImpl R_EXEC = new FailSafeExecutorImpl(DefaultExecutor.instance());
 
   static {
     org.spf4j.base.Runtime.queueHook(0, () -> {
@@ -33,7 +33,7 @@ public final class DefaultRetryExecutor {
     });
   }
 
-  public static RetryExecutor instance() {
+  public static FailSafeExecutorImpl instance() {
     return R_EXEC;
   }
 

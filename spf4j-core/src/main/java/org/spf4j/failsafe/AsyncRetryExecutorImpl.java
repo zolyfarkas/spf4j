@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.spf4j.failsafe.concurrent.RetryExecutor;
+import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 
 /**
  *
@@ -51,10 +51,10 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
 
   private final HedgePolicy hedgePolicy;
 
-  private final RetryExecutor executor;
+  private final FailSafeExecutor executor;
 
   AsyncRetryExecutorImpl(final RetryPolicy<T, C> retryPolicy, final HedgePolicy hedgePolicy,
-          final RetryExecutor executor) {
+          final FailSafeExecutor executor) {
     this.executor = executor;
     this.retryPolicy = retryPolicy;
     this.hedgePolicy =  hedgePolicy;

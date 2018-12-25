@@ -58,7 +58,7 @@ public class RetryExecutorTest {
   @ExpectLog(category = "org.spf4j.failsafe.concurrent.RetryExecutorTest", level = Level.DEBUG,
           nrTimes = 3, messageRegexp = "Executing .*")
   public void testHedgedretryExecution() throws InterruptedException, ExecutionException {
-    try (RetryExecutor exec = new RetryExecutor(DefaultExecutor.INSTANCE)) {
+    try (FailSafeExecutorImpl exec = new FailSafeExecutorImpl(DefaultExecutor.INSTANCE)) {
       Future fut = exec.submit(() -> {
         LOG.debug("Executing {}", this);
         return Thread.currentThread().getName();
@@ -71,7 +71,7 @@ public class RetryExecutorTest {
   @ExpectLog(category = "org.spf4j.failsafe.concurrent.RetryExecutorTest", level = Level.DEBUG,
           nrTimes = 1, messageRegexp = "Executing .*")
   public void testHedgedretryExecution2() throws InterruptedException, ExecutionException {
-    try (RetryExecutor exec = new RetryExecutor(DefaultExecutor.INSTANCE)) {
+    try (FailSafeExecutorImpl exec = new FailSafeExecutorImpl(DefaultExecutor.INSTANCE)) {
       Future fut = exec.submit(() -> {
         LOG.debug("Executing {}", this);
         return Thread.currentThread().getName();
@@ -82,7 +82,7 @@ public class RetryExecutorTest {
 
   @Test(expected = ExecutionException.class)
   public void testHedgedretryExecution3() throws InterruptedException, ExecutionException {
-    try (RetryExecutor exec = new RetryExecutor(DefaultExecutor.INSTANCE)) {
+    try (FailSafeExecutorImpl exec = new FailSafeExecutorImpl(DefaultExecutor.INSTANCE)) {
       Future fut = exec.submit(() -> {
         throw new RuntimeException();
       }, RetryPredicate.NORETRY, 2, 10, TimeUnit.MILLISECONDS);
@@ -93,7 +93,7 @@ public class RetryExecutorTest {
   @Test(timeout = 1000)
   public void testHedgedretryExecution4() throws InterruptedException, ExecutionException {
     AtomicInteger ai = new AtomicInteger();
-    try (RetryExecutor exec = new RetryExecutor(DefaultExecutor.INSTANCE)) {
+    try (FailSafeExecutorImpl exec = new FailSafeExecutorImpl(DefaultExecutor.INSTANCE)) {
       long nanoTime = TimeSource.nanoTime();
       Future fut = exec.submit(() -> {
         if (ai.getAndIncrement() == 0) {

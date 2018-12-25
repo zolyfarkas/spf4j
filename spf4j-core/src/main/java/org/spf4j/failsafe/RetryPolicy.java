@@ -44,8 +44,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLogger;
 import org.spf4j.base.Throwables;
-import org.spf4j.failsafe.concurrent.DefaultContextAwareRetryExecutor;
-import org.spf4j.failsafe.concurrent.RetryExecutor;
+import org.spf4j.failsafe.concurrent.DefaultContextAwareFailSafeExecutor;
+import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 
 /**
  * @author Zoltan Farkas
@@ -105,17 +105,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
             exceptionClass, maxExceptionChain);
   }
 
-  public final AsyncRetryExecutor<T, C> async(final RetryExecutor exec) {
+  public final AsyncRetryExecutor<T, C> async(final FailSafeExecutor exec) {
     return new AsyncRetryExecutorImpl<>(this, HedgePolicy.DEFAULT, exec);
   }
 
-  public final AsyncRetryExecutor<T, C> async(final HedgePolicy hedgePolicy, final RetryExecutor exec) {
+  public final AsyncRetryExecutor<T, C> async(final HedgePolicy hedgePolicy, final FailSafeExecutor exec) {
     return new AsyncRetryExecutorImpl<>(this, hedgePolicy, exec);
   }
 
 
   public final AsyncRetryExecutor async() {
-    return async(DefaultContextAwareRetryExecutor.instance());
+    return async(DefaultContextAwareFailSafeExecutor.instance());
   }
 
   public final RetryPredicate<T, C> getRetryPredicate(final long startTimeNanos, final long deadlineNanos) {
@@ -391,11 +391,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
     @CheckReturnValue
     public AsyncRetryExecutor<T, C> buildAsync() {
-      return buildAsync(DefaultContextAwareRetryExecutor.instance());
+      return buildAsync(DefaultContextAwareFailSafeExecutor.instance());
     }
 
     @CheckReturnValue
-    public AsyncRetryExecutor<T, C> buildAsync(final RetryExecutor es) {
+    public AsyncRetryExecutor<T, C> buildAsync(final FailSafeExecutor es) {
        return build().async(es);
     }
 
