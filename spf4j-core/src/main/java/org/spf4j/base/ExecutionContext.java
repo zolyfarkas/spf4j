@@ -234,6 +234,23 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
     });
   }
 
+  @Nullable
+  @Beta
+  default <T> List<T> addToRoot(final Tag<List<T>> tag, final T data) {
+    ExecutionContext ctx = this;
+    ExecutionContext parent;
+    while ((parent = ctx.getParent()) != null) {
+      ctx = parent;
+    }
+    return ctx.compute(tag, (k, v) -> {
+      if (v == null)  {
+        v = new ArrayList<>(2);
+      }
+      v.add(data);
+      return v;
+    });
+  }
+
   default ExecutionContext startChild(final String operationName,
           final long timeout, final TimeUnit tu) {
     return ExecutionContexts.start(operationName, this, timeout, tu);
