@@ -445,6 +445,36 @@ public final class ExecutionContexts {
     }
   }
 
+  public static <T> Callable<T> propagatingCallable(final Callable<T> callable, final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingNamedCallable<T>(callable, ctx, name, deadlineNanos);
+  }
+
+  private static final class PropagatingNamedCallable<T> implements Callable<T> {
+
+    private final Callable<T> task;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingNamedCallable(final Callable<T> task, final ExecutionContext current,
+            final String name, final long deadlineNanos) {
+      this.task = task;
+      this.current = current;
+      this.name = name;
+      this.deadlineNanos = deadlineNanos;
+    }
+
+    @Override
+    public T call() throws Exception {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+        return task.call();
+      }
+    }
+  }
+
   private static final class DeadlinedPropagatingCallable<T> implements Callable<T> {
 
     private final Callable<T> task;
