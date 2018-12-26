@@ -312,15 +312,24 @@ public final class ExecutionContexts {
   }
 
   public static long computeDeadline(final long timeout, final TimeUnit unit) {
-    return computeDeadline(current(), unit, timeout);
+    return computeDeadline(current(), timeout, unit);
   }
 
   public static long computeTimeout(final long timeout, final TimeUnit unit) throws TimeoutException {
     return unit.convert(computeTimeoutDeadline(current(), unit, timeout).getTimeoutNanos(), TimeUnit.NANOSECONDS);
   }
 
+  /**
+   * @deprecated use variant where the value and unit are it the natural order.
+   */
+  @Deprecated
   public static long computeDeadline(@Nullable final ExecutionContext current,
-          final TimeUnit unit, final long timeout) {
+           final TimeUnit unit, final long timeout) {
+    return computeDeadline(current, timeout, unit);
+  }
+
+  public static long computeDeadline(@Nullable final ExecutionContext current,
+          final long timeout, final TimeUnit unit) {
     if (current == null) {
       return TimeSource.getDeadlineNanos(timeout, unit);
     }
