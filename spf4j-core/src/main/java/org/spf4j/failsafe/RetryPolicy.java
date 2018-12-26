@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLogger;
 import org.spf4j.base.Throwables;
 import org.spf4j.failsafe.concurrent.DefaultContextAwareFailSafeExecutor;
+import org.spf4j.failsafe.concurrent.DefaultFailSafeExecutor;
 import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 
 /**
@@ -115,6 +116,10 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
 
   public final AsyncRetryExecutor async() {
+    return async(DefaultFailSafeExecutor.instance());
+  }
+
+  public final AsyncRetryExecutor asyncContextAware() {
     return async(DefaultContextAwareFailSafeExecutor.instance());
   }
 
@@ -391,6 +396,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
     @CheckReturnValue
     public AsyncRetryExecutor<T, C> buildAsync() {
+      return buildAsync(DefaultFailSafeExecutor.instance());
+    }
+
+    @CheckReturnValue
+    public AsyncRetryExecutor<T, C> buildAsyncContextAware() {
       return buildAsync(DefaultContextAwareFailSafeExecutor.instance());
     }
 
