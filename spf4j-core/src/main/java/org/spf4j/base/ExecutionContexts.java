@@ -473,6 +473,12 @@ public final class ExecutionContexts {
         return task.call();
       }
     }
+
+    @Override
+    public String toString() {
+      return "Callable: " + name;
+    }
+
   }
 
   private static final class DeadlinedPropagatingCallable<T> implements Callable<T> {
