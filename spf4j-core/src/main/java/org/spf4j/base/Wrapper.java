@@ -42,11 +42,16 @@ public interface Wrapper<T> {
    */
   T getWrapped();
 
-  /**
-   * Wrap a object with a wrapper of this(current) type.
-   * @param wrapped
-   * @return
-   */
-  T wrap(T toWrap);
+
+  default T getTopWrapped() {
+    Wrapper<T> current = this;
+    do {
+      T parent = current.getWrapped();
+      if (parent == null || !(parent instanceof Wrapper)) {
+        return (T) current;
+      }
+      current = (Wrapper<T>) parent;
+    } while (true);
+  }
 
 }

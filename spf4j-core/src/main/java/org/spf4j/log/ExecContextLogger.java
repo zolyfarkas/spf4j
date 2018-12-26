@@ -77,11 +77,6 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
   }
 
   @Override
-  public Logger wrap(final Logger toWrap) {
-    return new ExecContextLogger(wrapped);
-  }
-
-  @Override
   public String getName() {
     return wrapped.getName();
   }

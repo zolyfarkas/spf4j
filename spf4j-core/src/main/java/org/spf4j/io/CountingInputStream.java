@@ -104,10 +104,4 @@ public final class CountingInputStream extends FilterInputStream implements Wrap
     return this.in;
   }
 
-  @Override
-  public InputStream wrap(final InputStream toWrap) {
-    return new CountingInputStream(toWrap);
-  }
-
-
 }

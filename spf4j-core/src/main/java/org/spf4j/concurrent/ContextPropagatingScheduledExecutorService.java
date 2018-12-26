@@ -32,7 +32,6 @@
 package org.spf4j.concurrent;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -73,15 +72,6 @@ public final class ContextPropagatingScheduledExecutorService
   public ScheduledFuture<?> scheduleWithFixedDelay(final Runnable command, final long initialDelay,
           final long delay, final TimeUnit unit) {
     return ses.scheduleWithFixedDelay(ExecutionContexts.propagatingRunnable(command), initialDelay, delay, unit);
-  }
-
-  @Override
-  public ExecutorService wrap(final ExecutorService wrapped) {
-    if (wrapped instanceof ScheduledExecutorService) {
-      return new ContextPropagatingScheduledExecutorService((ScheduledExecutorService) wrapped);
-    } else {
-      return super.wrap(wrapped);
-    }
   }
 
   @Override

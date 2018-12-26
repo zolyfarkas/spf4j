@@ -94,11 +94,6 @@ public final class ContextPropagatingFailSafeExecutor implements FailSafeExecuto
   }
 
   @Override
-  public FailSafeExecutor wrap(final FailSafeExecutor toWrap) {
-    return new ContextPropagatingFailSafeExecutor(toWrap);
-  }
-
-  @Override
   public String toString() {
     return "ContextPropagatingFailSafeExecutor{" + "exec=" + exec + '}';
   }

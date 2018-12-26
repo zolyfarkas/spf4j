@@ -158,12 +158,5 @@ public class ContextPropagatingExecutorService implements ExecutorService, Wrapp
     return es;
   }
 
-  /**
-   * Overwrite as needed for a ScheduledExecutorService, etc
-   */
-  @Override
-  public ExecutorService wrap(final ExecutorService toWrap) {
-    return new ContextPropagatingExecutorService(toWrap);
-  }
 
 }
