@@ -28,6 +28,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +41,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.SchemaCompatibility;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -241,8 +243,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
             SchemaCompatibility.SchemaPairCompatibility o2n
                     = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
             if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
-              issues.accept(newSchema.getFullName() + " cannot convert previous versions " + version + " to current"
-                    + " detail: " + o2n);
+              issues.accept(newSchema.getFullName() + " cannot convert from previous version " + version
+                    + ", diff: \n" + diff(previousSchema, newSchema));
             }
           }
           if (newSchema.getProp("noNewToOldCompatibility") == null) {
@@ -250,7 +252,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
                     = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
             if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
               issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + version
-              + " detail: " + n2o);
+                    + ", diff: \n" + diff(previousSchema, newSchema));
             }
           }
         }
@@ -292,6 +294,32 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
       }
     }
     return null;
+  }
+
+  static String diff(final Schema reader, final Schema writer) {
+    String s1 = reader.toString(true);
+    String s2 = writer.toString(true);
+    DiffMatchPatch dmp = new DiffMatchPatch();
+    LinkedList<DiffMatchPatch.Diff> diffs = dmp.diffMain(s1, s2, false);
+    dmp.diffCleanupSemantic(diffs);
+    StringBuilder result = new StringBuilder();
+    for (DiffMatchPatch.Diff aDiff : diffs) {
+      String text = aDiff.text;
+      switch (aDiff.operation) {
+        case INSERT:
+          result.append("+<<<").append(text).append(">>>>");
+          break;
+        case DELETE:
+          result.append("-<<<").append(text).append(">>>");
+          break;
+        case EQUAL:
+          result.append(text);
+          break;
+        default:
+          throw new UnsupportedOperationException("Not supported " + aDiff.operation);
+      }
+    }
+    return result.toString();
   }
 
   @Override
