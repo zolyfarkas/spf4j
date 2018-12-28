@@ -263,6 +263,14 @@ public class BasicExecutionContext implements ExecutionContext {
 
   @Override
   public final synchronized void addLog(final Slf4jLogRecord log) {
+    if (isClosed) {
+      if (parent == null) {
+        return;
+      } else {
+        parent.addLog(log);
+        return;
+      }
+    }
     if (logs == null) {
       logs = new ArrayDeque<>(4);
     }
@@ -283,6 +291,14 @@ public class BasicExecutionContext implements ExecutionContext {
 
   @Override
   public final synchronized void addLogs(final Collection<Slf4jLogRecord> log) {
+    if (isClosed) {
+      if (parent == null) {
+        return;
+      } else {
+        parent.addLogs(log);
+        return;
+      }
+    }
     if (logs == null) {
       logs = new ArrayDeque<>(log);
       return;
