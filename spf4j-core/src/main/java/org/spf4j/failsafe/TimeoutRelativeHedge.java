@@ -44,15 +44,15 @@ public final class TimeoutRelativeHedge implements HedgePolicy {
 
   private final int nrHedges;
 
-  public TimeoutRelativeHedge(final int timeoutHedgeFraction, final long minHedgeDelay,
-          final long maxHedgeDelay, final int nrHedges) {
-    if (minHedgeDelay > maxHedgeDelay) {
-      throw new IllegalArgumentException("Min hedge delay " + minHedgeDelay
-              + " greater than maxHedgeDelay " + maxHedgeDelay);
+  public TimeoutRelativeHedge(final int timeoutHedgeFraction, final long minHedgeDelayNanos,
+          final long maxHedgeDelayNanos, final int nrHedges) {
+    if (minHedgeDelayNanos > maxHedgeDelayNanos) {
+      throw new IllegalArgumentException("Min hedge delay " + minHedgeDelayNanos
+              + " greater than maxHedgeDelay " + maxHedgeDelayNanos);
     }
     this.timeoutHedgeFraction = timeoutHedgeFraction;
-    this.minHedgeDelay = minHedgeDelay;
-    this.maxHedgeDelay = maxHedgeDelay;
+    this.minHedgeDelay = minHedgeDelayNanos;
+    this.maxHedgeDelay = maxHedgeDelayNanos;
     this.nrHedges = nrHedges;
   }
 
