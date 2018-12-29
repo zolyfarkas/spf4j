@@ -128,7 +128,8 @@ public final class Converters {
         }
       }
     }
-    return new LogRecord(origin, traceId, Instant.ofEpochMilli(logRecord.getTimeStamp()),
+    return new LogRecord(origin, traceId,  logRecord.getLevel().getAvroLevel(),
+            Instant.ofEpochMilli(logRecord.getTimeStamp()),
     logRecord.getLoggerName(), logRecord.getThreadName(), logRecord.getMessage(),
     extraThrowable == null ? null : convert(extraThrowable), xArgs);
   }

@@ -31,20 +31,53 @@
  */
 package org.spf4j.base.avro;
 
+import java.util.List;
+
 /**
  * @author Zoltan Farkas
  */
 public class RemoteException extends Exception {
 
+  private final String source;
+
   private final Throwable remote;
 
   public RemoteException(final String source, final Throwable remote) {
-    super(source);
+    super(source + ": " + remote.getClassName() + ": " + remote.getMessage(),
+            remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
     this.remote = remote;
+    this.source = source;
+    for (Throwable suppressed : remote.getSuppressed()) {
+      addSuppressed(new RemoteException(source, suppressed));
+    }
   }
 
   public final Throwable getRemoteCause() {
     return remote;
   }
+
+  public final String getSource() {
+    return source;
+  }
+
+  /**
+   * Override to make up the remote stack trace.
+   * @return
+   */
+  @Override
+  public synchronized java.lang.Throwable fillInStackTrace() {
+    List<StackTraceElement> stackTrace = remote.getStackTrace();
+    java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];
+    int i = 0;
+    for (StackTraceElement ste : stackTrace) {
+      FileLocation location = ste.getLocation();
+      jste[i++] = new java.lang.StackTraceElement(ste.getClassName(), ste.getMethodName(),
+              location.getFileName(), location.getLineNumber());
+    }
+    this.setStackTrace(jste);
+    return this;
+  }
+
+
 
 }

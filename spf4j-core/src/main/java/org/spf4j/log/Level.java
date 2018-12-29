@@ -31,23 +31,28 @@
  */
 package org.spf4j.log;
 
+import org.spf4j.base.avro.LogLevel;
+
 
 /**
  * An enum for log levels
  * @author Zoltan Farkas
  */
 public enum Level {
-  TRACE(java.util.logging.Level.FINEST),
-  DEBUG(java.util.logging.Level.FINE),
-  INFO(java.util.logging.Level.INFO),
-  WARN(java.util.logging.Level.WARNING),
-  ERROR(java.util.logging.Level.SEVERE),
-  OFF(java.util.logging.Level.OFF);
+  TRACE(java.util.logging.Level.FINEST, LogLevel.TRACE),
+  DEBUG(java.util.logging.Level.FINE, LogLevel.DEBUG),
+  INFO(java.util.logging.Level.INFO, LogLevel.INFO),
+  WARN(java.util.logging.Level.WARNING, LogLevel.WARN),
+  ERROR(java.util.logging.Level.SEVERE, LogLevel.ERROR),
+  OFF(java.util.logging.Level.OFF, LogLevel.UNKNOWN);
 
   private final java.util.logging.Level julLevel;
 
-  Level(final java.util.logging.Level julLevel) {
+  private final LogLevel avroLevel;
+
+  Level(final java.util.logging.Level julLevel, final LogLevel avroLevel) {
     this.julLevel = julLevel;
+    this.avroLevel = avroLevel;
   }
 
   public int getIntValue() {
@@ -57,6 +62,29 @@ public enum Level {
   public java.util.logging.Level getJulLevel() {
     return julLevel;
   }
+
+  public LogLevel getAvroLevel() {
+    return avroLevel;
+  }
+
+  public static Level fromAvroLevel(final LogLevel level) {
+    switch (level) {
+      case UNKNOWN:
+      case DEBUG:
+        return Level.DEBUG;
+      case ERROR:
+        return Level.ERROR;
+      case INFO:
+        return Level.INFO;
+      case TRACE:
+        return Level.TRACE;
+      case WARN:
+        return Level.WARN;
+      default:
+        throw new IllegalArgumentException("Unsupported LogLevel " + level);
+    }
+  }
+
 
   public static Level fromJulLevel(final int severity) {
      if (severity <= TRACE.getIntValue()) {

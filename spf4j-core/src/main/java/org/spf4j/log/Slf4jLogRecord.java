@@ -42,6 +42,10 @@ import org.slf4j.Marker;
  */
 public interface Slf4jLogRecord {
 
+  @Nonnull
+  String getOrigin();
+
+
   @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   @Nonnull
   Object[] getArguments();
