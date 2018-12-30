@@ -32,10 +32,12 @@
 package org.spf4j.base.avro;
 
 import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public class RemoteException extends Exception {
 
   private final String source;
@@ -50,6 +52,15 @@ public class RemoteException extends Exception {
     for (Throwable suppressed : remote.getSuppressed()) {
       addSuppressed(new RemoteException(source, suppressed));
     }
+    List<StackTraceElement> stackTrace = remote.getStackTrace();
+    java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];
+    int i = 0;
+    for (StackTraceElement ste : stackTrace) {
+      FileLocation location = ste.getLocation();
+      jste[i++] = new java.lang.StackTraceElement(ste.getClassName(), ste.getMethodName(),
+              location.getFileName(), location.getLineNumber());
+    }
+    this.setStackTrace(jste);
   }
 
   public final Throwable getRemoteCause() {
@@ -66,15 +77,7 @@ public class RemoteException extends Exception {
    */
   @Override
   public synchronized java.lang.Throwable fillInStackTrace() {
-    List<StackTraceElement> stackTrace = remote.getStackTrace();
-    java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];
-    int i = 0;
-    for (StackTraceElement ste : stackTrace) {
-      FileLocation location = ste.getLocation();
-      jste[i++] = new java.lang.StackTraceElement(ste.getClassName(), ste.getMethodName(),
-              location.getFileName(), location.getLineNumber());
-    }
-    this.setStackTrace(jste);
+    // no need to do anything we will overwrite this.
     return this;
   }
 

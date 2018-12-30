@@ -53,6 +53,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.net.ssl.SSLException;
+import org.spf4j.base.avro.AThrowables;
 import org.spf4j.base.avro.RemoteException;
 import org.spf4j.ds.IdentityHashSet;
 
@@ -62,6 +63,8 @@ import org.spf4j.ds.IdentityHashSet;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
+// Circular dependency with AThrowables, both static utility classes... should be fine...
 public final class Throwables {
 
   /**
@@ -608,36 +611,38 @@ public final class Throwables {
     writeTo(t, to, detail, abbreviatedTraceElement, "");
   }
 
-  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail pdetail,
+  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
           final boolean abbreviatedTraceElement, final String prefix) throws IOException {
-    final PackageDetail detail;
     if (t instanceof RemoteException) {
-      detail = PackageDetail.NONE;
-    } else {
-      detail = pdetail;
+      AThrowables.writeTo((RemoteException) t, to, detail, abbreviatedTraceElement, prefix);
+      return;
     }
-    Set<Throwable> dejaVu = new IdentityHashSet<Throwable>();
-    dejaVu.add(t);
     to.append(prefix);
     writeMessageString(to, t);
     to.append('\n');
+    writeThrowableDetail(t, to, detail, abbreviatedTraceElement, prefix);
+  }
+
+  public static void writeThrowableDetail(final Throwable t, final Appendable to, final PackageDetail detail,
+          final boolean abbreviatedTraceElement, final String prefix) throws IOException {
     StackTraceElement[] trace = t.getStackTrace();
-
     writeTo(trace, to, detail, abbreviatedTraceElement, prefix);
-
+    Throwable[] suppressed = getSuppressed(t);
+    Throwable ourCause = t.getCause();
+    if (ourCause == null && suppressed.length == 0) {
+      return;
+    }
+    Set<Throwable> dejaVu = new IdentityHashSet<Throwable>();
+    dejaVu.add(t);
     // Print suppressed exceptions, if any
-    for (Throwable se : getSuppressed(t)) {
+    for (Throwable se : suppressed) {
       printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, prefix + "\t",
               dejaVu, detail, abbreviatedTraceElement);
     }
-
-    Throwable ourCause = t.getCause();
-
     // Print cause, if any
     if (ourCause != null) {
       printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedTraceElement);
     }
-
   }
 
   public static void writeMessageString(final Appendable to, final Throwable t) throws IOException {
