@@ -314,22 +314,31 @@ public final class Throwables {
 
   public static <T extends Throwable> T chain(final T t, final Throwable newRootCause, final int maxChained) {
     int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
-    if (chainedExNr >= maxChained) {
+    if (chainedExNr > maxChained) {
       T res = clone0(t);
-      res.addSuppressed(new TrimmedException("Max chained excetions exceeded " + maxChained));
+      trimCausalChain(res, maxChained);
       return res;
     }
-    List<Throwable> newRootCauseChain = com.google.common.base.Throwables.getCausalChain(newRootCause);
-    int newChainIdx = 0;
-    final int size = newRootCauseChain.size();
-    if (chainedExNr + size > maxChained) {
-      newChainIdx = size - (maxChained - chainedExNr);
-      t.addSuppressed(new TrimmedException("Trimming exception at " + newChainIdx));
-    }
     T result = clone0(t);
-    chain0(result, newRootCauseChain.get(newChainIdx));
+    chain0(result, newRootCause);
+    trimCausalChain(result, maxChained);
     return result;
 
+  }
+
+
+  public static void setRootCause(final Throwable t, final Throwable newRootCause) {
+     setRootCause(t, newRootCause, MAX_THROWABLE_CHAIN);
+  }
+
+  public static void setRootCause(final Throwable t, final Throwable newRootCause, final int maxChained) {
+    int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
+    if (chainedExNr > maxChained) {
+     trimCausalChain(t, maxChained);
+     return;
+    }
+    chain0(t, newRootCause);
+    trimCausalChain(t, maxChained);
   }
 
   private static <T extends Throwable> T clone0(final T t) {
@@ -338,7 +347,7 @@ public final class Throwables {
       result = Objects.clone(t);
     } catch (RuntimeException ex) {
       result = t;
-      t.addSuppressed(new TrimmedException("Unable to clone exception " + t));
+      t.addSuppressed(new CloneFailedException("Unable to clone exception " + t));
     }
     return result;
   }
@@ -348,7 +357,10 @@ public final class Throwables {
     if (causalChain.size() <= maxSize) {
       return;
     }
-    setCause(causalChain.get(maxSize - 1), null);
+    int lastExIdx = maxSize - 1;
+    if (lastExIdx >= 0) {
+      setCause(causalChain.get(lastExIdx), new TrimmedException("Trimmed after " + maxSize + " exceptions"));
+    }
   }
 
   /**
