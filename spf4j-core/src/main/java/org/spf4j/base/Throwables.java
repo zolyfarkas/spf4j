@@ -53,6 +53,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.net.ssl.SSLException;
+import org.spf4j.base.avro.RemoteException;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
@@ -472,13 +473,13 @@ public final class Throwables {
     final int lineNumber = element.getLineNumber();
     if (element.isNativeMethod()) {
       to.append("(Native Method)");
-    } else if (fileName != null && lineNumber >= 0) {
+    } else if (fileName == null) {
+      to.append("(Unknown Source)");
+    } else if (lineNumber >= 0) {
       to.append('(').append(fileName).append(':')
               .append(Integer.toString(lineNumber)).append(')');
-    } else if (fileName != null) {
-      to.append('(').append(fileName).append(')');
     } else {
-      to.append("(Unknown Source)");
+      to.append('(').append(fileName).append(')');
     }
     if (detail == PackageDetail.NONE) {
       return;
@@ -607,9 +608,14 @@ public final class Throwables {
     writeTo(t, to, detail, abbreviatedTraceElement, "");
   }
 
-  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail detail,
+  public static void writeTo(final Throwable t, final Appendable to, final PackageDetail pdetail,
           final boolean abbreviatedTraceElement, final String prefix) throws IOException {
-
+    final PackageDetail detail;
+    if (t instanceof RemoteException) {
+      detail = PackageDetail.NONE;
+    } else {
+      detail = pdetail;
+    }
     Set<Throwable> dejaVu = new IdentityHashSet<Throwable>();
     dejaVu.add(t);
     to.append(prefix);
@@ -662,13 +668,14 @@ public final class Throwables {
   }
 
   public static int commonFrames(final StackTraceElement[] trace, final StackTraceElement[] enclosingTrace) {
-    int m = trace.length - 1;
+    int from = trace.length - 1;
+    int m = from;
     int n = enclosingTrace.length - 1;
     while (m >= 0 && n >= 0 && trace[m].equals(enclosingTrace[n])) {
       m--;
       n--;
     }
-    return trace.length - 1 - m;
+    return from - m;
   }
 
   private static void printEnclosedStackTrace(final Throwable t, final Appendable s,
