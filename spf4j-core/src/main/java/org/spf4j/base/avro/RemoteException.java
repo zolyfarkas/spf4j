@@ -45,7 +45,7 @@ public class RemoteException extends Exception {
   private final Throwable remote;
 
   public RemoteException(final String source, final Throwable remote) {
-    super(source + ": " + remote.getClassName() + ": " + remote.getMessage(),
+    super(remote.getClassName() + '@' + source + ": " + remote.getMessage(),
             remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
     this.remote = remote;
     this.source = source;
