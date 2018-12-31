@@ -86,5 +86,15 @@ public final class Json {
     };
   }
 
+  public static JsonSerializer<Object> toStringJsonWritableSerializer() {
+    return new JsonSerializer<Object>() {
+      @Override
+      public void serialize(final Object value, final JsonGenerator jgen, final SerializerProvider provider)
+              throws IOException {
+        jgen.writeString(value.toString());
+      }
+    };
+  }
+
 
 }
