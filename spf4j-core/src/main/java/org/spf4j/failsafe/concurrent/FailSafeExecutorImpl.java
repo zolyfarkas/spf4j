@@ -304,61 +304,62 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
             + ", sync=" + sync + '}';
   }
 
+  @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // Actually I own it...
   private static class FirstFuture<T> implements Future<T>, Consumer<Future<T>> {
 
     private final Future<T>[] futures;
     private final BlockingQueue<Future<T>> queue;
     private boolean first = true;
-    private final int nrHedges;
 
     FirstFuture(final Future<T>[] futures,
             final BlockingQueue<Future<T>> queue) {
       this.futures = futures;
       this.queue = queue;
-      this.nrHedges = futures.length - 1;
     }
 
     @Override
-    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // Actually I own it...
     public void accept(final Future<T> finished) {
       synchronized (this) {
         if (first) {
           first = false;
           queue.add(finished);
-          for (int i = 0;  i < nrHedges; i++) {
+          for (int i = 0;  i < futures.length; i++) {
             Future f = futures[i];
-            if (f != finished) {
+            if (f != null && f != finished) {
               f.cancel(true);
             }
+            futures[i] = null;
           }
-        } else {
-          return;
         }
       }
     }
 
     @Override
     public boolean cancel(final boolean mayInterruptIfRunning) {
-      boolean result = true;
-      for (int i = 0, l =  futures.length; i < l; i++) {
-        Future f  = futures[i];
-        if (!f.cancel(mayInterruptIfRunning)) {
-          result =  false;
+      synchronized (this) {
+        boolean result = true;
+        for (int i = 0, l = futures.length; i < l; i++) {
+          Future f = futures[i];
+          if (f != null && !f.cancel(mayInterruptIfRunning)) {
+            result = false;
+          }
         }
+        return result;
       }
-      return result;
     }
 
     @Override
     public boolean isCancelled() {
-      boolean result = true;
-      for (int i = 0, l =  futures.length; i < l; i++) {
-        Future f  = futures[i];
-        if (!f.isCancelled()) {
-          result =  false;
+      synchronized (this) {
+        boolean result = true;
+        for (int i = 0, l = futures.length; i < l; i++) {
+          Future f = futures[i];
+          if (f != null && !f.isCancelled()) {
+            result = false;
+          }
         }
+        return result;
       }
-      return result;
     }
 
     @Override
