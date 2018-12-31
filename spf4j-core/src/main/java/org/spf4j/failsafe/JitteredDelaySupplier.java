@@ -17,11 +17,13 @@ package org.spf4j.failsafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ThreadLocalRandom;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A randomizing Backoff strategy.
  * @author Zoltan Farkas
  */
+@ThreadSafe
 final class JitteredDelaySupplier implements RetryDelaySupplier {
 
   private final RetryDelaySupplier wrapped;

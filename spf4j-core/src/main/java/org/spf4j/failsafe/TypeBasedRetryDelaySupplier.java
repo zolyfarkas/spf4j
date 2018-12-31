@@ -18,13 +18,15 @@ package org.spf4j.failsafe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A retry Delay supplier that will provide the same instance of a RetryDelaySupplier for a
  * particular java class.
- * 
+ *
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public final class TypeBasedRetryDelaySupplier<T> implements Function<T, RetryDelaySupplier> {
 
   private final Map<Class<T>, RetryDelaySupplier> delays;
@@ -41,8 +43,10 @@ public final class TypeBasedRetryDelaySupplier<T> implements Function<T, RetryDe
   @Override
   public RetryDelaySupplier apply(final T t) {
     Class<T> clasz = (Class<T>) t.getClass();
-    return delays.computeIfAbsent(clasz,
+    synchronized (delays) {
+      return delays.computeIfAbsent(clasz,
             (x) -> supplier.apply(x));
+    }
   }
 
   @Override

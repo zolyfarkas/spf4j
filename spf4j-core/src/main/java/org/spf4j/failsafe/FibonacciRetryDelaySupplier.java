@@ -15,10 +15,12 @@
  */
 package org.spf4j.failsafe;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- *
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
 
   private int immediateLeft;
@@ -45,7 +47,7 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
   }
 
   @Override
-  public long nextDelay() {
+  public synchronized long nextDelay() {
     if (immediateLeft > 0) {
       immediateLeft--;
       return p1;
@@ -60,7 +62,7 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
   }
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     return "FibonacciBackoff{" + "immediateLeft=" + immediateLeft + ", p1=" + p1
             + ", p2=" + p2 + ", maxDelay=" + maxDelay + ", startDelay=" + startDelay + '}';
   }
