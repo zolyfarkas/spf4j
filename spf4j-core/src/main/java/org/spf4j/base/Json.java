@@ -36,6 +36,7 @@ import java.util.ServiceLoader;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.Module;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.module.SimpleModule;
@@ -56,6 +57,10 @@ public final class Json {
     loadServices(module);
     module.addSerializer(JsonWriteable.class, jsonWritableSerializer());
     MAPPER.registerModule(module);
+    ServiceLoader<Module> loader = ServiceLoader.load(Module.class);
+    for (Module mod : loader) {
+      MAPPER.registerModule(mod);
+    }
   }
 
   private static void loadServices(final SimpleModule module) {
