@@ -102,6 +102,9 @@ class RetryFutureTask<T> extends FutureTask<T> {
 
   @Override
   protected synchronized boolean setException(final Throwable t) {
+    if (this.isCancelled()) {
+      return false;
+    }
     RetryDecision<T, Callable<? extends T>> decision = this.retryPredicate.getExceptionDecision(t, getCallable());
         final RetryDecision.Type decisionType = decision.getDecisionType();
         switch (decisionType) {
@@ -136,6 +139,9 @@ class RetryFutureTask<T> extends FutureTask<T> {
 
   @Override
   protected synchronized boolean set(final T v) {
+    if (this.isCancelled()) {
+      return false;
+    }
     RetryDecision<T, Callable<? extends T>> decision = this.retryPredicate.getDecision(v, getCallable());
     final RetryDecision.Type decisionType = decision.getDecisionType();
     switch (decisionType) {

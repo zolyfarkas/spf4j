@@ -279,7 +279,7 @@ public class FutureTask<V> implements RunnableFuture<V> {
       if (s >= INTERRUPTING) {
         handlePossibleCancellationInterrupt(s);
       }
-      if (!finished && state < CANCELLED) {
+      if (!finished && s < CANCELLED) {
         state = NEW;
       } else {
         callable = null;

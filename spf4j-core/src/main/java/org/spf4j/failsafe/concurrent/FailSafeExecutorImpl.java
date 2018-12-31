@@ -42,7 +42,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
@@ -187,6 +186,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
               } catch (Exception ex)  {
                 result.completeExceptionally(ex);
               }
+              return true;
             }, (Callable<A>) task,
                     (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents,
               this::startRetryManager);
@@ -246,18 +246,18 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
     FirstFuture<A> resultX = new FirstFuture<A>(futures, queue) {
       @Override
       @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
-      public void accept(final Future<A> finished) {
-        super.accept(finished);
-        synchronized (this) {
-          if (!result.isDone()) {
+      public boolean accept(final Future<A> finished) {
+        boolean accepted = super.accept(finished);
+          if (accepted) {
             try {
               A r = finished.get();
               result.complete(r);
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
               result.completeExceptionally(ex);
             }
+            return true;
           }
-        }
+          return false;
       }
     };
     result.setToCancel(resultX);
@@ -305,7 +305,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
   }
 
   @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION") // Actually I own it...
-  private static class FirstFuture<T> implements Future<T>, Consumer<Future<T>> {
+  private static class FirstFuture<T> implements Future<T>, ConditionalConsumer<Future<T>> {
 
     private final Future<T>[] futures;
     private final BlockingQueue<Future<T>> queue;
@@ -318,7 +318,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
     }
 
     @Override
-    public void accept(final Future<T> finished) {
+    public boolean accept(final Future<T> finished) {
       synchronized (this) {
         if (first) {
           first = false;
@@ -330,7 +330,9 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
             }
             futures[i] = null;
           }
+          return true;
         }
+        return false;
       }
     }
 
@@ -393,9 +395,9 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
 
   private static class ConsumableRetryFutureTask<T> extends RetryFutureTask<T> {
 
-    private final Consumer<Future<T>> consumer;
+    private final ConditionalConsumer<Future<T>> consumer;
 
-    ConsumableRetryFutureTask(final Consumer<Future<T>> consumer, final Callable<T> callable,
+    ConsumableRetryFutureTask(final ConditionalConsumer<Future<T>> consumer, final Callable<T> callable,
             final RetryPredicate<T, Callable<? extends T>> retryPredicate,
             final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks,
             final Runnable onRetry) {
@@ -411,20 +413,27 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
 
   private static class InterruptibleCompletableFuture<A> extends CompletableFuture<A> {
 
-    private volatile Future<A> toCancel;
+    private Future<A> toCancel;
+
+    private final Object sync = new Object();
 
     @Override
     public boolean cancel(final boolean mayInterruptIfRunning) {
-      boolean result = super.cancel(mayInterruptIfRunning);
-      Future<A> tc = toCancel;
-      if (tc != null) {
-        result = tc.cancel(mayInterruptIfRunning);
+      synchronized (sync) {
+        boolean result = super.cancel(mayInterruptIfRunning);
+        Future<A> tc = toCancel;
+        if (tc != null) {
+          result = tc.cancel(mayInterruptIfRunning);
+          toCancel = null;
+        }
+        return result;
       }
-      return result;
     }
 
     public void setToCancel(final Future<A> toCancel) {
-      this.toCancel = toCancel;
+      synchronized (sync) {
+        this.toCancel = toCancel;
+      }
     }
 
     @Override
