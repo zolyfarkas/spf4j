@@ -157,6 +157,15 @@ public final class Arrays {
     return result;
   }
 
+  public static <T> T[] append(final T[] array, final T... values) {
+    if (values.length == 0) {
+      return array;
+    }
+    T[] result = java.util.Arrays.copyOf(array, array.length + values.length);
+    System.arraycopy(values, 0, result, array.length, values.length);
+    return result;
+  }
+
 
   public static <T> T[] concat(final T[]... arrays) {
     if (arrays.length < 2) {

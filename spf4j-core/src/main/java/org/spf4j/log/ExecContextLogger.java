@@ -35,481 +35,529 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.spf4j.base.Arrays;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Wrapper;
 
 /**
+ * A Execution context aware logger.
+ *
+ * does the following:
+ *
+ * <li>
+ * 1) if Execution context is present, it logs the context id. (relies on Logging back-ends supporting overflow args)
+ * </li>
+ * <li>
+ * 2) if Execution context is present, it allows for context aware log level, and upgrades log
+ * messages to be logged by backend.
+ * </li>
+ *
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
 public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
 
-  interface Log {
+  interface Log extends Wrapper<Logger> {
 
+   /**
+    * Is logger enabled for level and marker
+    * @param level
+    * @param marker
+    * @return
+    */
+   boolean isEnabled(Level level, @Nullable Marker marker);
+
+   /**
+    * Log.
+    * @param marker
+    * @param level
+    * @param format
+    * @param args
+    */
    void log(@Nullable Marker marker, Level level, String format, Object... args);
 
-  }
+   /**
+    * Log with a level that is enabled. (upgrade level until so)
+    * @param marker
+    * @param level
+    * @param format
+    * @param args
+    */
+   void logUpgrade(@Nullable Marker marker, Level level, String format, Object... args);
 
-  private final Logger wrapped;
+  }
 
   private final Log traceLogger;
 
   public ExecContextLogger(final Logger wrapped) {
-    this(wrapped, new Log() {
-      @Override
-      @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
-      public void log(@Nullable final  Marker marker, final Level level, final String format, final Object... pargs) {
-        LogUtils.logUpgrade(wrapped, marker, level, format, pargs);
-      }
-    });
+    this(new SLf4jLoggerAdapter(wrapped));
   }
 
-  public ExecContextLogger(final Logger wrapped, final Log traceLogger) {
-    this.wrapped = wrapped;
+  public ExecContextLogger(final Log traceLogger) {
     this.traceLogger = traceLogger;
   }
 
   @Override
   public Logger getWrapped() {
-    return wrapped;
+    return this.traceLogger.getWrapped();
   }
 
   @Override
   public String getName() {
-    return wrapped.getName();
+    return this.traceLogger.getWrapped().getName();
+  }
+
+
+  public boolean isEnabled(final Level level, @Nullable final Marker marker) {
+    ExecutionContext ctx = ExecutionContexts.current();
+    if (ctx ==  null) {
+      return traceLogger.isEnabled(level, marker);
+    }
+    String name = getName();
+    Level backendOverwrite = ctx.getBackendMinLogLevel(name);
+    if (backendOverwrite == null) {
+      return  traceLogger.isEnabled(level, marker) || level.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
+    } else {
+      return  traceLogger.isEnabled(level, marker)
+              || level.ordinal()
+              >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
+    }
+  }
+
+  public void log(@Nullable final Marker marker, final Level level, final String msg, final Object... args) {
+    ExecutionContext ctx = ExecutionContexts.current();
+    if (ctx ==  null) {
+      traceLogger.log(marker, level, msg, args);
+      return;
+    }
+    String name = getName();
+    boolean logged;
+    if (traceLogger.isEnabled(level, marker)) {
+      traceLogger.log(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));
+      logged = true;
+    } else {
+      Level backendOverwrite = ctx.getBackendMinLogLevel(name);
+      if (backendOverwrite == null) {
+        logged = false;
+      } else if (backendOverwrite.ordinal() <= level.ordinal()) {
+        traceLogger.logUpgrade(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));
+        logged = true;
+      } else {
+        logged = false;
+      }
+    }
+    if (ctx.getContextMinLogLevel(name).ordinal() <= level.ordinal()) {
+      ctx.addLog(new Slf4jLogRecordImpl(logged, name, level, (Marker) null, msg));
+    }
   }
 
   @Override
   public boolean isTraceEnabled() {
-    ExecutionContext ctx = ExecutionContexts.current();
-    if (ctx ==  null) {
-      return wrapped.isTraceEnabled();
-    }
-    String name = wrapped.getName();
-    Level backendOverwrite = ctx.getBackendMinLogLevel(name);
-    if (backendOverwrite == null) {
-      return wrapped.isTraceEnabled() || Level.TRACE.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
-    } else {
-      return wrapped.isTraceEnabled()
-              || Level.TRACE.ordinal()
-                  >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
-    }
+    return isEnabled(Level.TRACE, null);
   }
 
   @Override
   public void trace(final String msg) {
-    ExecutionContext ctx = ExecutionContexts.current();
-    if (ctx ==  null) {
-      wrapped.trace(msg);
-      return;
-    }
-    String name = wrapped.getName();
-    boolean logged;
-    if (wrapped.isTraceEnabled()) {
-      wrapped.trace(msg, LogAttribute.traceId(ctx.getId()));
-      logged = true;
-    } else {
-      Level backendOverwrite = ctx.getBackendMinLogLevel(name);
-      if (backendOverwrite == null) {
-        logged = false;
-      } else if (backendOverwrite.ordinal() <= Level.TRACE.ordinal()) {
-        traceLogger.log(null, Level.TRACE, msg, LogAttribute.traceId(ctx.getId()));
-        logged = true;
-      } else {
-        logged = false;
-      }
-    }
-    if (ctx.getContextMinLogLevel(name).ordinal() <= Level.TRACE.ordinal()) {
-      ctx.addLog(new Slf4jLogRecordImpl(logged, name, Level.TRACE, (Marker) null, msg));
-    }
+    log(null, Level.TRACE, msg);
   }
 
   @Override
   public void trace(final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.TRACE, format, arg);
   }
 
   @Override
   public void trace(final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.TRACE, format, arg1, arg2);
   }
 
   @Override
   public void trace(final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.TRACE, format, arguments);
   }
 
   @Override
   public void trace(final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.TRACE, msg, t);
   }
 
   @Override
   public boolean isTraceEnabled(final Marker marker) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.TRACE, marker);
   }
 
   @Override
   public void trace(final Marker marker, final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.TRACE, msg);
   }
 
   @Override
   public void trace(final Marker marker, final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.TRACE, format, arg);
   }
 
   @Override
   public void trace(final Marker marker, final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.TRACE, format, arg1, arg2);
   }
 
   @Override
   public void trace(final Marker marker, final String format, final Object... argArray) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.TRACE, format, argArray);
   }
 
   @Override
   public void trace(final Marker marker, final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.TRACE, msg, t);
   }
 
   @Override
   public boolean isDebugEnabled() {
-    ExecutionContext ctx = ExecutionContexts.current();
-    if (ctx ==  null) {
-      return wrapped.isDebugEnabled();
-    }
-    String name = wrapped.getName();
-    Level backendOverwrite = ctx.getBackendMinLogLevel(name);
-    if (backendOverwrite == null) {
-      return wrapped.isDebugEnabled() || Level.DEBUG.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
-    } else {
-      return wrapped.isDebugEnabled()
-              || Level.DEBUG.ordinal()
-                  >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
-    }
+   return isEnabled(Level.DEBUG, null);
   }
 
   @Override
   public void debug(final String msg) {
-    ExecutionContext ctx = ExecutionContexts.current();
-    if (ctx ==  null) {
-      wrapped.debug(msg);
-      return;
-    }
-    String name = wrapped.getName();
-    boolean logged;
-    if (wrapped.isDebugEnabled()) {
-      wrapped.debug(msg, LogAttribute.traceId(ctx.getId()));
-      logged = true;
-    } else {
-      Level backendOverwrite = ctx.getBackendMinLogLevel(name);
-      if (backendOverwrite == null) {
-        logged = false;
-      } else if (backendOverwrite.ordinal() <= Level.DEBUG.ordinal()) {
-        traceLogger.log(null, Level.DEBUG, msg, LogAttribute.traceId(ctx.getId()));
-        logged = true;
-      } else {
-        logged = false;
-      }
-    }
-    if (ctx.getContextMinLogLevel(name).ordinal() <= Level.DEBUG.ordinal()) {
-      ctx.addLog(new Slf4jLogRecordImpl(logged, name, Level.DEBUG, (Marker) null, msg));
-    }
+    log(null, Level.DEBUG, msg);
   }
 
   @Override
   public void debug(final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.DEBUG, format, arg);
   }
 
   @Override
   public void debug(final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.DEBUG, format, arg1, arg2);
   }
 
   @Override
   public void debug(final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.DEBUG, format, arguments);
   }
 
   @Override
   public void debug(final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.DEBUG, msg, t);
   }
 
   @Override
   public boolean isDebugEnabled(final Marker marker) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.DEBUG, marker);
   }
 
   @Override
   public void debug(final Marker marker, final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.DEBUG, msg);
   }
 
   @Override
   public void debug(final Marker marker, final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.DEBUG, format, arg);
   }
 
   @Override
   public void debug(final Marker marker, final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.DEBUG, format, arg1, arg2);
   }
 
   @Override
   public void debug(final Marker marker, final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.DEBUG, format, arguments);
   }
 
   @Override
   public void debug(final Marker marker, final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.DEBUG, msg, t);
   }
 
   @Override
   public boolean isInfoEnabled() {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.INFO, null);
   }
 
   @Override
   public void info(final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.INFO, msg);
   }
 
   @Override
   public void info(final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.INFO, format, arg);
   }
 
   @Override
   public void info(final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.INFO, format, arg1, arg2);
   }
 
   @Override
   public void info(final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.INFO, format, arguments);
   }
 
   @Override
   public void info(final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.INFO, msg, t);
   }
 
   @Override
   public boolean isInfoEnabled(final Marker marker) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.INFO, marker);
   }
 
   @Override
   public void info(final Marker marker, final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.INFO, msg);
   }
 
   @Override
   public void info(final Marker marker, final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.INFO, format, arg);
   }
 
   @Override
   public void info(final Marker marker, final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.INFO, format, arg1, arg2);
   }
 
   @Override
   public void info(final Marker marker, final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.INFO, format, arguments);
   }
 
   @Override
   public void info(final Marker marker, final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.INFO, msg, t);
   }
 
   @Override
   public boolean isWarnEnabled() {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.WARN, null);
   }
 
   @Override
   public void warn(final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.WARN, msg);
   }
 
   @Override
   public void warn(final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.WARN, format, arg);
   }
 
   @Override
   public void warn(final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.WARN, format, arguments);
   }
 
   @Override
   public void warn(final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.WARN, format, arg1, arg2);
   }
 
   @Override
   public void warn(final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.WARN, msg, t);
   }
 
   @Override
   public boolean isWarnEnabled(final Marker marker) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.WARN, marker);
   }
 
   @Override
   public void warn(final Marker marker, final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.WARN, msg);
   }
 
   @Override
   public void warn(final Marker marker, final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.WARN, format, arg);
   }
 
   @Override
   public void warn(final Marker marker, final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.WARN, format, arg1, arg2);
   }
 
   @Override
   public void warn(final Marker marker, final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.WARN, format, arguments);
   }
 
   @Override
   public void warn(final Marker marker, final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.WARN, msg, t);
   }
 
   @Override
   public boolean isErrorEnabled() {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.ERROR, null);
   }
 
   @Override
   public void error(final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.ERROR, msg);
   }
 
   @Override
   public void error(final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.ERROR, format, arg);
   }
 
   @Override
   public void error(final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.ERROR, format, arg1, arg2);
   }
 
   @Override
   public void error(final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.ERROR, format, arguments);
   }
 
   @Override
   public void error(final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(null, Level.ERROR, msg, t);
   }
 
   @Override
   public boolean isErrorEnabled(final Marker marker) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    return isEnabled(Level.ERROR, marker);
   }
 
   @Override
   public void error(final Marker marker, final String msg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.ERROR, msg);
   }
 
   @Override
   public void error(final Marker marker, final String format, final Object arg) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.ERROR, format, arg);
   }
 
   @Override
   public void error(final Marker marker, final String format, final Object arg1, final Object arg2) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.ERROR, format, arg1, arg2);
   }
 
   @Override
   public void error(final Marker marker, final String format, final Object... arguments) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.ERROR, format, arguments);
   }
 
   @Override
   public void error(final Marker marker, final String msg, final Throwable t) {
-    throw new UnsupportedOperationException("Not supported yet.");
-    //To change body of generated methods, choose Tools | Templates.
+    log(marker, Level.ERROR, msg, t);
   }
 
   @Override
   public String toString() {
-    return "ExecContextLogger{" + "wrapped=" + wrapped + '}';
+    return "ExecContextLogger{" + "traceLogger=" + this.traceLogger + '}';
+  }
+
+  private static class SLf4jLoggerAdapter implements Log {
+
+    private final Logger wrapped;
+
+    SLf4jLoggerAdapter(final Logger wrapped) {
+      this.wrapped = wrapped;
+    }
+
+    @Override
+    @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
+    public void logUpgrade(@Nullable final  Marker marker, final Level level, final String format,
+            final Object... pargs) {
+      LogUtils.logUpgrade(wrapped, marker, level, format, pargs);
+    }
+
+    @Override
+    public void log(@Nullable final Marker marker, final Level level, final String format, final Object... args) {
+      switch (level) {
+        case TRACE:
+          if (marker != null) {
+            wrapped.trace(marker, format, args);
+          } else {
+            wrapped.trace(format, args);
+          }
+          break;
+        case DEBUG:
+          if (marker != null) {
+            wrapped.debug(marker, format, args);
+          } else {
+            wrapped.debug(format, args);
+          }
+          break;
+        case INFO:
+          if (marker != null) {
+            wrapped.info(marker, format, args);
+          } else {
+            wrapped.info(format, args);
+          }
+          break;
+        case WARN:
+          if (marker != null) {
+           wrapped.warn(marker, format, args);
+          } else {
+            wrapped.warn(format, args);
+          }
+          break;
+        case ERROR:
+          if (marker != null) {
+            wrapped.error(marker, format, args);
+          } else {
+            wrapped.error(format, args);
+          }
+          break;
+        default:
+          throw new UnsupportedOperationException("Unsupported " + level);
+      }
+    }
+
+    @Override
+    public boolean isEnabled(final Level level, @Nullable final Marker marker) {
+      switch (level) {
+        case TRACE:
+          if (marker == null) {
+            return wrapped.isTraceEnabled();
+          } else {
+            return wrapped.isTraceEnabled(marker);
+          }
+        case DEBUG:
+          if (marker == null) {
+            return wrapped.isDebugEnabled();
+          } else {
+            return wrapped.isDebugEnabled(marker);
+          }
+        case INFO:
+          if (marker == null) {
+            return wrapped.isInfoEnabled();
+          } else {
+            return wrapped.isInfoEnabled(marker);
+          }
+        case WARN:
+          if (marker == null) {
+            return wrapped.isWarnEnabled();
+          } else {
+            return wrapped.isWarnEnabled(marker);
+          }
+        case ERROR:
+          if (marker == null) {
+            return wrapped.isErrorEnabled();
+          } else {
+            return wrapped.isErrorEnabled(null);
+          }
+        default:
+          throw new UnsupportedOperationException("Unsupported " + level);
+      }
+    }
+
+    @Override
+    public Logger getWrapped() {
+      return wrapped;
+    }
   }
 
 }
