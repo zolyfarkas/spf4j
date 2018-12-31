@@ -89,6 +89,15 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
   }
 
+  public static ExecContextLogger from(final Logger wrapped) {
+    if (wrapped instanceof ExecContextLogger) {
+      return (ExecContextLogger) wrapped;
+    } else {
+      return new ExecContextLogger(wrapped);
+    }
+  }
+
+
   private final Log traceLogger;
 
   public ExecContextLogger(final Logger wrapped) {
