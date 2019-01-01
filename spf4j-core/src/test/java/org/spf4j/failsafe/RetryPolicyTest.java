@@ -331,7 +331,8 @@ public class RetryPolicyTest {
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"))) {
       Response er = rp.submit(new ServerCall(server,
-              new Request("url3", System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS).get();
+              new Request("url3", System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
+              .get(1000, TimeUnit.MILLISECONDS);
       Assert.assertEquals("boooo", er.getPayload());
       retryExpect3.assertObservation();
     }
@@ -340,7 +341,8 @@ public class RetryPolicyTest {
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"))) {
       Response er2 = rp.submit(new ServerCall(server,
-              new Request("url3", System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS).get();
+              new Request("url3", System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
+              .get(1000, TimeUnit.MILLISECONDS);
       Assert.assertEquals("boooo", er2.getPayload());
       retryExpect4.assertObservation();
     }

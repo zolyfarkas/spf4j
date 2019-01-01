@@ -16,12 +16,16 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Zoltan Farkas
  */
 public final class ServerCall implements Callable<Response> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ServerCall.class);
 
   private final Server server;
 
@@ -34,7 +38,15 @@ public final class ServerCall implements Callable<Response> {
 
   @Override
   public Response call() throws Exception {
-    return server.execute(request);
+    LOG.debug("Invoking {}", request);
+    try {
+      Response response = server.execute(request);
+      LOG.debug("Finished {}, returning {}", request, response);
+      return response;
+    } catch (Exception ex) {
+      LOG.debug("Errored {}", request, ex);
+      throw ex;
+    }
   }
 
   public Server getServer() {

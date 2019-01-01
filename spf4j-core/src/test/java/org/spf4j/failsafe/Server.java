@@ -54,13 +54,14 @@ public final class Server {
     long deadlineMSEpoch = request.getDeadlineMSEpoch();
     long timeout = deadlineMSEpoch - System.currentTimeMillis();
     if (timeout < 0) {
+      LOG.debug("Response complete with timeout {}", timeout);
       return new Response(Response.Type.TRANSIENT_ERROR, timeout);
     }
     Response resp = responses.get(request.getUrl()).apply(request);
     if (resp == null) {
       resp = new Response(Response.Type.CLIENT_ERROR, null);
     }
-    LOG.debug("Response compleete {}", resp);
+    LOG.debug("Response complete {}", resp);
     return resp;
   }
 
