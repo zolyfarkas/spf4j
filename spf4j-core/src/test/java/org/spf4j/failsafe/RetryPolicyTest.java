@@ -99,7 +99,7 @@ public class RetryPolicyTest {
   public void testDefaulPolicy() throws IOException, InterruptedException, TimeoutException {
     try (LogAssert expect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 2,
             LogMatchers.hasMessageWithPattern(
-                    "Result java.lang.RuntimeException.* for org.spf4j.failsafe.RetryPolicyTest.*"))) {
+                    "Result java.lang.RuntimeException.* retrying org.spf4j.failsafe.RetryPolicyTest.*"))) {
       try {
         RetryPolicy.defaultPolicy().run(() -> {
           throw new RuntimeException();
@@ -115,7 +115,7 @@ public class RetryPolicyTest {
   public void testDefaulPolicyAsync() throws IOException, InterruptedException, TimeoutException {
     try (LogAssert expect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 2,
             LogMatchers.hasMatchingMessage(
-                    Matchers.startsWith("Result java.lang.RuntimeException for org.spf4j.failsafe.RetryPolicyTest")))) {
+              Matchers.startsWith("Result java.lang.RuntimeException, retrying org.spf4j.failsafe.RetryPolicyTest")))) {
       try {
         RetryPolicy.newBuilder()
               .withDefaultThrowableRetryPredicate()
@@ -243,7 +243,7 @@ public class RetryPolicyTest {
     LOG.info("Timeout = {}", timeoutms);
     try (LogAssert retryExpect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG,
             LogMatchers.hasMatchingMessage(
-                    Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")))) {
+                    Matchers.startsWith("Result Response{type=REDIRECT, payload=url1}, retrying ServerCall")))) {
       Response resp
               = rp.call(serverCall, SocketException.class, timeoutms, TimeUnit.MILLISECONDS);
       Assert.assertEquals(response1, resp);
@@ -252,7 +252,7 @@ public class RetryPolicyTest {
     server.breakException(new SocketException("Bla bla"));
     try (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
-                    "Result java.net.SocketException for ServerCall.*"))) {
+                    "Result java.net.SocketException, retrying ServerCall.*"))) {
       try {
         rp.run(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
                 1000, TimeUnit.MILLISECONDS);
@@ -273,7 +273,7 @@ public class RetryPolicyTest {
     // Test error response
     try (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
-                    "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"))) {
+                    "^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"))) {
       Response er = rp.call(new ServerCall(server,
               new Request("url3", System.currentTimeMillis() + 1000)), IOException.class,
               1000, TimeUnit.MILLISECONDS);
@@ -283,7 +283,7 @@ public class RetryPolicyTest {
     // Test error response the second type, to make sure predicate state is handled correctly
     try (LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
-                      "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"))) {
+                      "^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"))) {
       Response er2 = rp.call(new ServerCall(server,
               new Request("url3", System.currentTimeMillis() + 1000)), IOException.class, 1000, TimeUnit.MILLISECONDS);
       Assert.assertEquals("boooo", er2.getPayload());
@@ -302,7 +302,7 @@ public class RetryPolicyTest {
     LOG.info("Timeout = {}", timeoutms);
     try (LogAssert retryExpect = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG,
             LogMatchers.hasMatchingMessage(
-                    Matchers.startsWith("Result Response{type=REDIRECT, payload=url1} for ServerCall")))) {
+                    Matchers.startsWith("Result Response{type=REDIRECT, payload=url1}, retrying ServerCall")))) {
       Response resp = rp.submit(serverCall, timeoutms, TimeUnit.MILLISECONDS).get();
       Assert.assertEquals(response1, resp);
       retryExpect.assertObservation();
@@ -310,7 +310,7 @@ public class RetryPolicyTest {
     server.breakException(new SocketException("Bla bla"));
     try (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
-                    "Result java.net.SocketException for ServerCall.*"))) {
+                    "Result java.net.SocketException, retrying ServerCall.*"))) {
       try {
         rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
                 1000, TimeUnit.MILLISECONDS).get(1000, TimeUnit.MILLISECONDS);
@@ -329,7 +329,7 @@ public class RetryPolicyTest {
     // Test error response
     try (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
-                    "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"))) {
+                    "^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"))) {
       Response er = rp.submit(new ServerCall(server,
               new Request("url3", System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
               .get(1000, TimeUnit.MILLISECONDS);
@@ -339,7 +339,7 @@ public class RetryPolicyTest {
     // Test error response the second type, to make sure predicate state is handled correctly
     try (LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
-                    "^Result Response[{]type=ERROR, payload=boooo[}] for ServerCall.+ retrying .+$"))) {
+                    "^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"))) {
       Response er2 = rp.submit(new ServerCall(server,
               new Request("url3", System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
               .get(1000, TimeUnit.MILLISECONDS);
