@@ -81,16 +81,13 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
           Callable<?> newCallable = decision.getNewCallable();
-          log.debug("Result {} for {} retrying {}", value, what, newCallable);
           if (decision.getDelayNanos() < 0) {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
-            return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
-          } else {
-            return decision;
+            decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
           }
-        } else {
-          return decision;
+          log.debug("Result {}, retrying {} with {}", value,  newCallable, decision);
         }
+        return decision;
       }
     }
     return RetryDecision.abort();
@@ -104,17 +101,13 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
       if (decision != null) {
         if (decision.getDecisionType() == RetryDecision.Type.Retry) {
           Callable<?> newCallable = decision.getNewCallable();
-          LOG.debug("Result {} for {} retrying {}", value.getClass().getName(), what, newCallable,
-                  new RuntimeException(value));
           if (decision.getDelayNanos() < 0) {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
-            return (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
-          } else {
-            return decision;
+            decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
           }
-        } else {
-          return decision;
+          LOG.debug("Result {}, retrying {} with {}", value.getClass().getName(), newCallable, decision, value);
         }
+        return decision;
       }
     }
     return RetryDecision.abort();
