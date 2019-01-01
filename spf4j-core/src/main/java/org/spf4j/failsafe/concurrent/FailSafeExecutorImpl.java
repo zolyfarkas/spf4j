@@ -369,7 +369,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
       boolean result = true;
       for (int i = 0, l =  futures.length; i < l; i++) {
         Future f  = futures[i];
-        if (!f.isDone()) {
+        if (f != null && !f.isDone()) {
           result =  false;
         }
       }
