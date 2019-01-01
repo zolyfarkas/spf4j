@@ -20,26 +20,33 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.log.Level;
 
 /**
  *
  * @author Zoltan Farkas
  */
+@ThreadSafe
 final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
 
   private final Level fromLevel;
   private final Level toLevel;
   private final boolean passThrough;
-  private final A accObj;
+  private final Object sync = new Object();
+  @GuardedBy("sync")
+  private A accObj;
   private final BiConsumer<A, TestLogRecord> acc;
   private final Function<A, T> finisher;
   private final Consumer<LogCollectorHandler<A, T>> onClose;
   private boolean isClosed;
+  private final Collector<TestLogRecord, A, T> collector;
 
   LogCollectorHandler(final Level fromLevel, final Level toLevel,
           final boolean passThrough,
           final Collector<TestLogRecord, A, T> collector, final Consumer<LogCollectorHandler<A, T>> onClose) {
+    this.collector = collector;
     this.fromLevel = fromLevel;
     this.toLevel = toLevel;
     this.passThrough = passThrough;
@@ -62,7 +69,7 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
   @Override
   @Nullable
   public TestLogRecord handle(final TestLogRecord record) {
-    synchronized (accObj) {
+    synchronized (sync) {
       if (!isClosed) {
         acc.accept(accObj, record);
       }
@@ -76,15 +83,18 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
 
   @Override
   public T get() {
-    synchronized (accObj) {
-      return finisher.apply(accObj);
+    synchronized (sync) {
+      T result = finisher.apply(accObj);
+      // Create a copy... relies on combiner using left arg to mutate, if it mutates...
+      accObj = collector.combiner().apply(collector.supplier().get(), accObj);
+      return result;
     }
   }
 
 
   @Override
   public void close() {
-    synchronized (accObj) {
+    synchronized (sync) {
       if (!isClosed) {
         try {
           onClose.accept(this);
