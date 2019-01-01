@@ -51,6 +51,13 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
       throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toString() {
+      return "ABORT";
+    }
+
+
+
   };
 
   /**
@@ -90,6 +97,13 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
         return Either.left(exception);
       }
 
+      @Override
+      public String toString() {
+        return "ABORT(" + exception.getClass() + ')';
+      }
+
+
+
     };
   }
 
@@ -120,6 +134,13 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
       public Callable<T> getNewCallable() {
         throw new UnsupportedOperationException();
       }
+
+      @Override
+      public String toString() {
+        return "ABORT(" + result + ')';
+      }
+
+
 
     };
   }
@@ -154,6 +175,13 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
        return callable;
      }
 
+     @Override
+     public String toString() {
+       return "RETRY(" + retryNanos + ',' + callable + ')';
+     }
+
+
+
    };
   }
 
@@ -180,6 +208,13 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
      public C getNewCallable() {
        return callable;
      }
+
+     @Override
+     public String toString() {
+       return "RETRY(" + callable + ')';
+     }
+
+
 
    };
   }
