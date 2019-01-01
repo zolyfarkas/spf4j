@@ -31,7 +31,9 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -64,20 +66,30 @@ public final class XCollectors {
   }
 
   public static <T, X extends T> Collector<T, ?, ArrayDeque<T>> last(final int limit, final X addIfLimited) {
-    return Collector.of(
-            ArrayDeque<T>::new,
+    return Collector.of(ArrayDeque<T>::new,
             (l, e) -> {
-              if (l.size() >= limit) {
-                l.removeFirst();
-                l.removeFirst();
-                l.addFirst(addIfLimited);
-              }
               l.addLast(e);
-            },
-            (l1, l2) -> {
-              throw new UnsupportedOperationException("Limiting collectors do not support combining");
-            }
-    );
+              limitDequeue(l, limit, addIfLimited);
+            }, new BinaryOperator<ArrayDeque<T>>() {
+      @Override
+      @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
+      // Agree with FB here, however this confusing behavior is documented in Collector javadoc...
+      public ArrayDeque<T> apply(final ArrayDeque<T> l1, final ArrayDeque<T> l2) {
+        l1.addAll(l2);
+        limitDequeue(l1, limit, addIfLimited);
+        return l1;
+      }
+    });
+  }
+
+  public static <T> void limitDequeue(final Deque<T> l1, final int limit, final T addIfLimited) {
+    int extra = l1.size() - limit;
+    if (extra > 0) {
+      for (int i = 0, m = extra + 1; i < m; i++) {
+        l1.removeFirst();
+      }
+      l1.addFirst(addIfLimited);
+    }
   }
 
   /**
