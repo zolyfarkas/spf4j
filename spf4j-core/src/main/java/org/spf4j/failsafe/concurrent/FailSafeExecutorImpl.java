@@ -123,8 +123,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
 
     @Override
     public void doRun() {
-      Thread thread = Thread.currentThread();
-      while (!thread.isInterrupted()) {
+      while (retryManagerFuture != SHUTDOWN) {
         try {
           DelayedTask<RetryFutureTask<?>>  event = executionEvents.poll(1, TimeUnit.MINUTES);
           if (event != null) {
@@ -146,9 +145,9 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
   @Override
   public void close() throws InterruptedException {
     synchronized (sync) {
-      shutdownRetryManager();
       Future<?> rmf = this.retryManagerFuture;
       if (rmf != null && rmf != SHUTDOWN) {
+        this.retryManagerFuture = SHUTDOWN;
         try {
           rmf.get();
         } catch (ExecutionException ex) {
