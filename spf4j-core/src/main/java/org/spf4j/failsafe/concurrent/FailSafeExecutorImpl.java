@@ -183,7 +183,9 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
               A r;
               try {
                 r = f.get();
-              } catch (Exception ex)  {
+              } catch (ExecutionException ex)  {
+                return result.completeExceptionally(ex.getCause());
+              } catch (Throwable ex)  {
                 return result.completeExceptionally(ex);
               }
               return result.complete(r);
@@ -249,12 +251,17 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
       public boolean accept(final Future<A> finished) {
         boolean accepted = super.accept(finished);
           if (accepted) {
+            A r;
             try {
-              A r = finished.get();
-              result.complete(r);
+              r = finished.get();
+            } catch (ExecutionException ex) {
+              result.completeExceptionally(ex.getCause());
+              return true;
             } catch (Throwable ex) {
               result.completeExceptionally(ex);
+              return true;
             }
+            result.complete(r);
             return true;
           }
           return false;
