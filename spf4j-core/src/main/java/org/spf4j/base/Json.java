@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.ServiceLoader;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.Module;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -53,6 +54,7 @@ public final class Json {
   public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
 
   static {
+    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     SimpleModule module = new SimpleModule("spf4j", new org.codehaus.jackson.Version(1, 0, 0, ""));
     loadServices(module);
     module.addSerializer(JsonWriteable.class, jsonWritableSerializer());
