@@ -180,13 +180,13 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
     InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
     ConsumableRetryFutureTask<A> rft =
             new ConsumableRetryFutureTask<>(f -> {
+              A r;
               try {
-                A r = f.get();
-                result.complete(r);
+                r = f.get();
               } catch (Exception ex)  {
-                result.completeExceptionally(ex);
+                return result.completeExceptionally(ex);
               }
-              return true;
+              return result.complete(r);
             }, (Callable<A>) task,
                     (RetryPredicate<A, Callable<? extends A>>) predicate, executionEvents,
               this::startRetryManager);
