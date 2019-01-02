@@ -106,38 +106,42 @@ class RetryFutureTask<T> extends FutureTask<T> {
       return false;
     }
     RetryDecision<T, Callable<? extends T>> decision = this.retryPredicate.getExceptionDecision(t, getCallable());
-        final RetryDecision.Type decisionType = decision.getDecisionType();
-        switch (decisionType) {
-          case Retry:
-            onRetry.run();
-            final long delayNanos = decision.getDelayNanos();
-            this.setCallable((Callable<T>) decision.getNewCallable());
-            Throwable at = t;
-            if (previousResult != null && previousResult.isLeft()) {
-                Throwables.suppressLimited(at, previousResult.getLeft());
-            }
-            previousResult = Either.left(at);
-            DelayedTask<RetryFutureTask<?>> delayedTask = new DelayedTask<>(this, delayNanos);
-            this.exec = delayedTask;
-            delayedTasks.add(delayedTask);
-            return false;
-          case Abort:
-            this.exec = null;
-            if (previousResult != null && previousResult.isLeft()) {
-              Throwables.suppressLimited(t, previousResult.getLeft());
-            }
-            Either<Throwable, T> newRes = decision.getResult();
-            if (newRes == null) {
-              super.setException(t);
-            } else if (newRes.isLeft()) {
-              super.setException(newRes.getLeft());
-            } else {
-              super.set(newRes.getRight());
-            }
-            return true;
-          default:
-            throw new IllegalStateException("Invalid decision type" + decisionType, t);
+    final RetryDecision.Type decisionType = decision.getDecisionType();
+    switch (decisionType) {
+      case Retry:
+        onRetry.run();
+        final long delayNanos = decision.getDelayNanos();
+        this.setCallable((Callable<T>) decision.getNewCallable());
+        Throwable at = t;
+        if (previousResult != null && previousResult.isLeft()) {
+          Throwables.suppressLimited(at, previousResult.getLeft());
         }
+        previousResult = Either.left(at);
+        DelayedTask<RetryFutureTask<?>> delayedTask = new DelayedTask<>(this, delayNanos);
+        this.exec = delayedTask;
+        delayedTasks.add(delayedTask);
+        return false;
+      case Abort:
+        this.exec = null;
+        Either<Throwable, T> newRes = decision.getResult();
+        if (newRes == null) {
+          if (previousResult != null && previousResult.isLeft()) {
+            Throwables.suppressLimited(t, previousResult.getLeft());
+          }
+          super.setException(t);
+        } else if (newRes.isLeft()) {
+          Throwable tx = newRes.getLeft();
+          if (previousResult != null && previousResult.isLeft()) {
+            Throwables.suppressLimited(tx, previousResult.getLeft());
+          }
+          super.setException(tx);
+        } else {
+          super.set(newRes.getRight());
+        }
+        return true;
+      default:
+        throw new IllegalStateException("Invalid decision type" + decisionType, t);
+    }
   }
 
   @Override
