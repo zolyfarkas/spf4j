@@ -88,22 +88,17 @@ public final class Converters {
   public static Throwable convert(final java.lang.Throwable throwable) {
     String message = throwable.getMessage();
     if (throwable instanceof RemoteException) {
-          return Throwable.newBuilder()
-            .setClassName(throwable.getClass().getName())
-            .setMessage(message == null ? "" : message)
-            .setStackTrace(convert(throwable.getStackTrace()))
-            .setSuppressed(convert(throwable.getSuppressed()))
-            .setCause(((RemoteException) throwable).getRemoteCause())
-            .build();
+        return new Throwable(throwable.getClass().getName(),
+                message == null ? "" : message, convert(throwable.getStackTrace()),
+                ((RemoteException) throwable).getRemoteCause(),
+                convert(throwable.getSuppressed()));
     }
     java.lang.Throwable cause = throwable.getCause();
-    return Throwable.newBuilder()
-            .setClassName(throwable.getClass().getName())
-            .setMessage(message == null ? "" : message)
-            .setCause(cause == null ? null : convert(cause))
-            .setStackTrace(convert(throwable.getStackTrace()))
-            .setSuppressed(convert(throwable.getSuppressed()))
-            .build();
+    return new Throwable(throwable.getClass().getName(),
+            message == null ? "" : message,
+            convert(throwable.getStackTrace()),
+            cause == null ? null : convert(cause),
+            convert(throwable.getSuppressed()));
   }
 
   public static RemoteException convert(final String source, final Throwable throwable) {
