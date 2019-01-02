@@ -123,6 +123,9 @@ class RetryFutureTask<T> extends FutureTask<T> {
             return false;
           case Abort:
             this.exec = null;
+            if (previousResult != null && previousResult.isLeft()) {
+              Throwables.suppressLimited(t, previousResult.getLeft());
+            }
             Either<Throwable, T> newRes = decision.getResult();
             if (newRes == null) {
               super.setException(t);
