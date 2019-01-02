@@ -37,6 +37,10 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -409,13 +413,13 @@ public final class ExecutionContexts {
           final Collection<? extends Callable<T>> tasks,
           final ExecutionContext ctx, final long deadlineNanos) {
     return tasks.stream().map(
-            (c) -> new DeadlinedPropagatingCallable<>(c, ctx, deadlineNanos))
+            (c) -> new PropagatingNamedCallable<>(c, ctx, null, deadlineNanos))
             .collect(Collectors.toCollection(() -> new ArrayList<>(tasks.size())));
   }
 
   public static <T> Callable<T> deadlinedPropagatingCallable(final Callable<T> callable,
           final ExecutionContext ctx, final long deadlineNanos) {
-    return new DeadlinedPropagatingCallable<T>(callable, ctx, deadlineNanos);
+    return new PropagatingNamedCallable<T>(callable, ctx, null, deadlineNanos);
   }
 
   public static Runnable propagatingRunnable(final Runnable runnable) {
@@ -424,7 +428,12 @@ public final class ExecutionContexts {
   }
 
   public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx) {
-    return new PropagatingRunnable(runnable, ctx);
+    return new PropagatingRunnable(runnable, ctx, null, ctx.getDeadlineNanos());
+  }
+
+  public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingRunnable(runnable, ctx, name, deadlineNanos);
   }
 
   private static final class PropagatingCallable<T> implements Callable<T> {
@@ -450,7 +459,8 @@ public final class ExecutionContexts {
     return new PropagatingNamedCallable<T>(callable, ctx, name, deadlineNanos);
   }
 
-  private static final class PropagatingNamedCallable<T> implements Callable<T> {
+
+  private static final class PropagatingNamedCallable<T> implements Callable<T>, Wrapper<Callable<T>> {
 
     private final Callable<T> task;
     private final ExecutionContext current;
@@ -460,7 +470,7 @@ public final class ExecutionContexts {
     private final long deadlineNanos;
 
     PropagatingNamedCallable(final Callable<T> task, final ExecutionContext current,
-            final String name, final long deadlineNanos) {
+            @Nullable final String name, final long deadlineNanos) {
       this.task = task;
       this.current = current;
       this.name = name;
@@ -476,48 +486,216 @@ public final class ExecutionContexts {
 
     @Override
     public String toString() {
-      return "Callable: " + name;
+      return  name == null ? task.toString() : name;
+    }
+
+    @Override
+    public Callable<T> getWrapped() {
+      return task;
     }
 
   }
 
-  private static final class DeadlinedPropagatingCallable<T> implements Callable<T> {
+  public static <X, Y> Function<X, Y> propagatingFunction(final Function<X, Y> callable, final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingFunction<X, Y>(callable, ctx, name, deadlineNanos);
+  }
 
-    private final Callable<T> task;
+  private static final class PropagatingFunction<X, Y> implements Function<X, Y>, Wrapper<Function<X, Y>> {
+
+    private final Function<X, Y> function;
     private final ExecutionContext current;
+
+    private final String name;
+
     private final long deadlineNanos;
 
-    DeadlinedPropagatingCallable(final Callable<T> task, final ExecutionContext current,
-            final long deadlineNanos) {
-      this.task = task;
+    PropagatingFunction(final Function<X, Y> task, final ExecutionContext current,
+            final String name, final long deadlineNanos) {
+      this.function = task;
       this.current = current;
+      this.name = name;
       this.deadlineNanos = deadlineNanos;
     }
 
     @Override
-    public T call() throws Exception {
-      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current,
-              TimeSource.nanoTime(), deadlineNanos)) {
-        return task.call();
+    public Y apply(final X in) {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+        return function.apply(in);
       }
     }
+
+    @Override
+    public String toString() {
+      return name == null ? function.toString() : name;
+    }
+
+    @Override
+    public Function<X, Y> getWrapped() {
+      return function;
+    }
+
   }
 
-  private static final class PropagatingRunnable implements Runnable {
+  public static <X, Y, Z> BiFunction<X, Y, Z> propagatingBiFunction(final BiFunction<X, Y, Z> callable,
+          final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingBiFunction<X, Y, Z>(callable, ctx, name, deadlineNanos);
+  }
+
+ private static final class PropagatingBiFunction<X, Y, Z>
+         implements BiFunction<X, Y, Z>, Wrapper<BiFunction<X, Y, Z>> {
+
+    private final BiFunction<X, Y, Z> function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingBiFunction(final BiFunction<X, Y, Z> task, final ExecutionContext current,
+            final String name, final long deadlineNanos) {
+      this.function = task;
+      this.current = current;
+      this.name = name;
+      this.deadlineNanos = deadlineNanos;
+    }
+
+    @Override
+    public Z apply(final X x, final Y y) {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+        return function.apply(x, y);
+      }
+    }
+
+    @Override
+    public String toString() {
+      return name == null ? function.toString() : name;
+    }
+
+    @Override
+    public BiFunction<X, Y, Z> getWrapped() {
+      return function;
+    }
+
+  }
+
+
+  public static <X> Consumer<X> propagatingConsumer(final Consumer<X> callable, final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingConsumer<X>(callable, ctx, name, deadlineNanos);
+  }
+
+  private static final class PropagatingConsumer<X> implements Consumer<X>, Wrapper<Consumer<X>> {
+
+    private final Consumer<X> function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingConsumer(final Consumer<X> task, final ExecutionContext current,
+            final String name, final long deadlineNanos) {
+      this.function = task;
+      this.current = current;
+      this.name = name;
+      this.deadlineNanos = deadlineNanos;
+    }
+
+    @Override
+    public void accept(final X in) {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+        function.accept(in);
+      }
+    }
+
+    @Override
+    public String toString() {
+      return name == null ? function.toString() : name;
+    }
+
+    @Override
+    public Consumer<X> getWrapped() {
+      return function;
+    }
+
+  }
+
+  public static <X, Y> BiConsumer<X, Y> propagatingBiConsumer(final BiConsumer<X, Y> callable,
+          final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingBiConsumer<>(callable, ctx, name, deadlineNanos);
+  }
+
+  private static final class PropagatingBiConsumer<X, Y> implements BiConsumer<X, Y>, Wrapper<BiConsumer<X, Y>> {
+
+    private final BiConsumer<X, Y> function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingBiConsumer(final BiConsumer<X, Y> task, final ExecutionContext current,
+            final String name, final long deadlineNanos) {
+      this.function = task;
+      this.current = current;
+      this.name = name;
+      this.deadlineNanos = deadlineNanos;
+    }
+
+    @Override
+    public void accept(final X x, final Y y) {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+        function.accept(x, y);
+      }
+    }
+
+    @Override
+    public String toString() {
+      return name == null ? function.toString() : name;
+    }
+
+    @Override
+    public BiConsumer<X, Y> getWrapped() {
+      return function;
+    }
+
+  }
+
+
+
+  private static final class PropagatingRunnable implements Runnable, Wrapper<Runnable> {
 
     private final Runnable task;
     private final ExecutionContext current;
+    private final String name;
+    private final long deadlineNanos;
 
-    PropagatingRunnable(final Runnable task, final ExecutionContext current) {
+    PropagatingRunnable(final Runnable task, final ExecutionContext current, final String name,
+            final long deadlineNanos) {
       this.task = task;
       this.current = current;
+      this.name = name;
+      this.deadlineNanos = deadlineNanos;
     }
 
     @Override
     public void run() {
-      try (ExecutionContext ctx = current.startChild(task.toString())) {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
         task.run();
       }
+    }
+
+    @Override
+    public Runnable getWrapped() {
+      return task;
+    }
+
+    @Override
+    public String toString() {
+     return name == null ? task.toString() : name;
     }
   }
 
