@@ -41,6 +41,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -621,6 +622,48 @@ public final class ExecutionContexts {
     }
 
   }
+
+  public static <X> Supplier<X> propagatingSupplier(final Supplier<X> callable, final ExecutionContext ctx,
+          final String name, final long deadlineNanos) {
+    return new PropagatingSupplier<X>(callable, ctx, name, deadlineNanos);
+  }
+
+private static final class PropagatingSupplier<X> implements Supplier<X>, Wrapper<Supplier<X>> {
+
+    private final Supplier<X> function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingSupplier(final Supplier<X> task, final ExecutionContext current,
+            final String name, final long deadlineNanos) {
+      this.function = task;
+      this.current = current;
+      this.name = name;
+      this.deadlineNanos = deadlineNanos;
+    }
+
+    @Override
+    public X get() {
+      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+        return function.get();
+      }
+    }
+
+    @Override
+    public String toString() {
+      return name == null ? function.toString() : name;
+    }
+
+    @Override
+    public Supplier<X> getWrapped() {
+      return function;
+    }
+
+  }
+
 
   public static <X, Y> BiConsumer<X, Y> propagatingBiConsumer(final BiConsumer<X, Y> callable,
           final ExecutionContext ctx,
