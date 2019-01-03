@@ -705,7 +705,7 @@ public final class Throwables {
     if (dejaVu.contains(t)) {
       s.append("\t[CIRCULAR REFERENCE:");
       writeMessageString(s, t);
-      s.append(']');
+      s.append("]\n");
     } else {
       dejaVu.add(t);
       // Compute number of frames in common between this and enclosing trace
