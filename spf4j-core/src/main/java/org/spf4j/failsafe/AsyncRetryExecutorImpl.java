@@ -83,9 +83,14 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
       return  (CompletableFuture<R>) executor.submitRx(pwhat,
               retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
     } else {
+      long hedgeDelayNanos = hedge.getHedgeDelayNanos();
+      if (hedgeDelayNanos >= (deadlineNanos - startTimeNanos)) {
+        return  (CompletableFuture<R>) executor.submitRx(pwhat,
+              retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+      }
       return (CompletableFuture<R>) executor.submitRx(pwhat,
               retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),
-              hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
+              hedgeCount, hedgeDelayNanos, TimeUnit.NANOSECONDS);
     }
   }
 
