@@ -172,7 +172,11 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
         if (r != null) {
           if (r.isLeft()) {
             lastEx = r.getLeft();
-            if (lastExChain != null) {
+            Throwable[] suppressed = lastEx.getSuppressed();
+            if (lastExChain != null && lastEx != lastExChain
+                    && (suppressed.length == 0 || suppressed[suppressed.length - 1] != lastExChain)
+                    && lastEx.getCause() != lastExChain) {
+              // we attach the chain in case the new exception does not.
               Throwables.suppressLimited(lastEx, lastExChain, maxExceptionChain);
             }
             lastExChain = lastEx;

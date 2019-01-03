@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
@@ -131,6 +132,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
             executionService.execute(runnable);
           }
         } catch (InterruptedException ex) {
+          LOG.debug("Interrupted Retry manager, shuting down, events scheduled: {}", executionEvents, ex);
           break;
         }
       }
@@ -148,10 +150,13 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
       Future<?> rmf = this.retryManagerFuture;
       if (rmf != null && rmf != SHUTDOWN) {
         this.retryManagerFuture = SHUTDOWN;
+        rmf.cancel(true);
         try {
           rmf.get();
         } catch (ExecutionException ex) {
           throw new UncheckedExecutionException(ex);
+        } catch (CancellationException ex) {
+          // ignore, since we are the source
         }
       }
     }

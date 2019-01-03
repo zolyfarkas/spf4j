@@ -31,6 +31,7 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,10 +49,9 @@ public class SyncRetryExecutorTest {
 
   @Test
   public void testExHandling() throws InterruptedException {
-    RuntimeException runtimeException = new RuntimeException();
     try {
       RetryPolicy.defaultPolicy().run(() -> {
-        throw runtimeException;
+        throw new RuntimeException("fail");
       }, RuntimeException.class,
               TimeSource.nanoTime() - 10000000);
       Assert.fail();
@@ -59,8 +59,24 @@ public class SyncRetryExecutorTest {
       LOG.debug("Expected exception", ex);
       Throwable[] suppressed = ex.getSuppressed();
       Assert.assertEquals(1, suppressed.length);
-      Assert.assertEquals(runtimeException, suppressed[0]);
+      Assert.assertEquals("fail", suppressed[0].getMessage());
     }
   }
+
+  @Test
+  public void testExHandling2() throws InterruptedException {
+    try {
+      RetryPolicy.defaultPolicy().async().submit(() -> {
+        throw new RuntimeException("fail");
+      }, TimeSource.nanoTime() - 10000000).get();
+      Assert.fail();
+    } catch (ExecutionException ex) {
+      LOG.debug("Expected exception", ex);
+      Throwable[] suppressed = ex.getCause().getSuppressed();
+      Assert.assertEquals(1, suppressed.length);
+      Assert.assertEquals("fail", suppressed[0].getMessage());
+    }
+  }
+
 
 }
