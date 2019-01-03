@@ -54,6 +54,7 @@ public final class Timing {
   private static final ScheduledFuture UPDATER;
 
   static {
+    updateTiming(); // run twice to reduce timing discrepancies introcude by classloading
     updateTiming();
     UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);

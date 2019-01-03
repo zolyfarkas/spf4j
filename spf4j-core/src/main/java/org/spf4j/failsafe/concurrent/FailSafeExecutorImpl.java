@@ -246,7 +246,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
     ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
     FirstFuture<A> resultX = new FirstFuture<A>(futures, queue) {
       @Override
-      @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
+      @SuppressFBWarnings({ "NOS_NON_OWNED_SYNCHRONIZATION", "EXS_EXCEPTION_SOFTENING_NO_CHECKED" })
       public boolean accept(final Future<A> finished) {
         boolean accepted = super.accept(finished);
           if (accepted) {
@@ -254,13 +254,19 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
             try {
               r = finished.get();
             } catch (ExecutionException ex) {
-              result.completeExceptionally(ex.getCause());
+              if (!result.completeExceptionally(ex.getCause())) {
+                throw new IllegalStateException(ex);
+              }
               return true;
             } catch (Throwable ex) {
-              result.completeExceptionally(ex);
+              if (!result.completeExceptionally(ex)) {
+                throw new IllegalStateException(ex);
+              }
               return true;
             }
-            result.complete(r);
+            if (!result.complete(r)) {
+              throw new IllegalStateException();
+            }
             return true;
           }
           return false;
