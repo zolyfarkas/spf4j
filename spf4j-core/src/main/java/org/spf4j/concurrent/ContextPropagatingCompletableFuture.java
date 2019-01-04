@@ -1,5 +1,6 @@
 package org.spf4j.concurrent;
 
+import com.google.common.annotations.Beta;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -22,9 +23,13 @@ import org.spf4j.base.UncheckedTimeoutException;
 /**
  * A Completable future that will wrap all Functions to properly propagate ExecutionContext.
  * see CompletableFuture javadoc for more detail.
+ *
+ * This works properly only in JDK 11.
+ *
  * @author Zoltan Farkas
  */
 @SuppressWarnings("checkstyle:DesignForExtension")
+@Beta
 public class ContextPropagatingCompletableFuture<T>
         extends InterruptibleCompletableFuture<T> {
 
@@ -329,5 +334,11 @@ public class ContextPropagatingCompletableFuture<T>
     }
   }
 
+  /**
+   * JDK 11!
+   */
+  public <U> CompletableFuture<U> newIncompleteFuture() {
+    return new ContextPropagatingCompletableFuture<>(parentContext, deadlinenanos);
+  }
 
 }
