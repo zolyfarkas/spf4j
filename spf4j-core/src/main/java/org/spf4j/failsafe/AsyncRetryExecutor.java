@@ -35,10 +35,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.InterruptibleCompletableFuture;
 
 /**
  *
@@ -75,8 +77,14 @@ public interface AsyncRetryExecutor<T, C extends Callable<? extends T>> extends 
             ExecutionContexts.current(), tu, timeout));
   }
 
+    @CheckReturnValue
+  default <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long startTimeNanos, long deadlineNanos) {
+    return submitRx(pwhat, startTimeNanos, deadlineNanos, () -> new InterruptibleCompletableFuture<>());
+  }
+
   @CheckReturnValue
-  <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long startTimeNanos, long deadlineNanos);
+  <R extends T, W extends C> CompletableFuture<R> submitRx(W pwhat, long startTimeNanos,
+          long deadlineNanos, Supplier<InterruptibleCompletableFuture<R>> futureSupplier);
 
 
   default <W extends C> void execute(W pwhat) {

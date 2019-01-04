@@ -433,7 +433,7 @@ public final class ExecutionContexts {
   }
 
   public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingRunnable(runnable, ctx, name, deadlineNanos);
   }
 
@@ -456,7 +456,7 @@ public final class ExecutionContexts {
   }
 
   public static <T> Callable<T> propagatingCallable(final Callable<T> callable, final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingNamedCallable<T>(callable, ctx, name, deadlineNanos);
   }
 
@@ -498,7 +498,7 @@ public final class ExecutionContexts {
   }
 
   public static <X, Y> Function<X, Y> propagatingFunction(final Function<X, Y> callable, final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingFunction<X, Y>(callable, ctx, name, deadlineNanos);
   }
 
@@ -540,7 +540,7 @@ public final class ExecutionContexts {
 
   public static <X, Y, Z> BiFunction<X, Y, Z> propagatingBiFunction(final BiFunction<X, Y, Z> callable,
           final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingBiFunction<X, Y, Z>(callable, ctx, name, deadlineNanos);
   }
 
@@ -583,7 +583,7 @@ public final class ExecutionContexts {
 
 
   public static <X> Consumer<X> propagatingConsumer(final Consumer<X> callable, final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingConsumer<X>(callable, ctx, name, deadlineNanos);
   }
 
@@ -624,7 +624,7 @@ public final class ExecutionContexts {
   }
 
   public static <X> Supplier<X> propagatingSupplier(final Supplier<X> callable, final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingSupplier<X>(callable, ctx, name, deadlineNanos);
   }
 
@@ -667,7 +667,7 @@ private static final class PropagatingSupplier<X> implements Supplier<X>, Wrappe
 
   public static <X, Y> BiConsumer<X, Y> propagatingBiConsumer(final BiConsumer<X, Y> callable,
           final ExecutionContext ctx,
-          final String name, final long deadlineNanos) {
+          @Nullable final String name, final long deadlineNanos) {
     return new PropagatingBiConsumer<>(callable, ctx, name, deadlineNanos);
   }
 

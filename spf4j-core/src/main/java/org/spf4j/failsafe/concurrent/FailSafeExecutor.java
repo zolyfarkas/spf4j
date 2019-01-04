@@ -35,6 +35,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import org.spf4j.concurrent.InterruptibleCompletableFuture;
 import org.spf4j.failsafe.RetryPredicate;
 
 /**
@@ -52,11 +54,24 @@ public interface FailSafeExecutor extends AutoCloseable {
   <A> Future<A> submit(Callable<? extends A> task, RetryPredicate<A, ? extends Callable<? extends A>> predicate,
           int nrHedges, long hedgeDelay, TimeUnit unit);
 
-  <A> CompletableFuture<A> submitRx(Callable<? extends A> task,
-          RetryPredicate<A, ? extends Callable<? extends A>> predicate);
+  default <A> CompletableFuture<A> submitRx(Callable<? extends A> task,
+          RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
+    return submitRx(task, predicate, () -> new InterruptibleCompletableFuture());
+  }
 
   <A> CompletableFuture<A> submitRx(Callable<? extends A> task,
           RetryPredicate<A, ? extends Callable<? extends A>> predicate,
-          int nrHedges, long hedgeDelay, TimeUnit unit);
+          Supplier<InterruptibleCompletableFuture<A>> cfSupplier);
+
+  default <A> CompletableFuture<A> submitRx(Callable<? extends A> task,
+          RetryPredicate<A, ? extends Callable<? extends A>> predicate,
+          int nrHedges, long hedgeDelay, TimeUnit unit) {
+    return submitRx(task, predicate, nrHedges, hedgeDelay, unit, () -> new InterruptibleCompletableFuture());
+  }
+
+ <A> CompletableFuture<A> submitRx(Callable<? extends A> task,
+           RetryPredicate<A, ? extends Callable<? extends A>> predicate,
+           int nrHedges,  long hedgeDelay,  TimeUnit unit,
+           Supplier<InterruptibleCompletableFuture<A>> cfSupplier);
 
 }

@@ -43,12 +43,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.failsafe.RetryPredicate;
 import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.InterruptibleCompletableFuture;
 
 /**
  * Executor that will call Callables with retry. This executor cannot be used inside a Completion service.
@@ -180,8 +182,9 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
 
   @Override
   public <A> CompletableFuture<A> submitRx(final Callable<? extends A> task,
-          final RetryPredicate<A, ? extends Callable<? extends A>> predicate) {
-    InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
+          final RetryPredicate<A, ? extends Callable<? extends A>> predicate,
+          final Supplier<InterruptibleCompletableFuture<A>> cfSupplier) {
+    InterruptibleCompletableFuture<A> result = cfSupplier.get();
     ConsumableRetryFutureTask<A> rft =
             new ConsumableRetryFutureTask<>(f -> {
               A r;
@@ -241,11 +244,12 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
   @Override
   public <A> CompletableFuture<A> submitRx(final Callable<? extends A> task,
           final RetryPredicate<A, ? extends Callable<? extends A>> predicate,
-          final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
+          final int nrHedges, final long hedgeDelay, final TimeUnit unit,
+          final Supplier<InterruptibleCompletableFuture<A>> cfSupplier) {
     if (nrHedges <= 0) {
       return submitRx(task, predicate);
     }
-    InterruptibleCompletableFuture<A> result = new InterruptibleCompletableFuture<>();
+    InterruptibleCompletableFuture<A> result = cfSupplier.get();
     int nrFut = nrHedges + 1;
     final Future<A>[] futures = new Future[nrFut];
     ArrayBlockingQueue<Future<A>> queue = new ArrayBlockingQueue<>(1);
@@ -428,36 +432,5 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
     }
   }
 
-  private static class InterruptibleCompletableFuture<A> extends CompletableFuture<A> {
-
-    private Future<A> toCancel;
-
-    private final Object sync = new Object();
-
-    @Override
-    public boolean cancel(final boolean mayInterruptIfRunning) {
-      synchronized (sync) {
-        boolean result = super.cancel(mayInterruptIfRunning);
-        Future<A> tc = toCancel;
-        if (tc != null) {
-          result = tc.cancel(mayInterruptIfRunning);
-          toCancel = null;
-        }
-        return result;
-      }
-    }
-
-    public void setToCancel(final Future<A> toCancel) {
-      synchronized (sync) {
-        this.toCancel = toCancel;
-      }
-    }
-
-    @Override
-    public String toString() {
-      return "InterruptibleCompletableFuture{" + "toCancel=" + toCancel + '}';
-    }
-
-  }
 
 }

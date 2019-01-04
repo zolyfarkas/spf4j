@@ -37,6 +37,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
+import org.spf4j.concurrent.InterruptibleCompletableFuture;
 import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 
 /**
@@ -75,22 +77,24 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <R extends T, W extends C> CompletableFuture<R> submitRx(final W pwhat,
-          final long startTimeNanos, final long deadlineNanos) {
+          final long startTimeNanos, final long deadlineNanos,
+          final Supplier<InterruptibleCompletableFuture<R>> cfSupplier) {
     Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);
     int hedgeCount = hedge.getHedgeCount();
     if (hedgeCount <= 0) {
-      return  (CompletableFuture<R>) executor.submitRx(pwhat,
-              retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+      return  executor.submitRx((Callable) pwhat,
+              (RetryPredicate) retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);
     } else {
       long hedgeDelayNanos = hedge.getHedgeDelayNanos();
       if (hedgeDelayNanos >= (deadlineNanos - startTimeNanos)) {
-        return  (CompletableFuture<R>) executor.submitRx(pwhat,
-              retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));
+        return executor.submitRx((Callable) pwhat,
+              (RetryPredicate) retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);
       }
-      return (CompletableFuture<R>) executor.submitRx(pwhat,
-              retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),
-              hedgeCount, hedgeDelayNanos, TimeUnit.NANOSECONDS);
+      return (CompletableFuture<R>) executor.submitRx((Callable) pwhat,
+              (RetryPredicate) retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),
+              hedgeCount, hedgeDelayNanos, TimeUnit.NANOSECONDS, cfSupplier);
     }
   }
 
