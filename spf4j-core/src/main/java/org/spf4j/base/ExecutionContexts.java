@@ -480,7 +480,7 @@ public final class ExecutionContexts {
 
     @Override
     public T call() throws Exception {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         return task.call();
       }
     }
@@ -521,7 +521,7 @@ public final class ExecutionContexts {
 
     @Override
     public Y apply(final X in) {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         return function.apply(in);
       }
     }
@@ -564,7 +564,7 @@ public final class ExecutionContexts {
 
     @Override
     public Z apply(final X x, final Y y) {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         return function.apply(x, y);
       }
     }
@@ -606,7 +606,7 @@ public final class ExecutionContexts {
 
     @Override
     public void accept(final X in) {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         function.accept(in);
       }
     }
@@ -647,7 +647,7 @@ private static final class PropagatingSupplier<X> implements Supplier<X>, Wrappe
 
     @Override
     public X get() {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         return function.get();
       }
     }
@@ -690,7 +690,7 @@ private static final class PropagatingSupplier<X> implements Supplier<X>, Wrappe
 
     @Override
     public void accept(final X x, final Y y) {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         function.accept(x, y);
       }
     }
@@ -726,7 +726,7 @@ private static final class PropagatingSupplier<X> implements Supplier<X>, Wrappe
 
     @Override
     public void run() {
-      try (ExecutionContext ctx = start(name, current, deadlineNanos)) {
+      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {
         task.run();
       }
     }
