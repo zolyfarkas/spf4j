@@ -38,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public class RemoteException extends Exception {
+public class RemoteException extends RuntimeException {
 
   private final String source;
 
