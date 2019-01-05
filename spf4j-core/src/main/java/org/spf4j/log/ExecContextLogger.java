@@ -58,37 +58,8 @@ import org.spf4j.base.Wrapper;
 @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
 public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
-  private final Log logger;
+  private final XLog logger;
 
-  interface Log extends Wrapper<Logger> {
-
-   /**
-    * Is logger enabled for level and marker
-    * @param level
-    * @param marker
-    * @return
-    */
-   boolean isEnabled(Level level, @Nullable Marker marker);
-
-   /**
-    * Log.
-    * @param marker
-    * @param level
-    * @param format
-    * @param args
-    */
-   void log(@Nullable Marker marker, Level level, String format, Object... args);
-
-   /**
-    * Log with a level that is enabled. (upgrade level until so)
-    * @param marker
-    * @param level
-    * @param format
-    * @param args
-    */
-   void logUpgrade(@Nullable Marker marker, Level level, String format, Object... args);
-
-  }
 
   public static ExecContextLogger from(final Logger wrapped) {
     if (wrapped instanceof ExecContextLogger) {
@@ -99,10 +70,10 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
   }
 
   public ExecContextLogger(final Logger wrapped) {
-    this(new SLf4jLoggerAdapter(wrapped));
+    this(new SLf4jXLogAdapter(wrapped));
   }
 
-  public ExecContextLogger(final Log traceLogger) {
+  public ExecContextLogger(final XLog traceLogger) {
     this.logger = traceLogger;
   }
 
@@ -463,108 +434,6 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
   @Override
   public String toString() {
     return "ExecContextLogger{" + "traceLogger=" + this.logger + '}';
-  }
-
-  private static class SLf4jLoggerAdapter implements Log {
-
-    private final Logger wrapped;
-
-    SLf4jLoggerAdapter(final Logger wrapped) {
-      this.wrapped = wrapped;
-    }
-
-    @Override
-    @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
-    public void logUpgrade(@Nullable final  Marker marker, final Level level, final String format,
-            final Object... pargs) {
-      LogUtils.logUpgrade(wrapped, marker, level, format, pargs);
-    }
-
-    @Override
-    public void log(@Nullable final Marker marker, final Level level, final String format, final Object... args) {
-      switch (level) {
-        case TRACE:
-          if (marker != null) {
-            wrapped.trace(marker, format, args);
-          } else {
-            wrapped.trace(format, args);
-          }
-          break;
-        case DEBUG:
-          if (marker != null) {
-            wrapped.debug(marker, format, args);
-          } else {
-            wrapped.debug(format, args);
-          }
-          break;
-        case INFO:
-          if (marker != null) {
-            wrapped.info(marker, format, args);
-          } else {
-            wrapped.info(format, args);
-          }
-          break;
-        case WARN:
-          if (marker != null) {
-           wrapped.warn(marker, format, args);
-          } else {
-            wrapped.warn(format, args);
-          }
-          break;
-        case ERROR:
-          if (marker != null) {
-            wrapped.error(marker, format, args);
-          } else {
-            wrapped.error(format, args);
-          }
-          break;
-        default:
-          throw new UnsupportedOperationException("Unsupported " + level);
-      }
-    }
-
-    @Override
-    public boolean isEnabled(final Level level, @Nullable final Marker marker) {
-      switch (level) {
-        case TRACE:
-          if (marker == null) {
-            return wrapped.isTraceEnabled();
-          } else {
-            return wrapped.isTraceEnabled(marker);
-          }
-        case DEBUG:
-          if (marker == null) {
-            return wrapped.isDebugEnabled();
-          } else {
-            return wrapped.isDebugEnabled(marker);
-          }
-        case INFO:
-          if (marker == null) {
-            return wrapped.isInfoEnabled();
-          } else {
-            return wrapped.isInfoEnabled(marker);
-          }
-        case WARN:
-          if (marker == null) {
-            return wrapped.isWarnEnabled();
-          } else {
-            return wrapped.isWarnEnabled(marker);
-          }
-        case ERROR:
-          if (marker == null) {
-            return wrapped.isErrorEnabled();
-          } else {
-            return wrapped.isErrorEnabled(null);
-          }
-        default:
-          throw new UnsupportedOperationException("Unsupported " + level);
-      }
-    }
-
-    @Override
-    public Logger getWrapped() {
-      return wrapped;
-    }
   }
 
 }
