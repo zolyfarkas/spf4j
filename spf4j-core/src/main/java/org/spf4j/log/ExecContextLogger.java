@@ -58,6 +58,7 @@ import org.spf4j.base.Wrapper;
 @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
 public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
+  private final Log logger;
 
   interface Log extends Wrapper<Logger> {
 
@@ -97,39 +98,36 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
     }
   }
 
-
-  private final Log traceLogger;
-
   public ExecContextLogger(final Logger wrapped) {
     this(new SLf4jLoggerAdapter(wrapped));
   }
 
   public ExecContextLogger(final Log traceLogger) {
-    this.traceLogger = traceLogger;
+    this.logger = traceLogger;
   }
 
   @Override
   public Logger getWrapped() {
-    return this.traceLogger.getWrapped();
+    return this.logger.getWrapped();
   }
 
   @Override
   public String getName() {
-    return this.traceLogger.getWrapped().getName();
+    return this.logger.getWrapped().getName();
   }
 
 
   public boolean isEnabled(final Level level, @Nullable final Marker marker) {
     ExecutionContext ctx = ExecutionContexts.current();
     if (ctx ==  null) {
-      return traceLogger.isEnabled(level, marker);
+      return logger.isEnabled(level, marker);
     }
     String name = getName();
     Level backendOverwrite = ctx.getBackendMinLogLevel(name);
     if (backendOverwrite == null) {
-      return  traceLogger.isEnabled(level, marker) || level.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
+      return  logger.isEnabled(level, marker) || level.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
     } else {
-      return  traceLogger.isEnabled(level, marker)
+      return  logger.isEnabled(level, marker)
               || level.ordinal()
               >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
     }
@@ -138,20 +136,20 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
   public void log(@Nullable final Marker marker, final Level level, final String msg, final Object... args) {
     ExecutionContext ctx = ExecutionContexts.current();
     if (ctx ==  null) {
-      traceLogger.log(marker, level, msg, args);
+      logger.log(marker, level, msg, args);
       return;
     }
     String name = getName();
     boolean logged;
-    if (traceLogger.isEnabled(level, marker)) {
-      traceLogger.log(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));
+    if (logger.isEnabled(level, marker)) {
+      logger.log(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));
       logged = true;
     } else {
       Level backendOverwrite = ctx.getBackendMinLogLevel(name);
       if (backendOverwrite == null) {
         logged = false;
       } else if (backendOverwrite.ordinal() <= level.ordinal()) {
-        traceLogger.logUpgrade(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));
+        logger.logUpgrade(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));
         logged = true;
       } else {
         logged = false;
@@ -464,7 +462,7 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
   @Override
   public String toString() {
-    return "ExecContextLogger{" + "traceLogger=" + this.traceLogger + '}';
+    return "ExecContextLogger{" + "traceLogger=" + this.logger + '}';
   }
 
   private static class SLf4jLoggerAdapter implements Log {
