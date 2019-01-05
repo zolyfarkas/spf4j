@@ -234,7 +234,7 @@ public final class LogPrinter implements LogHandler {
           if (t == null) {
             t = (Throwable) arg;
           } else {
-            t.addSuppressed(t); // not ideal
+            t.addSuppressed((Throwable) arg); // not ideal
           }
         } else {
           if (!first) {
