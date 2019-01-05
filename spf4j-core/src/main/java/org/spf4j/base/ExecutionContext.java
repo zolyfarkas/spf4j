@@ -87,6 +87,15 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   ExecutionContext getParent();
 
+  default ExecutionContext getRoot() {
+    ExecutionContext curr = this;
+    ExecutionContext parent;
+    while ((parent = curr.getParent()) != null) {
+      curr = parent;
+    }
+    return curr;
+  }
+
   @Beta
   void addLog(Slf4jLogRecord log);
 
