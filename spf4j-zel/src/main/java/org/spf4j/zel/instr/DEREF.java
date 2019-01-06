@@ -31,13 +31,13 @@
  */
 package org.spf4j.zel.instr;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.apache.avro.generic.GenericRecord;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
-import org.spf4j.reflect.TypeMap;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
@@ -49,7 +49,7 @@ public final class DEREF extends Instruction {
 
     public static final Instruction INSTANCE = new DEREF();
 
-    private static final TypeMap<ReferenceHandler> TYPE_HANDLER =
+    private static final CachingTypeMapWrapper<ReferenceHandler> TYPE_HANDLER =
             new CachingTypeMapWrapper<>(new GraphTypeMap());
 
 
@@ -135,6 +135,16 @@ public final class DEREF extends Instruction {
 
     private DEREF() {
     }
+
+
+    public static void registerTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
+      TYPE_HANDLER.safePut(type, refHandler);
+    }
+
+   public static synchronized void replaceTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
+     TYPE_HANDLER.replace(type, (x) -> refHandler);
+    }
+
 
     @Override
     public int execute(final ExecutionContext context)
