@@ -34,6 +34,10 @@ package org.spf4j.zel.instr;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import org.apache.avro.generic.GenericRecord;
+import org.spf4j.reflect.CachingTypeMapWrapper;
+import org.spf4j.reflect.GraphTypeMap;
+import org.spf4j.reflect.TypeMap;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
@@ -44,6 +48,90 @@ public final class DEREF extends Instruction {
     private static final long serialVersionUID = 1L;
 
     public static final Instruction INSTANCE = new DEREF();
+
+    private static final TypeMap<ReferenceHandler> TYPE_HANDLER =
+            new CachingTypeMapWrapper<>(new GraphTypeMap());
+
+
+    static {
+      TYPE_HANDLER.safePut(Map.class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+                      -> context.push(((Map) relativeTo).get(ref)))
+      .safePut(GenericRecord.class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+                      -> context.push(((GenericRecord) relativeTo).get(ref.toString())))
+      .safePut(Object.class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+                      ->  context.push(new JavaMethodCall(relativeTo, (String) ref)))
+      .safePut(Object[].class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((Object[]) relativeTo).length);
+        } else {
+          context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);
+        }
+      })
+      .safePut(int[].class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((int[]) relativeTo).length);
+        } else {
+          context.push(((int[]) relativeTo)[((Number) ref).intValue()]);
+        }
+      })
+      .safePut(byte[].class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((byte[]) relativeTo).length);
+        } else {
+          context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);
+        }
+      })
+      .safePut(char[].class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((char[]) relativeTo).length);
+        } else {
+          context.push(((char[]) relativeTo)[((Number) ref).intValue()]);
+        }
+      })
+      .safePut(long[].class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((long[]) relativeTo).length);
+        } else {
+          context.push(((long[]) relativeTo)[((Number) ref).intValue()]);
+        }
+      })
+      .safePut(short[].class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((short[]) relativeTo).length);
+        } else {
+          context.push(((short[]) relativeTo)[((Number) ref).intValue()]);
+        }
+      })
+      .safePut(List.class,
+              (Object relativeTo, Object ref, ExecutionContext context)
+              -> {
+        if ("length".equals(ref)) {
+          context.push(((List) relativeTo).size());
+        } else {
+          context.push(((List) relativeTo).get(((Number) ref).intValue()));
+        }
+      });
+    }
+
+    interface ReferenceHandler {
+      void pushDeref(Object relativeTo, Object ref, ExecutionContext context);
+    }
+
 
     private DEREF() {
     }
@@ -58,29 +146,8 @@ public final class DEREF extends Instruction {
     }
 
     static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
-        if (relativeTo instanceof Map) {
-            context.push(((Map) relativeTo).get(ref));
-        } else if (relativeTo instanceof Object[]) {
-            if ("length".equals(ref)) {
-                context.push(((Object[]) relativeTo).length);
-            } else {
-                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);
-            }
-        } else if (relativeTo instanceof int[]) {
-            context.push(((int[]) relativeTo)[((Number) ref).intValue()]);
-        } else if (relativeTo instanceof byte[]) {
-            context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);
-        } else if (relativeTo instanceof char[]) {
-            context.push(((char[]) relativeTo)[((Number) ref).intValue()]);
-        } else if (relativeTo instanceof long[]) {
-            context.push(((long[]) relativeTo)[((Number) ref).intValue()]);
-        } else if (relativeTo instanceof short[]) {
-            context.push(((short[]) relativeTo)[((Number) ref).intValue()]);
-        } else if (relativeTo instanceof List) {
-            context.push(((List) relativeTo).get(((Number) ref).intValue()));
-        } else {
-            context.push(new JavaMethodCall(relativeTo, (String) ref));
-        }
+      ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());
+      rh.pushDeref(relativeTo, ref, context);
     }
 
     @Override
