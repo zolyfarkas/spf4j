@@ -34,6 +34,7 @@ package org.spf4j.base;
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.collect.ObjectArrays;
+import java.lang.annotation.Annotation;
 
 /**
  * Array utilities.
@@ -44,6 +45,10 @@ import com.google.common.collect.ObjectArrays;
 public final class Arrays {
 
   public static final Object[] EMPTY_OBJ_ARRAY = new Object[]{};
+
+  public static final Annotation[] EMPTY_ANNOT_ARRAY = new Annotation[]{};
+
+  public static final Class[] EMPTY_CLASS_ARRAY = new Class[]{};
 
   public static final String[] EMPTY_STRING_ARRAY = new String[]{};
 
