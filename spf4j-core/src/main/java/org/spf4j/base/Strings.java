@@ -191,7 +191,7 @@ public final class Strings {
         } catch (NoSuchFieldException ex) {
           Logger logger = Logger.getLogger(Strings.class.getName());
           logger.warning("char array stealing from String not supported");
-          logger.log(Level.FINE, "Exception detail", ex);
+          logger.log(Level.FINEST, "Exception detail", ex);
           charsField = null;
         }
         return charsField;
@@ -226,7 +226,7 @@ public final class Strings {
             ex2.addSuppressed(ex);
             Logger logger = Logger.getLogger(Strings.class.getName());
             logger.warning("Building String from char[] without copy not supported");
-            logger.log(Level.FINE, "Exception detail", ex2);
+            logger.log(Level.FINEST, "Exception detail", ex2);
             constr = null;
           }
         }
