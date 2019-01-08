@@ -47,8 +47,6 @@ public final class ProfilingTLAttacher implements ThreadLocalContextAttacher {
 
   private final ConcurrentNavigableMap<Thread, ExecutionContext> currentContexts;
 
-  private final ThreadLocalContextAttacher defAttacher = ExecutionContexts.defaultThreadLocalAttacher();
-
   public ProfilingTLAttacher() {
     this.currentContexts = new ConcurrentSkipListMap<>(ProfilingTLAttacher::compare);
   }
@@ -67,7 +65,7 @@ public final class ProfilingTLAttacher implements ThreadLocalContextAttacher {
 
   @Override
   public ThreadLocalContextAttacher.Attached attach(final ExecutionContext ctx) {
-    ThreadLocalContextAttacher.Attached attached = defAttacher.attach(ctx);
+    ThreadLocalContextAttacher.Attached attached = ExecutionContexts.defaultThreadLocalAttacher().attach(ctx);
     if (attached.isTopOfStack()) {
       currentContexts.put(attached.attachedThread(), ctx);
       return new ThreadLocalContextAttacher.Attached() {

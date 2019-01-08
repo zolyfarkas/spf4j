@@ -46,14 +46,19 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.ExitException;
 import org.spf4j.base.NoExitSecurityManager;
+import org.spf4j.base.StackSamples;
 
 @NotThreadSafe
 public final class MonitorTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MonitorTest.class);
 
   private static volatile boolean stopped;
 
@@ -116,6 +121,10 @@ public final class MonitorTest {
                 } else {
                   doStuff3(rnd);
                 }
+              }
+              StackSamples stackSamples = ctx.getStackSamples();
+              if (stackSamples != null) {
+                LOG.debug("Stack samples", stackSamples);
               }
             }
           }

@@ -52,7 +52,6 @@ import org.spf4j.io.AppendableWriter;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 import org.spf4j.base.ThreadLocalContextAttacher.Attached;
-import org.spf4j.stackmonitor.SampleNode;
 
 /**
  * The simplest execution context possible.
@@ -384,7 +383,7 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   @Nullable
-  public SampleNode getStackSamples() {
+  public StackSamples getStackSamples() {
     return null;
   }
 

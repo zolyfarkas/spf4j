@@ -34,9 +34,11 @@ package org.spf4j.stackmonitor;
 import org.spf4j.base.Method;
 import com.google.common.html.HtmlEscapers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.TMap;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
+import org.spf4j.base.StackSamples;
 
 /**
  * utility class to generate svg and html out of stack samples.
@@ -55,8 +57,8 @@ public final class StackVisualizer {
   }
 
   public static void generateHtmlTable(final Writer writer, final Method m,
-          final SampleNode node, final int tableWidth, final int maxDepth) throws IOException {
-    Map<Method, SampleNode> subNodes = node.getSubNodes();
+          final StackSamples node, final int tableWidth, final int maxDepth) throws IOException {
+    TMap<Method, ? extends StackSamples> subNodes = node.getSubNodes();
     writer.append("<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" "
             + "style=\"overflow:hidden;table-layout:fixed;width:").
             append(Integer.toString(tableWidth)).append("px\">\n");
@@ -64,7 +66,7 @@ public final class StackVisualizer {
 
     if (subNodes != null && maxDepth > 0) {
       writer.append("<tr style=\"height:1em\">");
-      for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
+      for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
         int width = entry.getValue().getSampleCount() * tableWidth / totalSamples;
         writer.append("<td style=\"vertical-align:bottom; width:").
                 append(Integer.toString(width)).append("px\">");
@@ -143,10 +145,10 @@ public final class StackVisualizer {
   }
 
   @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
-  public static void generateSubSvg(final Writer writer, final Method m, final SampleNode node,
+  public static void generateSubSvg(final Writer writer, final Method m, final StackSamples node,
           final int x, final int y, final int width, final int maxDepth, final String idPfx) throws IOException {
 
-    Map<Method, SampleNode> subNodes = node.getSubNodes();
+    Map<Method, ? extends StackSamples> subNodes = node.getSubNodes();
 
     int totalSamples = node.getSampleCount();
     String id = idPfx + "ix" + x + 'y' + y;
@@ -166,7 +168,7 @@ public final class StackVisualizer {
 
     if (subNodes != null && maxDepth > 0) {
       int rx = 0;
-      for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
+      for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
         int cwidth = (int) (((long) entry.getValue().getSampleCount()) * width / totalSamples);
         generateSubSvg(writer, entry.getKey(), entry.getValue(), rx + x, y + 15, cwidth, maxDepth - 1, idPfx);
         rx += cwidth;

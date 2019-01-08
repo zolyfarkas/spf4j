@@ -31,6 +31,9 @@
  */
 package org.spf4j.log;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -86,6 +89,16 @@ public final class SLF4JBridgeHandler extends Handler {
 
   };
 
+
+  private static final LoadingCache<String, MessageFormat> FORMAT_CACHE
+          = CacheBuilder.newBuilder()
+                  .maximumSize(Integer.getInteger("spf4j.julBridge.MaxFormatCacheSize",
+                  1024)).build(new CacheLoader<String, MessageFormat>() {
+            @Override
+            public MessageFormat load(final String key) {
+              return new MessageFormat(key);
+            }
+          });
 
   private static final boolean ALWAYS_TRY_INFER = Boolean.getBoolean("spf4j.jul2slf4jBridge.alwaysTryInferSource");
 
@@ -376,7 +389,7 @@ public final class SLF4JBridgeHandler extends Handler {
       try {
         boolean[] used;
         try {
-          used = new MessageFormat(message).format(params, msg);
+          used =  FORMAT_CACHE.getUnchecked(message).format(params, msg);
         } catch (IOException ex) {
           throw new UncheckedIOException(ex);
         }

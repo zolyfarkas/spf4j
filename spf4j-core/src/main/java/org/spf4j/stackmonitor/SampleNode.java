@@ -31,6 +31,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import org.spf4j.base.StackSamples;
 import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
@@ -59,7 +60,7 @@ import org.spf4j.base.Pair;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode implements Serializable, JsonWriteable {
+public final class SampleNode implements Serializable, JsonWriteable, StackSamples {
 
   private static final long serialVersionUID = 1L;
 
@@ -195,11 +196,13 @@ public final class SampleNode implements Serializable, JsonWriteable {
     }
   }
 
+  @Override
   public int getSampleCount() {
     return sampleCount;
   }
 
   @Nullable
+  @Override
   public TMap<Method, SampleNode> getSubNodes() {
     return subNodes;
   }

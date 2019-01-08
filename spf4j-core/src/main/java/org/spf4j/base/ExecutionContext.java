@@ -48,7 +48,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
-import org.spf4j.stackmonitor.SampleNode;
 
 /**
  * Execution context information encapsulated a place to store execution related information:
@@ -284,6 +283,6 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   void add(StackTraceElement[] sample);
 
   @Nullable
-  SampleNode getStackSamples();
+  StackSamples getStackSamples();
 
 }

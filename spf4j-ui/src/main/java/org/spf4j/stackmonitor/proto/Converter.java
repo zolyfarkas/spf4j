@@ -43,6 +43,7 @@ import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.spf4j.base.StackSamples;
 
 /**
  *
@@ -66,14 +67,14 @@ public final class Converter {
                 .build();
     }
 
-    public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final SampleNode node) {
+    public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final StackSamples node) {
 
         ProtoSampleNodes.SampleNode.Builder resultBuilder
                 = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());
 
-        Map<Method, SampleNode> subNodes = node.getSubNodes();
+        Map<Method, ? extends StackSamples> subNodes = node.getSubNodes();
         if (subNodes != null) {
-           for (Map.Entry<Method, SampleNode> entry : subNodes.entrySet()) {
+           for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
                resultBuilder.addSubNodes(
                ProtoSampleNodes.SamplePair.newBuilder().setMethod(fromMethodToProto(entry.getKey())).
                         setNode(fromSampleNodeToProto(entry.getValue())).build());
