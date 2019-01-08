@@ -47,7 +47,7 @@ public final class SsdumpTest {
 
   static {
     System.setProperty("spf4j.execContext.tlAttacherClass", ProfilingTLAttacher.class.getName());
-    System.setProperty("spf4j.execContext.factoryClass", ProfiledExecutionContext.class.getName());
+    System.setProperty("spf4j.execContext.factoryClass", ProfiledExecutionContextFactory.class.getName());
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
