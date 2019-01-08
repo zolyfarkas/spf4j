@@ -39,14 +39,15 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.ssdump2.Converter;
 
 public final class SsdumpTest {
 
   static {
-    System.setProperty("spf4j.execContext.tlAttacherClass",
-            "org.spf4j.stackmonitor.ProfilingTLAttacher");
+    System.setProperty("spf4j.execContext.tlAttacherClass", ProfilingTLAttacher.class.getName());
+    System.setProperty("spf4j.execContext.factoryClass", ProfiledExecutionContext.class.getName());
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
@@ -66,7 +67,8 @@ public final class SsdumpTest {
             (ProfilingTLAttacher) ExecutionContexts.threadLocalAttacher();
 
     Sampler sampler = new Sampler(1,
-            (t) -> new TracingExecutionContextStackCollector(contextFactory::getCurrentThreadContexts));
+            (t) -> new TracingExecutionContextStackCollector(contextFactory::getCurrentThreadContexts,
+                    ExecutionContext::getName));
     Map<String, SampleNode> collected = sampleTest(sampler, "ecTracingStackSample");
     Assert.assertThat(collected.keySet(), Matchers.hasItems(
             Matchers.equalTo("testThread"), Matchers.containsString("org.spf4j.stackmonitor.SsdumpTest")));

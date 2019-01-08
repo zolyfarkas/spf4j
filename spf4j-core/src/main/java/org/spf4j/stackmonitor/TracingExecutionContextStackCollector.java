@@ -35,6 +35,7 @@ import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.spf4j.base.ExecutionContext;
@@ -51,14 +52,6 @@ import org.spf4j.base.Threads;
 @NotThreadSafe
 public final class TracingExecutionContextStackCollector implements ISampler {
 
-  public static final ExecutionContext.Tag<SampleNode> STACK_SAMPLES = new ExecutionContext.Tag<SampleNode>() {
-    @Override
-    public String toString() {
-      return "ss";
-    }
-
-  };
-
   private final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier;
 
   private Thread[] requestFor;
@@ -67,17 +60,22 @@ public final class TracingExecutionContextStackCollector implements ISampler {
 
   private final TMap<String, StackCollector> collections;
 
+  private final Function<ExecutionContext, String> ctxToCategory;
+
   public TracingExecutionContextStackCollector(
-          final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier) {
-    this(100, execCtxSupplier);
+          final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier,
+          final Function<ExecutionContext, String> ctxToCategory) {
+    this(100, execCtxSupplier, ctxToCategory);
   }
 
   public TracingExecutionContextStackCollector(final int maxNrThreads,
-          final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier) {
+          final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier,
+          final Function<ExecutionContext, String> ctxToCategory) {
     requestFor = new Thread[maxNrThreads];
     contexts = new ExecutionContext[maxNrThreads];
     this.execCtxSupplier = execCtxSupplier;
     collections = new THashMap<>();
+    this.ctxToCategory = ctxToCategory;
   }
 
   @Override
@@ -95,23 +93,12 @@ public final class TracingExecutionContextStackCollector implements ISampler {
     StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);
     for (int j = 0; j < i; j++) {
       StackTraceElement[] stackTrace = stackTraces[j];
-      ExecutionContext context = contexts[j];
-      String name = context.getName();
-      StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
       if (stackTrace != null && stackTrace.length > 0) {
+        ExecutionContext context = contexts[j];
+        context.add(stackTrace);
+        String name = ctxToCategory.apply(context);
+        StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
         c.collect(stackTrace);
-        context.compute(STACK_SAMPLES, (k, v) -> {
-          if (v == null) {
-            return SampleNode.createSampleNode(stackTrace);
-          } else {
-            SampleNode.addToSampleNode(v, stackTrace);
-            return v;
-          }
-        });
-      } else {
-        c.collect(new StackTraceElement[]{
-          new StackTraceElement("Thread", requestFor[j].getName(), "", 0)
-        });
       }
     }
   }

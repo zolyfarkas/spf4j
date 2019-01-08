@@ -52,6 +52,7 @@ import org.spf4j.io.AppendableWriter;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 import org.spf4j.base.ThreadLocalContextAttacher.Attached;
+import org.spf4j.stackmonitor.SampleNode;
 
 /**
  * The simplest execution context possible.
@@ -366,5 +367,25 @@ public class BasicExecutionContext implements ExecutionContext {
     return childCount++;
   }
 
+  /**
+   * Add a sample to this execution context.
+   * this implementation does not retain them.
+   * @param sample
+   */
+  @Override
+  public void add(final StackTraceElement[] sample) {
+    // Basic Context will not staore samples
+  }
+
+  /**
+   * get the collected stack samples.
+   * This implementation will always return null.
+   * @return
+   */
+  @Override
+  @Nullable
+  public SampleNode getStackSamples() {
+    return null;
+  }
 
 }
