@@ -57,7 +57,8 @@ public class RemoteException extends RuntimeException {
     int i = 0;
     for (StackTraceElement ste : stackTrace) {
       FileLocation location = ste.getLocation();
-      jste[i++] = new java.lang.StackTraceElement(ste.getClassName(), ste.getMethodName(),
+      Method method = ste.getMethod();
+      jste[i++] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),
               location.getFileName(), location.getLineNumber());
     }
     this.setStackTrace(jste);

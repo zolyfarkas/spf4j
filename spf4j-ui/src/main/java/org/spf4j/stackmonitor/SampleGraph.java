@@ -45,8 +45,8 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 
 /**
  *

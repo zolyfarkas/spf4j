@@ -30,8 +30,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Method;
+import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleGraph;
 import org.spf4j.stackmonitor.SampleNode;
@@ -69,7 +70,7 @@ public class FlameStackPanelTest {
 
   @Test
   public void testLoadingHotStackPanel() throws IOException, InterruptedException {
-    HotFlameStackPanel panel = new HotFlameStackPanel(Method.ROOT, NODES, new LinkedList<>());
+    HotFlameStackPanel panel = new HotFlameStackPanel(Methods.ROOT, NODES, new LinkedList<>());
     testPanel(panel);
   }
 
@@ -77,7 +78,7 @@ public class FlameStackPanelTest {
   @Test
   public void testSampleGraph() throws IOException, InterruptedException {
     LOG.debug("Graph = {}", NODES2);
-    SampleGraph sg = new SampleGraph(Method.ROOT, NODES2);
+    SampleGraph sg = new SampleGraph(Methods.ROOT, NODES2);
     SampleGraph.AggSample aggRootVertex = sg.getAggRootVertex();
     SampleGraph.AggSample child = sg.getChildren(aggRootVertex).iterator().next();
     Assert.assertTrue(sg.isParentDescendant(aggRootVertex, child));
@@ -87,7 +88,7 @@ public class FlameStackPanelTest {
   @Test
   public void testLoadingHotStackPanel2() throws IOException, InterruptedException {
     LOG.debug("Graph = {}", NODES2);
-    HotFlameStackPanel panel = new HotFlameStackPanel(Method.ROOT, NODES2, new LinkedList<>());
+    HotFlameStackPanel panel = new HotFlameStackPanel(Methods.ROOT, NODES2, new LinkedList<>());
     testPanel(panel);
   }
 
@@ -103,7 +104,7 @@ public class FlameStackPanelTest {
 
   @Test
   public void testLoadingStackPanel() throws IOException, InterruptedException {
-    FlameStackPanel panel = new FlameStackPanel(Method.ROOT, NODES, new LinkedList<>());
+    FlameStackPanel panel = new FlameStackPanel(Methods.ROOT, NODES, new LinkedList<>());
     testPanel(panel);
   }
 

@@ -29,21 +29,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.base;
+package org.spf4j.stackmonitor;
 
-import gnu.trove.map.TMap;
-import javax.annotation.Nullable;
+import gnu.trove.map.hash.THashMap;
 import org.spf4j.base.avro.Method;
 
 /**
- *
+ * A custom hashcode and eequals map implementation
  * @author Zoltan Farkas
  */
-public interface StackSamples extends JsonWriteable {
+public final class MethodMap<T> extends THashMap<Method, T> {
 
-  int getSampleCount();
+  public MethodMap() {
+    super(5, 0.7f);
+  }
 
-  @Nullable
-  TMap<Method, ? extends StackSamples> getSubNodes();
+  public MethodMap(final int initialCapacity) {
+    super(initialCapacity, 0.7f);
+  }
+
+  public MethodMap(final int initialCapacity, final float loadFactor) {
+    super(initialCapacity, loadFactor);
+  }
+
+
+
+  @Override
+  protected int hash(final Object notnull) {
+    Method m = (Method) notnull;
+    return m.getName().hashCode() + m.getDeclaringClass().hashCode() * 7;
+  }
+
+  @Override
+  protected boolean equals(final Object notnull, final Object two) {
+    if (notnull == two) {
+      return true;
+    }
+    if (notnull instanceof Method) {
+      Method m1 = (Method) notnull;
+      Method m2 = (Method) two;
+      if (!m1.getName().equals(m2.getName())) {
+        return false;
+      }
+      return m1.getDeclaringClass().equals(m2.getDeclaringClass());
+    } else {
+      return notnull.equals(two);
+    }
+  }
 
 }

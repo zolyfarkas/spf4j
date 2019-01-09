@@ -37,13 +37,13 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import org.spf4j.base.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.spf4j.base.StackSamples;
+import org.spf4j.base.avro.Method;
 
 /**
  *
@@ -62,7 +62,7 @@ public final class Converter {
     }
 
     public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
-        return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getMethodName())
+        return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getName())
                 .setDeclaringClass(m.getDeclaringClass())
                 .build();
     }

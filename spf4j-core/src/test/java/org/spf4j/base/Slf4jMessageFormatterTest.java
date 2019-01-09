@@ -41,10 +41,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.avro.Method;
 import org.spf4j.io.AppendableLimiterWithOverflow;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
-import org.spf4j.ssdump2.avro.AMethod;
 
 /**
  *
@@ -86,7 +86,7 @@ public class Slf4jMessageFormatterTest {
     Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, new java.sql.Date(currentTimeMillis));
     Assert.assertEquals("bla bla " + DateTimeFormats.DT_FORMAT.format(Instant.now()), sb.toString());
     sb.setLength(0);
-    AMethod method = AMethod.newBuilder().setName("m1").setDeclaringClass("c1").build();
+    Method method = new Method("c1", "m1");
     int written = Slf4jMessageFormatter.format(sb, "bla bla {}", appSupp, method);
     Assert.assertEquals("bla bla {\"declaringClass\":\"c1\",\"name\":\"m1\"}", sb.toString());
     Assert.assertEquals(1, written);

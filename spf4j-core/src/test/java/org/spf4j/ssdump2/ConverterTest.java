@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.ssdump2.avro.ASample;
-import org.spf4j.base.Method;
+import org.spf4j.base.Methods;
+import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -74,8 +74,8 @@ public class ConverterTest {
     @Test
     public void test() {
         SampleNode testSample = testSample();
-        final List<ASample> samples = new ArrayList<>();
-        Converter.convert(Method.ROOT, testSample, -1, 0, (final ASample object, final long deadline) -> {
+        final List<StackSampleElement> samples = new ArrayList<>();
+        Converter.convert(Methods.ROOT, testSample, -1, 0, (final StackSampleElement object, final long deadline) -> {
           samples.add(object);
         });
         SampleNode back = Converter.convert(samples.iterator());

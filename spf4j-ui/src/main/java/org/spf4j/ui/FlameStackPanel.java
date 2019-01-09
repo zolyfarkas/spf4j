@@ -40,8 +40,9 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.spf4j.base.EqualsPredicate;
-import org.spf4j.base.Method;
+import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -69,7 +70,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
           final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
     int y = py;
     int sampleCount = node.getSampleCount();
-    String val = method.toString() + '-' + sampleCount;
+    String val = Methods.toString(method) + '-' + sampleCount;
     setElementColor(depth, g2);
     g2.setClip(x, y, width, height);
     g2.fillRect(x, y, width, height);
@@ -108,7 +109,7 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
     List<Pair<Method, SampleNode>> tips = search(location.x, location.y, 0, 0);
     if (tips.size() >= 1) {
       final Pair<Method, SampleNode> m = tips.get(0);
-      return m.getFirst().toString() + '-' + m.getSecond().getSampleCount();
+      return Methods.toString(m.getFirst()) + '-' + m.getSecond().getSampleCount();
     } else {
       return null;
     }

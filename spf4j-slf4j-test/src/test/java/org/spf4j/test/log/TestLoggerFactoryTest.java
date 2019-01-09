@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.Method;
+import org.spf4j.base.avro.Method;
 import org.spf4j.io.MimeTypes;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.annotations.CollectLogs;

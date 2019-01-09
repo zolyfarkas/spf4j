@@ -108,8 +108,9 @@ public final class AThrowables {
           final Appendable to, final Throwables.PackageDetail detail,
           final boolean abbreviatedTraceElement)
           throws IOException {
-    String currClassName = element.getClassName();
-    String prevClassName = previous == null ? null : previous.getClassName();
+    Method method = element.getMethod();
+    String currClassName = method.getDeclaringClass();
+    String prevClassName = previous == null ? null : previous.getMethod().getDeclaringClass();
     if (abbreviatedTraceElement) {
       if (currClassName.equals(prevClassName)) {
         to.append('^');
@@ -120,7 +121,7 @@ public final class AThrowables {
       to.append(currClassName);
     }
     to.append('.');
-    to.append(element.getMethodName());
+    to.append(method.getName());
     FileLocation location = element.getLocation();
     FileLocation prevLocation = previous.getLocation();
     String currFileName = location != null ? location.getFileName() : "";

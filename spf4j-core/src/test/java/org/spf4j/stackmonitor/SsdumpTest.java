@@ -41,7 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.log.Level;
 import org.spf4j.ssdump2.Converter;
+import org.spf4j.test.log.annotations.ExpectLog;
 
 public final class SsdumpTest {
 
@@ -62,12 +64,13 @@ public final class SsdumpTest {
   }
 
   @Test
+  @ExpectLog(level = Level.DEBUG, messageRegexp = "Stack samples")
   public void testTracingDumpExecContexts() throws InterruptedException, IOException {
     ProfilingTLAttacher contextFactory =
             (ProfilingTLAttacher) ExecutionContexts.threadLocalAttacher();
 
     Sampler sampler = new Sampler(1,
-            (t) -> new TracingExecutionContextStackCollector(contextFactory::getCurrentThreadContexts,
+            (t) -> new TracingExecutionContexSampler(contextFactory::getCurrentThreadContexts,
                     ExecutionContext::getName));
     Map<String, SampleNode> collected = sampleTest(sampler, "ecTracingStackSample");
     Assert.assertThat(collected.keySet(), Matchers.hasItems(

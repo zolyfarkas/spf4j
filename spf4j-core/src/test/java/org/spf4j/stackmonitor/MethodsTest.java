@@ -32,27 +32,28 @@
 package org.spf4j.stackmonitor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.base.Method;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.Methods;
+import org.spf4j.base.avro.Method;
 
 
 /**
  *
  * @author zoly
  */
-public final class MethodTest {
+public final class MethodsTest {
 
 
     @Test
     @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
     public void testSomeMethod() {
-        Method m1 = Method.getMethod("a", "b");
-        Method m2 = Method.getMethod("a", "b");
+        Method m1 = Methods.getMethod("a", "b");
+        Method m2 = Methods.getMethod("a", "b");
         Assert.assertSame(m1, m2);
         Assert.assertEquals(m2, m1);
         Assert.assertEquals("a", m1.getDeclaringClass());
-        Assert.assertEquals("b", m1.getMethodName());
-        Assert.assertEquals(m1, Method.from(m1.toString()));
+        Assert.assertEquals("b", m1.getName());
+        Assert.assertEquals(m1, Methods.from(Methods.toString(m1)));
     }
 }

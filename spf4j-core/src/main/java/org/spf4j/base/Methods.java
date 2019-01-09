@@ -36,12 +36,12 @@ import com.google.common.html.HtmlEscapers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
-import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.base.avro.Method;
 
 /**
  * @author zoly
@@ -49,83 +49,18 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 // using racy single check idiom makes findbugs think the Method obejct is mutable...
 @SuppressFBWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
-public final class Method implements Comparable<Method>, Serializable, Writeable {
+public final class Methods  {
 
-  private static final long serialVersionUID = 1L;
+  private Methods() { }
 
   public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
 
   private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
 
-  @Nonnull
-  private final String declaringClass;
-
-  @Nonnull
-  private final String methodName;
-
-  public Method(final StackTraceElement elem) {
-    this(elem.getClassName(), elem.getMethodName());
-  }
-
-  public Method(final Class<?> clasz, @Nonnull final String methodName) {
-    this(clasz.getName(), methodName);
-  }
-
-  public Method(@Nonnull final String declaringClass, @Nonnull final String methodName) {
-    this.declaringClass = declaringClass;
-    this.methodName = methodName;
-  }
-
-  @Nonnull
-  public String getDeclaringClass() {
-    return declaringClass;
-  }
-
-  @Nonnull
-  public String getMethodName() {
-    return methodName;
-  }
-
-  @Override
-  public int hashCode() {
-    return 47 * declaringClass.hashCode() + methodName.hashCode();
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final Method other = (Method) obj;
-    if (!this.declaringClass.equals(other.declaringClass)) {
-      return false;
-    }
-    return this.methodName.equals(other.methodName);
-  }
-
-  @Override
-  public String toString() {
-    return methodName + '@' + declaringClass;
-  }
-
-  /**
-   * @deprecated use writeTo.
-   */
-  @Deprecated
-  public void toWriter(final Writer w) throws IOException {
-    writeTo(w);
-  }
-
-  public void toHtmlWriter(final Writer w) throws IOException {
+  public static void writeHtml(final Method m, final Writer w) throws IOException {
     Escaper htmlEscaper = HtmlEscapers.htmlEscaper();
-    w.append(htmlEscaper.escape(methodName)).append(htmlEscaper.escape("@")).
-            append(htmlEscaper.escape(declaringClass));
+    w.append(htmlEscaper.escape(m.getName())).append(htmlEscaper.escape("@")).
+            append(htmlEscaper.escape(m.getDeclaringClass()));
   }
 
   public static Method getMethod(final StackTraceElement elem) {
@@ -141,7 +76,7 @@ public final class Method implements Comparable<Method>, Serializable, Writeable
     Map<String, Method> mtom = INSTANCE_REPO.get(className);
     Method result;
     if (mtom == null) {
-      mtom = new THashMap<>(4);
+      mtom = new THashMap<>(7, 0.7f);
       result = new Method(className, methodName);
       mtom.put(methodName, result);
       INSTANCE_REPO.put(className, mtom);
@@ -155,9 +90,22 @@ public final class Method implements Comparable<Method>, Serializable, Writeable
     return result;
   }
 
-  @Override
-  public void writeTo(final Appendable w) throws IOException {
-    w.append(methodName).append("@").append(declaringClass);
+  public static void writeTo(final Method m, final Appendable w) throws IOException {
+    w.append(m.getName()).append("@").append(m.getDeclaringClass());
+  }
+
+  public static CharSequence toCharSequence(final Method m) {
+    StringBuilder sb = new StringBuilder(32);
+    try {
+      writeTo(m, sb);
+    } catch (IOException ex) {
+     throw new UncheckedIOException(ex);
+    }
+    return sb;
+  }
+
+  public static String toString(final Method m) {
+    return toCharSequence(m).toString();
   }
 
   public static Method from(final CharSequence cs) {
@@ -170,16 +118,6 @@ public final class Method implements Comparable<Method>, Serializable, Writeable
       throw new IllegalArgumentException("Invalid method representation: " + cs);
     }
     return getMethod(cs.subSequence(idx + 1, end).toString(), cs.subSequence(start, idx).toString());
-  }
-
-  @Override
-  public int compareTo(final Method o) {
-    int cmp = this.declaringClass.compareTo(o.declaringClass);
-    if (cmp == 0) {
-      return this.methodName.compareTo(o.methodName);
-    } else {
-      return cmp;
-    }
   }
 
 }

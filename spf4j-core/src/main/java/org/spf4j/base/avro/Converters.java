@@ -50,15 +50,10 @@ public final class Converters {
 
   public static StackTraceElement convert(final java.lang.StackTraceElement stackTrace) {
     String className = stackTrace.getClassName();
-    StackTraceElement.Builder builder = StackTraceElement.newBuilder()
-            .setClassName(className)
-            .setMethodName(stackTrace.getMethodName());
     String fileName = stackTrace.getFileName();
-    if (fileName != null) {
-      builder.setLocation(new FileLocation(fileName, stackTrace.getLineNumber(), -1));
-    }
-    builder.setPackageInfo(org.spf4j.base.PackageInfo.getPackageInfo(className));
-    return builder.build();
+    return new StackTraceElement(new Method(className, stackTrace.getMethodName()),
+            fileName == null ? null :  new FileLocation(fileName, stackTrace.getLineNumber(), -1),
+            org.spf4j.base.PackageInfo.getPackageInfo(className));
   }
 
   public static List<StackTraceElement> convert(final java.lang.StackTraceElement[] stackTraces) {

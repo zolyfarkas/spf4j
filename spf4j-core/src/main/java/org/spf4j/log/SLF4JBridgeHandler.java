@@ -55,8 +55,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
 import org.spf4j.base.Arrays;
-import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 import org.spf4j.text.MessageFormat;
 
 /**

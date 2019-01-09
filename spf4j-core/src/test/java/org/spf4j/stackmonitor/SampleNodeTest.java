@@ -31,7 +31,6 @@
  */
 package org.spf4j.stackmonitor;
 
-import org.spf4j.base.Method;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.StringReader;
@@ -39,8 +38,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Methods;
 import org.spf4j.base.Objects;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 
 /**
  *
@@ -103,7 +104,7 @@ public final class SampleNodeTest {
     SampleNode agg = SampleNode.aggregate(node1, node2);
     LOG.debug("n1 + n2", agg);
     Assert.assertEquals(node1.getSampleCount() + node2.getSampleCount(), agg.getSampleCount());
-    final Method method = Method.getMethod("C1", "m3");
+    final Method method = Methods.getMethod("C1", "m3");
     Assert.assertEquals(node1.getSubNodes().get(method).getSampleCount()
             + node2.getSubNodes().get(method).getSampleCount(),
             agg.getSubNodes().get(method).getSampleCount());

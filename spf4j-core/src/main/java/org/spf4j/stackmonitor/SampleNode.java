@@ -32,9 +32,7 @@
 package org.spf4j.stackmonitor;
 
 import org.spf4j.base.StackSamples;
-import org.spf4j.base.Method;
 import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
 import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.IOException;
 import java.io.Reader;
@@ -54,7 +52,9 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.spf4j.base.JsonWriteable;
+import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 
 /**
  * @author zoly
@@ -70,8 +70,8 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
   SampleNode(final StackTraceElement[] stackTrace, final int from) {
     sampleCount = 1;
     if (from >= 0) {
-      subNodes = new THashMap(4);
-      subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
+      subNodes = new MethodMap<>();
+      subNodes.put(Methods.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
     }
   }
 
@@ -81,10 +81,10 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
     for (int i = stackTrace.length - 1; i >= 0; i--) {
       StackTraceElement elem = stackTrace[i];
       if (prevResult.subNodes == null) {
-        prevResult.subNodes = new THashMap<>(4);
+        prevResult.subNodes = new MethodMap<>();
       }
       SampleNode node = new SampleNode(1, null);
-      prevResult.subNodes.put(Method.getMethod(elem), node);
+      prevResult.subNodes.put(Methods.getMethod(elem), node);
       prevResult = node;
     }
     return result;
@@ -95,10 +95,10 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
     prevResult.sampleCount++;
     for (int i = stackTrace.length - 1; i >= 0; i--) {
       StackTraceElement elem = stackTrace[i];
-      final Method method = Method.getMethod(elem);
+      final Method method = Methods.getMethod(elem);
       SampleNode nNode;
       if (prevResult.subNodes == null) {
-        prevResult.subNodes = new THashMap<>(4);
+        prevResult.subNodes = new MethodMap<>();
         nNode = new SampleNode(1, null);
         prevResult.subNodes.put(method, nNode);
       } else {
@@ -118,7 +118,7 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
     if (node.subNodes == null) {
       return new SampleNode(node.sampleCount, null);
     }
-    final THashMap<Method, SampleNode> newSubNodes = new THashMap<>(node.subNodes.size());
+    final TMap<Method, SampleNode> newSubNodes = new MethodMap<>(node.subNodes.size());
     node.subNodes.forEachEntry((final Method a, final SampleNode b) -> {
       newSubNodes.put(a, SampleNode.clone(b));
       return true;
@@ -136,7 +136,8 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
     } else if (node2.subNodes == null) {
       newSubNodes = cloneSubNodes(node1);
     } else {
-      final THashMap<Method, SampleNode> ns = new THashMap<>(node1.subNodes.size() + node2.subNodes.size());
+      final TMap<Method, SampleNode> ns = new MethodMap<>((int) ((node1.subNodes.size()
+              + node2.subNodes.size()) / 0.7));
 
       node1.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
         SampleNode other = node2.subNodes.get(m);
@@ -160,7 +161,7 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
   }
 
   public static TMap<Method, SampleNode> cloneSubNodes(final SampleNode node) {
-    final TMap<Method, SampleNode> ns = new THashMap<>(node.subNodes.size());
+    final TMap<Method, SampleNode> ns = new MethodMap<>(node.subNodes.size());
     putAllClones(node.subNodes, ns);
     return ns;
   }
@@ -181,10 +182,10 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
   void addSample(final StackTraceElement[] stackTrace, final int from) {
     sampleCount++;
     if (from >= 0) {
-      Method method = Method.getMethod(stackTrace[from]);
+      Method method = Methods.getMethod(stackTrace[from]);
       SampleNode subNode = null;
       if (subNodes == null) {
-        subNodes = new THashMap(4);
+        subNodes = new MethodMap();
       } else {
         subNode = subNodes.get(method);
       }
@@ -257,7 +258,7 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
 
     int newCount = this.sampleCount;
 
-    THashMap<Method, SampleNode> sns = null;
+    TMap<Method, SampleNode> sns = null;
     if (this.subNodes != null) {
       for (Map.Entry<Method, SampleNode> entry : this.subNodes.entrySet()) {
         Method method = entry.getKey();
@@ -266,7 +267,7 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
           newCount -= sn.getSampleCount();
         } else {
           if (sns == null) {
-            sns = new THashMap<>(4);
+            sns = new MethodMap<>();
           }
           SampleNode sn2 = sn.filteredBy(predicate);
           if (sn2 == null) {
@@ -290,7 +291,7 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
 
   @Override
   public void writeJsonTo(final Appendable appendable) throws IOException {
-    writeTo(Method.ROOT, appendable);
+    writeTo(Methods.ROOT, appendable);
   }
 
   public void writeTo(final Method m, final Appendable appendable) throws IOException {
@@ -303,7 +304,7 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
       } else {
         Map.Entry<Method, SampleNode> s = (Map.Entry<Method, SampleNode>) obj;
         appendable.append("{\"");
-        s.getKey().writeTo(appendable);
+        Methods.writeTo(s.getKey(), appendable);
         appendable.append("\":");
         SampleNode sn = s.getValue();
         appendable.append(Integer.toString(sn.getSampleCount()));
@@ -397,16 +398,16 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
     int sc = jsonP.getIntValue();
     JsonToken nextToken = jsonP.nextToken();
     if (nextToken == JsonToken.END_OBJECT) {
-      return Pair.of(Method.from(name), new SampleNode(sc, null));
+      return Pair.of(Methods.from(name), new SampleNode(sc, null));
     } else if (nextToken == JsonToken.FIELD_NAME) {
       consume(jsonP, JsonToken.START_ARRAY);
-      TMap<Method, SampleNode> nodes = new THashMap<>(4);
+      TMap<Method, SampleNode> nodes = new MethodMap<>();
       while (jsonP.nextToken() != JsonToken.END_ARRAY) {
         Pair<Method, SampleNode> parse = parse(jsonP);
         nodes.put(parse.getKey(), parse.getValue());
       }
       consume(jsonP, JsonToken.END_OBJECT);
-      return Pair.of(Method.from(name), new SampleNode(sc, nodes));
+      return Pair.of(Methods.from(name), new SampleNode(sc, nodes));
     } else {
       throw new IllegalArgumentException("Expected field name or end Object, not: " + nextToken);
     }

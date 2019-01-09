@@ -57,11 +57,11 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.spf4j.base.Handler;
+import org.spf4j.base.Methods;
+import org.spf4j.base.avro.Method;
+import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
-import org.spf4j.ssdump2.avro.AMethod;
 import org.spf4j.stackmonitor.SampleNode;
-import org.spf4j.ssdump2.avro.ASample;
-import org.spf4j.base.Method;
 
 /**
  *
@@ -105,23 +105,16 @@ public final class Converter {
 
   public static <E extends Exception> int convert(final Method method, final SampleNode node,
           final int parentId, final int id,
-          final Handler<ASample, E> handler) throws E {
+          final Handler<StackSampleElement, E> handler) throws E {
 
     final Deque<TraversalNode> dq = new ArrayDeque<>();
     dq.addLast(new TraversalNode(method, node, parentId));
     int nid = id;
     while (!dq.isEmpty()) {
       TraversalNode first = dq.removeFirst();
-      Method m = first.getMethod();
-      ASample sample = new ASample();
-      sample.id = nid;
       SampleNode n = first.getNode();
-      sample.count = n.getSampleCount();
-      AMethod am = new AMethod();
-      am.setName(m.getMethodName());
-      am.setDeclaringClass(m.getDeclaringClass());
-      sample.method = am;
-      sample.parentId = first.getParentId();
+      StackSampleElement sample = new StackSampleElement(nid, first.getParentId(),
+              n.getSampleCount(), first.getMethod());
       final TMap<Method, SampleNode> subNodes = n.getSubNodes();
       final int pid = nid;
       if (subNodes != null) {
@@ -136,22 +129,21 @@ public final class Converter {
     return nid;
   }
 
-  public static SampleNode convert(final Iterator<ASample> samples) {
+  public static SampleNode convert(final Iterator<StackSampleElement> samples) {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
     while (samples.hasNext()) {
-      ASample asmp = samples.next();
-      SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>(4));
-      SampleNode parent = index.get(asmp.parentId);
+      StackSampleElement asmp = samples.next();
+      SampleNode sn = new SampleNode(asmp.getCount(), new THashMap<Method, SampleNode>(4));
+      SampleNode parent = index.get(asmp.getParentId());
       if (parent != null) {
-        AMethod method = asmp.getMethod();
-        Method m = Method.getMethod(method.declaringClass, method.getName());
+        Method m = asmp.getMethod();
         final Map<Method, SampleNode> subNodes = parent.getSubNodes();
         if (subNodes == null) {
           throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
         }
         subNodes.put(m, sn);
       }
-      index.put(asmp.id, sn);
+      index.put(asmp.getId(), sn);
     }
     return index.get(0);
   }
@@ -159,10 +151,11 @@ public final class Converter {
   public static void save(final File file, final SampleNode collected) throws IOException {
     try (BufferedOutputStream bos = new BufferedOutputStream(
             Files.newOutputStream(file.toPath()))) {
-      final SpecificDatumWriter<ASample> writer = new SpecificDatumWriter<>(ASample.SCHEMA$);
+      final SpecificDatumWriter<StackSampleElement> writer =
+              new SpecificDatumWriter<>(StackSampleElement.getClassSchema());
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
-      Converter.convert(Method.ROOT, collected,
-              -1, 0, (final ASample object, final long deadline) -> {
+      Converter.convert(Methods.ROOT, collected,
+              -1, 0, (final StackSampleElement object, final long deadline) -> {
                 writer.write(object, encoder);
               });
       encoder.flush();
@@ -180,9 +173,10 @@ public final class Converter {
     try (MemorizingBufferedInputStream bis
             = new MemorizingBufferedInputStream(fis)) {
       final PushbackInputStream pis = new PushbackInputStream(bis);
-      final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
+      final SpecificDatumReader<StackSampleElement> reader =
+              new SpecificDatumReader<>(StackSampleElement.getClassSchema());
       final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);
-      return convert(new Iterator<ASample>() {
+      return convert(new Iterator<StackSampleElement>() {
 
         @Override
         public boolean hasNext() {
@@ -197,7 +191,7 @@ public final class Converter {
 
         @Override
         @SuppressFBWarnings
-        public ASample next() {
+        public StackSampleElement next() {
           try {
             return reader.read(null, decoder);
           } catch (IOException ex) {
@@ -218,7 +212,7 @@ public final class Converter {
   public static void saveLabeledDumps(final File file, final Map<String, SampleNode> collected) throws IOException {
     try (BufferedOutputStream bos = new BufferedOutputStream(
             Files.newOutputStream(file.toPath()))) {
-      final SpecificDatumWriter<ASample> writer = new SpecificDatumWriter<>(ASample.SCHEMA$);
+      final SpecificDatumWriter<StackSampleElement> writer = new SpecificDatumWriter<>(StackSampleElement.SCHEMA$);
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
 
       encoder.writeMapStart();
@@ -227,8 +221,8 @@ public final class Converter {
         encoder.startItem();
         encoder.writeString(entry.getKey());
         encoder.writeArrayStart();
-        Converter.convert(Method.ROOT, entry.getValue(),
-                -1, 0, (final ASample object, final long deadline) -> {
+        Converter.convert(Methods.ROOT, entry.getValue(),
+                -1, 0, (final StackSampleElement object, final long deadline) -> {
                   encoder.setItemCount(1L);
                   encoder.startItem();
                   writer.write(object, encoder);
@@ -244,10 +238,10 @@ public final class Converter {
   public static Map<String, SampleNode> loadLabeledDumps(final File file) throws IOException {
     try (MemorizingBufferedInputStream bis
             = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
-      final SpecificDatumReader<ASample> reader = new SpecificDatumReader<>(ASample.SCHEMA$);
+      final SpecificDatumReader<StackSampleElement> reader = new SpecificDatumReader<>(StackSampleElement.SCHEMA$);
       final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
       long nrItems = decoder.readMapStart();
-      ASample asmp = new ASample();
+      StackSampleElement asmp = new StackSampleElement();
       Map<String, SampleNode> result = new HashMap<>((int) nrItems);
       while (nrItems > 0) {
         for (int i = 0; i < nrItems; i++) {
@@ -257,18 +251,17 @@ public final class Converter {
           while (nrArrayItems > 0) {
             for (int j = 0; j < nrArrayItems; j++) {
               asmp = reader.read(asmp, decoder);
-              SampleNode sn = new SampleNode(asmp.count, new THashMap<Method, SampleNode>(4));
-              SampleNode parent = index.get(asmp.parentId);
+              SampleNode sn = new SampleNode(asmp.getCount(), new THashMap<Method, SampleNode>(4));
+              SampleNode parent = index.get(asmp.getParentId());
               if (parent != null) {
-                AMethod method = asmp.getMethod();
-                Method m = Method.getMethod(method.declaringClass, method.getName());
+                Method m = asmp.getMethod();
                 final Map<Method, SampleNode> subNodes = parent.getSubNodes();
                 if (subNodes == null) {
                   throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
                 }
                 subNodes.put(m, sn);
               }
-              index.put(asmp.id, sn);
+              index.put(asmp.getId(), sn);
             }
             nrArrayItems = decoder.arrayNext();
           }

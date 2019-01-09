@@ -50,7 +50,7 @@ import org.spf4j.base.Threads;
  * @author Zoltan Farkas
  */
 @NotThreadSafe
-public final class TracingExecutionContextStackCollector implements ISampler {
+public final class TracingExecutionContexSampler implements ISampler {
 
   private final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier;
 
@@ -62,13 +62,13 @@ public final class TracingExecutionContextStackCollector implements ISampler {
 
   private final Function<ExecutionContext, String> ctxToCategory;
 
-  public TracingExecutionContextStackCollector(
+  public TracingExecutionContexSampler(
           final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier,
           final Function<ExecutionContext, String> ctxToCategory) {
     this(100, execCtxSupplier, ctxToCategory);
   }
 
-  public TracingExecutionContextStackCollector(final int maxNrThreads,
+  public TracingExecutionContexSampler(final int maxNrThreads,
           final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier,
           final Function<ExecutionContext, String> ctxToCategory) {
     requestFor = new Thread[maxNrThreads];

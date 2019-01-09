@@ -31,14 +31,15 @@
  */
 package org.spf4j.stackmonitor;
 
-import org.spf4j.base.Method;
 import com.google.common.html.HtmlEscapers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TMap;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
+import org.spf4j.base.Methods;
 import org.spf4j.base.StackSamples;
+import org.spf4j.base.avro.Method;
 
 /**
  * utility class to generate svg and html out of stack samples.
@@ -81,12 +82,12 @@ public final class StackVisualizer {
       writer.append("colspan=\"").append(Integer.toString(subNodes.size() + 1)).append("\" ");
     }
     writer.append(" title=\"");
-    m.toHtmlWriter(writer);
+    Methods.writeHtml(m, writer);
     writer.append(":");
     writer.append(Integer.toString(node.getSampleCount()));
     writer.append("\" style=\"overflow:hidden;width:100%;vertical-align:bottom ;background:").
             append(COLORS[(int) (Math.random() * COLORS.length)]).append("\">");
-    m.toHtmlWriter(writer);
+    Methods.writeHtml(m, writer);
     writer.append(":");
     writer.append(Integer.toString(totalSamples));
     writer.append("</td></tr>\n");

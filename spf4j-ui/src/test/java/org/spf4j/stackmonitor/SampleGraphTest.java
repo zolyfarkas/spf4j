@@ -24,7 +24,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.base.Method;
+import org.spf4j.base.Methods;
+import org.spf4j.base.avro.Method;
 
 /**
  *
@@ -53,7 +54,7 @@ public class SampleGraphTest {
       new StackTraceElement("C", "a", "C.java", -1)
     });
     LOG.debug("samples", node);
-    SampleGraph sg = new SampleGraph(Method.ROOT, node);
+    SampleGraph sg = new SampleGraph(Methods.ROOT, node);
     SampleGraph.AggSample aggRootVertex = sg.getAggRootVertex();
     LOG.debug("Root = {}", aggRootVertex);
     Set<SampleGraph.AggSample> children = sg.getChildren(aggRootVertex);
@@ -61,24 +62,24 @@ public class SampleGraphTest {
     for (SampleGraph.AggSample child : children) {
       LOG.debug("Children Children = {}", sg.getChildren(child));
     }
-    Assert.assertEquals(2, sg.getAggNode(new SampleGraph.SampleKey(Method.getMethod("C", "a"), 0)).getNrSamples());
-    Assert.assertEquals(2, sg.getAggNode(new SampleGraph.SampleKey(Method.getMethod("C", "b"), 0)).getNrSamples());
+    Assert.assertEquals(2, sg.getAggNode(new SampleGraph.SampleKey(Methods.getMethod("C", "a"), 0)).getNrSamples());
+    Assert.assertEquals(2, sg.getAggNode(new SampleGraph.SampleKey(Methods.getMethod("C", "b"), 0)).getNrSamples());
   }
 
   @Test
   public void testAggLogic() throws IOException {
     SampleNode samples = org.spf4j.ssdump2.Converter.load(Resources.getResource(
             "org.spf4j.concurrent.ThreadPoolBenchmark.spfLifoTpBenchmark-Throughput_m4.ssdump2").openStream());
-    Method method = Method.getMethod("org.spf4j.concurrent.LifoThreadPoolExecutorSQP$QueuedThread", "doRun");
+    Method method = Methods.getMethod("org.spf4j.concurrent.LifoThreadPoolExecutorSQP$QueuedThread", "doRun");
     AtomicInteger ai = new AtomicInteger();
-    SampleNode.traverse(Method.ROOT, samples, (f, t, s) -> {
+    SampleNode.traverse(Methods.ROOT, samples, (f, t, s) -> {
       if (f.equals(method)) {
         LOG.debug("from = {}, to = {}, samples = {}", f, t, s);
         ai.getAndIncrement();
       }
       return true;
     });
-    SampleGraph sg = new SampleGraph(Method.ROOT, samples);
+    SampleGraph sg = new SampleGraph(Methods.ROOT, samples);
     SampleGraph.SampleKey sampleKey = new SampleGraph.SampleKey(
             method, 0);
     SampleGraph.AggSample aggNode = sg.getAggNode(sampleKey);
