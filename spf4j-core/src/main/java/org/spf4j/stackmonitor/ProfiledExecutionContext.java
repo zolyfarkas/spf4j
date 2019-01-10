@@ -31,8 +31,10 @@
  */
 package org.spf4j.stackmonitor;
 
+import javax.annotation.Nullable;
 import org.spf4j.base.BasicExecutionContext;
 import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.StackSamples;
 
 /**
  *
@@ -52,11 +54,23 @@ public final class ProfiledExecutionContext extends BasicExecutionContext {
   }
 
   @Override
-  public SampleNode getStackSamples() {
+  @Nullable
+  public SampleNode getAndClearStackSamples() {
     synchronized (sync) {
       SampleNode result = sampleNode;
       sampleNode = null;
       return result;
+    }
+  }
+
+  @Override
+  @Nullable
+  public StackSamples getStackSamples() {
+    synchronized (sync) {
+      if (sampleNode == null) {
+        return null;
+      }
+      return SampleNode.clone(sampleNode);
     }
   }
 
@@ -71,6 +85,30 @@ public final class ProfiledExecutionContext extends BasicExecutionContext {
     }
   }
 
+  @Override
+  public void add(final StackSamples samples) {
+    synchronized (sync) {
+      if (sampleNode == null) {
+        sampleNode = (SampleNode) samples;
+      } else {
+        sampleNode.add((SampleNode) samples);
+      }
+    }
+  }
 
+  @Override
+  public synchronized void close() {
+    if (!isClosed()) {
+      super.close();
+      synchronized (sync) {
+        if (sampleNode != null) {
+          ExecutionContext notClosedParent = getNotClosedParent();
+          if (notClosedParent != null) {
+            notClosedParent.add(sampleNode);
+          }
+        }
+      }
+    }
+  }
 
 }

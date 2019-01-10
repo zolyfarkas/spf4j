@@ -122,7 +122,11 @@ public final class SampleGraph {
 
     @Override
     public String toString() {
-      return "" + Methods.toCharSequence(method) + '_'  + idxInHierarchy;
+      StringBuilder sb = new StringBuilder(32);
+      Methods.writeTo(method, sb);
+      sb.append('_');
+      sb.append(idxInHierarchy);
+      return sb.toString();
     }
 
   }

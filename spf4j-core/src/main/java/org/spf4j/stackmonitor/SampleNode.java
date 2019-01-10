@@ -160,6 +160,26 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
     return new SampleNode(newSampleCount, newSubNodes);
   }
 
+  public void add(final SampleNode node) {
+    this.sampleCount += node.getSampleCount();
+    TMap<Method, SampleNode> oSubNodes = (TMap<Method, SampleNode>) node.getSubNodes();
+    if (this.subNodes == null) {
+      this.subNodes = oSubNodes;
+    } else if (oSubNodes != null) {
+      oSubNodes.forEachEntry((final Method m, final SampleNode b) -> {
+        SampleNode other = subNodes.get(m);
+        if (other == null) {
+          subNodes.put(m, b);
+        } else {
+          other.sampleCount += b.sampleCount;
+        }
+        return true;
+      });
+    }
+  }
+
+
+
   public static TMap<Method, SampleNode> cloneSubNodes(final SampleNode node) {
     final TMap<Method, SampleNode> ns = new MethodMap<>(node.subNodes.size());
     putAllClones(node.subNodes, ns);

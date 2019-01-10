@@ -71,7 +71,7 @@ public class BasicExecutionContext implements ExecutionContext {
 
   private final CharSequence id;
 
-  private final ExecutionContext parent;
+  private final ExecutionContext source;
 
   private final Relation relation;
 
@@ -96,23 +96,23 @@ public class BasicExecutionContext implements ExecutionContext {
   @SuppressWarnings("unchecked")
   @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
   public BasicExecutionContext(final String name, @Nullable final CharSequence id,
-          @Nullable final ExecutionContext parent, final Relation relation,
+          @Nullable final ExecutionContext source, final Relation relation,
           final long startTimeNanos, final long deadlineNanos) {
     this.isClosed = false;
     this.relation = relation;
     this.name = name;
     this.startTimeNanos = startTimeNanos;
-    if (parent != null) {
-      long parentDeadline = parent.getDeadlineNanos();
+    if (source != null) {
+      long parentDeadline = source.getDeadlineNanos();
       if (parentDeadline < deadlineNanos) {
         this.deadlineNanos = parentDeadline;
       } else {
         this.deadlineNanos = deadlineNanos;
       }
       if (id == null) {
-        CharSequence pId = parent.getId();
+        CharSequence pId = source.getId();
         StringBuilder sb = new StringBuilder(pId.length() + 2).append(pId).append('/');
-        AppendableUtils.appendUnsignedString(sb, parent.nextChildId(), 5);
+        AppendableUtils.appendUnsignedString(sb, source.nextChildId(), 5);
         this.id  = sb;
       } else {
         this.id  = id;
@@ -121,7 +121,7 @@ public class BasicExecutionContext implements ExecutionContext {
       this.deadlineNanos = deadlineNanos;
       this.id  = id == null ? ExecutionContexts.genId() : id;
     }
-    this.parent = parent;
+    this.source = source;
     this.baggage = Collections.EMPTY_MAP;
     this.logs = null;
     this.minBackendLogLevel = null;
@@ -158,8 +158,8 @@ public class BasicExecutionContext implements ExecutionContext {
   public final synchronized <T> T get(@Nonnull final Tag<T> key) {
     Object res = baggage.get(key);
     if (res == null) {
-      if (parent != null) {
-        return parent.get(key);
+      if (source != null) {
+        return source.get(key);
       } else {
         return null;
       }
@@ -178,8 +178,8 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public final ExecutionContext getParent() {
-    return parent;
+  public final ExecutionContext getSource() {
+    return source;
   }
 
   /**
@@ -202,8 +202,11 @@ public class BasicExecutionContext implements ExecutionContext {
           ex = e;
         }
       }
-      if (parent != null &&  logs != null && relation == Relation.CHILD_OF) {
-        parent.addLogs(logs);
+      if (logs != null) {
+        ExecutionContext parent = getNotClosedParent();
+        if (parent != null) {
+          parent.addLogs(logs);
+        }
       }
       isClosed = true;
       if (ex != null) {
@@ -264,10 +267,10 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public final synchronized void addLog(final Slf4jLogRecord log) {
     if (isClosed) {
-      if (parent == null) {
+      if (source == null) {
         return;
       } else {
-        parent.addLog(log);
+        source.addLog(log);
         return;
       }
     }
@@ -292,10 +295,10 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public final synchronized void addLogs(final Collection<Slf4jLogRecord> log) {
     if (isClosed) {
-      if (parent == null) {
+      if (source == null) {
         return;
       } else {
-        parent.addLogs(log);
+        source.addLogs(log);
         return;
       }
     }
@@ -379,12 +382,42 @@ public class BasicExecutionContext implements ExecutionContext {
   /**
    * get the collected stack samples.
    * This implementation will always return null.
+   * overwrite in a context that supports this functionality.
    * @return
+   */
+  @Override
+  @Nullable
+  public StackSamples getAndClearStackSamples() {
+    return null;
+  }
+
+  /**
+   * overwrite in a context that supports this functionality.
+   * @return a copy of the collected samples.
    */
   @Override
   @Nullable
   public StackSamples getStackSamples() {
     return null;
+  }
+
+  @Override
+  public final synchronized boolean isClosed() {
+    return isClosed;
+  }
+
+  @Override
+  public final Relation getRelationToSource() {
+    return relation;
+  }
+
+  /**
+   * add a bunch of samples to this context.
+   * @param samples
+   */
+  @Override
+  public void add(final StackSamples samples) {
+    //Basic Context will not staore samples
   }
 
 }

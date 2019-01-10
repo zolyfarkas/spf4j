@@ -122,7 +122,7 @@ public final class MonitorTest {
                   doStuff3(rnd);
                 }
               }
-              StackSamples stackSamples = tctx.getStackSamples();
+              StackSamples stackSamples = tctx.getAndClearStackSamples();
               if (stackSamples != null) {
                 LOG.debug("Stack samples", stackSamples);
               }

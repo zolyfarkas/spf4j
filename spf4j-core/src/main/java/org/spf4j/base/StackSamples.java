@@ -46,4 +46,5 @@ public interface StackSamples extends JsonWriteable {
   @Nullable
   TMap<Method, ? extends StackSamples> getSubNodes();
 
+
 }

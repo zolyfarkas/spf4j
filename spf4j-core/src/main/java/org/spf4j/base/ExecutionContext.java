@@ -85,15 +85,46 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   long getDeadlineNanos();
 
   @Nullable
-  ExecutionContext getParent();
+  ExecutionContext getSource();
 
+  /**
+   * @return the top source. will return this is current is root.
+   * will follow all relationship types.
+   */
   default ExecutionContext getRoot() {
     ExecutionContext curr = this;
     ExecutionContext parent;
-    while ((parent = curr.getParent()) != null) {
+    while ((parent = curr.getSource()) != null) {
       curr = parent;
     }
     return curr;
+  }
+
+  /**
+   * @return Adam of this current context. will return this is current is Adam.
+   * follows only CHILD_OF relationships.
+   */
+  default ExecutionContext getRootParent() {
+    ExecutionContext curr = this;
+    ExecutionContext parent;
+    while (curr.getRelationToSource() == Relation.CHILD_OF && (parent = curr.getSource()) != null) {
+      curr = parent;
+    }
+    return curr;
+  }
+
+  /**
+   * @return will return the first not closed parent. null if no parent is available.
+   */
+  @Nullable
+  default ExecutionContext getNotClosedParent() {
+    ExecutionContext curr = this;
+    ExecutionContext parent;
+    while (curr.getRelationToSource() == Relation.CHILD_OF
+            && (parent = curr.getSource()) != null && parent.isClosed()) {
+      curr = parent;
+    }
+    return curr == this ? null : curr;
   }
 
   @Beta
@@ -209,13 +240,8 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  default <T> T putToRoot(final Tag<T> key, final T data) {
-    ExecutionContext curr = this;
-    ExecutionContext parent;
-    while ((parent = curr.getParent()) != null) {
-      curr = parent;
-    }
-    return curr.put(key, data);
+  default <T> T putToRootParent(final Tag<T> key, final T data) {
+    return getRootParent().put(key, data);
   }
 
   /**
@@ -245,12 +271,8 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @Nullable
   @Beta
-  default <T> List<T> addToRoot(final Tag<List<T>> tag, final T data) {
-    ExecutionContext ctx = this;
-    ExecutionContext parent;
-    while ((parent = ctx.getParent()) != null) {
-      ctx = parent;
-    }
+  default <T> List<T> addToRootParent(final Tag<List<T>> tag, final T data) {
+    ExecutionContext ctx = getRootParent();
     return ctx.compute(tag, (k, v) -> {
       if (v == null)  {
         v = new ArrayList<>(2);
@@ -282,7 +304,17 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   void add(StackTraceElement[] sample);
 
+  void add(StackSamples samples);
+
+  @Nullable
+  StackSamples getAndClearStackSamples();
+
   @Nullable
   StackSamples getStackSamples();
+
+
+  boolean isClosed();
+
+  Relation getRelationToSource();
 
 }

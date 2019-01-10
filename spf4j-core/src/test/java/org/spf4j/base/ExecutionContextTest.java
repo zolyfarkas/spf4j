@@ -67,7 +67,7 @@ public class ExecutionContextTest {
           long utd = ExecutionContexts.current().getUncheckedTimeToDeadline(TimeUnit.SECONDS);
           Assert.assertThat(utd, Matchers.lessThanOrEqualTo(10L));
           Assert.assertThat(utd, Matchers.greaterThanOrEqualTo(9L));
-          Assert.assertEquals(ec, subCtx.getParent());
+          Assert.assertEquals(ec, subCtx.getSource());
         }
         Assert.assertNull(ExecutionContexts.current());
       });

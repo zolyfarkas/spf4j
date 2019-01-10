@@ -90,11 +90,11 @@ public final class Methods  {
   }
 
   public static void writeTo(final Method m, final Appendable w) throws IOException {
-    w.append(m.getName()).append("@").append(m.getDeclaringClass());
+    w.append(m.getName()).append('@').append(m.getDeclaringClass());
   }
 
   public static void writeTo(final Method m, final StringBuilder w) {
-    w.append(m.getName()).append("@").append(m.getDeclaringClass());
+    w.append(m.getName()).append('@').append(m.getDeclaringClass());
   }
 
   public static CharSequence toCharSequence(final Method m) {
