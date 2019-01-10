@@ -45,6 +45,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.Method;
 
@@ -121,7 +122,7 @@ public final class SampleGraph {
 
     @Override
     public String toString() {
-      return "SampleKey{" + "method=" + method + ", idxInHierarchy=" + idxInHierarchy + '}';
+      return "SampleKey{" + "method=" + Methods.toCharSequence(method) + ", idxInHierarchy=" + idxInHierarchy + '}';
     }
 
   }
