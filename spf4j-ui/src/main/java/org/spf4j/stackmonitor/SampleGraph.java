@@ -122,7 +122,7 @@ public final class SampleGraph {
 
     @Override
     public String toString() {
-      return "SampleKey{" + "method=" + Methods.toCharSequence(method) + ", idxInHierarchy=" + idxInHierarchy + '}';
+      return "" + Methods.toCharSequence(method) + '_'  + idxInHierarchy;
     }
 
   }
