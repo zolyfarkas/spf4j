@@ -36,7 +36,6 @@ import com.google.common.html.HtmlEscapers;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
@@ -94,13 +93,13 @@ public final class Methods  {
     w.append(m.getName()).append("@").append(m.getDeclaringClass());
   }
 
+  public static void writeTo(final Method m, final StringBuilder w) {
+    w.append(m.getName()).append("@").append(m.getDeclaringClass());
+  }
+
   public static CharSequence toCharSequence(final Method m) {
     StringBuilder sb = new StringBuilder(32);
-    try {
-      writeTo(m, sb);
-    } catch (IOException ex) {
-     throw new UncheckedIOException(ex);
-    }
+    writeTo(m, sb);
     return sb;
   }
 
