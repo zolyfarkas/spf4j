@@ -58,6 +58,7 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.spf4j.base.Handler;
 import org.spf4j.base.Methods;
+import org.spf4j.base.StackSamples;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
@@ -75,10 +76,10 @@ public final class Converter {
   private static final class TraversalNode {
 
     private final Method method;
-    private final SampleNode node;
+    private final StackSamples node;
     private final int parentId;
 
-    TraversalNode(final Method method, final SampleNode node, final int parentId) {
+    TraversalNode(final Method method, final StackSamples node, final int parentId) {
       this.method = method;
       this.node = node;
       this.parentId = parentId;
@@ -88,7 +89,7 @@ public final class Converter {
       return method;
     }
 
-    public SampleNode getNode() {
+    public StackSamples getNode() {
       return node;
     }
 
@@ -103,7 +104,7 @@ public final class Converter {
 
   }
 
-  public static <E extends Exception> int convert(final Method method, final SampleNode node,
+  public static <E extends Exception> int convert(final Method method, final StackSamples node,
           final int parentId, final int id,
           final Handler<StackSampleElement, E> handler) throws E {
 
@@ -112,10 +113,10 @@ public final class Converter {
     int nid = id;
     while (!dq.isEmpty()) {
       TraversalNode first = dq.removeFirst();
-      SampleNode n = first.getNode();
+      StackSamples n = first.getNode();
       StackSampleElement sample = new StackSampleElement(nid, first.getParentId(),
               n.getSampleCount(), first.getMethod());
-      final TMap<Method, SampleNode> subNodes = n.getSubNodes();
+      final TMap<Method, ? extends StackSamples> subNodes = n.getSubNodes();
       final int pid = nid;
       if (subNodes != null) {
         subNodes.forEachEntry((a, b) -> {
