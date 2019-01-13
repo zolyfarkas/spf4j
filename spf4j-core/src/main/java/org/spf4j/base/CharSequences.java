@@ -392,6 +392,21 @@ public final class CharSequences {
    */
   @SuppressWarnings("checkstyle:InnerAssignment")
   public static int parseUnsignedInt(@Nonnull final CharSequence cs, final int radix, final int idxFrom) {
+    return parseUnsignedInt(cs, radix, idxFrom, cs.length());
+  }
+
+
+  /**
+   * will parse a unsigned integer from a char sequence from idxFrom.
+   * @param cs
+   * @param radix
+   * @param idxFrom
+   * @param idxTo
+   * @return
+   */
+  @SuppressWarnings("checkstyle:InnerAssignment")
+  public static int parseUnsignedInt(@Nonnull final CharSequence cs, final int radix,
+          final int idxFrom, final int idxTo) {
     if (radix < Character.MIN_RADIX) {
       throw new NumberFormatException("radix " + radix
               + " less than Character.MIN_RADIX");
@@ -405,7 +420,7 @@ public final class CharSequences {
     int i = idxFrom;
     int limit = -Integer.MAX_VALUE;
     int multmin = limit / radix;
-    int length = cs.length();
+    int length = idxTo;
     int digit;
     while (i < length && (digit = Character.digit(cs.charAt(i++), radix)) >= 0) {
       if (result < multmin) {
