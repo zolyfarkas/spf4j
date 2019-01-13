@@ -94,6 +94,11 @@ public final class CharSeparatedValues {
   }
 
   public void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
+    writeCsvRowNoEOL(writer, elems);
+    writer.append('\n');
+  }
+
+  public void writeCsvRowNoEOL(final Appendable writer, final Object... elems) throws IOException {
     if (elems.length > 0) {
       int i = 0;
       Object elem = elems[i++];
@@ -108,7 +113,6 @@ public final class CharSeparatedValues {
         }
       }
     }
-    writer.append('\n');
   }
 
   public void writeCsvRow2(final Appendable writer, final Object obj, final Object... elems)
