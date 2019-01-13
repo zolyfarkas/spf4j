@@ -22,6 +22,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +33,13 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
+import org.apache.avro.Schema;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.avro.StackSampleElement;
+import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -108,7 +116,21 @@ public class TextEntryPanel extends javax.swing.JPanel {
   @SuppressFBWarnings("UP_UNUSED_PARAMETER")
   private void displayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayActionPerformed
     try {
-      nodeConsumer.accept(SampleNode.parse(new StringReader(jTextPane1.getText())).getSecond());
+      String text = jTextPane1.getText().trim();
+      if (text.startsWith("[")) {
+        Schema schema = Schema.createArray(StackSampleElement.getClassSchema());
+        DatumReader reader = new SpecificDatumReader(schema);
+        List<StackSampleElement> samples;
+        try {
+          Decoder decoder = DecoderFactory.get().jsonDecoder(schema, text);
+          samples = (List<StackSampleElement>) reader.read(null, decoder);
+        } catch (IOException | RuntimeException ex) {
+          throw new RuntimeException("Unable to read samples: " + text, ex);
+        }
+        nodeConsumer.accept(Converter.convert(samples.iterator()));
+      } else {
+        nodeConsumer.accept(SampleNode.parse(new StringReader(text)).getSecond());
+      }
     } catch (IOException | RuntimeException ex) {
       errorConsumer.accept(ex);
     }
