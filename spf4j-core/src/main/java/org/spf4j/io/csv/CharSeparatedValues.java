@@ -80,6 +80,19 @@ public final class CharSeparatedValues {
     this.toEscape = new char[]{separator, '\n', '\r', '"'};
   }
 
+  public CharSeparatedValues(final char separator, final char... extraCharsToEscape) {
+    if (separator == '\n' || separator == '\r' || separator == '"') {
+      throw new IllegalArgumentException("Illegal separator character " + separator);
+    }
+    this.separator = separator;
+    this.toEscape = new char[4 + extraCharsToEscape.length];
+    this.toEscape[0] = separator;
+    this.toEscape[1] = '\n';
+    this.toEscape[2] = '\r';
+    this.toEscape[3] = '"';
+    System.arraycopy(extraCharsToEscape, 0, this.toEscape, 4, extraCharsToEscape.length);
+  }
+
   public void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
     if (elems.length > 0) {
       int i = 0;
