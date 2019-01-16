@@ -32,10 +32,17 @@
 package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
+import static org.spf4j.base.avro.Converters.convert;
+import org.spf4j.base.avro.LogRecord;
 
 /**
  * @author Zoltan Farkas
@@ -109,6 +116,30 @@ public interface Slf4jLogRecord {
     } else {
       return 0;
     }
+  }
+
+  default LogRecord toLogRecord(final String origin, final String traceId) {
+    java.lang.Throwable extraThrowable = this.getExtraThrowable();
+    Marker marker = this.getMarker();
+    Object[] extraArguments = this.getExtraArguments();
+    List<Object> xArgs;
+    if (marker == null) {
+      xArgs = extraArguments.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(this.getExtraArguments());
+    } else {
+      if (extraArguments.length == 0) {
+        xArgs = Collections.singletonList(marker);
+      } else {
+        xArgs = new ArrayList<>(extraArguments.length + 1);
+        xArgs.add(marker);
+        for (Object obj : extraArguments) {
+          xArgs.add(obj);
+        }
+      }
+    }
+    return new LogRecord(origin, traceId,  this.getLevel().getAvroLevel(),
+            Instant.ofEpochMilli(this.getTimeStamp()),
+    this.getLoggerName(), this.getThreadName(), this.getMessage(),
+    extraThrowable == null ? null : convert(extraThrowable), xArgs);
   }
 
 }

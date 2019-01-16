@@ -55,6 +55,11 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
   }
 
   @Override
+  public LogRecord toLogRecord(final String origin, final String traceId) {
+    return record;
+  }
+
+  @Override
   public String getOrigin() {
     return record.getOrigin();
   }

@@ -31,13 +31,10 @@
  */
 package org.spf4j.base.avro;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.slf4j.Marker;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
@@ -100,35 +97,12 @@ public final class Converters {
     return new RemoteException(source, throwable);
   }
 
-  public static LogRecord convert(final String origin, final String traceId, final Slf4jLogRecord logRecord) {
-    java.lang.Throwable extraThrowable = logRecord.getExtraThrowable();
-    Marker marker = logRecord.getMarker();
-    Object[] extraArguments = logRecord.getExtraArguments();
-    List<Object> xArgs;
-    if (marker == null) {
-      xArgs = extraArguments.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(logRecord.getExtraArguments());
-    } else {
-      if (extraArguments.length == 0) {
-        xArgs = Collections.singletonList(marker);
-      } else {
-        xArgs = new ArrayList<>(extraArguments.length + 1);
-        xArgs.add(marker);
-        for (Object obj : extraArguments) {
-          xArgs.add(obj);
-        }
-      }
-    }
-    return new LogRecord(origin, traceId,  logRecord.getLevel().getAvroLevel(),
-            Instant.ofEpochMilli(logRecord.getTimeStamp()),
-    logRecord.getLoggerName(), logRecord.getThreadName(), logRecord.getMessage(),
-    extraThrowable == null ? null : convert(extraThrowable), xArgs);
-  }
 
   public static List<LogRecord> convert(final String origin, final String traceId,
           final List<Slf4jLogRecord> logRecords) {
     List<LogRecord> result = new ArrayList<>(logRecords.size());
     for (Slf4jLogRecord log : logRecords) {
-      result.add(convert(origin, traceId, log));
+      result.add(log.toLogRecord(origin, traceId));
     }
     return result;
   }
