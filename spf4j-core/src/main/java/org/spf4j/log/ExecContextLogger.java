@@ -104,8 +104,44 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
     }
   }
 
+  public void log(final Slf4jLogRecord log) {
+    log(ExecutionContexts.current(), log);
+  }
+
+  public void log(final ExecutionContext ctx, final Slf4jLogRecord log) {
+   Level level = log.getLevel();
+   Marker marker = log.getMarker();
+   if (ctx ==  null) {
+      logger.log(marker, level, log.getMessageFormat(), log.getArguments());
+      return;
+   }
+   String name = getName();
+    boolean logged;
+    if (logger.isEnabled(level, marker)) {
+      logger.log(null, level, log.getMessageFormat(), log.getArguments());
+      logged = true;
+    } else {
+      Level backendOverwrite = ctx.getBackendMinLogLevel(name);
+      if (backendOverwrite == null) {
+        logged = false;
+      } else if (backendOverwrite.ordinal() <= level.ordinal()) {
+        logger.logUpgrade(null, level, log.getMessageFormat(), log.getArguments());
+        logged = true;
+      } else {
+        logged = false;
+      }
+    }
+    if (ctx.getContextMinLogLevel(name).ordinal() <= level.ordinal()) {
+      ctx.addLog(log);
+    }
+  }
+
   public void log(@Nullable final Marker marker, final Level level, final String msg, final Object... args) {
-    ExecutionContext ctx = ExecutionContexts.current();
+    log(ExecutionContexts.current(), marker, level, msg, args);
+  }
+
+  public void log(final ExecutionContext ctx, @Nullable final Marker marker,
+          final Level level, final String msg, final Object... args) {
     if (ctx ==  null) {
       logger.log(marker, level, msg, args);
       return;
@@ -127,7 +163,7 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
       }
     }
     if (ctx.getContextMinLogLevel(name).ordinal() <= level.ordinal()) {
-      ctx.addLog(new Slf4jLogRecordImpl(logged, name, level, (Marker) null, msg));
+      ctx.addLog(new Slf4jLogRecordImpl(logged, name, level, marker, msg, args));
     }
   }
 
