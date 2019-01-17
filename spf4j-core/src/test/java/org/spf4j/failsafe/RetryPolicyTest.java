@@ -315,7 +315,7 @@ public class RetryPolicyTest {
         rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
                 1000, TimeUnit.MILLISECONDS).get(1000, TimeUnit.MILLISECONDS);
         Assert.fail();
-      } catch (ExecutionException ex) {
+      } catch (ExecutionException | TimeoutException ex) {
         LOG.debug("Expected exception", ex);
         Assert.assertEquals(TimeoutException.class, ex.getCause().getClass());
         // as expected.
