@@ -31,10 +31,16 @@
  */
 package org.spf4j.ssdump2;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Methods;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.stackmonitor.SampleNode;
@@ -44,6 +50,8 @@ import org.spf4j.stackmonitor.SampleNode;
  * @author zoly
  */
 public class ConverterTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ConverterTest.class);
 
     private SampleNode testSample() {
          StackTraceElement[] st1 = new StackTraceElement[3];
@@ -80,6 +88,18 @@ public class ConverterTest {
         });
         SampleNode back = Converter.convert(samples.iterator());
         Assert.assertEquals(testSample.toString(), back.toString());
+    }
+
+
+    @Test
+    public void testLoad() throws IOException {
+      Map<String, SampleNode> labeledDumps
+              = Converter.loadLabeledDumps(new File("./src/test/resources/test.ssdump3"));
+      Assert.assertNotNull(labeledDumps);
+      LOG.debug("dumps", labeledDumps);
+      Assert.assertThat(labeledDumps.toString(),
+              Matchers.containsString("getUnchecked@org.spf4j.concurrent.UnboundedLoadingCache"));
+
     }
 
 }

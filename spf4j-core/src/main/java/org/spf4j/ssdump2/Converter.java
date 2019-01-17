@@ -62,6 +62,7 @@ import org.spf4j.base.StackSamples;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
+import org.spf4j.stackmonitor.MethodMap;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -252,10 +253,11 @@ public final class Converter {
           while (nrArrayItems > 0) {
             for (int j = 0; j < nrArrayItems; j++) {
               asmp = reader.read(asmp, decoder);
-              SampleNode sn = new SampleNode(asmp.getCount(), new THashMap<Method, SampleNode>(4));
+              SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap<SampleNode>());
               SampleNode parent = index.get(asmp.getParentId());
               if (parent != null) {
-                Method m = asmp.getMethod();
+                Method readMethod = asmp.getMethod();
+                Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());
                 final Map<Method, SampleNode> subNodes = parent.getSubNodes();
                 if (subNodes == null) {
                   throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
