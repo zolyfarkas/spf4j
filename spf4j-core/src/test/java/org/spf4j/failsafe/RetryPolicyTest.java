@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.net.SocketException;
@@ -317,7 +318,7 @@ public class RetryPolicyTest {
         Assert.fail();
       } catch (ExecutionException | TimeoutException ex) {
         LOG.debug("Expected exception", ex);
-        Assert.assertEquals(TimeoutException.class, ex.getCause().getClass());
+        Assert.assertEquals(TimeoutException.class, Throwables.getRootCause(ex).getClass());
         // as expected.
       }
       retryExpect2.assertObservation();
