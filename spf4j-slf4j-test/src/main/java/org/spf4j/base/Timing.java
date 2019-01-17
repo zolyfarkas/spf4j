@@ -44,6 +44,12 @@ public final class Timing {
 
   public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);
 
+  static {
+    // load classes to improve timing.
+    TimeSource.nanoTime();
+    System.currentTimeMillis();
+  }
+
   private static final Timing LATEST_TIMING = new Timing();
 
   private final long nanoTimeRef;
