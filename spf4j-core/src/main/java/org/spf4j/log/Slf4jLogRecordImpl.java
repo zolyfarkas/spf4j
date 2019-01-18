@@ -301,14 +301,6 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);
   }
 
-  /**
-   * @return origin detail, overwrite if needed.
-   */
-  @Override
-  public String getOrigin() {
-    return "";
-  }
-
   private static final class Lazy {
 
     private static final JsonFactory JSON = new JsonFactory();

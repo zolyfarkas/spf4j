@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UncheckedIOException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -75,6 +76,18 @@ public final class LogAttribute<T> extends Pair<String, T>
 
   public static LogAttribute<Level> origLevel(final Level level) {
     return new LogAttribute("origLevel", level);
+  }
+
+  public static LogAttribute<Level> origLoggerName(final String loggerName) {
+    return new LogAttribute("origLogger", loggerName);
+  }
+
+  public static LogAttribute<Level> origTimeStamp(final Instant instant) {
+    return new LogAttribute("origTs", instant);
+  }
+
+  public static LogAttribute<Level> origTimeStamp(final long millisSinceEpoch) {
+    return new LogAttribute("origTs", Instant.ofEpochMilli(millisSinceEpoch));
   }
 
   public static LogAttribute<Slf4jLogRecord> log(final Slf4jLogRecord record) {

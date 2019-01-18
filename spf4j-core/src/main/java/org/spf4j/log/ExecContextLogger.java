@@ -39,6 +39,7 @@ import org.spf4j.base.Arrays;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.Wrapper;
+import org.spf4j.base.avro.LogRecord;
 
 /**
  * A Execution context aware logger.
@@ -49,8 +50,8 @@ import org.spf4j.base.Wrapper;
  * 1) if Execution context is present, it logs the context id. (relies on Logging back-ends supporting overflow args)
  * </li>
  * <li>
- * 2) if Execution context is present, it allows for context aware log level, and upgrades log
- * messages to be logged by backend.
+ * 2) if Execution context is present, it allows for context aware log level, and upgrades log messages to be logged by
+ * backend.
  * </li>
  *
  * @author Zoltan Farkas
@@ -59,7 +60,6 @@ import org.spf4j.base.Wrapper;
 public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
   private final XLog logger;
-
 
   public static ExecContextLogger from(final Logger wrapped) {
     if (wrapped instanceof ExecContextLogger) {
@@ -87,52 +87,42 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
     return this.logger.getWrapped().getName();
   }
 
-
   public boolean isEnabled(final Level level, @Nullable final Marker marker) {
     ExecutionContext ctx = ExecutionContexts.current();
-    if (ctx ==  null) {
+    if (ctx == null) {
       return logger.isEnabled(level, marker);
     }
     String name = getName();
     Level backendOverwrite = ctx.getBackendMinLogLevel(name);
     if (backendOverwrite == null) {
-      return  logger.isEnabled(level, marker) || level.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
+      return logger.isEnabled(level, marker) || level.ordinal() >= ctx.getContextMinLogLevel(name).ordinal();
     } else {
-      return  logger.isEnabled(level, marker)
+      return logger.isEnabled(level, marker)
               || level.ordinal()
               >= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());
     }
   }
 
-  public void log(final Slf4jLogRecord log) {
-    log(ExecutionContexts.current(), log);
-  }
 
-  public void log(final ExecutionContext ctx, final Slf4jLogRecord log) {
-   Level level = log.getLevel();
-   Marker marker = log.getMarker();
-   if (ctx ==  null) {
-      logger.log(marker, level, log.getMessageFormat(), log.getArguments());
+  public void log(final ExecutionContext ctx, final Level level, final LogRecord log) {
+    if (ctx == null) {
+      logger.log(null, level, "RemoteLog", log);
       return;
-   }
-   String name = getName();
-    boolean logged;
-    if (logger.isEnabled(level, marker)) {
-      logger.log(null, level, log.getMessageFormat(), log.getArguments());
+    }
+    String name = getName();
+    boolean logged = false;
+    if (logger.isEnabled(level, null)) {
+      logger.log(null, level, "RemoteLog", LogAttribute.traceId(ctx.getId()), log);
       logged = true;
     } else {
       Level backendOverwrite = ctx.getBackendMinLogLevel(name);
-      if (backendOverwrite == null) {
-        logged = false;
-      } else if (backendOverwrite.ordinal() <= level.ordinal()) {
-        logger.logUpgrade(null, level, log.getMessageFormat(), log.getArguments());
-        logged = true;
-      } else {
-        logged = false;
+      if (backendOverwrite.ordinal() <= level.ordinal()) {
+       logger.logUpgrade(null, level, "RemoteLog", LogAttribute.traceId(ctx.getId()), log);
+       logged = true;
       }
     }
     if (ctx.getContextMinLogLevel(name).ordinal() <= level.ordinal()) {
-      ctx.addLog(log);
+      ctx.addLog(new AvroLogRecordImpl(log, logged));
     }
   }
 
@@ -142,7 +132,7 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
   public void log(final ExecutionContext ctx, @Nullable final Marker marker,
           final Level level, final String msg, final Object... args) {
-    if (ctx ==  null) {
+    if (ctx == null) {
       logger.log(marker, level, msg, args);
       return;
     }
@@ -229,7 +219,7 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
 
   @Override
   public boolean isDebugEnabled() {
-   return isEnabled(Level.DEBUG, null);
+    return isEnabled(Level.DEBUG, null);
   }
 
   @Override

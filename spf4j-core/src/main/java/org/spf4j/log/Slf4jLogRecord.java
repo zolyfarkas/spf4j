@@ -49,9 +49,6 @@ import org.spf4j.base.avro.LogRecord;
  */
 public interface Slf4jLogRecord {
 
-  @Nonnull
-  String getOrigin();
-
 
   @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   @Nonnull
@@ -92,6 +89,10 @@ public interface Slf4jLogRecord {
   String getThreadName();
 
   long getTimeStamp();
+
+  default Instant getTimeStampInstant() {
+    return Instant.ofEpochMilli(getTimeStamp());
+  }
 
   /**
    * Indicates that this log record has been sent to the logging backend to persist.

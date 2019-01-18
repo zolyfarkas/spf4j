@@ -31,8 +31,8 @@
  */
 package org.spf4j.log;
 
+import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
@@ -50,8 +50,12 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
   private boolean isLogged;
 
   public AvroLogRecordImpl(final LogRecord record) {
+    this(record, false);
+  }
+
+  public AvroLogRecordImpl(final LogRecord record, final boolean isLogged) {
     this.record = record;
-    this.isLogged = false;
+    this.isLogged = isLogged;
   }
 
   @Override
@@ -60,14 +64,8 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
   }
 
   @Override
-  public String getOrigin() {
-    return record.getOrigin();
-  }
-
-  @Override
   public Object[] getArguments() {
-    List xtra = record.getXtra();
-    return xtra.toArray(new Object[xtra.size()]);
+    return new Object[] {record};
   }
 
   @Override
@@ -103,7 +101,7 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
 
   @Override
   public String getMessage() {
-    return record.getMsg();
+    return "RemoteLog";
   }
 
   @Override
@@ -124,6 +122,11 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
   @Override
   public long getTimeStamp() {
     return record.getTs().toEpochMilli();
+  }
+
+  @Override
+  public Instant getTimeStampInstant() {
+    return record.getTs();
   }
 
   @Override
