@@ -1,32 +1,32 @@
-The Z Expression Language
+The Z Language
 
- Scope: A simple but easy to extend language for doing expression evalutions and calculations in java.
+ Scope: A simple but easy to extend language for writing mathematical expressions that slowly evolves into a general purpose 
+ programming language with a focus on concurrency and  
+ {{{http://journal.stuffwithstuff.com/2015/02/01/what-color-is-your-function/)}color-less functions}}.
  
 
- Now there are a few other components out there that do a similar job, here is what it's different (or not :-) ) about this particular implementation:
+ Now there are a few other projects out there that do a similar job, here is what it's different (or not :-) ) about this particular implementation:
 
 
   1. "Improved" Asynchronous programming / coroutines. Zel attempts to bridge the sync and async async divide by implementing
   a stack based virtual machine, where the the stack elements are: Either\<Object, Future\<Object\>\>. What this means at a higher level
   that a function like:  "function(int value) \{ ... print(value)..\}" can be called either with a int or a Future\<int\>.
-  Future.get gets invoked when needed. (when calling java libs...  like print in the example above).
+  Future.get gets invoked when needed (Lazy). (when calling system calls...  like print in the example above).
   Also  Functions can be executed async automatically by the VM or not. We let the VMs free our objects,
   maybe it is time to let them execute functions asynchronously... Zel is an attempt to play with the idea...
 
 
-  2. Support for deterministic functions, (aka memorization) execution results will be cached for deterministic functions
+  2. Support for deterministic functions, (aka memorization). Execution results will be cached for deterministic functions.
 
   3. Integer mathematical operations do not overflow. (types are upgraded: int -> long -> BigInteger)
-     Real number representation can be used seamlessly with decimal or binary representation. (double or BigDecimal)
+     Real number representation can be used seamlessly with decimal or binary representation. (BigDecimal or double64)
 
    
   4. ZEL uses the last value out principle, expressions will return the last evaluated expression.
-     There is a return keyword that can also be used but it is optional
+     There is a return keyword that can also be used but it is optional.
 
   5. Expressions are compiled providing decent execution performance.
-     The concurrency features in Zel enable you to easier write code that takes advantage of multi core systems.
-     (Outperforms SPEL(Spring) by a few orders of magnitude, slightly slower(simple single threaded benchmarks)
-     than MVEL and Groovy, for latest results see: )
+     The concurrency features in Zel enable you to write concurrent code that is easier to understand.
 
   6. Implemented using javaCC
 
