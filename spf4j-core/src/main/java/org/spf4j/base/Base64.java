@@ -172,13 +172,23 @@ public final class Base64 {
   public static byte[] decodeBase64(final CharSequence text, final int from, final int len) {
     final int buflen = guessLength(text, from, len);
     final byte[] out = new byte[buflen];
-    int o = 0;
+    int o = decodeInto(text, from, len, out, 0);
+    if (buflen == o) { // speculation worked out to be OK
+      return out;
+    }
 
+    // we overestimated, so need to create a new buffer
+    byte[] nb = new byte[o];
+    System.arraycopy(out, 0, nb, 0, o);
+    return nb;
+  }
+
+  public static int decodeInto(final CharSequence text, final int from, final int len,
+          final byte[] out, final int outStartIdx) {
+    int o = outStartIdx;
     int i;
-
     final byte[] quadruplet = new byte[4];
     int q = 0;
-
     // convert each quadruplet to three bytes.
     int to = from + len;
     for (i = from; i < to; i++) {
@@ -201,15 +211,7 @@ public final class Base64 {
         q = 0;
       }
     }
-
-    if (buflen == o) { // speculation worked out to be OK
-      return out;
-    }
-
-    // we overestimated, so need to create a new buffer
-    byte[] nb = new byte[o];
-    System.arraycopy(out, 0, nb, 0, o);
-    return nb;
+    return o;
   }
 
   public static byte[] decodeBase64(final char[] text, final int from, final int len) {
