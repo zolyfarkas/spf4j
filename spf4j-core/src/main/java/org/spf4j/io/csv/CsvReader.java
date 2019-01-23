@@ -60,7 +60,7 @@ public interface CsvReader {
    * @throws CsvParseException
    */
   @Nullable
-  TokenType current() throws IOException, CsvParseException;
+  TokenType current();
 
   /**
    * the CSV element string. the underlying instance is reused, so you will need to make a copy of this if planning to

@@ -513,7 +513,7 @@ public final class CharSeparatedValues {
     }
 
     @Override
-    public TokenType current() throws IOException, CsvParseException {
+    public TokenType current() {
       return currentToken;
     }
 
