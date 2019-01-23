@@ -32,6 +32,8 @@
 package org.spf4j.io.csv;
 
 import java.io.IOException;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Char separated value file Reader.
@@ -40,7 +42,7 @@ import java.io.IOException;
 public interface CsvReader {
 
   enum TokenType {
-    ELEMENT, END_ROW, END_DOCUMENT
+     ELEMENT, END_ROW, END_DOCUMENT
   }
 
   /**
@@ -49,7 +51,16 @@ public interface CsvReader {
    * @return return CSV element type.
    * @throws IOException exception is something goes wrong.
    */
+  @Nonnull
   TokenType next() throws IOException, CsvParseException;
+
+  /**
+   * @return the curretly parsed token type,  null if not current token is available (next has never been called)
+   * @throws IOException
+   * @throws CsvParseException
+   */
+  @Nullable
+  TokenType current() throws IOException, CsvParseException;
 
   /**
    * the CSV element string. the underlying instance is reused, so you will need to make a copy of this if planning to

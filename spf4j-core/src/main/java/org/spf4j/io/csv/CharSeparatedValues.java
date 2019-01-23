@@ -499,30 +499,29 @@ public final class CharSeparatedValues {
 
     @Override
     public TokenType next() throws IOException, CsvParseException {
-      if (currentToken == null) {
-        if (nextToken == null) {
-          readCurrentElement();
-          TokenType result = currentToken;
-          if (result != TokenType.END_DOCUMENT) {
-            currentToken = null;
-          }
-          return result;
-        } else {
-          TokenType result = nextToken;
-          if (result != TokenType.END_DOCUMENT) {
-            nextToken = null;
-          }
-          return result;
-        }
-      } else {
+      if (nextToken == null) {
+        readCurrentElement();
         return currentToken;
+      } else {
+        TokenType result = nextToken;
+        if (result != TokenType.END_DOCUMENT) {
+          nextToken = null;
+        }
+        currentToken = result;
+        return result;
       }
+    }
+
+    @Override
+    public TokenType current() throws IOException, CsvParseException {
+      return currentToken;
     }
 
     @Override
     public CharSequence getElement() {
       return currentElement;
     }
+
   }
 
   private static class OneRowHandler<T> implements CsvHandler<T> {
