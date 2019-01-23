@@ -33,6 +33,7 @@ package org.spf4j.io.csv;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -72,6 +73,38 @@ public class CharSeparatedValuesTest {
     Assert.assertEquals("", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.current());
+  }
+
+  @Test
+  public void testCsvWriter() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    StringWriter writer = new StringWriter();
+    CsvWriter csvW = csv.writer(writer);
+    csvW.writeElement("a");
+    csvW.writeElement("b");
+    csvW.writeElement("c");
+    csvW.writeEol();
+    csvW.writeElement("d");
+    csvW.writeElement("e");
+    Assert.assertEquals("a b c\nd e", writer.toString());
+  }
+
+  @Test
+  public void testCsvWriter2() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    StringWriter writer = new StringWriter();
+    CsvWriter csvW = csv.writer(writer);
+    csvW.writeElement("");
+    Assert.assertEquals("", writer.toString());
+  }
+  @Test
+  public void testCsvWriter3() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    StringWriter writer = new StringWriter();
+    CsvWriter csvW = csv.writer(writer);
+    csvW.writeElement("");
+    csvW.writeElement("b ");
+    Assert.assertEquals(" \"b \"", writer.toString());
   }
 
 }

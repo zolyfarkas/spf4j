@@ -40,6 +40,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -299,6 +300,29 @@ public final class CharSeparatedValues {
 
   public CsvReader readerNoBOM(final PushbackReader reader) {
     return new CsvReaderImpl(reader);
+  }
+
+  public CsvWriter writer(final Writer writer) {
+    return new CsvWriter() {
+
+      private boolean isStartLine = true;
+
+      @Override
+      public void writeElement(final CharSequence cs) throws IOException {
+        if (isStartLine) {
+          isStartLine = false;
+        } else {
+          writer.append(separator);
+        }
+        writeCsvElement(cs, writer);
+      }
+
+      @Override
+      public void writeEol() throws IOException {
+        writer.append('\n');
+        isStartLine = true;
+      }
+    };
   }
 
   public void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
