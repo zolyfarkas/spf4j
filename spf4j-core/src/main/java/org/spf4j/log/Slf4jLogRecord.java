@@ -31,12 +31,14 @@
  */
 package org.spf4j.log;
 
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,7 +50,6 @@ import org.spf4j.base.avro.LogRecord;
  * @author Zoltan Farkas
  */
 public interface Slf4jLogRecord {
-
 
   @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   @Nonnull
@@ -96,6 +97,7 @@ public interface Slf4jLogRecord {
 
   /**
    * Indicates that this log record has been sent to the logging backend to persist.
+   *
    * @return
    */
   boolean isLogged();
@@ -119,28 +121,48 @@ public interface Slf4jLogRecord {
     }
   }
 
+  @SuppressFBWarnings("WOC_WRITE_ONLY_COLLECTION_LOCAL")
   default LogRecord toLogRecord(final String origin, final String traceId) {
     java.lang.Throwable extraThrowable = this.getExtraThrowable();
     Marker marker = this.getMarker();
     Object[] extraArguments = this.getExtraArguments();
+    Map<String, Object> attribs = null;
     List<Object> xArgs;
-    if (marker == null) {
-      xArgs = extraArguments.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(this.getExtraArguments());
+    if (extraArguments.length == 0) {
+      xArgs = Collections.EMPTY_LIST;
     } else {
-      if (extraArguments.length == 0) {
-        xArgs = Collections.singletonList(marker);
+      int nrAttribs = 0;
+      for (Object obj : extraArguments) {
+        if (obj instanceof LogAttribute) {
+          nrAttribs++;
+        }
+      }
+      if (nrAttribs == 0) {
+        xArgs = Arrays.asList(this.getExtraArguments());
       } else {
-        xArgs = new ArrayList<>(extraArguments.length + 1);
-        xArgs.add(marker);
+        if (nrAttribs == extraArguments.length) {
+          xArgs = Collections.EMPTY_LIST;
+        } else {
+          xArgs = new ArrayList<>(extraArguments.length - nrAttribs);
+        }
+        attribs = Maps.newHashMapWithExpectedSize(nrAttribs + (marker == null ? 0 : 1));
         for (Object obj : extraArguments) {
-          xArgs.add(obj);
+          if (obj instanceof LogAttribute) {
+            attribs.put(((LogAttribute) obj).getName(), ((LogAttribute) obj).getValue());
+          } else {
+            xArgs.add(obj);
+          }
+        }
+        if (marker != null) {
+          attribs.put(marker.getName(), marker);
         }
       }
     }
-    return new LogRecord(origin, traceId,  this.getLevel().getAvroLevel(),
+    return new LogRecord(origin, traceId, this.getLevel().getAvroLevel(),
             Instant.ofEpochMilli(this.getTimeStamp()),
-    this.getLoggerName(), this.getThreadName(), this.getMessage(),
-    extraThrowable == null ? null : convert(extraThrowable), xArgs);
+            this.getLoggerName(), this.getThreadName(), this.getMessage(),
+            extraThrowable == null ? null : convert(extraThrowable), xArgs,
+            attribs == null ? Collections.EMPTY_MAP : attribs);
   }
 
 }
