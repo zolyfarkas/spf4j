@@ -47,9 +47,10 @@ public final class Server {
 
 
   public Response execute(final Request request) throws Exception {
-    if (breakException != null) {
+    Exception be = breakException;
+    if (be != null) {
       LOG.debug("broken, throwing exception");
-      throw breakException;
+      throw be;
     }
     long deadlineMSEpoch = request.getDeadlineMSEpoch();
     long timeout = deadlineMSEpoch - System.currentTimeMillis();
