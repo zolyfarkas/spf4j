@@ -38,6 +38,7 @@ public final class Server {
   }
 
   public void breakException(final Exception ex) {
+    LOG.info("Setting break exception", ex);
     breakException = ex;
   }
 
