@@ -137,6 +137,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   private volatile boolean isHealthy;
 
+  private boolean isClosed;
+
   private Error heartBeatFailure;
 
   private final int acquirePollMillis;
@@ -326,6 +328,12 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
     }
   }
 
+  private void checkClosed() {
+    if (isClosed) {
+      throw new IllegalStateException("Semaphore " + this + " is closed");
+    }
+  }
+
   private void createLockRowIfNotPresent(final boolean strictReservations, final int nrPermits)
           throws SQLException, InterruptedException {
     jdbc.transactOnConnection((final Connection conn, final long deadlineNanos) -> {
@@ -391,6 +399,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
       boolean acquired = false;
       final MutableHolder<Boolean> beat = MutableHolder.of(Boolean.FALSE);
       do {
+        checkClosed();
         validate();
         try {
           acquired = jdbc.transactOnConnection(new HandlerNano<Connection, Boolean, SQLException>() {
@@ -495,6 +504,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
   public void release(final int nrReservations) {
     synchronized (syncObj) {
       try {
+        checkClosed();
         jdbc.transactOnConnectionNonInterrupt(new HandlerNano<Connection, Void, SQLException>() {
           @Override
           public Void handle(final Connection conn, final long deadlineNanos) throws SQLException {
@@ -527,6 +537,7 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   public void releaseAll() {
     synchronized (syncObj) {
+      checkClosed();
       release(ownedReservations);
     }
   }
@@ -772,10 +783,14 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
   @Override
   public void close() {
-    releaseAll();
-    unregisterJmx();
-    this.heartBeat.removeLifecycleHook(failureHook);
-    isHealthy = false;
+    synchronized (syncObj) {
+      if (!isClosed) {
+        releaseAll();
+        unregisterJmx();
+        this.heartBeat.removeLifecycleHook(failureHook);
+        isClosed = true;
+      }
+    }
   }
 
   @Override
