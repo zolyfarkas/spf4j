@@ -42,4 +42,6 @@ public interface CsvWriter {
 
   void writeEol() throws IOException;
 
+  void flush() throws IOException;
+
 }

@@ -322,6 +322,11 @@ public final class CharSeparatedValues {
         writer.append('\n');
         isStartLine = true;
       }
+
+      @Override
+      public void flush() throws IOException {
+        writer.flush();
+      }
     };
   }
 
