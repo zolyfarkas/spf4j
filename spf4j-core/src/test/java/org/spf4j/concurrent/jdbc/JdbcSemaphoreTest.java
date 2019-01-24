@@ -232,7 +232,7 @@ public class JdbcSemaphoreTest {
     semaphore.reducePermits(1);
     semaphore.release(2);
     Assert.assertFalse(semaphore.tryAcquire(2, 10, TimeUnit.SECONDS));
-
+    semaphore.close();
   }
 
   @Test
