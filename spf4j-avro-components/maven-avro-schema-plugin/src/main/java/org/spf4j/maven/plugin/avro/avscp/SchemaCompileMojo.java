@@ -430,9 +430,10 @@ public final class SchemaCompileMojo
   }
 
   public void compileIdl(final Path pSources) throws MojoExecutionException {
-    for (String file : getFiles(pSources.toFile(), "**/*.avdl")) {
+    File pSourcesFile = pSources.toFile();
+    for (String file : getFiles(pSourcesFile, "**/*.avdl")) {
       try {
-        doCompileIDL(pSources.toFile(), file);
+        doCompileIDL(pSourcesFile, file);
       } catch (IOException ex) {
         throw new MojoExecutionException("cannot compile " + file, ex);
       }
