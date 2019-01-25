@@ -59,17 +59,18 @@ public final class PerformanceMonitorAspectTest {
    */
   @Test
   public void testPerformanceMonitoredMethod() throws Exception {
+    TestLoggers ls = TestLoggers.sys();
     // aspectj logs errors on MaxosX
-    LogCollection<List<TestLogRecord>> collection = TestLoggers.sys().collect("org.aspectj.weaver.bcel",
+    LogCollection<List<TestLogRecord>> collection = ls.collect("org.aspectj.weaver.bcel",
             org.spf4j.log.Level.ERROR, true, Collectors.toList());
     Registry.export(this);
-    LogAssert expect = TestLoggers.sys().expect("org.spf4j.perf.aspects.PerformanceMonitorAspect", Level.WARN,
+    LogAssert expect = ls.expect("org.spf4j.perf.aspects.PerformanceMonitorAspect", Level.WARN,
             LogMatchers.hasFormat("Execution time  {} ms for {} exceeds warning threshold of {} ms, arguments {}"));
     for (int i = 0; i < 10; i++) {
       somethingTomeasure(i, "Test");
     }
     expect.assertObservation();
-    if (OperatingSystem.isMacOsx() && org.spf4j.base.Runtime.JAVA_PLATFORM == org.spf4j.base.Runtime.Version.V1_8) {
+    if (org.spf4j.base.Runtime.JAVA_PLATFORM == org.spf4j.base.Runtime.Version.V1_8 && OperatingSystem.isMacOsx()) {
       Assert.assertEquals(4, collection.get().size());
     }
   }
