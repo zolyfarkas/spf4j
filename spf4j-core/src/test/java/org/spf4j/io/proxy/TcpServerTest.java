@@ -58,6 +58,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -70,6 +71,7 @@ import org.spf4j.io.tcp.ClientHandler;
 import org.spf4j.io.tcp.DeadlineAction;
 import org.spf4j.io.tcp.proxy.Sniffer;
 import org.spf4j.io.tcp.proxy.SnifferFactory;
+import org.spf4j.os.OperatingSystem;
 
 /**
  * https://unix.stackexchange.com/questions/17218/
@@ -194,6 +196,7 @@ public class TcpServerTest {
 
   @Test(timeout = 120000)
   public void testRestart() throws IOException, InterruptedException, TimeoutException {
+    Assume.assumeTrue(OperatingSystem.isMacOsx());
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(HostAndPort.fromParts("bla", 80), null, null, 10000, 5000),
