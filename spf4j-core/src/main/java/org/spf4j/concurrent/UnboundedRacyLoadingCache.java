@@ -52,148 +52,149 @@ import org.spf4j.base.UncheckedExecutionException;
 @ParametersAreNonnullByDefault
 public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V> {
 
-    private final ConcurrentMap<K, V> map;
+  private final ConcurrentMap<K, V> map;
 
-    private final CacheLoader<K, V> loader;
+  private final CacheLoader<K, V> loader;
 
-    public UnboundedRacyLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
-        this(initialSize, 8, loader);
+  public UnboundedRacyLoadingCache(final int initialSize, final CacheLoader<K, V> loader) {
+    this(initialSize, 8, loader);
+  }
+
+  public UnboundedRacyLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
+    this.map = new ConcurrentHashMap<>(
+            initialSize, 0.75f, concurrency);
+    this.loader = loader;
+  }
+
+  @Override
+  public V get(final K key) throws ExecutionException {
+    V val = map.get(key);
+    if (val == null) {
+      try {
+        val = loader.load(key);
+      } catch (Exception ex) {
+        throw new ExecutionException(ex);
+      }
+      map.put(key, val);
     }
+    return val;
+  }
 
-    public UnboundedRacyLoadingCache(final int initialSize, final int concurrency, final CacheLoader<K, V> loader) {
-        this.map = new ConcurrentHashMap<>(
-                initialSize, 0.75f, concurrency);
-        this.loader = loader;
+  @Override
+  public V getUnchecked(final K key) {
+    try {
+      return get(key);
+    } catch (ExecutionException ex) {
+      throw new UncheckedExecutionException(ex);
     }
+  }
 
-    @Override
-    public V get(final K key) throws ExecutionException {
-        V val = map.get(key);
-        if (val == null) {
-            try {
-                val = loader.load(key);
-            } catch (Exception ex) {
-               throw new ExecutionException(ex);
-            }
-            map.put(key, val);
-        }
-        return val;
+  @Override
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
+  public ImmutableMap<K, V> getAll(final Iterable<? extends K> keys) throws ExecutionException {
+    ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
+    for (K key : keys) {
+      builder.put(key, get(key));
     }
+    return builder.build();
+  }
 
-    @Override
-    public V getUnchecked(final K key) {
-        try {
-            return get(key);
-        } catch (ExecutionException ex) {
-            throw new UncheckedExecutionException(ex);
-        }
-    }
+  @Override
+  @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
+  public V apply(final K key) {
+    return getUnchecked(key);
+  }
 
-    @Override
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
-    public ImmutableMap<K, V> getAll(final Iterable<? extends K> keys) throws ExecutionException {
-        ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
-        for (K key : keys) {
-            builder.put(key, get(key));
-        }
-        return builder.build();
-    }
+  @Override
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
+  public void refresh(final K key) {
+    getUnchecked(key);
+  }
 
-    @Override
-    public V apply(final K key) {
-      return getUnchecked(key);
-    }
+  @Override
+  public ConcurrentMap<K, V> asMap() {
+    throw new UnsupportedOperationException();
+  }
 
-    @Override
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
-    public void refresh(final K key) {
-        getUnchecked(key);
-    }
+  @Override
+  public V getIfPresent(final Object key) {
+    return map.get(key);
+  }
 
-    @Override
-    public ConcurrentMap<K, V> asMap() {
-        throw new UnsupportedOperationException();
+  @Override
+  public V get(final K key, final Callable<? extends V> valueLoader) throws ExecutionException {
+    V val = map.get(key);
+    if (val == null) {
+      try {
+        val = valueLoader.call();
+      } catch (Exception ex) {
+        throw new ExecutionException(ex);
+      }
+      map.put(key, val);
     }
+    return val;
+  }
 
-    @Override
-    public V getIfPresent(final Object key) {
-        return map.get(key);
+  @Override
+  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
+  public ImmutableMap<K, V> getAllPresent(final Iterable<?> keys) {
+    ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
+    for (K key : (Iterable<K>) keys) {
+      V val = getIfPresent(key);
+      if (val != null) {
+        builder.put(key, val);
+      }
     }
+    return builder.build();
+  }
 
-    @Override
-    public V get(final K key, final Callable<? extends V> valueLoader) throws ExecutionException {
-        V val = map.get(key);
-        if (val == null) {
-            try {
-                val = valueLoader.call();
-            } catch (Exception ex) {
-                throw new ExecutionException(ex);
-            }
-            map.put(key, val);
-        }
-        return val;
-    }
+  @Override
+  public void put(final K key, final V value) {
+    map.put(key, value);
+  }
 
-    @Override
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
-    public ImmutableMap<K, V> getAllPresent(final Iterable<?> keys) {
-        ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
-        for (K key : (Iterable<K>) keys) {
-            V val = getIfPresent(key);
-            if (val != null) {
-                builder.put(key, val);
-            }
-        }
-        return builder.build();
+  @Override
+  public void putAll(final Map<? extends K, ? extends V> m) {
+    for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+      put(entry.getKey(), entry.getValue());
     }
+  }
 
-    @Override
-    public void put(final K key, final V value) {
-        map.put(key, value);
-    }
+  @Override
+  public void invalidate(final Object key) {
+    map.remove(key);
+  }
 
-    @Override
-    public void putAll(final Map<? extends K, ? extends V> m) {
-        for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
-            put(entry.getKey(), entry.getValue());
-        }
+  @Override
+  public void invalidateAll(final Iterable<?> keys) {
+    for (K key : (Iterable<K>) keys) {
+      invalidate(key);
     }
+  }
 
-    @Override
-    public void invalidate(final Object key) {
-        map.remove(key);
-    }
+  @Override
+  public void invalidateAll() {
+    map.clear();
+  }
 
-    @Override
-    public void invalidateAll(final Iterable<?> keys) {
-        for (K key : (Iterable<K>) keys) {
-            invalidate(key);
-        }
-    }
+  @Override
+  public long size() {
+    return map.size();
+  }
 
-    @Override
-    public void invalidateAll() {
-        map.clear();
-    }
+  @Override
+  public CacheStats stats() {
+    throw new UnsupportedOperationException("Not supported");
+  }
 
-    @Override
-    public long size() {
-        return map.size();
-    }
+  @Override
+  public void cleanUp() {
+    map.clear();
+  }
 
-    @Override
-    public CacheStats stats() {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public void cleanUp() {
-        map.clear();
-    }
-
-    @Override
-    public String toString() {
-        return "UnboundedRacyLoadingCache{" + "map=" + map + ", loader=" + loader + '}';
-    }
+  @Override
+  public String toString() {
+    return "UnboundedRacyLoadingCache{" + "map=" + map + ", loader=" + loader + '}';
+  }
 
 }

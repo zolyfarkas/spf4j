@@ -100,6 +100,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
   }
 
   @Override
+  @SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
   public V apply(final K key) {
     return getUnchecked(key);
   }
