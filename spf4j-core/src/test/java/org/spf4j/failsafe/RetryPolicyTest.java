@@ -315,7 +315,7 @@ public class RetryPolicyTest {
                     "Result java.net.SocketException, retrying ServerCall.*"))) {
       try {
         rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
-                1000, TimeUnit.MILLISECONDS).get(1000, TimeUnit.MILLISECONDS);
+                1000, TimeUnit.MILLISECONDS).get(1200, TimeUnit.MILLISECONDS);
         Assert.fail();
       } catch (ExecutionException | TimeoutException ex) {
         LOG.debug("Expected exception", ex);
