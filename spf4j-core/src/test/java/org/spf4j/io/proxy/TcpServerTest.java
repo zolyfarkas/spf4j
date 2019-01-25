@@ -192,12 +192,12 @@ public class TcpServerTest {
     }
   }
 
-  @Test(timeout = 100000)
+  @Test(timeout = 120000)
   public void testRestart() throws IOException, InterruptedException, TimeoutException {
     ForkJoinPool pool = new ForkJoinPool(1024);
     try (TcpServer server = new TcpServer(pool,
             new ProxyClientHandler(HostAndPort.fromParts("bla", 80), null, null, 10000, 5000),
-            1979, 10)) {
+            1979, 10, 120000)) {
       server.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       server.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
       server.startAsync().awaitRunning(120, TimeUnit.SECONDS);
