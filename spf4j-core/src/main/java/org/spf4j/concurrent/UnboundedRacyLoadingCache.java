@@ -108,7 +108,12 @@ public final class UnboundedRacyLoadingCache<K, V> implements LoadingCache<K, V>
   @Override
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public void refresh(final K key) {
-    getUnchecked(key);
+    try {
+      V val = loader.load(key);
+      map.put(key, val);
+    } catch (Exception ex) {
+      throw new UncheckedExecutionException(ex);
+    }
   }
 
   @Override

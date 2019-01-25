@@ -140,7 +140,13 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
 
   @Override
   public void refresh(final K key) {
-    getUnchecked(key);
+    Callable<? extends V> newHolder = Callables.memorized(new Callable<V>() {
+      @Override
+      public V call() throws Exception {
+        return loader.load(key);
+      }
+    });
+    map.put(key, newHolder);
   }
 
   @Override

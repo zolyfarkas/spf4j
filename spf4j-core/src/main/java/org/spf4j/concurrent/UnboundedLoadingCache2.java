@@ -107,7 +107,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
 
   @Override
   public void refresh(final K key) {
-    getUnchecked(key);
+     map.put(key, computer.apply(key));
   }
 
   @Override
