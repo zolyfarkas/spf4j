@@ -19,11 +19,13 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
+@ThreadSafe
 final class CountLimitedPartialRetryPredicate<T, V, C extends Callable<? extends T>>
         implements BiFunction<V, C, RetryDecision<T, C>> {
 
@@ -37,7 +39,7 @@ final class CountLimitedPartialRetryPredicate<T, V, C extends Callable<? extends
 
   @Override
   @Nullable
-  public RetryDecision<T, C> apply(final V value, final C what) {
+  public synchronized RetryDecision<T, C> apply(final V value, final C what) {
     RetryDecision<T, C> decision = wrapped.apply(value, what);
     if (decision == null) {
       return null;
@@ -52,7 +54,7 @@ final class CountLimitedPartialRetryPredicate<T, V, C extends Callable<? extends
   }
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     return "CountLimitedPartialRetryPredicate{wrapped=" + wrapped
             + ", count=" + count + '}';
   }

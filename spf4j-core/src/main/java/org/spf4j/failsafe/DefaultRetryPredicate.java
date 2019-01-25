@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive...
+@ThreadSafe
 final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   private static final PartialResultRetryPredicate[] NO_RP = new PartialResultRetryPredicate[0];

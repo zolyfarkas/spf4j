@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.DefaultContextAwareExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.failsafe.concurrent.DefaultFailSafeExecutor;
+import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 import org.spf4j.failsafe.concurrent.FailSafeExecutorImpl;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.LogAssert;
@@ -52,7 +53,7 @@ public class RetryPolicyTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(RetryPolicyTest.class);
 
-  private static FailSafeExecutorImpl es;
+  private static FailSafeExecutor es;
 
   @BeforeClass
   public static void init() {
