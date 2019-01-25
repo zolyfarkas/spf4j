@@ -177,7 +177,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
 
      @Override
      public String toString() {
-       return "RETRY(" + retryNanos + ',' + callable + ')';
+       return "RETRY(" + retryNanos + "ns, " + callable + ')';
      }
 
 
