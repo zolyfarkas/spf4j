@@ -1,5 +1,6 @@
 package org.spf4j.maven.plugin.avro.avscp;
 
+import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -277,11 +278,16 @@ public final class SchemaCompileMojo
   private void publishSchemasAndAttachMvnIdToProtocol(final Protocol protocol,
           final boolean addMvnId) throws IOException {
     Collection<Schema> types = protocol.getTypes();
+    Set<String> typeNames = Sets.newHashSetWithExpectedSize(types.size());
     for (Schema schema : types) {
+      String fullName = schema.getFullName();
+      if (!typeNames.add(fullName)) {
+        continue;
+      }
       if (addMvnId) {
         attachMavenId(schema);
       }
-      String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
+      String targetName = fullName.replace('.', File.separatorChar) + ".avsc";
       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
       Path parent = destinationFile.getParent();
       if (parent != null) {
