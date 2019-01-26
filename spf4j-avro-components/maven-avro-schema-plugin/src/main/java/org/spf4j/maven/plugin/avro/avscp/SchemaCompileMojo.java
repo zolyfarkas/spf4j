@@ -246,7 +246,7 @@ public final class SchemaCompileMojo
       }
       Files.write(destination,
               schema.toString().getBytes(StandardCharsets.UTF_8),
-              StandardOpenOption.CREATE);
+              StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
       SpecificCompiler compiler = new SpecificCompiler(schema);
       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setTemplateDir(templateDirectory);
