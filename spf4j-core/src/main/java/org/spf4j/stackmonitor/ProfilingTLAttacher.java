@@ -32,7 +32,8 @@
 package org.spf4j.stackmonitor;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContext;
@@ -45,10 +46,15 @@ import org.spf4j.base.ThreadLocalContextAttacher;
 @ParametersAreNonnullByDefault
 public final class ProfilingTLAttacher implements ThreadLocalContextAttacher {
 
-  private final ConcurrentNavigableMap<Thread, ExecutionContext> currentContexts;
+  private final ConcurrentMap<Thread, ExecutionContext> currentContexts;
 
   public ProfilingTLAttacher() {
-    this.currentContexts = new ConcurrentSkipListMap<>(ProfilingTLAttacher::compare);
+    this.currentContexts =
+            Boolean.getBoolean("spf4j.ctxtProfiler.regDs.skipList") ?
+            new ConcurrentSkipListMap<>(ProfilingTLAttacher::compare)
+            : new ConcurrentHashMap<>(Integer.getInteger("spf4j.ctxtProfiler.regDs.concMap.initialSize", 64),
+                    Float.parseFloat(System.getProperty("spf4j.ctxtProfiler.regDs.concMap.loadFactor", "0.8")),
+                    Integer.getInteger("spf4j.ctxtProfiler.regDs.concMap.concurrencyLevel", 32));
   }
 
   private static int compare(final Thread o1, final Thread o2) {
