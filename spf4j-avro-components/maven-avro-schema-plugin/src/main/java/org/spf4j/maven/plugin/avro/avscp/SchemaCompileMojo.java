@@ -288,7 +288,7 @@ public final class SchemaCompileMojo
         Files.createDirectories(parent);
       }
       Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
-              StandardOpenOption.CREATE);
+              StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
   }
 
