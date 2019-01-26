@@ -143,7 +143,7 @@ public final class Validators {
     public Map<String, String> getValidatorConfigs() {
       if (configs == null) {
         configs =  mojo.getValidatorConfigs().entrySet().stream()
-              .filter((entry) -> entry.getKey().startsWith(name))
+              .filter((entry) -> entry.getKey().startsWith(name) && entry.getValue() != null)
               .map((entry) -> Pair.of(entry.getKey().substring(l), entry.getValue()))
               .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
       }
