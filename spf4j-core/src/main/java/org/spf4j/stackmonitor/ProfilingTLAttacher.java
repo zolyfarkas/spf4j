@@ -50,8 +50,8 @@ public final class ProfilingTLAttacher implements ThreadLocalContextAttacher {
 
   public ProfilingTLAttacher() {
     this.currentContexts =
-            Boolean.getBoolean("spf4j.ctxtProfiler.regDs.skipList") ?
-            new ConcurrentSkipListMap<>(ProfilingTLAttacher::compare)
+            Boolean.getBoolean("spf4j.ctxtProfiler.regDs.skipList")
+            ? new ConcurrentSkipListMap<>(ProfilingTLAttacher::compare)
             : new ConcurrentHashMap<>(Integer.getInteger("spf4j.ctxtProfiler.regDs.concMap.initialSize", 64),
                     Float.parseFloat(System.getProperty("spf4j.ctxtProfiler.regDs.concMap.loadFactor", "0.8")),
                     Integer.getInteger("spf4j.ctxtProfiler.regDs.concMap.concurrencyLevel", 32));
