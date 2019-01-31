@@ -307,7 +307,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
       String text = aDiff.text;
       switch (aDiff.operation) {
         case INSERT:
-          result.append("+<<<").append(text).append(">>>>");
+          result.append("+<<<").append(text).append(">>>");
           break;
         case DELETE:
           result.append("-<<<").append(text).append(">>>");
