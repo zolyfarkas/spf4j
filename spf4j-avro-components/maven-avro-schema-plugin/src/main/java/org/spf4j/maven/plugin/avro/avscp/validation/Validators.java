@@ -87,6 +87,9 @@ public final class Validators {
         String name = v.getName();
         ConfiguredValidatorMojo cMojo = new ConfiguredValidatorMojo(mojo, name + '.');
         Map<String, String> validatorConfigs = cMojo.getValidatorConfigs();
+        if (Boolean.parseBoolean(validatorConfigs.getOrDefault("skip", "false"))) {
+          continue;
+        }
         if (obj instanceof Schema) {
           if (skipValidator((Schema) obj, name)) {
             continue;
