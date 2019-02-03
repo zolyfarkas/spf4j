@@ -463,10 +463,14 @@ public final class SchemaCompileMojo
           Files.createDirectories(parent);
         }
         File idlFile = new File(sourceDirectory, file);
-        idlFile = addMvnIdsToIdl(idlFile, projPathLoader);
+        try {
+          idlFile = addMvnIdsToIdl(idlFile, projPathLoader);
+        } catch (ParseException | IOException | RuntimeException ex) {
+          throw new MojoExecutionException("cannot add mvnId to  IDL " + idlFile + ", " + ex.getMessage(), ex);
+        }
         Files.copy(idlFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
       }
-    } catch (IOException | DependencyResolutionRequiredException | ParseException ex) {
+    } catch (IOException | DependencyResolutionRequiredException ex) {
       throw new MojoExecutionException("cannot add mvnId to  IDL " + this, ex);
     } finally {
       currentThread.setContextClassLoader(contextClassLoader);
