@@ -251,12 +251,18 @@ Callable<?> monitoredCallable =
 ### 5.2. When to profile your code?
 
  I recommend to deploy your code with profiling turned on as much as you can.
- In my case I have profiling data collection turned on in test/qa environments all the time. (with 100ms sampling interval). If you can afford to do it in PROD do it.
+ In my case I have profiling data collection turned on in test/qa environments all the time. (with 20ms sampling interval).
+ If you can afford to do it in PROD, do it.
+
+ If you are running a REST service, you can use a different approach where you ca
+ correlate your execution contexts with the profile data. there is a complete example [at](https://github.com/zolyfarkas/jaxrs-spf4j-demo).
+
  Another good time to profile your code is during your JMH (http://openjdk.java.net/projects/code-tools/jmh/) benchmarks.
  A good practice is to have a benchmark module in your project, that will benchmark key functionality of your application.
  These benchmarks will be run as part of your build process, and you can monitor the performance of your project with a
  Jenkins JMH [plugin](https://github.com/blackboard/jmh-jenkins)
- With spf4j-junit you can also easily profile your unit tests with Spf4jRunListener.
+
+ Your Unit tests are not imune to profiling either. With spf4j-junit you can also easily profile your unit tests with Spf4jRunListener.
   
 
 ### 5.3. How to profile your code?
