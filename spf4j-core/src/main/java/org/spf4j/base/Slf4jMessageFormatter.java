@@ -262,7 +262,7 @@ public final class Slf4jMessageFormatter {
   public static void safeObjectAppend(final ErrorHandler exHandler, final Appendable sbuf, final Object obj,
           final ObjectAppenderSupplier appSupplier) throws IOException {
     try {
-      appSupplier.get((Class) obj.getClass()).append(obj, sbuf);
+      appSupplier.get((Class) obj.getClass()).append(obj, sbuf, appSupplier);
     } catch (IOException | RuntimeException | StackOverflowError t) {
       exHandler.accept(obj, sbuf, t);
     }

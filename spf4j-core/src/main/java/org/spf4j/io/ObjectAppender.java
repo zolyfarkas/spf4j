@@ -63,6 +63,13 @@ public interface ObjectAppender<T> extends BiConsumer<T, Appendable> {
   void append(T object, Appendable appendTo) throws IOException;
 
 
+  /**
+   * Method to overwrite for implementing apenders for container objects.
+   */
+  default void append(T object, Appendable appendTo, ObjectAppenderSupplier appenderSupplier) throws IOException {
+    append(object, appendTo);
+  }
+
   default void accept(final T object, final Appendable appendTo) {
     try {
       append(object, appendTo);

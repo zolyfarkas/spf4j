@@ -179,6 +179,12 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     }
 
     @Override
+    public void append(final T object, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+            throws IOException {
+      appender.append(object, appendTo, appenderSupplier);
+    }
+
+    @Override
     public MimeType getAppendedType() {
       return contentType;
     }
