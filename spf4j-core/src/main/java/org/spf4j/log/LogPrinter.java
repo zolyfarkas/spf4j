@@ -25,6 +25,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -130,6 +131,19 @@ public final class LogPrinter {
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
       os.write(buff.getBytes(), 0, buff.size());
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    } finally {
+      tlBuffer.recycle(buff);
+    }
+  }
+
+  public byte[] printToBytes(final Slf4jLogRecord record) {
+    Buffer buff = tlBuffer.get();
+    try {
+      buff.clear();
+      print(record, buff.getWriter(), buff.getWriterEscaper(), "");
+      return Arrays.copyOf(buff.getBytes(), buff.size());
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     } finally {
