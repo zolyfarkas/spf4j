@@ -107,11 +107,13 @@ public final class LogPrinter {
   }
 
 
-  public void print(final Slf4jLogRecord record, final OutputStream os, final OutputStream errStream) {
+  public OutputStream print(final Slf4jLogRecord record, final OutputStream os, final OutputStream errStream) {
     if (record.getLevel() == Level.ERROR) {
       print(record, errStream);
+      return errStream;
     } else {
       print(record, os);
+      return os;
     }
   }
 
