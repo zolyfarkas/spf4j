@@ -26,6 +26,8 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.activation.MimeType;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -48,6 +50,9 @@ import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
 @ParametersAreNonnullByDefault
 @ThreadSafe
 public final class LogPrinter {
+
+  private static final ConcurrentMap<Charset, ThreadLocalRecyclingSupplier<Buffer>>
+          BUFFERS = new ConcurrentHashMap<>();
 
   private final ThreadLocalRecyclingSupplier<Buffer> tlBuffer;
 
@@ -103,7 +108,8 @@ public final class LogPrinter {
   public LogPrinter(final DateTimeFormatter fmt, final Charset charset) {
     this.fmt = fmt;
     this.toStringer = new ConfigurableAppenderSupplier();
-    tlBuffer = new ThreadLocalRecyclingSupplier<Buffer>(() -> new Buffer(charset));
+    tlBuffer =  BUFFERS.computeIfAbsent(charset,
+            (cs) -> new ThreadLocalRecyclingSupplier<Buffer>(() -> new Buffer(cs)));
   }
 
 
