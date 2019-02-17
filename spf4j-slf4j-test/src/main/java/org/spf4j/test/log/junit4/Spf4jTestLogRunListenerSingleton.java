@@ -132,15 +132,15 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     Iterator<TestLogRecord> iterator = logs.iterator();
     if (iterator.hasNext()) {
       synchronized (System.out) { // do not interleave other stuff.
-        LogPrinter.printTo(System.out, new TestLogRecordImpl("test", Level.INFO,
+        LogPrinter.PRINTER.printTo(System.out, new TestLogRecordImpl("test", Level.INFO,
                 "Dumping last {} logs collected for debug for {}", maxDebugLogsCollected, description), "");
         TestLogRecord record = iterator.next();
-        LogPrinter.printTo(System.out, record, "");
+        LogPrinter.PRINTER.printTo(System.out, record, "");
         while (iterator.hasNext()) {
           record = iterator.next();
-          LogPrinter.printTo(System.out, record, "");
+          LogPrinter.PRINTER.printTo(System.out, record, "");
         }
-        LogPrinter.printTo(System.out, new TestLogRecordImpl("test", Level.INFO,
+        LogPrinter.PRINTER.printTo(System.out, new TestLogRecordImpl("test", Level.INFO,
                 "End debug log dump for {}", description), "");
       }
     }

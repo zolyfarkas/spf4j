@@ -246,7 +246,7 @@ public class TestLoggerFactoryTest {
     LogAssert expect = TestLoggers.sys().expect("", Level.INFO,
             Matchers.allOf(LogMatchers.hasFormat("Json Payload"),
                     LogMatchers.hasMatchingExtraArguments(Matchers.arrayContaining(this))));
-    LogPrinter.getAppenderSupplier().register(TestLoggerFactoryTest.class,
+    LogPrinter.PRINTER.getAppenderSupplier().register(TestLoggerFactoryTest.class,
             MimeTypes.APPLICATION_JSON, (o, a) -> {
               a.append("{\"a\" : \"b\"}");
             });

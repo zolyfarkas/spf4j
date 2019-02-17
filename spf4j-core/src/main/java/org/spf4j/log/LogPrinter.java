@@ -15,7 +15,6 @@
  */
 package org.spf4j.log;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,6 +29,7 @@ import java.util.Iterator;
 import javax.activation.MimeType;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Marker;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Slf4jMessageFormatter;
@@ -41,19 +41,17 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
 import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
 
 /**
- * A log handler that will print all logs that are not marked as printed above a log level.
- * It passes through all logs to downstream handlers.
- * Marks Log messages a PRINTED.
+ * A log printer. The format is not configurable, and this is intentional.
+ * create One instance of this printer and re-use it.
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY") // this is with LogRecord...
+@ThreadSafe
 public final class LogPrinter {
 
-  private static final ThreadLocalRecyclingSupplier<Buffer> TL_BUFFER =
-          new ThreadLocalRecyclingSupplier<Buffer>(() -> new Buffer());
+  private final ThreadLocalRecyclingSupplier<Buffer> tlBuffer;
 
-  private static final ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
+  private final ConfigurableAppenderSupplier toStringer;
 
   private final DateTimeFormatter fmt;
 
@@ -65,9 +63,9 @@ public final class LogPrinter {
 
     private final EscapeJsonStringAppendableWrapper writerEscaper;
 
-    Buffer() {
+    Buffer(final Charset charset) {
       bab = new ByteArrayBuilder(512, ArraySuppliers.Bytes.JAVA_NEW);
-      writer = new BufferedWriter(new OutputStreamWriter(bab, Charset.defaultCharset()));
+      writer = new BufferedWriter(new OutputStreamWriter(bab, charset));
       writerEscaper = new EscapeJsonStringAppendableWrapper(writer);
     }
 
@@ -94,16 +92,18 @@ public final class LogPrinter {
 
   }
 
-  public static ConfigurableAppenderSupplier getAppenderSupplier() {
-    return TO_STRINGER;
+  public ConfigurableAppenderSupplier getAppenderSupplier() {
+    return toStringer;
   }
 
   public LogPrinter() {
-    this(DateTimeFormatter.ISO_INSTANT);
+    this(DateTimeFormatter.ISO_INSTANT, Charset.defaultCharset());
   }
 
-  public LogPrinter(final DateTimeFormatter fmt) {
+  public LogPrinter(final DateTimeFormatter fmt, final Charset charset) {
     this.fmt = fmt;
+    this.toStringer = new ConfigurableAppenderSupplier();
+    tlBuffer = new ThreadLocalRecyclingSupplier<Buffer>(() -> new Buffer(charset));
   }
 
 
@@ -119,7 +119,7 @@ public final class LogPrinter {
 
 
   public void print(final Slf4jLogRecord record, final OutputStream os) {
-    Buffer buff = TL_BUFFER.get();
+    Buffer buff = tlBuffer.get();
     try {
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
@@ -127,7 +127,7 @@ public final class LogPrinter {
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     } finally {
-      TL_BUFFER.recycle(buff);
+      tlBuffer.recycle(buff);
     }
   }
 
@@ -140,7 +140,7 @@ public final class LogPrinter {
   }
 
   public void printTo(final PrintStream stream, final Slf4jLogRecord record, final String annotate) {
-    Buffer buff = TL_BUFFER.get();
+    Buffer buff = tlBuffer.get();
     buff.clear();
     try {
       print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);
@@ -196,7 +196,7 @@ public final class LogPrinter {
     wr.append("\" \"");
     Object[] arguments = record.getArguments();
     int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getMessageFormat(),
-            TO_STRINGER, arguments);
+            toStringer, arguments);
     wr.append("\" ");
     Throwable t = null;
     if (i < arguments.length) {
@@ -231,12 +231,12 @@ public final class LogPrinter {
     }
   }
 
-  private static void printObject(@Nullable final Object obj,
+  private void printObject(@Nullable final Object obj,
           final Appendable wr, final EscapeJsonStringAppendableWrapper wrapper) throws IOException {
     if (obj == null) {
       wr.append("null");
     } else {
-      ObjectAppender ostrApp = TO_STRINGER.get(obj.getClass());
+      ObjectAppender ostrApp = toStringer.get(obj.getClass());
       MimeType type = ostrApp.getAppendedType();
       if ("json".equalsIgnoreCase(type.getSubType())) {
         ostrApp.append(obj, wr);
@@ -259,7 +259,7 @@ public final class LogPrinter {
 
   @Override
   public String toString() {
-    return "LogPrinter{" + "fmt=" + fmt + '}';
+    return "LogPrinter{" + "toStringer=" + toStringer + ", fmt=" + fmt + '}';
   }
 
 }

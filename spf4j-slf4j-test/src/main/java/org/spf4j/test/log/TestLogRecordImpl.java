@@ -57,7 +57,7 @@ public final class TestLogRecordImpl extends Slf4jLogRecordImpl implements TestL
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder(128);
-    LogPrinter.printTo(result, this, "");
+    LogPrinter.PRINTER.printTo(result, this, "");
     return result.toString();
   }
 
