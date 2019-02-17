@@ -65,19 +65,17 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     this(logger, level, null, format, arguments);
   }
 
-  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
   public Slf4jLogRecordImpl(final String logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
    this(false, logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
-  @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
   public Slf4jLogRecordImpl(final boolean  isLogged, final String logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
    this(isLogged, logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
-  @SuppressFBWarnings({"LO_SUSPECT_LOG_PARAMETER", "EI_EXPOSE_REP2"})
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public Slf4jLogRecordImpl(final boolean isLogged, final String logger, final Level level,
           @Nullable final Marker marker,  final long timestampMillis,
           final String format, final Object... arguments) {
