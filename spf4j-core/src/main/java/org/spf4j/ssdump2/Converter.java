@@ -33,7 +33,6 @@ package org.spf4j.ssdump2;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import java.io.BufferedOutputStream;
@@ -43,8 +42,6 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -56,9 +53,8 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
-import org.spf4j.base.Handler;
 import org.spf4j.base.Methods;
-import org.spf4j.base.StackSamples;
+import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
@@ -74,62 +70,6 @@ public final class Converter {
   private Converter() {
   }
 
-  private static final class TraversalNode {
-
-    private final Method method;
-    private final StackSamples node;
-    private final int parentId;
-
-    TraversalNode(final Method method, final StackSamples node, final int parentId) {
-      this.method = method;
-      this.node = node;
-      this.parentId = parentId;
-    }
-
-    public Method getMethod() {
-      return method;
-    }
-
-    public StackSamples getNode() {
-      return node;
-    }
-
-    public int getParentId() {
-      return parentId;
-    }
-
-    @Override
-    public String toString() {
-      return "TraversalNode{" + "method=" + method + ", node=" + node + ", parentId=" + parentId + '}';
-    }
-
-  }
-
-  public static <E extends Exception> int convert(final Method method, final StackSamples node,
-          final int parentId, final int id,
-          final Handler<StackSampleElement, E> handler) throws E {
-
-    final Deque<TraversalNode> dq = new ArrayDeque<>();
-    dq.addLast(new TraversalNode(method, node, parentId));
-    int nid = id;
-    while (!dq.isEmpty()) {
-      TraversalNode first = dq.removeFirst();
-      StackSamples n = first.getNode();
-      StackSampleElement sample = new StackSampleElement(nid, first.getParentId(),
-              n.getSampleCount(), first.getMethod());
-      final TMap<Method, ? extends StackSamples> subNodes = n.getSubNodes();
-      final int pid = nid;
-      if (subNodes != null) {
-        subNodes.forEachEntry((a, b) -> {
-          dq.addLast(new TraversalNode(a, b, pid));
-          return true;
-        });
-      }
-      handler.handle(sample, parentId);
-      nid++;
-    }
-    return nid;
-  }
 
   public static SampleNode convert(final Iterator<StackSampleElement> samples) {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
@@ -156,7 +96,7 @@ public final class Converter {
       final SpecificDatumWriter<StackSampleElement> writer =
               new SpecificDatumWriter<>(StackSampleElement.getClassSchema());
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
-      Converter.convert(Methods.ROOT, collected,
+      Converters.convert(Methods.ROOT, collected,
               -1, 0, (final StackSampleElement object, final long deadline) -> {
                 writer.write(object, encoder);
               });
@@ -223,7 +163,7 @@ public final class Converter {
         encoder.startItem();
         encoder.writeString(entry.getKey());
         encoder.writeArrayStart();
-        Converter.convert(Methods.ROOT, entry.getValue(),
+        Converters.convert(Methods.ROOT, entry.getValue(),
                 -1, 0, (final StackSampleElement object, final long deadline) -> {
                   encoder.setItemCount(1L);
                   encoder.startItem();

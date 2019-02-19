@@ -160,9 +160,9 @@ public interface Slf4jLogRecord {
     }
     return new LogRecord(origin, traceId, this.getLevel().getAvroLevel(),
             Instant.ofEpochMilli(this.getTimeStamp()),
-            this.getLoggerName(), this.getThreadName(), this.getMessage(),
-            extraThrowable == null ? null : convert(extraThrowable), xArgs,
-            attribs == null ? Collections.EMPTY_MAP : attribs);
+            this.getLoggerName(), this.getThreadName(), this.getMessage(), xArgs,
+            attribs == null ? Collections.EMPTY_MAP : attribs,
+            extraThrowable == null ? null : convert(extraThrowable));
   }
 
 }

@@ -37,9 +37,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.management.ManagementFactory;
 import java.util.Map;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.Method;
 
 /**
@@ -52,7 +52,7 @@ public final class Methods  {
 
   private Methods() { }
 
-  public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
+  public static final Method ROOT = Converters.ROOT;
 
   private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
 

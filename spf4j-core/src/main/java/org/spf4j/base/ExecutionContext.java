@@ -36,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -46,6 +47,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
+import org.spf4j.base.avro.Converters;
+import org.spf4j.base.avro.DebugDetail;
+import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 
@@ -65,7 +69,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   public interface Tag<T> {
 
     String toString();
-    
+
   }
 
   enum Relation {
@@ -316,5 +320,31 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   boolean isClosed();
 
   Relation getRelationToSource();
+
+
+  default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable) {
+    List<Slf4jLogRecord> ctxLogs = new ArrayList<>();
+    ExecutionContext curr = this;
+    while (curr != null) {
+      curr.streamLogs((log) -> {
+        ctxLogs.add(log);
+      });
+      curr = curr.getSource();
+    }
+    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);
+    StackSamples ss = this.getAndClearStackSamples();
+    List<StackSampleElement> sses;
+    if (ss == null) {
+      sses = Collections.EMPTY_LIST;
+    } else {
+      sses = new ArrayList<>(64);
+      Converters.convert(Converters.ROOT, ss, -1, 0, (a, b) -> sses.add(a));
+    }
+    return new DebugDetail(origin + '/' + this.getName(),
+            Converters.convert("", this.getId().toString(), ctxLogs),
+            throwable == null ? null : Converters.convert(throwable),
+            sses);
+
+  }
 
 }

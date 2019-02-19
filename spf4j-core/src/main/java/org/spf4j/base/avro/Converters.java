@@ -31,10 +31,15 @@
  */
 package org.spf4j.base.avro;
 
+import gnu.trove.map.TMap;
+import java.lang.management.ManagementFactory;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Handler;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
@@ -42,6 +47,8 @@ import org.spf4j.log.Slf4jLogRecord;
  */
 @ParametersAreNonnullByDefault
 public final class Converters {
+
+  public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), "ROOT");
 
   private Converters() { }
 
@@ -105,6 +112,65 @@ public final class Converters {
       result.add(log.toLogRecord(origin, traceId));
     }
     return result;
+  }
+
+
+  public static <E extends Exception> int convert(final Method method, final org.spf4j.base.StackSamples node,
+          final int parentId, final int id,
+          final Handler<StackSampleElement, E> handler) throws E {
+
+    final Deque<TraversalNode> dq = new ArrayDeque<>();
+    dq.addLast(new TraversalNode(method, node, parentId));
+    int nid = id;
+    while (!dq.isEmpty()) {
+      TraversalNode first = dq.removeFirst();
+      org.spf4j.base.StackSamples n = first.getNode();
+      StackSampleElement sample = new StackSampleElement(nid, first.getParentId(),
+              n.getSampleCount(), first.getMethod());
+      final TMap<Method, ? extends org.spf4j.base.StackSamples> subNodes = n.getSubNodes();
+      final int pid = nid;
+      if (subNodes != null) {
+        subNodes.forEachEntry((a, b) -> {
+          dq.addLast(new TraversalNode(a, b, pid));
+          return true;
+        });
+      }
+      handler.handle(sample, parentId);
+      nid++;
+    }
+    return nid;
+  }
+
+
+  private static final class TraversalNode {
+
+    private final Method method;
+    private final org.spf4j.base.StackSamples node;
+    private final int parentId;
+
+    TraversalNode(final Method method, final org.spf4j.base.StackSamples node, final int parentId) {
+      this.method = method;
+      this.node = node;
+      this.parentId = parentId;
+    }
+
+    public Method getMethod() {
+      return method;
+    }
+
+    public org.spf4j.base.StackSamples getNode() {
+      return node;
+    }
+
+    public int getParentId() {
+      return parentId;
+    }
+
+    @Override
+    public String toString() {
+      return "TraversalNode{" + "method=" + method + ", node=" + node + ", parentId=" + parentId + '}';
+    }
+
   }
 
 }
