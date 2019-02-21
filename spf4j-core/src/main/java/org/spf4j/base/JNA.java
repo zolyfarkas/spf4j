@@ -52,7 +52,7 @@ public final class JNA {
     try {
       Class.forName("com.sun.jna.platform.unix.LibC");
       return true;
-    } catch (ClassNotFoundException | UnsatisfiedLinkError ex) {
+    } catch (ClassNotFoundException | UnsatisfiedLinkError | NoClassDefFoundError ex) {
       return false;
     }
   }
