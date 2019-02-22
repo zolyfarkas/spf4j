@@ -777,7 +777,7 @@ private static final class PropagatingSupplier<X> implements Supplier<X>, Wrappe
         ExecutionContext pop = contextStack.pop();
         if (pop != ctx) {
           contextStack.push(pop);
-          throw  new IllegalStateException("Detaching ctx that is not attached " + ctx);
+          throw new IllegalStateException("Detaching ctx that is not attached " + ctx + ", found: " + pop);
         }
       }
 
