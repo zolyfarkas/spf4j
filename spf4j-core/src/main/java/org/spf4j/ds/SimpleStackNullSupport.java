@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import javax.annotation.ParametersAreNullableByDefault;
 import org.spf4j.base.Arrays;
 
@@ -299,11 +300,16 @@ public class SimpleStackNullSupport<T>
   }
 
   /**
-   * Not implemented, can be overwritten.
+   *  can be overwritten to optimize.
    */
   @Override
   public boolean contains(final Object o) {
-    throw new UnsupportedOperationException();
+    for (int i = 0; i < top; i++) {
+      if (Objects.equals(elems[i], o)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

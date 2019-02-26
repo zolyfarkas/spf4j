@@ -144,7 +144,10 @@ public final class ExecutionContexts {
     return EXEC_CTX.get().peek();
   }
 
-  @Nullable
+  public static boolean inCurrentThread(final ExecutionContext ctx) {
+    return EXEC_CTX.get().contains(ctx);
+  }
+
   public static void clearCurrentThread() {
      EXEC_CTX.get().clear();
   }
@@ -255,9 +258,14 @@ public final class ExecutionContexts {
 
   public static ExecutionContext createDetached(final String name, @Nullable final ExecutionContext parent,
           final Relation relation, final long startTimeNanos, final long deadlineNanos) {
-    return CTX_FACTORY.start(name, null, parent, relation, startTimeNanos, deadlineNanos);
+    return createDetached(name, null, parent, relation, startTimeNanos, deadlineNanos);
   }
 
+  public static ExecutionContext createDetached(final String name,
+          @Nullable final CharSequence id, @Nullable final ExecutionContext parent,
+          final Relation relation, final long startTimeNanos, final long deadlineNanos) {
+    return CTX_FACTORY.start(name, id, parent, relation, startTimeNanos, deadlineNanos);
+  }
 
   public static long getContextDeadlineNanos() {
     ExecutionContext ec = ExecutionContexts.current();

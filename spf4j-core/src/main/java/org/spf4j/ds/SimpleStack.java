@@ -125,5 +125,15 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
     return -1;
   }
 
+  @Override
+  public boolean contains(final Object o) {
+    for (int i = 0; i < top; i++) {
+      if (elems[i].equals(o)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
 }
