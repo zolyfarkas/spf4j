@@ -33,6 +33,7 @@ package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
 import java.time.Instant;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -56,8 +57,18 @@ public final class Timing {
   static {
     updateTiming(); // run twice to reduce timing discrepancies introduced by class-loading
     updateTiming();
-    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
-            TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
+    ScheduledFuture sf = null;
+    try {
+      final ScheduledFuture fut = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
+              TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
+      sf = fut;
+      Runtime.queueHookAtBeginning(() -> fut.cancel(true));
+    } catch (RejectedExecutionException ex) {
+      if (!Runtime.isShuttingDown()) {
+        throw ex;
+      }
+    }
+    UPDATER = sf;
   }
 
   private final long nanoTimeRef;
@@ -87,7 +98,6 @@ public final class Timing {
     long msSinceLast = epochTimeMillis - currentTimeMillisRef;
     if (Math.abs(msSinceLast) > MAX_MS_SPAN) {
       return TimeSource.nanoTime() + Long.MAX_VALUE;
-//      throw new IllegalArgumentException("Epoch time millis cannot be converted to nanotime " + epochTimeMillis);
     }
     return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);
   }
@@ -98,7 +108,9 @@ public final class Timing {
 
   @JmxExport
   public static void stopUpdate() {
-    UPDATER.cancel(false);
+    if (UPDATER != null) {
+      UPDATER.cancel(false);
+    }
   }
 
   @Override

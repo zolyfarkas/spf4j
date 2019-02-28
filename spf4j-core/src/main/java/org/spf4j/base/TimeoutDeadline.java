@@ -31,12 +31,14 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnegative;
 
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class TimeoutDeadline {
 
   private final long timeoutNanos;

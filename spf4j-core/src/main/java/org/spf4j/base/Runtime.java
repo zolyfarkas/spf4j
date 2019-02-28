@@ -161,6 +161,18 @@ public final class Runtime {
   private Runtime() {
   }
 
+  public static boolean isShuttingDown() {
+      try {
+        java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
+        Thread dummy = new Thread(AbstractRunnable.NOP);
+        runtime.addShutdownHook(dummy);
+        runtime.removeShutdownHook(dummy);
+      } catch ( IllegalStateException e ) {
+          return true;
+      }
+      return false;
+  }
+
   @SuppressWarnings("checkstyle:regexp")
   public static void error(final String message) {
     System.err.println(message);
