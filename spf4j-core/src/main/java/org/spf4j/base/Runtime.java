@@ -167,7 +167,7 @@ public final class Runtime {
         Thread dummy = new Thread(AbstractRunnable.NOP);
         runtime.addShutdownHook(dummy);
         runtime.removeShutdownHook(dummy);
-      } catch ( IllegalStateException e ) {
+      } catch (IllegalStateException e) {
           return true;
       }
       return false;

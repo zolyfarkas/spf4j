@@ -70,6 +70,14 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
     String toString();
 
+    default boolean pushOnClose(final Relation relation) {
+      return false;
+    }
+
+    default T combine(@Nullable final T existing, final T current) {
+      return current;
+    }
+
   }
 
   enum Relation {
@@ -234,6 +242,15 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   @Beta
   <T> T put(Tag<T> tag, T data);
+
+  @Beta
+  default <T> void combine(Tag<T> tag, T data) {
+    T existing = put(tag, data);
+    T combined = tag.combine(existing, data);
+    if (data != combined) {
+      put(tag, combined);
+    }
+  }
 
   /**
    * Method to put context associated data to the root context.

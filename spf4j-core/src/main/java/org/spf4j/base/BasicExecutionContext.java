@@ -208,6 +208,12 @@ public class BasicExecutionContext implements ExecutionContext {
           parent.addLogs(logs);
         }
       }
+      for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
+        Tag key = be.getKey();
+        if (key.pushOnClose(this.relation))  {
+          this.source.combine(key, key.combine(this.source.get(key), be.getValue()));
+        }
+      }
       isClosed = true;
       if (ex != null) {
         if (ex instanceof RuntimeException) {
