@@ -202,16 +202,16 @@ public class BasicExecutionContext implements ExecutionContext {
           ex = e;
         }
       }
-      if (logs != null) {
-        ExecutionContext parent = getNotClosedParent();
-        if (parent != null) {
-          parent.addLogs(logs);
+      ExecutionContext parent = getNotClosedParent();
+      if (parent != null) {
+        if (logs != null) {
+            parent.addLogs(logs);
         }
-      }
-      for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
-        Tag key = be.getKey();
-        if (key.pushOnClose(this.relation))  {
-          this.source.combine(key, key.combine(this.source.get(key), be.getValue()));
+        for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
+          Tag key = be.getKey();
+          if (key.pushOnClose(this.relation))  {
+            parent.combine(key, key.combine(parent.get(key), be.getValue()));
+          }
         }
       }
       isClosed = true;
