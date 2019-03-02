@@ -42,6 +42,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,10 +55,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
+import org.spf4j.base.avro.ApplicationInfo;
+import org.spf4j.base.avro.Organization;
 import org.spf4j.concurrent.UIDGenerator;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.jmx.JmxExport;
@@ -159,6 +165,91 @@ public final class Runtime {
   }
 
   private Runtime() {
+  }
+
+  public static org.spf4j.base.Version getAppVersion() {
+    return new org.spf4j.base.Version(getAppVersionString());
+  }
+
+  public static String getAppVersionString() {
+    Class<?> mainClass = getMainClass();
+    return mainClass.getPackage().getImplementationVersion();
+  }
+
+  /**
+   * Returns application information.
+   * Information is retrieved from the app jar manifest.
+   * Manifest can be generated with maven like:
+   *
+   * <pre>
+   * {@code
+   *   <plugin>
+   *     <groupId>org.apache.maven.plugins</groupId>
+   *     <artifactId>maven-jar-plugin</artifactId>
+   *     <version>3.1.1</version>
+   *     <configuration>
+   *       <archive>
+   *         <index>true</index>
+   *         <manifest>
+   *           <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+   *           <addClasspath>true</addClasspath>
+   *           <classpathPrefix>lib/</classpathPrefix>
+   *           <mainClass>org.spf4j.demo.Main</mainClass>
+   *         </manifest>
+   *         <manifestEntries>
+   *           <Implementation-Vendor>${project.groupId}</Implementation-Vendor>
+   *           <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
+   *           <Implementation-Title>${project.artifactId}</Implementation-Title>
+   *           <Implementation-Version>${project.version}</Implementation-Version>
+   *           <Implementation-Description>${project.description}</Implementation-Description>
+   *           <Implementation-Url>${project.url}</Implementation-Url>
+   *           <Implementation-Org>${project.organization.name}</Implementation-Org>
+   *           <Implementation-Org-Url>${project.organization.url}</Implementation-Org-Url>
+   *           <Implementation-Build>${buildNumber}</Implementation-Build>
+   *           <Build-Time>${maven.build.timestamp}</Build-Time>
+   *         </manifestEntries>
+   *       </archive>
+   *     </configuration>
+   *   </plugin>
+   *
+   *
+   * }
+   * </pre>
+   * @return
+   */
+  public static ApplicationInfo getApplicationInfo() {
+    Class<?> mainClass = getMainClass();
+    Package p = mainClass.getPackage();
+    if (p == null) {
+      try {
+        return new ApplicationInfo("N/A", "N/A", new URL("file:://manifest/Implementation-Url"), null);
+      } catch (MalformedURLException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+    URL jarSourceUrl = PackageInfo.getJarSourceUrl(mainClass);
+    if (jarSourceUrl == null) {
+      try {
+        return new ApplicationInfo(p.getImplementationTitle(), "N/A",
+                new URL("file:://manifest/Implementation-Url"), null);
+      } catch (MalformedURLException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+    try {
+      Manifest manifest = Reflections.getManifest(jarSourceUrl);
+      Attributes mainAttributes = manifest.getMainAttributes();
+      String appDescription = mainAttributes.getValue("Implementation-Description");
+      String appUrl = mainAttributes.getValue("Implementation-Url");
+      String org = mainAttributes.getValue("Implementation-Org");
+      String orgUrl = mainAttributes.getValue("Implementation-Org-Url");
+      return new ApplicationInfo(p.getImplementationTitle(), appDescription == null ? "" : appDescription,
+              appUrl == null ? new URL("file:://manifest/Implementation-Url") : new URL(appUrl),
+                org != null ? new Organization(org,
+                        new URL(orgUrl == null ? "file://manifest/Implementation-Org-Url" : orgUrl)) : null);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public static boolean isShuttingDown() {
