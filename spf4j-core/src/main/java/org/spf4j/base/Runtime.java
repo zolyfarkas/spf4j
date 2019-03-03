@@ -222,7 +222,7 @@ public final class Runtime {
     Package p = mainClass.getPackage();
     if (p == null) {
       try {
-        return new ApplicationInfo("N/A", "N/A", new URL("file:://manifest/Implementation-Url"), null);
+        return new ApplicationInfo("N/A", "N/A", new URL("file://manifest/Implementation-Url"), null);
       } catch (MalformedURLException ex) {
         throw new RuntimeException(ex);
       }
@@ -231,7 +231,7 @@ public final class Runtime {
     if (jarSourceUrl == null) {
       try {
         return new ApplicationInfo(p.getImplementationTitle(), "N/A",
-                new URL("file:://manifest/Implementation-Url"), null);
+                new URL("file://manifest/Implementation-Url"), null);
       } catch (MalformedURLException ex) {
         throw new RuntimeException(ex);
       }
@@ -244,9 +244,11 @@ public final class Runtime {
       String org = mainAttributes.getValue("Implementation-Org");
       String orgUrl = mainAttributes.getValue("Implementation-Org-Url");
       return new ApplicationInfo(p.getImplementationTitle(), appDescription == null ? "" : appDescription,
-              appUrl == null ? new URL("file:://manifest/Implementation-Url") : new URL(appUrl),
-                org != null ? new Organization(org,
-                        new URL(orgUrl == null ? "file://manifest/Implementation-Org-Url" : orgUrl)) : null);
+              (appUrl == null || appUrl.trim().isEmpty())
+                      ? new URL("file://manifest/Implementation-Url") : new URL(appUrl),
+              (org != null && !org.trim().isEmpty()) ? new Organization(org,
+                        new URL((orgUrl == null || orgUrl.trim().isEmpty())
+                                ? "file://manifest/Implementation-Org-Url" : orgUrl)) : null);
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
