@@ -116,7 +116,7 @@ public final class ExecContextLogger implements Logger, Wrapper<Logger> {
       logged = true;
     } else {
       Level backendOverwrite = ctx.getBackendMinLogLevel(name);
-      if (backendOverwrite.ordinal() <= level.ordinal()) {
+      if (backendOverwrite != null && backendOverwrite.ordinal() <= level.ordinal()) {
        logger.logUpgrade(null, level, "RemoteLog", LogAttribute.traceId(ctx.getId()), log);
        logged = true;
       }
