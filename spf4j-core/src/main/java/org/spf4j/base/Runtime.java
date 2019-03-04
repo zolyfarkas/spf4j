@@ -130,7 +130,7 @@ public final class Runtime {
       NR_PROCESSORS = availableProcessors;
     }
     String mxBeanName = runtimeMxBean.getName();
-    PROCESS_NAME = mxBeanName;
+    PROCESS_NAME = System.getProperty("spf4j.processName", mxBeanName);
     boolean useUIDGeneratorForJvmId = Boolean.getBoolean("spf4j.useUIDForProcessId");
     PROCESS_ID = useUIDGeneratorForJvmId ? UIDGenerator.generateIdBase("J", '-').toString()
             : mxBeanName + ':' + Long.toHexString((System.currentTimeMillis() - 1509741164184L) / 1000);
