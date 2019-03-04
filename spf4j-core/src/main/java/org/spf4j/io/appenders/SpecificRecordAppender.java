@@ -34,7 +34,6 @@ package org.spf4j.io.appenders;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.activation.MimeType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
@@ -42,9 +41,10 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.avro.Converters;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.avro.MediaTypes;
 import org.spf4j.base.avro.Throwable;
 import org.spf4j.io.AppendableOutputStream;
-import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 
 /**
@@ -72,8 +72,8 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
   };
 
   @Override
-  public MimeType getAppendedType() {
-    return MimeTypes.APPLICATION_JSON;
+  public MediaType getAppendedType() {
+    return MediaTypes.APPLICATION_AVRO_JSON;
   }
 
   @Override

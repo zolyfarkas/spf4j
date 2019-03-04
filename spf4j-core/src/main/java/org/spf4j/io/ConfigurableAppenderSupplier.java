@@ -40,10 +40,10 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import javax.activation.MimeType;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.avro.MediaType;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 
@@ -135,7 +135,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     return appenderMap.putIfNotPresent(type, appender);
   }
 
-  public <T> void register(final Class<T> type, final MimeType contentType,
+  public <T> void register(final Class<T> type, final MediaType contentType,
           final ObjectAppender<? super T> appender) {
      if (!tryRegister(type, contentType, appender)) {
        throw new IllegalArgumentException("Cannnot Register " + appender + " for " + type);
@@ -143,7 +143,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   }
 
   @CheckReturnValue
-  public <T> boolean tryRegister(final Class<T> type, final MimeType contentType,
+  public <T> boolean tryRegister(final Class<T> type, final MediaType contentType,
           final ObjectAppender<? super T> appender) {
     return appenderMap.putIfNotPresent(type, new ObjectAppenderContentTypeAdapter(appender, contentType));
   }
@@ -166,9 +166,9 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   private static final class ObjectAppenderContentTypeAdapter<T> implements ObjectAppender<T> {
 
     private final ObjectAppender<? super T> appender;
-    private final MimeType contentType;
+    private final MediaType contentType;
 
-    ObjectAppenderContentTypeAdapter(final ObjectAppender<? super T> appender, final MimeType contentType) {
+    ObjectAppenderContentTypeAdapter(final ObjectAppender<? super T> appender, final MediaType contentType) {
       this.appender = appender;
       this.contentType = contentType;
     }
@@ -185,7 +185,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     }
 
     @Override
-    public MimeType getAppendedType() {
+    public MediaType getAppendedType() {
       return contentType;
     }
   }

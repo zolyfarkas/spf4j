@@ -33,13 +33,13 @@ package org.spf4j.io.appenders;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.activation.MimeType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.JsonEncoder;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.avro.MediaTypes;
 import org.spf4j.io.AppendableOutputStream;
-import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
 import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
@@ -51,8 +51,8 @@ import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationEr
 public final class GenericRecordAppender implements ObjectAppender<GenericRecord> {
 
   @Override
-  public MimeType getAppendedType() {
-    return MimeTypes.APPLICATION_JSON;
+  public MediaType getAppendedType() {
+    return MediaTypes.APPLICATION_AVRO_JSON;
   }
 
   @Override

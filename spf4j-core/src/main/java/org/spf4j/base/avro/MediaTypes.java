@@ -29,27 +29,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.base.avro;
 
-import java.io.IOException;
-import org.spf4j.base.JsonWriteable;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.ObjectAppender;
+import java.util.Collections;
 
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
+public final class MediaTypes {
 
-  @Override
-  public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
-    object.writeJsonTo(appendTo);
-  }
+  private MediaTypes() { }
 
-  @Override
-  public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_JSON;
-  }
+  public static final MediaType APPLICATION_JSON = new MediaType("application", "json", Collections.EMPTY_MAP);
+
+  public static final MediaType APPLICATION_OCTET_STREAM =
+          new MediaType("application", "octet-stream", Collections.EMPTY_MAP);
+
+  public static final MediaType APPLICATION_AVRO = new MediaType("application", "avro", Collections.EMPTY_MAP);
+
+  public static final MediaType APPLICATION_AVRO_JSON =
+          new MediaType("application", "avro+json", Collections.EMPTY_MAP);
+
+  /** an optimized json format implemented in zolyfarkas/avro */
+  public static final MediaType APPLICATION_AVRO_XJSON
+           = new MediaType("application", "avro-x+json", Collections.EMPTY_MAP);
+
+  public static final MediaType TEXT_PLAIN = new MediaType("text", "plain", Collections.EMPTY_MAP);
+
+  public static final MediaType TEXT_CSV = new MediaType("text", "csv", Collections.EMPTY_MAP);
+
+
 
 }

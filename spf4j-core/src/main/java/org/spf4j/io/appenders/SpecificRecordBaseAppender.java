@@ -32,9 +32,9 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import javax.activation.MimeType;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.spf4j.io.MimeTypes;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.avro.MediaTypes;
 import org.spf4j.io.ObjectAppender;
 
 /**
@@ -46,8 +46,8 @@ public final class SpecificRecordBaseAppender implements ObjectAppender<Specific
   private static final SpecificRecordAppender SA = new SpecificRecordAppender();
 
   @Override
-  public MimeType getAppendedType() {
-    return MimeTypes.APPLICATION_JSON;
+  public MediaType getAppendedType() {
+    return MediaTypes.APPLICATION_AVRO_JSON;
   }
 
   @Override

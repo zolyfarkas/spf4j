@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import javax.activation.MimeType;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
@@ -37,6 +36,7 @@ import org.slf4j.Marker;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Slf4jMessageFormatter;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.avro.MediaType;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
@@ -257,8 +257,8 @@ public final class LogPrinter {
       wr.append("null");
     } else {
       ObjectAppender ostrApp = toStringer.get(obj.getClass());
-      MimeType type = ostrApp.getAppendedType();
-      if ("json".equalsIgnoreCase(type.getSubType())) {
+      MediaType type = ostrApp.getAppendedType();
+      if (type.getSubType().endsWith("json")) {
         ostrApp.append(obj, wr);
       } else {
         wr.append('"');
