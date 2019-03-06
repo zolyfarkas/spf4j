@@ -2,10 +2,12 @@ package org.spf4j.maven.plugin.avro.avscp;
 
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -32,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaRefWriter;
 import org.apache.avro.compiler.idl.Idl;
 import org.apache.avro.compiler.idl.ParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -95,6 +98,15 @@ public final class SchemaCompileMojo
   private boolean addMavenId = true;
 
   /**
+   * This option will use schema references when writing schemas that depend of schemas from other projects,
+   * instead of baking them in.
+   */
+  @Parameter(name = "useSchemaReferencesForAvsc",
+          defaultValue = "false")
+  private boolean useSchemaReferencesForAvsc = false;
+
+
+  /**
    * delete Protocol java files, this is when only the schema definitions are relevant.
    */
   @Parameter(name = "deleteProtocolInterface",
@@ -118,10 +130,22 @@ public final class SchemaCompileMojo
 
   private final Map<String, Schema> index = new HashMap<>();
 
-  private void attachMavenId(final Schema schema) {
-    if (schema.getProp("mvnId") == null) {
-      schema.addProp("mvnId", genMnvId(schema));
+  private String attachMavenId(final Schema schema) {
+    String exMvnId = schema.getProp("mvnId");
+    if (exMvnId == null) {
+      String newId = genMnvId(schema);
+      schema.addProp("mvnId", newId);
+      return newId;
+    } else {
+      return exMvnId;
     }
+  }
+
+  public CharSequence getPackageMvnIdPrefix(final Schema schema) {
+    StringBuilder idBuilder = new StringBuilder(64);
+    idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
+            .append(':').append(mavenProject.getVersion());
+    return idBuilder;
   }
 
   public String genMnvId(final Schema schema) {
@@ -158,7 +182,7 @@ public final class SchemaCompileMojo
         org.spf4j.base.Runtime.setCurrentDir(origCurrentDir);
       }
       Protocol protocol = parser.CompilationUnit();
-      publishSchemasAndAttachMvnIdToProtocol(protocol, false);
+      publishSchemasAndAttachMvnIdToProtocol(protocol, false, useSchemaReferencesForAvsc);
       SpecificCompiler compiler = new SpecificCompiler(protocol);
       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
       compiler.setStringType(GenericData.StringType.valueOf(stringType));
@@ -261,7 +285,7 @@ public final class SchemaCompileMojo
   protected void doCompileProtocol(final String filename, final Path destination) throws IOException {
     File src = new File(sourceDirectory, filename);
     Protocol protocol = Protocol.parse(src);
-    publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId);
+    publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId, useSchemaReferencesForAvsc);
     SpecificCompiler compiler = new SpecificCompiler(protocol);
     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
     compiler.setTemplateDir(templateDirectory);
@@ -276,7 +300,7 @@ public final class SchemaCompileMojo
 
 
   private void publishSchemasAndAttachMvnIdToProtocol(final Protocol protocol,
-          final boolean addMvnId) throws IOException {
+          final boolean addMvnId, final boolean useSchemaReferences) throws IOException {
     Collection<Schema> types = protocol.getTypes();
     Set<String> typeNames = Sets.newHashSetWithExpectedSize(types.size());
     for (Schema schema : types) {
@@ -284,17 +308,25 @@ public final class SchemaCompileMojo
       if (!typeNames.add(fullName)) {
         continue;
       }
-      if (addMvnId) {
-        attachMavenId(schema);
-      }
       String targetName = fullName.replace('.', File.separatorChar) + ".avsc";
       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
       Path parent = destinationFile.getParent();
       if (parent != null) {
         Files.createDirectories(parent);
       }
-      Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
-              StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+      if (addMvnId) {
+        attachMavenId(schema);
+      }
+      if (useSchemaReferences) {
+        try (OutputStream fos =
+                new BufferedOutputStream(Files.newOutputStream(destinationFile,
+                        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+          SchemaRefWriter.write(schema, fos, getPackageMvnIdPrefix(schema).toString());
+        }
+      } else {
+        Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+      }
     }
   }
 
