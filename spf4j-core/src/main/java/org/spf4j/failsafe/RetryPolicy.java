@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -172,6 +173,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       this.exceptionPredicates = new ArrayList<>(2);
       this.log = null;
     }
+
+    private Builder(final Builder from) {
+      this.nrInitialRetries = from.nrInitialRetries;
+      this.startDelayNanos = from.startDelayNanos;
+      this.maxDelayNanos = from.maxDelayNanos;
+      this.jitterFactor = from.jitterFactor;
+      this.resultPredicates = new ArrayList(from.resultPredicates);
+      this.exceptionPredicates = new ArrayList<>(from.exceptionPredicates);
+      this.log = from.log;
+    }
+
 
     @CheckReturnValue
     public Builder<T, C> withRetryLogger(final Logger plog) {
@@ -379,6 +391,22 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     }
 
     @CheckReturnValue
+    public <TT, CC extends Callable<? extends TT>> RetryPolicy<TT, CC>
+         build(final Function<RetryPredicate<T, C>, RetryPredicate<TT, CC>> intercept) {
+      TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
+      TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
+      TimedSupplier<RetryPredicate<TT, CC>> retryPredicate
+              = (s, e) -> intercept.apply(new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
+              (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
+                      startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps));
+      return new RetryPolicy<>(retryPredicate, maxExceptionChain);
+    }
+
+    public Builder<T, C> copy() {
+      return new Builder<>(this);
+    }
+
+    @CheckReturnValue
     public RetryPolicy<T, C> build() {
       TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
       TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
@@ -411,6 +439,18 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
   @CheckReturnValue
   public static <T, C extends Callable<? extends T>> Builder<T, C> newBuilder() {
     return new Builder<>();
+  }
+
+  /**
+   * Create a retry policy builder copy.
+   *
+   * @param <T> the Type returned by the retried callables.
+   * @param <C> the type of the Callable's returned.
+   * @return
+   */
+  @CheckReturnValue
+  public static <T, C extends Callable<? extends T>> Builder<T, C> newBuilder(final Builder<T, C> builder) {
+    return new Builder<>(builder);
   }
 
 }
