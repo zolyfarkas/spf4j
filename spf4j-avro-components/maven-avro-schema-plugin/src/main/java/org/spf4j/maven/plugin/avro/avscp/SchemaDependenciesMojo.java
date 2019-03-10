@@ -66,6 +66,7 @@ public final class SchemaDependenciesMojo
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    super.execute();
     Log log = this.getLog();
     log.info("Resolving schema dependencies");
     List<Pattern> patterns = getPatterns(excludes);

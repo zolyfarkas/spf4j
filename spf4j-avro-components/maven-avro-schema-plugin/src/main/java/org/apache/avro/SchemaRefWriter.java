@@ -17,6 +17,7 @@ package org.apache.avro;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema.Names;
 import org.codehaus.jackson.JsonGenerator;
@@ -45,6 +46,10 @@ public final class SchemaRefWriter {
 
   private SchemaRefWriter() { }
 
+  public static boolean isSchemaRefsSupported() {
+    return SCHEMA_REFS_SUPORTED;
+  }
+
   private static final class NamesExt extends Names {
 
     private static final long serialVersionUID = 1L;
@@ -61,17 +66,16 @@ public final class SchemaRefWriter {
       if (id == null) {
         return null;
       }
-      if (id.startsWith(exclude)) {
+      if (Objects.equals(schema.getFullName(),  exclude)) {
         return null;
       }
       return id;
     }
   }
 
-  public static void write(final Schema schema, final OutputStream os,
-          final String excludeIds) throws IOException {
+  public static void write(final Schema schema, final OutputStream os) throws IOException {
     JsonGenerator jgen = Json.FACTORY.createJsonGenerator(os);
-    schema.toJson(SCHEMA_REFS_SUPORTED ? new NamesExt(excludeIds) : new Names(), jgen);
+    schema.toJson(SCHEMA_REFS_SUPORTED ? new NamesExt(schema.getFullName()) : new Names(), jgen);
     jgen.flush();
   }
 

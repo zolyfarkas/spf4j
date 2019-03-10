@@ -98,15 +98,6 @@ public final class SchemaCompileMojo
   private boolean addMavenId = true;
 
   /**
-   * This option will use schema references when writing schemas that depend of schemas from other projects,
-   * instead of baking them in.
-   */
-  @Parameter(name = "useSchemaReferencesForAvsc",
-          defaultValue = "false")
-  private boolean useSchemaReferencesForAvsc = false;
-
-
-  /**
    * delete Protocol java files, this is when only the schema definitions are relevant.
    */
   @Parameter(name = "deleteProtocolInterface",
@@ -141,7 +132,7 @@ public final class SchemaCompileMojo
     }
   }
 
-  public CharSequence getPackageMvnIdPrefix(final Schema schema) {
+  public CharSequence getPackageMvnIdPrefix() {
     StringBuilder idBuilder = new StringBuilder(64);
     idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
             .append(':').append(mavenProject.getVersion());
@@ -321,7 +312,7 @@ public final class SchemaCompileMojo
         try (OutputStream fos =
                 new BufferedOutputStream(Files.newOutputStream(destinationFile,
                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
-          SchemaRefWriter.write(schema, fos, getPackageMvnIdPrefix(schema).toString());
+          SchemaRefWriter.write(schema, fos);
         }
       } else {
         Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
@@ -396,6 +387,7 @@ public final class SchemaCompileMojo
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    super.execute();
     Log logger = this.getLog();
     logger.info("Generationg java code + schemas, using avro "
             + PackageInfo.getPackageInfo(org.apache.avro.Schema.class.getName()));
@@ -439,6 +431,9 @@ public final class SchemaCompileMojo
         Path indexFile = generatedAvscTargetPath.resolve("schema_index.properties");
         try (BufferedWriter bw = Files.newBufferedWriter(indexFile,
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+          bw.append("_pkg=");
+          bw.append(getPackageMvnIdPrefix());
+          bw.append('\n');
           for (Map.Entry<String, Schema> entry : index.entrySet()) {
             bw.append(entry.getKey());
             bw.append('=');

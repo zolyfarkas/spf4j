@@ -17,12 +17,16 @@ package org.spf4j.maven.plugin.avro.avscp;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
+import org.apache.avro.SchemaRefWriter;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
+import org.spf4j.maven.Registerer;
 
 /**
  * @author Zoltan Farkas
@@ -80,6 +84,28 @@ public abstract class SchemaMojoBase extends AbstractMojo {
   protected MavenSession mavenSession;
 
   /**
+   * This option will use schema references when writing schemas that depend of schemas from other projects,
+   * instead of baking them in.
+   * by default (false) all schema references will be inlined.
+   */
+  @Parameter(name = "useSchemaReferencesForAvsc",
+          defaultValue = "false")
+  protected boolean useSchemaReferencesForAvsc = false;
+
+  /**
+   *  the schema artifact classifier.
+   */
+  @Parameter(name = "schemaArtifactClassifier", defaultValue = "avsc")
+  protected String schemaArtifactClassifier = "avsc";
+
+  /**
+   *  the schema artifact extension.
+   */
+  @Parameter(name = "schemaArtifactExtension", defaultValue = "jar")
+  protected String schemaArtifactExtension = "jar";
+
+
+  /**
    * The entry point to Aether, i.e. the component doing all the work.
    */
   @Component
@@ -104,6 +130,23 @@ public abstract class SchemaMojoBase extends AbstractMojo {
   public final File getTarget() {
     return target;
   }
+
+  /**
+   * Children must call this.
+   * @throws MojoExecutionException
+   * @throws MojoFailureException
+   */
+  @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    if (useSchemaReferencesForAvsc && SchemaRefWriter.isSchemaRefsSupported()) {
+      Registerer.register(repoSystem, getMavenSession().getRepositorySession(),
+              mavenProject.getRemoteProjectRepositories(),
+              schemaArtifactClassifier, schemaArtifactExtension);
+    }
+  }
+
+
+
 
   /**
    * will be overwritten as needed, and override will include this result.

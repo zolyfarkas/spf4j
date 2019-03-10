@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.avro.Schema;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -74,7 +75,8 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
   }
 
   @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP")
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    super.execute();
     Log logger = this.getLog();
     logger.info("Validating schemas");
     synchronized (String.class) {
