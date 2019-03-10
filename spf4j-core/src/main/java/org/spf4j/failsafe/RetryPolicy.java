@@ -101,7 +101,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     return (RetryPolicy<T, C>) DEFAULT;
   }
 
-  public Builder getBuilder() {
+  public final Builder getBuilder() {
     return builder.copy();
   }
 
@@ -191,43 +191,35 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       this.log = from.log;
     }
 
-
-    @CheckReturnValue
     public Builder<T, C> withRetryLogger(final Logger plog) {
       this.log = plog;
       return this;
     }
 
-    @CheckReturnValue
     public Builder<T, C> withoutRetryLogger() {
       this.log = NOPLogger.NOP_LOGGER;
       return this;
     }
 
-    @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate() {
       return withDefaultThrowableRetryPredicate(DEFAULT_MAX_NR_RETRIES);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withDefaultThrowableRetryPredicate(final int maxNrRetries) {
       return withExceptionPartialPredicate((e, c) -> Throwables.isRetryable(e) ? RetryDecision.retryDefault(c) : null,
               maxNrRetries);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz) {
       return withRetryOnException(clasz, DEFAULT_MAX_NR_RETRIES);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz, final int maxRetries) {
       return withExceptionPartialPredicate((e, c)
               -> clasz.isAssignableFrom(e.getClass())
               ? RetryDecision.retryDefault(c) : null, maxRetries);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withRetryOnException(final Class<? extends Exception> clasz,
             final long maxTime, final TimeUnit tu) {
       return withExceptionPartialPredicate((e, c)
@@ -235,7 +227,6 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
               ? RetryDecision.retryDefault(c) : null, maxTime, tu);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(final PartialExceptionRetryPredicate<T, C> predicate,
             final long maxTime, final TimeUnit tu) {
       return withExceptionPartialPredicateSupplier((s, d)
@@ -246,13 +237,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       });
     }
 
-    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate) {
       return withExceptionPartialPredicateSupplier(TimedSupplier.constant(predicate));
     }
 
-    @CheckReturnValue
     public <E extends Exception> Builder<T, C> withExceptionPartialPredicate(final Class<E> clasz,
             final PartialTypedExceptionRetryPredicate<T, C, E> predicate) {
       return withExceptionPartialPredicate((e, c) -> {
@@ -263,7 +252,6 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       });
     }
 
-    @CheckReturnValue
     public <E extends Exception> Builder<T, C> withExceptionPartialPredicate(final Class<E> clasz,
             final PartialTypedExceptionRetryPredicate<T, C, E> predicate, final int maxRetries) {
       return withExceptionPartialPredicate((e, c) -> {
@@ -274,7 +262,6 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       }, maxRetries);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicate(
             final PartialExceptionRetryPredicate<T, C> predicate,
             final int maxRetries) {
@@ -285,20 +272,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       });
     }
 
-    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicateSupplier(
             final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
       return withExceptionPartialPredicateSupplier((s, e) -> predicateSupplier.get());
     }
 
     @Deprecated
-    @CheckReturnValue
     public Builder<T, C> withExceptionStatefulPartialPredicate(
             final Supplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
       return Builder.this.withExceptionPartialPredicateSupplier(predicateSupplier);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withExceptionPartialPredicateSupplier(
             final TimedSupplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
       exceptionPredicates.add(predicateSupplier);
@@ -306,14 +290,12 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     }
 
     @Deprecated
-    @CheckReturnValue
     public Builder<T, C> withExceptionStatefulPartialPredicate(
             final TimedSupplier<PartialExceptionRetryPredicate<T, C>> predicateSupplier) {
       return withExceptionPartialPredicateSupplier(predicateSupplier);
     }
 
 
-    @CheckReturnValue
     public Builder<T, C> withRetryOnResult(final T result, final int maxRetries) {
       return withResultPartialPredicate((r, c)
               -> Objects.equals(result, r)
@@ -321,14 +303,12 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     }
 
 
-    @CheckReturnValue
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate) {
       resultPredicates.add(TimedSupplier.constant(predicate));
       return this;
     }
 
-    @CheckReturnValue
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate,
             final int maxRetries) {
@@ -338,20 +318,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       });
     }
 
-    @CheckReturnValue
     public Builder<T, C> withResultPartialPredicateSupplier(
             final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
       return withResultPartialPredicateSupplier((s, e) -> predicateSupplier.get());
     }
 
     @Deprecated
-    @CheckReturnValue
     public Builder<T, C> withResultStatefulPartialPredicate(
             final Supplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
       return Builder.this.withResultPartialPredicateSupplier(predicateSupplier);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withResultPartialPredicateSupplier(
             final TimedSupplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
       resultPredicates.add(predicateSupplier);
@@ -359,13 +336,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     }
 
     @Deprecated
-    @CheckReturnValue
     public Builder<T, C> withResultStatefulPartialPredicate(
             final TimedSupplier<PartialResultRetryPredicate<T, C>> predicateSupplier) {
       return withResultPartialPredicateSupplier(predicateSupplier);
     }
 
-    @CheckReturnValue
     public Builder<T, C> withJitterFactor(final double jitterfactor) {
       if (jitterFactor > 1 || jitterFactor < 0) {
         throw new IllegalArgumentException("Invalid jitter factor " + jitterfactor);
@@ -374,19 +349,16 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return this;
     }
 
-    @CheckReturnValue
     public Builder<T, C> withInitialRetries(final int retries) {
       this.nrInitialRetries = retries;
       return this;
     }
 
-    @CheckReturnValue
     public Builder<T, C> withInitialDelay(final long delay, final TimeUnit unit) {
       this.startDelayNanos = unit.toNanos(delay);
       return this;
     }
 
-    @CheckReturnValue
     public Builder<T, C> withMaxDelay(final long delay, final TimeUnit unit) {
       this.maxDelayNanos = unit.toNanos(delay);
       return this;
@@ -397,6 +369,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return this;
     }
 
+    @CheckReturnValue
     public Builder<T, C> copy() {
       return new Builder<>(this);
     }
