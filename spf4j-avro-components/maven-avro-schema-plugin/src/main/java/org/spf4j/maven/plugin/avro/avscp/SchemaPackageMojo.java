@@ -6,11 +6,11 @@ import java.nio.file.Path;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.spf4j.io.compress.Compress;
@@ -21,18 +21,6 @@ import org.spf4j.io.compress.Compress;
 @Mojo(name = "avro-package", defaultPhase = LifecyclePhase.PACKAGE, requiresProject = true)
 public final class SchemaPackageMojo extends SchemaMojoBase {
 
-
-  /**
-   *  the schema artifact classifier.
-   */
-  @Parameter(name = "schemaArtifactClassifier", defaultValue = "avsc")
-  private String schemaArtifactClassifier = "avsc";
-
-  /**
-   *  the schema artifact extension.
-   */
-  @Parameter(name = "schemaArtifactExtension", defaultValue = "jar")
-  private String schemaArtifactExtension = "jar";
 
 
   public String[] getSourceFiles() {
@@ -52,7 +40,8 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
    *
    *
    */
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    super.execute();
     Log logger = this.getLog();
     logger.info("Packaging schemas");
     Path avsc = target.toPath().resolve(
