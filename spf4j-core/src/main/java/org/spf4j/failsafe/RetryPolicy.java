@@ -38,7 +38,6 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -82,11 +81,15 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
   private final TimedSupplier<RetryPredicate<T, C>> retryPredSupplier;
 
+  private final RetryPolicy.Builder builder;
+
   private final int maxExceptionChain;
 
   RetryPolicy(final TimedSupplier<RetryPredicate<T, C>> retryPredicate,
+          final RetryPolicy.Builder builder,
           final int maxExceptionChain) {
     this.retryPredSupplier = retryPredicate;
+    this.builder = builder;
     this.maxExceptionChain = maxExceptionChain;
   }
 
@@ -96,6 +99,10 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> defaultPolicy() {
     return (RetryPolicy<T, C>) DEFAULT;
+  }
+
+  public Builder getBuilder() {
+    return builder;
   }
 
   @Override
@@ -390,18 +397,6 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return this;
     }
 
-    @CheckReturnValue
-    public <TT, CC extends Callable<? extends TT>> RetryPolicy<TT, CC>
-         build(final Function<RetryPredicate<T, C>, RetryPredicate<TT, CC>> intercept) {
-      TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);
-      TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
-      TimedSupplier<RetryPredicate<TT, CC>> retryPredicate
-              = (s, e) -> intercept.apply(new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
-              (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
-                      startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps));
-      return new RetryPolicy<>(retryPredicate, maxExceptionChain);
-    }
-
     public Builder<T, C> copy() {
       return new Builder<>(this);
     }
@@ -414,7 +409,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
               = (s, e) -> new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
-      return new RetryPolicy<>(retryPredicate, maxExceptionChain);
+      return new RetryPolicy<>(retryPredicate, this.copy(), maxExceptionChain);
     }
 
     @CheckReturnValue
