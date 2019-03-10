@@ -102,7 +102,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
   }
 
   public Builder getBuilder() {
-    return builder;
+    return builder.copy();
   }
 
   @Override
