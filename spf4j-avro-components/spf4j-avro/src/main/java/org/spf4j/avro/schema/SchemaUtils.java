@@ -31,6 +31,8 @@
  */
 package org.spf4j.avro.schema;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import com.google.common.graph.GraphBuilder;
@@ -57,9 +59,6 @@ import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.specific.SpecificCompiler;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
 import org.spf4j.ds.Graphs;
 import org.spf4j.io.AppendableWriter;
 
@@ -80,8 +79,6 @@ public final class SchemaUtils {
     HAS_IDL_CYCLE_DEF_SUPPORT = hasIDLCycleSupp;
   }
 
-
-  private static final JsonFactory JSON_FACT = new JsonFactory();
 
   public static final BiConsumer<Schema, Schema> SCHEMA_ESENTIALS
           = (a, b) -> {
@@ -210,9 +207,9 @@ public final class SchemaUtils {
   public static JsonGenerator createJsonGenerator(final Appendable appendable) throws IOException {
     JsonGenerator jsonGen;
     if (appendable instanceof Writer) {
-      jsonGen = JSON_FACT.createJsonGenerator((Writer) appendable);
+      jsonGen = Schema.FACTORY.createGenerator((Writer) appendable);
     } else {
-      jsonGen = JSON_FACT.createJsonGenerator(new AppendableWriter(appendable));
+      jsonGen = Schema.FACTORY.createGenerator(new AppendableWriter(appendable));
     }
     return jsonGen;
   }
@@ -232,7 +229,7 @@ public final class SchemaUtils {
       Schema schema = iterator.next();
       iterator.remove();
       StringWriter schemaIdrStr = new StringWriter();
-      JsonGenerator jsonGen = JSON_FACT.createJsonGenerator(schemaIdrStr);
+      JsonGenerator jsonGen = Schema.FACTORY.createGenerator(schemaIdrStr);
       Set<Schema> orig = new HashSet<>(toDeclare);
       writeSchema(schema, schemaIdrStr, jsonGen, protocolNameSpace, alreadyDeclared, toDeclare);
       idlRepresentation.put(schema, schemaIdrStr.toString());

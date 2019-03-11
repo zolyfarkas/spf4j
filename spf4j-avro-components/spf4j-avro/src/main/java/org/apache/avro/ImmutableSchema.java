@@ -31,6 +31,8 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +40,6 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
 
 /**
  * @author zoly
@@ -246,7 +246,7 @@ public final class ImmutableSchema extends Schema {
   }
 
   @Override
-  void toJson(final Names names, final JsonGenerator gen) throws IOException {
+  public void toJson(final Names names, final JsonGenerator gen) throws IOException {
     wrapped.toJson(names, gen);
   }
 
