@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -47,7 +48,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
-import org.codehaus.jackson.JsonGenerator;
 import org.spf4j.io.AppendableWriter;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
@@ -256,7 +256,7 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   public synchronized void writeJsonTo(final Appendable appendable) throws IOException {
-    JsonGenerator gen = Json.FACTORY.createJsonGenerator(new AppendableWriter(appendable));
+    JsonGenerator gen = Json.FACTORY.createGenerator(new AppendableWriter(appendable));
     gen.setCodec(Json.MAPPER);
     gen.writeStartObject();
     gen.writeFieldName("name");

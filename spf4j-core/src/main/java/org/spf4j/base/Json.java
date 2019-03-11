@@ -31,16 +31,16 @@
  */
 package org.spf4j.base;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
 import java.util.ServiceLoader;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.Module;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.module.SimpleModule;
 
 /**
  * @author Zoltan Farkas
@@ -55,7 +55,7 @@ public final class Json {
 
   static {
     FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-    SimpleModule module = new SimpleModule("spf4j", new org.codehaus.jackson.Version(1, 0, 0, ""));
+    SimpleModule module = new SimpleModule("spf4j");
     loadServices(module);
     module.addSerializer(JsonWriteable.class, jsonWritableSerializer());
     MAPPER.registerModule(module);
