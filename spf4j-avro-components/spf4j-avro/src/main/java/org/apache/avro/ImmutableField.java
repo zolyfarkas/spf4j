@@ -31,6 +31,8 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.Beta;
 import java.io.IOException;
 import java.util.Map;
@@ -39,8 +41,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.apache.avro.Schema.Field;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
 
 /**
  * @author zoly
