@@ -15,13 +15,12 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema.Names;
-import org.codehaus.jackson.JsonGenerator;
-import org.spf4j.base.Json;
 
 /**
  *
@@ -74,7 +73,7 @@ public final class SchemaRefWriter {
   }
 
   public static void write(final Schema schema, final OutputStream os) throws IOException {
-    JsonGenerator jgen = Json.FACTORY.createJsonGenerator(os);
+    JsonGenerator jgen = Schema.FACTORY.createGenerator(os);
     schema.toJson(SCHEMA_REFS_SUPORTED ? new NamesExt(schema.getFullName()) : new Names(), jgen);
     jgen.flush();
   }

@@ -31,6 +31,8 @@
  */
 package org.spf4j.log;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,8 +42,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParser;
 import org.slf4j.Marker;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.Json;
@@ -111,7 +111,7 @@ public final class LogAttribute<T> extends Pair<String, T>
 
   @Override
   public void writeJsonTo(final Appendable appendable) throws IOException {
-    JsonGenerator gen = Json.FACTORY.createJsonGenerator(new AppendableWriter(appendable));
+    JsonGenerator gen = Json.FACTORY.createGenerator(new AppendableWriter(appendable));
     gen.setCodec(Json.MAPPER);
     writeJsonTo(gen);
     gen.flush();
@@ -126,7 +126,7 @@ public final class LogAttribute<T> extends Pair<String, T>
 
   public static LogAttribute<Object> fromJson(final CharSequence jsonStr) {
     try {
-      JsonParser parser = Json.FACTORY.createJsonParser(CharSequences.reader(jsonStr));
+      JsonParser parser = Json.FACTORY.createParser(CharSequences.reader(jsonStr));
       parser.setCodec(Json.MAPPER);
       Map<String, Object> val = parser.readValueAs(Map.class);
       return fromMap(val);
