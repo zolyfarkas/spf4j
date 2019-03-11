@@ -81,15 +81,11 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
   private final TimedSupplier<RetryPredicate<T, C>> retryPredSupplier;
 
-  private final RetryPolicy.Builder builder;
-
   private final int maxExceptionChain;
 
   RetryPolicy(final TimedSupplier<RetryPredicate<T, C>> retryPredicate,
-          final RetryPolicy.Builder builder,
           final int maxExceptionChain) {
     this.retryPredSupplier = retryPredicate;
-    this.builder = builder;
     this.maxExceptionChain = maxExceptionChain;
   }
 
@@ -101,9 +97,6 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     return (RetryPolicy<T, C>) DEFAULT;
   }
 
-  public final Builder getBuilder() {
-    return builder.copy();
-  }
 
   @Override
   public final <R extends T, W extends C, EX extends Exception> R call(
@@ -382,7 +375,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
               = (s, e) -> new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
               (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
-      return new RetryPolicy<>(retryPredicate, this.copy(), maxExceptionChain);
+      return new RetryPolicy<>(retryPredicate, maxExceptionChain);
     }
 
     @CheckReturnValue
