@@ -35,6 +35,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.spf4j.test.log.TestUtils;
 
@@ -46,7 +47,7 @@ public class TimingTest {
 
   @Test
   public void testTiming() {
-    Assert.assertFalse(TestUtils.isExecutedInTravis());
+    Assume.assumeFalse(TestUtils.isExecutedInTravis());
     long nanoTime = TimeSource.nanoTime();
     Instant inst = Instant.now();
     Timing currentTiming = Timing.getCurrentTiming();
