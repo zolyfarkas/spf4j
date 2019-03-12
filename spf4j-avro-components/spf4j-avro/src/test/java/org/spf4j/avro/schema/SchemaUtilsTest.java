@@ -67,6 +67,7 @@ public class SchemaUtilsTest {
     String idlStr = idlStrWriter.toString();
     Assert.assertFalse(idlStr.isEmpty());
     Idl idl = new Idl(new StringReader(idlStr));
+    idl.setSource("");
     Protocol protocol = idl.CompilationUnit();
     LOG.debug("Protocol = {}", protocol);
     Schema rs2 = protocol.getType("test.TestRecord2");
@@ -92,6 +93,7 @@ public class SchemaUtilsTest {
     String idlStr = idlStrWriter.toString();
     Assert.assertFalse(idlStr.isEmpty());
     Idl idl = new Idl(new StringReader(idlStr));
+    idl.setSource("");
     Protocol protocol = idl.CompilationUnit();
     LOG.debug("Protocol = {}", protocol);
     Schema rs2 = protocol.getType("test.TestRecord2");
