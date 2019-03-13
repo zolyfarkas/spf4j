@@ -115,6 +115,10 @@ public final class LogPrinter {
     this(DateTimeFormatter.ISO_INSTANT, Charset.defaultCharset());
   }
 
+  public LogPrinter(final Charset charset) {
+    this(DateTimeFormatter.ISO_INSTANT, charset);
+  }
+
   public LogPrinter(final DateTimeFormatter fmt, final Charset charset) {
     this.fmt = fmt;
     this.toStringer = new ConfigurableAppenderSupplier();
