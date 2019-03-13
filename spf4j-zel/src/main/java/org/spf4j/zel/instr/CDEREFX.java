@@ -36,13 +36,13 @@ import static org.spf4j.zel.instr.DEREF.pushDeref;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-public final class DEREFX extends Instruction {
+public final class CDEREFX extends Instruction {
 
   private static final long serialVersionUID = 1L;
 
   private final Object ref;
 
-  public DEREFX(final Object ref) {
+  public CDEREFX(final Object ref) {
     this.ref = ref;
   }
 
@@ -50,7 +50,11 @@ public final class DEREFX extends Instruction {
   public int execute(final ExecutionContext context)
           throws SuspendedException, ExecutionException {
     Object relativeTo = context.popSyncStackVal();
-    pushDeref(relativeTo, ref, context);
+    if (relativeTo != null) {
+      pushDeref(relativeTo, ref, context);
+    } else {
+      context.pushNull();
+    }
     return 1;
   }
 

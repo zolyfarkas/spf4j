@@ -313,6 +313,22 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     }
   }
 
+  public Object peekSyncStackVal() throws SuspendedException, ExecutionException {
+    Object result = this.stack.peek();
+    if (result instanceof VMFuture<?>) {
+      final VMFuture<Object> resFut = (VMFuture<Object>) result;
+      Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+      if (resultStore != null) {
+        return Either.processResult(resultStore);
+      } else {
+        suspend(resFut);
+        throw new IllegalThreadStateException();
+      }
+    } else {
+      return result;
+    }
+  }
+
   public void syncStackVal() throws SuspendedException, ExecutionException {
     Object result = this.stack.peek();
     if (result instanceof VMFuture<?>) {
@@ -452,6 +468,10 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
   public void push(@Nullable final Object obj) {
     this.stack.push(obj);
+  }
+
+  public void pushNull() {
+    this.stack.pushNull();
   }
 
   public void pushAll(final Object[] objects) {

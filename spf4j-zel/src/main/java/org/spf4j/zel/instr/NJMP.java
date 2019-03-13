@@ -32,30 +32,37 @@
 package org.spf4j.zel.instr;
 
 import java.util.concurrent.ExecutionException;
-import static org.spf4j.zel.instr.DEREF.pushDeref;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-public final class DEREFX extends Instruction {
+/**
+ * Jump to a address is top of the stack is null. (Null jump)
+ * @author Zoltan Farkas
+ */
+public final class NJMP extends Instruction {
 
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 584597000187469774L;
 
-  private final Object ref;
+  private final int relAddr;
 
-  public DEREFX(final Object ref) {
-    this.ref = ref;
+  public NJMP(final int relAddr) {
+    this.relAddr = relAddr;
   }
 
   @Override
   public int execute(final ExecutionContext context)
           throws SuspendedException, ExecutionException {
-    Object relativeTo = context.popSyncStackVal();
-    pushDeref(relativeTo, ref, context);
-    return 1;
+    Object obj =  context.peekSyncStackVal();
+    if (obj == null) {
+      return relAddr;
+    } else {
+      return 1;
+    }
   }
 
   @Override
   public Object[] getParameters() {
-    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    return new Object[]{relAddr};
   }
+
 }

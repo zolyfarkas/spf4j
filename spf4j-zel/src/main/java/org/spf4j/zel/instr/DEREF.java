@@ -42,126 +42,122 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 public final class DEREF extends Instruction {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new DEREF();
+  public static final Instruction INSTANCE = new DEREF();
 
-    private static final CachingTypeMapWrapper<ReferenceHandler> TYPE_HANDLER =
-            new CachingTypeMapWrapper<>(new GraphTypeMap());
+  private static final CachingTypeMapWrapper<ReferenceHandler> TYPE_HANDLER
+          = new CachingTypeMapWrapper<>(new GraphTypeMap());
 
+  static {
+    TYPE_HANDLER.safePut(Map.class,
+            (Object relativeTo, Object ref, ExecutionContext context)
+            -> context.push(((Map) relativeTo).get(ref)))
+            .safePut(GenericRecord.class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> context.push(((GenericRecord) relativeTo).get(ref.toString())))
+            .safePut(Object.class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> context.push(new JavaMethodCall(relativeTo, (String) ref)))
+            .safePut(Object[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((Object[]) relativeTo).length);
+              } else {
+                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(int[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((int[]) relativeTo).length);
+              } else {
+                context.push(((int[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(byte[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((byte[]) relativeTo).length);
+              } else {
+                context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(char[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((char[]) relativeTo).length);
+              } else {
+                context.push(((char[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(long[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((long[]) relativeTo).length);
+              } else {
+                context.push(((long[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(short[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((short[]) relativeTo).length);
+              } else {
+                context.push(((short[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(List.class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((List) relativeTo).size());
+              } else {
+                context.push(((List) relativeTo).get(((Number) ref).intValue()));
+              }
+            });
+  }
 
-    static {
-      TYPE_HANDLER.safePut(Map.class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-                      -> context.push(((Map) relativeTo).get(ref)))
-      .safePut(GenericRecord.class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-                      -> context.push(((GenericRecord) relativeTo).get(ref.toString())))
-      .safePut(Object.class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-                      ->  context.push(new JavaMethodCall(relativeTo, (String) ref)))
-      .safePut(Object[].class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((Object[]) relativeTo).length);
-        } else {
-          context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);
-        }
-      })
-      .safePut(int[].class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((int[]) relativeTo).length);
-        } else {
-          context.push(((int[]) relativeTo)[((Number) ref).intValue()]);
-        }
-      })
-      .safePut(byte[].class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((byte[]) relativeTo).length);
-        } else {
-          context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);
-        }
-      })
-      .safePut(char[].class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((char[]) relativeTo).length);
-        } else {
-          context.push(((char[]) relativeTo)[((Number) ref).intValue()]);
-        }
-      })
-      .safePut(long[].class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((long[]) relativeTo).length);
-        } else {
-          context.push(((long[]) relativeTo)[((Number) ref).intValue()]);
-        }
-      })
-      .safePut(short[].class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((short[]) relativeTo).length);
-        } else {
-          context.push(((short[]) relativeTo)[((Number) ref).intValue()]);
-        }
-      })
-      .safePut(List.class,
-              (Object relativeTo, Object ref, ExecutionContext context)
-              -> {
-        if ("length".equals(ref)) {
-          context.push(((List) relativeTo).size());
-        } else {
-          context.push(((List) relativeTo).get(((Number) ref).intValue()));
-        }
-      });
-    }
+  interface ReferenceHandler {
 
-    interface ReferenceHandler {
-      void pushDeref(Object relativeTo, Object ref, ExecutionContext context);
-    }
+    void pushDeref(Object relativeTo, Object ref, ExecutionContext context);
+  }
 
+  private DEREF() {
+  }
 
-    private DEREF() {
-    }
+  public static void registerTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
+    TYPE_HANDLER.safePut(type, refHandler);
+  }
 
+  public static synchronized void replaceTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
+    TYPE_HANDLER.replace(type, (x) -> refHandler);
+  }
 
-    public static void registerTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
-      TYPE_HANDLER.safePut(type, refHandler);
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, SuspendedException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    pushDeref(vals[0], vals[1], context);
+    return 1;
+  }
 
-   public static synchronized void replaceTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
-     TYPE_HANDLER.replace(type, (x) -> refHandler);
-    }
+  static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
+    ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());
+    rh.pushDeref(relativeTo, ref, context);
+  }
 
-
-    @Override
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, SuspendedException {
-       final Object[] vals = context.tuple();
-       context.popSyncStackVals(vals);
-       pushDeref(vals[0], vals[1], context);
-       return 1;
-    }
-
-    static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
-      ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());
-      rh.pushDeref(relativeTo, ref, context);
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

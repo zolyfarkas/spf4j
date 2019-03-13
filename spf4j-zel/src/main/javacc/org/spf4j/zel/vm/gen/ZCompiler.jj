@@ -146,10 +146,12 @@ TOKEN :
   |	< RPAREN: ")" >
   |	< LBRACE: "{" >
   |	< RBRACE: "}" >
+  |	< CLBRACKET: "?[" >
   |	< LBRACKET: "[" >
   |	< RBRACKET: "]" >
   |	< COMMA: "," >
   |	< DOT: "." >
+  |	< CDOT: "?." >
   |	< CONTEXT: "context">
   |	< RETURN: ("return" | "ret")>
   |	< MEMORY: ("memory" | "mem")>
@@ -733,13 +735,14 @@ void exponent(ParsingContext context) :
 }
 
 /**
- * Async invocation operator: &
+ * Method invocation + dereferencing.
  */
 void unaryPost(ParsingContext context) :
 {
  Location loc = null;
  boolean asyncForce = false;
  int nrParams = 0;
+ ParsingContext sCtx = null;
 }
 {
      unary(context, true) {loc = new Location(token.beginLine, token.beginColumn);}
@@ -751,8 +754,18 @@ void unaryPost(ParsingContext context) :
             context.generateCode(loc, new org.spf4j.zel.instr.CALL(nrParams));
           }})
       | 
-	(((<DOT> <ID> {context.generateCode(loc, new org.spf4j.zel.instr.DEREFX(token.image));} ) |
-        (<LBRACKET> expression(context) <RBRACKET> {context.generateCode(loc, org.spf4j.zel.instr.DEREF.INSTANCE);} )))
+       (<DOT> <ID> {context.generateCode(loc, new org.spf4j.zel.instr.DEREFX(token.image));})
+      |
+       (<CDOT> <ID> {context.generateCode(loc, new org.spf4j.zel.instr.CDEREFX(token.image));})
+      |
+       (<LBRACKET> expression(context) <RBRACKET> {context.generateCode(loc, org.spf4j.zel.instr.DEREF.INSTANCE);})
+      |
+       (<CLBRACKET>
+          {sCtx = (ParsingContext) context.createSubContext();}
+           expression(sCtx) <RBRACKET>
+         {context.generateCode(loc, new org.spf4j.zel.instr.NJMP(sCtx.getAddress() + 2));
+          context.generateCodeAll(sCtx);
+          context.generateCode(loc, org.spf4j.zel.instr.DEREF.INSTANCE);})
      ) *
 }
 
@@ -850,7 +863,7 @@ void constant(ParsingContext context) :
     |  <CHARACTER>
       {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(token.image.substring(1, token.image.length()-1)));}
     |  <NULL>
-      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(ResultCache.NULL));}
+      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(null));}
     |  <STRING>
       {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));}
     |  <MATCHEXP>

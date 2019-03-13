@@ -101,6 +101,12 @@ public class SimpleStackNullSupport<T>
     top = t;
   }
 
+  public final void pushNull() {
+    int t = top + 1;
+    ensureCapacity(t);
+    top = t;
+  }
+
   public final int pushAndGetIdx(final T o) {
     int t = top;
     top++;
