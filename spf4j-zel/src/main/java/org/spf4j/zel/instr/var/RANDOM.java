@@ -31,22 +31,21 @@
  */
 package org.spf4j.zel.instr.var;
 
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ThreadLocalRandom;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
-
 public final class RANDOM implements Method {
 
-    public static final Method INSTANCE = new RANDOM();
+  public static final Method INSTANCE = new RANDOM();
 
-    private RANDOM() {
-    }
+  private RANDOM() {
+  }
 
-    @Override
-    @SuppressFBWarnings("PREDICTABLE_RANDOM")
-    public Object invoke(final ExecutionContext context, final Object[] parameters) {
-        return Math.random();
-    }
+  @Override
+  @SuppressFBWarnings("PREDICTABLE_RANDOM")
+  public Object invoke(final ExecutionContext context, final Object[] parameters) {
+    return ThreadLocalRandom.current().nextDouble();
+  }
 }

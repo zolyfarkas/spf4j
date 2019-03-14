@@ -81,7 +81,8 @@ public final class CALL extends Instruction {
             Object[] parameters = context.popSyncStackVals(nrParameters);
             context.pop();
             try {
-                context.push(((Method) function).invoke(context, parameters));
+              Object result = ((Method) function).invoke(context, parameters);
+              context.push(result);
             } catch (RuntimeException ex) {
                 throw new ZExecutionException("cannot invoke " + function, ex);
             }

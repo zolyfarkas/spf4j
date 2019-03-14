@@ -54,6 +54,6 @@ public final class OUT implements Method {
                out.print(obj);
             }
         }
-        return null;
+        return ExecutionContext.VOID;
     }
 }
