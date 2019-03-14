@@ -33,6 +33,7 @@ package org.spf4j.base.avro;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.spf4j.base.Throwables;
@@ -146,12 +147,9 @@ public final class AThrowables {
       to.append("[^]");
       return;
     }
+    PackageInfo presPackageInfo = previous == null ? null : previous.getPackageInfo();
     org.spf4j.base.avro.PackageInfo pInfo = element.getPackageInfo();
-    if (pInfo == null) {
-      pInfo = org.spf4j.base.PackageInfo.NONE;
-    }
-    if (abbreviatedTraceElement && prevClassName != null
-            && pInfo.equals(org.spf4j.base.PackageInfo.getPackageInfo(prevClassName))) {
+    if (abbreviatedTraceElement  && Objects.equals(pInfo, presPackageInfo)) {
       to.append("[^]");
       return;
     }
