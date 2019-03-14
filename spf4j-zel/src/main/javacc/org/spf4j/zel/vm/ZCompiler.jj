@@ -44,7 +44,7 @@ options {
 
 PARSER_BEGIN(ZCompiler)
 
-package org.spf4j.zel.vm.gen;
+package org.spf4j.zel.vm;
 
 import java.util.*;
 import java.math.*;
@@ -63,9 +63,7 @@ public class ZCompiler
 
     public static void compile(String source, String xpr, ParsingContext context) throws ParseException
     {
-        ZCompiler parser = new ZCompiler(new java.io.StringReader(xpr));
-        parser.source = source;
-        parser.mainprogram(context);
+       compile(source, new java.io.StringReader(xpr), context);
     }
 
    /**
@@ -74,9 +72,30 @@ public class ZCompiler
     public static void compile(String source, InputStream is, Charset charset, ParsingContext context)
          throws ParseException
     {
-        ZCompiler parser = new ZCompiler(new java.io.InputStreamReader(is, charset));
+        compile(source, new java.io.InputStreamReader(is, charset), context);
+    }
+
+   /**
+     * Compile a ZEL expression from Stream.
+     */
+    public static void compile(String source, java.io.Reader reader, ParsingContext context)
+         throws ParseException
+    {
+        ZCompiler parser = new ZCompiler(reader);
         parser.source = source;
         parser.mainprogram(context);
+    }
+
+   /**
+     * Compile a ZEL expression predicate from Stream.
+     *
+     */
+    public static void compilePredicate(String source, java.io.Reader reader, ParsingContext context)
+         throws ParseException
+    {
+        ZCompiler parser = new ZCompiler(reader);
+        parser.source = source;
+        parser.logical(context);
     }
 
     private String source;
@@ -340,7 +359,6 @@ void mainprogram(ParsingContext context) :
 }
 { 
  program(context)
- {context.generateCode(new Location(token.beginLine, token.beginColumn), org.spf4j.zel.instr.HALT.INSTANCE);}
  <EOF>
 }
 
@@ -464,7 +482,7 @@ void programBlockStatic(ParsingContext context) :
      try {
        eloc = new Location(token.beginLine, token.beginColumn);
        Program program = subCtx.getProgramBuilder().toProgram("block", source, org.spf4j.base.Arrays.EMPTY_STRING_ARRAY);
-       context.generateCode(program.getDebugInfo(), program.getCode());
+       context.generateCode(program.getDebugInfoInternal(), program.getCodeInternal());
      } catch (CompileException ex) {
        throw new ParseException(ex.getMessage());
      }
@@ -480,15 +498,10 @@ void programBlockStatic(ParsingContext context) :
 ParsingContext programBlock(ParsingContext context) :
 {
   ParsingContext subCtx = context.createSubContext();
-  Location sloc = null;
-  Location eloc = null;
 }
 {
-  {sloc = new Location(token.beginLine, token.beginColumn);}
   <LBRACE> program(subCtx) <RBRACE> 
  {
-    eloc = new Location(token.beginLine, token.beginColumn);
-    subCtx.generateCode(eloc, org.spf4j.zel.instr.HALT.INSTANCE);
     return subCtx;
  }
 }

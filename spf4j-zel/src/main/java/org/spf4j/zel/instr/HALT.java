@@ -49,8 +49,7 @@ public final class HALT extends Instruction {
 
     @Override
     public int execute(final ExecutionContext context) {
-        context.terminate();
-        return 0;
+        return context.getProgram().size(); // get you end.
     }
 
     @Override

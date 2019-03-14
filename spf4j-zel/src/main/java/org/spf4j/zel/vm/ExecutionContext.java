@@ -66,14 +66,6 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
   };
 
-  public static final Object NULL = new Object() {
-    @Override
-    public String toString() {
-      return "NULL";
-    }
-
-  };
-
   private final Object[] tuple = new Object[2];
 
   @Nonnull
@@ -96,11 +88,6 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
    * The Instruction pointer
    */
   private int ip;
-
-  /**
-   * The halt register
-   */
-  private boolean terminated;
 
   /**
    * The main stack
@@ -205,7 +192,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   }
 
   public void terminate() {
-    terminated = true;
+    ip = code.size();
   }
 
   // TODO: Need to employ Either here
@@ -263,8 +250,9 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     suspendedAt = null;
     Operator.MATH_CONTEXT.set(getMathContext());
     Instruction[] instructions = code.getInstructions();
+    int l = instructions.length;
     try {
-      while (!terminated) {
+      while (ip < l) {
         Instruction icode = instructions[ip];
         ip += icode.execute(ExecutionContext.this);
       }
@@ -530,7 +518,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
             + ",\nlocalSymbolTable=" + code.getLocalSymbolTable()
             + ",\nglobalMem=" + Arrays.toString(globalMem)
             + ",\nglobalSymbolTable=" + code.getGlobalSymbolTable()
-            + ",\ncode=" + code + ", ip=" + ip + ", terminated=" + terminated
+            + ",\ncode=" + code + ", ip=" + ip
             + ",\nstack=" + stack + ", io=" + io + '}';
   }
 

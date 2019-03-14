@@ -44,8 +44,6 @@ import javax.annotation.Nullable;
  */
 public interface ResultCache {
 
-    Object NULL = new Object();
-
     void putPermanentResult(Program program, @Nonnull List<Object> params, @Nullable Object result);
 
     void putTransientResult(Program program, @Nonnull List<Object> params,  @Nullable Object result);

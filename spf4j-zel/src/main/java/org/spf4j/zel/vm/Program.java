@@ -47,11 +47,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.base.CharSequences;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
@@ -67,9 +69,6 @@ import org.spf4j.zel.instr.var.OUT;
 import org.spf4j.zel.instr.var.RANDOM;
 import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.ParsingContext.Location;
-import org.spf4j.zel.vm.gen.ParseException;
-import org.spf4j.zel.vm.gen.TokenMgrError;
-import org.spf4j.zel.vm.gen.ZCompiler;
 
 /**
  * <p> A ZEL program (function)</p>
@@ -127,6 +126,7 @@ public final class Program implements Serializable {
   private final Map<String, Integer> localSymbolTable;
   private final Map<String, Integer> globalSymbolTable;
   private final String name;
+  private final String[] parameterNames;
 
 //CHECKSTYLE:OFF
   Program(final String name, final Map<String, Integer> globalTable, final Object[] globalMem,
@@ -150,6 +150,7 @@ public final class Program implements Serializable {
     this.debug = debug;
     this.source = source;
     this.name = name;
+    this.parameterNames = parameterNames;
   }
 
   //CHECKSTYLE:OFF
@@ -157,7 +158,7 @@ public final class Program implements Serializable {
           final Map<String, Integer> localTable,
           @Nonnull final Instruction[] instructions, final Location[] debug, final String source,
           final Type progType, final ExecutionType execType,
-          final boolean hasDeterministicFunctions) {
+          final boolean hasDeterministicFunctions, final String... parameterNames) {
     //CHECKSTYLE:ON
     this.globalMem = globalMem;
     this.instructions = instructions;
@@ -171,6 +172,7 @@ public final class Program implements Serializable {
     this.debug = debug;
     this.source = source;
     this.name = name;
+    this.parameterNames = parameterNames;
   }
 
   Location[] getDebug() {
@@ -183,6 +185,14 @@ public final class Program implements Serializable {
 
   public String getName() {
     return name;
+  }
+
+  public String[] getParameterNames() {
+    return parameterNames.clone();
+  }
+
+  String[] getParameterNamesInternal() {
+    return parameterNames.clone();
   }
 
   private static Map<String, Integer> buildLocalSymTable(final Instruction[] instructions,
@@ -267,18 +277,23 @@ public final class Program implements Serializable {
   }
 
   @CheckReturnValue
-  Object[] toArray() {
+  public Instruction[] getCode() {
     return instructions.clone();
   }
 
   @CheckReturnValue
-  public Instruction[] getCode() {
-    return Arrays.copyOf(instructions, instructions.length - 1);
+  Instruction[] getCodeInternal() {
+    return instructions;
+  }
+
+  @CheckReturnValue
+  Location[] getDebugInfoInternal() {
+    return debug;
   }
 
   @CheckReturnValue
   public Location[] getDebugInfo() {
-    return Arrays.copyOf(debug, debug.length - 1);
+    return debug.clone();
   }
 
   @CheckReturnValue
@@ -304,6 +319,22 @@ public final class Program implements Serializable {
     Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varNames));
     ZelFrame.annotate(srcId, result);
     return result;
+  }
+
+
+  @Nonnull
+  public static <T> Predicate<T> compilePredicate(@Nonnull final CharSequence zExpr, @Nonnull final String varName)
+          throws CompileException {
+    ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
+    final String srcId = ZelFrame.newSource(zExpr);
+    try {
+      ZCompiler.compilePredicate(srcId, CharSequences.reader(zExpr), cc);
+    } catch (TokenMgrError | ParseException err) {
+      throw new CompileException(err);
+    }
+    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varName));
+    ZelFrame.annotate(srcId, result);
+    return result.toPredicate();
   }
 
   static Program compile(@Nonnull final String zExpr,
@@ -332,6 +363,19 @@ public final class Program implements Serializable {
 
   public Object execute(final Object... args) throws ExecutionException, InterruptedException {
     return execute(ProcessIOStreams.DEFAULT, args);
+  }
+
+  public <T> Predicate<T> toPredicate() {
+    if (parameterNames.length != 1) {
+      throw new UnsupportedOperationException("Not a predicate " + this);
+    }
+    return (T arg) -> {
+      try {
+        return (Boolean) execute((Object) arg);
+      } catch (ExecutionException | InterruptedException ex) {
+        throw new RuntimeException(ex);
+      }
+    };
   }
 
   public Object execute(@Nonnull final ExecutorService execService,
@@ -473,12 +517,13 @@ public final class Program implements Serializable {
   public String toAssemblyString() {
     StringBuilder result = new StringBuilder();
     result.append("Program: \n");
+    int toPad = Integer.toString(instructions.length).length();
     for (int i = 0; i < instructions.length; i++) {
       Object obj = instructions[i];
-      result.append(Strings.padEnd(Integer.toString(i), 8, ' '));
+      result.append(Strings.padEnd(Integer.toString(i), toPad, ' '));
       result.append(':');
       result.append(obj);
-      result.append('\n');
+      result.append(',');
     }
     result.append("execType = ").append(this.execType).append('\n');
     result.append("type = ").append(this.type).append('\n');

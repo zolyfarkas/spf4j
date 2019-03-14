@@ -57,7 +57,7 @@ public final class ZelFrame implements Serializable {
 
   private final int index;
 
-  public static String newSource(final String sourceDetail) {
+  public static String newSource(final CharSequence sourceDetail) {
     String id = "zel_" + IDX.getAndIncrement();
     SOURCES.put(id, CharSequences.toLineNumbered(0, sourceDetail));
     return id;

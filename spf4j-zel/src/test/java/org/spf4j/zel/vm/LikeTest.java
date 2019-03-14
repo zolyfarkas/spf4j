@@ -32,6 +32,7 @@
 package org.spf4j.zel.vm;
 
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -69,5 +70,12 @@ public final class LikeTest {
     Assert.assertTrue(result);
   }
 
+
+  @Test
+  public void test4() throws CompileException {
+    Predicate<Object> pred = Program.compilePredicate("a case-insensitive like '.*bula.*'", "a");
+    LOG.debug("Program = {}", pred);
+    Assert.assertTrue(pred.test("balaBULAn"));
+  }
 
 }

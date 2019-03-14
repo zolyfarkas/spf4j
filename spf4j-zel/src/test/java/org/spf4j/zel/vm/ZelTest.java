@@ -292,7 +292,7 @@ public final class ZelTest {
   @Test
   public void testFor() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x = 0; for i=0; i < 10; i++ {out(i); x = x + i}; x ");
-    LOG.debug("Program = {}", p);
+    LOG.debug("Program = {}", p.toAssemblyString());
     Integer result = (Integer) p.execute(1);
     Assert.assertEquals(45, result.intValue());
   }
@@ -329,7 +329,7 @@ public final class ZelTest {
   @Test
   public void testMultiAssignement() throws CompileException, ExecutionException, InterruptedException {
     Program p = Program.compile("x, y, z = {1, 2, 3}; ret y");
-    LOG.debug("Program = {}", p);
+    LOG.debug("Program = {}", p.toAssemblyString());
     Integer result = (Integer) p.execute();
     Assert.assertEquals(2, result.intValue());
   }

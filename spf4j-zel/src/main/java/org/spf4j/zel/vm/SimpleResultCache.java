@@ -53,101 +53,101 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
 @ThreadSafe
 public final class SimpleResultCache implements ResultCache {
 
-    private final LoadingCache<Program,
-            Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> cache;
+  private static final Object NULL = new Object();
 
+  private final LoadingCache<Program,
+          Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> cache;
 
-        static class CacheLoaderImpl extends
-            CacheLoader<Program,
-            Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> {
+  static class CacheLoaderImpl extends
+          CacheLoader<Program,
+          Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>> {
 
-        private final int maxSize;
+    private final int maxSize;
 
-        CacheLoaderImpl(final int maxSize) {
-            this.maxSize = maxSize;
-        }
-
-        @Override
-        public Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> load(
-                final Program key) throws Exception {
-            Cache<List<Object>, Object> trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
-            return Pair.of(new ConcurrentHashMap<List<Object>, Object>(), trCache);
-        }
-    }
-
-    public SimpleResultCache() {
-        this(100000);
-    }
-
-    public SimpleResultCache(final int maxSize) {
-        cache = new UnboundedLoadingCache<Program,
-                Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>>(16,
-                new CacheLoaderImpl(maxSize));
+    CacheLoaderImpl(final int maxSize) {
+      this.maxSize = maxSize;
     }
 
     @Override
-    public void putPermanentResult(final Program program,
-            @Nonnull final List<Object> params, final Object result) {
-        final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> resultsMap =
-                cache.getUnchecked(program);
-        if (result == null) {
-            resultsMap.getFirst().put(params, ResultCache.NULL);
-        } else {
-            resultsMap.getFirst().put(params, result);
-        }
+    public Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> load(
+            final Program key) throws Exception {
+      Cache<List<Object>, Object> trCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+      return Pair.of(new ConcurrentHashMap<List<Object>, Object>(), trCache);
+    }
+  }
+
+  public SimpleResultCache() {
+    this(100000);
+  }
+
+  public SimpleResultCache(final int maxSize) {
+    cache = new UnboundedLoadingCache<Program,
+            Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>>>(16,
+            new CacheLoaderImpl(maxSize));
+  }
+
+  @Override
+  public void putPermanentResult(final Program program,
+          @Nonnull final List<Object> params, final Object result) {
+    final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> resultsMap
+            = cache.getUnchecked(program);
+    if (result == null) {
+      resultsMap.getFirst().put(params, NULL);
+    } else {
+      resultsMap.getFirst().put(params, result);
+    }
+  }
+
+  @Override
+  public void putTransientResult(final Program program,
+          @Nonnull final List<Object> params, final Object result) {
+    final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> resultsMap
+            = cache.getUnchecked(program);
+    if (result == null) {
+      resultsMap.getSecond().put(params, NULL);
+    } else {
+      resultsMap.getSecond().put(params, result);
+    }
+  }
+
+  @Override
+  public Object getResult(final Program program,
+          @Nonnull final List<Object> params, final Callable<Object> compute)
+          throws ExecutionException {
+    final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> prCache
+            = cache.getUnchecked(program);
+    Object result = prCache.getFirst().get(params);
+    if (result == null) {
+      result = prCache.getSecond().get(params, new CallableNullWrapper(compute));
+    }
+    if (result == NULL) {
+      result = null;
+    }
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "SimpleResultCache{" + "cache=" + cache + '}';
+  }
+
+  private static class CallableNullWrapper implements Callable<Object> {
+
+    private final Callable<Object> compute;
+
+    CallableNullWrapper(final Callable<Object> compute) {
+      this.compute = compute;
     }
 
     @Override
-    public void putTransientResult(final Program program,
-            @Nonnull final  List<Object> params, final Object result) {
-        final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> resultsMap =
-                cache.getUnchecked(program);
-        if (result == null) {
-            resultsMap.getSecond().put(params, ResultCache.NULL);
-        } else {
-            resultsMap.getSecond().put(params, result);
-        }
-    }
-
-    @Override
-    public Object getResult(final Program program,
-            @Nonnull final List<Object> params, final Callable<Object> compute)
-            throws ExecutionException {
-        final Pair<? extends ConcurrentMap<List<Object>, Object>, ? extends Cache<List<Object>, Object>> prCache =
-                cache.getUnchecked(program);
-        Object result = prCache.getFirst().get(params);
-        if (result == null) {
-            result = prCache.getSecond().get(params, new CallableNullWrapper(compute));
-        }
-        if (result == ResultCache.NULL) {
-            result = null;
-        }
+    public Object call() throws Exception {
+      Object result = compute.call();
+      if (result == null) {
+        return NULL;
+      } else {
         return result;
+      }
     }
-
-    @Override
-    public String toString() {
-        return "SimpleResultCache{" + "cache=" + cache + '}';
-    }
-
-    private static class CallableNullWrapper implements Callable<Object> {
-
-        private final Callable<Object> compute;
-
-        CallableNullWrapper(final Callable<Object> compute) {
-            this.compute = compute;
-        }
-
-        @Override
-        public Object call() throws Exception {
-            Object result = compute.call();
-            if (result == null) {
-                return ResultCache.NULL;
-            } else {
-                return result;
-            }
-        }
-    }
-
+  }
 
 }

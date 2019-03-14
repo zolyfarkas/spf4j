@@ -120,8 +120,10 @@ public final class ProgramBuilder {
 
 
     public ProgramBuilder add(final Instruction object, final Location loc) {
-        ensureCapacity(instrNumber + 1);
-        instructions[instrNumber++] = object;
+        int nSize = instrNumber + 1;
+        ensureCapacity(nSize);
+        instructions[instrNumber] = object;
+        instrNumber = nSize;
         debugInfo.add(loc);
         return this;
     }
@@ -160,14 +162,6 @@ public final class ProgramBuilder {
     }
 
 
-
-    public ProgramBuilder set(final int idx, final Instruction object) {
-        ensureCapacity(idx + 1);
-        instructions[idx] = object;
-        instrNumber = Math.max(idx + 1, instrNumber);
-        return this;
-    }
-
     public ProgramBuilder addAll(final Instruction[] objects, final List<Location> debug) {
         ensureCapacity(instrNumber + objects.length);
         System.arraycopy(objects, 0, instructions, instrNumber, objects.length);
@@ -176,12 +170,6 @@ public final class ProgramBuilder {
         return this;
     }
 
-//    public ProgramBuilder setAll(final int idx, final Object[] objects) {
-//        ensureCapacity(idx + objects.length);
-//        System.arraycopy(objects, 0, instructions, idx, objects.length);
-//        instrNumber = Math.max(objects.length + idx, instrNumber);
-//        return this;
-//    }
 
     public ProgramBuilder addAll(final ProgramBuilder opb) {
         ensureCapacity(instrNumber + opb.instrNumber);
@@ -233,7 +221,7 @@ public final class ProgramBuilder {
         return hasAsyncCalls;
     }
 
-    public Program toProgram(final String name, final String source, final String[] parameterNames)
+    public Program toProgram(final String name, final String source, final String... parameterNames)
             throws CompileException {
        return toProgram(name, source, parameterNames, Collections.EMPTY_MAP);
     }

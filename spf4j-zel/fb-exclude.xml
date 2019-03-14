@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FindBugsFilter>
+
+     <Match>
+         <!-- PMB_INSTANCE_BASED_THREAD_LOCAL cannot be suppresed with annotation for whatever reason -->
+        <!-- CD_CIRCULAR_DEPENDENCY is nuts in fb-contrib 6.6.2 -->
+        <!-- CRLF_INJECTION_LOGS this is irelevant, devs need to use good log appenders. -->
+        <!-- RFI_SET_ACCESSIBLE ... JDK 10 suposedly will drop this functionality.... will re-enable when moving to JDK 9 -->
+        <!-- FII_USE_FUNCTION_IDENTITY has a lot of false positives that are fixed in next fb-contrib -->
+        <!-- LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS is a valid use case with my prefered backends -->
+       <Bug pattern="LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS,FII_USE_FUNCTION_IDENTITY,RFI_SET_ACCESSIBLE,CRLF_INJECTION_LOGS,BL_BURYING_LOGIC,CD_CIRCULAR_DEPENDENCY,EXS_EXCEPTION_SOFTENING_HAS_CHECKED,UVA_USE_VAR_ARGS,URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD,MOM_MISLEADING_OVERLOAD_MODEL,EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS,PMB_INSTANCE_BASED_THREAD_LOCAL,OPM_OVERLY_PERMISSIVE_METHOD,IMC_IMMATURE_CLASS_NO_EQUALS" />
+     </Match>
+
+    <Match>
+      <Class name="~.*Test([.].*)?"/>
+      <Bug category="SECURITY" />
+    </Match>
+
+    <Match>
+      <Class name="~.*Token.*"/>
+    </Match>
+
+    <Match>
+      <Class name="~.*ZCompiler.*"/>
+    </Match>
+
+    <Match>
+      <Class name="~.*ParseException([.].*)?"/>
+    </Match>
+
+    <Match>
+      <Class name="~.*JavaCharStream([.].*)?"/>
+    </Match>
+
+    <Match>
+      <Class name="~.*Test([.].*)?"/>
+      <Bug pattern="CE_CLASS_ENVY,SEC_SIDE_EFFECT_CONSTRUCTOR,SIC_INNER_SHOULD_BE_STATIC_ANON,BC_UNCONFIRMED_CAST,PREDICTABLE_RANDOM" />
+    </Match>
+
+
+</FindBugsFilter>

@@ -75,7 +75,7 @@ public final class RefOptimizer implements Function<Program, Program> {
                     input.getGlobalMem(), input.getLocalSymbolTable(),
                     instructions, input.getDebug(), input.getSource(),
                     input.getType(), input.getExecType(),
-                    input.hasDeterministicFunctions());
+                    input.hasDeterministicFunctions(), input.getParameterNamesInternal());
     }
 
     private static Address getAddress(final Map<String, Integer> lsym,
