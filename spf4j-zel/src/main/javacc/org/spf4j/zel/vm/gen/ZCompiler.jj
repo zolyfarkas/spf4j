@@ -126,9 +126,12 @@ TOKEN :
   |	< DIVIDE: "/" >
   |	< MOD: "%" >
   |	< POW: "**" >
-  |	< AND: "&&" >
+  |	< AND: ("&&" | "and") >
+  |	< CASE_INS: "case-insensitive" >
+  |	< MULTI_LINE: "multi-line" >
   |	< SAND: "&" >
-  |	< OR: "||" >
+  |	< OR: ( "||" | "or") >
+  |      < LIKE: "like" >
   |	< PIPE: "|" >
   |	< GT: ">" >
   |	< LT: "<" >
@@ -648,10 +651,11 @@ void logical(ParsingContext context) :
  */
 
 void compare(ParsingContext context) :
-{Token x;}
+{Token x;
+ int option = 0;}
 {
     sum(context) (
-	( x = <GT> | x = <LT> | x = <GE> | x = <LE> | x = <EQ> | x = <NEQ> )  sum(context)
+	(( x = <GT> | x = <LT> | x = <GE> | x = <LE> | x = <EQ> | x = <NEQ> )  sum(context)
 	{
 	    switch (x.kind) {
 		case GT:
@@ -676,7 +680,13 @@ void compare(ParsingContext context) :
                     throw new RuntimeException("Unsupported token type " + x);
 
 	    }
-	}
+	})
+        | ( (<CASE_INS> {option |= java.util.regex.Pattern.CASE_INSENSITIVE;})?
+            (<MULTI_LINE> {option |= java.util.regex.Pattern.MULTILINE;})?
+              <LIKE> <STRING>
+             {context.generateCode(new Location(token.beginLine, token.beginColumn),
+              new org.spf4j.zel.instr.RLIKE(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1)), option));}
+          )
 
     )*
 }
