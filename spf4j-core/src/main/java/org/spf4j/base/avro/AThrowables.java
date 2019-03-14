@@ -123,7 +123,7 @@ public final class AThrowables {
     to.append('.');
     to.append(method.getName());
     FileLocation location = element.getLocation();
-    FileLocation prevLocation = previous.getLocation();
+    FileLocation prevLocation = previous == null ? null : previous.getLocation();
     String currFileName = location != null ? location.getFileName() : "";
     String prevFileName = prevLocation != null ? prevLocation.getFileName() : "";
     String fileName = currFileName;
