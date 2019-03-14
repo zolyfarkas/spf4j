@@ -147,6 +147,9 @@ public final class AThrowables {
       return;
     }
     org.spf4j.base.avro.PackageInfo pInfo = element.getPackageInfo();
+    if (pInfo == null) {
+      pInfo = org.spf4j.base.PackageInfo.NONE;
+    }
     if (abbreviatedTraceElement && prevClassName != null
             && pInfo.equals(org.spf4j.base.PackageInfo.getPackageInfo(prevClassName))) {
       to.append("[^]");
