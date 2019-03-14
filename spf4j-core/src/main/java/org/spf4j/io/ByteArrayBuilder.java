@@ -230,7 +230,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @return  the current contents of this output stream, as a byte array.
      * @see     java.io.ByteArrayOutputStream#size()
      */
-    public synchronized byte toByteArray()[] {
+    public synchronized byte[] toByteArray() {
         return Arrays.copyOf(buf, count);
     }
 
