@@ -43,7 +43,7 @@ public final class TestUtils {
     for (StackTraceElement[] st : Thread.getAllStackTraces().values()) {
       if (st != null) {
         for (StackTraceElement ste : st) {
-          if (ste.getClassName().startsWith("com.intelij.rt.execution")) {
+          if (ste.getClassName().startsWith("com.intellij.rt.execution")) {
             return true;
           }
         }
