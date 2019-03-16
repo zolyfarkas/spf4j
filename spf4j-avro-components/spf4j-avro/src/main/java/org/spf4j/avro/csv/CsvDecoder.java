@@ -44,7 +44,9 @@ public final class CsvDecoder extends ParsingDecoder {
     super(new JsonGrammarGenerator().generate(readerSchema));
     this.csvReader = csvReader;
     try {
-      csvReader.next();
+      if (csvReader.current() == null) {
+        csvReader.next();
+      }
     } catch (CsvParseException ex) {
       throw new AvroRuntimeException(ex);
     }

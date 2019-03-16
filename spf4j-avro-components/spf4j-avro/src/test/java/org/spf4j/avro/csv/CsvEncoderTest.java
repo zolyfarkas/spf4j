@@ -41,6 +41,7 @@ import org.spf4j.base.avro.PackageInfo;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CharSeparatedValues;
 import org.spf4j.io.csv.CsvParseException;
+import org.spf4j.io.csv.CsvReader;
 
 /**
  *
@@ -52,7 +53,7 @@ public class CsvEncoderTest {
   private static final Logger LOG = LoggerFactory.getLogger(CsvEncoderTest.class);
 
   @Test
-  public void testCsvDecoder() throws IOException {
+  public void testCsvDecoder() throws IOException, CsvParseException {
     String str = "RGF0ZSxWYWx1ZQoyMDE5LTAxLTAxLDQuNjA0CjIwMTgtMT"
             + "AtMDEsNC42MDcKMjAxOC0wNy0wMSw0LjYwOQoyMDE4LTA0LTAxLDQuNjEyCg==";
     byte[] input = Base64.getDecoder().decode(str);
@@ -61,8 +62,10 @@ public class CsvEncoderTest {
             .requiredString("Value")
             .endRecord();
     LOG.debug(new String(input, StandardCharsets.UTF_8));
-    CsvDecoder decoder = new CsvDecoder(Csv.CSV.readerILEL(
-            new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8)), array);
+    CsvReader reader = Csv.CSV.readerILEL(
+            new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8));
+    reader.readRow((c) -> { });
+    CsvDecoder decoder = new CsvDecoder(reader, array);
     long nrRead = decoder.readArrayStart();
     String lastValue = null;
     while (nrRead > 0) {
