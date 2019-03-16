@@ -50,20 +50,10 @@ public final class CsvDecoder extends ParsingDecoder {
     }
   }
 
-  public void skipHeader() throws IOException {
-    CsvReader.TokenType tt;
-    try {
-      while ((tt = csvReader.current()) != CsvReader.TokenType.END_ROW
-              && tt != CsvReader.TokenType.END_DOCUMENT) {
-        csvReader.next();
-      }
-      if (tt != CsvReader.TokenType.END_DOCUMENT) {
-        csvReader.next();
-      }
-    } catch (CsvParseException ex) {
-      throw new AvroRuntimeException(ex);
-    }
+  public void skipHeader() throws IOException, CsvParseException {
+    csvReader.skipRow();
   }
+
 
   @Override
   public void readNull() throws IOException {

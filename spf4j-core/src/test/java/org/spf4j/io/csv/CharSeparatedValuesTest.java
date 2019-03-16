@@ -76,6 +76,16 @@ public class CharSeparatedValuesTest {
   }
 
   @Test
+  public void testCsvReader3() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    CsvReader reader = csv.reader(new StringReader("a b c\nd e"));
+    int nrElems = reader.skipRow();
+    Assert.assertEquals(3, nrElems);
+    nrElems = reader.skipRow();
+    Assert.assertEquals(2, nrElems);
+  }
+
+  @Test
   public void testCsvWriter() throws IOException, CsvParseException {
     CharSeparatedValues csv = new CharSeparatedValues(' ');
     StringWriter writer = new StringWriter();

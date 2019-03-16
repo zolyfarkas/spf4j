@@ -32,6 +32,8 @@
 package org.spf4j.io.csv;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -55,7 +57,7 @@ public interface CsvReader {
   TokenType next() throws IOException, CsvParseException;
 
   /**
-   * @return the curretly parsed token type,  null if not current token is available (next has never been called)
+   * @return the currently parsed token type,  null if no current token is available (next has never been called)
    * @throws IOException
    * @throws CsvParseException
    */
@@ -69,5 +71,42 @@ public interface CsvReader {
    * @return CharSequence representing a csv cell.
    */
   CharSequence getElement();
+
+  default int skipRow() throws IOException, CsvParseException {
+    int skipped = 0;
+    TokenType current = current();
+    if (current == null) { // beginning of file.
+      next();
+    }
+    while ((current = current()) != CsvReader.TokenType.END_ROW
+            && current != CsvReader.TokenType.END_DOCUMENT) {
+      next();
+      skipped++;
+    }
+    if (current != CsvReader.TokenType.END_DOCUMENT) {
+      next();
+    }
+    return skipped;
+  }
+
+  default void readRow(final Consumer<CharSequence> consumer) throws IOException, CsvParseException {
+    TokenType current = current();
+    if (current == null) { // beginning of file.
+      next();
+    }
+    while ((current = current()) != CsvReader.TokenType.END_ROW
+            && current != CsvReader.TokenType.END_DOCUMENT) {
+      consumer.accept(getElement());
+      next();
+    }
+    if (current != CsvReader.TokenType.END_DOCUMENT) {
+      next();
+    }
+  }
+
+
+  default CsvReader toReader(final Iterator<? extends CharSequence> it) {
+    return new IterableCsvReader(it);
+  }
 
 }
