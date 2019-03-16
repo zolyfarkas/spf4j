@@ -16,12 +16,17 @@
 package org.spf4j.avro.csv;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
+import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
@@ -33,6 +38,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.avro.PackageInfo;
+import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CharSeparatedValues;
 import org.spf4j.io.csv.CsvParseException;
 
@@ -44,6 +50,31 @@ import org.spf4j.io.csv.CsvParseException;
 public class CsvEncoderTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(CsvEncoderTest.class);
+
+  @Test
+  public void testCsvDecoder() throws IOException {
+    String str = "RGF0ZSxWYWx1ZQoyMDE5LTAxLTAxLDQuNjA0CjIwMTgtMT"
+            + "AtMDEsNC42MDcKMjAxOC0wNy0wMSw0LjYwOQoyMDE4LTA0LTAxLDQuNjEyCg==";
+    byte[] input = Base64.getDecoder().decode(str);
+    Schema array = SchemaBuilder.array().items().record("test").fields()
+            .requiredString("Date")
+            .requiredString("Value")
+            .endRecord();
+    LOG.debug(new String(input, StandardCharsets.UTF_8));
+    CsvDecoder decoder = new CsvDecoder(Csv.CSV.readerILEL(
+            new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8)), array);
+    long nrRead = decoder.readArrayStart();
+    String lastValue = null;
+    while (nrRead > 0) {
+      for (int i = 0; i < nrRead; i++) {
+        LOG.debug(decoder.readString());
+        lastValue = decoder.readString();
+      }
+      nrRead = decoder.arrayNext();
+    }
+    Assert.assertEquals("4.612", lastValue);
+  }
+
 
   @Test
   public void testCsvEncoder() throws IOException, CsvParseException {
@@ -103,5 +134,7 @@ public class CsvEncoderTest {
     rec2.put("enumField", new GenericData.EnumSymbol(enumSchema, "e2"));
     return Arrays.asList(rec1, rec2);
   }
+
+
 
 }
