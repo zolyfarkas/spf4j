@@ -108,5 +108,4 @@ public interface CsvReader {
   default CsvReader toReader(final Iterator<? extends CharSequence> it) {
     return new IterableCsvReader(it);
   }
-
 }

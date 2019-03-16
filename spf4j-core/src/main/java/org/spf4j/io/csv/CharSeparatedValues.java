@@ -298,8 +298,37 @@ public final class CharSeparatedValues {
     return readerNoBOM(reader);
   }
 
+  /**
+   * will ignore last empty line.
+   * @param preader
+   * @return
+   * @throws IOException
+   */
+  public CsvReader readerILEL(final Reader preader) throws IOException {
+    PushbackReader reader = new PushbackReader(preader);
+    int firstChar = reader.read();
+    if (firstChar != UTF_BOM && firstChar >= 0) {
+      reader.unread(firstChar);
+    }
+    return readerNoBOMILEL(reader);
+  }
+
+  /**
+   * assumes there is not BOM. (byte order marker)
+   * @param reader
+   * @return
+   */
   public CsvReader readerNoBOM(final PushbackReader reader) {
     return new CsvReaderImpl(reader);
+  }
+
+  /**
+   * reader that there is not BOM. (byte order marker) and will ignore last empty line.
+   * @param reader
+   * @return
+   */
+  public CsvReader readerNoBOMILEL(final PushbackReader reader) {
+    return new CsvReaderIgnoreLastEmptyLine(reader);
   }
 
   public CsvWriter writer(final Writer writer) {
@@ -500,10 +529,6 @@ public final class CharSeparatedValues {
       switch (next) {
         case '\r':
           int c2 = reader.read();
-          if (c2 < 0) {
-            nextToken = TokenType.END_DOCUMENT;
-            break;
-          }
           if (c2 != '\n') {
             reader.unread(c2);
           }
@@ -552,6 +577,101 @@ public final class CharSeparatedValues {
     }
 
   }
+
+ private class CsvReaderIgnoreLastEmptyLine implements CsvReader {
+
+    private final PushbackReader reader;
+    private final StringBuilder currentElement = new StringBuilder();
+    private CsvReader.TokenType currentToken;
+    private CsvReader.TokenType nextToken;
+    private int lineNr = 0;
+
+    CsvReaderIgnoreLastEmptyLine(final PushbackReader reader) {
+      this.reader = reader;
+    }
+
+    private void readCurrentElement() throws IOException, CsvParseException {
+      currentElement.setLength(0);
+      int next = readCsvElement(reader, currentElement, lineNr);
+      currentToken = CsvReader.TokenType.ELEMENT;
+      switch (next) {
+        case '\r':
+          int c2 = reader.read();
+          if (c2 < 0) {
+            nextToken = CsvReader.TokenType.END_DOCUMENT;
+            break;
+          }
+          if (c2 != '\n') {
+            reader.unread(c2);
+            lineNr++;
+            nextToken = CsvReader.TokenType.END_ROW;
+            break;
+          }
+          int c3 = reader.read();
+          if (c3 < 0) {
+             nextToken = CsvReader.TokenType.END_DOCUMENT;
+          } else {
+            reader.unread(c3);
+            lineNr++;
+            nextToken = CsvReader.TokenType.END_ROW;
+          }
+          break;
+        case '\n':
+          lineNr++;
+          c2 = reader.read();
+          if (c2 < 0) {
+            nextToken = CsvReader.TokenType.END_DOCUMENT;
+          } else {
+            nextToken = CsvReader.TokenType.END_ROW;
+            reader.unread(c2);
+          }
+          break;
+        default:
+          if (next != separator) {
+            if (next < 0) {
+              nextToken = CsvReader.TokenType.END_DOCUMENT;
+            } else {
+              throw new CsvParseException("Unexpected character " + next + " at line" + lineNr);
+            }
+          }
+      }
+
+    }
+
+    @Override
+    public CsvReader.TokenType next() throws IOException, CsvParseException {
+      if (nextToken == null) {
+        readCurrentElement();
+        return currentToken;
+      } else {
+        CsvReader.TokenType result = nextToken;
+        if (result != CsvReader.TokenType.END_DOCUMENT) {
+          nextToken = null;
+        }
+        currentToken = result;
+        return result;
+      }
+    }
+
+    @Override
+    public CsvReader.TokenType current() {
+      return currentToken;
+    }
+
+    @Override
+    public CharSequence getElement() {
+      return currentElement;
+    }
+
+  }
+
+
+
+
+
+
+
+
 
   private static class OneRowHandler<T> implements CsvHandler<T> {
 
