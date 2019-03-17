@@ -114,15 +114,22 @@ public final class SchemaValidatorMojo extends SchemaMojoBase implements Validat
   public void handleValidation(final Map<String, Validator.Result> vresult, final Log logger, final String detail)
           throws MojoExecutionException {
     if (!vresult.isEmpty()) {
-      logger.error("Schema validation failed for " + detail);
+      boolean failed = false;
       for (Map.Entry<String, Validator.Result> res : vresult.entrySet()) {
         Validator.Result vres = res.getValue();
+        if (vres.isValid()) {
+          continue;
+        }
+        failed = true;
         String vName = res.getKey();
         logger.error("Validator " + vName + " failed with error: " + vres.getValidationErrorMessage());
         Exception ex = vres.getValidationException();
         if (ex != null) {
           logger.error("Validator " + vName + " exception", ex);
         }
+      }
+      if (failed) {
+        logger.error("Schema validation failed for " + detail);
         throw new MojoExecutionException("Failed to validate " + detail);
       }
     }
