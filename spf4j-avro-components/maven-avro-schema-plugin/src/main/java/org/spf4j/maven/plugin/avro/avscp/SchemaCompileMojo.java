@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaRefWriter;
@@ -325,15 +326,17 @@ public final class SchemaCompileMojo
     Path classesInfo = dependenciesDirectory.toPath().resolve("classes.txt");
     Set<String> classes = new HashSet(Files.readAllLines(classesInfo, StandardCharsets.UTF_8));
     Path javaPath = generatedJavaTarget.toPath();
-    List<Path> dupes = Files.walk(javaPath)
-            .filter((p) -> {
-              Path relativize = javaPath.relativize(p);
-              return classes.contains(relativize.toString().replace(".java", ".class"));
-            }).collect(Collectors.toList());
-    for (Path p : dupes) {
-      Files.delete(p);
+    try (Stream<Path> fsStream = Files.walk(javaPath)) {
+      List<Path> dupes = fsStream
+              .filter((p) -> {
+                Path relativize = javaPath.relativize(p);
+                return classes.contains(relativize.toString().replace(".java", ".class"));
+              }).collect(Collectors.toList());
+      for (Path p : dupes) {
+        Files.delete(p);
+        getLog().info("Deleted dupes: " + dupes);
+      }
     }
-    getLog().info("Deleted dupes: " + dupes);
   }
 
   public void deleteProtocolClasses() throws IOException {
@@ -346,26 +349,28 @@ public final class SchemaCompileMojo
     } else {
       sourceEncoding = mSourceEncoding;
     }
-    List<Path> protocolFiles = Files.walk(javaPath)
-            .filter((p) -> {
-              Path fileName = p.getFileName();
-              if (fileName == null || !fileName.toString().endsWith(".java")) {
-                return false;
-              }
-              try (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                  if (line.contains(detectionString)) {
-                    return true;
-                  }
+    try (Stream<Path> fsStream = Files.walk(javaPath)) {
+      List<Path> protocolFiles = fsStream
+              .filter((p) -> {
+                Path fileName = p.getFileName();
+                if (fileName == null || !fileName.toString().endsWith(".java")) {
+                  return false;
                 }
-              } catch (IOException ex) {
-                getLog().info("cannot read file " + p + ", ignoring for cleanup", ex);
-              }
-              return false;
-            }).collect(Collectors.toList());
-    for (Path p : protocolFiles) {
-      Files.delete(p);
+                try (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {
+                  String line;
+                  while ((line = br.readLine()) != null) {
+                    if (line.contains(detectionString)) {
+                      return true;
+                    }
+                  }
+                } catch (IOException ex) {
+                  getLog().info("cannot read file " + p + ", ignoring for cleanup", ex);
+                }
+                return false;
+              }).collect(Collectors.toList());
+      for (Path p : protocolFiles) {
+        Files.delete(p);
+      }
     }
   }
 
