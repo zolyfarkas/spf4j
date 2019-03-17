@@ -31,6 +31,8 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import org.spf4j.base.StackSamples;
 import gnu.trove.map.TMap;
 import gnu.trove.procedure.TObjectObjectProcedure;
@@ -48,9 +50,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
+import org.spf4j.base.Json;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
@@ -400,13 +400,8 @@ public final class SampleNode implements Serializable, JsonWriteable, StackSampl
   }
 
 
-  private static final class Lazy {
-
-    private static final JsonFactory JSON = new JsonFactory();
-  }
-
   public static Pair<Method, SampleNode> parse(@WillNotClose final Reader r) throws IOException {
-    JsonParser jsonP = Lazy.JSON.createJsonParser(r);
+    JsonParser jsonP = Json.FACTORY.createParser(r);
     consume(jsonP, JsonToken.START_OBJECT);
     return parse(jsonP);
   }
