@@ -21,12 +21,12 @@ package org.spf4j.test.log;
  */
 public final class Attachments {
 
-  private Attachments() { }
-
   public static final String ASSERTED = "ASSERTED";
 
   public static final String PRINTED = "PRINTED";
 
   public static final String DO_NOT_PRINT = "DO_NOT_PRINT";
+
+  private Attachments() { }
 
 }

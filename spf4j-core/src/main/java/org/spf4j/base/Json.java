@@ -47,11 +47,11 @@ import java.util.ServiceLoader;
  */
 public final class Json {
 
-  private Json() { }
-
   public static final JsonFactory FACTORY = new JsonFactory();
 
   public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+
+  private Json() { }
 
   static {
     FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);

@@ -50,11 +50,12 @@ import org.spf4j.base.avro.Method;
 @SuppressFBWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
 public final class Methods  {
 
-  private Methods() { }
-
   public static final Method ROOT = Converters.ROOT;
 
   private static final Map<String, Map<String, Method>> INSTANCE_REPO = new THashMap<>(1024);
+
+
+  private Methods() { }
 
   public static void writeHtml(final Method m, final Writer w) throws IOException {
     Escaper htmlEscaper = HtmlEscapers.htmlEscaper();
