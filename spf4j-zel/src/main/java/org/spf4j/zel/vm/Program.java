@@ -65,6 +65,7 @@ import org.spf4j.zel.instr.var.INT;
 import org.spf4j.zel.instr.var.LOG;
 import org.spf4j.zel.instr.var.MAX;
 import org.spf4j.zel.instr.var.MIN;
+import org.spf4j.zel.instr.var.NVL;
 import org.spf4j.zel.instr.var.OUT;
 import org.spf4j.zel.instr.var.RANDOM;
 import org.spf4j.zel.instr.var.SQRT;
@@ -102,6 +103,7 @@ public final class Program implements Serializable {
     ZEL_GLOBAL_FUNC.addSymbol("channel", Channel.Factory.INSTANCE);
     ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
     ZEL_GLOBAL_FUNC.addSymbol("decode", DECODE.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("nvl", NVL.INSTANCE);
   }
 
   public enum Type {
