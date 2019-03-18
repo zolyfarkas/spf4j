@@ -345,25 +345,26 @@ public class ContextPropagatingCompletableFuture<T>
     return new ContextPropagatingCompletableFuture<>(parentContext, deadlinenanos);
   }
 
-  public static <U> CompletableFuture<U> supplyAsync(final Executor e, final Supplier<U> f) {
+  public static <U> CompletableFuture<U> supplyAsync(final Supplier<U> f, final Executor e) {
     ExecutionContext current = ExecutionContexts.current();
     if (current == null) {
       return CompletableFuture.supplyAsync(f, e);
     }
-    return supplyAsync(current, e, f, current.getDeadlineNanos());
+    return supplyAsync(f, current, e, current.getDeadlineNanos());
   }
 
   public static <U> CompletableFuture<U> supplyAsync(
-          final Executor e, final Supplier<U> f, final long deadlineNanos) {
+          final Supplier<U> f, final Executor e, final long deadlineNanos) {
     ExecutionContext current = ExecutionContexts.current();
     if (current == null) {
       return CompletableFuture.supplyAsync(f, e);
     }
-    return supplyAsync(current, e, f, deadlineNanos);
+    return supplyAsync(f, current, e, deadlineNanos);
   }
 
-  public static <U> CompletableFuture<U> supplyAsync(final ExecutionContext current,
-          final Executor e, final Supplier<U> f, final long deadlineNanos) {
+  public static <U> CompletableFuture<U> supplyAsync(final Supplier<U> f,
+          final ExecutionContext current,
+          final Executor e, final long deadlineNanos) {
     ContextPropagatingCompletableFuture<U> d
             = new ContextPropagatingCompletableFuture<U>(current, current.getDeadlineNanos());
     e.execute(ExecutionContexts.propagatingRunnable(() -> {
