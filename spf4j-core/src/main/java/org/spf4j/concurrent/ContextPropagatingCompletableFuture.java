@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
@@ -30,6 +31,7 @@ import org.spf4j.base.UncheckedTimeoutException;
  */
 @SuppressWarnings("checkstyle:DesignForExtension")
 @Beta
+@ParametersAreNonnullByDefault
 public class ContextPropagatingCompletableFuture<T>
         extends InterruptibleCompletableFuture<T> {
 
@@ -41,6 +43,8 @@ public class ContextPropagatingCompletableFuture<T>
     this.parentContext = parentContext;
     this.deadlinenanos = deadlinenanos;
   }
+
+
 
   @Override
   public <U> CompletableFuture<U> thenApply(final Function<? super T, ? extends U> fn) {
@@ -340,5 +344,55 @@ public class ContextPropagatingCompletableFuture<T>
   public <U> CompletableFuture<U> newIncompleteFuture() {
     return new ContextPropagatingCompletableFuture<>(parentContext, deadlinenanos);
   }
+
+  public static <U> CompletableFuture<U> supplyAsync(final Executor e, final Supplier<U> f) {
+    ExecutionContext current = ExecutionContexts.current();
+    if (current == null) {
+      return CompletableFuture.supplyAsync(f, e);
+    }
+    return supplyAsync(current, e, f, current.getDeadlineNanos());
+  }
+
+  public static <U> CompletableFuture<U> supplyAsync(
+          final Executor e, final Supplier<U> f, final long deadlineNanos) {
+    ExecutionContext current = ExecutionContexts.current();
+    if (current == null) {
+      return CompletableFuture.supplyAsync(f, e);
+    }
+    return supplyAsync(current, e, f, deadlineNanos);
+  }
+
+  public static <U> CompletableFuture<U> supplyAsync(final ExecutionContext current,
+          final Executor e, final Supplier<U> f, final long deadlineNanos) {
+    ContextPropagatingCompletableFuture<U> d
+            = new ContextPropagatingCompletableFuture<U>(current, current.getDeadlineNanos());
+    e.execute(ExecutionContexts.propagatingRunnable(() -> {
+      try {
+        d.complete(f.get());
+      } catch (Throwable t) {
+        d.completeExceptionally(t);
+      }
+    }, current, f.toString(), deadlineNanos));
+    return d;
+  }
+
+  public static <U> CompletableFuture<U> completedFuture(final U value) {
+    ExecutionContext current = ExecutionContexts.current();
+    if (current == null) {
+      return CompletableFuture.completedFuture(value);
+    } else {
+      return completedFuture(current, current.getDeadlineNanos(), value);
+    }
+  }
+
+  public static <U> CompletableFuture<U> completedFuture(
+          final ExecutionContext parentContext, final long deadlinenanos, final U value) {
+    ContextPropagatingCompletableFuture<U> r = new ContextPropagatingCompletableFuture<U>(parentContext, deadlinenanos);
+    if (!r.complete(value)) {
+      throw new IllegalStateException("Cannot be already completed " + r);
+    }
+    return r;
+  }
+
 
 }
