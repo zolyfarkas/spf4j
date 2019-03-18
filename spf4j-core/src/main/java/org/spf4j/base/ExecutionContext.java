@@ -132,11 +132,14 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   default ExecutionContext getNotClosedParent() {
     ExecutionContext curr = this;
     ExecutionContext parent;
-    while (curr.getRelationToSource() == Relation.CHILD_OF
-            && (parent = curr.getSource()) != null && parent.isClosed()) {
+    do {
+      parent = curr.getSource();
+      if (parent == null || !parent.isClosed()) {
+        break;
+      }
       curr = parent;
-    }
-    return curr == this ? null : curr;
+    } while (true);
+    return parent;
   }
 
   @Beta
