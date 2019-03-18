@@ -345,6 +345,10 @@ public class ContextPropagatingCompletableFuture<T>
     return new ContextPropagatingCompletableFuture<>(parentContext, deadlinenanos);
   }
 
+  public static <U> CompletableFuture<U> supplyAsync(final Supplier<U> f) {
+    return supplyAsync(f, DefaultExecutor.INSTANCE);
+  }
+
   public static <U> CompletableFuture<U> supplyAsync(final Supplier<U> f, final Executor e) {
     ExecutionContext current = ExecutionContexts.current();
     if (current == null) {

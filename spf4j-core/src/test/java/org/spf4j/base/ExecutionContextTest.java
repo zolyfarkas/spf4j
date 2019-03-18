@@ -32,6 +32,9 @@
 package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +42,11 @@ import java.util.concurrent.TimeoutException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.concurrent.ContextPropagatingCompletableFuture;
 import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.log.Level;
+import org.spf4j.log.Slf4jLogRecord;
+import org.spf4j.log.Slf4jLogRecordImpl;
 
 /**
  *
@@ -99,6 +106,40 @@ public class ExecutionContextTest {
       Assert.assertTrue("secs = " + secs, secs <= 10);
       start.put(KEY_TAG, "BAGAGE");
       Assert.assertEquals("BAGAGE", start.get(KEY_TAG));
+    }
+
+
+  }
+
+
+  @Test
+  public void testExecutionPropagetionOfLogs() throws TimeoutException, InterruptedException, ExecutionException {
+
+    try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
+      Slf4jLogRecordImpl log = new Slf4jLogRecordImpl("bla", Level.DEBUG, "{}", "bla");
+      try (ExecutionContext second = start.startChild("ss", 10, java.util.concurrent.TimeUnit.SECONDS)) {
+        second.addLog(log);
+      }
+      List<Slf4jLogRecord> logs = new ArrayList<>(2);
+      start.streamLogs(logs::add);
+      Assert.assertEquals(log, logs.get(0));
+    }
+
+     try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
+      Slf4jLogRecordImpl log = new Slf4jLogRecordImpl("bla", Level.DEBUG, "{}", "bla");
+      Slf4jLogRecordImpl log2 = new Slf4jLogRecordImpl("bla2", Level.DEBUG, "{}", "bla2");
+      CompletableFuture<String> fut = ContextPropagatingCompletableFuture.supplyAsync(() -> {
+        ExecutionContexts.current().addLog(log);
+        return "";
+      }, DefaultExecutor.INSTANCE);
+      CompletableFuture<String> wc = fut.whenComplete((a, t) -> {
+        ExecutionContexts.current().addLog(log2);
+      });
+      wc.get();
+      List<Slf4jLogRecord> logs = new ArrayList<>(2);
+      start.streamLogs(logs::add);
+      Assert.assertEquals(log, logs.get(0));
+      Assert.assertEquals(log2, logs.get(1));
     }
 
 
