@@ -117,14 +117,15 @@ public class BasicExecutionContext implements ExecutionContext {
       } else {
         this.id  = id;
       }
+      this.minBackendLogLevel = source.getBackendMinLogLevel();
     } else {
       this.deadlineNanos = deadlineNanos;
       this.id  = id == null ? ExecutionContexts.genId() : id;
+      this.minBackendLogLevel = null;
     }
     this.source = source;
     this.baggage = Collections.EMPTY_MAP;
     this.logs = null;
-    this.minBackendLogLevel = null;
     this.closeables = Collections.EMPTY_LIST;
   }
 
@@ -359,7 +360,7 @@ public class BasicExecutionContext implements ExecutionContext {
    * @return
    */
   @Override
-  public Level setBackendMinLogLevel(final String loggerName, final Level level) {
+  public synchronized Level setBackendMinLogLevel(final String loggerName, final Level level) {
     Level result = minBackendLogLevel;
     minBackendLogLevel = level;
     return result;

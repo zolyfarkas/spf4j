@@ -164,6 +164,10 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   Level getContextMinLogLevel(String loggerName);
 
+  default Level getContextMinLogLevel() {
+    return getContextMinLogLevel("");
+  }
+
   /**
    * The minimum log level overwrite.
    * An execution context can overwrite the backend configured log level.
@@ -173,9 +177,19 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   Level getBackendMinLogLevel(String loggerName);
 
+  @Nullable
+  default Level getBackendMinLogLevel() {
+    return getBackendMinLogLevel("");
+  }
+
   @Beta
   @Nullable
   Level setBackendMinLogLevel(String loggerName, Level level);
+
+  @Nullable
+  default Level setBackendMinLogLevel(Level level) {
+    return setBackendMinLogLevel("", level);
+  }
 
   @Beta
   void streamLogs(Consumer<Slf4jLogRecord> to);
