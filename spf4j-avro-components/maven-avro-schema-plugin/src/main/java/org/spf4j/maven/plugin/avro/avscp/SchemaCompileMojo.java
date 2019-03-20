@@ -229,8 +229,8 @@ public final class SchemaCompileMojo
       int colIndex = Integer.parseInt(sourceIdl.substring(cidxS + 1)) - 1;
       int ridxS = sourceIdl.lastIndexOf(':', cidxS - 1);
       int rowIndex = Integer.parseInt(sourceIdl.substring(ridxS + 1, cidxS)) - 1;
-      String substring = sourceIdl.substring(0, ridxS);
-      if (!substring.endsWith(idl.getName())) {
+      File location = new File(sourceIdl.substring(0, ridxS));
+      if (!location.getName().equals(idl.getName())) {
         continue;
       }
       String line = readAllLines.get(rowIndex);
@@ -413,7 +413,7 @@ public final class SchemaCompileMojo
         }
         Path tmpSourceTarget = this.target.toPath().resolve("avro-sources");
         compileAvpr(tmpSourceTarget);
-        addMvnIdToIdlsAndModeToDestination(tmpSourceTarget);
+        addMvnIdToIdlsAndMoveToDestination(tmpSourceTarget);
         compileIdl(tmpSourceTarget);
 
         Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);
@@ -478,7 +478,7 @@ public final class SchemaCompileMojo
     }
   }
 
-  public void addMvnIdToIdlsAndModeToDestination(final Path destPath) throws MojoExecutionException {
+  public void addMvnIdToIdlsAndMoveToDestination(final Path destPath) throws MojoExecutionException {
     Thread currentThread = Thread.currentThread();
     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
     try {
