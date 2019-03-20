@@ -70,11 +70,6 @@ public class OpenTypeConverterTest {
 
   private final Spf4jOpenTypeMapper conv = new Spf4jOpenTypeMapper();
 
-  @Test
-  public void testConverter() throws NotSerializableException {
-    JMXBeanMapping mxBeanMapping = conv.get(File.class);
-    Assert.assertNull(mxBeanMapping);
-  }
 
   @Test
   public void testConverter2() throws NotSerializableException {
