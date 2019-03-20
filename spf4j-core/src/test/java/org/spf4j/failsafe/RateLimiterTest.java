@@ -59,13 +59,13 @@ public class RateLimiterTest {
   @Test
   @PrintLogs(ideMinLevel = Level.TRACE)
   public void testRateLimitArgs() {
-    try (RateLimiter rateLimiter = new RateLimiter(17, 10, 10)) {
-    LOG.debug("Rate Limiter = {}", rateLimiter);
-    Assert.assertEquals(1d, rateLimiter.getPermitsPerReplenishInterval(), 0.001);
+    try (RateLimiter rateLimiter = new RateLimiter(17, 10, 10, TimeUnit.MILLISECONDS)) {
+      LOG.debug("Rate Limiter = {}", rateLimiter);
+      Assert.assertEquals(1d, rateLimiter.getPermitsPerReplenishInterval(), 0.001);
     }
-    try (RateLimiter rateLimiter = new RateLimiter(10000000, 5000000, 500)) {
-    LOG.debug("Rate Limiter = {}", rateLimiter);
-    Assert.assertEquals(500, rateLimiter.getPermitReplenishIntervalMillis());
+    try (RateLimiter rateLimiter = new RateLimiter(10000000, 5000000, 500, TimeUnit.MILLISECONDS)) {
+      LOG.debug("Rate Limiter = {}", rateLimiter);
+      Assert.assertEquals(500, rateLimiter.getPermitReplenishIntervalNanos());
     }
   }
 
@@ -91,14 +91,14 @@ public class RateLimiterTest {
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
             Mockito.eq(TimeUnit.MILLISECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(10, 10, mockExec, () -> 0L)) {
-      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, TimeUnit.SECONDS.toNanos(10));
-      LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayMs);
-      Assert.assertEquals(900, tryAcquireGetDelayMs);
+      long tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(10, TimeUnit.SECONDS.toNanos(10));
+      LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayNs);
+      Assert.assertEquals(900000000, tryAcquireGetDelayNs);
       Assert.assertEquals(-9, rateLimiter.getNrPermits(), 0.0001);
-      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(10, TimeUnit.MILLISECONDS.toNanos(10));
-      Assert.assertTrue(tryAcquireGetDelayMs < 0);
-      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, TimeUnit.MILLISECONDS.toNanos(2000));
-      Assert.assertEquals(1000, tryAcquireGetDelayMs);
+      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(10, TimeUnit.MILLISECONDS.toNanos(10));
+      Assert.assertTrue(tryAcquireGetDelayNs < 0);
+      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(1, TimeUnit.MILLISECONDS.toNanos(2000));
+      Assert.assertEquals(1000000000, tryAcquireGetDelayNs);
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(100L), Mockito.eq(100L),
             Mockito.eq(TimeUnit.MILLISECONDS));
@@ -114,12 +114,12 @@ public class RateLimiterTest {
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000L), Mockito.eq(10000L),
             Mockito.eq(TimeUnit.MILLISECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(0.1, 10, mockExec, () -> 0L)) {
-      long tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(2, TimeUnit.SECONDS.toNanos(10));
-      LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayMs);
-      Assert.assertEquals(10000, tryAcquireGetDelayMs);
+      long tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(2, TimeUnit.SECONDS.toNanos(10));
+      LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayNs);
+      Assert.assertEquals(10000000000L, tryAcquireGetDelayNs);
       Assert.assertEquals(-1, rateLimiter.getNrPermits(), 0.0001);
-      tryAcquireGetDelayMs = rateLimiter.tryAcquireGetDelayMillis(1, TimeUnit.MILLISECONDS.toNanos(10));
-      Assert.assertTrue(tryAcquireGetDelayMs < 0);
+      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(1, TimeUnit.MILLISECONDS.toNanos(10));
+      Assert.assertTrue(tryAcquireGetDelayNs < 0);
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000L), Mockito.eq(10000L),
             Mockito.eq(TimeUnit.MILLISECONDS));

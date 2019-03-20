@@ -60,7 +60,7 @@ public class LimitingExecutorTest {
     try (RateLimiter limiter = new RateLimiter(10, 10)) {
       LimitingExecutor<?, Callable<?>> executor = new LimitingExecutor<>(limiter);
       Assert.assertEquals(1d, limiter.getPermitsPerReplenishInterval(), 0.001);
-      Assert.assertEquals(100, limiter.getPermitReplenishIntervalMillis(), 0.001);
+      Assert.assertEquals(100000000, limiter.getPermitReplenishIntervalNanos(), 0.001);
       for (int i = 0; i < 10; i++) {
         final int val = i;
         executor.execute(() -> {
@@ -85,12 +85,12 @@ public class LimitingExecutorTest {
         @SuppressFBWarnings("MDM_THREAD_YIELD")
         public Object reject(final LimitingExecutor executor, final Callable callable)
                 throws Exception {
-          long waitMs = limiter.getPermitReplenishIntervalMillis()
-                  - TimeUnit.NANOSECONDS.toMillis(TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
-          if (waitMs >= 0) {
-            Thread.sleep(waitMs);
+          long waitNs = limiter.getPermitReplenishIntervalNanos()
+                  - TimeSource.nanoTime() - limiter.getLastReplenishmentNanos();
+          if (waitNs >= 0) {
+            TimeUnit.NANOSECONDS.sleep(waitNs);
           } else {
-            LOG.debug("negative wait time {}", waitMs);
+            LOG.debug("negative wait time {}", waitNs);
           }
           return executor.execute(callable);
         }
