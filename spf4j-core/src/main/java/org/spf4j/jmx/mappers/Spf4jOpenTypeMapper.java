@@ -32,6 +32,7 @@
 package org.spf4j.jmx.mappers;
 
 import com.google.common.reflect.TypeToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.NotSerializableException;
 import java.io.Serializable;
@@ -41,6 +42,7 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -77,6 +79,7 @@ import org.spf4j.reflect.GraphTypeMap;
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("PATH_TRAVERSAL_IN") // path validations should be done at another layer.
 public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
 
   private static final Logger LOG = Logger.getLogger(Spf4jOpenTypeMapper.class.getName());
@@ -148,8 +151,28 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
           return Spf4jJMXBeanMapping.defaultHandler(type, this);
         }
       });
-      cache.safePut(File.class, (type) -> JMXBeanMapping.NOMAPPING);
-      cache.safePut(Path.class, (type) -> JMXBeanMapping.NOMAPPING);
+      cache.safePut(File.class, (type) -> new Spf4jJMXBeanMapping.BasicMXBeanType(File.class, STRING) {
+        @Override
+        public Object fromOpenValue(final Object data) {
+           return new File((String) data);
+        }
+
+        @Override
+        public Object toOpenValue(final Object data) {
+          return data.toString();
+        }
+      });
+      cache.safePut(Path.class, (type) -> new Spf4jJMXBeanMapping.BasicMXBeanType(Path.class, STRING) {
+        @Override
+        public Object fromOpenValue(final Object data) {
+           return Paths.get((String) data);
+        }
+
+        @Override
+        public Object toOpenValue(final Object data) {
+          return data.toString();
+        }
+      });
   }
 
 
