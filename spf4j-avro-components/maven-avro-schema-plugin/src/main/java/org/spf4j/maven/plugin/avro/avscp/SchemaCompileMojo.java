@@ -216,6 +216,9 @@ public final class SchemaCompileMojo
     List<String> readAllLines = Files.readAllLines(idl.toPath(), charset);
     Idl parser = new Idl(idl, cl);
     Protocol protocol = parser.CompilationUnit();
+    // hack uses the same logic and Idl...
+    String idlSource = new File(".").toURI().relativize(idl.toURI()).toString();
+    getLog().debug("Injecting mvnIds to " + idlSource);
     for (Schema s : protocol.getTypes()) {
       if (s.getProp("mvnId") != null) {
         continue;
@@ -226,8 +229,6 @@ public final class SchemaCompileMojo
         continue;
       }
       SourceLocation sl = new SourceLocation(sourceIdl);
-      // hack uses the same logic and Idl...
-      String idlSource = new File(".").toURI().relativize(idl.toURI()).toString();
       if (!idlSource.equals(sl.getFilePath())) {
         continue;
       }
