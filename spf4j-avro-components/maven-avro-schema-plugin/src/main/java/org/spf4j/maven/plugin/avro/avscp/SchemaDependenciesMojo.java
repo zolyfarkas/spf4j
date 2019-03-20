@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -94,30 +95,34 @@ public final class SchemaDependenciesMojo
     List<String> classes = new ArrayList<>(64);
     for (File file : deps) {
       try {
-        List<Path> unzip = Compress.unzip2(file.toPath(), dependenciesTargetPath, (Path p)
-                -> {
-          Path fileName = p.getFileName();
-          if (fileName == null) {
-            return false;
-          }
-          String fn = fileName.toString();
-          if (fn.endsWith("class")) {
-            Path root = p.getRoot();
-            Path relativize;
-            if (root != null) {
-              relativize = root.relativize(p);
-            } else {
-              relativize = p;
+        if (file.isDirectory()) {
+          FileUtils.copyDirectory(file, dependenciesTargetPath.toFile());
+        } else {
+          List<Path> unzip = Compress.unzip2(file.toPath(), dependenciesTargetPath, (Path p)
+                  -> {
+            Path fileName = p.getFileName();
+            if (fileName == null) {
+              return false;
             }
-            classes.add(relativize.toString());
+            String fn = fileName.toString();
+            if (fn.endsWith("class")) {
+              Path root = p.getRoot();
+              Path relativize;
+              if (root != null) {
+                relativize = root.relativize(p);
+              } else {
+                relativize = p;
+              }
+              classes.add(relativize.toString());
+            }
+            if (matches(patterns, p.toString())) {
+              return false;
+            }
+            return fn.endsWith("avsc") || fn.endsWith("avpr") || fn.endsWith("avdl");
+          });
+          if (!unzip.isEmpty()) {
+            log.info("Found dependency schemas: " + unzip  + " from " + file);
           }
-          if (matches(patterns, p.toString())) {
-            return false;
-          }
-          return fn.endsWith("avsc") || fn.endsWith("avpr") || fn.endsWith("avdl");
-        });
-        if (!unzip.isEmpty()) {
-          log.info("Found dependency schemas: " + unzip  + " from " + file);
         }
       } catch (IOException ex) {
         throw new MojoExecutionException("Cannot unzip " + file, ex);
