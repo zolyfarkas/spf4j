@@ -86,7 +86,7 @@ public class LimitingExecutorTest {
         public Object reject(final LimitingExecutor executor, final Callable callable)
                 throws Exception {
           long waitNs = limiter.getPermitReplenishIntervalNanos()
-                  - TimeSource.nanoTime() - limiter.getLastReplenishmentNanos();
+                  - (TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
           if (waitNs >= 0) {
             TimeUnit.NANOSECONDS.sleep(waitNs);
           } else {

@@ -233,7 +233,7 @@ public final class RateLimiter
         return prev;
       }
       long nsUntilNextReplenishment
-              = permitReplenishIntervalNanos - currTimeNanos - lastReplenishmentNanos;
+              = permitReplenishIntervalNanos - (currTimeNanos - lastReplenishmentNanos);
       if (timeoutNs < nsUntilNextReplenishment) {
           return prev; // not enough time to wait.
       }
