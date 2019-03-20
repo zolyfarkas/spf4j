@@ -225,20 +225,20 @@ public final class SchemaCompileMojo
         getLog().warn("sourceIdl not available, will not attach mvnId for IDLs");
         continue;
       }
-      int cidxS = sourceIdl.lastIndexOf(':');
-      int colIndex = Integer.parseInt(sourceIdl.substring(cidxS + 1)) - 1;
-      int ridxS = sourceIdl.lastIndexOf(':', cidxS - 1);
-      int rowIndex = Integer.parseInt(sourceIdl.substring(ridxS + 1, cidxS)) - 1;
-      File location = new File(sourceIdl.substring(0, ridxS));
-      if (!location.getName().equals(idl.getName())) {
+      SourceLocation sl = new SourceLocation(sourceIdl);
+      // hack uses the same logic and Idl...
+      String idlSource = new File(".").toURI().relativize(idl.toURI()).toString();
+      if (!idlSource.equals(sl.getFilePath())) {
         continue;
       }
-      String line = readAllLines.get(rowIndex);
+      int zbLineNr = sl.getLineNr() - 1;
+      String line = readAllLines.get(zbLineNr);
       getLog().debug("inserting mvnId at "
-              + rowIndex + ':' + colIndex + " for line \"" + line + "\" schema: " + s);
-      readAllLines.set(rowIndex, line.substring(0, colIndex)
+              + sl + " for line \"" + line + "\" schema: " + s);
+      int zbColNr = sl.getColNr() - 1;
+      readAllLines.set(zbLineNr, line.substring(0, zbColNr)
               + " @mvnId(\"" + genMnvId(s) + "\") "
-              + line.substring(colIndex, line.length()));
+              + line.substring(zbColNr, line.length()));
     }
     Path tempIdl = Files.createTempFile(this.target.toPath(), idl.getName(), ".tmp");
     Files.write(tempIdl, readAllLines, charset);
