@@ -40,6 +40,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -148,6 +149,7 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
         }
       });
       cache.safePut(File.class, (type) -> JMXBeanMapping.NOMAPPING);
+      cache.safePut(Path.class, (type) -> JMXBeanMapping.NOMAPPING);
   }
 
 
