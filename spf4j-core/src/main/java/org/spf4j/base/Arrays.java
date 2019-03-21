@@ -33,6 +33,7 @@ package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
 import com.google.common.collect.ObjectArrays;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -163,6 +164,7 @@ public final class Arrays {
     return result;
   }
 
+  @GwtIncompatible
   public static <T> T[] preppend(final T[] array, final T value) {
     Class<? extends Object[]> aClass = array.getClass();
     T[] copy = ((Object) aClass == (Object) Object[].class)
@@ -174,6 +176,7 @@ public final class Arrays {
     return copy;
   }
 
+  @GwtIncompatible
   public static <T> T[] preppend(final T[] array, final T... values) {
     Class<? extends Object[]> aClass = array.getClass();
     T[] copy = ((Object) aClass == (Object) Object[].class)
