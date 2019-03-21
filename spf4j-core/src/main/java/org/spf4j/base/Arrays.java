@@ -35,6 +35,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.collect.ObjectArrays;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 
 /**
  * Array utilities.
@@ -160,6 +161,27 @@ public final class Arrays {
     T[] result = java.util.Arrays.copyOf(array, array.length + 1);
     result[array.length] = value;
     return result;
+  }
+
+  public static <T> T[] preppend(final T[] array, final T value) {
+    Class<? extends Object[]> aClass = array.getClass();
+    T[] copy = ((Object) aClass == (Object) Object[].class)
+            ? (T[]) new Object[array.length + 1]
+            : (T[]) Array.newInstance(aClass.getComponentType(), array.length + 1);
+    System.arraycopy(array, 0, copy, 1, array.length);
+
+    copy[0] = value;
+    return copy;
+  }
+
+  public static <T> T[] preppend(final T[] array, final T... values) {
+    Class<? extends Object[]> aClass = array.getClass();
+    T[] copy = ((Object) aClass == (Object) Object[].class)
+            ? (T[]) new Object[array.length + values.length]
+            : (T[]) Array.newInstance(aClass.getComponentType(), array.length + values.length);
+    System.arraycopy(array, 0, copy, values.length, array.length);
+    System.arraycopy(values, 0, copy, 0, values.length);
+    return copy;
   }
 
   public static <T> T[] append(final T[] array, final T... values) {
