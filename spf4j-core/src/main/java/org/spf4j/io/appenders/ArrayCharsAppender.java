@@ -32,23 +32,17 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.Encoder;
+import java.nio.CharBuffer;
 import org.spf4j.base.avro.MediaType;
 import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ObjectAppender;
-import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
-import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
+import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  *
  * @author zoly
  */
-public final class GenericRecordAppender implements ObjectAppender<GenericRecord> {
+public final class ArrayCharsAppender implements ObjectAppender<char[]> {
 
   @Override
   public MediaType getAppendedType() {
@@ -56,19 +50,17 @@ public final class GenericRecordAppender implements ObjectAppender<GenericRecord
   }
 
   @Override
-  public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
-    StringBuilder sb = TMP.get();
-    sb.setLength(0);
-    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {
-      final Schema schema = object.getSchema();
-      GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(schema);
-      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);
-      writer.write(object, jsonEncoder);
-      jsonEncoder.flush();
-    } catch (IOException | RuntimeException ex) {
-      writeSerializationError(object, sb, ex);
-    }
-    appendTo.append(sb);
+  public void append(final char[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+       throws IOException {
+    appendTo.append('"');
+    appendTo.append(CharBuffer.wrap(iter));
+    appendTo.append('"');
+  }
+
+
+  @Override
+  public void append(final char[] object, final Appendable appendTo) {
+    throw new UnsupportedOperationException();
   }
 
 }

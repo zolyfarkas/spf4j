@@ -47,7 +47,7 @@ public final class SpecificRecordBaseAppender implements ObjectAppender<Specific
 
   @Override
   public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_AVRO_JSON;
+    return MediaTypes.APPLICATION_JSON;
   }
 
   @Override
