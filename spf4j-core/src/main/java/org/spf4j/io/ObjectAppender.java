@@ -35,7 +35,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ConcurrentModificationException;
 import java.util.function.BiConsumer;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.avro.MediaType;
 import org.spf4j.base.avro.MediaTypes;
 
@@ -62,6 +64,35 @@ public interface ObjectAppender<T> extends BiConsumer<T, Appendable> {
    * @throws IOException
    */
   void append(T object, Appendable appendTo) throws IOException;
+
+
+  static void appendNullable(@Nullable final Object o, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier)
+          throws IOException {
+    if (o == null) {
+      appendTo.append("null");
+    } else {
+      appenderSupplier.get(o.getClass()).append(o, appendTo, appenderSupplier);
+    }
+  }
+
+  static void appendNullableJson(@Nullable final Object o, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier)
+          throws IOException {
+    if (o == null) {
+      appendTo.append("null");
+    } else {
+      ObjectAppender app = appenderSupplier.get(o.getClass());
+      if (app.getAppendedType().getSubType().endsWith("json")) {
+         app.append(o, appendTo, appenderSupplier);
+      } else {
+        EscapeJsonStringAppendableWrapper sEsc = new EscapeJsonStringAppendableWrapper(appendTo);
+        appendTo.append('"');
+        app.append(o, sEsc, appenderSupplier);
+        appendTo.append('"');
+      }
+    }
+  }
 
 
   /**

@@ -32,43 +32,43 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Encoder;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.AppendableOutputStream;
-import org.spf4j.io.ObjectAppender;
-import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
-import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
+import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.ExtendedJsonEncoder;
 
 /**
- *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public final class GenericRecordAppender implements ObjectAppender<GenericRecord> {
+public final class JsonEncoderFactory {
 
-  @Override
-  public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_AVRO_JSON;
-  }
+  private static final EncoderSupplier  DECODER_SUPPLIER;
 
-  @Override
-  public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
-    StringBuilder sb = TMP.get();
-    sb.setLength(0);
-    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {
-      final Schema schema = object.getSchema();
-      GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(schema);
-      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);
-      writer.write(object, jsonEncoder);
-      jsonEncoder.flush();
-    } catch (IOException | RuntimeException ex) {
-      writeSerializationError(object, sb, ex);
+  static {
+
+    Class<?> clasz  = null;
+    try {
+      clasz = Class.forName("org.apache.avro.io.ExtendedJsonDecoder");
+    } catch (ClassNotFoundException ex) {
+      // Extended decoder not available.
     }
-    appendTo.append(sb);
+    if (clasz == null) {
+      DECODER_SUPPLIER = EncoderFactory.get()::jsonEncoder;
+    } else {
+      DECODER_SUPPLIER = (s, os) -> new ExtendedJsonEncoder(s, os);
+    }
   }
+
+  private JsonEncoderFactory() { }
+
+  interface EncoderSupplier {
+    Encoder getEncoder(Schema writerSchema, OutputStream os) throws IOException;
+  }
+
+  public static Encoder getEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+    return DECODER_SUPPLIER.getEncoder(writerSchema, os);
+  }
+
 
 }

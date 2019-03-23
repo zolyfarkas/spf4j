@@ -336,10 +336,10 @@ public final class LogPrinter {
       ObjectAppender ostrApp = toStringer.get(obj.getClass());
       MediaType type = ostrApp.getAppendedType();
       if (type.getSubType().endsWith("json")) {
-        ostrApp.append(obj, wr);
+        ostrApp.append(obj, wr, toStringer);
       } else {
         wr.append('"');
-        ostrApp.append(obj, wrapper);
+        ostrApp.append(obj, wrapper, toStringer);
         wr.append('"');
       }
     }

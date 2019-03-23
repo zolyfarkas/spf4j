@@ -32,43 +32,44 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.Encoder;
+import java.util.Iterator;
 import org.spf4j.base.avro.MediaType;
 import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ObjectAppender;
-import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
-import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
+import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  *
  * @author zoly
  */
-public final class GenericRecordAppender implements ObjectAppender<GenericRecord> {
+public final class IterableAppender implements ObjectAppender<Iterable> {
 
   @Override
   public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_AVRO_JSON;
+    return MediaTypes.APPLICATION_JSON;
   }
 
   @Override
-  public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
-    StringBuilder sb = TMP.get();
-    sb.setLength(0);
-    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {
-      final Schema schema = object.getSchema();
-      GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(schema);
-      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);
-      writer.write(object, jsonEncoder);
-      jsonEncoder.flush();
-    } catch (IOException | RuntimeException ex) {
-      writeSerializationError(object, sb, ex);
+  public void append(final Iterable iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+       throws IOException {
+    appendTo.append('[');
+    Iterator it = iter.iterator();
+    if (it.hasNext()) {
+      Object o = it.next();
+      ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+      while (it.hasNext()) {
+        appendTo.append(',');
+        o = it.next();
+        ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+      }
     }
-    appendTo.append(sb);
+    appendTo.append(']');
+  }
+
+
+  @Override
+  public void append(final Iterable object, final Appendable appendTo) {
+    throw new UnsupportedOperationException();
   }
 
 }

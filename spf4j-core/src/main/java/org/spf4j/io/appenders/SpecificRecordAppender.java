@@ -35,8 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.avro.Schema;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.io.JsonEncoder;
+import org.apache.avro.io.Encoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
@@ -61,8 +60,6 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
    */
   private static final boolean STRICT_SERIALIZATION = Boolean.getBoolean("spf4j.strictAvroObjectAppenders");
 
-  static final EncoderFactory EF = new EncoderFactory();
-
   static final ThreadLocal<StringBuilder> TMP = new ThreadLocal<StringBuilder>() {
     @Override
     protected StringBuilder initialValue() {
@@ -83,7 +80,7 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
     try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {
       final Schema schema = object.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
-      JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos);
+      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);
       writer.write(object, jsonEncoder);
       jsonEncoder.flush();
     } catch (IOException | RuntimeException ex) {
@@ -110,7 +107,7 @@ public final class SpecificRecordAppender implements ObjectAppender<SpecificReco
       Throwable at = Converters.convert(ex);
       Schema schema = at.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
-      JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);
+      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);
       writer.write(at, jsonEncoder);
       jsonEncoder.flush();
     }
