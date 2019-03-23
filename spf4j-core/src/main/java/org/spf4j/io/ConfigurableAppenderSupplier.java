@@ -97,7 +97,12 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
       if (type instanceof ParameterizedType) {
         ParameterizedType pType = (ParameterizedType) type;
         if (pType.getRawType() == ObjectAppender.class) {
-          appenderType = (Class) pType.getActualTypeArguments()[0];
+          Type actualTypeArgument = pType.getActualTypeArguments()[0];
+          if (actualTypeArgument instanceof ParameterizedType) {
+            appenderType = (Class) ((ParameterizedType) actualTypeArgument).getRawType();
+          } else {
+            appenderType = (Class) actualTypeArgument;
+          }
           break;
         }
       }
