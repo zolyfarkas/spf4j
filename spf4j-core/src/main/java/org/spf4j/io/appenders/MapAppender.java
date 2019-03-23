@@ -63,6 +63,7 @@ public final class MapAppender implements ObjectAppender<Map<Object, Object>> {
       Map.Entry<Object, Object> o = it.next();
       appendEntry(o, appendTo, appenderSupplier);
       while (it.hasNext()) {
+        o = it.next();
         appendTo.append(',');
         appendEntry(o, appendTo, appenderSupplier);
       }
