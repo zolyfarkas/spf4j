@@ -32,48 +32,18 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import java.util.Iterator;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
+import java.nio.file.Path;
 import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  *
  * @author zoly
  */
-public final class IterableAppender implements ObjectAppender<Iterable> {
+public final class PathAppender implements ObjectAppender<Path> {
 
   @Override
-  public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_JSON;
-  }
-
-  @Override
-  public void append(final Iterable iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
-       throws IOException {
-    appendTo.append('[');
-    Iterator it = iter.iterator();
-    if (it.hasNext()) {
-      Object o = it.next();
-      if (o.equals(iter)) {
-         ObjectAppender.appendNullableJson(o.toString(), appendTo, appenderSupplier);
-      } else {
-        ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
-        while (it.hasNext()) {
-          appendTo.append(',');
-          o = it.next();
-          ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
-        }
-      }
-    }
-    appendTo.append(']');
-  }
-
-
-  @Override
-  public void append(final Iterable object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+  public void append(final Path path, final Appendable appendTo) throws IOException {
+    appendTo.append(path.toString());
   }
 
 }
