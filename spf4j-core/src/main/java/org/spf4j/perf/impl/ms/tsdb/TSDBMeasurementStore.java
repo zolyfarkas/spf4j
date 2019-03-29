@@ -72,14 +72,10 @@ public final class TSDBMeasurementStore
     for (int i = 0; i < numberOfMeasurements; i++) {
       String mname = measurement.getMeasurementName(i);
       String unit = measurement.getMeasurementUnit(i);
-      ColumnDef cd = new ColumnDef();
-      cd.name = mname;
-      cd.unitOfMeasurement = unit;
-      cd.type = Type.LONG;
-      cd.description = "";
+      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "");
       columns.add(cd);
     }
-    td.columns = columns;
+    td.setColumns(columns);
     return database.writeTableDef(td);
   }
 

@@ -86,7 +86,7 @@ public final class CpuUsageSampler {
         private long lastValue = 0;
 
         @Override
-        public void doRun() {
+        public synchronized void doRun() {
           long currTime = getProcessCpuTimeNanos();
           cpuUsage.record(currTime - lastValue);
           lastValue = currTime;

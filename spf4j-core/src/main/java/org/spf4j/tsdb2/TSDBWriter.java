@@ -46,6 +46,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
@@ -92,9 +93,7 @@ public final class TSDBWriter implements Closeable, Flushable {
           final String description, final boolean append) throws IOException {
     this.file = file;
     this.maxRowsPerBlock = maxRowsPerBlock;
-    this.writeBlock = new DataBlock();
-    this.writeBlock.baseTimestamp = System.currentTimeMillis();
-    this.writeBlock.setValues(new ArrayList<DataRow>(maxRowsPerBlock));
+    this.writeBlock = new DataBlock(System.currentTimeMillis(), new ArrayList<DataRow>(maxRowsPerBlock));
     raf = new RandomAccessFile(file, "rw");
     bab = new ByteArrayBuilder(32768, ArraySuppliers.Bytes.JAVA_NEW);
     encoder = EncoderFactory.get().directBinaryEncoder(bab, null);
@@ -148,7 +147,7 @@ public final class TSDBWriter implements Closeable, Flushable {
   public synchronized long writeTableDef(final TableDef tableDef) throws IOException {
     final long position = raf.getFilePointer();
     bab.reset();
-    tableDef.id = position;
+    tableDef.setId(position);
     recordWriter.write(tableDef, encoder);
     encoder.flush();
     raf.write(bab.getBuffer(), 0, bab.size());
@@ -157,15 +156,13 @@ public final class TSDBWriter implements Closeable, Flushable {
 
   public synchronized void writeDataRow(final long tableId, final long timestamp, final long... data)
           throws IOException {
-    if (this.writeBlock.values.size() >= this.maxRowsPerBlock) {
+    List<DataRow> blockValues = this.writeBlock.getValues();
+    if (blockValues.size() >= this.maxRowsPerBlock) {
       flush();
     }
-    long baseTs = writeBlock.baseTimestamp;
-    DataRow row = new DataRow();
-    row.relTimeStamp = (int) (timestamp - baseTs);
-    row.tableDefId = tableId;
-    row.setData(Longs.asList(data));
-    this.writeBlock.values.add(row);
+    long baseTs = writeBlock.getBaseTimestamp();
+    DataRow row = new DataRow((int) (timestamp - baseTs), tableId, Longs.asList(data));
+    blockValues.add(row);
   }
 
   @Override
@@ -202,14 +199,15 @@ public final class TSDBWriter implements Closeable, Flushable {
    */
   @Override
   public synchronized void flush() throws IOException {
-    if (writeBlock.getValues().size() > 0) {
+    List<DataRow> blockValues = writeBlock.getValues();
+    if (!blockValues.isEmpty()) {
       bab.reset();
       this.recordWriter.write(writeBlock, this.encoder);
       encoder.flush();
       raf.write(bab.getBuffer(), 0, bab.size());
       channel.force(true);
       updateEOFPtrPointer();
-      writeBlock.values.clear();
+      blockValues.clear();
     }
     channel.force(true);
   }
