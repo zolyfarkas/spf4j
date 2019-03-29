@@ -72,6 +72,8 @@ public final class LogPrinter {
 
   private static final class Buffer {
 
+    private static final int MAX_BUFFER_SIZE = Integer.getInteger("spf4j.logPrinter", 1024 * 32);
+
     private final ByteArrayBuilder bab;
 
     private final Writer writer;
@@ -85,6 +87,11 @@ public final class LogPrinter {
     }
 
     private void clear() {
+      try {
+        writer.flush();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
       bab.reset();
     }
 
@@ -140,27 +147,41 @@ public final class LogPrinter {
 
   public void print(final Slf4jLogRecord record, final OutputStream os) {
     Buffer buff = tlBuffer.get();
+    boolean recycle = true;
     try {
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
-      os.write(buff.getBytes(), 0, buff.size());
+      int len = buff.size();
+      os.write(buff.getBytes(), 0, len);
+      if (len > Buffer.MAX_BUFFER_SIZE) {
+        recycle = false;
+      }
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     } finally {
-      tlBuffer.recycle(buff);
+      if (recycle) {
+        tlBuffer.recycle(buff);
+      }
     }
   }
 
   public byte[] printToBytes(final Slf4jLogRecord record) {
     Buffer buff = tlBuffer.get();
+    boolean recycle = true;
     try {
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
-      return Arrays.copyOf(buff.getBytes(), buff.size());
+      int size = buff.size();
+      if (size > Buffer.MAX_BUFFER_SIZE) {
+        recycle = false;
+      }
+      return Arrays.copyOf(buff.getBytes(), size);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     } finally {
-      tlBuffer.recycle(buff);
+      if (recycle) {
+        tlBuffer.recycle(buff);
+      }
     }
   }
 
