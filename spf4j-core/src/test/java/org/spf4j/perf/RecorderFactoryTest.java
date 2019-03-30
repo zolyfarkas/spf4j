@@ -141,7 +141,7 @@ public final class RecorderFactoryTest {
     final File file = dbWriter.getFile();
     List<TableDef> tableDefs = TSDBQuery.getTableDef(file, forWhat);
     TableDef tableDef = tableDefs.get(0);
-    TimeSeries timeSeries = TSDBQuery.getTimeSeries(file, new long[]{tableDef.id}, 0, Long.MAX_VALUE);
+    TimeSeries timeSeries = TSDBQuery.getTimeSeries(file, new long[]{tableDef.getId()}, 0, Long.MAX_VALUE);
     long sum = 0;
     long[][] values = timeSeries.getValues();
     for (long[] row : values) {

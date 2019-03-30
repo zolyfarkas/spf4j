@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.ComparablePair;
 import org.spf4j.base.Pair;
 import org.spf4j.jmx.mappers.Spf4jOpenTypeMapper;
+import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
 import org.spf4j.tsdb2.avro.Type;
@@ -244,13 +245,13 @@ public class OpenTypeConverterTest {
 
   @Test
   public void testConverterRecursiveAvro() throws OpenDataException, InvalidObjectException, NotSerializableException {
-    JMXBeanMapping get = conv.get(org.spf4j.test.avro.SampleNode.class);
+    JMXBeanMapping get = conv.get(SampleNode.class);
     Assert.assertNull(get);
   }
 
   @Test
   public void testConverterRecursiveAvro2() throws OpenDataException, InvalidObjectException, NotSerializableException {
-    JMXBeanMapping get = conv.get(org.spf4j.test2.avro.SampleNode.class);
+    JMXBeanMapping get = conv.get(SampleNode.class);
     Assert.assertNull(get);
   }
 

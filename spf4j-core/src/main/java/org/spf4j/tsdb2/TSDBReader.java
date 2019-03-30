@@ -74,244 +74,241 @@ import org.spf4j.tsdb2.avro.TableDef;
  * @author zoly
  */
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
-public final  class TSDBReader implements Closeable {
+public final class TSDBReader implements Closeable {
 
-    private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
+  private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
 
-    private CountingInputStream bis;
-    private final Header header;
-    private long size;
-    private  BinaryDecoder decoder;
-    private final SpecificDatumReader<Object> recordReader;
-    private RandomAccessFile raf;
-    private final File file;
-    private final Path filePath;
-    private volatile boolean watch;
-    private final int bufferSize;
-    private final SeekableByteChannel byteChannel;
+  private CountingInputStream bis;
+  private final Header header;
+  private long size;
+  private BinaryDecoder decoder;
+  private final SpecificDatumReader<Object> recordReader;
+  private RandomAccessFile raf;
+  private final File file;
+  private final Path filePath;
+  private volatile boolean watch;
+  private final int bufferSize;
+  private final SeekableByteChannel byteChannel;
 
-    public TSDBReader(final File file, final int bufferSize) throws IOException {
-        this.file = file;
-        this.filePath = file.toPath();
-        this.bufferSize = bufferSize;
-        this.byteChannel = Files.newByteChannel(filePath);
-        resetStream(0);
-        SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
-        TSDBWriter.validateType(bis);
-        byte[] buff = new byte[8];
-        ByteStreams.readFully(bis, buff);
-        size = Longs.fromByteArray(buff);
-        header = reader.read(null, decoder);
-        recordReader = new SpecificDatumReader<>(
-                new Schema.Parser().parse(header.getContentSchema()),
-                Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));
+  public TSDBReader(final File file, final int bufferSize) throws IOException {
+    this.file = file;
+    this.filePath = file.toPath();
+    this.bufferSize = bufferSize;
+    this.byteChannel = Files.newByteChannel(filePath);
+    resetStream(0);
+    SpecificDatumReader<Header> reader = new SpecificDatumReader<>(Header.getClassSchema());
+    TSDBWriter.validateType(bis);
+    byte[] buff = new byte[8];
+    ByteStreams.readFully(bis, buff);
+    size = Longs.fromByteArray(buff);
+    header = reader.read(null, decoder);
+    recordReader = new SpecificDatumReader<>(
+            new Schema.Parser().parse(header.getContentSchema()),
+            Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));
+  }
+
+  private void resetStream(final long position) throws IOException {
+    byteChannel.position(position);
+    bis = new CountingInputStream(new MemorizingBufferedInputStream(Channels.newInputStream(byteChannel),
+            bufferSize), position);
+    decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+  }
+
+  /**
+   * method useful when implementing tailing.
+   *
+   * @return true if size changed.
+   * @throws IOException
+   */
+  public synchronized boolean reReadSize() throws IOException {
+    if (raf == null) {
+      raf = new RandomAccessFile(file, "r");
     }
-
-
-    private void resetStream(final long position) throws IOException {
-      byteChannel.position(position);
-      bis = new CountingInputStream(new MemorizingBufferedInputStream(Channels.newInputStream(byteChannel),
-              bufferSize), position);
-      decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+    raf.seek(TSDBWriter.MAGIC.length);
+    long old = size;
+    size = raf.readLong();
+    if (size != old) {
+      resetStream(bis.getCount());
+      return true;
+    } else {
+      return false;
     }
+  }
 
-    /**
-     * method useful when implementing tailing.
-     * @return true if size changed.
-     * @throws IOException
-     */
-    public synchronized boolean reReadSize() throws IOException {
-        if (raf == null) {
-            raf = new RandomAccessFile(file, "r");
+  @Nullable
+  public synchronized Either<TableDef, DataBlock> read() throws IOException {
+    final long position = bis.getCount();
+    if (position >= size) {
+      return null;
+    }
+    Object result;
+    try {
+      result = recordReader.read(null, decoder);
+    } catch (IOException | RuntimeException ex) {
+      if (CORUPTION_LENIENT) {
+        return null;
+      } else {
+        throw new IOException("Error reading tsdb file at " + position + ", this= " + this, ex);
+      }
+    }
+    if (result instanceof TableDef) {
+      final TableDef td = (TableDef) result;
+      long tdId = td.getId();
+      if (position != tdId) {
+        throw new IOException("Table Id should be equal with file position " + position + ", " + tdId);
+      }
+      return Either.left(td);
+    } else {
+      return Either.right((DataBlock) result);
+    }
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    try (InputStream is = bis) {
+      if (raf != null) {
+        raf.close();
+      }
+    }
+  }
+
+  public synchronized long getSize() {
+    return size;
+  }
+
+  public Header getHeader() {
+    return header;
+  }
+
+  public void stopWatching() {
+    watch = false;
+  }
+
+  public synchronized <E extends Exception> Future<Void> bgWatch(
+          final Handler<Either<TableDef, DataBlock>, E> handler,
+          final EventSensitivity es) {
+    return bgWatch(handler, es, ExecutionContexts.getContextDeadlineNanos());
+  }
+
+  public synchronized <E extends Exception> Future<Void> bgWatch(
+          final Handler<Either<TableDef, DataBlock>, E> handler,
+          final EventSensitivity es, final long timeout, final TimeUnit unit) {
+    return bgWatch(handler, es, TimeSource.nanoTime() + unit.toNanos(timeout));
+  }
+
+  //CHECKSTYLE:OFF
+  public synchronized <E extends Exception> Future<Void> bgWatch(
+          final Handler<Either<TableDef, DataBlock>, E> handler,
+          final EventSensitivity es, final long deadlineNanos) {
+    //CHECKSTYLE:ON
+    return DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
+
+      @Override
+      public Void call() throws Exception {
+        watch(handler, es);
+        return null;
+      }
+    });
+  }
+
+  public enum EventSensitivity {
+    HIGH, MEDIUM, LOW
+  }
+
+  public <E extends Exception> void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+          final EventSensitivity es) throws IOException, InterruptedException, E {
+    watch(handler, es, ExecutionContexts.getContextDeadlineNanos());
+  }
+
+  public <E extends Exception> void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+          final EventSensitivity es, final long timeout, final TimeUnit unit)
+          throws IOException, InterruptedException, E {
+    watch(handler, es, TimeSource.nanoTime() + unit.toNanos(timeout));
+  }
+
+  //CHECKSTYLE:OFF
+  @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
+  public <E extends Exception> void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
+          final EventSensitivity es, final long deadlineNanos)
+          throws IOException, InterruptedException, E {
+    //CHECKSTYLE:ON
+    synchronized (this) {
+      if (watch) {
+        throw new IllegalStateException("File is already watched " + file);
+      }
+      watch = true;
+    }
+    SensitivityWatchEventModifier sensitivity;
+    switch (es) {
+      case LOW:
+        sensitivity = SensitivityWatchEventModifier.LOW;
+        break;
+      case MEDIUM:
+        sensitivity = SensitivityWatchEventModifier.MEDIUM;
+        break;
+      case HIGH:
+        sensitivity = SensitivityWatchEventModifier.HIGH;
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported sensitivity " + es);
+    }
+    final Path path = file.getParentFile().toPath();
+    try (WatchService watchService = path.getFileSystem().newWatchService()) {
+      path.register(watchService, new WatchEvent.Kind[]{StandardWatchEventKinds.ENTRY_MODIFY,
+        StandardWatchEventKinds.OVERFLOW
+      }, sensitivity);
+      readAll(handler, deadlineNanos);
+      do {
+        long tNanos = deadlineNanos - TimeSource.nanoTime();
+        if (tNanos <= 0) {
+          break;
         }
-        raf.seek(TSDBWriter.MAGIC.length);
-        long old = size;
-        size = raf.readLong();
-        if  (size != old) {
-          resetStream(bis.getCount());
-          return true;
-        } else {
-          return false;
-        }
-    }
-
-
-    @Nullable
-    public synchronized Either<TableDef, DataBlock> read() throws IOException {
-        final long position = bis.getCount();
-        if (position >= size) {
-            return null;
-        }
-        Object result;
-        try {
-          result = recordReader.read(null, decoder);
-        } catch (IOException | RuntimeException ex) {
-          if (CORUPTION_LENIENT) {
-            return null;
-          } else {
-            throw new IOException("Error reading tsdb file at " + position + ", this= " + this, ex);
-          }
-        }
-        if (result instanceof TableDef) {
-            final TableDef td = (TableDef) result;
-            if (position != td.id) {
-                throw new IOException("Table Id should be equal with file position " + position + ", " + td.id);
-            }
-            return Either.left(td);
-        } else {
-            return Either.right((DataBlock) result);
-        }
-    }
-
-
-    @Override
-    public synchronized void close() throws IOException {
-        try (InputStream is = bis) {
-            if (raf != null) {
-                raf.close();
-            }
-        }
-    }
-
-    public synchronized long getSize() {
-        return size;
-    }
-
-    public Header getHeader() {
-        return header;
-    }
-
-    public void stopWatching() {
-        watch =  false;
-    }
-
-    public synchronized <E extends Exception>  Future<Void> bgWatch(
-            final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es) {
-      return bgWatch(handler, es, ExecutionContexts.getContextDeadlineNanos());
-    }
-
-
-    public synchronized <E extends Exception>  Future<Void> bgWatch(
-            final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es, final long timeout, final TimeUnit unit) {
-      return bgWatch(handler, es, TimeSource.nanoTime() + unit.toNanos(timeout));
-    }
-
-    //CHECKSTYLE:OFF
-    public synchronized <E extends Exception>  Future<Void> bgWatch(
-            final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es, final long deadlineNanos) {
-        //CHECKSTYLE:ON
-        return DefaultExecutor.INSTANCE.submit(new Callable<Void>() {
-
-            @Override
-            public Void call() throws Exception {
-                watch(handler, es);
-                return null;
-            }
-        });
-    }
-
-
-    public enum EventSensitivity {
-        HIGH, MEDIUM, LOW
-    }
-
-    public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es) throws IOException, InterruptedException, E {
-      watch(handler, es, ExecutionContexts.getContextDeadlineNanos());
-    }
-
-    public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es, final long timeout, final TimeUnit unit)
-            throws IOException, InterruptedException, E {
-      watch(handler, es,  TimeSource.nanoTime() + unit.toNanos(timeout));
-    }
-
-    //CHECKSTYLE:OFF
-    @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
-    public  <E extends Exception>  void watch(final Handler<Either<TableDef, DataBlock>, E> handler,
-            final EventSensitivity es, final long deadlineNanos)
-            throws IOException, InterruptedException, E {
-        //CHECKSTYLE:ON
-        synchronized (this) {
-          if (watch) {
-              throw new IllegalStateException("File is already watched " + file);
-          }
-          watch = true;
-        }
-        SensitivityWatchEventModifier sensitivity;
-        switch (es) {
-            case LOW:
-                sensitivity = SensitivityWatchEventModifier.LOW;
-                break;
-            case MEDIUM:
-                sensitivity = SensitivityWatchEventModifier.MEDIUM;
-                break;
-            case HIGH:
-                sensitivity = SensitivityWatchEventModifier.HIGH;
-                break;
-            default:
-                throw new UnsupportedOperationException("Unsupported sensitivity " + es);
-        }
-        final Path path = file.getParentFile().toPath();
-        try (WatchService watchService = path.getFileSystem().newWatchService()) {
-            path.register(watchService, new WatchEvent.Kind[] {StandardWatchEventKinds.ENTRY_MODIFY,
-                StandardWatchEventKinds.OVERFLOW
-            }, sensitivity);
+        WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
+        if (key == null) {
+          if (reReadSize()) {
             readAll(handler, deadlineNanos);
-            do {
-                long tNanos = deadlineNanos - TimeSource.nanoTime();
-                if (tNanos <= 0) {
-                  break;
-                }
-                WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
-                if (key == null) {
-                    if (reReadSize()) {
-                        readAll(handler, deadlineNanos);
-                    }
-                    continue;
-                }
-                if (!key.isValid()) {
-                    key.cancel();
-                    break;
-                }
-                if (!key.pollEvents().isEmpty() && reReadSize()) {
-                  readAll(handler, deadlineNanos);
-                }
-                if (!key.reset()) {
-                    key.cancel();
-                    break;
-                }
-            } while (watch);
-        } finally {
-            watch = false;
+          }
+          continue;
         }
-    }
-
-    //CHECKSTYLE:OFF
-    public synchronized <E extends Exception> void readAll(final Handler<Either<TableDef, DataBlock>, E> handler,
-            final long deadlineNanos)
-            throws IOException, E {
-      //CHECKSTYLE:ON
-        Either<TableDef, DataBlock> data;
-        while ((data = read()) != null) {
-            handler.handle(data, deadlineNanos);
+        if (!key.isValid()) {
+          key.cancel();
+          break;
         }
-    }
-
-    public synchronized void readAll(final Consumer<Either<TableDef, DataBlock>> consumer)
-            throws IOException {
-        Either<TableDef, DataBlock> data;
-        while ((data = read()) != null) {
-            consumer.accept(data);
+        if (!key.pollEvents().isEmpty() && reReadSize()) {
+          readAll(handler, deadlineNanos);
         }
+        if (!key.reset()) {
+          key.cancel();
+          break;
+        }
+      } while (watch);
+    } finally {
+      watch = false;
     }
+  }
 
-    @Override
-    public String toString() {
-        return "TSDBReader{" + "size=" + size + ", raf=" + raf + ", file=" + file + '}';
+  //CHECKSTYLE:OFF
+  public synchronized <E extends Exception> void readAll(final Handler<Either<TableDef, DataBlock>, E> handler,
+          final long deadlineNanos)
+          throws IOException, E {
+    //CHECKSTYLE:ON
+    Either<TableDef, DataBlock> data;
+    while ((data = read()) != null) {
+      handler.handle(data, deadlineNanos);
     }
+  }
+
+  public synchronized void readAll(final Consumer<Either<TableDef, DataBlock>> consumer)
+          throws IOException {
+    Either<TableDef, DataBlock> data;
+    while ((data = read()) != null) {
+      consumer.accept(data);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "TSDBReader{" + "size=" + size + ", raf=" + raf + ", file=" + file + '}';
+  }
 
 }

@@ -99,7 +99,7 @@ public class TSDBReaderTest {
 
     ListMultimap<String, TableDef> allTables = TSDBQuery.getAllTables(testFile);
     Assert.assertEquals(1, allTables.size());
-    Assert.assertTrue(allTables.containsKey(tableDef.name));
+    Assert.assertTrue(allTables.containsKey(tableDef.getName()));
     TimeSeries timeSeries = TSDBQuery.getTimeSeries(testFile, new long[]{tableId}, 0, Long.MAX_VALUE);
     Assert.assertEquals(2L, timeSeries.getValues()[2][0]);
 

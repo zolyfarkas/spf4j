@@ -156,17 +156,17 @@ public final class TSDBQuery {
         if (read.isLeft()) {
           final TableDef left = read.getLeft();
           final TableDefEx tableDefEx = new TableDefEx(left, Long.MAX_VALUE, 0L);
-          id2Def.put(left.id, tableDefEx);
+          id2Def.put(left.getId(), tableDefEx);
           result.put(tableDefEx.getTableDef().getName(), tableDefEx);
         } else {
           DataBlock right = read.getRight();
-          long baseTs = right.baseTimestamp;
+          long baseTs = right.getBaseTimestamp();
           for (DataRow row : right.getValues()) {
-            TableDefEx tdex = id2Def.get(row.tableDefId);
+            TableDefEx tdex = id2Def.get(row.getTableDefId());
             if (tdex == null) {
               throw new IOException("Potentially corupted file data row with no tableDef " + row);
             }
-            long ts = baseTs + row.relTimeStamp;
+            long ts = baseTs + row.getRelTimeStamp();
             if (ts < tdex.getStartTime()) {
               tdex.setStartTime(ts);
             }
@@ -188,7 +188,7 @@ public final class TSDBQuery {
       while ((read = reader.read()) != null) {
         if (read.isLeft()) {
           TableDef left = read.getLeft();
-          if (Strings.equals(tableName, left.name)) {
+          if (tableName.equals(left.getName())) {
             result.add(left);
           }
         }
@@ -206,14 +206,14 @@ public final class TSDBQuery {
       while ((read = reader.read()) != null) {
         if (read.isRight()) {
           DataBlock data = read.getRight();
-          long baseTs = data.baseTimestamp;
+          long baseTs = data.getBaseTimestamp();
           for (DataRow row : data.getValues()) {
             for (long tableId : tableIds) {
-              if (tableId == row.tableDefId) {
-                final long ts = baseTs + row.relTimeStamp;
+              if (tableId == row.getTableDefId()) {
+                final long ts = baseTs + row.getRelTimeStamp();
                 if (ts >= startTimeMillis && ts <= endTimeMillis) {
                   timestamps.add(ts);
-                  metrics.add(Longs.toArray(row.data));
+                  metrics.add(Longs.toArray(row.getData()));
                 }
               }
             }
@@ -228,7 +228,7 @@ public final class TSDBQuery {
     long[] result = new long[tableDefs.size()];
     int i = 0;
     for (TableDef tdef : tableDefs) {
-      result[i++] = tdef.id;
+      result[i++] = tdef.getId();
     }
     return result;
   }
