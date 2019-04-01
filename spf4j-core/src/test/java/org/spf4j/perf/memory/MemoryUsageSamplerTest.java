@@ -54,7 +54,7 @@ public class MemoryUsageSamplerTest {
   }
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
-  private void assertSamplerBehavior() throws InterruptedException, IOException {
+  private void assertSamplerBehavior() throws InterruptedException {
     MemoryUsageSampler.start(100);
     String str = "";
     for (int i = 0; i < 100000; i++) {

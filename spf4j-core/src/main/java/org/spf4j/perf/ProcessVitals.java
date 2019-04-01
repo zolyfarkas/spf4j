@@ -87,7 +87,7 @@ public final class ProcessVitals implements AutoCloseable {
 
 
   @Override
-  public void close() throws Exception {
+  public void close()  {
     OpenFilesSampler.stop();
     MemoryUsageSampler.stop();
     GCUsageSampler.stop();

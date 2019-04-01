@@ -32,7 +32,6 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.impl.RecorderFactory;
@@ -68,7 +67,7 @@ public final class OpenFilesSampler {
   static {
     Runtime.queueHook(2, new AbstractRunnable(true) {
       @Override
-      public void doRun() throws IOException {
+      public void doRun() {
         stop();
       }
     });
@@ -116,7 +115,7 @@ public final class OpenFilesSampler {
   }
 
   @JmxExport
-  public static synchronized void stop() throws IOException {
+  public static synchronized void stop()  {
     if (samplingFuture != null) {
       samplingFuture.cancel(false);
       samplingFuture = null;
