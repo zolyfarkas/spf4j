@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
@@ -112,7 +111,7 @@ public final class LogPrinter {
       }
     }
 
-    private byte[] getBytes() throws IOException {
+    private byte[] getBytes() {
       return bab.getBuffer();
     }
 
