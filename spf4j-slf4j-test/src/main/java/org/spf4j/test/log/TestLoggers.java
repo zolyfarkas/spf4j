@@ -70,6 +70,8 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julRoot;
 
+  private final Set<String> expectingErrorsIn;
+
   @GuardedBy("sync")
   @Contended
   private volatile LogConfig config;
@@ -113,7 +115,6 @@ public final class TestLoggers implements ILoggerFactory {
       catHandlers = Collections.EMPTY_MAP;
     }
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
-    Set<String> expectingErrorsIn;
     String vals = System.getProperty("spf4j.testLog.expectingErrorsIn");
     if (vals != null) {
       expectingErrorsIn = ImmutableSet.copyOf(vals.split(","));
@@ -128,6 +129,10 @@ public final class TestLoggers implements ILoggerFactory {
     julGlobal = java.util.logging.Logger.getGlobal();
     julRoot = java.util.logging.Logger.getLogger("");
     resetJulConfig();
+  }
+
+  public Set<String> getExpectingErrorsIn() {
+    return expectingErrorsIn;
   }
 
   private void resetJulConfig() {

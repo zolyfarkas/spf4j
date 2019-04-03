@@ -16,6 +16,8 @@
 package org.spf4j.test.matchers;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -67,6 +69,14 @@ public final class LogMatchers {
   public static Matcher<TestLogRecord> hasLevel(final Level level) {
     return Matchers.hasProperty("level", Matchers.equalTo(level));
   }
+
+  public static Matcher<TestLogRecord> hasNotLoggers(final Set<String> loggers) {
+    Iterable<Matcher<String>> matchers = loggers.stream()
+            .map((x)  -> Matchers.equalTo(x)).collect(Collectors.toList());
+    return Matchers.not(Matchers.hasProperty("loggerName", Matchers.anyOf((Iterable) matchers)));
+  }
+
+  
 
   public static Matcher<TestLogRecord> hasMatchingArguments(final Matcher<Object[]> matcher) {
      return Matchers.hasProperty("arguments", matcher);

@@ -175,18 +175,19 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
     TestLoggers sysTest = TestLoggers.sys();
     LogCollection<ArrayDeque<TestLogRecord>> collectLogs = handleLogCollections(description, sysTest);
-    List<LogAssert> logExpectations = handleLogExpectations(description, sysTest);
+    List<LogAssert> logExpectations = setUpUnitTestLogExpectations(description, sysTest);
     baggages.put(description, new TestBaggage(ctx, collectLogs, logExpectations));
     handlePrintLogAnnotations(description, sysTest);
     super.testStarted(description);
   }
 
-    private List<LogAssert> handleLogExpectations(final Description description,
+    private List<LogAssert> setUpUnitTestLogExpectations(final Description description,
           final TestLoggers sysTest) {
       List<LogAssert> assertions = new ArrayList<>(2);
       assertions.add(
                   sysTest.dontExpect("", Level.ERROR,
                   Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),
+                  LogMatchers.hasNotLoggers(sysTest.getExpectingErrorsIn()),
                   LogMatchers.hasLevel(Level.ERROR))));
       ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);
       if (expectLogs != null) {
