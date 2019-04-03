@@ -545,11 +545,11 @@ public final class Runtime {
 
   public static CharSequence jrun(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    String[] arr = getJvmArgsNoJMX();
+    String[] arr = getJvmArgsNoJMXNoDebug();
     return jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
   }
 
-  private static String[] getJvmArgsNoJMX() {
+  private static String[] getJvmArgsNoJMXNoDebug() {
     List<String> jvmInputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
     String[] arr;
     if (jvmInputArgs.isEmpty()) {
@@ -557,6 +557,7 @@ public final class Runtime {
     } else {
       JVMArguments inputArguments = new JVMArguments(jvmInputArgs);
       inputArguments.removeAllSystemPropertiesStartingWith("com.sun.management.jmxremote");
+      inputArguments.removeVMArgumentStartingWith("-agentlib:jdwp");
       arr = inputArguments.toArray();
     }
     return arr;
@@ -593,7 +594,7 @@ public final class Runtime {
 
   public static void jrunAndLog(final Class<?> classWithMain, final String classPath, final long timeoutMillis,
           final String... arguments) throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    String[] arr = getJvmArgsNoJMX();
+    String[] arr = getJvmArgsNoJMXNoDebug();
     jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
   }
 
