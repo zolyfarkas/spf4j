@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
@@ -103,8 +104,15 @@ public final class LogPrinter {
       return writerEscaper;
     }
 
+    private void flush() {
+      try {
+        writer.flush();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    }
+
     private byte[] getBytes() throws IOException {
-      writer.flush();
       return bab.getBuffer();
     }
 
@@ -151,6 +159,7 @@ public final class LogPrinter {
     try {
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
+      buff.flush();
       int len = buff.size();
       os.write(buff.getBytes(), 0, len);
       if (len > Buffer.MAX_BUFFER_SIZE) {
@@ -171,6 +180,7 @@ public final class LogPrinter {
     try {
       buff.clear();
       print(record, buff.getWriter(), buff.getWriterEscaper(), "");
+      buff.flush();
       int size = buff.size();
       if (size > Buffer.MAX_BUFFER_SIZE) {
         recycle = false;
@@ -208,6 +218,7 @@ public final class LogPrinter {
     buff.clear();
     try {
       print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);
+      buff.flush();
       stream.write(buff.getBytes(), 0, buff.size());
       stream.flush();
     } catch (IOException ex) {
