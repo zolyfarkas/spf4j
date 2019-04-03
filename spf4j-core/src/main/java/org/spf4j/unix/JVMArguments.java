@@ -206,6 +206,19 @@ public final class JVMArguments {
     return false;
   }
 
+  public boolean removeVMArgumentStartingWith(final String argument) {
+    Iterator<String> itr = arguments.iterator();
+    itr.next();
+    while (itr.hasNext()) {
+      String s = itr.next();
+      if (s.startsWith(argument)) {
+        itr.remove();
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean hasVMArgument(final String argument) {
     Iterator<String> itr = arguments.iterator();
     itr.next();
