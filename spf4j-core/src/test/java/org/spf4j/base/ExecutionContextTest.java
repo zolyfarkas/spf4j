@@ -42,6 +42,8 @@ import java.util.concurrent.TimeoutException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.concurrent.ContextPropagatingCompletableFuture;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.log.Level;
@@ -54,6 +56,8 @@ import org.spf4j.log.Slf4jLogRecordImpl;
  */
 @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
 public class ExecutionContextTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextTest.class);
 
   private static final ExecutionContext.Tag<String> KEY_TAG = new ExecutionContext.Tag<String>() {
     @Override
@@ -138,6 +142,7 @@ public class ExecutionContextTest {
       wc.get();
       List<Slf4jLogRecord> logs = new ArrayList<>(2);
       start.streamLogs(logs::add);
+      LOG.debug("Context logs", logs);
       Assert.assertEquals(log, logs.get(0));
       Assert.assertEquals(log2, logs.get(1));
     }
