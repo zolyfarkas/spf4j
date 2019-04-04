@@ -135,11 +135,10 @@ public class ExecutionContextTest {
       CompletableFuture<String> fut = ContextPropagatingCompletableFuture.supplyAsync(() -> {
         ExecutionContexts.current().addLog(log);
         return "";
-      }, DefaultExecutor.INSTANCE);
-      CompletableFuture<String> wc = fut.whenComplete((a, t) -> {
+      }, DefaultExecutor.INSTANCE).whenComplete((a, t) -> {
         ExecutionContexts.current().addLog(log2);
       });
-      wc.get();
+      fut.get();
       List<Slf4jLogRecord> logs = new ArrayList<>(2);
       start.streamLogs(logs::add);
       LOG.debug("Context logs", logs);
