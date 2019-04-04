@@ -300,21 +300,21 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
-  public final synchronized void addLogs(final Collection<Slf4jLogRecord> log) {
+  public final synchronized void addLogs(final Collection<Slf4jLogRecord> pLogs) {
     if (isClosed) {
       if (source == null) {
         return;
       } else {
-        source.addLogs(log);
+        source.addLogs(pLogs);
         return;
       }
     }
     if (logs == null) {
-      logs = new ArrayDeque<>(log);
+      logs = new ArrayDeque<>(pLogs);
       return;
     }
     int xNrLogs = logs.size();
-    int toRemove = xNrLogs + log.size() - MX_NR_LOGS_PER_CTXT;
+    int toRemove = xNrLogs + pLogs.size() - MX_NR_LOGS_PER_CTXT;
     if (toRemove >= xNrLogs) {
       logs.clear();
     } else {
@@ -322,7 +322,7 @@ public class BasicExecutionContext implements ExecutionContext {
         logs.removeFirst();
       }
     }
-    logs.addAll(log);
+    logs.addAll(pLogs);
   }
 
   @Override
