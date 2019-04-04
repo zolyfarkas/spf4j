@@ -142,6 +142,7 @@ public class ExecutionContextTest {
       List<Slf4jLogRecord> logs = new ArrayList<>(2);
       start.streamLogs(logs::add);
       LOG.debug("Context logs", logs);
+//      Assert.assertThat(logs, Matchers.hasItems(log, log2));
       Assert.assertEquals(log, logs.get(0));
       Assert.assertEquals(log2, logs.get(1));
     }

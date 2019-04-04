@@ -369,15 +369,28 @@ public class ContextPropagatingCompletableFuture<T>
   public static <U> CompletableFuture<U> supplyAsync(final Supplier<U> f,
           final ExecutionContext current,
           final Executor e, final long deadlineNanos) {
+    long ctxDeadlineNanos = current.getDeadlineNanos();
+    long currentTime = TimeSource.nanoTime();
+    long effectiveDeadlineNanos;
+    if ((ctxDeadlineNanos - currentTime) > (deadlineNanos - currentTime)) {
+      effectiveDeadlineNanos = deadlineNanos;
+    } else {
+      effectiveDeadlineNanos = ctxDeadlineNanos;
+    }
     ContextPropagatingCompletableFuture<U> d
-            = new ContextPropagatingCompletableFuture<U>(current, current.getDeadlineNanos());
-    e.execute(ExecutionContexts.propagatingRunnable(() -> {
+            = new ContextPropagatingCompletableFuture<U>(current, effectiveDeadlineNanos);
+    e.execute(() -> {
       try {
-        d.complete(f.get());
+        U r;
+        try (ExecutionContext ec = ExecutionContexts.start(f.toString(), current,
+                currentTime, effectiveDeadlineNanos)) {
+          r = f.get();
+        }
+        d.complete(r);
       } catch (Throwable t) {
         d.completeExceptionally(t);
       }
-    }, current, f.toString(), deadlineNanos));
+    });
     return d;
   }
 
