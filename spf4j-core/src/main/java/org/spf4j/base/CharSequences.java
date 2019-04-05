@@ -700,6 +700,17 @@ public final class CharSequences {
     return -1;
   }
 
+  public static int indexOf(final CharSequence cs, final int from, final int to, final char... chars) {
+    for (int i = from; i < to; i++) {
+      char charAt = cs.charAt(i);
+      for (char c : chars) {
+        if (c == charAt) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
 
   public static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
     return lastIndexOfIgnoreCase(str, searchStr) >= 0;
