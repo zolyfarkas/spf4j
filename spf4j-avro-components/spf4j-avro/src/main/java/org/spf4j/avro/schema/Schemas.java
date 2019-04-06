@@ -35,19 +35,24 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
 import org.apache.avro.Schema.Field;
+import org.spf4j.base.CharSequences;
 import org.spf4j.ds.IdentityHashSet;
 
 /**
  * Avro Schema utilities, to traverse...
+ *
  * @author zoly
  */
 @Beta
@@ -97,7 +102,7 @@ public final class Schemas {
             throw new UnsupportedOperationException();
           case SKIP_SIBLINGS:
             while (dq.getLast() instanceof Schema) {
-               dq.removeLast();
+              dq.removeLast();
             }
             break;
           case TERMINATE:
@@ -148,7 +153,7 @@ public final class Schemas {
           terminate = visitTerminal(visitor, schema, dq);
         }
         if (terminate) {
-            return visitor.get();
+          return visitor.get();
         }
       }
     }
@@ -221,5 +226,149 @@ public final class Schemas {
     return false;
   }
 
+  public static Schema getSubSchema(final Schema schema, final CharSequence path) {
+    return getSubSchema(schema, path, 0);
+  }
+
+  public static Schema getSubSchema(final Schema schema, final CharSequence path, final int at) {
+    int length = path.length();
+    if (at >= length) {
+      return schema;
+    }
+    int to = CharSequences.indexOf(path, at, length, '.');
+    if (to < 0) {
+      to = length;
+    }
+
+    String part = CharSequences.subSequence(path, at, to).toString().trim();
+    switch (schema.getType()) {
+      case ARRAY:
+        if ("[]".equals(part)) {
+          if (to == length) {
+            return schema.getElementType();
+          }
+          return getSubSchema(schema.getElementType(), path, to + 1);
+        } else {
+          throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
+        }
+      case MAP:
+        if ("{}".equals(part)) {
+          if (to == length) {
+            return schema.getValueType();
+          }
+          return getSubSchema(schema.getValueType(), path, to + 1);
+        } else {
+          throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
+        }
+      case RECORD:
+        for (Schema.Field field : schema.getFields()) {
+          if (part.equals(field.name()) || field.aliases().contains(part)) {
+            if (to == length) {
+              return field.schema();
+            }
+            return getSubSchema(field.schema(), path, to + 1);
+          }
+        }
+        throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
+      default:
+        throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
+    }
+
+  }
+
+  @Nullable
+  public static Schema project(final Schema schema, final CharSequence... paths) {
+    if (paths.length == 0 || (paths.length == 1 && paths[0].length() == 0)) {
+      return schema;
+    }
+    List<CharSequence> seqs;
+    switch (schema.getType()) {
+      case ARRAY:
+        seqs = new ArrayList<>(paths.length);
+        for (CharSequence path : paths) {
+          String part = getFirstRef(path);
+          if ("[]".equals(part)) {
+            if (part.length() == path.length()) {
+              return schema;
+            }
+            seqs.add(part.substring(part.length() + 1));
+          } else {
+            return null;
+          }
+        }
+        if (seqs.isEmpty()) {
+          return null;
+        }
+        return Schema.createArray(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));
+      case MAP:
+        seqs = new ArrayList<>(paths.length);
+        for (CharSequence path : paths) {
+          String part = getFirstRef(path);
+          if ("{}".equals(part)) {
+            if (part.length() == path.length()) {
+              return schema;
+            }
+            seqs.add(part.substring("{}".length() + 1));
+          }
+        }
+        if (seqs.isEmpty()) {
+          return null;
+        }
+        return Schema.createMap(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));
+      case RECORD:
+        Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(), schema.getNamespace(), schema.isError());
+        List<Field> fields = schema.getFields();
+        List<Schema.Field> nFields = new ArrayList<>(fields.size());
+        for (Schema.Field field : fields) {
+          seqs = new ArrayList<>(paths.length);
+          for (CharSequence path : paths) {
+            String part = getFirstRef(path);
+            if (part.equals(field.name())) {
+              if (part.length() == path.length()) {
+                seqs.add("");
+              } else {
+                seqs.add(path.subSequence(part.length() + 1, path.length()));
+              }
+            }
+          }
+          if (!seqs.isEmpty()) {
+            Schema.Field nField = new Schema.Field(field.name(),
+                    project(field.schema(), seqs.toArray(new CharSequence[seqs.size()])),
+                    field.doc(), field.defaultVal(), field.order());
+            nFields.add(nField);
+          }
+        }
+        rec.setFields(nFields);
+        return rec;
+      case UNION:
+        List<Schema> types = schema.getTypes();
+        List<Schema> nTypes = new ArrayList<>(types.size());
+        for (Schema us : types) {
+          if (us.getType() == Schema.Type.NULL) {
+            nTypes.add(us);
+          } else {
+            Schema project = project(us, paths);
+            if (project != null) {
+              nTypes.add(project);
+            }
+          }
+        }
+        return Schema.createUnion(nTypes);
+      default:
+        return null;
+    }
+  }
+
+  private static String getFirstRef(final CharSequence path) {
+    int length = path.length();
+    int to = CharSequences.indexOf(path, 0, length, '.');
+    String part;
+    if (to < 0) {
+      part = path.toString();
+    } else {
+      part = path.subSequence(0, to).toString();
+    }
+    return part;
+  }
 
 }

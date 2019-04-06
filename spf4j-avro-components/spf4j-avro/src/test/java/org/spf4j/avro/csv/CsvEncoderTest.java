@@ -17,12 +17,15 @@ package org.spf4j.avro.csv;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -34,10 +37,15 @@ import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.specific.SpecificDatumReader;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.avro.PackageInfo;
+import org.spf4j.demo.avro.DemoRecord;
+import org.spf4j.demo.avro.DemoRecordInfo;
+import org.spf4j.demo.avro.MetaData;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CharSeparatedValues;
 import org.spf4j.io.csv.CsvParseException;
@@ -137,6 +145,56 @@ public class CsvEncoderTest {
     rec2.put("enumField", new GenericData.EnumSymbol(enumSchema, "e2"));
     return Arrays.asList(rec1, rec2);
   }
+
+
+
+  private static List<DemoRecordInfo> testRecords() {
+    return Arrays.asList(
+            DemoRecordInfo.newBuilder()
+                    .setDemoRecord(DemoRecord.newBuilder().setId("1")
+                            .setName("test").setDescription("testDescr").build())
+                    .setMetaData(MetaData.newBuilder()
+                            .setAsOf(Instant.now()).setLastAccessed(Instant.now())
+                            .setLastModified(Instant.now())
+                            .setLastAccessedBy("you").setLastModifiedBy("you").build()
+                    ).build(),
+            DemoRecordInfo.newBuilder()
+                    .setDemoRecord(DemoRecord.newBuilder().setId("2")
+                            .setName("test2").setDescription("testDescr2").build())
+                    .setMetaData(MetaData.newBuilder()
+                            .setAsOf(Instant.now()).setLastAccessed(Instant.now())
+                            .setLastModified(Instant.now())
+                            .setLastAccessedBy("you").setLastModifiedBy("you").build()
+                    ).build());
+  }
+
+
+
+  @Test
+  public void testEncodeDecodeSpecific() throws IOException, CsvParseException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    Schema aSchema = Schema.createArray(DemoRecordInfo.SCHEMA$);
+    CsvEncoder csvEncoder = new CsvEncoder(Csv.CSV.writer(
+            new OutputStreamWriter(bos, StandardCharsets.UTF_8)), aSchema);
+    csvEncoder.writeHeader();
+    DatumWriter writer = new GenericDatumWriter(aSchema);
+    List<DemoRecordInfo> testRecords = testRecords();
+    writer.write(testRecords, csvEncoder);
+    csvEncoder.flush();
+    LOG.debug("serialized", bos.toString("UTF8"));
+
+    ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+    DecodedSchema ds = DecodedSchema.tryDecodeSchema(bis, aSchema);
+    Decoder decoder = ds.getDecoder();
+    SpecificDatumReader reader = new SpecificDatumReader(ds.getSchema());
+    Object read = reader.read(reader, decoder);
+    LOG.debug("deserialized", read);
+    Assert.assertEquals(testRecords, read);
+  }
+
+
+
+
 
 
 

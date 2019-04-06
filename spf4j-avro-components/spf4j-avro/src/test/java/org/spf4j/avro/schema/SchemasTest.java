@@ -43,6 +43,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.demo.avro.DemoRecordInfo;
 
 /**
  *
@@ -134,5 +135,18 @@ public class SchemasTest {
       return SchemaVisitorAction.CONTINUE;
     }
   }
+
+  @Test
+  public void testSchemaPath() {
+    Schema subSchema = Schemas.getSubSchema(DemoRecordInfo.SCHEMA$, "demoRecord.id");
+    Assert.assertEquals(Schema.Type.STRING, subSchema.getType());
+  }
+
+  @Test
+  public void testSchemaPath2() {
+    Schema subSchema = Schemas.getSubSchema(Schema.createArray(DemoRecordInfo.SCHEMA$), "[].demoRecord.id");
+    Assert.assertEquals(Schema.Type.STRING, subSchema.getType());
+  }
+
 
 }
