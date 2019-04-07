@@ -32,6 +32,7 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import org.spf4j.base.avro.MediaType;
 import org.spf4j.base.avro.MediaTypes;
@@ -42,7 +43,7 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-public final class IterableAppender implements ObjectAppender<Iterable> {
+public final class CollectionAppender implements ObjectAppender<Collection> {
 
   @Override
   public MediaType getAppendedType() {
@@ -50,7 +51,7 @@ public final class IterableAppender implements ObjectAppender<Iterable> {
   }
 
   @Override
-  public void append(final Iterable iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final Collection iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
     appendTo.append('[');
     Iterator it = iter.iterator();
@@ -72,7 +73,7 @@ public final class IterableAppender implements ObjectAppender<Iterable> {
 
 
   @Override
-  public void append(final Iterable object, final Appendable appendTo) {
+  public void append(final Collection object, final Appendable appendTo) {
     throw new UnsupportedOperationException();
   }
 
