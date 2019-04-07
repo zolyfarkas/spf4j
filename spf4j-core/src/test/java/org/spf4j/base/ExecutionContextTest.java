@@ -44,6 +44,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.ExecutionContext.Tag;
 import org.spf4j.concurrent.ContextPropagatingCompletableFuture;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.log.Level;
@@ -130,6 +131,18 @@ public class ExecutionContextTest {
     }
 
      try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
+
+      Tag<String> tag = new ExecutionContext.Tag<String>() {
+        @Override
+        public String toString() {
+          return  "mine";
+        }
+      };
+      start.combine(tag, "bla");
+      Assert.assertEquals("bla", start.get(tag));
+      start.combine(tag, "bla2");
+      Assert.assertEquals("bla2", start.get(tag));
+
       Slf4jLogRecordImpl log = new Slf4jLogRecordImpl("bla", Level.DEBUG, "{}", "bla");
       Slf4jLogRecordImpl log2 = new Slf4jLogRecordImpl("bla2", Level.DEBUG, "{}", "bla2");
       CompletableFuture<String> fut = ContextPropagatingCompletableFuture.supplyAsync(() -> {
