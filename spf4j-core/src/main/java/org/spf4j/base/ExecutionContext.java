@@ -87,6 +87,32 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @DischargesObligation
   void close();
 
+  default void closeAll() {
+    close();
+    ExecutionContext current = this;
+    ExecutionContext notClosedParent;
+    while ((notClosedParent = current.getNotClosedParent()) != null) {
+      notClosedParent.close();
+      current = notClosedParent;
+    }
+  }
+
+  default void closeAllButRoot() {
+    if (this.getSource() == null) {
+      return;
+    }
+    close();
+    ExecutionContext current = this;
+    ExecutionContext notClosedParent;
+    while ((notClosedParent = current.getNotClosedParent()) != null) {
+      if (notClosedParent.getSource() == null) {
+        return;
+      }
+      notClosedParent.close();
+      current = notClosedParent;
+    }
+  }
+
   @Nonnull
   String getName();
 
@@ -133,6 +159,9 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
     ExecutionContext curr = this;
     ExecutionContext parent;
     do {
+      if (curr.getRelationToSource() != Relation.CHILD_OF) {
+        return null;
+      }
       parent = curr.getSource();
       if (parent == null || !parent.isClosed()) {
         break;
