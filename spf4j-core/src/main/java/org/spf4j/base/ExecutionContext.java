@@ -264,7 +264,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   default <T> void combine(Tag<T> tag, T data) {
     T existing = put(tag, data);
     T combined = tag.combine(existing, data);
-    if (existing != combined) {
+    if (data != combined) {
       put(tag, combined);
     }
   }
