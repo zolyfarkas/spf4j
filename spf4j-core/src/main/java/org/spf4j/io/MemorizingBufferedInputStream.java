@@ -97,6 +97,10 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         this(in, 16384, 8192, ArraySuppliers.Bytes.GL_SUPPLIER, charset);
     }
 
+    public MemorizingBufferedInputStream(final InputStream in, final Charset charset, final int size) {
+        this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, charset);
+    }
+
     public MemorizingBufferedInputStream(final InputStream in,
             final int size, final int readSize,
             final SizedRecyclingSupplier<byte[]> bufferProvider,
