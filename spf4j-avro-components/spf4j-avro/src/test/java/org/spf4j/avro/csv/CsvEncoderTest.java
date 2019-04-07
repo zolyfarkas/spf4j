@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.csv;
 
+import org.spf4j.avro.DecodedSchema;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -184,7 +185,7 @@ public class CsvEncoderTest {
     LOG.debug("serialized", bos.toString("UTF8"));
 
     ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-    DecodedSchema ds = DecodedSchema.tryDecodeSchema(bis, aSchema);
+    DecodedSchema ds = CsvDecoder.tryDecodeSchema(bis, aSchema);
     Decoder decoder = ds.getDecoder();
     SpecificDatumReader reader = new SpecificDatumReader(ds.getSchema());
     Object read = reader.read(reader, decoder);

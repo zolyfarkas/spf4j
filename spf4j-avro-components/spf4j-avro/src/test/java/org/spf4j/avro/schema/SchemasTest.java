@@ -35,6 +35,7 @@ import com.google.common.io.Resources;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaCompatibility;
@@ -147,6 +148,36 @@ public class SchemasTest {
     Schema subSchema = Schemas.getSubSchema(Schema.createArray(DemoRecordInfo.SCHEMA$), "[].demoRecord.id");
     Assert.assertEquals(Schema.Type.STRING, subSchema.getType());
   }
+
+  @Test
+  public void testProjections() {
+    Schema project = Schemas.project(DemoRecordInfo.SCHEMA$, "demoRecord.id", "metaData");
+    Schema.Field drF = project.getField("demoRecord");
+    Assert.assertEquals(0, drF.pos());
+    List<Schema.Field> drf = drF.schema().getFields();
+    Assert.assertEquals(1, drf.size());
+    Assert.assertEquals("id", drf.get(0).name());
+    Assert.assertEquals(DemoRecordInfo.SCHEMA$.getField("metaData").schema(), project.getField("metaData").schema());
+  }
+
+  @Test
+  public void testProjections2() {
+    Schema project = Schemas.project(DemoRecordInfo.SCHEMA$, "demoRecord.id", "bubu");
+    Assert.assertNull(project);
+  }
+
+  @Test
+  public void testProjectionsOrder() {
+    Schema project = Schemas.project(DemoRecordInfo.SCHEMA$, "metaData", "demoRecord.id");
+    Schema.Field drF = project.getField("demoRecord");
+    Assert.assertEquals(1, drF.pos());
+    List<Schema.Field> drf = drF.schema().getFields();
+    Assert.assertEquals(1, drf.size());
+    Schema.Field field = drf.get(0);
+    Assert.assertEquals("id", field.name());
+    Assert.assertEquals(DemoRecordInfo.SCHEMA$.getField("metaData").schema(), project.getField("metaData").schema());
+  }
+
 
 
 }

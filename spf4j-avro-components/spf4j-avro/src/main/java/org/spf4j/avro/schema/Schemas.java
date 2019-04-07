@@ -36,9 +36,11 @@ import com.google.common.collect.Lists;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -319,25 +321,14 @@ public final class Schemas {
         Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(), schema.getNamespace(), schema.isError());
         List<Field> fields = schema.getFields();
         List<Schema.Field> nFields = new ArrayList<>(fields.size());
-        for (Schema.Field field : fields) {
-          seqs = new ArrayList<>(paths.length);
-          for (CharSequence path : paths) {
-            String part = getFirstRef(path);
-            if (part.equals(field.name())) {
-              if (part.length() == path.length()) {
-                seqs.add("");
-              } else {
-                seqs.add(path.subSequence(part.length() + 1, path.length()));
-              }
-            }
+        List<CharSequence> tPaths = new LinkedList<>(Arrays.asList(paths));
+        do {
+          Field extract = extract(fields, tPaths);
+          if (extract == null) {
+            return null;
           }
-          if (!seqs.isEmpty()) {
-            Schema.Field nField = new Schema.Field(field.name(),
-                    project(field.schema(), seqs.toArray(new CharSequence[seqs.size()])),
-                    field.doc(), field.defaultVal(), field.order());
-            nFields.add(nField);
-          }
-        }
+          nFields.add(extract);
+        } while (!tPaths.isEmpty());
         rec.setFields(nFields);
         return rec;
       case UNION:
@@ -357,6 +348,62 @@ public final class Schemas {
       default:
         return null;
     }
+  }
+
+
+
+  private static Schema.Field extract(final List<Field> fields, final List<CharSequence> paths) {
+    Iterator<CharSequence> iterator = paths.iterator();
+    if (iterator.hasNext()) {
+      List<CharSequence> proj = new ArrayList<>(2);
+      CharSequence path = iterator.next();
+      String part = getFirstRef(path);
+      Field field = getField(part, fields);
+      if (field == null) {
+        return null;
+      }
+      iterator.remove();
+      if (part.length() == path.length()) {
+        proj.add("");
+      } else {
+        proj.add(path.subSequence(part.length() + 1, path.length()));
+      }
+      while (iterator.hasNext()) {
+        path = iterator.next();
+        part = getFirstRef(path);
+        if (isNamed(part, field)) {
+          if (part.length() == path.length()) {
+            proj.add("");
+          } else {
+            proj.add(path.subSequence(part.length() + 1, path.length()));
+          }
+          iterator.remove();
+        }
+      }
+      return new Schema.Field(field.name(),
+                    project(field.schema(), proj.toArray(new CharSequence[proj.size()])),
+                    field.doc(), field.defaultVal(), field.order());
+    } else {
+      return null;
+    }
+  }
+
+
+  @Nullable
+  public static Schema.Field getField(final String name, final List<Field> fields) {
+    for (Schema.Field field : fields) {
+      if (isNamed(name, field)) {
+        return field;
+      }
+    }
+    return null;
+  }
+
+  public static boolean isNamed(final String name, final Field field) {
+    if (name.equals(field.name()) || field.aliases().contains(name)) {
+      return true;
+    }
+    return false;
   }
 
   private static String getFirstRef(final CharSequence path) {
