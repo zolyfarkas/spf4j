@@ -211,7 +211,7 @@ public class BasicExecutionContext implements ExecutionContext {
         for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
           Tag key = be.getKey();
           if (key.pushOnClose(this.relation))  {
-            parent.combine(key, key.combine(parent.get(key), be.getValue()));
+            parent.combine(key, be.getValue());
           }
         }
       }
