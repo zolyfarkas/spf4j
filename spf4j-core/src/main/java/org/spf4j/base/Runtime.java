@@ -82,6 +82,7 @@ import org.spf4j.unix.UnixRuntime;
  *
  * @author zoly
  */
+@SuppressFBWarnings("PATH_TRAVERSAL_IN")
 public final class Runtime {
 
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
