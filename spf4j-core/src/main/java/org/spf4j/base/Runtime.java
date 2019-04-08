@@ -44,6 +44,8 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -86,6 +88,7 @@ public final class Runtime {
   public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
           Integer.getInteger("spf4j.waitForShutdownMillis", 30000));
   public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
+  public static final Path TMP_FOLDER_PATH = Paths.get(TMP_FOLDER);
   public static final String JAVA_VERSION = System.getProperty("java.version");
   public static final String USER_NAME = System.getProperty("user.name");
   public static final String USER_DIR = System.getProperty("user.dir");
