@@ -92,8 +92,8 @@ public final class MapAppender implements ObjectAppender<Map<Object, Object>> {
   }
 
   @Override
-  public void append(final Map<Object, Object> object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+  public void append(final Map<Object, Object> object, final Appendable appendTo) throws IOException {
+    appendTo.append(object.toString());
   }
 
 }

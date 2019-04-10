@@ -73,8 +73,8 @@ public final class CollectionAppender implements ObjectAppender<Collection> {
 
 
   @Override
-  public void append(final Collection object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+  public void append(final Collection object, final Appendable appendTo) throws IOException {
+    appendTo.append(object.toString());
   }
 
 }
