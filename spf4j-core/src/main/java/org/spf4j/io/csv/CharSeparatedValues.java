@@ -247,9 +247,16 @@ public final class CharSeparatedValues {
             }
             break;
           case '\n':
-            lineNr++;
             handler.endRow();
             start = true;
+            c2 = reader.read();
+            if (c2 < 0) {
+              loop = false;
+              break;
+            }
+            if (c2 != '\r') {
+              reader.unread(c2);
+            }
             break;
           default:
             if (c != separator) {
@@ -529,13 +536,17 @@ public final class CharSeparatedValues {
       switch (next) {
         case '\r':
           int c2 = reader.read();
-          if (c2 != '\n') {
+          if (c2 != '\n' && c2 >= 0) {
             reader.unread(c2);
           }
           lineNr++;
           nextToken = TokenType.END_ROW;
           break;
         case '\n':
+          c2 = reader.read();
+          if (c2 != '\r' && c2 >= 0) {
+            reader.unread(c2);
+          }
           lineNr++;
           nextToken = TokenType.END_ROW;
           break;
@@ -617,13 +628,24 @@ public final class CharSeparatedValues {
           }
           break;
         case '\n':
-          lineNr++;
           c2 = reader.read();
           if (c2 < 0) {
             nextToken = CsvReader.TokenType.END_DOCUMENT;
-          } else {
-            nextToken = CsvReader.TokenType.END_ROW;
+            break;
+          }
+          if (c2 != '\r') {
             reader.unread(c2);
+            lineNr++;
+            nextToken = CsvReader.TokenType.END_ROW;
+            break;
+          }
+          c3 = reader.read();
+          if (c3 < 0) {
+             nextToken = CsvReader.TokenType.END_DOCUMENT;
+          } else {
+            reader.unread(c3);
+            lineNr++;
+            nextToken = CsvReader.TokenType.END_ROW;
           }
           break;
         default:

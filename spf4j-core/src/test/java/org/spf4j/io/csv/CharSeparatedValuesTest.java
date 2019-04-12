@@ -105,6 +105,26 @@ public class CharSeparatedValuesTest {
   }
 
   @Test
+  public void testCsvReaderXXX() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    CsvReader reader = csv.readerILEL(new StringReader("a b c\n\rd e\n\r"));
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals("a", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals("b", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals("c", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.current());
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.current());
+    Assert.assertEquals("d", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals("e", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
+  }
+
+  @Test
   public void testCsvReader2() throws IOException, CsvParseException {
     CharSeparatedValues csv = new CharSeparatedValues(' ');
     CsvReader reader = csv.reader(new StringReader(""));
