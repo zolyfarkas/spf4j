@@ -54,7 +54,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.JNA;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
@@ -74,7 +73,7 @@ import org.spf4j.unix.UnixResources;
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class OperatingSystem {
 
-  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(OperatingSystem.class);
+  private static final Logger LOG =  Logger.getLogger(OperatingSystem.class.getName());
 
   private static final long ABORT_TIMEOUT_MILLIS = Long.getLong("spf4j.os.abortTimeoutMillis", 5000);
 
@@ -162,10 +161,10 @@ public final class OperatingSystem {
           try {
             return Lsof.getNrOpenFiles();
           } catch (ExecutionException | TimeoutException ex) {
-            Logger.getLogger(OperatingSystem.class.getName()).log(Level.WARNING, "Unable to get nr of open files", ex);
+            LOG.log(Level.WARNING, "Unable to get nr of open files", ex);
             return -1;
           } catch (InterruptedException ex) {
-            Logger.getLogger(OperatingSystem.class.getName()).log(Level.WARNING, "Unable to get nr of open files", ex);
+            LOG.log(Level.WARNING, "Unable to get nr of open files", ex);
             Thread.currentThread().interrupt();
             return -1;
           }
@@ -189,7 +188,7 @@ public final class OperatingSystem {
         if (msg != null && msg.contains("Too many open files")) {
           return getMaxFileDescriptorCount();
         } else {
-          Logger.getLogger(OperatingSystem.class.getName()).log(Level.WARNING, "Unable to get nr of open files", ex);
+          LOG.log(Level.WARNING, "Unable to get nr of open files", ex);
           return -1;
         }
       }
@@ -236,7 +235,7 @@ public final class OperatingSystem {
   public static <T, E> ProcessResponse<T, E> forkExec(final String[] command, final ProcessHandler<T, E> handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    LOG.debug("Executing {}", (Object) command);
+    LOG.log(Level.FINE, "Executing {}", (Object) command);
     final Process proc = java.lang.Runtime.getRuntime().exec(command);
     handler.started(proc);
     try (InputStream pos = proc.getInputStream();
