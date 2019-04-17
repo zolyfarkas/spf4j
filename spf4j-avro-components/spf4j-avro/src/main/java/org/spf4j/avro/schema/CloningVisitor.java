@@ -101,7 +101,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
       break;
       case ENUM:
         newSchema = Schema.createEnum(terminal.getName(), copyDocs ? terminal.getDoc() : null,
-                terminal.getNamespace(), terminal.getEnumSymbols());
+                terminal.getNamespace(), terminal.getEnumSymbols(), terminal.getEnumDefault());
         break;
       case FIXED:
         newSchema = Schema.createFixed(terminal.getName(), copyDocs ? terminal.getDoc() : null,

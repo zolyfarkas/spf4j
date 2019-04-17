@@ -96,7 +96,7 @@ public final class ImmutableCloningVisitor implements SchemaVisitor<ImmutableSch
       break;
       case ENUM:
         newSchema = Schema.createEnum(terminal.getName(), copyDocs ? terminal.getDoc() : null,
-                terminal.getNamespace(), terminal.getEnumSymbols());
+                terminal.getNamespace(), terminal.getEnumSymbols(), terminal.getEnumDefault());
         break;
       case FIXED:
         newSchema = Schema.createFixed(terminal.getName(), copyDocs ? terminal.getDoc() : null,
