@@ -18,7 +18,6 @@ package org.spf4j.avro.csv;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
-import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
@@ -157,11 +156,6 @@ public final class CsvEncoder extends Encoder implements Parser.ActionHandler {
   public void writeEnum(final int e) throws IOException {
     parser.advance(Symbol.ENUM);
     Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();
-    if (e < 0 || e >= top.size) {
-      throw new AvroTypeException(
-              "Enumeration out of range: max is "
-              + top.size + " but received " + e);
-    }
     csvWriter.writeElement(top.getLabel(e));
   }
 
