@@ -44,39 +44,47 @@ public final class Timing {
 
 <span class="nc" id="L45">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
 
-<span class="nc" id="L47">  private static final Timing LATEST_TIMING = new Timing();</span>
+  static {
+    // load classes to improve timing.
+<span class="nc" id="L49">    TimeSource.nanoTime();</span>
+<span class="nc" id="L50">    System.currentTimeMillis();</span>
+  }
+
+<span class="nc" id="L53">  private static final Timing LATEST_TIMING = new Timing();</span>
 
   private final long nanoTimeRef;
   private final long currentTimeMillisRef;
 
-<span class="nc" id="L52">  private Timing() {</span>
-<span class="nc" id="L53">    nanoTimeRef = TimeSource.nanoTime();</span>
-<span class="nc" id="L54">    currentTimeMillisRef = System.currentTimeMillis();</span>
-<span class="nc" id="L55">  }</span>
+<span class="nc" id="L58">  private Timing() {</span>
+<span class="nc" id="L59">    nanoTimeRef = TimeSource.nanoTime();</span>
+<span class="nc" id="L60">    currentTimeMillisRef = System.currentTimeMillis();</span>
+<span class="nc" id="L61">  }</span>
 
   public long fromNanoTimeToEpochMillis(final long nanoTime) {
-<span class="nc" id="L58">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
+<span class="nc" id="L64">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
   }
 
   public Instant fromNanoTimeToInstant(final long nanoTime) {
-<span class="nc" id="L62">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
+<span class="nc" id="L68">    long relNanos = nanoTime - nanoTimeRef;</span>
+<span class="nc" id="L69">    return Instant.ofEpochSecond(currentTimeMillisRef / 1000</span>
+            + relNanos / 1000000000, (currentTimeMillisRef % 1000) * 1000000 + relNanos %  1000000000);
   }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
-<span class="nc" id="L66">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
-<span class="nc" id="L68">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
+<span class="nc" id="L74">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
+<span class="nc" id="L76">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
     }
-<span class="nc" id="L70">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
+<span class="nc" id="L78">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
   }
 
   public static Timing getCurrentTiming() {
-<span class="nc" id="L74">    return LATEST_TIMING;</span>
+<span class="nc" id="L82">    return LATEST_TIMING;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L79">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
+<span class="nc" id="L87">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
   }
 
 

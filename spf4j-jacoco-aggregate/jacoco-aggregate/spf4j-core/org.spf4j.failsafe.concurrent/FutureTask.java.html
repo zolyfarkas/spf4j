@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FutureTask.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe.concurrent</a> &gt; <span class="el_source">FutureTask.java</span></div><h1>FutureTask.java</h1><pre class="source lang-java linenums">//CHECKSTYLE:OFF
+//preserve original formatting.
+package org.spf4j.failsafe.concurrent;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.LockSupport;
+import org.spf4j.base.AlmostSafe;
+
+/**
+ * A cancellable asynchronous computation. This class provides a base implementation of {@link Future}, with methods to
+ * start and cancel a computation, query to see if the computation is complete, and retrieve the result of the
+ * computation. The result can only be retrieved when the computation has completed; the {@code get} methods will block
+ * if the computation has not yet completed. Once the computation has completed, the computation cannot be restarted or
+ * cancelled (unless the computation is invoked using {@link #runAndReset}).
+ *
+ * &lt;p&gt;
+ * A {@code FutureTask} can be used to wrap a {@link Callable} or {@link Runnable} object. Because {@code FutureTask}
+ * implements {@code Runnable}, a {@code FutureTask} can be submitted to an {@link Executor} for execution.
+ *
+ * &lt;p&gt;
+ * In addition to serving as a standalone class, this class provides {@code protected} functionality that may be useful
+ * when creating customized task classes.
+ *
+ * @since 1.5
+ * @author Doug Lea
+ * @param &lt;V&gt; The result type returned by this FutureTask's {@code get} methods
+ */
+@SuppressFBWarnings
+public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt; {
+
+  /*
+     * Revision notes: This differs from previous versions of this
+     * class that relied on AbstractQueuedSynchronizer, mainly to
+     * avoid surprising users about retaining interrupt status during
+     * cancellation races. Sync control in the current design relies
+     * on a &quot;state&quot; field updated via CAS to track completion, along
+     * with a simple Treiber stack to hold waiting threads.
+     *
+     * Style note: As usual, we bypass overhead of using
+     * AtomicXFieldUpdaters and instead directly use Unsafe intrinsics.
+   */
+
+  /**
+   * The run state of this task, initially NEW. The run state transitions to a terminal state only in methods set,
+   * setException, and cancel. During completion, state may take on transient values of COMPLETING (while outcome is
+   * being set) or INTERRUPTING (only while interrupting the runner to satisfy a cancel(true)). Transitions from these
+   * intermediate to final states use cheaper ordered/lazy writes because values are unique and cannot be further
+   * modified.
+   *
+   * Possible state transitions: NEW -&gt; COMPLETING -&gt; NORMAL NEW -&gt; COMPLETING -&gt; EXCEPTIONAL NEW -&gt; CANCELLED NEW -&gt;
+   * INTERRUPTING -&gt; INTERRUPTED
+   */
+  private volatile int state;
+  private static final int NEW = 0;
+  private static final int COMPLETING = 1;
+  private static final int NORMAL = 2;
+  private static final int EXCEPTIONAL = 3;
+  private static final int CANCELLED = 4;
+  private static final int INTERRUPTING = 5;
+  private static final int INTERRUPTED = 6;
+
+  /**
+   * The underlying callable; nulled out after running
+   */
+  private volatile Callable&lt;V&gt; callable;
+  /**
+   * The result to return or exception to throw from get()
+   */
+  private Object outcome; // non-volatile, protected by state reads/writes
+  /**
+   * The thread running the callable; CASed during run()
+   */
+  private volatile Thread runner;
+  /**
+   * Treiber stack of waiting threads
+   */
+  private volatile WaitNode waiters;
+
+  /**
+   * Returns result or throws exception for completed task.
+   *
+   * @param s completed state value
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  protected V report(int s) throws ExecutionException {
+<span class="fc" id="L93">    Object x = outcome;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">    if (s == NORMAL) {</span>
+<span class="fc" id="L95">      return (V) x;</span>
+    }
+<span class="fc bfc" id="L97" title="All 2 branches covered.">    if (s &gt;= CANCELLED) {</span>
+<span class="fc" id="L98">      throw new CancellationException();</span>
+    }
+<span class="fc" id="L100">    throw new ExecutionException((Throwable) x);</span>
+  }
+
+  /**
+   * Creates a {@code FutureTask} that will, upon running, execute the given {@code Callable}.
+   *
+   * @param callable the callable task
+   * @throws NullPointerException if the callable is null
+   */
+<span class="fc" id="L109">  public FutureTask(Callable&lt;V&gt; callable) {</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">    if (callable == null) {</span>
+<span class="nc" id="L111">      throw new NullPointerException();</span>
+    }
+<span class="fc" id="L113">    this.callable = callable;</span>
+<span class="fc" id="L114">    this.state = NEW;       // ensure visibility of callable</span>
+<span class="fc" id="L115">  }</span>
+
+  /**
+   * Creates a {@code FutureTask} that will, upon running, execute the given {@code Runnable}, and arrange that
+   * {@code get} will return the given result on successful completion.
+   *
+   * @param runnable the runnable task
+   * @param result the result to return on successful completion. If you don't need a particular result, consider using
+   * constructions of the form: {@code Future&lt;?&gt; f = new FutureTask&lt;Void&gt;(runnable, null)}
+   * @throws NullPointerException if the runnable is null
+   */
+<span class="nc" id="L126">  public FutureTask(Runnable runnable, V result) {</span>
+<span class="nc" id="L127">    this.callable = Executors.callable(runnable, result);</span>
+<span class="nc" id="L128">    this.state = NEW;       // ensure visibility of callable</span>
+<span class="nc" id="L129">  }</span>
+
+  public void setCallable(final Callable&lt;V&gt; c) {
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (callable == null) {</span>
+<span class="nc" id="L133">      throw new NullPointerException();</span>
+    }
+<span class="fc" id="L135">    this.callable = c;</span>
+<span class="fc" id="L136">  }</span>
+
+  public void reset() {
+<span class="nc" id="L139">    this.state = NEW;</span>
+<span class="nc" id="L140">  }</span>
+
+  public Callable&lt;V&gt; getCallable() {
+<span class="fc" id="L143">    return callable;</span>
+  }
+
+  public boolean isCancelled() {
+<span class="fc bfc" id="L147" title="All 2 branches covered.">    return state &gt;= CANCELLED;</span>
+  }
+
+  public boolean isDone() {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">    return state != NEW;</span>
+  }
+
+  public boolean cancel(boolean mayInterruptIfRunning) {
+<span class="pc bpc" id="L155" title="1 of 4 branches missed.">    if (!(state == NEW</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">            &amp;&amp; UNSAFE.compareAndSwapInt(this, stateOffset, NEW,</span>
+                    mayInterruptIfRunning ? INTERRUPTING : CANCELLED))) {
+<span class="fc" id="L158">      return false;</span>
+    }
+    try {    // in case call to interrupt throws exception
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">      if (mayInterruptIfRunning) {</span>
+        try {
+<span class="fc" id="L163">          Thread t = runner;</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">          if (t != null) {</span>
+<span class="fc" id="L165">            t.interrupt();</span>
+          }
+        } finally { // final state
+<span class="fc" id="L168">          UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED);</span>
+        }
+      }
+    } finally {
+<span class="fc" id="L172">      finishCompletion();</span>
+    }
+<span class="fc" id="L174">    return true;</span>
+  }
+
+  /**
+   * @throws CancellationException {@inheritDoc}
+   */
+  public V get() throws InterruptedException, ExecutionException {
+<span class="fc" id="L181">    int s = state;</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">    if (s &lt;= COMPLETING) {</span>
+<span class="fc" id="L183">      s = awaitDone(false, 0L);</span>
+    }
+<span class="fc" id="L185">    return report(s);</span>
+  }
+
+  /**
+   * @throws CancellationException {@inheritDoc}
+   */
+  public V get(long timeout, TimeUnit unit)
+          throws InterruptedException, ExecutionException, TimeoutException {
+<span class="nc bnc" id="L193" title="All 2 branches missed.">    if (unit == null) {</span>
+<span class="nc" id="L194">      throw new NullPointerException();</span>
+    }
+<span class="nc" id="L196">    int s = state;</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">    if (s &lt;= COMPLETING</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">            &amp;&amp; (s = awaitDone(true, unit.toNanos(timeout))) &lt;= COMPLETING) {</span>
+<span class="nc" id="L199">      throw new TimeoutException();</span>
+    }
+<span class="nc" id="L201">    return report(s);</span>
+  }
+
+  /**
+   * Protected method invoked when this task transitions to state {@code isDone} (whether normally or via cancellation).
+   * The default implementation does nothing. Subclasses may override this method to invoke completion callbacks or
+   * perform bookkeeping. Note that you can query status inside the implementation of this method to determine whether
+   * this task has been cancelled.
+   */
+  protected void done() {
+<span class="fc" id="L211">  }</span>
+
+  /**
+   * Sets the result of this future to the given value unless this future has already been set or has been cancelled.
+   *
+   * &lt;p&gt;
+   * This method is invoked internally by the {@link #run} method upon successful completion of the computation.
+   *
+   * @param v the value
+   */
+  protected boolean set(V v) {
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">    if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {</span>
+<span class="fc" id="L223">      outcome = v;</span>
+<span class="fc" id="L224">      UNSAFE.putOrderedInt(this, stateOffset, NORMAL); // final state</span>
+<span class="fc" id="L225">      finishCompletion();</span>
+    }
+<span class="fc" id="L227">    return true;</span>
+  }
+
+  /**
+   * Causes this future to report an {@link ExecutionException} with the given throwable as its cause, unless this
+   * future has already been set or has been cancelled.
+   *
+   * &lt;p&gt;
+   * This method is invoked internally by the {@link #run} method upon failure of the computation.
+   *
+   * @param t the cause of failure
+   */
+  protected boolean setException(Throwable t) {
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">    if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {</span>
+<span class="fc" id="L241">      outcome = t;</span>
+<span class="fc" id="L242">      UNSAFE.putOrderedInt(this, stateOffset, EXCEPTIONAL); // final state</span>
+<span class="fc" id="L243">      finishCompletion();</span>
+    }
+<span class="fc" id="L245">    return true;</span>
+  }
+
+  public void run() {
+<span class="fc bfc" id="L249" title="All 2 branches covered.">    if (state != NEW</span>
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">            || !UNSAFE.compareAndSwapObject(this, runnerOffset,</span>
+<span class="fc" id="L251">                    null, Thread.currentThread())) {</span>
+<span class="fc" id="L252">      return;</span>
+    }
+<span class="fc" id="L254">    boolean finished = false;</span>
+    try {
+<span class="fc" id="L256">      Callable&lt;V&gt; c = callable;</span>
+<span class="pc bpc" id="L257" title="2 of 4 branches missed.">      if (c != null &amp;&amp; state == NEW) {</span>
+        V result;
+        boolean ran;
+        try {
+<span class="fc" id="L261">          result = c.call();</span>
+<span class="fc" id="L262">          ran = true;</span>
+<span class="fc" id="L263">        } catch (Throwable ex) {</span>
+<span class="fc" id="L264">          result = null;</span>
+<span class="fc" id="L265">          ran = false;</span>
+<span class="fc" id="L266">          finished = setException(ex);</span>
+<span class="fc" id="L267">        }</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">        if (ran) {</span>
+<span class="fc" id="L269">          finished = set(result);</span>
+        }
+      }
+    } finally {
+      // runner must be non-null until state is settled to
+      // prevent concurrent calls to run()
+<span class="fc" id="L275">      runner = null;</span>
+      // state must be re-read after nulling runner to prevent
+      // leaked interrupts
+<span class="fc" id="L278">      int s = state;</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">      if (s &gt;= INTERRUPTING) {</span>
+<span class="fc" id="L280">        handlePossibleCancellationInterrupt(s);</span>
+      }
+<span class="fc bfc" id="L282" title="All 4 branches covered.">      if (!finished &amp;&amp; s &lt; CANCELLED) {</span>
+<span class="fc" id="L283">        state = NEW;</span>
+      } else {
+<span class="fc" id="L285">        callable = null;</span>
+      }
+    }
+<span class="fc" id="L288">  }</span>
+
+  /**
+   * Executes the computation without setting its result, and then resets this future to initial state, failing to do so
+   * if the computation encounters an exception or is cancelled. This is designed for use with tasks that intrinsically
+   * execute more than once.
+   *
+   * @return {@code true} if successfully run and reset
+   */
+  protected boolean runAndReset() {
+<span class="nc bnc" id="L298" title="All 2 branches missed.">    if (state != NEW</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">            || !UNSAFE.compareAndSwapObject(this, runnerOffset,</span>
+<span class="nc" id="L300">                    null, Thread.currentThread())) {</span>
+<span class="nc" id="L301">      return false;</span>
+    }
+<span class="nc" id="L303">    boolean ran = false;</span>
+<span class="nc" id="L304">    int s = state;</span>
+    try {
+<span class="nc" id="L306">      Callable&lt;V&gt; c = callable;</span>
+<span class="nc bnc" id="L307" title="All 4 branches missed.">      if (c != null &amp;&amp; s == NEW) {</span>
+        try {
+<span class="nc" id="L309">          c.call(); // don't set result</span>
+<span class="nc" id="L310">          ran = true;</span>
+<span class="nc" id="L311">        } catch (Throwable ex) {</span>
+<span class="nc" id="L312">          setException(ex);</span>
+<span class="nc" id="L313">        }</span>
+      }
+    } finally {
+      // runner must be non-null until state is settled to
+      // prevent concurrent calls to run()
+<span class="nc" id="L318">      runner = null;</span>
+      // state must be re-read after nulling runner to prevent
+      // leaked interrupts
+<span class="nc" id="L321">      s = state;</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">      if (s &gt;= INTERRUPTING) {</span>
+<span class="nc" id="L323">        handlePossibleCancellationInterrupt(s);</span>
+      }
+    }
+<span class="nc bnc" id="L326" title="All 4 branches missed.">    return ran &amp;&amp; s == NEW;</span>
+  }
+
+  /**
+   * Ensures that any interrupt from a possible cancel(true) is only delivered to a task while in run or runAndReset.
+   */
+  private void handlePossibleCancellationInterrupt(int s) {
+    // It is possible for our interrupter to stall before getting a
+    // chance to interrupt us.  Let's spin-wait patiently.
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">    if (s == INTERRUPTING) {</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">      while (state == INTERRUPTING) {</span>
+<span class="nc" id="L337">        Thread.yield(); // wait out pending interrupt</span>
+      }
+    }
+    // assert state == INTERRUPTED;
+
+    // We want to clear any interrupt we may have received from
+    // cancel(true).  However, it is permissible to use interrupts
+    // as an independent mechanism for a task to communicate with
+    // its caller, and there is no way to clear only the
+    // cancellation interrupt.
+    //
+    // Thread.interrupted();
+<span class="fc" id="L349">  }</span>
+
+  /**
+   * Simple linked list nodes to record waiting threads in a Treiber stack. See other classes such as Phaser and
+   * SynchronousQueue for more detailed explanation.
+   */
+  static final class WaitNode {
+
+    volatile Thread thread;
+    volatile WaitNode next;
+
+<span class="fc" id="L360">    WaitNode() {</span>
+<span class="fc" id="L361">      thread = Thread.currentThread();</span>
+<span class="fc" id="L362">    }</span>
+  }
+
+  /**
+   * Removes and signals all waiting threads, invokes done(), and nulls out callable.
+   */
+  private void finishCompletion() {
+    // assert state &gt; COMPLETING;
+<span class="fc bfc" id="L370" title="All 2 branches covered.">    for (WaitNode q; (q = waiters) != null;) {</span>
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">      if (UNSAFE.compareAndSwapObject(this, waitersOffset, q, null)) {</span>
+        for (;;) {
+<span class="fc" id="L373">          Thread t = q.thread;</span>
+<span class="pc bpc" id="L374" title="1 of 2 branches missed.">          if (t != null) {</span>
+<span class="fc" id="L375">            q.thread = null;</span>
+<span class="fc" id="L376">            LockSupport.unpark(t);</span>
+          }
+<span class="fc" id="L378">          WaitNode next = q.next;</span>
+<span class="pc bpc" id="L379" title="1 of 2 branches missed.">          if (next == null) {</span>
+<span class="fc" id="L380">            break;</span>
+          }
+<span class="nc" id="L382">          q.next = null; // unlink to help gc</span>
+<span class="nc" id="L383">          q = next;</span>
+<span class="nc" id="L384">        }</span>
+        break;
+      }
+    }
+
+<span class="fc" id="L389">    done();</span>
+<span class="fc" id="L390">  }</span>
+
+  /**
+   * Awaits completion or aborts on interrupt or timeout.
+   *
+   * @param timed true if use timed waits
+   * @param nanos time to wait, if timed
+   * @return state upon completion
+   */
+  private int awaitDone(boolean timed, long nanos)
+          throws InterruptedException {
+<span class="pc bpc" id="L401" title="1 of 2 branches missed.">    final long deadline = timed ? System.nanoTime() + nanos : 0L;</span>
+<span class="fc" id="L402">    WaitNode q = null;</span>
+<span class="fc" id="L403">    boolean queued = false;</span>
+    for (;;) {
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">      if (Thread.interrupted()) {</span>
+<span class="nc" id="L406">        removeWaiter(q);</span>
+<span class="nc" id="L407">        throw new InterruptedException();</span>
+      }
+
+<span class="fc" id="L410">      int s = state;</span>
+<span class="fc bfc" id="L411" title="All 2 branches covered.">      if (s &gt; COMPLETING) {</span>
+<span class="pc bpc" id="L412" title="1 of 2 branches missed.">        if (q != null) {</span>
+<span class="fc" id="L413">          q.thread = null;</span>
+        }
+<span class="fc" id="L415">        return s;</span>
+<span class="pc bpc" id="L416" title="1 of 2 branches missed.">      } else if (s == COMPLETING) // cannot time out yet</span>
+      {
+<span class="nc" id="L418">        Thread.yield();</span>
+<span class="fc bfc" id="L419" title="All 2 branches covered.">      } else if (q == null) {</span>
+<span class="fc" id="L420">        q = new WaitNode();</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">      } else if (!queued) {</span>
+<span class="fc" id="L422">        queued = UNSAFE.compareAndSwapObject(this, waitersOffset,</span>
+                q.next = waiters, q);
+<span class="pc bpc" id="L424" title="1 of 2 branches missed.">      } else if (timed) {</span>
+<span class="nc" id="L425">        nanos = deadline - System.nanoTime();</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        if (nanos &lt;= 0L) {</span>
+<span class="nc" id="L427">          removeWaiter(q);</span>
+<span class="nc" id="L428">          return state;</span>
+        }
+<span class="nc" id="L430">        LockSupport.parkNanos(this, nanos);</span>
+      } else {
+<span class="fc" id="L432">        LockSupport.park(this);</span>
+      }
+<span class="fc" id="L434">    }</span>
+  }
+
+  /**
+   * Tries to unlink a timed-out or interrupted wait node to avoid accumulating garbage. Internal nodes are simply
+   * unspliced without CAS since it is harmless if they are traversed anyway by releasers. To avoid effects of
+   * unsplicing from already removed nodes, the list is retraversed in case of an apparent race. This is slow when there
+   * are a lot of nodes, but we don't expect lists to be long enough to outweigh higher-overhead schemes.
+   */
+  private void removeWaiter(WaitNode node) {
+<span class="nc bnc" id="L444" title="All 2 branches missed.">    if (node != null) {</span>
+<span class="nc" id="L445">      node.thread = null;</span>
+      retry:
+      for (;;) {          // restart on removeWaiter race
+<span class="nc bnc" id="L448" title="All 2 branches missed.">        for (WaitNode pred = null, q = waiters, s; q != null; q = s) {</span>
+<span class="nc" id="L449">          s = q.next;</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">          if (q.thread != null) {</span>
+<span class="nc" id="L451">            pred = q;</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">          } else if (pred != null) {</span>
+<span class="nc" id="L453">            pred.next = s;</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">            if (pred.thread == null) // check for race</span>
+            {
+<span class="nc" id="L456">              continue retry;</span>
+            }
+<span class="nc bnc" id="L458" title="All 2 branches missed.">          } else if (!UNSAFE.compareAndSwapObject(this, waitersOffset,</span>
+                  q, s)) {
+<span class="nc" id="L460">            continue retry;</span>
+          }
+        }
+<span class="nc" id="L463">        break;</span>
+      }
+    }
+<span class="nc" id="L466">  }</span>
+
+  // Unsafe mechanics
+  private static final sun.misc.Unsafe UNSAFE;
+  private static final long stateOffset;
+  private static final long runnerOffset;
+  private static final long waitersOffset;
+
+  static {
+    try {
+<span class="fc" id="L476">      UNSAFE =  AlmostSafe.USF; //sun.misc.Unsafe.getUnsafe();</span>
+<span class="fc" id="L477">      Class&lt;?&gt; k = FutureTask.class;</span>
+<span class="fc" id="L478">      stateOffset = UNSAFE.objectFieldOffset(k.getDeclaredField(&quot;state&quot;));</span>
+<span class="fc" id="L479">      runnerOffset = UNSAFE.objectFieldOffset(k.getDeclaredField(&quot;runner&quot;));</span>
+<span class="fc" id="L480">      waitersOffset = UNSAFE.objectFieldOffset(k.getDeclaredField(&quot;waiters&quot;));</span>
+<span class="nc" id="L481">    } catch (Exception e) {</span>
+<span class="nc" id="L482">      throw new Error(e);</span>
+<span class="fc" id="L483">    }</span>
+<span class="fc" id="L484">  }</span>
+
+  @Override
+  public String toString() {
+<span class="fc" id="L488">    return &quot;FutureTask{&quot; + &quot;state=&quot; + state + &quot;, callable=&quot; + callable + &quot;, outcome=&quot; + outcome + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

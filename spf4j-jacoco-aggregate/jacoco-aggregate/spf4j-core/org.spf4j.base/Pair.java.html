@@ -118,10 +118,10 @@ public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt;, Writeable {
 <span class="nc" id="L118">      return false;</span>
     }
 <span class="fc" id="L120">    final Pair&lt;A, B&gt; other = (Pair&lt;A, B&gt;) obj;</span>
-<span class="pc bpc" id="L121" title="2 of 6 branches missed.">    if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
-<span class="nc" id="L122">      return false;</span>
+<span class="pc bpc" id="L121" title="1 of 6 branches missed.">    if (this.first != other.first &amp;&amp; (this.first == null || !this.first.equals(other.first))) {</span>
+<span class="fc" id="L122">      return false;</span>
     }
-<span class="pc bpc" id="L124" title="2 of 6 branches missed.">    return (!(this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))));</span>
+<span class="pc bpc" id="L124" title="1 of 6 branches missed.">    return (!(this.second != other.second &amp;&amp; (this.second == null || !this.second.equals(other.second))));</span>
   }
 
   @Override
@@ -129,45 +129,49 @@ public class Pair&lt;A, B&gt; implements Map.Entry&lt;A, B&gt;, Writeable {
 <span class="fc" id="L129">    return Objects.hashCode(first, second);</span>
   }
 
+  /**
+   * Overwrite to change string image.
+   * @return
+   */
   @Override
-  public final String toString() {
-<span class="fc" id="L134">    StringBuilder result = new StringBuilder(32);</span>
-<span class="fc" id="L135">    writeTo(result);</span>
-<span class="fc" id="L136">    return result.toString();</span>
+  public String toString() {
+<span class="fc" id="L138">    StringBuilder result = new StringBuilder(32);</span>
+<span class="fc" id="L139">    writeTo(result);</span>
+<span class="fc" id="L140">    return result.toString();</span>
   }
 
   @Override
   public final void writeTo(final Appendable appendable) throws IOException {
-<span class="fc bfc" id="L141" title="All 2 branches covered.">    Csv.writeCsvElement(first == null ? &quot;&quot; : first.toString(), appendable);</span>
-<span class="fc" id="L142">    appendable.append(',');</span>
-<span class="fc bfc" id="L143" title="All 2 branches covered.">    Csv.writeCsvElement(second == null ? &quot;&quot; : second.toString(), appendable);</span>
-<span class="fc" id="L144">  }</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">    Csv.writeCsvElement(first == null ? &quot;&quot; : first.toString(), appendable);</span>
+<span class="fc" id="L146">    appendable.append(',');</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">    Csv.writeCsvElement(second == null ? &quot;&quot; : second.toString(), appendable);</span>
+<span class="fc" id="L148">  }</span>
 
   public final List&lt;Object&gt; toList() {
-<span class="fc" id="L147">    return java.util.Arrays.asList(first, second);</span>
+<span class="fc" id="L151">    return java.util.Arrays.asList(first, second);</span>
   }
 
   public static &lt;K, V extends Object&gt; Map&lt;K, V&gt; asMap(final Pair&lt;K, ? extends V&gt;... pairs) {
-<span class="fc" id="L151">    Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
-<span class="fc bfc" id="L152" title="All 2 branches covered.">    for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
-<span class="fc" id="L153">      result.put(pair.getFirst(), pair.getSecond());</span>
+<span class="fc" id="L155">    Map&lt;K, V&gt; result = new LinkedHashMap&lt;&gt;(pairs.length);</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">    for (Pair&lt;K, ? extends V&gt; pair : pairs) {</span>
+<span class="fc" id="L157">      result.put(pair.getFirst(), pair.getSecond());</span>
     }
-<span class="fc" id="L155">    return result;</span>
+<span class="fc" id="L159">    return result;</span>
   }
 
   @Override
   public final A getKey() {
-<span class="fc" id="L160">    return first;</span>
+<span class="fc" id="L164">    return first;</span>
   }
 
   @Override
   public final B getValue() {
-<span class="fc" id="L165">    return second;</span>
+<span class="fc" id="L169">    return second;</span>
   }
 
   @Override
   public final B setValue(final B value) {
-<span class="nc" id="L170">    throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
+<span class="nc" id="L174">    throw new UnsupportedOperationException(&quot;Object not mutable&quot;);</span>
   }
 
 }

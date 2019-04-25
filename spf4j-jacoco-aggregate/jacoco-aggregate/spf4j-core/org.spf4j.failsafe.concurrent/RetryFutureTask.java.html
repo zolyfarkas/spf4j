@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RetryFutureTask.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe.concurrent</a> &gt; <span class="el_source">RetryFutureTask.java</span></div><h1>RetryFutureTask.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.failsafe.concurrent;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.ExecutionException;
+import org.spf4j.base.Either;
+import org.spf4j.base.Throwables;
+import org.spf4j.failsafe.RetryDecision;
+import org.spf4j.failsafe.RetryPredicate;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+@SuppressWarnings(&quot;checkstyle:VisibilityModifier&quot;)
+class RetryFutureTask&lt;T&gt; extends FutureTask&lt;T&gt; {
+
+  private final RetryPredicate&lt;T, Callable&lt;? extends T&gt;&gt; retryPredicate;
+
+  private final DelayQueue&lt;DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;&gt; delayedTasks;
+
+  private Either&lt;Throwable, T&gt; previousResult;
+
+  private final Runnable onRetry;
+
+  private volatile DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt; exec;
+
+
+  RetryFutureTask(final Callable&lt;T&gt; callable, final RetryPredicate&lt;T, Callable&lt;? extends T&gt;&gt; retryPredicate,
+          final DelayQueue&lt;DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;&gt; delayedTasks, final Runnable onRetry) {
+<span class="fc" id="L64">    super(callable);</span>
+<span class="fc" id="L65">    this.onRetry = onRetry;</span>
+<span class="fc" id="L66">    this.retryPredicate = retryPredicate;</span>
+<span class="fc" id="L67">    this.delayedTasks = delayedTasks;</span>
+<span class="fc" id="L68">    this.previousResult = null;</span>
+<span class="fc" id="L69">  }</span>
+
+  public final void setExec(final DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt; exec) {
+<span class="fc" id="L72">    this.exec = exec;</span>
+<span class="fc" id="L73">  }</span>
+
+
+  @Override
+  public final boolean cancel(final boolean mayInterruptIfRunning) {
+<span class="fc" id="L78">    DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt; e = exec;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">    if (e != null) {</span>
+<span class="fc" id="L80">      delayedTasks.remove(e);</span>
+    }
+<span class="fc" id="L82">    return super.cancel(mayInterruptIfRunning);</span>
+  }
+
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
+  protected T report(final int s) throws ExecutionException {
+    try {
+<span class="fc" id="L90">      return super.report(s);</span>
+<span class="fc" id="L91">    } catch (CancellationException ex) {</span>
+<span class="fc" id="L92">      synchronized (this) {</span>
+<span class="fc" id="L93">        CancellationException at = ex;</span>
+<span class="pc bpc" id="L94" title="2 of 4 branches missed.">        if (previousResult != null &amp;&amp; previousResult.isLeft()) {</span>
+<span class="fc" id="L95">          Throwables.suppressLimited(at, previousResult.getLeft());</span>
+        }
+<span class="fc" id="L97">        throw at;</span>
+      }
+    }
+  }
+
+
+  @Override
+  protected synchronized boolean setException(final Throwable t) {
+<span class="fc bfc" id="L105" title="All 2 branches covered.">    if (this.isCancelled()) {</span>
+<span class="fc" id="L106">      return false;</span>
+    }
+<span class="fc" id="L108">    RetryDecision&lt;T, Callable&lt;? extends T&gt;&gt; decision = this.retryPredicate.getExceptionDecision(t, getCallable());</span>
+<span class="fc" id="L109">    final RetryDecision.Type decisionType = decision.getDecisionType();</span>
+<span class="pc bpc" id="L110" title="1 of 3 branches missed.">    switch (decisionType) {</span>
+      case Retry:
+<span class="fc" id="L112">        onRetry.run();</span>
+<span class="fc" id="L113">        final long delayNanos = decision.getDelayNanos();</span>
+<span class="fc" id="L114">        this.setCallable((Callable&lt;T&gt;) decision.getNewCallable());</span>
+<span class="fc" id="L115">        Throwable at = t;</span>
+<span class="pc bpc" id="L116" title="1 of 4 branches missed.">        if (previousResult != null &amp;&amp; previousResult.isLeft()) {</span>
+<span class="fc" id="L117">          Throwables.suppressLimited(at, previousResult.getLeft());</span>
+        }
+<span class="fc" id="L119">        previousResult = Either.left(at);</span>
+<span class="fc" id="L120">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt; delayedTask = new DelayedTask&lt;&gt;(this, delayNanos);</span>
+<span class="fc" id="L121">        this.exec = delayedTask;</span>
+<span class="fc" id="L122">        delayedTasks.add(delayedTask);</span>
+<span class="fc" id="L123">        return false;</span>
+      case Abort:
+<span class="fc" id="L125">        this.exec = null;</span>
+<span class="fc" id="L126">        Either&lt;Throwable, T&gt; newRes = decision.getResult();</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (newRes == null) {</span>
+<span class="pc bpc" id="L128" title="1 of 4 branches missed.">          if (previousResult != null &amp;&amp; previousResult.isLeft()) {</span>
+<span class="fc" id="L129">            Throwables.suppressLimited(t, previousResult.getLeft());</span>
+          }
+<span class="fc" id="L131">          super.setException(t);</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        } else if (newRes.isLeft()) {</span>
+<span class="fc" id="L133">          Throwable tx = newRes.getLeft();</span>
+<span class="pc bpc" id="L134" title="1 of 4 branches missed.">          if (previousResult != null &amp;&amp; previousResult.isLeft()) {</span>
+<span class="fc" id="L135">            Throwables.suppressLimited(tx, previousResult.getLeft());</span>
+          }
+<span class="fc" id="L137">          super.setException(tx);</span>
+<span class="fc" id="L138">        } else {</span>
+<span class="nc" id="L139">          super.set(newRes.getRight());</span>
+        }
+<span class="fc" id="L141">        return true;</span>
+      default:
+<span class="nc" id="L143">        throw new IllegalStateException(&quot;Invalid decision type&quot; + decisionType, t);</span>
+    }
+  }
+
+  @Override
+  protected synchronized boolean set(final T v) {
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">    if (this.isCancelled()) {</span>
+<span class="nc" id="L150">      return false;</span>
+    }
+<span class="fc" id="L152">    RetryDecision&lt;T, Callable&lt;? extends T&gt;&gt; decision = this.retryPredicate.getDecision(v, getCallable());</span>
+<span class="fc" id="L153">    final RetryDecision.Type decisionType = decision.getDecisionType();</span>
+<span class="pc bpc" id="L154" title="1 of 3 branches missed.">    switch (decisionType) {</span>
+      case Retry:
+<span class="fc" id="L156">        onRetry.run();</span>
+<span class="fc" id="L157">        final long delayNanos = decision.getDelayNanos();</span>
+<span class="fc" id="L158">        this.setCallable((Callable&lt;T&gt;) decision.getNewCallable());</span>
+<span class="fc" id="L159">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt; delayedTask = new DelayedTask&lt;&gt;(this, delayNanos);</span>
+<span class="fc" id="L160">        this.exec = delayedTask;</span>
+<span class="fc" id="L161">        delayedTasks.add(delayedTask);</span>
+<span class="fc" id="L162">        this.previousResult = Either.right(v);</span>
+<span class="fc" id="L163">        return false;</span>
+      case Abort:
+<span class="fc" id="L165">        this.exec = null;</span>
+<span class="fc" id="L166">        Either&lt;Throwable, T&gt; newRes = decision.getResult();</span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        if (newRes == null) {</span>
+<span class="fc" id="L168">          super.set(v);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        } else if (newRes.isLeft()) {</span>
+<span class="nc" id="L170">          super.setException(newRes.getLeft());</span>
+        } else {
+<span class="nc" id="L172">          super.set(newRes.getRight());</span>
+        }
+<span class="fc" id="L174">        return true;</span>
+      default:
+<span class="nc" id="L176">        throw new IllegalStateException(&quot;Invalid decision type&quot; + decisionType);</span>
+    }
+  }
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

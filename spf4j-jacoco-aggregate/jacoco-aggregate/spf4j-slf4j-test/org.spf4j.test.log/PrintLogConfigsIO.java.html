@@ -31,6 +31,7 @@ import java.util.Properties;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.log.Level;
 
 /**
  *
@@ -43,56 +44,56 @@ public final class PrintLogConfigsIO {
   }
 
   public static Map&lt;String, PrintConfig&gt; loadConfig(final Path path) throws IOException {
-<span class="nc" id="L46">    try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L47">      return loadConfig(br);</span>
+<span class="nc" id="L47">    try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L48">      return loadConfig(br);</span>
     }
   }
 
   @Nullable
   public static Map&lt;String, PrintConfig&gt; loadConfigFromResource(final String resourceName) {
-<span class="fc" id="L53">    ClassLoader loader = MoreObjects.firstNonNull(</span>
-<span class="fc" id="L54">            Thread.currentThread().getContextClassLoader(), Resources.class.getClassLoader());</span>
-<span class="fc" id="L55">    URL url = loader.getResource(resourceName);</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">    if (url == null) {</span>
-<span class="fc" id="L57">      return null;</span>
+<span class="fc" id="L54">    ClassLoader loader = MoreObjects.firstNonNull(</span>
+<span class="fc" id="L55">            Thread.currentThread().getContextClassLoader(), Resources.class.getClassLoader());</span>
+<span class="fc" id="L56">    URL url = loader.getResource(resourceName);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">    if (url == null) {</span>
+<span class="fc" id="L58">      return null;</span>
     }
-<span class="fc" id="L59">    try (BufferedReader cfgR = Resources.asCharSource(url, StandardCharsets.UTF_8).openBufferedStream()) {</span>
-<span class="fc" id="L60">      return loadConfig(cfgR);</span>
-<span class="nc" id="L61">    } catch (IOException ex) {</span>
-<span class="nc" id="L62">      throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L60">    try (BufferedReader cfgR = Resources.asCharSource(url, StandardCharsets.UTF_8).openBufferedStream()) {</span>
+<span class="fc" id="L61">      return loadConfig(cfgR);</span>
+<span class="nc" id="L62">    } catch (IOException ex) {</span>
+<span class="nc" id="L63">      throw new UncheckedIOException(ex);</span>
     }
   }
 
   public static Map&lt;String, PrintConfig&gt; loadConfig(final Reader reader) throws IOException {
-<span class="fc" id="L67">    Properties props = new Properties();</span>
-<span class="fc" id="L68">    props.load(reader);</span>
-<span class="fc" id="L69">    Map&lt;String, PrintConfig&gt; cfgs = Maps.newHashMapWithExpectedSize(props.size());</span>
-<span class="fc" id="L70">    Set&lt;Map.Entry&lt;String, String&gt;&gt; entrySet = (Set) props.entrySet();</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (Map.Entry&lt;String, String&gt; entry : entrySet) {</span>
-<span class="fc" id="L72">      String category = entry.getKey().trim();</span>
-<span class="fc" id="L73">      String[] cfg = entry.getValue().trim().split(&quot;,&quot;);</span>
-<span class="fc" id="L74">      int len = cfg.length;</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">      if (len == 0) {</span>
-<span class="nc" id="L76">        throw new IllegalArgumentException(&quot;Invalid config entry: &quot; + entry);</span>
+<span class="fc" id="L68">    Properties props = new Properties();</span>
+<span class="fc" id="L69">    props.load(reader);</span>
+<span class="fc" id="L70">    Map&lt;String, PrintConfig&gt; cfgs = Maps.newHashMapWithExpectedSize(props.size());</span>
+<span class="fc" id="L71">    Set&lt;Map.Entry&lt;String, String&gt;&gt; entrySet = (Set) props.entrySet();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    for (Map.Entry&lt;String, String&gt; entry : entrySet) {</span>
+<span class="fc" id="L73">      String category = entry.getKey().trim();</span>
+<span class="fc" id="L74">      String[] cfg = entry.getValue().trim().split(&quot;,&quot;);</span>
+<span class="fc" id="L75">      int len = cfg.length;</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">      if (len == 0) {</span>
+<span class="nc" id="L77">        throw new IllegalArgumentException(&quot;Invalid config entry: &quot; + entry);</span>
       }
       final boolean greedy;
-<span class="fc" id="L79">      String lval = cfg[len - 1];</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">      if (&quot;true&quot;.equalsIgnoreCase(lval)) {</span>
-<span class="fc" id="L81">        greedy = true;</span>
-<span class="fc" id="L82">        len--;</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">      } else if (&quot;false&quot;.equalsIgnoreCase(lval)) {</span>
-<span class="nc" id="L84">        greedy = false;</span>
-<span class="nc" id="L85">        len--;</span>
+<span class="fc" id="L80">      String lval = cfg[len - 1];</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">      if (&quot;true&quot;.equalsIgnoreCase(lval)) {</span>
+<span class="fc" id="L82">        greedy = true;</span>
+<span class="fc" id="L83">        len--;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">      } else if (&quot;false&quot;.equalsIgnoreCase(lval)) {</span>
+<span class="nc" id="L85">        greedy = false;</span>
+<span class="nc" id="L86">        len--;</span>
       } else {
-<span class="fc" id="L87">        greedy = false;</span>
+<span class="fc" id="L88">        greedy = false;</span>
       }
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">      if (len != 1) {</span>
-<span class="nc" id="L90">        throw new IllegalArgumentException(&quot;Invalid config entry: &quot; + entry);</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">      if (len != 1) {</span>
+<span class="nc" id="L91">        throw new IllegalArgumentException(&quot;Invalid config entry: &quot; + entry);</span>
       }
-<span class="fc" id="L92">      final Level minLevel = Level.valueOf(cfg[0]);</span>
-<span class="fc" id="L93">      cfgs.put(category, new PrintConfig(category, minLevel, greedy));</span>
-<span class="fc" id="L94">    }</span>
-<span class="fc" id="L95">    return cfgs;</span>
+<span class="fc" id="L93">      final Level minLevel = Level.valueOf(cfg[0]);</span>
+<span class="fc" id="L94">      cfgs.put(category, new PrintConfig(category, minLevel, greedy));</span>
+<span class="fc" id="L95">    }</span>
+<span class="fc" id="L96">    return cfgs;</span>
   }
 
 }

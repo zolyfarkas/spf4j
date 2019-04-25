@@ -35,8 +35,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ConcurrentModificationException;
 import java.util.function.BiConsumer;
-import javax.activation.MimeType;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.EscapeJsonStringAppendableWrapper;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.avro.MediaTypes;
 
 /**
  * @author zoly
@@ -50,8 +53,8 @@ public interface ObjectAppender&lt;T&gt; extends BiConsumer&lt;T, Appendable&gt;
    * the MimeType of the format used to write the Object.
    * @return
    */
-  default MimeType getAppendedType() {
-<span class="fc" id="L54">    return MimeTypes.PLAIN_TEXT;</span>
+  default MediaType getAppendedType() {
+<span class="fc" id="L57">    return MediaTypes.TEXT_PLAIN;</span>
   }
 
   /**
@@ -63,40 +66,76 @@ public interface ObjectAppender&lt;T&gt; extends BiConsumer&lt;T, Appendable&gt;
   void append(T object, Appendable appendTo) throws IOException;
 
 
+  static void appendNullable(@Nullable final Object o, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier)
+          throws IOException {
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L73">      appendTo.append(&quot;null&quot;);</span>
+    } else {
+<span class="nc" id="L75">      appenderSupplier.get(o.getClass()).append(o, appendTo, appenderSupplier);</span>
+    }
+<span class="nc" id="L77">  }</span>
+
+  static void appendNullableJson(@Nullable final Object o, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier)
+          throws IOException {
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L83">      appendTo.append(&quot;null&quot;);</span>
+    } else {
+<span class="fc" id="L85">      ObjectAppender app = appenderSupplier.get(o.getClass());</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">      if (app.getAppendedType().getSubType().endsWith(&quot;json&quot;)) {</span>
+<span class="fc" id="L87">         app.append(o, appendTo, appenderSupplier);</span>
+      } else {
+<span class="fc" id="L89">        EscapeJsonStringAppendableWrapper sEsc = new EscapeJsonStringAppendableWrapper(appendTo);</span>
+<span class="fc" id="L90">        appendTo.append('&quot;');</span>
+<span class="fc" id="L91">        app.append(o, sEsc, appenderSupplier);</span>
+<span class="fc" id="L92">        appendTo.append('&quot;');</span>
+      }
+    }
+<span class="fc" id="L95">  }</span>
+
+
+  /**
+   * Method to overwrite for implementing apenders for container objects.
+   */
+  default void append(T object, Appendable appendTo, ObjectAppenderSupplier appenderSupplier) throws IOException {
+<span class="fc" id="L102">    append(object, appendTo);</span>
+<span class="fc" id="L103">  }</span>
+
   default void accept(final T object, final Appendable appendTo) {
     try {
-<span class="nc" id="L68">      append(object, appendTo);</span>
-<span class="nc" id="L69">    } catch (IOException ex) {</span>
-<span class="nc" id="L70">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L71">    }</span>
-<span class="nc" id="L72">  }</span>
+<span class="nc" id="L107">      append(object, appendTo);</span>
+<span class="nc" id="L108">    } catch (IOException ex) {</span>
+<span class="nc" id="L109">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L110">    }</span>
+<span class="nc" id="L111">  }</span>
 
   /**
    * A simple Object appender that invokes the toString method of the object and writes the object out.
    */
-<span class="fc" id="L77">  ObjectAppender&lt;Object&gt; TOSTRING_APPENDER = new ObjectAppender&lt;Object&gt;() {</span>
+<span class="fc" id="L116">  ObjectAppender&lt;Object&gt; TOSTRING_APPENDER = new ObjectAppender&lt;Object&gt;() {</span>
     @Override
     public void append(final Object object, final Appendable appendTo) throws IOException {
 
-<span class="fc" id="L81">      String toString = null;</span>
-<span class="fc" id="L82">      int i = 10;</span>
+<span class="fc" id="L120">      String toString = null;</span>
+<span class="fc" id="L121">      int i = 10;</span>
       do {
         try {
-<span class="fc" id="L85">          toString = object.toString();</span>
-<span class="fc" id="L86">        } catch (ConcurrentModificationException ex) {</span>
-<span class="fc" id="L87">          i--;</span>
-<span class="fc" id="L88">        }</span>
-<span class="fc bfc" id="L89" title="All 4 branches covered.">      } while (toString == null &amp;&amp; i &gt; 0);</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">      if (i != 10) {</span>
-<span class="fc" id="L91">        appendTo.append(&quot;ConcurrentlyModifiedDuringToString:&quot;);</span>
+<span class="fc" id="L124">          toString = object.toString();</span>
+<span class="fc" id="L125">        } catch (ConcurrentModificationException ex) {</span>
+<span class="fc" id="L126">          i--;</span>
+<span class="fc" id="L127">        }</span>
+<span class="fc bfc" id="L128" title="All 4 branches covered.">      } while (toString == null &amp;&amp; i &gt; 0);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">      if (i != 10) {</span>
+<span class="fc" id="L130">        appendTo.append(&quot;ConcurrentlyModifiedDuringToString:&quot;);</span>
       }
-<span class="fc bfc" id="L93" title="All 2 branches covered.">      if (toString == null) {</span>
-<span class="fc" id="L94">        appendTo.append(object.getClass().getName()).append('@')</span>
-<span class="fc" id="L95">                .append(Integer.toHexString(System.identityHashCode(object)));</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">      if (toString == null) {</span>
+<span class="fc" id="L133">        appendTo.append(object.getClass().getName()).append('@')</span>
+<span class="fc" id="L134">                .append(Integer.toHexString(System.identityHashCode(object)));</span>
       } else {
-<span class="fc" id="L97">        appendTo.append(toString);</span>
+<span class="fc" id="L136">        appendTo.append(toString);</span>
       }
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L138">    }</span>
 
   };
 

@@ -22,6 +22,7 @@ import java.util.List;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.StringDescription;
+import org.spf4j.log.Level;
 
 /**
  *
@@ -34,9 +35,9 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   private final Level minLevel;
 
-  protected final Matcher&lt;LogRecord&gt;[] matchers;
+  protected final Matcher&lt;TestLogRecord&gt;[] matchers;
 
-  protected final List&lt;LogRecord&gt; matched;
+  protected final List&lt;TestLogRecord&gt; matched;
 
   protected int at;
 
@@ -45,39 +46,39 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   protected final Object sync;
 
   LogMatchingHandler(final boolean assertSeen, final String category,
-<span class="fc" id="L48">          final Level minLevel, final Matcher&lt;LogRecord&gt;... matchers) {</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    if (matchers.length &lt; 1) {</span>
-<span class="nc" id="L50">      throw new IllegalArgumentException(&quot;You need to provide at least a matcher &quot; + Arrays.toString(matchers));</span>
+<span class="fc" id="L49">          final Level minLevel, final Matcher&lt;TestLogRecord&gt;... matchers) {</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (matchers.length &lt; 1) {</span>
+<span class="nc" id="L51">      throw new IllegalArgumentException(&quot;You need to provide at least a matcher &quot; + Arrays.toString(matchers));</span>
     }
-<span class="fc" id="L52">    this.matchers = matchers;</span>
-<span class="fc" id="L53">    this.matched = new ArrayList&lt;&gt;(matchers.length);</span>
-<span class="fc" id="L54">    this.at = 0;</span>
-<span class="fc" id="L55">    this.minLevel = minLevel;</span>
-<span class="fc" id="L56">    this.assertSeen = assertSeen;</span>
-<span class="fc" id="L57">    this.category = category;</span>
-<span class="fc" id="L58">    this.sync = new Object();</span>
-<span class="fc" id="L59">  }</span>
+<span class="fc" id="L53">    this.matchers = matchers;</span>
+<span class="fc" id="L54">    this.matched = new ArrayList&lt;&gt;(matchers.length);</span>
+<span class="fc" id="L55">    this.at = 0;</span>
+<span class="fc" id="L56">    this.minLevel = minLevel;</span>
+<span class="fc" id="L57">    this.assertSeen = assertSeen;</span>
+<span class="fc" id="L58">    this.category = category;</span>
+<span class="fc" id="L59">    this.sync = new Object();</span>
+<span class="fc" id="L60">  }</span>
 
   public abstract void close();
 
 
   @Override
   public Handling handles(final Level level) {
-<span class="fc bfc" id="L66" title="All 2 branches covered.">    return level.ordinal() &gt;= minLevel.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    return level.ordinal() &gt;= minLevel.ordinal() ? Handling.HANDLE_PASS : Handling.NONE;</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;)
-  public LogRecord handle(final LogRecord record) {
-<span class="fc" id="L72">    synchronized (sync) {</span>
-<span class="fc bfc" id="L73" title="All 4 branches covered.">      if (at &lt; matchers.length &amp;&amp; matchers[at].matches(record)) {</span>
-<span class="fc" id="L74">        at++;</span>
-<span class="fc" id="L75">        record.attach(Attachments.ASSERTED);</span>
-<span class="fc" id="L76">        matched.add(record);</span>
-<span class="fc" id="L77">        matched();</span>
+  public TestLogRecord handle(final TestLogRecord record) {
+<span class="fc" id="L73">    synchronized (sync) {</span>
+<span class="fc bfc" id="L74" title="All 4 branches covered.">      if (at &lt; matchers.length &amp;&amp; matchers[at].matches(record)) {</span>
+<span class="fc" id="L75">        at++;</span>
+<span class="fc" id="L76">        record.attach(Attachments.ASSERTED);</span>
+<span class="fc" id="L77">        matched.add(record);</span>
+<span class="fc" id="L78">        matched();</span>
       }
-<span class="fc" id="L79">    }</span>
-<span class="fc" id="L80">    return record;</span>
+<span class="fc" id="L80">    }</span>
+<span class="fc" id="L81">    return record;</span>
   }
 
   /**
@@ -86,42 +87,42 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    */
   @SuppressFBWarnings(&quot;ACEM_ABSTRACT_CLASS_EMPTY_METHODS&quot;)
   public void matched() {
-<span class="fc" id="L89">  }</span>
+<span class="fc" id="L90">  }</span>
 
   @Override
   public void assertObservation() {
-<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (assertSeen) {</span>
-<span class="fc" id="L94">      assertSeen();</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">    if (assertSeen) {</span>
+<span class="fc" id="L95">      assertSeen();</span>
     } else {
-<span class="fc" id="L96">      assertNotSeen();</span>
+<span class="fc" id="L97">      assertNotSeen();</span>
     }
-<span class="fc" id="L98">  }</span>
+<span class="fc" id="L99">  }</span>
 
   /**
    * Assert that a sequence of leg messages has been seen.
    */
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
   private void assertSeen() {
-<span class="fc" id="L105">    close();</span>
-<span class="fc" id="L106">    synchronized (sync) {</span>
-<span class="fc bfc" id="L107" title="All 2 branches covered.">      if (at &lt; matchers.length) {</span>
-<span class="fc" id="L108">        throw new AssertionError(seenDescription().toString());</span>
+<span class="fc" id="L106">    close();</span>
+<span class="fc" id="L107">    synchronized (sync) {</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">      if (at &lt; matchers.length) {</span>
+<span class="fc" id="L109">        throw new AssertionError(seenDescription().toString());</span>
       }
-<span class="fc" id="L110">    }</span>
-<span class="fc" id="L111">  }</span>
+<span class="fc" id="L111">    }</span>
+<span class="fc" id="L112">  }</span>
 
   Description seenDescription() {
-<span class="fc" id="L114">    Description description = new StringDescription();</span>
-<span class="fc" id="L115">    description.appendText(&quot;Expected in category: &quot;).appendText(&quot;\&quot;&quot;).appendText(category).appendText(&quot;\&quot;&quot;)</span>
-<span class="fc" id="L116">            .appendText(&quot; and minLevel: &quot;).appendText(minLevel.toString()).appendText(&quot;:\n&quot;);</span>
-<span class="fc" id="L117">    matchers[0].describeTo(description);</span>
-<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    for (int i = 1; i &lt; matchers.length; i++) {</span>
-<span class="nc" id="L119">      description.appendText(&quot;\n&quot;);</span>
-<span class="nc" id="L120">      matchers[i].describeTo(description);</span>
+<span class="fc" id="L115">    Description description = new StringDescription();</span>
+<span class="fc" id="L116">    description.appendText(&quot;Expected in category: &quot;).appendText(&quot;\&quot;&quot;).appendText(category).appendText(&quot;\&quot;&quot;)</span>
+<span class="fc" id="L117">            .appendText(&quot; and minLevel: &quot;).appendText(minLevel.toString()).appendText(&quot;:\n&quot;);</span>
+<span class="fc" id="L118">    matchers[0].describeTo(description);</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">    for (int i = 1; i &lt; matchers.length; i++) {</span>
+<span class="nc" id="L120">      description.appendText(&quot;\n&quot;);</span>
+<span class="nc" id="L121">      matchers[i].describeTo(description);</span>
     }
-<span class="fc" id="L122">    description.appendText(&quot;\n&quot;);</span>
-<span class="fc" id="L123">    description.appendText(&quot;Matched &quot; + at);</span>
-<span class="fc" id="L124">    return description;</span>
+<span class="fc" id="L123">    description.appendText(&quot;\n&quot;);</span>
+<span class="fc" id="L124">    description.appendText(&quot;Matched &quot; + at);</span>
+<span class="fc" id="L125">    return description;</span>
   }
 
   /**
@@ -129,31 +130,31 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
    */
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
   private void assertNotSeen() {
-<span class="fc" id="L132">    close();</span>
-<span class="fc" id="L133">    synchronized (sync) {</span>
-<span class="fc bfc" id="L134" title="All 2 branches covered.">      if (at &gt;= matchers.length) {</span>
-<span class="fc" id="L135">        throw new AssertionError(notSeenDescription().toString());</span>
+<span class="fc" id="L133">    close();</span>
+<span class="fc" id="L134">    synchronized (sync) {</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">      if (at &gt;= matchers.length) {</span>
+<span class="fc" id="L136">        throw new AssertionError(notSeenDescription().toString());</span>
       }
-<span class="fc" id="L137">    }</span>
-<span class="fc" id="L138">  }</span>
+<span class="fc" id="L138">    }</span>
+<span class="fc" id="L139">  }</span>
 
   Description notSeenDescription() {
-<span class="fc" id="L141">    Description description = new StringDescription();</span>
-<span class="fc" id="L142">    description.appendText(&quot;Not expected in category:&quot;).appendText(&quot;\&quot;&quot;).appendText(category).appendText(&quot;\&quot;&quot;)</span>
-<span class="fc" id="L143">            .appendText(&quot; and minLevel:&quot;).appendText(minLevel.toString()).appendText(&quot;:\n&quot;);</span>
-<span class="fc" id="L144">    matchers[0].describeTo(description);</span>
-<span class="pc bpc" id="L145" title="1 of 2 branches missed.">    for (int i = 1; i &lt; matchers.length; i++) {</span>
-<span class="nc" id="L146">      description.appendText(&quot;\n&quot;);</span>
-<span class="nc" id="L147">      matchers[i].describeTo(description);</span>
+<span class="fc" id="L142">    Description description = new StringDescription();</span>
+<span class="fc" id="L143">    description.appendText(&quot;Not expected in category:&quot;).appendText(&quot;\&quot;&quot;).appendText(category).appendText(&quot;\&quot;&quot;)</span>
+<span class="fc" id="L144">            .appendText(&quot; and minLevel:&quot;).appendText(minLevel.toString()).appendText(&quot;:\n&quot;);</span>
+<span class="fc" id="L145">    matchers[0].describeTo(description);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">    for (int i = 1; i &lt; matchers.length; i++) {</span>
+<span class="nc" id="L147">      description.appendText(&quot;\n&quot;);</span>
+<span class="nc" id="L148">      matchers[i].describeTo(description);</span>
     }
-<span class="fc" id="L149">    description.appendText(&quot;\n&quot;);</span>
-<span class="fc" id="L150">    description.appendValueList(&quot;But seen:\n&quot;, &quot;,&quot;, &quot; logs&quot;, matched);</span>
-<span class="fc" id="L151">    return description;</span>
+<span class="fc" id="L150">    description.appendText(&quot;\n&quot;);</span>
+<span class="fc" id="L151">    description.appendValueList(&quot;But seen:\n&quot;, &quot;,&quot;, &quot; logs&quot;, matched);</span>
+<span class="fc" id="L152">    return description;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L156">    return &quot;LogMatchingHandler{&quot; + &quot;minLevel=&quot; + minLevel + &quot;, matchers=&quot; + Arrays.toString(matchers)</span>
+<span class="fc" id="L157">    return &quot;LogMatchingHandler{&quot; + &quot;minLevel=&quot; + minLevel + &quot;, matchers=&quot; + Arrays.toString(matchers)</span>
             + &quot;, at=&quot; + at + '}';
   }
 

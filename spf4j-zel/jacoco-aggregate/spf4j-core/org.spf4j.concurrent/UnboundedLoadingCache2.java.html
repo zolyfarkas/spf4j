@@ -100,34 +100,35 @@ public final class UnboundedLoadingCache2&lt;K, V&gt; implements LoadingCache&lt
   }
 
   @Override
+  @SuppressFBWarnings(&quot;NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE&quot;)
   public V apply(final K key) {
-<span class="nc" id="L104">    return getUnchecked(key);</span>
+<span class="nc" id="L105">    return getUnchecked(key);</span>
   }
 
   @Override
   public void refresh(final K key) {
-<span class="nc" id="L109">    getUnchecked(key);</span>
-<span class="nc" id="L110">  }</span>
+<span class="nc" id="L110">     map.put(key, computer.apply(key));</span>
+<span class="nc" id="L111">  }</span>
 
   @Override
   public ConcurrentMap&lt;K, V&gt; asMap() {
-<span class="nc" id="L114">    return map;</span>
+<span class="nc" id="L115">    return map;</span>
   }
 
   @Override
   public V getIfPresent(final Object key) {
-<span class="nc" id="L119">    return map.get(key);</span>
+<span class="nc" id="L120">    return map.get(key);</span>
   }
 
   @Override
   public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) {
-<span class="nc" id="L124">    return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
+<span class="nc" id="L125">    return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
       @Override
       public V apply(final K t) {
         try {
-<span class="nc" id="L128">          return valueLoader.call();</span>
-<span class="nc" id="L129">        } catch (Exception ex) {</span>
-<span class="nc" id="L130">          throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L129">          return valueLoader.call();</span>
+<span class="nc" id="L130">        } catch (Exception ex) {</span>
+<span class="nc" id="L131">          throw new UncheckedExecutionException(ex);</span>
         }
       }
     });
@@ -136,63 +137,63 @@ public final class UnboundedLoadingCache2&lt;K, V&gt; implements LoadingCache&lt
   @Override
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public ImmutableMap&lt;K, V&gt; getAllPresent(final Iterable&lt;?&gt; keys) {
-<span class="nc" id="L139">    ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L141">      V val = getIfPresent(key);</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">      if (val != null) {</span>
-<span class="nc" id="L143">        builder.put(key, val);</span>
+<span class="nc" id="L140">    ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L142">      V val = getIfPresent(key);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (val != null) {</span>
+<span class="nc" id="L144">        builder.put(key, val);</span>
       }
-<span class="nc" id="L145">    }</span>
-<span class="nc" id="L146">    return builder.build();</span>
+<span class="nc" id="L146">    }</span>
+<span class="nc" id="L147">    return builder.build();</span>
   }
 
   @Override
   public void put(final K key, final V value) {
-<span class="nc" id="L151">    map.put(key, value);</span>
-<span class="nc" id="L152">  }</span>
+<span class="nc" id="L152">    map.put(key, value);</span>
+<span class="nc" id="L153">  }</span>
 
   @Override
   public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
-<span class="nc bnc" id="L156" title="All 2 branches missed.">    for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
-<span class="nc" id="L157">      put(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L158">    }</span>
-<span class="nc" id="L159">  }</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">    for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L158">      put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L159">    }</span>
+<span class="nc" id="L160">  }</span>
 
   @Override
   public void invalidate(final Object key) {
-<span class="nc" id="L163">    map.remove(key);</span>
-<span class="nc" id="L164">  }</span>
+<span class="nc" id="L164">    map.remove(key);</span>
+<span class="nc" id="L165">  }</span>
 
   @Override
   public void invalidateAll(final Iterable&lt;?&gt; keys) {
-<span class="nc bnc" id="L168" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L169">      invalidate(key);</span>
-<span class="nc" id="L170">    }</span>
-<span class="nc" id="L171">  }</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L170">      invalidate(key);</span>
+<span class="nc" id="L171">    }</span>
+<span class="nc" id="L172">  }</span>
 
   @Override
   public void invalidateAll() {
-<span class="nc" id="L175">    map.clear();</span>
-<span class="nc" id="L176">  }</span>
+<span class="nc" id="L176">    map.clear();</span>
+<span class="nc" id="L177">  }</span>
 
   @Override
   public long size() {
-<span class="nc" id="L180">    return map.size();</span>
+<span class="nc" id="L181">    return map.size();</span>
   }
 
   @Override
   public CacheStats stats() {
-<span class="nc" id="L185">    throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
+<span class="nc" id="L186">    throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
   }
 
   @Override
   public void cleanUp() {
-<span class="nc" id="L190">    map.clear();</span>
-<span class="nc" id="L191">  }</span>
+<span class="nc" id="L191">    map.clear();</span>
+<span class="nc" id="L192">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L195">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
+<span class="nc" id="L196">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
   }
 
 }

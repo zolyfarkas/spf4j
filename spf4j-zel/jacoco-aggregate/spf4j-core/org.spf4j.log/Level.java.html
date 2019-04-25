@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Level.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.log</a> &gt; <span class="el_source">Level.java</span></div><h1>Level.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.log;
+
+import org.spf4j.base.avro.LogLevel;
+
+
+/**
+ * An enum for log levels
+ * @author Zoltan Farkas
+ */
+<span class="fc" id="L41">public enum Level {</span>
+<span class="fc" id="L42">  TRACE(java.util.logging.Level.FINEST, LogLevel.TRACE),</span>
+<span class="fc" id="L43">  DEBUG(java.util.logging.Level.FINE, LogLevel.DEBUG),</span>
+<span class="fc" id="L44">  INFO(java.util.logging.Level.INFO, LogLevel.INFO),</span>
+<span class="fc" id="L45">  WARN(java.util.logging.Level.WARNING, LogLevel.WARN),</span>
+<span class="fc" id="L46">  ERROR(java.util.logging.Level.SEVERE, LogLevel.ERROR),</span>
+<span class="fc" id="L47">  OFF(java.util.logging.Level.OFF, LogLevel.UNKNOWN);</span>
+
+  private final java.util.logging.Level julLevel;
+
+  private final LogLevel avroLevel;
+
+<span class="fc" id="L53">  Level(final java.util.logging.Level julLevel, final LogLevel avroLevel) {</span>
+<span class="fc" id="L54">    this.julLevel = julLevel;</span>
+<span class="fc" id="L55">    this.avroLevel = avroLevel;</span>
+<span class="fc" id="L56">  }</span>
+
+  public int getIntValue() {
+<span class="nc" id="L59">    return julLevel.intValue();</span>
+  }
+
+  public java.util.logging.Level getJulLevel() {
+<span class="fc" id="L63">    return julLevel;</span>
+  }
+
+  public LogLevel getAvroLevel() {
+<span class="nc" id="L67">    return avroLevel;</span>
+  }
+
+  public static Level fromAvroLevel(final LogLevel level) {
+<span class="nc bnc" id="L71" title="All 6 branches missed.">    switch (level) {</span>
+      case UNKNOWN:
+      case DEBUG:
+<span class="nc" id="L74">        return Level.DEBUG;</span>
+      case ERROR:
+<span class="nc" id="L76">        return Level.ERROR;</span>
+      case INFO:
+<span class="nc" id="L78">        return Level.INFO;</span>
+      case TRACE:
+<span class="nc" id="L80">        return Level.TRACE;</span>
+      case WARN:
+<span class="nc" id="L82">        return Level.WARN;</span>
+      default:
+<span class="nc" id="L84">        throw new IllegalArgumentException(&quot;Unsupported LogLevel &quot; + level);</span>
+    }
+  }
+
+
+  public static Level fromJulLevel(final int severity) {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">     if (severity &lt;= TRACE.getIntValue()) {</span>
+<span class="nc" id="L91">          return TRACE;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    } else if (severity &lt;= DEBUG.getIntValue()) {</span>
+<span class="nc" id="L93">      return DEBUG;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    } else if (severity &lt;= INFO.getIntValue()) {</span>
+<span class="nc" id="L95">      return INFO;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">    } else if (severity &lt;= WARN.getIntValue()) {</span>
+<span class="nc" id="L97">      return WARN;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    } else if (severity &lt;= ERROR.getIntValue()) {</span>
+<span class="nc" id="L99">      return ERROR;</span>
+    } else {
+<span class="nc" id="L101">      return OFF;</span>
+    }
+  }
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

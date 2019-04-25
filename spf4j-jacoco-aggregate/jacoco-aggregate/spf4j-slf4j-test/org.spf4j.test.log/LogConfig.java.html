@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.ToIntFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas
@@ -32,18 +33,18 @@ public interface LogConfig {
   LogConfig add(String category, LogHandler handler, ToIntFunction&lt;List&lt;LogHandler&gt;&gt; whereTo);
 
   default LogConfig add(final String category, final LogHandler handler) {
-<span class="pc" id="L35">    return add(category, handler, (l) -&gt; 0);</span>
+<span class="pc" id="L36">    return add(category, handler, (l) -&gt; 0);</span>
   }
 
   LogConfig remove(String category, LogHandler handler);
 
   default Level minRootLevel() {
-<span class="pc bpc" id="L41" title="1 of 2 branches missed.">    for (Level l : Level.values()) {</span>
-<span class="fc bfc" id="L42" title="All 2 branches covered.">      if (getLogConsumer(&quot;&quot;, l) != null) {</span>
-<span class="fc" id="L43">        return l;</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">    for (Level l : Level.values()) {</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">      if (getLogConsumer(&quot;&quot;, l) != null) {</span>
+<span class="fc" id="L44">        return l;</span>
       }
     }
-<span class="nc" id="L46">    return Level.ERROR;</span>
+<span class="nc" id="L47">    return Level.ERROR;</span>
   }
 
 

@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExecContextLogger.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.log</a> &gt; <span class="el_source">ExecContextLogger.java</span></div><h1>ExecContextLogger.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.log;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.spf4j.base.Arrays;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.Wrapper;
+import org.spf4j.base.avro.LogRecord;
+
+/**
+ * A Execution context aware logger.
+ *
+ * does the following:
+ *
+ * &lt;li&gt;
+ * 1) if Execution context is present, it logs the context id. (relies on Logging back-ends supporting overflow args)
+ * &lt;/li&gt;
+ * &lt;li&gt;
+ * 2) if Execution context is present, it allows for context aware log level, and upgrades log messages to be logged by
+ * backend.
+ * &lt;/li&gt;
+ *
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;)
+public final class ExecContextLogger implements Logger, Wrapper&lt;Logger&gt; {
+
+  private final XLog logger;
+
+  public static ExecContextLogger from(final Logger wrapped) {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    if (wrapped instanceof ExecContextLogger) {</span>
+<span class="nc" id="L66">      return (ExecContextLogger) wrapped;</span>
+    } else {
+<span class="nc" id="L68">      return new ExecContextLogger(wrapped);</span>
+    }
+  }
+
+  public ExecContextLogger(final Logger wrapped) {
+<span class="fc" id="L73">    this(new SLf4jXLogAdapter(wrapped));</span>
+<span class="fc" id="L74">  }</span>
+
+<span class="fc" id="L76">  public ExecContextLogger(final XLog traceLogger) {</span>
+<span class="fc" id="L77">    this.logger = traceLogger;</span>
+<span class="fc" id="L78">  }</span>
+
+  @Override
+  public Logger getWrapped() {
+<span class="nc" id="L82">    return this.logger.getWrapped();</span>
+  }
+
+  @Override
+  public String getName() {
+<span class="fc" id="L87">    return this.logger.getWrapped().getName();</span>
+  }
+
+  public boolean isEnabled(final Level level, @Nullable final Marker marker) {
+<span class="nc" id="L91">    ExecutionContext ctx = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (ctx == null) {</span>
+<span class="nc" id="L93">      return logger.isEnabled(level, marker);</span>
+    }
+<span class="nc" id="L95">    String name = getName();</span>
+<span class="nc" id="L96">    Level backendOverwrite = ctx.getBackendMinLogLevel(name);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    if (backendOverwrite == null) {</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">      return logger.isEnabled(level, marker) || level.ordinal() &gt;= ctx.getContextMinLogLevel(name).ordinal();</span>
+    } else {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">      return logger.isEnabled(level, marker)</span>
+<span class="nc" id="L101">              || level.ordinal()</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">              &gt;= Math.min(ctx.getContextMinLogLevel(name).ordinal(), backendOverwrite.ordinal());</span>
+    }
+  }
+
+
+  public void log(final ExecutionContext ctx, final Level level, final LogRecord log) {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">    if (ctx == null) {</span>
+<span class="nc" id="L109">      logger.log(null, level, &quot;RemoteLog&quot;, log);</span>
+<span class="nc" id="L110">      return;</span>
+    }
+<span class="nc" id="L112">    String name = getName();</span>
+<span class="nc" id="L113">    boolean logged = false;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (logger.isEnabled(level, null)) {</span>
+<span class="nc" id="L115">      logger.log(null, level, &quot;RemoteLog&quot;, LogAttribute.traceId(ctx.getId()), log);</span>
+<span class="nc" id="L116">      logged = true;</span>
+    } else {
+<span class="nc" id="L118">      Level backendOverwrite = ctx.getBackendMinLogLevel(name);</span>
+<span class="nc bnc" id="L119" title="All 4 branches missed.">      if (backendOverwrite != null &amp;&amp; backendOverwrite.ordinal() &lt;= level.ordinal()) {</span>
+<span class="nc" id="L120">       logger.logUpgrade(null, level, &quot;RemoteLog&quot;, LogAttribute.traceId(ctx.getId()), log);</span>
+<span class="nc" id="L121">       logged = true;</span>
+      }
+    }
+<span class="nc bnc" id="L124" title="All 2 branches missed.">    if (ctx.getContextMinLogLevel(name).ordinal() &lt;= level.ordinal()) {</span>
+<span class="nc" id="L125">      ctx.addLog(new AvroLogRecordImpl(log, logged));</span>
+    }
+<span class="nc" id="L127">  }</span>
+
+  public void log(@Nullable final Marker marker, final Level level, final String msg, final Object... args) {
+<span class="fc" id="L130">    log(ExecutionContexts.current(), marker, level, msg, args);</span>
+<span class="fc" id="L131">  }</span>
+
+  public void log(final ExecutionContext ctx, @Nullable final Marker marker,
+          final Level level, final String msg, final Object... args) {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    if (ctx == null) {</span>
+<span class="nc" id="L136">      logger.log(marker, level, msg, args);</span>
+<span class="nc" id="L137">      return;</span>
+    }
+<span class="fc" id="L139">    String name = getName();</span>
+    boolean logged;
+<span class="fc bfc" id="L141" title="All 2 branches covered.">    if (logger.isEnabled(level, marker)) {</span>
+<span class="fc" id="L142">      logger.log(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));</span>
+<span class="fc" id="L143">      logged = true;</span>
+    } else {
+<span class="fc" id="L145">      Level backendOverwrite = ctx.getBackendMinLogLevel(name);</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">      if (backendOverwrite == null) {</span>
+<span class="nc" id="L147">        logged = false;</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">      } else if (backendOverwrite.ordinal() &lt;= level.ordinal()) {</span>
+<span class="fc" id="L149">        logger.logUpgrade(null, level, msg, Arrays.append(args, LogAttribute.traceId(ctx.getId())));</span>
+<span class="fc" id="L150">        logged = true;</span>
+      } else {
+<span class="nc" id="L152">        logged = false;</span>
+      }
+    }
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">    if (ctx.getContextMinLogLevel(name).ordinal() &lt;= level.ordinal()) {</span>
+<span class="fc" id="L156">      ctx.addLog(new Slf4jLogRecordImpl(logged, name, level, marker, msg, args));</span>
+    }
+<span class="fc" id="L158">  }</span>
+
+  @Override
+  public boolean isTraceEnabled() {
+<span class="nc" id="L162">    return isEnabled(Level.TRACE, null);</span>
+  }
+
+  @Override
+  public void trace(final String msg) {
+<span class="fc" id="L167">    log(null, Level.TRACE, msg);</span>
+<span class="fc" id="L168">  }</span>
+
+  @Override
+  public void trace(final String format, final Object arg) {
+<span class="nc" id="L172">    log(null, Level.TRACE, format, arg);</span>
+<span class="nc" id="L173">  }</span>
+
+  @Override
+  public void trace(final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L177">    log(null, Level.TRACE, format, arg1, arg2);</span>
+<span class="nc" id="L178">  }</span>
+
+  @Override
+  public void trace(final String format, final Object... arguments) {
+<span class="nc" id="L182">    log(null, Level.TRACE, format, arguments);</span>
+<span class="nc" id="L183">  }</span>
+
+  @Override
+  public void trace(final String msg, final Throwable t) {
+<span class="nc" id="L187">    log(null, Level.TRACE, msg, t);</span>
+<span class="nc" id="L188">  }</span>
+
+  @Override
+  public boolean isTraceEnabled(final Marker marker) {
+<span class="nc" id="L192">    return isEnabled(Level.TRACE, marker);</span>
+  }
+
+  @Override
+  public void trace(final Marker marker, final String msg) {
+<span class="nc" id="L197">    log(marker, Level.TRACE, msg);</span>
+<span class="nc" id="L198">  }</span>
+
+  @Override
+  public void trace(final Marker marker, final String format, final Object arg) {
+<span class="nc" id="L202">    log(marker, Level.TRACE, format, arg);</span>
+<span class="nc" id="L203">  }</span>
+
+  @Override
+  public void trace(final Marker marker, final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L207">    log(marker, Level.TRACE, format, arg1, arg2);</span>
+<span class="nc" id="L208">  }</span>
+
+  @Override
+  public void trace(final Marker marker, final String format, final Object... argArray) {
+<span class="nc" id="L212">    log(marker, Level.TRACE, format, argArray);</span>
+<span class="nc" id="L213">  }</span>
+
+  @Override
+  public void trace(final Marker marker, final String msg, final Throwable t) {
+<span class="nc" id="L217">    log(marker, Level.TRACE, msg, t);</span>
+<span class="nc" id="L218">  }</span>
+
+  @Override
+  public boolean isDebugEnabled() {
+<span class="nc" id="L222">    return isEnabled(Level.DEBUG, null);</span>
+  }
+
+  @Override
+  public void debug(final String msg) {
+<span class="nc" id="L227">    log(null, Level.DEBUG, msg);</span>
+<span class="nc" id="L228">  }</span>
+
+  @Override
+  public void debug(final String format, final Object arg) {
+<span class="nc" id="L232">    log(null, Level.DEBUG, format, arg);</span>
+<span class="nc" id="L233">  }</span>
+
+  @Override
+  public void debug(final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L237">    log(null, Level.DEBUG, format, arg1, arg2);</span>
+<span class="nc" id="L238">  }</span>
+
+  @Override
+  public void debug(final String format, final Object... arguments) {
+<span class="nc" id="L242">    log(null, Level.DEBUG, format, arguments);</span>
+<span class="nc" id="L243">  }</span>
+
+  @Override
+  public void debug(final String msg, final Throwable t) {
+<span class="nc" id="L247">    log(null, Level.DEBUG, msg, t);</span>
+<span class="nc" id="L248">  }</span>
+
+  @Override
+  public boolean isDebugEnabled(final Marker marker) {
+<span class="nc" id="L252">    return isEnabled(Level.DEBUG, marker);</span>
+  }
+
+  @Override
+  public void debug(final Marker marker, final String msg) {
+<span class="nc" id="L257">    log(marker, Level.DEBUG, msg);</span>
+<span class="nc" id="L258">  }</span>
+
+  @Override
+  public void debug(final Marker marker, final String format, final Object arg) {
+<span class="nc" id="L262">    log(marker, Level.DEBUG, format, arg);</span>
+<span class="nc" id="L263">  }</span>
+
+  @Override
+  public void debug(final Marker marker, final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L267">    log(marker, Level.DEBUG, format, arg1, arg2);</span>
+<span class="nc" id="L268">  }</span>
+
+  @Override
+  public void debug(final Marker marker, final String format, final Object... arguments) {
+<span class="nc" id="L272">    log(marker, Level.DEBUG, format, arguments);</span>
+<span class="nc" id="L273">  }</span>
+
+  @Override
+  public void debug(final Marker marker, final String msg, final Throwable t) {
+<span class="nc" id="L277">    log(marker, Level.DEBUG, msg, t);</span>
+<span class="nc" id="L278">  }</span>
+
+  @Override
+  public boolean isInfoEnabled() {
+<span class="nc" id="L282">    return isEnabled(Level.INFO, null);</span>
+  }
+
+  @Override
+  public void info(final String msg) {
+<span class="nc" id="L287">    log(null, Level.INFO, msg);</span>
+<span class="nc" id="L288">  }</span>
+
+  @Override
+  public void info(final String format, final Object arg) {
+<span class="nc" id="L292">    log(null, Level.INFO, format, arg);</span>
+<span class="nc" id="L293">  }</span>
+
+  @Override
+  public void info(final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L297">    log(null, Level.INFO, format, arg1, arg2);</span>
+<span class="nc" id="L298">  }</span>
+
+  @Override
+  public void info(final String format, final Object... arguments) {
+<span class="nc" id="L302">    log(null, Level.INFO, format, arguments);</span>
+<span class="nc" id="L303">  }</span>
+
+  @Override
+  public void info(final String msg, final Throwable t) {
+<span class="nc" id="L307">    log(null, Level.INFO, msg, t);</span>
+<span class="nc" id="L308">  }</span>
+
+  @Override
+  public boolean isInfoEnabled(final Marker marker) {
+<span class="nc" id="L312">    return isEnabled(Level.INFO, marker);</span>
+  }
+
+  @Override
+  public void info(final Marker marker, final String msg) {
+<span class="nc" id="L317">    log(marker, Level.INFO, msg);</span>
+<span class="nc" id="L318">  }</span>
+
+  @Override
+  public void info(final Marker marker, final String format, final Object arg) {
+<span class="nc" id="L322">    log(marker, Level.INFO, format, arg);</span>
+<span class="nc" id="L323">  }</span>
+
+  @Override
+  public void info(final Marker marker, final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L327">    log(marker, Level.INFO, format, arg1, arg2);</span>
+<span class="nc" id="L328">  }</span>
+
+  @Override
+  public void info(final Marker marker, final String format, final Object... arguments) {
+<span class="nc" id="L332">    log(marker, Level.INFO, format, arguments);</span>
+<span class="nc" id="L333">  }</span>
+
+  @Override
+  public void info(final Marker marker, final String msg, final Throwable t) {
+<span class="nc" id="L337">    log(marker, Level.INFO, msg, t);</span>
+<span class="nc" id="L338">  }</span>
+
+  @Override
+  public boolean isWarnEnabled() {
+<span class="nc" id="L342">    return isEnabled(Level.WARN, null);</span>
+  }
+
+  @Override
+  public void warn(final String msg) {
+<span class="nc" id="L347">    log(null, Level.WARN, msg);</span>
+<span class="nc" id="L348">  }</span>
+
+  @Override
+  public void warn(final String format, final Object arg) {
+<span class="nc" id="L352">    log(null, Level.WARN, format, arg);</span>
+<span class="nc" id="L353">  }</span>
+
+  @Override
+  public void warn(final String format, final Object... arguments) {
+<span class="nc" id="L357">    log(null, Level.WARN, format, arguments);</span>
+<span class="nc" id="L358">  }</span>
+
+  @Override
+  public void warn(final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L362">    log(null, Level.WARN, format, arg1, arg2);</span>
+<span class="nc" id="L363">  }</span>
+
+  @Override
+  public void warn(final String msg, final Throwable t) {
+<span class="nc" id="L367">    log(null, Level.WARN, msg, t);</span>
+<span class="nc" id="L368">  }</span>
+
+  @Override
+  public boolean isWarnEnabled(final Marker marker) {
+<span class="nc" id="L372">    return isEnabled(Level.WARN, marker);</span>
+  }
+
+  @Override
+  public void warn(final Marker marker, final String msg) {
+<span class="nc" id="L377">    log(marker, Level.WARN, msg);</span>
+<span class="nc" id="L378">  }</span>
+
+  @Override
+  public void warn(final Marker marker, final String format, final Object arg) {
+<span class="nc" id="L382">    log(marker, Level.WARN, format, arg);</span>
+<span class="nc" id="L383">  }</span>
+
+  @Override
+  public void warn(final Marker marker, final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L387">    log(marker, Level.WARN, format, arg1, arg2);</span>
+<span class="nc" id="L388">  }</span>
+
+  @Override
+  public void warn(final Marker marker, final String format, final Object... arguments) {
+<span class="nc" id="L392">    log(marker, Level.WARN, format, arguments);</span>
+<span class="nc" id="L393">  }</span>
+
+  @Override
+  public void warn(final Marker marker, final String msg, final Throwable t) {
+<span class="nc" id="L397">    log(marker, Level.WARN, msg, t);</span>
+<span class="nc" id="L398">  }</span>
+
+  @Override
+  public boolean isErrorEnabled() {
+<span class="nc" id="L402">    return isEnabled(Level.ERROR, null);</span>
+  }
+
+  @Override
+  public void error(final String msg) {
+<span class="nc" id="L407">    log(null, Level.ERROR, msg);</span>
+<span class="nc" id="L408">  }</span>
+
+  @Override
+  public void error(final String format, final Object arg) {
+<span class="nc" id="L412">    log(null, Level.ERROR, format, arg);</span>
+<span class="nc" id="L413">  }</span>
+
+  @Override
+  public void error(final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L417">    log(null, Level.ERROR, format, arg1, arg2);</span>
+<span class="nc" id="L418">  }</span>
+
+  @Override
+  public void error(final String format, final Object... arguments) {
+<span class="nc" id="L422">    log(null, Level.ERROR, format, arguments);</span>
+<span class="nc" id="L423">  }</span>
+
+  @Override
+  public void error(final String msg, final Throwable t) {
+<span class="nc" id="L427">    log(null, Level.ERROR, msg, t);</span>
+<span class="nc" id="L428">  }</span>
+
+  @Override
+  public boolean isErrorEnabled(final Marker marker) {
+<span class="nc" id="L432">    return isEnabled(Level.ERROR, marker);</span>
+  }
+
+  @Override
+  public void error(final Marker marker, final String msg) {
+<span class="nc" id="L437">    log(marker, Level.ERROR, msg);</span>
+<span class="nc" id="L438">  }</span>
+
+  @Override
+  public void error(final Marker marker, final String format, final Object arg) {
+<span class="nc" id="L442">    log(marker, Level.ERROR, format, arg);</span>
+<span class="nc" id="L443">  }</span>
+
+  @Override
+  public void error(final Marker marker, final String format, final Object arg1, final Object arg2) {
+<span class="nc" id="L447">    log(marker, Level.ERROR, format, arg1, arg2);</span>
+<span class="nc" id="L448">  }</span>
+
+  @Override
+  public void error(final Marker marker, final String format, final Object... arguments) {
+<span class="nc" id="L452">    log(marker, Level.ERROR, format, arguments);</span>
+<span class="nc" id="L453">  }</span>
+
+  @Override
+  public void error(final Marker marker, final String msg, final Throwable t) {
+<span class="nc" id="L457">    log(marker, Level.ERROR, msg, t);</span>
+<span class="nc" id="L458">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L462">    return &quot;ExecContextLogger{&quot; + &quot;traceLogger=&quot; + this.logger + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

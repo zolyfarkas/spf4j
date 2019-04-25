@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.spf4j.log.Level;
 //CHECKSTYLE:OFF
 import sun.misc.Contended;
 //CHECKSTYLE:ON
@@ -41,16 +42,16 @@ public final class TestLogger implements Logger {
 
   private static final class LogConfigConsumer {
 
-<span class="fc" id="L44">    private static final LogConfigConsumer NULL = new LogConfigConsumer(null, null);</span>
+<span class="fc" id="L45">    private static final LogConfigConsumer NULL = new LogConfigConsumer(null, null);</span>
 
     private final LogConfig cfg;
 
     private final LogConsumer consumer;
 
-<span class="fc" id="L50">    LogConfigConsumer(final LogConfig cfg, final LogConsumer consumer) {</span>
-<span class="fc" id="L51">      this.cfg = cfg;</span>
-<span class="fc" id="L52">      this.consumer = consumer;</span>
-<span class="fc" id="L53">    }</span>
+<span class="fc" id="L51">    LogConfigConsumer(final LogConfig cfg, final LogConsumer consumer) {</span>
+<span class="fc" id="L52">      this.cfg = cfg;</span>
+<span class="fc" id="L53">      this.consumer = consumer;</span>
+<span class="fc" id="L54">    }</span>
 
   }
 
@@ -62,28 +63,28 @@ public final class TestLogger implements Logger {
     @Contended
     private volatile LogConfigConsumer cfgConsumer;
 
-<span class="fc" id="L65">    ConsumerSupplier(final Level level) {</span>
-<span class="fc" id="L66">      this.level = level;</span>
-<span class="fc" id="L67">      this.cfgConsumer = LogConfigConsumer.NULL;</span>
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L66">    ConsumerSupplier(final Level level) {</span>
+<span class="fc" id="L67">      this.level = level;</span>
+<span class="fc" id="L68">      this.cfgConsumer = LogConfigConsumer.NULL;</span>
+<span class="fc" id="L69">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;) //its a private class
     public LogConsumer get() {
-<span class="fc" id="L73">      LogConfig nCfg = cfgSource.get();</span>
-<span class="fc" id="L74">      LogConfigConsumer curCfgConsumer = cfgConsumer;</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">      if (nCfg == curCfgConsumer.cfg) {</span>
-<span class="fc" id="L76">        return curCfgConsumer.consumer;</span>
+<span class="fc" id="L74">      LogConfig nCfg = cfgSource.get();</span>
+<span class="fc" id="L75">      LogConfigConsumer curCfgConsumer = cfgConsumer;</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">      if (nCfg == curCfgConsumer.cfg) {</span>
+<span class="fc" id="L77">        return curCfgConsumer.consumer;</span>
       } else {
-<span class="fc" id="L78">        synchronized (this) {</span>
-<span class="fc" id="L79">          nCfg = cfgSource.get();</span>
-<span class="fc" id="L80">          curCfgConsumer = cfgConsumer;</span>
-<span class="fc bfc" id="L81" title="All 2 branches covered.">          if (nCfg == curCfgConsumer.cfg) {</span>
-<span class="fc" id="L82">            return curCfgConsumer.consumer;</span>
+<span class="fc" id="L79">        synchronized (this) {</span>
+<span class="fc" id="L80">          nCfg = cfgSource.get();</span>
+<span class="fc" id="L81">          curCfgConsumer = cfgConsumer;</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">          if (nCfg == curCfgConsumer.cfg) {</span>
+<span class="fc" id="L83">            return curCfgConsumer.consumer;</span>
           } else {
-<span class="fc" id="L84">            LogConsumer nCons = nCfg.getLogConsumer(name, level);</span>
-<span class="fc" id="L85">            cfgConsumer = new LogConfigConsumer(nCfg, nCons);</span>
-<span class="fc" id="L86">            return nCons;</span>
+<span class="fc" id="L85">            LogConsumer nCons = nCfg.getLogConsumer(name, level);</span>
+<span class="fc" id="L86">            cfgConsumer = new LogConfigConsumer(nCfg, nCons);</span>
+<span class="fc" id="L87">            return nCons;</span>
           }
         }
       }
@@ -91,331 +92,331 @@ public final class TestLogger implements Logger {
 
   }
 
-<span class="fc" id="L94">  public TestLogger(final String name, final Supplier&lt;LogConfig&gt; configSource) {</span>
-<span class="fc" id="L95">    this.name = name;</span>
-<span class="fc" id="L96">    this.cfgSource = configSource;</span>
-<span class="fc" id="L97">    this.consumers = new EnumMap&lt;&gt;(Level.class);</span>
-<span class="fc bfc" id="L98" title="All 2 branches covered.">    for (Level level : Level.values()) {</span>
-<span class="fc" id="L99">      consumers.put(level, new ConsumerSupplier(level));</span>
+<span class="fc" id="L95">  public TestLogger(final String name, final Supplier&lt;LogConfig&gt; configSource) {</span>
+<span class="fc" id="L96">    this.name = name;</span>
+<span class="fc" id="L97">    this.cfgSource = configSource;</span>
+<span class="fc" id="L98">    this.consumers = new EnumMap&lt;&gt;(Level.class);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    for (Level level : Level.values()) {</span>
+<span class="fc" id="L100">      consumers.put(level, new ConsumerSupplier(level));</span>
     }
-<span class="fc" id="L101">  }</span>
+<span class="fc" id="L102">  }</span>
 
   @Override
   public String getName() {
-<span class="fc" id="L105">    return name;</span>
+<span class="fc" id="L106">    return name;</span>
   }
 
   public void log(final Level level, final Marker marker, final String msg, final Object... args) {
-<span class="fc" id="L109">    LogConsumer consumer = consumers.get(level).get();</span>
-<span class="fc bfc" id="L110" title="All 2 branches covered.">    if (consumer != null) {</span>
-<span class="fc" id="L111">      consumer.accept(new LogRecord(this, level, marker, msg, args));</span>
+<span class="fc" id="L110">    LogConsumer consumer = consumers.get(level).get();</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    if (consumer != null) {</span>
+<span class="fc" id="L112">      consumer.accept(new TestLogRecordImpl(name, level, marker, msg, args));</span>
     }
-<span class="fc" id="L113">  }</span>
+<span class="fc" id="L114">  }</span>
 
   @Override
   public boolean isTraceEnabled() {
-<span class="fc bfc" id="L117" title="All 2 branches covered.">    return consumers.get(Level.TRACE).get() != null;</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">    return consumers.get(Level.TRACE).get() != null;</span>
   }
 
   @Override
   public void trace(final String msg) {
-<span class="fc" id="L122">    log(Level.TRACE, null, msg);</span>
-<span class="fc" id="L123">  }</span>
+<span class="fc" id="L123">    log(Level.TRACE, null, msg);</span>
+<span class="fc" id="L124">  }</span>
 
 
   @Override
   public void trace(final String format, final Object arg) {
-<span class="fc" id="L128">    log(Level.TRACE, null, format, arg);</span>
-<span class="fc" id="L129">  }</span>
+<span class="fc" id="L129">    log(Level.TRACE, null, format, arg);</span>
+<span class="fc" id="L130">  }</span>
 
   @Override
   public void trace(final String format, final Object arg1, final Object arg2) {
-<span class="fc" id="L133">    log(Level.TRACE, null, format, arg1, arg2);</span>
-<span class="fc" id="L134">  }</span>
+<span class="fc" id="L134">    log(Level.TRACE, null, format, arg1, arg2);</span>
+<span class="fc" id="L135">  }</span>
 
   @Override
   public void trace(final String format, final Object... arguments) {
-<span class="fc" id="L138">    log(Level.TRACE, null, format, arguments);</span>
-<span class="fc" id="L139">  }</span>
+<span class="fc" id="L139">    log(Level.TRACE, null, format, arguments);</span>
+<span class="fc" id="L140">  }</span>
 
   @Override
   public void trace(final String msg, final Throwable t) {
-<span class="fc" id="L143">    log(Level.TRACE, null, msg, t);</span>
-<span class="fc" id="L144">  }</span>
+<span class="fc" id="L144">    log(Level.TRACE, null, msg, t);</span>
+<span class="fc" id="L145">  }</span>
 
   @Override
   public boolean isTraceEnabled(final Marker marker) {
-<span class="fc" id="L148">    return isTraceEnabled();</span>
+<span class="fc" id="L149">    return isTraceEnabled();</span>
   }
 
   @Override
   public void trace(final Marker marker, final String msg) {
-<span class="fc" id="L153">     log(Level.TRACE, marker, msg);</span>
-<span class="fc" id="L154">  }</span>
+<span class="fc" id="L154">     log(Level.TRACE, marker, msg);</span>
+<span class="fc" id="L155">  }</span>
 
   @Override
   public void trace(final Marker marker, final String format, final Object arg) {
-<span class="fc" id="L158">     log(Level.TRACE, marker, format, arg);</span>
-<span class="fc" id="L159">  }</span>
+<span class="fc" id="L159">     log(Level.TRACE, marker, format, arg);</span>
+<span class="fc" id="L160">  }</span>
 
   @Override
   public void trace(final Marker marker, final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L163">    log(Level.TRACE, marker, format, arg1, arg2);</span>
-<span class="nc" id="L164">  }</span>
+<span class="nc" id="L164">    log(Level.TRACE, marker, format, arg1, arg2);</span>
+<span class="nc" id="L165">  }</span>
 
   @Override
   public void trace(final Marker marker, final String format, final Object... argArray) {
-<span class="fc" id="L168">    log(Level.TRACE, marker, format, argArray);</span>
-<span class="fc" id="L169">  }</span>
+<span class="fc" id="L169">    log(Level.TRACE, marker, format, argArray);</span>
+<span class="fc" id="L170">  }</span>
 
   @Override
   public void trace(final Marker marker, final String msg, final Throwable t) {
-<span class="fc" id="L173">    log(Level.TRACE, marker, msg, t);</span>
-<span class="fc" id="L174">  }</span>
+<span class="fc" id="L174">    log(Level.TRACE, marker, msg, t);</span>
+<span class="fc" id="L175">  }</span>
 
   @Override
   public boolean isDebugEnabled() {
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    return  consumers.get(Level.DEBUG).get() != null;</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">    return  consumers.get(Level.DEBUG).get() != null;</span>
   }
 
   @Override
   public void debug(final String msg) {
-<span class="fc" id="L183">    log(Level.DEBUG, null, msg);</span>
-<span class="fc" id="L184">  }</span>
+<span class="fc" id="L184">    log(Level.DEBUG, null, msg);</span>
+<span class="fc" id="L185">  }</span>
 
   @Override
   public void debug(final String format, final Object arg) {
-<span class="fc" id="L188">    log(Level.DEBUG, null, format, arg);</span>
-<span class="fc" id="L189">  }</span>
+<span class="fc" id="L189">    log(Level.DEBUG, null, format, arg);</span>
+<span class="fc" id="L190">  }</span>
 
   @Override
   public void debug(final String format, final Object arg1, final Object arg2) {
-<span class="fc" id="L193">    log(Level.DEBUG, null, format, arg1, arg2);</span>
-<span class="fc" id="L194">  }</span>
+<span class="fc" id="L194">    log(Level.DEBUG, null, format, arg1, arg2);</span>
+<span class="fc" id="L195">  }</span>
 
   @Override
   public void debug(final String format, final Object... arguments) {
-<span class="fc" id="L198">    log(Level.DEBUG, null, format, arguments);</span>
-<span class="fc" id="L199">  }</span>
+<span class="fc" id="L199">    log(Level.DEBUG, null, format, arguments);</span>
+<span class="fc" id="L200">  }</span>
 
   @Override
   public void debug(final String msg, final Throwable t) {
-<span class="fc" id="L203">    log(Level.DEBUG, null, msg, t);</span>
-<span class="fc" id="L204">  }</span>
+<span class="fc" id="L204">    log(Level.DEBUG, null, msg, t);</span>
+<span class="fc" id="L205">  }</span>
 
   @Override
   public boolean isDebugEnabled(final Marker marker) {
-<span class="fc" id="L208">    return isDebugEnabled();</span>
+<span class="fc" id="L209">    return isDebugEnabled();</span>
   }
 
   @Override
   public void debug(final Marker marker, final String msg) {
-<span class="fc" id="L213">    log(Level.DEBUG, marker, msg);</span>
-<span class="fc" id="L214">  }</span>
+<span class="fc" id="L214">    log(Level.DEBUG, marker, msg);</span>
+<span class="fc" id="L215">  }</span>
 
   @Override
   public void debug(final Marker marker, final String format, final Object arg) {
-<span class="fc" id="L218">    log(Level.DEBUG, marker, format, arg);</span>
-<span class="fc" id="L219">  }</span>
+<span class="fc" id="L219">    log(Level.DEBUG, marker, format, arg);</span>
+<span class="fc" id="L220">  }</span>
 
   @Override
   public void debug(final Marker marker, final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L223">    log(Level.DEBUG, marker, format, arg1, arg2);</span>
-<span class="nc" id="L224">  }</span>
+<span class="nc" id="L224">    log(Level.DEBUG, marker, format, arg1, arg2);</span>
+<span class="nc" id="L225">  }</span>
 
   @Override
   public void debug(final Marker marker, final String format, final Object... arguments) {
-<span class="fc" id="L228">    log(Level.DEBUG, marker, format, arguments);</span>
-<span class="fc" id="L229">  }</span>
+<span class="fc" id="L229">    log(Level.DEBUG, marker, format, arguments);</span>
+<span class="fc" id="L230">  }</span>
 
   @Override
   public void debug(final Marker marker, final String msg, final Throwable t) {
-<span class="fc" id="L233">    log(Level.DEBUG, marker, msg, t);</span>
-<span class="fc" id="L234">  }</span>
+<span class="fc" id="L234">    log(Level.DEBUG, marker, msg, t);</span>
+<span class="fc" id="L235">  }</span>
 
   @Override
   public boolean isInfoEnabled() {
-<span class="pc bpc" id="L238" title="1 of 2 branches missed.">    return consumers.get(Level.INFO).get() != null;</span>
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">    return consumers.get(Level.INFO).get() != null;</span>
   }
 
   @Override
   public void info(final String msg) {
-<span class="fc" id="L243">    log(Level.INFO, null, msg);</span>
-<span class="fc" id="L244">  }</span>
+<span class="fc" id="L244">    log(Level.INFO, null, msg);</span>
+<span class="fc" id="L245">  }</span>
 
   @Override
   public void info(final String format, final Object arg) {
-<span class="fc" id="L248">    log(Level.INFO, null, format, arg);</span>
-<span class="fc" id="L249">  }</span>
+<span class="fc" id="L249">    log(Level.INFO, null, format, arg);</span>
+<span class="fc" id="L250">  }</span>
 
   @Override
   public void info(final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L253">    log(Level.INFO, null, format, arg1, arg2);</span>
-<span class="nc" id="L254">  }</span>
+<span class="nc" id="L254">    log(Level.INFO, null, format, arg1, arg2);</span>
+<span class="nc" id="L255">  }</span>
 
   @Override
   public void info(final String format, final Object... arguments) {
-<span class="fc" id="L258">    log(Level.INFO, null, format, arguments);</span>
-<span class="fc" id="L259">  }</span>
+<span class="fc" id="L259">    log(Level.INFO, null, format, arguments);</span>
+<span class="fc" id="L260">  }</span>
 
   @Override
   public void info(final String msg, final Throwable t) {
-<span class="fc" id="L263">    log(Level.INFO, null, msg, t);</span>
-<span class="fc" id="L264">  }</span>
+<span class="fc" id="L264">    log(Level.INFO, null, msg, t);</span>
+<span class="fc" id="L265">  }</span>
 
   @Override
   public boolean isInfoEnabled(final Marker marker) {
-<span class="fc" id="L268">    return isInfoEnabled();</span>
+<span class="fc" id="L269">    return isInfoEnabled();</span>
   }
 
   @Override
   public void info(final Marker marker, final String msg) {
-<span class="fc" id="L273">    log(Level.INFO, marker, msg);</span>
-<span class="fc" id="L274">  }</span>
+<span class="fc" id="L274">    log(Level.INFO, marker, msg);</span>
+<span class="fc" id="L275">  }</span>
 
   @Override
   public void info(final Marker marker, final String format, final Object arg) {
-<span class="fc" id="L278">    log(Level.INFO, marker, format, arg);</span>
-<span class="fc" id="L279">  }</span>
+<span class="fc" id="L279">    log(Level.INFO, marker, format, arg);</span>
+<span class="fc" id="L280">  }</span>
 
   @Override
   public void info(final Marker marker, final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L283">    log(Level.INFO, marker, format, arg1, arg2);</span>
-<span class="nc" id="L284">  }</span>
+<span class="nc" id="L284">    log(Level.INFO, marker, format, arg1, arg2);</span>
+<span class="nc" id="L285">  }</span>
 
   @Override
   public void info(final Marker marker, final String format, final Object... arguments) {
-<span class="fc" id="L288">    log(Level.INFO, marker, format, arguments);</span>
-<span class="fc" id="L289">  }</span>
+<span class="fc" id="L289">    log(Level.INFO, marker, format, arguments);</span>
+<span class="fc" id="L290">  }</span>
 
   @Override
   public void info(final Marker marker, final String msg, final Throwable t) {
-<span class="fc" id="L293">    log(Level.INFO, marker, msg, t);</span>
-<span class="fc" id="L294">  }</span>
+<span class="fc" id="L294">    log(Level.INFO, marker, msg, t);</span>
+<span class="fc" id="L295">  }</span>
 
   @Override
   public boolean isWarnEnabled() {
-<span class="pc bpc" id="L298" title="1 of 2 branches missed.">    return consumers.get(Level.WARN).get() != null;</span>
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">    return consumers.get(Level.WARN).get() != null;</span>
   }
 
   @Override
   public void warn(final String msg) {
-<span class="fc" id="L303">    log(Level.WARN, null, msg);</span>
-<span class="fc" id="L304">  }</span>
+<span class="fc" id="L304">    log(Level.WARN, null, msg);</span>
+<span class="fc" id="L305">  }</span>
 
   @Override
   public void warn(final String format, final Object arg) {
-<span class="fc" id="L308">    log(Level.WARN, null, format, arg);</span>
-<span class="fc" id="L309">  }</span>
+<span class="fc" id="L309">    log(Level.WARN, null, format, arg);</span>
+<span class="fc" id="L310">  }</span>
 
   @Override
   public void warn(final String format, final Object... arguments) {
-<span class="fc" id="L313">    log(Level.WARN, null, format, arguments);</span>
-<span class="fc" id="L314">  }</span>
+<span class="fc" id="L314">    log(Level.WARN, null, format, arguments);</span>
+<span class="fc" id="L315">  }</span>
 
   @Override
   public void warn(final String format, final Object arg1, final Object arg2) {
-<span class="fc" id="L318">    log(Level.WARN, null, format, arg1, arg2);</span>
-<span class="fc" id="L319">  }</span>
+<span class="fc" id="L319">    log(Level.WARN, null, format, arg1, arg2);</span>
+<span class="fc" id="L320">  }</span>
 
   @Override
   public void warn(final String msg, final Throwable t) {
-<span class="fc" id="L323">    log(Level.WARN, null, msg, t);</span>
-<span class="fc" id="L324">  }</span>
+<span class="fc" id="L324">    log(Level.WARN, null, msg, t);</span>
+<span class="fc" id="L325">  }</span>
 
   @Override
   public boolean isWarnEnabled(final Marker marker) {
-<span class="fc" id="L328">    return isWarnEnabled();</span>
+<span class="fc" id="L329">    return isWarnEnabled();</span>
   }
 
   @Override
   public void warn(final Marker marker, final String msg) {
-<span class="fc" id="L333">    log(Level.WARN, marker, msg);</span>
-<span class="fc" id="L334">  }</span>
+<span class="fc" id="L334">    log(Level.WARN, marker, msg);</span>
+<span class="fc" id="L335">  }</span>
 
   @Override
   public void warn(final Marker marker, final String format, final Object arg) {
-<span class="fc" id="L338">    log(Level.WARN, marker, format, arg);</span>
-<span class="fc" id="L339">  }</span>
+<span class="fc" id="L339">    log(Level.WARN, marker, format, arg);</span>
+<span class="fc" id="L340">  }</span>
 
   @Override
   public void warn(final Marker marker, final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L343">    log(Level.WARN, marker, format, arg1, arg2);</span>
-<span class="nc" id="L344">  }</span>
+<span class="nc" id="L344">    log(Level.WARN, marker, format, arg1, arg2);</span>
+<span class="nc" id="L345">  }</span>
 
   @Override
   public void warn(final Marker marker, final String format, final Object... arguments) {
-<span class="fc" id="L348">    log(Level.WARN, marker, format, arguments);</span>
-<span class="fc" id="L349">  }</span>
+<span class="fc" id="L349">    log(Level.WARN, marker, format, arguments);</span>
+<span class="fc" id="L350">  }</span>
 
   @Override
   public void warn(final Marker marker, final String msg, final Throwable t) {
-<span class="fc" id="L353">    log(Level.WARN, marker, msg, t);</span>
-<span class="fc" id="L354">  }</span>
+<span class="fc" id="L354">    log(Level.WARN, marker, msg, t);</span>
+<span class="fc" id="L355">  }</span>
 
   @Override
   public boolean isErrorEnabled() {
-<span class="pc bpc" id="L358" title="1 of 2 branches missed.">    return consumers.get(Level.ERROR).get() != null;</span>
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">    return consumers.get(Level.ERROR).get() != null;</span>
   }
 
   @Override
   public void error(final String msg) {
-<span class="fc" id="L363">    log(Level.ERROR, null, msg);</span>
-<span class="fc" id="L364">  }</span>
+<span class="fc" id="L364">    log(Level.ERROR, null, msg);</span>
+<span class="fc" id="L365">  }</span>
 
   @Override
   public void error(final String format, final Object arg) {
-<span class="fc" id="L368">    log(Level.ERROR, null, format, arg);</span>
-<span class="fc" id="L369">  }</span>
+<span class="fc" id="L369">    log(Level.ERROR, null, format, arg);</span>
+<span class="fc" id="L370">  }</span>
 
   @Override
   public void error(final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L373">    log(Level.ERROR, null, format, arg1, arg2);</span>
-<span class="nc" id="L374">  }</span>
+<span class="nc" id="L374">    log(Level.ERROR, null, format, arg1, arg2);</span>
+<span class="nc" id="L375">  }</span>
 
   @Override
   public void error(final String format, final Object... arguments) {
-<span class="fc" id="L378">    log(Level.ERROR, null, format, arguments);</span>
-<span class="fc" id="L379">  }</span>
+<span class="fc" id="L379">    log(Level.ERROR, null, format, arguments);</span>
+<span class="fc" id="L380">  }</span>
 
   @Override
   public void error(final String msg, final Throwable t) {
-<span class="fc" id="L383">    log(Level.ERROR, null, msg, t);</span>
-<span class="fc" id="L384">  }</span>
+<span class="fc" id="L384">    log(Level.ERROR, null, msg, t);</span>
+<span class="fc" id="L385">  }</span>
 
   @Override
   public boolean isErrorEnabled(final Marker marker) {
-<span class="fc" id="L388">    return isErrorEnabled();</span>
+<span class="fc" id="L389">    return isErrorEnabled();</span>
   }
 
   @Override
   public void error(final Marker marker, final String msg) {
-<span class="fc" id="L393">    log(Level.ERROR, marker, msg);</span>
-<span class="fc" id="L394">  }</span>
+<span class="fc" id="L394">    log(Level.ERROR, marker, msg);</span>
+<span class="fc" id="L395">  }</span>
 
   @Override
   public void error(final Marker marker, final String format, final Object arg) {
-<span class="fc" id="L398">    log(Level.ERROR, marker, format, arg);</span>
-<span class="fc" id="L399">  }</span>
+<span class="fc" id="L399">    log(Level.ERROR, marker, format, arg);</span>
+<span class="fc" id="L400">  }</span>
 
   @Override
   public void error(final Marker marker, final String format, final Object arg1, final Object arg2) {
-<span class="nc" id="L403">    log(Level.ERROR, marker, format, arg1, arg2);</span>
-<span class="nc" id="L404">  }</span>
+<span class="nc" id="L404">    log(Level.ERROR, marker, format, arg1, arg2);</span>
+<span class="nc" id="L405">  }</span>
 
   @Override
   public void error(final Marker marker, final String format, final Object... arguments) {
-<span class="fc" id="L408">    log(Level.ERROR, marker, format, arguments);</span>
-<span class="fc" id="L409">  }</span>
+<span class="fc" id="L409">    log(Level.ERROR, marker, format, arguments);</span>
+<span class="fc" id="L410">  }</span>
 
   @Override
   public void error(final Marker marker, final String msg, final Throwable t) {
-<span class="fc" id="L413">    log(Level.ERROR, marker, msg, t);</span>
-<span class="fc" id="L414">  }</span>
+<span class="fc" id="L414">    log(Level.ERROR, marker, msg, t);</span>
+<span class="fc" id="L415">  }</span>
 
   @Override
   public String toString() {
-<span class="fc" id="L418">    return &quot;TestLogger{&quot; + &quot;name=&quot; + name + '}';</span>
+<span class="fc" id="L419">    return &quot;TestLogger{&quot; + &quot;name=&quot; + name + '}';</span>
   }
 
 }

@@ -206,52 +206,65 @@ public final class JVMArguments {
 <span class="nc" id="L206">    return false;</span>
   }
 
-  public boolean hasVMArgument(final String argument) {
+  public boolean removeVMArgumentStartingWith(final String argument) {
 <span class="fc" id="L210">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
 <span class="fc" id="L211">    itr.next();</span>
 <span class="fc bfc" id="L212" title="All 2 branches covered.">    while (itr.hasNext()) {</span>
 <span class="fc" id="L213">      String s = itr.next();</span>
-<span class="fc bfc" id="L214" title="All 2 branches covered.">      if (s.equals(argument)) {</span>
-<span class="fc" id="L215">        return true;</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">      if (s.startsWith(argument)) {</span>
+<span class="nc" id="L215">        itr.remove();</span>
+<span class="nc" id="L216">        return true;</span>
       }
-<span class="fc" id="L217">    }</span>
-<span class="fc" id="L218">    return false;</span>
+<span class="fc" id="L218">    }</span>
+<span class="fc" id="L219">    return false;</span>
+  }
+
+  public boolean hasVMArgument(final String argument) {
+<span class="fc" id="L223">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L224">    itr.next();</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L226">      String s = itr.next();</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">      if (s.equals(argument)) {</span>
+<span class="fc" id="L228">        return true;</span>
+      }
+<span class="fc" id="L230">    }</span>
+<span class="fc" id="L231">    return false;</span>
   }
 
   public boolean hasVMArgumentStartingWith(final String argumentPrefix) {
-<span class="fc" id="L222">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
-<span class="fc" id="L223">    itr.next();</span>
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">    while (itr.hasNext()) {</span>
-<span class="fc" id="L225">      String s = itr.next();</span>
-<span class="pc bpc" id="L226" title="1 of 2 branches missed.">      if (s.startsWith(argumentPrefix)) {</span>
-<span class="fc" id="L227">        return true;</span>
+<span class="fc" id="L235">    Iterator&lt;String&gt; itr = arguments.iterator();</span>
+<span class="fc" id="L236">    itr.next();</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">    while (itr.hasNext()) {</span>
+<span class="fc" id="L238">      String s = itr.next();</span>
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">      if (s.startsWith(argumentPrefix)) {</span>
+<span class="fc" id="L240">        return true;</span>
       }
-<span class="nc" id="L229">    }</span>
-<span class="nc" id="L230">    return false;</span>
+<span class="nc" id="L242">    }</span>
+<span class="nc" id="L243">    return false;</span>
   }
 
 
   public void add(final String arg) {
-<span class="fc" id="L235">    arguments.add(arg);</span>
-<span class="fc" id="L236">  }</span>
+<span class="fc" id="L248">    arguments.add(arg);</span>
+<span class="fc" id="L249">  }</span>
 
   /**
    * Removes the n items from the end. Useful for removing all the Java arguments to rebuild them.
    */
   public void removeTail(final int n) {
-<span class="nc" id="L242">    int size = arguments.size();</span>
-<span class="nc" id="L243">    arguments.removeAll(arguments.subList(size - n, size));</span>
-<span class="nc" id="L244">  }</span>
+<span class="nc" id="L255">    int size = arguments.size();</span>
+<span class="nc" id="L256">    arguments.removeAll(arguments.subList(size - n, size));</span>
+<span class="nc" id="L257">  }</span>
 
   public StringArray toStringArray() {
-<span class="nc" id="L247">    return new StringArray(arguments.toArray(new String[arguments.size()]));</span>
+<span class="nc" id="L260">    return new StringArray(arguments.toArray(new String[arguments.size()]));</span>
   }
 
   /**
    * Gets the process argument list of the current process.
    */
   public static JVMArguments current() throws IOException {
-<span class="fc" id="L254">    return of(-1);</span>
+<span class="fc" id="L267">    return of(-1);</span>
   }
 
   /**
@@ -260,41 +273,41 @@ public final class JVMArguments {
    * @param pid -1 to indicate the current process.
    */
   public static JVMArguments of(final int pid) throws IOException {
-<span class="fc" id="L263">    String os = Runtime.OS_NAME;</span>
-<span class="pc bpc" id="L264" title="4 of 5 branches missed.">    switch (os) {</span>
+<span class="fc" id="L276">    String os = Runtime.OS_NAME;</span>
+<span class="pc bpc" id="L277" title="4 of 5 branches missed.">    switch (os) {</span>
       case &quot;Linux&quot;:
-<span class="nc" id="L266">        return ofLinux(pid);</span>
+<span class="nc" id="L279">        return ofLinux(pid);</span>
       case &quot;SunOS&quot;:
-<span class="nc" id="L268">        return ofSolaris(pid);</span>
+<span class="nc" id="L281">        return ofSolaris(pid);</span>
       case &quot;Mac OS X&quot;:
-<span class="fc" id="L270">        return ofMac(pid);</span>
+<span class="fc" id="L283">        return ofMac(pid);</span>
       case &quot;FreeBSD&quot;:
-<span class="nc" id="L272">        return ofFreeBSD(pid);</span>
+<span class="nc" id="L285">        return ofFreeBSD(pid);</span>
       default:
-<span class="nc" id="L274">        throw new UnsupportedOperationException(&quot;Unsupported Operating System &quot; + os);</span>
+<span class="nc" id="L287">        throw new UnsupportedOperationException(&quot;Unsupported Operating System &quot; + os);</span>
     }
   }
 
   private static JVMArguments ofLinux(final int ppid) throws IOException {
-<span class="nc" id="L279">    int pid = resolvePID(ppid);</span>
-<span class="nc" id="L280">    String cmdline = Files.asCharSource(new File(&quot;/proc/&quot; + pid + &quot;/cmdline&quot;), Charset.defaultCharset()).read();</span>
-<span class="nc" id="L281">    return new JVMArguments(java.util.Arrays.asList(cmdline.split(&quot;\0&quot;)));</span>
+<span class="nc" id="L292">    int pid = resolvePID(ppid);</span>
+<span class="nc" id="L293">    String cmdline = Files.asCharSource(new File(&quot;/proc/&quot; + pid + &quot;/cmdline&quot;), Charset.defaultCharset()).read();</span>
+<span class="nc" id="L294">    return new JVMArguments(java.util.Arrays.asList(cmdline.split(&quot;\0&quot;)));</span>
   }
 
   private static int resolvePID(final int pid) {
-<span class="pc bpc" id="L285" title="1 of 2 branches missed.">    if (pid == -1) {</span>
-<span class="fc" id="L286">      return Runtime.PID;</span>
+<span class="pc bpc" id="L298" title="1 of 2 branches missed.">    if (pid == -1) {</span>
+<span class="fc" id="L299">      return Runtime.PID;</span>
     } else {
-<span class="nc" id="L288">      return pid;</span>
+<span class="nc" id="L301">      return pid;</span>
     }
   }
 
   private static JVMArguments ofSolaris(final int ppid) throws IOException {
     // /proc shows different contents based on the caller's memory model, so we need to know if we are 32 or 64.
     // 32 JVMs are the norm, so err on the 32bit side.
-<span class="nc" id="L295">    boolean areWe64 = &quot;64&quot;.equals(System.getProperty(&quot;sun.arch.data.model&quot;));</span>
-<span class="nc" id="L296">    int pid = resolvePID(ppid);</span>
-<span class="nc" id="L297">    try (RandomAccessFile psinfo = new RandomAccessFile(new File(&quot;/proc/&quot; + pid + &quot;/psinfo&quot;), &quot;r&quot;)) {</span>
+<span class="nc" id="L308">    boolean areWe64 = &quot;64&quot;.equals(System.getProperty(&quot;sun.arch.data.model&quot;));</span>
+<span class="nc" id="L309">    int pid = resolvePID(ppid);</span>
+<span class="nc" id="L310">    try (RandomAccessFile psinfo = new RandomAccessFile(new File(&quot;/proc/&quot; + pid + &quot;/psinfo&quot;), &quot;r&quot;)) {</span>
       // see http://cvs.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/uts/common/sys/procfs.h
       //typedef struct psinfo {
       // int pr_flag; /* process flags */
@@ -330,9 +343,9 @@ public final class JVMArguments {
       // for the size of the various datatype.
       // see http://cvs.opensolaris.org/source/xref/onnv/onnv-gate/usr/src/cmd/ptools/pargs/pargs.c
       // for how to read this information
-<span class="nc" id="L333">      psinfo.seek(8);</span>
-<span class="nc bnc" id="L334" title="All 2 branches missed.">      if (adjust(psinfo.readInt()) != pid) {</span>
-<span class="nc" id="L335">        throw new IOException(&quot;psinfo PID mismatch: &quot; + pid + &quot;, &quot; + psinfo);   // sanity check</span>
+<span class="nc" id="L346">      psinfo.seek(8);</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">      if (adjust(psinfo.readInt()) != pid) {</span>
+<span class="nc" id="L348">        throw new IOException(&quot;psinfo PID mismatch: &quot; + pid + &quot;, &quot; + psinfo);   // sanity check</span>
       }
       /* The following program computes the offset:
                     #include &lt;stdio.h&gt;
@@ -345,42 +358,42 @@ public final class JVMArguments {
                     }
        */
 
-<span class="nc bnc" id="L348" title="All 2 branches missed.">      psinfo.seek(areWe64 ? 0xEC : 0xBC);  // now jump to pr_argc</span>
-<span class="nc" id="L349">      int argc = adjust(psinfo.readInt());</span>
-<span class="nc bnc" id="L350" title="All 2 branches missed.">      long argp = areWe64 ? adjust(psinfo.readLong()) : to64(adjust(psinfo.readInt()));</span>
-<span class="nc" id="L351">      File asFile = new File(&quot;/proc/&quot; + pid + &quot;/as&quot;);</span>
-<span class="nc bnc" id="L352" title="All 2 branches missed.">      if (areWe64) {</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">      psinfo.seek(areWe64 ? 0xEC : 0xBC);  // now jump to pr_argc</span>
+<span class="nc" id="L362">      int argc = adjust(psinfo.readInt());</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">      long argp = areWe64 ? adjust(psinfo.readLong()) : to64(adjust(psinfo.readInt()));</span>
+<span class="nc" id="L364">      File asFile = new File(&quot;/proc/&quot; + pid + &quot;/as&quot;);</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">      if (areWe64) {</span>
         // 32bit and 64bit basically does the same thing, but because the stream position
         // is computed with signed long, doing 64bit seek to a position bigger than Long.MAX_VALUE
         // requres some real hacking. Hence two different code path.
         // (RandomAccessFile uses Java long for offset, so it just can't get to anywhere beyond Long.MAX_VALUE)
-<span class="nc" id="L357">        FILE fp = CLibrary.INSTANCE.fopen(asFile.getPath(), &quot;r&quot;);</span>
+<span class="nc" id="L370">        FILE fp = CLibrary.INSTANCE.fopen(asFile.getPath(), &quot;r&quot;);</span>
         try {
-<span class="nc" id="L359">          JVMArguments args = new JVMArguments(16);</span>
-<span class="nc" id="L360">          Memory m = new Memory(8);</span>
-<span class="nc bnc" id="L361" title="All 2 branches missed.">          for (int n = 0; n &lt; argc; n++) {</span>
+<span class="nc" id="L372">          JVMArguments args = new JVMArguments(16);</span>
+<span class="nc" id="L373">          Memory m = new Memory(8);</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">          for (int n = 0; n &lt; argc; n++) {</span>
             // read a pointer to one entry
-<span class="nc" id="L363">            seek64(fp, argp + ((long) n) * 8);</span>
-<span class="nc" id="L364">            m.setLong(0, 0); // just to make sure failed read won't result in bogus value</span>
-<span class="nc" id="L365">            CLibrary.INSTANCE.fread(m, 1, 8, fp);</span>
-<span class="nc" id="L366">            long p = m.getLong(0);</span>
-<span class="nc" id="L367">            args.add(readLine(fp, p));</span>
+<span class="nc" id="L376">            seek64(fp, argp + ((long) n) * 8);</span>
+<span class="nc" id="L377">            m.setLong(0, 0); // just to make sure failed read won't result in bogus value</span>
+<span class="nc" id="L378">            CLibrary.INSTANCE.fread(m, 1, 8, fp);</span>
+<span class="nc" id="L379">            long p = m.getLong(0);</span>
+<span class="nc" id="L380">            args.add(readLine(fp, p));</span>
           }
-<span class="nc" id="L369">          return args;</span>
+<span class="nc" id="L382">          return args;</span>
         } finally {
-<span class="nc" id="L371">          CLibrary.INSTANCE.fclose(fp);</span>
+<span class="nc" id="L384">          CLibrary.INSTANCE.fclose(fp);</span>
         }
       } else {
-<span class="nc" id="L374">        try (RandomAccessFile as = new RandomAccessFile(asFile, &quot;r&quot;)) {</span>
-<span class="nc" id="L375">          JVMArguments args = new JVMArguments(16);</span>
-<span class="nc bnc" id="L376" title="All 2 branches missed.">          for (int n = 0; n &lt; argc; n++) {</span>
+<span class="nc" id="L387">        try (RandomAccessFile as = new RandomAccessFile(asFile, &quot;r&quot;)) {</span>
+<span class="nc" id="L388">          JVMArguments args = new JVMArguments(16);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">          for (int n = 0; n &lt; argc; n++) {</span>
             // read a pointer to one entry
-<span class="nc" id="L378">            as.seek(argp + n * 4);</span>
-<span class="nc" id="L379">            int p = adjust(as.readInt());</span>
+<span class="nc" id="L391">            as.seek(argp + n * 4);</span>
+<span class="nc" id="L392">            int p = adjust(as.readInt());</span>
 
-<span class="nc" id="L381">            args.add(readLine(as, p));</span>
+<span class="nc" id="L394">            args.add(readLine(as, p));</span>
           }
-<span class="nc" id="L383">          return args;</span>
+<span class="nc" id="L396">          return args;</span>
         }
       }
     }
@@ -392,30 +405,30 @@ public final class JVMArguments {
    * @param upos This value is interpreted as unsigned 64bit integer (even though it's typed 'long')
    */
   private static void seek64(final FILE fp, final long pupos) {
-<span class="nc" id="L395">    long upos = pupos;</span>
-<span class="nc" id="L396">    CLibrary.INSTANCE.fseek(fp, 0, 0); // start at the beginning</span>
-<span class="nc bnc" id="L397" title="All 2 branches missed.">    while (upos &lt; 0) {</span>
-<span class="nc" id="L398">      long chunk = Long.MAX_VALUE;</span>
-<span class="nc" id="L399">      upos -= chunk;</span>
-<span class="nc" id="L400">      CLibrary.INSTANCE.fseek(fp, chunk, 1);</span>
-<span class="nc" id="L401">    }</span>
-<span class="nc" id="L402">    CLibrary.INSTANCE.fseek(fp, upos, 1);</span>
-<span class="nc" id="L403">  }</span>
+<span class="nc" id="L408">    long upos = pupos;</span>
+<span class="nc" id="L409">    CLibrary.INSTANCE.fseek(fp, 0, 0); // start at the beginning</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">    while (upos &lt; 0) {</span>
+<span class="nc" id="L411">      long chunk = Long.MAX_VALUE;</span>
+<span class="nc" id="L412">      upos -= chunk;</span>
+<span class="nc" id="L413">      CLibrary.INSTANCE.fseek(fp, chunk, 1);</span>
+<span class="nc" id="L414">    }</span>
+<span class="nc" id="L415">    CLibrary.INSTANCE.fseek(fp, upos, 1);</span>
+<span class="nc" id="L416">  }</span>
 
   /**
    * {@link DataInputStream} reads a value in big-endian, so convert it to the correct value on little-endian systems.
    */
   private static int adjust(final int i) {
-<span class="nc bnc" id="L409" title="All 2 branches missed.">    if (Runtime.IS_LITTLE_ENDIAN) {</span>
-<span class="nc" id="L410">      return (i &lt;&lt; 24) | ((i &lt;&lt; 8) &amp; 0x00FF0000) | ((i &gt;&gt; 8) &amp; 0x0000FF00) | (i &gt;&gt;&gt; 24);</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">    if (Runtime.IS_LITTLE_ENDIAN) {</span>
+<span class="nc" id="L423">      return (i &lt;&lt; 24) | ((i &lt;&lt; 8) &amp; 0x00FF0000) | ((i &gt;&gt; 8) &amp; 0x0000FF00) | (i &gt;&gt;&gt; 24);</span>
     } else {
-<span class="nc" id="L412">      return i;</span>
+<span class="nc" id="L425">      return i;</span>
     }
   }
 
   private static long adjust(final long i) {
-<span class="nc bnc" id="L417" title="All 2 branches missed.">    if (Runtime.IS_LITTLE_ENDIAN) {</span>
-<span class="nc" id="L418">      return (i &lt;&lt; 56)</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">    if (Runtime.IS_LITTLE_ENDIAN) {</span>
+<span class="nc" id="L431">      return (i &lt;&lt; 56)</span>
               | ((i &lt;&lt; 40) &amp; 0x00FF000000000000L)
               | ((i &lt;&lt; 24) &amp; 0x0000FF0000000000L)
               | ((i &lt;&lt; 8) &amp; 0x000000FF00000000L)
@@ -424,7 +437,7 @@ public final class JVMArguments {
               | ((i &gt;&gt; 40) &amp; 0x000000000000FF00L)
               | (i &gt;&gt; 56);
     } else {
-<span class="nc" id="L427">      return i;</span>
+<span class="nc" id="L440">      return i;</span>
     }
   }
 
@@ -432,34 +445,34 @@ public final class JVMArguments {
    * int to long conversion with zero-padding.
    */
   private static long to64(final int i) {
-<span class="nc" id="L435">    return i &amp; 0xFFFFFFFFL;</span>
+<span class="nc" id="L448">    return i &amp; 0xFFFFFFFFL;</span>
   }
 
   private static String readLine(final RandomAccessFile as, final int p) throws IOException {
-<span class="nc" id="L439">    as.seek(to64(p));</span>
-<span class="nc" id="L440">    ByteArrayOutputStream buf = new ByteArrayOutputStream();</span>
+<span class="nc" id="L452">    as.seek(to64(p));</span>
+<span class="nc" id="L453">    ByteArrayOutputStream buf = new ByteArrayOutputStream();</span>
     int ch;
-<span class="nc bnc" id="L442" title="All 2 branches missed.">    while ((ch = as.read()) &gt; 0) {</span>
-<span class="nc" id="L443">      buf.write(ch);</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">    while ((ch = as.read()) &gt; 0) {</span>
+<span class="nc" id="L456">      buf.write(ch);</span>
     }
-<span class="nc" id="L445">    return buf.toString();</span>
+<span class="nc" id="L458">    return buf.toString();</span>
   }
 
   private static String readLine(final FILE as, final long p) {
-<span class="nc" id="L449">    seek64(as, p);</span>
-<span class="nc" id="L450">    Memory m = new Memory(1);</span>
-<span class="nc" id="L451">    ByteArrayOutputStream buf = new ByteArrayOutputStream();</span>
+<span class="nc" id="L462">    seek64(as, p);</span>
+<span class="nc" id="L463">    Memory m = new Memory(1);</span>
+<span class="nc" id="L464">    ByteArrayOutputStream buf = new ByteArrayOutputStream();</span>
     while (true) {
-<span class="nc bnc" id="L453" title="All 2 branches missed.">      if (CLibrary.INSTANCE.fread(m, 1, 1, as) == 0) {</span>
-<span class="nc" id="L454">        break;</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">      if (CLibrary.INSTANCE.fread(m, 1, 1, as) == 0) {</span>
+<span class="nc" id="L467">        break;</span>
       }
-<span class="nc" id="L456">      byte b = m.getByte(0);</span>
-<span class="nc bnc" id="L457" title="All 2 branches missed.">      if (b == 0) {</span>
-<span class="nc" id="L458">        break;</span>
+<span class="nc" id="L469">      byte b = m.getByte(0);</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">      if (b == 0) {</span>
+<span class="nc" id="L471">        break;</span>
       }
-<span class="nc" id="L460">      buf.write(b);</span>
-<span class="nc" id="L461">    }</span>
-<span class="nc" id="L462">    return buf.toString();</span>
+<span class="nc" id="L473">      buf.write(b);</span>
+<span class="nc" id="L474">    }</span>
+<span class="nc" id="L475">    return buf.toString();</span>
   }
 
   /**
@@ -480,28 +493,28 @@ public final class JVMArguments {
   @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
   private static JVMArguments ofMac(final int pid) {
     // local constants
-<span class="fc" id="L483">    final int ctlKern = 1;</span>
-<span class="fc" id="L484">    final int kernArgMax = 8;</span>
-<span class="fc" id="L485">    final int kernProcArgs2 = 49;</span>
-<span class="fc" id="L486">    final int sizeOfInt = Native.getNativeSize(int.class);</span>
-<span class="fc" id="L487">    IntByReference ibf = new IntByReference();</span>
+<span class="fc" id="L496">    final int ctlKern = 1;</span>
+<span class="fc" id="L497">    final int kernArgMax = 8;</span>
+<span class="fc" id="L498">    final int kernProcArgs2 = 49;</span>
+<span class="fc" id="L499">    final int sizeOfInt = Native.getNativeSize(int.class);</span>
+<span class="fc" id="L500">    IntByReference ibf = new IntByReference();</span>
 
-<span class="fc" id="L489">    IntByReference argmaxRef = new IntByReference(0);</span>
-<span class="fc" id="L490">    IntByReference size = new IntByReference(sizeOfInt);</span>
+<span class="fc" id="L502">    IntByReference argmaxRef = new IntByReference(0);</span>
+<span class="fc" id="L503">    IntByReference size = new IntByReference(sizeOfInt);</span>
 
     // for some reason, I was never able to get sysctlbyname work.
 //        if(LIBC.sysctlbyname(&quot;kern.argmax&quot;, argmaxRef.getPointer(), size, NULL, ibf)!=0)
-<span class="pc bpc" id="L494" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax}, 2, argmaxRef.getPointer(), size, NULL, ibf) != 0) {</span>
-<span class="nc" id="L495">      throw new UnsupportedOperationException(&quot;Failed to get kernl.argmax: &quot;</span>
-<span class="nc" id="L496">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
+<span class="pc bpc" id="L507" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax}, 2, argmaxRef.getPointer(), size, NULL, ibf) != 0) {</span>
+<span class="nc" id="L508">      throw new UnsupportedOperationException(&quot;Failed to get kernl.argmax: &quot;</span>
+<span class="nc" id="L509">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
     }
 
-<span class="fc" id="L499">    int argmax = argmaxRef.getValue();</span>
-<span class="fc" id="L500">    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);</span>
-<span class="fc" id="L501">    size.setValue(argmax);</span>
-<span class="pc bpc" id="L502" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {</span>
-<span class="nc" id="L503">      throw new UnsupportedOperationException(&quot;Failed to obtain ken.procargs2: &quot;</span>
-<span class="nc" id="L504">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
+<span class="fc" id="L512">    int argmax = argmaxRef.getValue();</span>
+<span class="fc" id="L513">    StringArrayMemory m = new StringArrayMemory(argmax, sizeOfInt);</span>
+<span class="fc" id="L514">    size.setValue(argmax);</span>
+<span class="pc bpc" id="L515" title="1 of 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProcArgs2, resolvePID(pid)}, 3, m, size, NULL, ibf) != 0) {</span>
+<span class="nc" id="L516">      throw new UnsupportedOperationException(&quot;Failed to obtain ken.procargs2: &quot;</span>
+<span class="nc" id="L517">              + CLibrary.INSTANCE.strerror(Native.getLastError()));</span>
     }
     /*
          * Make a sysctl() call to get the raw argument space of the
@@ -542,118 +555,118 @@ public final class JVMArguments {
          * :               :
          * \---------------/ 0xffffffff
      */
-<span class="fc" id="L545">    int nargs = m.readInt();</span>
-<span class="fc" id="L546">    JVMArguments args = new JVMArguments(nargs);</span>
-<span class="fc" id="L547">    m.readString(); // exec path</span>
-<span class="fc bfc" id="L548" title="All 2 branches covered.">    for (int i = 0; i &lt; nargs; i++) {</span>
-<span class="fc" id="L549">      m.skip0();</span>
-<span class="fc" id="L550">      args.add(m.readString());</span>
+<span class="fc" id="L558">    int nargs = m.readInt();</span>
+<span class="fc" id="L559">    JVMArguments args = new JVMArguments(nargs);</span>
+<span class="fc" id="L560">    m.readString(); // exec path</span>
+<span class="fc bfc" id="L561" title="All 2 branches covered.">    for (int i = 0; i &lt; nargs; i++) {</span>
+<span class="fc" id="L562">      m.skip0();</span>
+<span class="fc" id="L563">      args.add(m.readString());</span>
     }
-<span class="fc" id="L552">    return args;</span>
+<span class="fc" id="L565">    return args;</span>
   }
 
   @SuppressFBWarnings(&quot;EQ_DOESNT_OVERRIDE_EQUALS&quot;)
   private static final class StringArrayMemory extends Memory {
 
-<span class="fc" id="L558">    private long offset = 0;</span>
+<span class="fc" id="L571">    private long offset = 0;</span>
     private final int sizeOfInt;
 
     StringArrayMemory(final long l, final int sizeOfInt) {
-<span class="fc" id="L562">      super(l);</span>
-<span class="fc" id="L563">      this.sizeOfInt = sizeOfInt;</span>
-<span class="fc" id="L564">    }</span>
+<span class="fc" id="L575">      super(l);</span>
+<span class="fc" id="L576">      this.sizeOfInt = sizeOfInt;</span>
+<span class="fc" id="L577">    }</span>
 
     private int readInt() {
-<span class="fc" id="L567">      int r = getInt(offset);</span>
-<span class="fc" id="L568">      offset += sizeOfInt;</span>
-<span class="fc" id="L569">      return r;</span>
+<span class="fc" id="L580">      int r = getInt(offset);</span>
+<span class="fc" id="L581">      offset += sizeOfInt;</span>
+<span class="fc" id="L582">      return r;</span>
     }
 
     private String readString() {
-<span class="fc" id="L573">      ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L586">      ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
       byte ch;
-<span class="fc bfc" id="L575" title="All 2 branches covered.">      while ((ch = getByte(offset++)) != '\0') {</span>
-<span class="fc" id="L576">        baos.write(ch);</span>
+<span class="fc bfc" id="L588" title="All 2 branches covered.">      while ((ch = getByte(offset++)) != '\0') {</span>
+<span class="fc" id="L589">        baos.write(ch);</span>
       }
-<span class="fc" id="L578">      return baos.toString();</span>
+<span class="fc" id="L591">      return baos.toString();</span>
     }
 
     void skip0() {
       // skip trailing '\0's
-<span class="fc bfc" id="L583" title="All 2 branches covered.">      while (getByte(offset) == '\0') {</span>
-<span class="fc" id="L584">        offset++;</span>
+<span class="fc bfc" id="L596" title="All 2 branches covered.">      while (getByte(offset) == '\0') {</span>
+<span class="fc" id="L597">        offset++;</span>
       }
-<span class="fc" id="L586">    }</span>
+<span class="fc" id="L599">    }</span>
   }
 
   private static JVMArguments ofFreeBSD(final int pid) {
     // taken from sys/sysctl.h
-<span class="nc" id="L591">    final int ctlKern = 1;</span>
-<span class="nc" id="L592">    final int kernArgMax = 8;</span>
-<span class="nc" id="L593">    final int kernProc = 14;</span>
-<span class="nc" id="L594">    final int kernProcArgs = 7;</span>
+<span class="nc" id="L604">    final int ctlKern = 1;</span>
+<span class="nc" id="L605">    final int kernArgMax = 8;</span>
+<span class="nc" id="L606">    final int kernProc = 14;</span>
+<span class="nc" id="L607">    final int kernProcArgs = 7;</span>
 
-<span class="nc" id="L596">    IntByReference ibr = new IntByReference();</span>
-<span class="nc" id="L597">    IntByReference sysctlArgMax = new IntByReference();</span>
-<span class="nc" id="L598">    IntByReference size = new IntByReference();</span>
+<span class="nc" id="L609">    IntByReference ibr = new IntByReference();</span>
+<span class="nc" id="L610">    IntByReference sysctlArgMax = new IntByReference();</span>
+<span class="nc" id="L611">    IntByReference size = new IntByReference();</span>
 
-<span class="nc" id="L600">    size.setValue(4);</span>
-<span class="nc bnc" id="L601" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax},</span>
-<span class="nc" id="L602">            2, sysctlArgMax.getPointer(), size, NULL, ibr) != 0) {</span>
-<span class="nc" id="L603">      throw new UnsupportedOperationException(&quot;Failed to sysctl kern.argmax&quot;);</span>
+<span class="nc" id="L613">    size.setValue(4);</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernArgMax},</span>
+<span class="nc" id="L615">            2, sysctlArgMax.getPointer(), size, NULL, ibr) != 0) {</span>
+<span class="nc" id="L616">      throw new UnsupportedOperationException(&quot;Failed to sysctl kern.argmax&quot;);</span>
     }
 
-<span class="nc" id="L606">    int argmax = sysctlArgMax.getValue();</span>
-<span class="nc" id="L607">    Memory m = new Memory(argmax);</span>
-<span class="nc" id="L608">    size.setValue(argmax);</span>
+<span class="nc" id="L619">    int argmax = sysctlArgMax.getValue();</span>
+<span class="nc" id="L620">    Memory m = new Memory(argmax);</span>
+<span class="nc" id="L621">    size.setValue(argmax);</span>
 
-<span class="nc bnc" id="L610" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProc, kernProcArgs, resolvePID(pid)},</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">    if (CLibrary.INSTANCE.sysctl(new int[]{ctlKern, kernProc, kernProcArgs, resolvePID(pid)},</span>
             4, m, size, NULL, ibr) != 0) {
-<span class="nc" id="L612">      throw new UnsupportedOperationException();</span>
+<span class="nc" id="L625">      throw new UnsupportedOperationException();</span>
     }
 
-<span class="nc" id="L615">    ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
-<span class="nc" id="L616">    ArrayList&lt;String&gt; lArgs = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L628">    ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L629">    ArrayList&lt;String&gt; lArgs = new ArrayList&lt;String&gt;();</span>
     byte ch;
-<span class="nc" id="L618">    int offset = 0;</span>
-<span class="nc bnc" id="L619" title="All 2 branches missed.">    while (offset &lt; size.getValue()) {</span>
-<span class="nc bnc" id="L620" title="All 2 branches missed.">      while ((ch = m.getByte(offset++)) != '\0') {</span>
-<span class="nc" id="L621">        baos.write(ch);</span>
+<span class="nc" id="L631">    int offset = 0;</span>
+<span class="nc bnc" id="L632" title="All 2 branches missed.">    while (offset &lt; size.getValue()) {</span>
+<span class="nc bnc" id="L633" title="All 2 branches missed.">      while ((ch = m.getByte(offset++)) != '\0') {</span>
+<span class="nc" id="L634">        baos.write(ch);</span>
       }
-<span class="nc" id="L623">      lArgs.add(baos.toString());</span>
-<span class="nc" id="L624">      baos.reset();</span>
+<span class="nc" id="L636">      lArgs.add(baos.toString());</span>
+<span class="nc" id="L637">      baos.reset();</span>
     }
 
-<span class="nc" id="L627">    return new JVMArguments(lArgs);</span>
+<span class="nc" id="L640">    return new JVMArguments(lArgs);</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L632">    return &quot;JVMArguments{&quot; + &quot;arguments=&quot; + arguments + '}';</span>
+<span class="fc" id="L645">    return &quot;JVMArguments{&quot; + &quot;arguments=&quot; + arguments + '}';</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc" id="L637">    return 11 * 7 + Objects.hashCode(this.arguments);</span>
+<span class="nc" id="L650">    return 11 * 7 + Objects.hashCode(this.arguments);</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="nc bnc" id="L642" title="All 2 branches missed.">    if (this == obj) {</span>
-<span class="nc" id="L643">      return true;</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">    if (this == obj) {</span>
+<span class="nc" id="L656">      return true;</span>
     }
-<span class="nc bnc" id="L645" title="All 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L646">      return false;</span>
+<span class="nc bnc" id="L658" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L659">      return false;</span>
     }
-<span class="nc bnc" id="L648" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L649">      return false;</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L662">      return false;</span>
     }
-<span class="nc" id="L651">    final JVMArguments other = (JVMArguments) obj;</span>
-<span class="nc" id="L652">    return Objects.equals(this.arguments, other.arguments);</span>
+<span class="nc" id="L664">    final JVMArguments other = (JVMArguments) obj;</span>
+<span class="nc" id="L665">    return Objects.equals(this.arguments, other.arguments);</span>
   }
 
   public String[] toArray() {
-<span class="fc" id="L656">    return arguments.toArray(new String[arguments.size()]);</span>
+<span class="fc" id="L669">    return arguments.toArray(new String[arguments.size()]);</span>
   }
 
 }

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaValidatorMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.10-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaValidatorMojo.java</span></div><h1>SchemaValidatorMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.maven.plugin.avro.avscp;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.apache.avro.Schema;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.shared.model.fileset.FileSet;
+import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
+import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
+
+/**
+ * &lt;p&gt;Mojo that runs all Schema validators on this project schemas&lt;/p&gt;
+ *
+ * &lt;p&gt;Built in validators:&lt;/p&gt;
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;docValidator (schema documentation),&lt;/li&gt;
+ * &lt;li&gt;compatibility (schema compatibility),&lt;/li&gt;
+ * &lt;li&gt;namesValidator (schema named types and field name validation)&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;By default validation issues will fail the build. This can be disabled at validator level with:&lt;/p&gt;
+ * &lt;pre&gt;
+ * &lt;code&gt;
+ * &amp;lt;validatorConfigs&amp;gt;
+ *  &amp;lt;[validatorName].failOnIssue&amp;gt;&amp;lt;/[validatorName].failOnIssue&amp;gt;
+ * &amp;lt;/validatorConfigs&amp;gt;
+ * &lt;/code&gt;
+ * &lt;/pre&gt;
+ * &lt;p&gt;A particular validator can be sckipped at schema level with:&lt;/p&gt;
+ * &lt;pre&gt;
+ *
+ * {@literal @}ignoreValidators([&quot;validatorname&quot;])
+ *
+ * &lt;/pre&gt;
+ * &lt;p&gt;
+ * Custom validators can be built and used. A custom validator,
+ * will need to implement the org.spf4j.maven.plugin.avro.avscp.validation.Validator interface, and will be loaded via
+ * the java Service Loader api.&lt;/p&gt;
+ *
+ * @see org.spf4j.maven.plugin.avro.avscp.validation.Validator Interface to implement a custom validator.
+ * @see org.spf4j.maven.plugin.avro.avscp.validation.impl Built in validator implementations.
+ */
+@Mojo(name = &quot;avro-validate&quot;, defaultPhase = LifecyclePhase.TEST, requiresProject = true)
+@SuppressFBWarnings({&quot;PATH_TRAVERSAL_IN&quot;, &quot;SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR&quot;})
+<span class="nc" id="L57">public final class SchemaValidatorMojo extends SchemaMojoBase implements ValidatorMojo {</span>
+
+  /**
+   * you can exclude certain validators from execution.
+   */
+<span class="nc" id="L62">  @Parameter(name = &quot;excludeValidators&quot;)</span>
+  private List&lt;String&gt; excludeValidators = Collections.EMPTY_LIST;
+
+  /**
+   * You can configure validators, see individual validator doc (javadoc) for supported configuration keys.
+   * @see org.spf4j.maven.plugin.avro.avscp.validation.impl
+   */
+<span class="nc" id="L69">  @Parameter(name = &quot;validatorConfigs&quot;)</span>
+  private Map&lt;String, String&gt; validatorConfigs = Collections.EMPTY_MAP;
+
+  @Override
+  public Map&lt;String, String&gt; getValidatorConfigs() {
+<span class="nc" id="L74">    return validatorConfigs;</span>
+  }
+
+  @SuppressFBWarnings(&quot;PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP&quot;)
+  public void execute() throws MojoExecutionException, MojoFailureException {
+<span class="nc" id="L79">    super.execute();</span>
+<span class="nc" id="L80">    Log logger = this.getLog();</span>
+<span class="nc" id="L81">    logger.info(&quot;Validating schemas&quot;);</span>
+<span class="nc" id="L82">    synchronized (String.class) {</span>
+<span class="nc" id="L83">      String orig = System.getProperty(&quot;allowUndefinedLogicalTypes&quot;);</span>
+      try {
+<span class="nc" id="L85">        System.setProperty(&quot;allowUndefinedLogicalTypes&quot;, &quot;true&quot;);</span>
+<span class="nc" id="L86">        Validators validators = new Validators(excludeValidators);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (String file : getSchemaFiles()) {</span>
+          try {
+<span class="nc" id="L89">            File src = new File(generatedAvscTarget, file);</span>
+<span class="nc" id="L90">            Schema.Parser parser = new Schema.Parser();</span>
+<span class="nc" id="L91">            Schema schema = parser.parse(src);</span>
+<span class="nc" id="L92">            Map&lt;String, Validator.Result&gt; vresult = validators.validate(schema, this);</span>
+<span class="nc" id="L93">            String sIdl = schema.getProp(&quot;sourceIdl&quot;);</span>
+<span class="nc" id="L94">            handleValidation(vresult, logger,</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                    schema.getFullName() +  (sIdl != null ? &quot; from &quot; + sIdl : &quot;&quot;));</span>
+<span class="nc" id="L96">          } catch (IOException ex) {</span>
+<span class="nc" id="L97">            throw new MojoExecutionException(&quot;Cannot validate &quot; + file, ex);</span>
+<span class="nc" id="L98">          }</span>
+        }
+        try {
+<span class="nc" id="L101">          Map&lt;String, Validator.Result&gt; vresult = validators.validate(null, this);</span>
+<span class="nc" id="L102">          handleValidation(vresult, logger, &quot;project&quot;);</span>
+<span class="nc" id="L103">        } catch (IOException ex) {</span>
+<span class="nc" id="L104">          throw new MojoExecutionException(&quot;Cannot validate &quot; + this, ex);</span>
+<span class="nc" id="L105">        }</span>
+      } finally {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (orig != null) {</span>
+<span class="nc" id="L108">          System.setProperty(&quot;allowUndefinedLogicalTypes&quot;, orig);</span>
+        }
+      }
+<span class="nc" id="L111">    }</span>
+<span class="nc" id="L112">  }</span>
+
+  public void handleValidation(final Map&lt;String, Validator.Result&gt; vresult, final Log logger, final String detail)
+          throws MojoExecutionException {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    if (!vresult.isEmpty()) {</span>
+<span class="nc" id="L117">      boolean failed = false;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">      for (Map.Entry&lt;String, Validator.Result&gt; res : vresult.entrySet()) {</span>
+<span class="nc" id="L119">        Validator.Result vres = res.getValue();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (vres.isValid()) {</span>
+<span class="nc" id="L121">          continue;</span>
+        }
+<span class="nc" id="L123">        failed = true;</span>
+<span class="nc" id="L124">        String vName = res.getKey();</span>
+<span class="nc" id="L125">        logger.error(&quot;Validator &quot; + vName + &quot; failed with error: &quot; + vres.getValidationErrorMessage());</span>
+<span class="nc" id="L126">        Exception ex = vres.getValidationException();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L128">          logger.error(&quot;Validator &quot; + vName + &quot; exception&quot;, ex);</span>
+        }
+<span class="nc" id="L130">      }</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">      if (failed) {</span>
+<span class="nc" id="L132">        logger.error(&quot;Schema validation failed for &quot; + detail);</span>
+<span class="nc" id="L133">        throw new MojoExecutionException(&quot;Failed to validate &quot; + detail);</span>
+      }
+    }
+<span class="nc" id="L136">  }</span>
+
+  public String[] getSchemaFiles() {
+<span class="nc" id="L139">    FileSetManager fsm = new FileSetManager();</span>
+<span class="nc" id="L140">    FileSet fs = new FileSet();</span>
+<span class="nc" id="L141">    fs.setDirectory(generatedAvscTarget.getAbsolutePath());</span>
+<span class="nc" id="L142">    fs.addInclude(&quot;**/*.avsc&quot;);</span>
+<span class="nc" id="L143">    fs.setFollowSymlinks(false);</span>
+<span class="nc" id="L144">    return fsm.getIncludedFiles(fs);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L149">    return &quot;SchemaValidatorMojo{&quot; + &quot;excludes=&quot; + excludeValidators + &quot;, &quot; + super.toString() + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

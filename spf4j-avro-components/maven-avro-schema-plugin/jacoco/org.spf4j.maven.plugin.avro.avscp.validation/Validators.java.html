@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Validators.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.10-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp.validation</a> &gt; <span class="el_source">Validators.java</span></div><h1>Validators.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.maven.plugin.avro.avscp.validation;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javax.annotation.CheckReturnValue;
+import org.apache.avro.Schema;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystem;
+import org.spf4j.base.Pair;
+import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
+import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaCompatibilityValidator;
+import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaDocValidator;
+import org.spf4j.maven.plugin.avro.avscp.validation.impl.SchemaNamesValidator;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class Validators {
+
+<span class="nc" id="L47">  private static final Map&lt;String, Validator&lt;?&gt;&gt; VALIDATORS = new HashMap&lt;&gt;();</span>
+
+  static {
+<span class="nc" id="L50">    SchemaDocValidator sdVal = new SchemaDocValidator();</span>
+<span class="nc" id="L51">    VALIDATORS.put(sdVal.getName(), sdVal);</span>
+<span class="nc" id="L52">    SchemaNamesValidator snVal = new SchemaNamesValidator();</span>
+<span class="nc" id="L53">    VALIDATORS.put(snVal.getName(), snVal);</span>
+<span class="nc" id="L54">    SchemaCompatibilityValidator scVal = new SchemaCompatibilityValidator();</span>
+<span class="nc" id="L55">    VALIDATORS.put(scVal.getName(), scVal);</span>
+
+<span class="nc" id="L57">    ServiceLoader&lt;Validator&gt; factories</span>
+<span class="nc" id="L58">            = ServiceLoader.load(Validator.class);</span>
+<span class="nc" id="L59">    Iterator&lt;Validator&gt; iterator = factories.iterator();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    while (iterator.hasNext()) {</span>
+<span class="nc" id="L61">      Validator v = iterator.next();</span>
+<span class="nc" id="L62">      Validator ex = VALIDATORS.put(v.getName(), v);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">      if (ex != null) {</span>
+<span class="nc" id="L64">        Logger.getLogger(Validators.class.getName()).log(Level.WARNING,</span>
+                &quot;Ignoring {0} because of {1}&quot;, new Object[]{ex, v});
+      }
+<span class="nc" id="L67">    }</span>
+<span class="nc" id="L68">  }</span>
+
+  private final Map&lt;String, Validator&lt;?&gt;&gt; validators;
+
+<span class="nc" id="L72">  public Validators(final List&lt;String&gt; exclude) {</span>
+<span class="nc" id="L73">    validators = new HashMap&lt;&gt;(VALIDATORS);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    for (String vname : exclude) {</span>
+<span class="nc" id="L75">      validators.remove(vname);</span>
+<span class="nc" id="L76">    }</span>
+<span class="nc" id="L77">  }</span>
+
+  @CheckReturnValue
+  public Map&lt;String,  Validator.Result&gt; validate(final Object obj, final ValidatorMojo mojo)
+          throws IOException, MojoExecutionException {
+<span class="nc" id="L82">    Log log = mojo.getLog();</span>
+<span class="nc" id="L83">    Map&lt;String,  Validator.Result&gt; result = new HashMap&lt;&gt;(4);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    for (Validator v : validators.values()) {</span>
+<span class="nc bnc" id="L85" title="All 6 branches missed.">      if ((obj == null &amp;&amp; v.getValidationInput() == Void.class)</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">              || (obj != null &amp;&amp; v.getValidationInput().isAssignableFrom(obj.getClass()))) {</span>
+<span class="nc" id="L87">        String name = v.getName();</span>
+<span class="nc" id="L88">        ConfiguredValidatorMojo cMojo = new ConfiguredValidatorMojo(mojo, name + '.');</span>
+<span class="nc" id="L89">        Map&lt;String, String&gt; validatorConfigs = cMojo.getValidatorConfigs();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (Boolean.parseBoolean(validatorConfigs.getOrDefault(&quot;skip&quot;, &quot;false&quot;))) {</span>
+<span class="nc" id="L91">          continue;</span>
+        }
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (obj instanceof Schema) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">          if (skipValidator((Schema) obj, name)) {</span>
+<span class="nc" id="L95">            continue;</span>
+          }
+<span class="nc" id="L97">          log.info(&quot;Validating &quot; + name + &quot; for &quot; +  ((Schema) obj).getFullName()</span>
+                  + &quot;, config is: &quot; + validatorConfigs);
+        } else {
+<span class="nc" id="L100">          log.info(&quot;Validating &quot; + name + &quot; for &quot; +  obj + &quot;, config is: &quot; + validatorConfigs);</span>
+        }
+<span class="nc" id="L102">        Validator.Result res = v.validate(obj, cMojo);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (res.isFailed()) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">          if (!Boolean.parseBoolean(validatorConfigs.getOrDefault(&quot;failOnIssue&quot;, &quot;true&quot;))) {</span>
+<span class="nc" id="L105">            log.info(res.getValidationErrorMessage());</span>
+          } else {
+<span class="nc" id="L107">            result.put(v.getName(), res);</span>
+          }
+        }
+      }
+<span class="nc" id="L111">    }</span>
+<span class="nc" id="L112">    return result;</span>
+  }
+
+  @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
+  public static boolean skipValidator(final Schema obj, final String validatorName) {
+<span class="nc" id="L117">    Object iVal = obj.getObjectProp(&quot;ignoreValidators&quot;);</span>
+<span class="nc bnc" id="L118" title="All 4 branches missed.">    if (iVal instanceof String &amp;&amp; validatorName.equals(iVal)) {</span>
+<span class="nc" id="L119">      return true;</span>
+<span class="nc bnc" id="L120" title="All 4 branches missed.">    } else if (iVal instanceof List &amp;&amp; ((List) iVal).contains(validatorName)) {</span>
+<span class="nc" id="L121">      return true;</span>
+    }
+<span class="nc" id="L123">    return false;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L128">    return &quot;Validators{&quot; + &quot;validators=&quot; + validators + '}';</span>
+  }
+
+  private static class ConfiguredValidatorMojo implements ValidatorMojo {
+
+    private final ValidatorMojo mojo;
+    private final String name;
+    private final int l;
+    private Map&lt;String, String&gt; configs;
+
+<span class="nc" id="L138">    ConfiguredValidatorMojo(final ValidatorMojo mojo, final String name) {</span>
+<span class="nc" id="L139">      this.mojo = mojo;</span>
+<span class="nc" id="L140">      this.name = name;</span>
+<span class="nc" id="L141">      this.l = name.length();</span>
+<span class="nc" id="L142">      this.configs = null;</span>
+<span class="nc" id="L143">    }</span>
+
+    @Override
+    public Map&lt;String, String&gt; getValidatorConfigs() {
+<span class="nc bnc" id="L147" title="All 2 branches missed.">      if (configs == null) {</span>
+<span class="nc" id="L148">        configs =  mojo.getValidatorConfigs().entrySet().stream()</span>
+<span class="nc bnc" id="L149" title="All 4 branches missed.">              .filter((entry) -&gt; entry.getKey().startsWith(name) &amp;&amp; entry.getValue() != null)</span>
+<span class="nc" id="L150">              .map((entry) -&gt; Pair.of(entry.getKey().substring(l), entry.getValue()))</span>
+<span class="nc" id="L151">              .collect(Collectors.toMap(x -&gt; x.getKey(), x -&gt; x.getValue()));</span>
+      }
+<span class="nc" id="L153">      return configs;</span>
+    }
+
+    @Override
+    public RepositorySystem getRepoSystem() {
+<span class="nc" id="L158">      return mojo.getRepoSystem();</span>
+    }
+
+    @Override
+    public MavenSession getMavenSession() {
+<span class="nc" id="L163">      return mojo.getMavenSession();</span>
+    }
+
+    @Override
+    public MavenProject getMavenProject() {
+<span class="nc" id="L168">      return mojo.getMavenProject();</span>
+    }
+
+    @Override
+    public File getGeneratedAvscTarget() {
+<span class="nc" id="L173">      return mojo.getGeneratedAvscTarget();</span>
+    }
+
+    @Override
+    public File getTarget() {
+<span class="nc" id="L178">      return mojo.getTarget();</span>
+    }
+
+    @Override
+    public Log getLog() {
+<span class="nc" id="L183">      return mojo.getLog();</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

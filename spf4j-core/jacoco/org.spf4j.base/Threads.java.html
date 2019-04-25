@@ -157,7 +157,7 @@ public final class Threads {
 <span class="fc" id="L157">    ThreadLocalRandom rnd = ThreadLocalRandom.current();</span>
 <span class="fc bfc" id="L158" title="All 2 branches covered.">    for (int i = 0; i &lt; nr; i++) {</span>
 <span class="fc" id="L159">      int nextInt = rnd.nextInt(i, length);</span>
-<span class="fc bfc" id="L160" title="All 2 branches covered.">      if (nextInt != i) {</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">      if (nextInt != i) {</span>
 <span class="fc" id="L161">        Thread t = threads[i];</span>
 <span class="fc" id="L162">        threads[i] = threads[nextInt];</span>
 <span class="fc" id="L163">        threads[nextInt] = t;</span>
@@ -171,41 +171,45 @@ public final class Threads {
 <span class="fc" id="L171">    return TI_SUPP.getStackTraces(threads);</span>
   }
 
-  public static void dumpToPrintStream(final PrintStream stream) {
-<span class="nc" id="L175">    StringBuilder sb = new StringBuilder(1024);</span>
-<span class="nc" id="L176">    Thread[] threads = getThreads();</span>
-<span class="nc" id="L177">    StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">    for (int i = 0; i &lt; threads.length; i++) {</span>
-<span class="nc" id="L179">      StackTraceElement[] stackTrace = stackTraces[i];</span>
-<span class="nc bnc" id="L180" title="All 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="nc" id="L181">        Thread thread = threads[i];</span>
-<span class="nc" id="L182">        sb.append(&quot;Thread &quot;).append(thread.getName()).append('\n');</span>
-        try {
-<span class="nc" id="L184">          Throwables.writeTo(stackTrace, sb, Throwables.PackageDetail.SHORT, true);</span>
-<span class="nc" id="L185">        } catch (IOException ex) {</span>
-<span class="nc" id="L186">          throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L187">        }</span>
+  public static void dumpTo(final Appendable stream) throws IOException {
+<span class="nc" id="L175">    Thread[] threads = getThreads();</span>
+<span class="nc" id="L176">    StackTraceElement[][] stackTraces = getStackTraces(threads);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">    for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L178">      StackTraceElement[] stackTrace = stackTraces[i];</span>
+<span class="nc bnc" id="L179" title="All 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="nc" id="L180">        Thread thread = threads[i];</span>
+<span class="nc" id="L181">        stream.append(&quot;Thread &quot;).append(thread.getName()).append('\n');</span>
+<span class="nc" id="L182">        Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, true);</span>
       }
     }
-<span class="nc" id="L190">    stream.append(sb);</span>
-<span class="nc" id="L191">  }</span>
+<span class="nc" id="L185">  }</span>
+
+  public static void dumpToPrintStream(final PrintStream stream) {
+<span class="nc" id="L188">    StringBuilder sb = new StringBuilder(1024);</span>
+    try {
+<span class="nc" id="L190">      dumpTo(sb);</span>
+<span class="nc" id="L191">    } catch (IOException ex) {</span>
+<span class="nc" id="L192">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L193">    }</span>
+<span class="nc" id="L194">    stream.append(sb);</span>
+<span class="nc" id="L195">  }</span>
 
   private static class SlowThreadInfoSupplierImpl implements ThreadInfoSupplier {
 
     @Override
     public Thread[] getThreads() {
-<span class="nc" id="L197">      Set&lt;Thread&gt; keySet = Thread.getAllStackTraces().keySet();</span>
-<span class="nc" id="L198">      return keySet.toArray(new Thread[keySet.size()]);</span>
+<span class="nc" id="L201">      Set&lt;Thread&gt; keySet = Thread.getAllStackTraces().keySet();</span>
+<span class="nc" id="L202">      return keySet.toArray(new Thread[keySet.size()]);</span>
     }
 
     @Override
     public StackTraceElement[][] getStackTraces(final Thread... threads) {
-<span class="nc" id="L203">      Map&lt;Thread, StackTraceElement[]&gt; allStackTraces = Thread.getAllStackTraces();</span>
-<span class="nc" id="L204">      StackTraceElement[][] result = new StackTraceElement[threads.length][];</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
-<span class="nc" id="L206">        result[i] = allStackTraces.get(threads[i]);</span>
+<span class="nc" id="L207">      Map&lt;Thread, StackTraceElement[]&gt; allStackTraces = Thread.getAllStackTraces();</span>
+<span class="nc" id="L208">      StackTraceElement[][] result = new StackTraceElement[threads.length][];</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">      for (int i = 0; i &lt; threads.length; i++) {</span>
+<span class="nc" id="L210">        result[i] = allStackTraces.get(threads[i]);</span>
       }
-<span class="nc" id="L208">      return result;</span>
+<span class="nc" id="L212">      return result;</span>
     }
   }
 

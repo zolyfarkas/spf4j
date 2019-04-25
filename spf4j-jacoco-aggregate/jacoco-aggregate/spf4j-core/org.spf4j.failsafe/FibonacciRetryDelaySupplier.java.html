@@ -15,10 +15,12 @@
  */
 package org.spf4j.failsafe;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- *
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
 
   private int immediateLeft;
@@ -31,37 +33,37 @@ public final class FibonacciRetryDelaySupplier implements RetryDelaySupplier {
 
   private final long startDelay;
 
-<span class="fc" id="L34">  public FibonacciRetryDelaySupplier(final int immediateLeft, final long startDelay, final long maxDelay) {</span>
-<span class="fc" id="L35">    this.immediateLeft = immediateLeft;</span>
-<span class="fc" id="L36">    this.startDelay = startDelay;</span>
-<span class="fc" id="L37">    this.maxDelay = maxDelay;</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">    if (startDelay &lt; 1) {</span>
-<span class="fc" id="L39">      this.p1 = 0;</span>
-<span class="fc" id="L40">      this.p2 = 1;</span>
+<span class="fc" id="L36">  public FibonacciRetryDelaySupplier(final int immediateLeft, final long startDelay, final long maxDelay) {</span>
+<span class="fc" id="L37">    this.immediateLeft = immediateLeft;</span>
+<span class="fc" id="L38">    this.startDelay = startDelay;</span>
+<span class="fc" id="L39">    this.maxDelay = maxDelay;</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">    if (startDelay &lt; 1) {</span>
+<span class="fc" id="L41">      this.p1 = 0;</span>
+<span class="fc" id="L42">      this.p2 = 1;</span>
     } else {
-<span class="fc" id="L42">      this.p1 = startDelay;</span>
-<span class="fc" id="L43">      this.p2 = startDelay + 1;</span>
+<span class="fc" id="L44">      this.p1 = startDelay;</span>
+<span class="fc" id="L45">      this.p2 = startDelay + 1;</span>
     }
-<span class="fc" id="L45">  }</span>
+<span class="fc" id="L47">  }</span>
 
   @Override
-  public long nextDelay() {
-<span class="fc bfc" id="L49" title="All 2 branches covered.">    if (immediateLeft &gt; 0) {</span>
-<span class="fc" id="L50">      immediateLeft--;</span>
-<span class="fc" id="L51">      return p1;</span>
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">    } else if (p2 &gt; maxDelay) {</span>
-<span class="nc" id="L53">      return maxDelay;</span>
+  public synchronized long nextDelay() {
+<span class="fc bfc" id="L51" title="All 2 branches covered.">    if (immediateLeft &gt; 0) {</span>
+<span class="fc" id="L52">      immediateLeft--;</span>
+<span class="fc" id="L53">      return p1;</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    } else if (p2 &gt; maxDelay) {</span>
+<span class="nc" id="L55">      return maxDelay;</span>
     } else {
-<span class="fc" id="L55">      long result = p2;</span>
-<span class="fc" id="L56">      p2 = p1 + p2;</span>
-<span class="fc" id="L57">      p1 = result;</span>
-<span class="fc" id="L58">      return result;</span>
+<span class="fc" id="L57">      long result = p2;</span>
+<span class="fc" id="L58">      p2 = p1 + p2;</span>
+<span class="fc" id="L59">      p1 = result;</span>
+<span class="fc" id="L60">      return result;</span>
     }
   }
 
   @Override
-  public String toString() {
-<span class="nc" id="L64">    return &quot;FibonacciBackoff{&quot; + &quot;immediateLeft=&quot; + immediateLeft + &quot;, p1=&quot; + p1</span>
+  public synchronized String toString() {
+<span class="nc" id="L66">    return &quot;FibonacciBackoff{&quot; + &quot;immediateLeft=&quot; + immediateLeft + &quot;, p1=&quot; + p1</span>
             + &quot;, p2=&quot; + p2 + &quot;, maxDelay=&quot; + maxDelay + &quot;, startDelay=&quot; + startDelay + '}';
   }
 

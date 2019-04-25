@@ -17,7 +17,7 @@
  *
  * Additionally licensed with:
  *
- * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * Licensed under the Apache Licens e, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -34,31 +34,56 @@ package org.spf4j.os;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Field;
+import javax.annotation.Signed;
 import org.spf4j.base.UncheckedExecutionException;
 
 /**
- * PID is exposed in jdk 9... this will go away.
+ * PID is exposed in jdk 9... some of this will go away.
  * @author Zoltan Farkas
  */
 public final class ProcessUtil {
 
+<span class="fc" id="L49">  private static final int PID = parsePid();</span>
+
   private ProcessUtil() { }
 
-  public static int getPid(final Process p) {
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    if (org.spf4j.base.Runtime.isWindows()) {</span>
-<span class="nc" id="L50">      return getWindowsPid(p);</span>
+  private static int parsePid()  {
+<span class="fc" id="L54">    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();</span>
+<span class="fc" id="L55">    String mxBeanName = runtimeMxBean.getName();</span>
+<span class="fc" id="L56">    int atIdx = mxBeanName.indexOf('@');</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (atIdx &lt; 0) {</span>
+<span class="nc" id="L58">      return -1;</span>
+    } else {
+<span class="fc" id="L60">      return Integer.parseInt(mxBeanName.substring(0, atIdx));</span>
     }
-<span class="fc" id="L52">    return getUnixPid(p);</span>
+  }
+
+  /**
+   * @return the jvm process ID, -1 if it cannot be figured out.
+   */
+  @Signed
+  public static int getPid() {
+<span class="fc" id="L69">    return PID;</span>
+  }
+
+
+  public static int getPid(final Process p) {
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (OperatingSystem.isWindows()) {</span>
+<span class="nc" id="L75">      return getWindowsPid(p);</span>
+    }
+<span class="fc" id="L77">    return getUnixPid(p);</span>
   }
 
   private static int getUnixPid(final Process p) {
     try {
-<span class="fc" id="L57">      Field pidF = p.getClass().getDeclaredField(&quot;pid&quot;);</span>
-<span class="fc" id="L58">      pidF.setAccessible(true);</span>
-<span class="fc" id="L59">      return pidF.getInt(p);</span>
-<span class="nc" id="L60">    } catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {</span>
-<span class="nc" id="L61">      throw new UncheckedExecutionException(&quot;Cannot get PID for &quot; + p, ex);</span>
+<span class="fc" id="L82">      Field pidF = p.getClass().getDeclaredField(&quot;pid&quot;);</span>
+<span class="fc" id="L83">      pidF.setAccessible(true);</span>
+<span class="fc" id="L84">      return pidF.getInt(p);</span>
+<span class="nc" id="L85">    } catch (IllegalAccessException | NoSuchFieldException | SecurityException ex) {</span>
+<span class="nc" id="L86">      throw new UncheckedExecutionException(&quot;Cannot get PID for &quot; + p, ex);</span>
     }
   }
 
@@ -66,17 +91,17 @@ public final class ProcessUtil {
     Field f;
     long lHandle;
     try {
-<span class="nc" id="L69">      f = p.getClass().getDeclaredField(&quot;handle&quot;);</span>
-<span class="nc" id="L70">      f.setAccessible(true);</span>
-<span class="nc" id="L71">      lHandle = f.getLong(p);</span>
-<span class="nc" id="L72">    } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {</span>
-<span class="nc" id="L73">      throw new UncheckedExecutionException(&quot;Cannot get PID for &quot; + p, ex);</span>
-<span class="nc" id="L74">    }</span>
+<span class="nc" id="L94">      f = p.getClass().getDeclaredField(&quot;handle&quot;);</span>
+<span class="nc" id="L95">      f.setAccessible(true);</span>
+<span class="nc" id="L96">      lHandle = f.getLong(p);</span>
+<span class="nc" id="L97">    } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {</span>
+<span class="nc" id="L98">      throw new UncheckedExecutionException(&quot;Cannot get PID for &quot; + p, ex);</span>
+<span class="nc" id="L99">    }</span>
 
-<span class="nc" id="L76">    Kernel32 kernel = Kernel32.INSTANCE;</span>
-<span class="nc" id="L77">    WinNT.HANDLE handle = new WinNT.HANDLE();</span>
-<span class="nc" id="L78">    handle.setPointer(Pointer.createConstant(lHandle));</span>
-<span class="nc" id="L79">    return kernel.GetProcessId(handle);</span>
+<span class="nc" id="L101">    Kernel32 kernel = Kernel32.INSTANCE;</span>
+<span class="nc" id="L102">    WinNT.HANDLE handle = new WinNT.HANDLE();</span>
+<span class="nc" id="L103">    handle.setPointer(Pointer.createConstant(lHandle));</span>
+<span class="nc" id="L104">    return kernel.GetProcessId(handle);</span>
   }
 
 }

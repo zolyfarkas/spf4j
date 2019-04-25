@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Converters.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.avro</a> &gt; <span class="el_source">Converters.java</span></div><h1>Converters.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base.avro;
+
+import gnu.trove.map.TMap;
+import java.lang.management.ManagementFactory;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Handler;
+import org.spf4j.log.Slf4jLogRecord;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public final class Converters {
+
+<span class="fc" id="L51">  public static final Method ROOT = new Method(ManagementFactory.getRuntimeMXBean().getName(), &quot;ROOT&quot;);</span>
+
+  private Converters() { }
+
+  public static StackTraceElement convert(final java.lang.StackTraceElement stackTrace) {
+<span class="fc" id="L56">    String className = stackTrace.getClassName();</span>
+<span class="fc" id="L57">    String fileName = stackTrace.getFileName();</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">    return new StackTraceElement(new Method(className, stackTrace.getMethodName()),</span>
+<span class="fc" id="L59">            fileName == null ? null :  new FileLocation(fileName, stackTrace.getLineNumber(), -1),</span>
+<span class="fc" id="L60">            org.spf4j.base.PackageInfo.getPackageInfo(className));</span>
+  }
+
+  public static List&lt;StackTraceElement&gt; convert(final java.lang.StackTraceElement[] stackTraces) {
+<span class="fc" id="L64">    int l = stackTraces.length;</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">    if (l == 0) {</span>
+<span class="nc" id="L66">      return Collections.EMPTY_LIST;</span>
+    }
+<span class="fc" id="L68">    List&lt;StackTraceElement&gt; result = new ArrayList&lt;&gt;(l);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">    for (java.lang.StackTraceElement st : stackTraces) {</span>
+<span class="fc" id="L70">      result.add(convert(st));</span>
+    }
+<span class="fc" id="L72">    return result;</span>
+  }
+
+  public static List&lt;Throwable&gt; convert(final java.lang.Throwable[] throwables) {
+<span class="fc" id="L76">    int l = throwables.length;</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (l == 0) {</span>
+<span class="fc" id="L78">      return Collections.EMPTY_LIST;</span>
+    }
+<span class="nc" id="L80">    List&lt;Throwable&gt; result = new ArrayList&lt;&gt;(l);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    for (java.lang.Throwable t : throwables) {</span>
+<span class="nc" id="L82">      result.add(convert(t));</span>
+    }
+<span class="nc" id="L84">    return result;</span>
+  }
+
+  public static Throwable convert(final java.lang.Throwable throwable) {
+<span class="fc" id="L88">    String message = throwable.getMessage();</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (throwable instanceof RemoteException) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        return new Throwable(throwable.getClass().getName(),</span>
+<span class="nc" id="L91">                message == null ? &quot;&quot; : message, convert(throwable.getStackTrace()),</span>
+<span class="nc" id="L92">                ((RemoteException) throwable).getRemoteCause(),</span>
+<span class="nc" id="L93">                convert(throwable.getSuppressed()));</span>
+    }
+<span class="fc" id="L95">    java.lang.Throwable cause = throwable.getCause();</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    return new Throwable(throwable.getClass().getName(),</span>
+            message == null ? &quot;&quot; : message,
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            convert(throwable.getStackTrace()),</span>
+<span class="fc" id="L99">            cause == null ? null : convert(cause),</span>
+<span class="fc" id="L100">            convert(throwable.getSuppressed()));</span>
+  }
+
+  public static RemoteException convert(final String source, final Throwable throwable) {
+<span class="nc" id="L104">    return new RemoteException(source, throwable);</span>
+  }
+
+
+  public static List&lt;LogRecord&gt; convert(final String origin, final String traceId,
+          final List&lt;Slf4jLogRecord&gt; logRecords) {
+<span class="nc" id="L110">    List&lt;LogRecord&gt; result = new ArrayList&lt;&gt;(logRecords.size());</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    for (Slf4jLogRecord log : logRecords) {</span>
+<span class="nc" id="L112">      result.add(log.toLogRecord(origin, traceId));</span>
+<span class="nc" id="L113">    }</span>
+<span class="nc" id="L114">    return result;</span>
+  }
+
+
+  public static &lt;E extends Exception&gt; int convert(final Method method, final org.spf4j.base.StackSamples node,
+          final int parentId, final int id,
+          final Handler&lt;StackSampleElement, E&gt; handler) throws E {
+
+<span class="fc" id="L122">    final Deque&lt;TraversalNode&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L123">    dq.addLast(new TraversalNode(method, node, parentId));</span>
+<span class="fc" id="L124">    int nid = id;</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">    while (!dq.isEmpty()) {</span>
+<span class="fc" id="L126">      TraversalNode first = dq.removeFirst();</span>
+<span class="fc" id="L127">      org.spf4j.base.StackSamples n = first.getNode();</span>
+<span class="fc" id="L128">      StackSampleElement sample = new StackSampleElement(nid, first.getParentId(),</span>
+<span class="fc" id="L129">              n.getSampleCount(), first.getMethod());</span>
+<span class="fc" id="L130">      final TMap&lt;Method, ? extends org.spf4j.base.StackSamples&gt; subNodes = n.getSubNodes();</span>
+<span class="fc" id="L131">      final int pid = nid;</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">      if (subNodes != null) {</span>
+<span class="fc" id="L133">        subNodes.forEachEntry((a, b) -&gt; {</span>
+<span class="fc" id="L134">          dq.addLast(new TraversalNode(a, b, pid));</span>
+<span class="fc" id="L135">          return true;</span>
+        });
+      }
+<span class="fc" id="L138">      handler.handle(sample, parentId);</span>
+<span class="fc" id="L139">      nid++;</span>
+<span class="fc" id="L140">    }</span>
+<span class="fc" id="L141">    return nid;</span>
+  }
+
+
+  private static final class TraversalNode {
+
+    private final Method method;
+    private final org.spf4j.base.StackSamples node;
+    private final int parentId;
+
+<span class="fc" id="L151">    TraversalNode(final Method method, final org.spf4j.base.StackSamples node, final int parentId) {</span>
+<span class="fc" id="L152">      this.method = method;</span>
+<span class="fc" id="L153">      this.node = node;</span>
+<span class="fc" id="L154">      this.parentId = parentId;</span>
+<span class="fc" id="L155">    }</span>
+
+    public Method getMethod() {
+<span class="fc" id="L158">      return method;</span>
+    }
+
+    public org.spf4j.base.StackSamples getNode() {
+<span class="fc" id="L162">      return node;</span>
+    }
+
+    public int getParentId() {
+<span class="fc" id="L166">      return parentId;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L171">      return &quot;TraversalNode{&quot; + &quot;method=&quot; + method + &quot;, node=&quot; + node + &quot;, parentId=&quot; + parentId + '}';</span>
+    }
+
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

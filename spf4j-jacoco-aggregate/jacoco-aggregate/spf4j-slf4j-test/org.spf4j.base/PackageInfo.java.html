@@ -34,9 +34,6 @@ package org.spf4j.base;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.beans.ConstructorProperties;
-import java.io.Serializable;
 import java.net.URL;
 import java.security.CodeSource;
 import javax.annotation.Nonnull;
@@ -45,100 +42,50 @@ import javax.annotation.Nullable;
 /**
  * @author Zoltan Farkas
  */
-public final class PackageInfo implements Serializable {
+public final class PackageInfo  {
 
-  private static final long serialVersionUID = 1L;
+<span class="fc" id="L47">  public static final org.spf4j.base.avro.PackageInfo NONE = new org.spf4j.base.avro.PackageInfo(&quot;&quot;, &quot;&quot;);</span>
 
-<span class="fc" id="L52">  private static final LoadingCache&lt;String, PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
-<span class="fc" id="L53">          .weakKeys().weakValues().build(new CacheLoader&lt;String, PackageInfo&gt;() {</span>
+<span class="fc" id="L49">  private static final LoadingCache&lt;String, org.spf4j.base.avro.PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
+<span class="fc" id="L50">          .weakKeys().weakValues().build(new CacheLoader&lt;String, org.spf4j.base.avro.PackageInfo&gt;() {</span>
 
             @Override
-            public PackageInfo load(final String key) {
-<span class="fc" id="L57">              return getPackageInfoDirect(key);</span>
+            public org.spf4j.base.avro.PackageInfo load(final String key) {
+<span class="fc" id="L54">              return getPackageInfoDirect(key);</span>
             }
           });
 
 
-<span class="fc" id="L62">  public static final PackageInfo NONE = new PackageInfo(null, null);</span>
-
-  private final String url;
-  private final String version;
-
-  @ConstructorProperties({&quot;url&quot;, &quot;version&quot;})
-<span class="fc" id="L68">  public PackageInfo(@Nullable final String url, @Nullable final String version) {</span>
-<span class="fc" id="L69">    this.url = url;</span>
-<span class="fc" id="L70">    this.version = version;</span>
-<span class="fc" id="L71">  }</span>
-
-  @Nullable
-  public String getUrl() {
-<span class="fc" id="L75">    return url;</span>
+  private PackageInfo() {
   }
 
-  @Nullable
-  public String getVersion() {
-<span class="fc" id="L80">    return version;</span>
-  }
-
-  @Override
-  @SuppressFBWarnings(&quot;DMI_BLOCKING_METHODS_ON_URL&quot;)
-  public int hashCode() {
-<span class="nc bnc" id="L86" title="All 2 branches missed.">    if (url != null) {</span>
-<span class="nc" id="L87">      return url.hashCode();</span>
-    } else {
-<span class="nc" id="L89">      return 0;</span>
-    }
-  }
-
-  public boolean hasInfo() {
-<span class="pc bpc" id="L94" title="1 of 4 branches missed.">    return url != null || version != null;</span>
-  }
-
-  @Override
-  public boolean equals(final Object obj) {
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L100">      return false;</span>
-    }
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L103">      return false;</span>
-    }
-<span class="fc" id="L105">    final PackageInfo other = (PackageInfo) obj;</span>
-<span class="fc bfc" id="L106" title="All 2 branches covered.">    if (!java.util.Objects.equals(this.url, other.url)) {</span>
-<span class="fc" id="L107">      return false;</span>
-    }
-<span class="fc" id="L109">    return java.util.Objects.equals(this.version, other.version);</span>
-  }
-
-  @Override
-  public String toString() {
-<span class="nc" id="L114">    return &quot;PackageInfo{&quot; + &quot;url=&quot; + url + &quot;, version=&quot; + version + '}';</span>
-  }
 
   @Nonnull
-  public static PackageInfo getPackageInfoDirect(@Nonnull final String className) {
+  public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class&lt;?&gt; aClass;
     try {
-<span class="fc" id="L121">      aClass = Class.forName(className);</span>
-<span class="fc" id="L122">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
-<span class="fc" id="L123">      return NONE;</span>
-<span class="fc" id="L124">    }</span>
-<span class="fc" id="L125">    return getPackageInfoDirect(aClass);</span>
+<span class="fc" id="L67">      aClass = Class.forName(className);</span>
+<span class="fc" id="L68">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
+<span class="fc" id="L69">      return NONE;</span>
+<span class="fc" id="L70">    }</span>
+<span class="fc" id="L71">    return getPackageInfoDirect(aClass);</span>
   }
 
   @Nonnull
-  public static PackageInfo getPackageInfoDirect(@Nonnull final Class&lt;?&gt; aClass) {
-<span class="fc" id="L130">    URL jarSourceUrl = getJarSourceUrl(aClass);</span>
-<span class="fc" id="L131">    final Package aPackage = aClass.getPackage();</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
-<span class="nc" id="L133">      return NONE;</span>
+  public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final Class&lt;?&gt; aClass) {
+<span class="fc" id="L76">    URL jarSourceUrl = getJarSourceUrl(aClass);</span>
+<span class="fc" id="L77">    final Package aPackage = aClass.getPackage();</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
+<span class="nc" id="L79">      return NONE;</span>
     }
-<span class="fc" id="L135">    String version = aPackage.getImplementationVersion();</span>
-<span class="fc bfc" id="L136" title="All 2 branches covered.">    return new PackageInfo(jarSourceUrl == null ? &quot;&quot; : jarSourceUrl.toString(), version);</span>
+<span class="fc" id="L81">    String version = aPackage.getImplementationVersion();</span>
+<span class="fc bfc" id="L82" title="All 4 branches covered.">    return new org.spf4j.base.avro.PackageInfo(jarSourceUrl == null ? &quot;&quot; : jarSourceUrl.toString(),</span>
+            version  == null ? &quot;&quot; : version);
   }
 
   @Nonnull
-  public static PackageInfo getPackageInfo(@Nonnull final String className) {
-<span class="fc" id="L141">    return CACHE.getUnchecked(className);</span>
+  public static org.spf4j.base.avro.PackageInfo getPackageInfo(@Nonnull final String className) {
+<span class="fc" id="L88">    return CACHE.getUnchecked(className);</span>
   }
   /**
    * Useful to get the jar URL where a particular class is located.
@@ -148,11 +95,11 @@ public final class PackageInfo implements Serializable {
    */
   @Nullable
   public static URL getJarSourceUrl(final Class&lt;?&gt; clasz) {
-<span class="fc" id="L151">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
-<span class="fc bfc" id="L152" title="All 2 branches covered.">    if (codeSource == null) {</span>
-<span class="fc" id="L153">      return null;</span>
+<span class="fc" id="L98">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    if (codeSource == null) {</span>
+<span class="fc" id="L100">      return null;</span>
     } else {
-<span class="fc" id="L155">      return codeSource.getLocation();</span>
+<span class="fc" id="L102">      return codeSource.getLocation();</span>
     }
   }
 

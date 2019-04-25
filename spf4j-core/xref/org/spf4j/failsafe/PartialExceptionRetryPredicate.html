@@ -32,7 +32,7 @@
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  @FunctionalInterface
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> PartialExceptionRetryPredicate&lt;T, C <strong class="jxr_keyword">extends</strong> Callable&lt;? <strong class="jxr_keyword">extends</strong> T&gt;&gt;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">extends</strong> PartialTypedExceptionRetryPredicate&lt;T, C, Exception&gt; {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">extends</strong> PartialTypedExceptionRetryPredicate&lt;T, C, Throwable&gt; {
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>    <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)</em>
@@ -42,29 +42,33 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>            <strong class="jxr_keyword">final</strong> Callables.AdvancedRetryPredicate&lt;Exception&gt; oldStyle) {
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> PartialExceptionRetryPredicate&lt;Object, Callable&lt;? <strong class="jxr_keyword">extends</strong> Object&gt;&gt;() {
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>        @Override
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>        <strong class="jxr_keyword">public</strong> org.spf4j.failsafe.RetryDecision getExceptionDecision(<strong class="jxr_keyword">final</strong> Exception value, <strong class="jxr_keyword">final</strong> Callable what) {
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>          Callables.AdvancedAction aa = oldStyle.apply(value);
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">switch</strong> (aa) {
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>            <strong class="jxr_keyword">case</strong> ABORT:
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>              <strong class="jxr_keyword">return</strong> org.spf4j.failsafe.RetryDecision.abort();
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>            <strong class="jxr_keyword">case</strong> RETRY:
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>            <strong class="jxr_keyword">case</strong> RETRY_DELAYED:
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>              <strong class="jxr_keyword">return</strong> org.spf4j.failsafe.RetryDecision.retryDefault(what);
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>            <strong class="jxr_keyword">case</strong> RETRY_IMMEDIATE:
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>              <strong class="jxr_keyword">return</strong> org.spf4j.failsafe.RetryDecision.retry(0, what);
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>            <strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Invalid enum value "</span> + aa);
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>          }
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>        }
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      };
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>    }
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>  
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  }
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>        <strong class="jxr_keyword">public</strong> org.spf4j.failsafe.RetryDecision getExceptionDecision(<strong class="jxr_keyword">final</strong> Throwable value, <strong class="jxr_keyword">final</strong> Callable what) {
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          <a href="../../../org/spf4j/base/Callables.html">RetryDecision</a> abort = org.spf4j.failsafe.RetryDecision.abort();
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">if</strong> (!(value instanceof Exception)) {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>            <strong class="jxr_keyword">return</strong> abort;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          }
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          Callables.AdvancedAction aa = oldStyle.apply((Exception) value);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">switch</strong> (aa) {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>            <strong class="jxr_keyword">case</strong> ABORT:
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>              <strong class="jxr_keyword">return</strong> abort;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>            <strong class="jxr_keyword">case</strong> RETRY:
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>            <strong class="jxr_keyword">case</strong> RETRY_DELAYED:
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              <strong class="jxr_keyword">return</strong> org.spf4j.failsafe.RetryDecision.retryDefault(what);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>            <strong class="jxr_keyword">case</strong> RETRY_IMMEDIATE:
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              <strong class="jxr_keyword">return</strong> org.spf4j.failsafe.RetryDecision.retry(0, what);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>            <strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Invalid enum value "</span> + aa);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>        }
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      };
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>    }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

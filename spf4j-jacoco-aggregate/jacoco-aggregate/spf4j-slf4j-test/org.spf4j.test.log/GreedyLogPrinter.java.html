@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.spf4j.log.Level;
 
 /**
  * A Greedy log printer.
@@ -28,28 +29,28 @@ public final class GreedyLogPrinter implements LogHandler {
 
   private final LogPrinter handler;
 
-<span class="fc" id="L31">  public GreedyLogPrinter(final LogPrinter handler) {</span>
-<span class="fc" id="L32">    this.handler = handler;</span>
-<span class="fc" id="L33">  }</span>
+<span class="fc" id="L32">  public GreedyLogPrinter(final LogPrinter handler) {</span>
+<span class="fc" id="L33">    this.handler = handler;</span>
+<span class="fc" id="L34">  }</span>
 
   @Override
   public Handling handles(final Level level) {
-<span class="fc" id="L37">      return Handling.HANDLE_PASS;</span>
+<span class="fc" id="L38">      return Handling.HANDLE_PASS;</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;)
-  public LogRecord handle(final LogRecord record) {
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">    if (handler.handles(record.getLevel()) != Handling.NONE) {</span>
-<span class="nc" id="L44">      return handler.handle(record);</span>
+  public TestLogRecord handle(final TestLogRecord record) {
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">    if (handler.handles(record.getLevel()) != Handling.NONE) {</span>
+<span class="nc" id="L45">      return handler.handle(record);</span>
     }
-<span class="fc" id="L46">    record.attach(Attachments.DO_NOT_PRINT);</span>
-<span class="fc" id="L47">    return record;</span>
+<span class="fc" id="L47">    record.attach(Attachments.DO_NOT_PRINT);</span>
+<span class="fc" id="L48">    return record;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L52">    return &quot;GreedyLogPrinter{&quot; + &quot;handler=&quot; + handler + '}';</span>
+<span class="fc" id="L53">    return &quot;GreedyLogPrinter{&quot; + &quot;handler=&quot; + handler + '}';</span>
   }
 
 }

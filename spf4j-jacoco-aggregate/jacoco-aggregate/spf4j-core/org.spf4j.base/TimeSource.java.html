@@ -33,19 +33,20 @@ public final class TimeSource {
 <span class="fc" id="L33">      TIMESUPP = () -&gt; System.nanoTime();</span>
 <span class="pc bpc" id="L34" title="1 of 2 branches missed.">    } else if (&quot;systemTime&quot;.equals(cfgTimeSource)) {</span>
       // System time is about 3 times faster on macOSX (30ns vs 10ns):
-      // and worth considerign is more than millisecond precission is not needed:
+      // and worth considering where more than millisecond precission is not needed:
+      // JMH benchmarks:
       // TimingBenchmark.getCurrentTimeMillis         thrpt   10  108291306.615 ± 3493136.191  ops/s
       // TimingBenchmark.getNanoTime                  thrpt   10  31056232.360 ± 1804247.295  ops/s
-<span class="nc" id="L39">      TIMESUPP = new SystemTimeProvider();</span>
+<span class="nc" id="L40">      TIMESUPP = new SystemTimeProvider();</span>
     } else {
       try {
-<span class="fc" id="L42">        TIMESUPP = (LongSupplier) Class.forName(cfgTimeSource).newInstance();</span>
-<span class="nc" id="L43">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
-<span class="nc" id="L44">        throw new ExceptionInInitializerError(ex);</span>
-<span class="fc" id="L45">      }</span>
+<span class="fc" id="L43">        TIMESUPP = (LongSupplier) Class.forName(cfgTimeSource).newInstance();</span>
+<span class="nc" id="L44">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L45">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L46">      }</span>
     }
 
-<span class="fc" id="L48">  }</span>
+<span class="fc" id="L49">  }</span>
 
   private TimeSource() { }
 
@@ -55,49 +56,49 @@ public final class TimeSource {
    * @return
    */
   public static long nanoTime() {
-<span class="fc" id="L58">    return TIMESUPP.getAsLong();</span>
+<span class="fc" id="L59">    return TIMESUPP.getAsLong();</span>
   }
 
   public static LongSupplier nanoTimeSupplier() {
-<span class="fc" id="L62">    return TIMESUPP;</span>
+<span class="fc" id="L63">    return TIMESUPP;</span>
   }
 
   public static long getDeadlineNanos(final long timeout, final TimeUnit timeUnit) {
-<span class="pc bpc" id="L66" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
-<span class="nc" id="L67">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + &quot; &quot; + timeUnit);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L68">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + &quot; &quot; + timeUnit);</span>
     }
-<span class="fc" id="L69">    return nanoTime() + timeUnit.toNanos(timeout);</span>
+<span class="fc" id="L70">    return nanoTime() + timeUnit.toNanos(timeout);</span>
   }
 
   public static long getDeadlineNanos(final long currentTimeNanos, final long timeout, final TimeUnit timeUnit) {
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
-<span class="nc" id="L74">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + &quot; &quot; + timeUnit);</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L75">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + &quot; &quot; + timeUnit);</span>
     }
-<span class="fc" id="L76">    return currentTimeNanos + timeUnit.toNanos(timeout);</span>
+<span class="fc" id="L77">    return currentTimeNanos + timeUnit.toNanos(timeout);</span>
   }
 
 
   public static long getTimeToDeadlineStrict(final long deadlineNanos, final TimeUnit timeUnit)
           throws TimeoutException {
-<span class="nc" id="L82">    long timeoutNanos = deadlineNanos - nanoTime();</span>
-<span class="nc bnc" id="L83" title="All 2 branches missed.">    if (timeoutNanos &lt; 0) {</span>
-<span class="nc" id="L84">      throw new TimeoutException(&quot;Exceeded deadline &quot; + deadlineNanos + &quot; with &quot; + (-timeoutNanos));</span>
+<span class="nc" id="L83">    long timeoutNanos = deadlineNanos - nanoTime();</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    if (timeoutNanos &lt; 0) {</span>
+<span class="nc" id="L85">      throw new TimeoutException(&quot;Exceeded deadline &quot; + deadlineNanos + &quot; with &quot; + (-timeoutNanos));</span>
     }
-<span class="nc" id="L86">    return timeUnit.convert(timeoutNanos, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L87">    return timeUnit.convert(timeoutNanos, TimeUnit.NANOSECONDS);</span>
   }
 
   public static long getTimeToDeadline(final long deadlineNanos, final TimeUnit timeUnit) {
-<span class="fc" id="L90">    long timeoutNanos = deadlineNanos - nanoTime();</span>
-<span class="fc" id="L91">    return timeUnit.convert(timeoutNanos, TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L91">    long timeoutNanos = deadlineNanos - nanoTime();</span>
+<span class="fc" id="L92">    return timeUnit.convert(timeoutNanos, TimeUnit.NANOSECONDS);</span>
   }
 
   private static final class SystemTimeProvider implements LongSupplier {
 
-<span class="nc" id="L96">    private static final long LOCAL_EPOCH = System.currentTimeMillis();</span>
+<span class="nc" id="L97">    private static final long LOCAL_EPOCH = System.currentTimeMillis();</span>
 
     @Override
     public long getAsLong() {
-<span class="nc" id="L100">      return TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis() - LOCAL_EPOCH);</span>
+<span class="nc" id="L101">      return TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis() - LOCAL_EPOCH);</span>
     }
 
   }

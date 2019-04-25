@@ -16,13 +16,15 @@
 package org.spf4j.test.matchers;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.slf4j.Marker;
-import org.spf4j.test.log.Level;
-import org.spf4j.test.log.LogRecord;
+import org.spf4j.log.Level;
+import org.spf4j.test.log.TestLogRecord;
 
 /**
  * Utility class to create LogRecord matchers.
@@ -32,121 +34,169 @@ public final class LogMatchers {
 
   private LogMatchers() { }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingFormat(final Matcher&lt;String&gt; tMatcher) {
-<span class="fc" id="L36">    return Matchers.hasProperty(&quot;format&quot;, tMatcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingFormat(final Matcher&lt;String&gt; tMatcher) {
+<span class="fc" id="L38">    return Matchers.hasProperty(&quot;messageFormat&quot;, tMatcher);</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasFormat(final String format) {
-<span class="fc" id="L40">    return Matchers.hasProperty(&quot;format&quot;, Matchers.equalTo(format));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasFormat(final String format) {
+<span class="fc" id="L42">    return Matchers.hasProperty(&quot;messageFormat&quot;, Matchers.equalTo(format));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasFormatWithPattern(final String formatPattern) {
-<span class="nc" id="L44">    return Matchers.hasProperty(&quot;format&quot;, PatternMatcher.matchesPattern(formatPattern));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasFormatWithPattern(final String formatPattern) {
+<span class="nc" id="L46">    return Matchers.hasProperty(&quot;messageFormat&quot;, PatternMatcher.matchesPattern(formatPattern));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingMarker(final Matcher&lt;Marker&gt; tMatcher) {
-<span class="nc" id="L48">    return Matchers.hasProperty(&quot;marker&quot;, tMatcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingMarker(final Matcher&lt;Marker&gt; tMatcher) {
+<span class="nc" id="L50">    return Matchers.hasProperty(&quot;marker&quot;, tMatcher);</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMarker(final Marker marker) {
-<span class="fc" id="L52">    return Matchers.hasProperty(&quot;marker&quot;, Matchers.equalTo(marker));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMarker(final Marker marker) {
+<span class="fc" id="L54">    return Matchers.hasProperty(&quot;marker&quot;, Matchers.equalTo(marker));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingMessage(final Matcher&lt;String&gt; tMatcher) {
-<span class="fc" id="L56">    return Matchers.hasProperty(&quot;message&quot;, tMatcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingMessage(final Matcher&lt;String&gt; tMatcher) {
+<span class="fc" id="L58">    return Matchers.hasProperty(&quot;message&quot;, tMatcher);</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMessage(final String message) {
-<span class="nc" id="L60">    return Matchers.hasProperty(&quot;message&quot;, Matchers.equalTo(message));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMessage(final String message) {
+<span class="fc" id="L62">    return Matchers.hasProperty(&quot;message&quot;, Matchers.equalTo(message));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMessageWithPattern(final String messagePattern) {
-<span class="fc" id="L64">    return Matchers.hasProperty(&quot;message&quot;, PatternMatcher.matchesPattern(messagePattern));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMessageWithPattern(final String messagePattern) {
+<span class="fc" id="L66">    return Matchers.hasProperty(&quot;message&quot;, PatternMatcher.matchesPattern(messagePattern));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasLevel(final Level level) {
-<span class="fc" id="L68">    return Matchers.hasProperty(&quot;level&quot;, Matchers.equalTo(level));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasLevel(final Level level) {
+<span class="fc" id="L70">    return Matchers.hasProperty(&quot;level&quot;, Matchers.equalTo(level));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingArguments(final Matcher&lt;Object[]&gt; matcher) {
-<span class="nc" id="L72">     return Matchers.hasProperty(&quot;arguments&quot;, matcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasNotLoggers(final Set&lt;String&gt; loggers) {
+<span class="fc" id="L74">    Iterable&lt;Matcher&lt;String&gt;&gt; matchers = loggers.stream()</span>
+<span class="fc" id="L75">            .map((x)  -&gt; Matchers.equalTo(x)).collect(Collectors.toList());</span>
+<span class="fc" id="L76">    return Matchers.not(Matchers.hasProperty(&quot;loggerName&quot;, Matchers.anyOf((Iterable) matchers)));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasArguments(final Object... objects) {
-<span class="nc" id="L76">     return Matchers.hasProperty(&quot;arguments&quot;, Matchers.arrayContaining(objects));</span>
+  
+
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingArguments(final Matcher&lt;Object[]&gt; matcher) {
+<span class="fc" id="L82">     return Matchers.hasProperty(&quot;arguments&quot;, matcher);</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasArgumentAt(final int idx, final Object object) {
-<span class="nc" id="L80">     return Matchers.hasProperty(&quot;arguments&quot;, new BaseMatcher&lt;LogRecord&gt;() {</span>
+  public static Matcher&lt;TestLogRecord&gt; hasArguments(final Object... objects) {
+<span class="nc" id="L86">     return Matchers.hasProperty(&quot;arguments&quot;, Matchers.arrayContaining(objects));</span>
+  }
+
+  public static Matcher&lt;TestLogRecord&gt; hasArgumentAt(final int idx, final Object object) {
+<span class="nc" id="L90">     return new BaseMatcher&lt;TestLogRecord&gt;() {</span>
        @Override
        public boolean matches(final Object item) {
-<span class="nc bnc" id="L83" title="All 2 branches missed.">         if (item instanceof LogRecord) {</span>
-<span class="nc" id="L84">           LogRecord lr = (LogRecord) item;</span>
-<span class="nc" id="L85">           Object[] arguments = lr.getArguments();</span>
-<span class="nc bnc" id="L86" title="All 4 branches missed.">           return idx &lt; arguments.length &amp;&amp; Objects.equals(arguments[idx], object);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">         if (item instanceof TestLogRecord) {</span>
+<span class="nc" id="L94">           TestLogRecord lr = (TestLogRecord) item;</span>
+<span class="nc" id="L95">           Object[] arguments = lr.getArguments();</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">           return idx &lt; arguments.length &amp;&amp; Objects.equals(arguments[idx], object);</span>
          } else {
-<span class="nc" id="L88">           return false;</span>
+<span class="nc" id="L98">           return false;</span>
          }
        }
 
        @Override
        public void describeTo(final Description description) {
-<span class="nc" id="L94">         description.appendText(&quot;Message argument [&quot;).appendValue(idx).appendText(&quot;] is &quot;).appendValue(object);</span>
-<span class="nc" id="L95">       }</span>
-     });
+<span class="nc" id="L104">         description.appendText(&quot;Message argument [&quot;).appendValue(idx).appendText(&quot;] is &quot;).appendValue(object);</span>
+<span class="nc" id="L105">       }</span>
+     };
   }
 
-  public static Matcher&lt;LogRecord&gt; hasAttachment(final String attachment) {
-<span class="fc" id="L100">     return Matchers.hasProperty(&quot;attachments&quot;, Matchers.hasItem(attachment));</span>
-  }
-
-  public static Matcher&lt;LogRecord&gt; noAttachment(final String attachment) {
-<span class="fc" id="L104">     return Matchers.not(Matchers.hasProperty(&quot;attachments&quot;, Matchers.hasItem(attachment)));</span>
-  }
-
-  public static Matcher&lt;LogRecord&gt; hasMatchingArguments(final Object objects) {
-<span class="nc" id="L108">     return Matchers.hasProperty(&quot;arguments&quot;, Matchers.arrayContaining(objects));</span>
-  }
-
-  public static Matcher&lt;LogRecord&gt; hasExtraArguments(final Object... objects) {
-<span class="fc" id="L112">     return Matchers.hasProperty(&quot;extraArguments&quot;, Matchers.arrayContaining(objects));</span>
-  }
-
-    public static Matcher&lt;LogRecord&gt; hasExtraArgumentAt(final int idx, final Object object) {
-<span class="nc" id="L116">     return Matchers.hasProperty(&quot;extraArguments&quot;, new BaseMatcher&lt;LogRecord&gt;() {</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingArgumentAt(final int idx, final Matcher&lt;Object&gt; matcher) {
+<span class="nc" id="L110">     return new BaseMatcher&lt;TestLogRecord&gt;() {</span>
        @Override
        public boolean matches(final Object item) {
-<span class="nc bnc" id="L119" title="All 2 branches missed.">         if (item instanceof LogRecord) {</span>
-<span class="nc" id="L120">           LogRecord lr = (LogRecord) item;</span>
-<span class="nc" id="L121">           Object[] arguments = lr.getExtraArguments();</span>
-<span class="nc bnc" id="L122" title="All 4 branches missed.">           return idx &lt; arguments.length &amp;&amp; Objects.equals(arguments[idx], object);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">         if (item instanceof TestLogRecord) {</span>
+<span class="nc" id="L114">           TestLogRecord lr = (TestLogRecord) item;</span>
+<span class="nc" id="L115">           Object[] arguments = lr.getArguments();</span>
+<span class="nc bnc" id="L116" title="All 4 branches missed.">           return idx &lt; arguments.length &amp;&amp; matcher.matches(arguments[idx]);</span>
          } else {
-<span class="nc" id="L124">           return false;</span>
+<span class="nc" id="L118">           return false;</span>
          }
        }
 
        @Override
        public void describeTo(final Description description) {
-<span class="nc" id="L130">         description.appendText(&quot;Log extra argument [&quot;).appendValue(idx).appendText(&quot;] is &quot;).appendValue(object);</span>
-<span class="nc" id="L131">       }</span>
-     });
+<span class="nc" id="L124">         description.appendText(&quot;Message argument [&quot;).appendValue(idx).appendText(&quot;] matches &quot;);</span>
+<span class="nc" id="L125">         matcher.describeTo(description);</span>
+<span class="nc" id="L126">       }</span>
+     };
+  }
+
+  public static Matcher&lt;TestLogRecord&gt; hasAttachment(final String attachment) {
+<span class="fc" id="L131">     return Matchers.hasProperty(&quot;attachments&quot;, Matchers.hasItem(attachment));</span>
+  }
+
+  public static Matcher&lt;TestLogRecord&gt; noAttachment(final String attachment) {
+<span class="fc" id="L135">     return Matchers.not(Matchers.hasProperty(&quot;attachments&quot;, Matchers.hasItem(attachment)));</span>
+  }
+
+  public static Matcher&lt;TestLogRecord&gt; hasExtraArguments(final Object... objects) {
+<span class="fc" id="L139">     return Matchers.hasProperty(&quot;extraArguments&quot;, Matchers.arrayContaining(objects));</span>
+  }
+
+    public static Matcher&lt;TestLogRecord&gt; hasExtraArgumentAt(final int idx, final Object object) {
+<span class="nc" id="L143">     return new BaseMatcher&lt;TestLogRecord&gt;() {</span>
+       @Override
+       public boolean matches(final Object item) {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">         if (item instanceof TestLogRecord) {</span>
+<span class="nc" id="L147">           TestLogRecord lr = (TestLogRecord) item;</span>
+<span class="nc" id="L148">           Object[] arguments = lr.getExtraArguments();</span>
+<span class="nc bnc" id="L149" title="All 4 branches missed.">           return idx &lt; arguments.length &amp;&amp; Objects.equals(arguments[idx], object);</span>
+         } else {
+<span class="nc" id="L151">           return false;</span>
+         }
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+<span class="nc" id="L157">         description.appendText(&quot;Log extra argument [&quot;).appendValue(idx).appendText(&quot;] is &quot;).appendValue(object);</span>
+<span class="nc" id="L158">       }</span>
+     };
+  }
+
+    public static Matcher&lt;TestLogRecord&gt; hasExtraArgument(final Object object) {
+<span class="fc" id="L163">     return new BaseMatcher&lt;TestLogRecord&gt;() {</span>
+       @Override
+       public boolean matches(final Object item) {
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">         if (item instanceof TestLogRecord) {</span>
+<span class="fc" id="L167">           TestLogRecord lr = (TestLogRecord) item;</span>
+<span class="fc" id="L168">           Object[] arguments = lr.getExtraArguments();</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">           for (Object arg : arguments) {</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">             if (Objects.equals(arg, object)) {</span>
+<span class="fc" id="L171">               return true;</span>
+             }
+           }
+         }
+<span class="nc" id="L175">         return false;</span>
+       }
+
+       @Override
+       public void describeTo(final Description description) {
+<span class="nc" id="L180">         description.appendText(&quot;Log extra argument is &quot;).appendValue(object);</span>
+<span class="nc" id="L181">       }</span>
+     };
   }
 
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingExtraArgumentsContaining(final Matcher&lt;Object&gt;... matcher) {
-<span class="nc" id="L137">     return Matchers.hasProperty(&quot;extraArguments&quot;, Matchers.arrayContaining(matcher));</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingExtraArgumentsContaining(final Matcher&lt;Object&gt;... matcher) {
+<span class="nc" id="L187">     return Matchers.hasProperty(&quot;extraArguments&quot;, Matchers.arrayContaining(matcher));</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingExtraArguments(final Matcher&lt;Object[]&gt; matcher) {
-<span class="fc" id="L141">     return Matchers.hasProperty(&quot;extraArguments&quot;, matcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingExtraArguments(final Matcher&lt;Object[]&gt; matcher) {
+<span class="fc" id="L191">     return Matchers.hasProperty(&quot;extraArguments&quot;, matcher);</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingExtraThrowable(final Matcher&lt;Throwable&gt; matcher) {
-<span class="nc" id="L145">     return Matchers.hasProperty(&quot;extraThrowable&quot;, matcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingExtraThrowable(final Matcher&lt;Throwable&gt; matcher) {
+<span class="fc" id="L195">     return Matchers.hasProperty(&quot;extraThrowable&quot;, matcher);</span>
   }
 
-  public static Matcher&lt;LogRecord&gt; hasMatchingExtraThrowableChain(final Matcher&lt;Iterable&lt;Throwable&gt;&gt; matcher) {
-<span class="nc" id="L149">     return Matchers.hasProperty(&quot;extraThrowableChain&quot;, matcher);</span>
+  public static Matcher&lt;TestLogRecord&gt; hasMatchingExtraThrowableChain(final Matcher&lt;Iterable&lt;Throwable&gt;&gt; matcher) {
+<span class="nc" id="L199">     return Matchers.hasProperty(&quot;extraThrowableChain&quot;, matcher);</span>
   }
 
 }

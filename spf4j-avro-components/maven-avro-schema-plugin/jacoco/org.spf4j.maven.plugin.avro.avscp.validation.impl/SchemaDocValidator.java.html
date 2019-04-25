@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaDocValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.10-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp.validation.impl</a> &gt; <span class="el_source">SchemaDocValidator.java</span></div><h1>SchemaDocValidator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.maven.plugin.avro.avscp.validation.impl;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.spf4j.avro.schema.SchemaVisitor;
+import org.spf4j.avro.schema.SchemaVisitorAction;
+import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
+import org.spf4j.avro.schema.Schemas;
+import org.spf4j.base.CharSequences;
+import org.spf4j.maven.plugin.avro.avscp.ValidatorMojo;
+import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
+
+/**
+ * Validates schema documentation fields are not empty for:
+ * Records, Fixed, Enum, Record Fields.
+ * &lt;p&gt; Additionally for record fields of union type where one type is null, the doc is validated for the
+ * presence of the &quot;null&quot; string, with the expectation that  the documentation contains a explanation on what
+ * in means. &lt;/p&gt;
+ *
+ * @author Zoltan Farkas
+ */
+<span class="nc" id="L42">public final class SchemaDocValidator implements Validator&lt;Schema&gt; {</span>
+
+  @Override
+  public String getName() {
+<span class="nc" id="L46">    return &quot;docValidator&quot;;</span>
+  }
+
+  @Override
+  @Nonnull
+  @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;) // not in this case
+  public Result validate(final Schema schema, final ValidatorMojo mojo) {
+<span class="nc" id="L53">    return Schemas.visit(schema, new DocValidatorVisitor(schema));</span>
+  }
+
+  @Nullable
+  private static Schema.Type getCollectionType(final Schema unionSchema) {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">    for (Schema schema : unionSchema.getTypes()) {</span>
+<span class="nc" id="L59">      Schema.Type type = schema.getType();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      switch (type) {</span>
+        case ARRAY:
+        case MAP:
+        case STRING:
+<span class="nc" id="L64">          return type;</span>
+        default:
+        // skip
+      }
+<span class="nc" id="L68">    }</span>
+<span class="nc" id="L69">    return null;</span>
+  }
+
+  @Override
+  public Class&lt;Schema&gt; getValidationInput() {
+<span class="nc" id="L74">    return Schema.class;</span>
+  }
+
+  private static class DocValidatorVisitor implements SchemaVisitor&lt;Result&gt; {
+
+    private final List&lt;String&gt; issues;
+
+    private final Schema root;
+
+<span class="nc" id="L83">    DocValidatorVisitor(final Schema root) {</span>
+<span class="nc" id="L84">      issues = new ArrayList&lt;&gt;(4);</span>
+<span class="nc" id="L85">      this.root = root;</span>
+<span class="nc" id="L86">    }</span>
+
+    @Override
+    public SchemaVisitorAction visitTerminal(final Schema schema) {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">      switch (schema.getType()) {</span>
+        case ENUM:
+        case FIXED:
+<span class="nc" id="L93">          String doc = schema.getDoc();</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">          if (doc == null || doc.trim().isEmpty()) {</span>
+<span class="nc" id="L95">            issues.add(&quot;Please document &quot; + schema.getFullName());</span>
+          }
+          break;
+        default:
+      }
+<span class="nc" id="L100">      return SchemaVisitorAction.CONTINUE;</span>
+    }
+
+    @Override
+    public SchemaVisitorAction visitNonTerminal(final Schema schema) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">      if (schema.getType() == Schema.Type.RECORD) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (Validators.skipValidator(schema, &quot;docValidator&quot;)) {</span>
+<span class="nc" id="L107">          return SchemaVisitorAction.CONTINUE;</span>
+        }
+<span class="nc" id="L109">        String doc = schema.getDoc();</span>
+<span class="nc bnc" id="L110" title="All 4 branches missed.">        if (doc == null || doc.trim().isEmpty()) {</span>
+<span class="nc" id="L111">          issues.add(&quot;Please document &quot; + schema.getFullName());</span>
+        }
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        for (Field field : schema.getFields()) {</span>
+<span class="nc" id="L114">          doc = field.doc();</span>
+<span class="nc bnc" id="L115" title="All 4 branches missed.">          if (doc == null || doc.trim().isEmpty()) {</span>
+<span class="nc" id="L116">            String errText = &quot;Please document &quot; + field.name() + '@' + schema.getFullName();</span>
+<span class="nc" id="L117">            String source = schema.getProp(&quot;sourceIdl&quot;);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            if (source != null) {</span>
+<span class="nc" id="L119">              errText += &quot; from &quot; + source;</span>
+            }
+<span class="nc" id="L121">            issues.add(errText);</span>
+<span class="nc" id="L122">          } else {</span>
+<span class="nc" id="L123">            Schema fs = field.schema();</span>
+<span class="nc bnc" id="L124" title="All 4 branches missed.">            if (Schemas.isNullableUnion(fs) &amp;&amp; !CharSequences.containsIgnoreCase(doc, &quot;null&quot;)) {</span>
+<span class="nc" id="L125">              String issue = &quot;please document the meaning of null for field &quot; + field.name() + '@'</span>
+<span class="nc" id="L126">                      + schema.getFullName();</span>
+<span class="nc" id="L127">              String source = schema.getProp(&quot;sourceIdl&quot;);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">              if (source != null) {</span>
+<span class="nc" id="L129">                issue += &quot; from &quot; + source;</span>
+              }
+<span class="nc" id="L131">              Schema.Type collectionType = getCollectionType(fs);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">              if (collectionType != null) {</span>
+<span class="nc" id="L133">                issue += &quot; and explain how its meaning is different from empty &quot; + collectionType;</span>
+              }
+<span class="nc" id="L135">              issues.add(issue);</span>
+            }
+          }
+
+<span class="nc" id="L139">        }</span>
+      }
+<span class="nc" id="L141">      return SchemaVisitorAction.CONTINUE;</span>
+    }
+
+    @Override
+    public SchemaVisitorAction afterVisitNonTerminal(final Schema nonTerminal) {
+<span class="nc" id="L146">      return SchemaVisitorAction.CONTINUE;</span>
+    }
+
+    @Override
+    @Nonnull
+    public Result get() {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">      return issues.isEmpty() ? Result.valid()</span>
+<span class="nc" id="L153">              : Result.failed(&quot;Schema &quot; + root.getFullName() + &quot; doc issues:\n&quot; + String.join(&quot;\n&quot;, issues));</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

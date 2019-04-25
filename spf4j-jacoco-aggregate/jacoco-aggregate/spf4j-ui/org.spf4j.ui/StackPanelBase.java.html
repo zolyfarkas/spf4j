@@ -58,8 +58,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ToolTipManager;
-import org.spf4j.base.Method;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 import org.spf4j.ds.RTree;
 import org.spf4j.stackmonitor.SampleNode;
 

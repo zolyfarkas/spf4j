@@ -22,6 +22,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +33,13 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
+import org.apache.avro.Schema;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.avro.StackSampleElement;
+import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -49,13 +57,13 @@ public class TextEntryPanel extends javax.swing.JPanel {
    * Creates new form TextEntryPanel
    */
   public TextEntryPanel(final Consumer&lt;SampleNode&gt; nodeConsumer,
-<span class="nc" id="L52">          final Consumer&lt;Exception&gt; errorConsumer) {</span>
-<span class="nc" id="L53">    initComponents();</span>
-<span class="nc" id="L54">    this.nodeConsumer = nodeConsumer;</span>
-<span class="nc" id="L55">    this.errorConsumer = errorConsumer;</span>
-<span class="nc" id="L56">    TextTransferHandler th = new TextTransferHandler();</span>
-<span class="nc" id="L57">    jTextPane1.setTransferHandler(th);</span>
-<span class="nc" id="L58">  }</span>
+<span class="nc" id="L60">          final Consumer&lt;Exception&gt; errorConsumer) {</span>
+<span class="nc" id="L61">    initComponents();</span>
+<span class="nc" id="L62">    this.nodeConsumer = nodeConsumer;</span>
+<span class="nc" id="L63">    this.errorConsumer = errorConsumer;</span>
+<span class="nc" id="L64">    TextTransferHandler th = new TextTransferHandler();</span>
+<span class="nc" id="L65">    jTextPane1.setTransferHandler(th);</span>
+<span class="nc" id="L66">  }</span>
 
   /**
    * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
@@ -65,54 +73,68 @@ public class TextEntryPanel extends javax.swing.JPanel {
   // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
   private void initComponents() {
 
-<span class="nc" id="L68">    jScrollPane1 = new javax.swing.JScrollPane();</span>
-<span class="nc" id="L69">    jTextPane1 = new javax.swing.JTextPane();</span>
-<span class="nc" id="L70">    javax.swing.JButton display = new javax.swing.JButton();</span>
+<span class="nc" id="L76">    jScrollPane1 = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L77">    jTextPane1 = new javax.swing.JTextPane();</span>
+<span class="nc" id="L78">    javax.swing.JButton display = new javax.swing.JButton();</span>
 
-<span class="nc" id="L72">    jTextPane1.setName(&quot;textBox&quot;); // NOI18N</span>
-<span class="nc" id="L73">    jTextPane1.setOpaque(false);</span>
-<span class="nc" id="L74">    jTextPane1.setRequestFocusEnabled(false);</span>
-<span class="nc" id="L75">    jScrollPane1.setViewportView(jTextPane1);</span>
+<span class="nc" id="L80">    jTextPane1.setName(&quot;textBox&quot;); // NOI18N</span>
+<span class="nc" id="L81">    jTextPane1.setOpaque(false);</span>
+<span class="nc" id="L82">    jTextPane1.setRequestFocusEnabled(false);</span>
+<span class="nc" id="L83">    jScrollPane1.setViewportView(jTextPane1);</span>
 
-<span class="nc" id="L77">    display.setText(&quot;Display&quot;);</span>
-<span class="nc" id="L78">    display.setName(&quot;display&quot;); // NOI18N</span>
-<span class="nc" id="L79">    display.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L85">    display.setText(&quot;Display&quot;);</span>
+<span class="nc" id="L86">    display.setName(&quot;display&quot;); // NOI18N</span>
+<span class="nc" id="L87">    display.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L81">        displayActionPerformed(evt);</span>
-<span class="nc" id="L82">      }</span>
+<span class="nc" id="L89">        displayActionPerformed(evt);</span>
+<span class="nc" id="L90">      }</span>
     });
 
-<span class="nc" id="L85">    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);</span>
-<span class="nc" id="L86">    this.setLayout(layout);</span>
-<span class="nc" id="L87">    layout.setHorizontalGroup(</span>
-<span class="nc" id="L88">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
-<span class="nc" id="L89">      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()</span>
-<span class="nc" id="L90">        .addComponent(jScrollPane1)</span>
-<span class="nc" id="L91">        .addContainerGap())</span>
-<span class="nc" id="L92">      .addGroup(layout.createSequentialGroup()</span>
-<span class="nc" id="L93">        .addGap(152, 152, 152)</span>
-<span class="nc" id="L94">        .addComponent(display)</span>
-<span class="nc" id="L95">        .addContainerGap(186, Short.MAX_VALUE))</span>
+<span class="nc" id="L93">    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);</span>
+<span class="nc" id="L94">    this.setLayout(layout);</span>
+<span class="nc" id="L95">    layout.setHorizontalGroup(</span>
+<span class="nc" id="L96">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
+<span class="nc" id="L97">      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()</span>
+<span class="nc" id="L98">        .addComponent(jScrollPane1)</span>
+<span class="nc" id="L99">        .addContainerGap())</span>
+<span class="nc" id="L100">      .addGroup(layout.createSequentialGroup()</span>
+<span class="nc" id="L101">        .addGap(152, 152, 152)</span>
+<span class="nc" id="L102">        .addComponent(display)</span>
+<span class="nc" id="L103">        .addContainerGap(186, Short.MAX_VALUE))</span>
     );
-<span class="nc" id="L97">    layout.setVerticalGroup(</span>
-<span class="nc" id="L98">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
-<span class="nc" id="L99">      .addGroup(layout.createSequentialGroup()</span>
-<span class="nc" id="L100">        .addContainerGap()</span>
-<span class="nc" id="L101">        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)</span>
-<span class="nc" id="L102">        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
-<span class="nc" id="L103">        .addComponent(display)</span>
-<span class="nc" id="L104">        .addContainerGap())</span>
+<span class="nc" id="L105">    layout.setVerticalGroup(</span>
+<span class="nc" id="L106">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
+<span class="nc" id="L107">      .addGroup(layout.createSequentialGroup()</span>
+<span class="nc" id="L108">        .addContainerGap()</span>
+<span class="nc" id="L109">        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L110">        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
+<span class="nc" id="L111">        .addComponent(display)</span>
+<span class="nc" id="L112">        .addContainerGap())</span>
     );
-<span class="nc" id="L106">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+<span class="nc" id="L114">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
 
   @SuppressFBWarnings(&quot;UP_UNUSED_PARAMETER&quot;)
   private void displayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayActionPerformed
     try {
-<span class="nc" id="L111">      nodeConsumer.accept(SampleNode.parse(new StringReader(jTextPane1.getText())).getSecond());</span>
-<span class="nc" id="L112">    } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L113">      errorConsumer.accept(ex);</span>
-<span class="nc" id="L114">    }</span>
-<span class="nc" id="L115">  }//GEN-LAST:event_displayActionPerformed</span>
+<span class="nc" id="L119">      String text = jTextPane1.getText().trim();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">      if (text.startsWith(&quot;[&quot;)) {</span>
+<span class="nc" id="L121">        Schema schema = Schema.createArray(StackSampleElement.getClassSchema());</span>
+<span class="nc" id="L122">        DatumReader reader = new SpecificDatumReader(schema);</span>
+        List&lt;StackSampleElement&gt; samples;
+        try {
+<span class="nc" id="L125">          Decoder decoder = DecoderFactory.get().jsonDecoder(schema, text);</span>
+<span class="nc" id="L126">          samples = (List&lt;StackSampleElement&gt;) reader.read(null, decoder);</span>
+<span class="nc" id="L127">        } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L128">          throw new RuntimeException(&quot;Unable to read samples: &quot; + text, ex);</span>
+<span class="nc" id="L129">        }</span>
+<span class="nc" id="L130">        nodeConsumer.accept(Converter.convert(samples.iterator()));</span>
+<span class="nc" id="L131">      } else {</span>
+<span class="nc" id="L132">        nodeConsumer.accept(SampleNode.parse(new StringReader(text)).getSecond());</span>
+      }
+<span class="nc" id="L134">    } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L135">      errorConsumer.accept(ex);</span>
+<span class="nc" id="L136">    }</span>
+<span class="nc" id="L137">  }//GEN-LAST:event_displayActionPerformed</span>
 
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -120,35 +142,35 @@ public class TextEntryPanel extends javax.swing.JPanel {
   private javax.swing.JTextPane jTextPane1;
   // End of variables declaration//GEN-END:variables
 
-<span class="nc" id="L123">  private static final class TextTransferHandler extends TransferHandler {</span>
+<span class="nc" id="L145">  private static final class TextTransferHandler extends TransferHandler {</span>
     // Start and end position in the source text.
     // We need this information when performing a MOVE
     // in order to remove the dragged text from the source.
 
-<span class="nc" id="L128">    Position p0 = null, p1 = null;</span>
+<span class="nc" id="L150">    Position p0 = null, p1 = null;</span>
 
     /**
      * Perform the actual import. This method supports both drag and drop and cut/copy/paste.
      */
     public boolean importData(TransferHandler.TransferSupport support) {
       // If we can't handle the import, bail now.
-<span class="nc bnc" id="L135" title="All 2 branches missed.">      if (!canImport(support)) {</span>
-<span class="nc" id="L136">        return false;</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">      if (!canImport(support)) {</span>
+<span class="nc" id="L158">        return false;</span>
       }
 
       // Fetch the data -- bail if this fails
       String data;
       try {
-<span class="nc" id="L142">        data = (String) support.getTransferable().getTransferData(</span>
+<span class="nc" id="L164">        data = (String) support.getTransferable().getTransferData(</span>
                 DataFlavor.stringFlavor);
-<span class="nc" id="L144">      } catch (UnsupportedFlavorException | IOException e) {</span>
-<span class="nc" id="L145">        Logger.getLogger(TextEntryPanel.class.getName()).log(Level.WARNING, &quot;Exception encountered&quot;, e);</span>
-<span class="nc" id="L146">        return false;</span>
-<span class="nc" id="L147">      }</span>
+<span class="nc" id="L166">      } catch (UnsupportedFlavorException | IOException e) {</span>
+<span class="nc" id="L167">        Logger.getLogger(TextEntryPanel.class.getName()).log(Level.WARNING, &quot;Exception encountered&quot;, e);</span>
+<span class="nc" id="L168">        return false;</span>
+<span class="nc" id="L169">      }</span>
 
-<span class="nc" id="L149">      javax.swing.JTextPane tc = (javax.swing.JTextPane) support.getComponent();</span>
-<span class="nc" id="L150">      tc.replaceSelection(data);</span>
-<span class="nc" id="L151">      return true;</span>
+<span class="nc" id="L171">      javax.swing.JTextPane tc = (javax.swing.JTextPane) support.getComponent();</span>
+<span class="nc" id="L172">      tc.replaceSelection(data);</span>
+<span class="nc" id="L173">      return true;</span>
     }
 
     /**
@@ -156,58 +178,58 @@ public class TextEntryPanel extends javax.swing.JPanel {
      */
     @Nullable
     protected Transferable createTransferable(JComponent c) {
-<span class="nc" id="L159">      javax.swing.JTextPane source = (javax.swing.JTextPane) c;</span>
-<span class="nc" id="L160">      int start = source.getSelectionStart();</span>
-<span class="nc" id="L161">      int end = source.getSelectionEnd();</span>
-<span class="nc" id="L162">      Document doc = source.getDocument();</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">      if (start == end) {</span>
-<span class="nc" id="L164">        return null;</span>
+<span class="nc" id="L181">      javax.swing.JTextPane source = (javax.swing.JTextPane) c;</span>
+<span class="nc" id="L182">      int start = source.getSelectionStart();</span>
+<span class="nc" id="L183">      int end = source.getSelectionEnd();</span>
+<span class="nc" id="L184">      Document doc = source.getDocument();</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">      if (start == end) {</span>
+<span class="nc" id="L186">        return null;</span>
       }
       try {
-<span class="nc" id="L167">        p0 = doc.createPosition(start);</span>
-<span class="nc" id="L168">        p1 = doc.createPosition(end);</span>
-<span class="nc" id="L169">      } catch (BadLocationException e) {</span>
-<span class="nc" id="L170">        throw new RuntimeException(e);</span>
-<span class="nc" id="L171">      }</span>
-<span class="nc" id="L172">      String data = source.getSelectedText();</span>
-<span class="nc" id="L173">      return new StringSelection(data);</span>
+<span class="nc" id="L189">        p0 = doc.createPosition(start);</span>
+<span class="nc" id="L190">        p1 = doc.createPosition(end);</span>
+<span class="nc" id="L191">      } catch (BadLocationException e) {</span>
+<span class="nc" id="L192">        throw new RuntimeException(e);</span>
+<span class="nc" id="L193">      }</span>
+<span class="nc" id="L194">      String data = source.getSelectedText();</span>
+<span class="nc" id="L195">      return new StringSelection(data);</span>
     }
 
     /**
      * These text fields handle both copy and move actions.
      */
     public int getSourceActions(JComponent c) {
-<span class="nc" id="L180">      return COPY_OR_MOVE;</span>
+<span class="nc" id="L202">      return COPY_OR_MOVE;</span>
     }
 
     /**
      * When the export is complete, remove the old text if the action was a move.
      */
     protected void exportDone(JComponent c, Transferable data, int action) {
-<span class="nc bnc" id="L187" title="All 2 branches missed.">      if (action != MOVE) {</span>
-<span class="nc" id="L188">        return;</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">      if (action != MOVE) {</span>
+<span class="nc" id="L210">        return;</span>
       }
 
-<span class="nc bnc" id="L191" title="All 6 branches missed.">      if ((p0 != null) &amp;&amp; (p1 != null) &amp;&amp; (p0.getOffset() != p1.getOffset())) {</span>
+<span class="nc bnc" id="L213" title="All 6 branches missed.">      if ((p0 != null) &amp;&amp; (p1 != null) &amp;&amp; (p0.getOffset() != p1.getOffset())) {</span>
         try {
-<span class="nc" id="L193">          JTextComponent tc = (JTextComponent) c;</span>
-<span class="nc" id="L194">          tc.getDocument()</span>
-<span class="nc" id="L195">                  .remove(p0.getOffset(), p1.getOffset() - p0.getOffset());</span>
-<span class="nc" id="L196">        } catch (BadLocationException e) {</span>
-<span class="nc" id="L197">          throw new RuntimeException(e);</span>
-<span class="nc" id="L198">        }</span>
+<span class="nc" id="L215">          JTextComponent tc = (JTextComponent) c;</span>
+<span class="nc" id="L216">          tc.getDocument()</span>
+<span class="nc" id="L217">                  .remove(p0.getOffset(), p1.getOffset() - p0.getOffset());</span>
+<span class="nc" id="L218">        } catch (BadLocationException e) {</span>
+<span class="nc" id="L219">          throw new RuntimeException(e);</span>
+<span class="nc" id="L220">        }</span>
       }
-<span class="nc" id="L200">    }</span>
+<span class="nc" id="L222">    }</span>
 
     /**
      * We only support importing strings.
      */
     public boolean canImport(TransferHandler.TransferSupport support) {
       // we only import Strings
-<span class="nc bnc" id="L207" title="All 2 branches missed.">      if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {</span>
-<span class="nc" id="L208">        return false;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">      if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {</span>
+<span class="nc" id="L230">        return false;</span>
       }
-<span class="nc" id="L210">      return true;</span>
+<span class="nc" id="L232">      return true;</span>
     }
   }
 

@@ -33,6 +33,7 @@ package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
 import java.time.Instant;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -45,62 +46,76 @@ import org.spf4j.jmx.JmxExport;
 @Beta
 public final class Timing {
 
-<span class="fc" id="L48">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
+<span class="fc" id="L49">  public static final long MAX_MS_SPAN = TimeUnit.NANOSECONDS.toMillis(Long.MAX_VALUE);</span>
 
-<span class="fc" id="L50">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
+<span class="fc" id="L51">  private static final long TIMING_UPDATE_INTERVAL_MINUTES = Long.getLong(&quot;spf4j.timing.updateIntervalMinutes&quot;, 60);</span>
 
   private static volatile Timing latestTiming;
 
   private static final ScheduledFuture UPDATER;
 
   static {
-<span class="fc" id="L57">    updateTiming();</span>
-<span class="fc" id="L58">    UPDATER = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,</span>
-            TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
-<span class="fc" id="L60">  }</span>
+<span class="fc" id="L58">    updateTiming(); // run twice to reduce timing discrepancies introduced by class-loading</span>
+<span class="fc" id="L59">    updateTiming();</span>
+<span class="fc" id="L60">    ScheduledFuture sf = null;</span>
+    try {
+<span class="fc" id="L62">      final ScheduledFuture fut = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,</span>
+              TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
+<span class="fc" id="L64">      sf = fut;</span>
+<span class="fc" id="L65">      Runtime.queueHookAtBeginning(() -&gt; fut.cancel(true));</span>
+<span class="nc" id="L66">    } catch (RejectedExecutionException ex) {</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">      if (!Runtime.isShuttingDown()) {</span>
+<span class="nc" id="L68">        throw ex;</span>
+      }
+<span class="fc" id="L70">    }</span>
+<span class="fc" id="L71">    UPDATER = sf;</span>
+<span class="fc" id="L72">  }</span>
 
   private final long nanoTimeRef;
   private final long currentTimeMillisRef;
 
   @JmxExport
   public static void updateTiming() {
-<span class="fc" id="L67">    latestTiming = new Timing();</span>
-<span class="fc" id="L68">  }</span>
+<span class="fc" id="L79">    latestTiming = new Timing();</span>
+<span class="fc" id="L80">  }</span>
 
-<span class="fc" id="L70">  private Timing() {</span>
-<span class="fc" id="L71">    nanoTimeRef = TimeSource.nanoTime();</span>
-<span class="fc" id="L72">    currentTimeMillisRef = System.currentTimeMillis();</span>
-<span class="fc" id="L73">  }</span>
+<span class="fc" id="L82">  private Timing() {</span>
+<span class="fc" id="L83">    nanoTimeRef = TimeSource.nanoTime();</span>
+<span class="fc" id="L84">    currentTimeMillisRef = System.currentTimeMillis();</span>
+<span class="fc" id="L85">  }</span>
 
   public long fromNanoTimeToEpochMillis(final long nanoTime) {
-<span class="fc" id="L76">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
+<span class="fc" id="L88">    return currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef);</span>
   }
 
   public Instant fromNanoTimeToInstant(final long nanoTime) {
-<span class="fc" id="L80">    return Instant.ofEpochMilli(currentTimeMillisRef + TimeUnit.NANOSECONDS.toMillis(nanoTime - nanoTimeRef));</span>
+<span class="fc" id="L92">    long relNanos = nanoTime - nanoTimeRef;</span>
+<span class="fc" id="L93">    return Instant.ofEpochSecond(currentTimeMillisRef / 1000</span>
+            + relNanos / 1000000000, (currentTimeMillisRef % 1000) * 1000000 + relNanos %  1000000000);
   }
 
   public long fromEpochMillisToNanoTime(final long epochTimeMillis) {
-<span class="fc" id="L84">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
-<span class="fc" id="L86">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
-//      throw new IllegalArgumentException(&quot;Epoch time millis cannot be converted to nanotime &quot; + epochTimeMillis);
+<span class="fc" id="L98">    long msSinceLast = epochTimeMillis - currentTimeMillisRef;</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    if (Math.abs(msSinceLast) &gt; MAX_MS_SPAN) {</span>
+<span class="fc" id="L100">      return TimeSource.nanoTime() + Long.MAX_VALUE;</span>
     }
-<span class="fc" id="L89">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
+<span class="fc" id="L102">    return nanoTimeRef + TimeUnit.MILLISECONDS.toNanos(msSinceLast);</span>
   }
 
   public static Timing getCurrentTiming() {
-<span class="fc" id="L93">    return latestTiming;</span>
+<span class="fc" id="L106">    return latestTiming;</span>
   }
 
   @JmxExport
   public static void stopUpdate() {
-<span class="nc" id="L98">    UPDATER.cancel(false);</span>
-<span class="nc" id="L99">  }</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (UPDATER != null) {</span>
+<span class="nc" id="L112">      UPDATER.cancel(false);</span>
+    }
+<span class="nc" id="L114">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L103">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
+<span class="nc" id="L118">    return &quot;Timing{&quot; + &quot;nanoTimeRef=&quot; + nanoTimeRef + &quot;, currentTimeMillisRef=&quot; + currentTimeMillisRef + '}';</span>
   }
 
 

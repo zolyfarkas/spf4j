@@ -48,7 +48,7 @@
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.TimeSource;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.Level;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.spf4j.log.Level;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.LogAssert;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.matchers.LogMatchers;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.TestLoggers;
@@ -68,7 +68,7 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">try</strong> (RateLimiter limiter = <strong class="jxr_keyword">new</strong> RateLimiter(10, 10)) {
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>        LimitingExecutor&lt;?, Callable&lt;?&gt;&gt; executor = <strong class="jxr_keyword">new</strong> LimitingExecutor&lt;&gt;(limiter);
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>        Assert.assertEquals(1d, limiter.getPermitsPerReplenishInterval(), 0.001);
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>        Assert.assertEquals(100, limiter.getPermitReplenishIntervalMillis(), 0.001);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>        Assert.assertEquals(100000000, limiter.getPermitReplenishIntervalNanos(), 0.001);
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>        <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 10; i++) {
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> val = i;
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>          executor.execute(() -&gt; {
@@ -93,12 +93,12 @@
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>          @SuppressFBWarnings(<span class="jxr_string">"MDM_THREAD_YIELD"</span>)
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          <strong class="jxr_keyword">public</strong> Object reject(<strong class="jxr_keyword">final</strong> LimitingExecutor executor, <strong class="jxr_keyword">final</strong> Callable callable)
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>                  <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>            <strong class="jxr_keyword">long</strong> waitMs = limiter.getPermitReplenishIntervalMillis()
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>                    - TimeUnit.NANOSECONDS.toMillis(TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>            <strong class="jxr_keyword">if</strong> (waitMs &gt;= 0) {
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>              Thread.sleep(waitMs);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>            <strong class="jxr_keyword">long</strong> waitNs = limiter.getPermitReplenishIntervalNanos()
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>                    - (TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>            <strong class="jxr_keyword">if</strong> (waitNs &gt;= 0) {
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>              TimeUnit.NANOSECONDS.sleep(waitNs);
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>            } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>              LOG.debug(<span class="jxr_string">"negative wait time {}"</span>, waitMs);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              LOG.debug(<span class="jxr_string">"negative wait time {}"</span>, waitNs);
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>            }
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>            <strong class="jxr_keyword">return</strong> executor.execute(callable);
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>          }
@@ -119,6 +119,6 @@
 <a class="jxr_linenumber" name="L111" href="#L111">111</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

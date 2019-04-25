@@ -38,26 +38,25 @@ import org.spf4j.zel.vm.SuspendedException;
 
 public final class DEREFX extends Instruction {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final Object ref;
+  private final Object ref;
 
-<span class="fc" id="L45">    public DEREFX(final Object ref) {</span>
-<span class="fc" id="L46">        this.ref = ref;</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L45">  public DEREFX(final Object ref) {</span>
+<span class="fc" id="L46">    this.ref = ref;</span>
+<span class="fc" id="L47">  }</span>
 
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+<span class="fc" id="L52">    Object relativeTo = context.popSyncStackVal();</span>
+<span class="fc" id="L53">    pushDeref(relativeTo, ref, context);</span>
+<span class="fc" id="L54">    return 1;</span>
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-<span class="fc" id="L53">       Object relativeTo = context.popSyncStackVal();</span>
-<span class="fc" id="L54">       pushDeref(relativeTo, ref, context);</span>
-<span class="fc" id="L55">       return 1;</span>
-    }
-
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L60">        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
-    }
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L59">    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

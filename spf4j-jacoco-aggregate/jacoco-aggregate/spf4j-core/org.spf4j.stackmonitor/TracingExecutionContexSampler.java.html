@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TracingExecutionContexSampler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">TracingExecutionContexSampler.java</span></div><h1>TracingExecutionContexSampler.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
+
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.Threads;
+
+/**
+ * A stack sample collector that collects samples only for code executed within a execution context.
+ * Plus this collector will attach the samples to the contexts.
+ *
+ * This context requires ProfiledExecutionContextFactory wrapper.
+ *
+ * @author Zoltan Farkas
+ */
+@NotThreadSafe
+public final class TracingExecutionContexSampler implements ISampler {
+
+  private final Supplier&lt;Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt;&gt; execCtxSupplier;
+
+  private Thread[] requestFor;
+
+  private ExecutionContext[] contexts;
+
+  private final TMap&lt;String, StackCollector&gt; collections;
+
+  private final Function&lt;ExecutionContext, String&gt; ctxToCategory;
+
+  public TracingExecutionContexSampler(
+          final Supplier&lt;Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt;&gt; execCtxSupplier,
+          final Function&lt;ExecutionContext, String&gt; ctxToCategory) {
+<span class="fc" id="L68">    this(100, execCtxSupplier, ctxToCategory);</span>
+<span class="fc" id="L69">  }</span>
+
+  public TracingExecutionContexSampler(final int maxNrThreads,
+          final Supplier&lt;Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt;&gt; execCtxSupplier,
+<span class="fc" id="L73">          final Function&lt;ExecutionContext, String&gt; ctxToCategory) {</span>
+<span class="fc" id="L74">    requestFor = new Thread[maxNrThreads];</span>
+<span class="fc" id="L75">    contexts = new ExecutionContext[maxNrThreads];</span>
+<span class="fc" id="L76">    this.execCtxSupplier = execCtxSupplier;</span>
+<span class="fc" id="L77">    collections = new THashMap&lt;&gt;();</span>
+<span class="fc" id="L78">    this.ctxToCategory = ctxToCategory;</span>
+<span class="fc" id="L79">  }</span>
+
+  @Override
+  public void sample() {
+<span class="fc" id="L83">    Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt; currentThreads = execCtxSupplier.get();</span>
+<span class="fc" id="L84">    int i = 0;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">    for (Map.Entry&lt;Thread, ExecutionContext&gt; entry : currentThreads) {</span>
+<span class="fc" id="L86">      requestFor[i] = entry.getKey();</span>
+<span class="fc" id="L87">      contexts[i++] = entry.getValue();</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">      if (i &gt;= requestFor.length) {</span>
+<span class="nc" id="L89">        break;</span>
+      }
+<span class="fc" id="L91">    }</span>
+<span class="fc" id="L92">    Arrays.fill(requestFor, i, requestFor.length, null);</span>
+<span class="fc" id="L93">    StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">    for (int j = 0; j &lt; i; j++) {</span>
+<span class="fc" id="L95">      StackTraceElement[] stackTrace = stackTraces[j];</span>
+<span class="pc bpc" id="L96" title="1 of 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L97">        ExecutionContext context = contexts[j];</span>
+<span class="fc" id="L98">        context.add(stackTrace);</span>
+<span class="fc" id="L99">        String name = ctxToCategory.apply(context);</span>
+<span class="fc" id="L100">        StackCollector c = collections.computeIfAbsent(name, (k) -&gt; new StackCollectorImpl());</span>
+<span class="fc" id="L101">        c.collect(stackTrace);</span>
+      }
+    }
+<span class="fc" id="L104">  }</span>
+
+  @Override
+  public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
+<span class="fc" id="L108">    TMap&lt;String, SampleNode&gt; result = new THashMap&lt;&gt;(collections.size());</span>
+<span class="fc" id="L109">    collections.forEachEntry((k, v) -&gt; {</span>
+<span class="fc" id="L110">      result.put(k, v.getAndReset());</span>
+<span class="fc" id="L111">      return true;</span>
+    });
+<span class="fc" id="L113">    return result;</span>
+  }
+
+  @Override
+  public Map&lt;String, SampleNode&gt; getCollections() {
+<span class="nc" id="L118">    TMap&lt;String, SampleNode&gt; result = new THashMap&lt;&gt;(collections.size());</span>
+<span class="nc" id="L119">    collections.forEachEntry((k, v) -&gt; {</span>
+<span class="nc" id="L120">      result.put(k, v.get());</span>
+<span class="nc" id="L121">      return true;</span>
+    });
+<span class="nc" id="L123">    return result;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L128">    return &quot;TracingExecutionContextStackCollector{&quot; + &quot;execCtxSupplier=&quot; + execCtxSupplier</span>
+            + &quot;, collections=&quot; + collections + '}';
+  }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -24,7 +24,7 @@ import org.spf4j.base.Callables;
  */
 @FunctionalInterface
 public interface PartialExceptionRetryPredicate&lt;T, C extends Callable&lt;? extends T&gt;&gt;
-        extends PartialTypedExceptionRetryPredicate&lt;T, C, Exception&gt; {
+        extends PartialTypedExceptionRetryPredicate&lt;T, C, Throwable&gt; {
 
   /**
    * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
@@ -34,18 +34,22 @@ public interface PartialExceptionRetryPredicate&lt;T, C extends Callable&lt;? ex
           final Callables.AdvancedRetryPredicate&lt;Exception&gt; oldStyle) {
 <span class="nc" id="L35">    return new PartialExceptionRetryPredicate&lt;Object, Callable&lt;? extends Object&gt;&gt;() {</span>
       @Override
-      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Exception value, final Callable what) {
-<span class="nc" id="L38">        Callables.AdvancedAction aa = oldStyle.apply(value);</span>
-<span class="nc bnc" id="L39" title="All 4 branches missed.">        switch (aa) {</span>
+      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Throwable value, final Callable what) {
+<span class="nc" id="L38">        RetryDecision abort = org.spf4j.failsafe.RetryDecision.abort();</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (!(value instanceof Exception)) {</span>
+<span class="nc" id="L40">          return abort;</span>
+        }
+<span class="nc" id="L42">        Callables.AdvancedAction aa = oldStyle.apply((Exception) value);</span>
+<span class="nc bnc" id="L43" title="All 4 branches missed.">        switch (aa) {</span>
           case ABORT:
-<span class="nc" id="L41">            return org.spf4j.failsafe.RetryDecision.abort();</span>
+<span class="nc" id="L45">            return abort;</span>
           case RETRY:
           case RETRY_DELAYED:
-<span class="nc" id="L44">            return org.spf4j.failsafe.RetryDecision.retryDefault(what);</span>
+<span class="nc" id="L48">            return org.spf4j.failsafe.RetryDecision.retryDefault(what);</span>
           case RETRY_IMMEDIATE:
-<span class="nc" id="L46">            return org.spf4j.failsafe.RetryDecision.retry(0, what);</span>
+<span class="nc" id="L50">            return org.spf4j.failsafe.RetryDecision.retry(0, what);</span>
           default:
-<span class="nc" id="L48">            throw new IllegalStateException(&quot;Invalid enum value &quot; + aa);</span>
+<span class="nc" id="L52">            throw new IllegalStateException(&quot;Invalid enum value &quot; + aa);</span>
         }
       }
     };

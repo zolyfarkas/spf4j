@@ -42,112 +42,122 @@ import java.util.concurrent.TimeoutException;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeoutDeadline;
+import org.spf4j.base.Wrapper;
 
 /**
  * @author Zoltan Farkas
  */
-public class ContextPropagatingExecutorService implements ExecutorService {
+public class ContextPropagatingExecutorService implements ExecutorService, Wrapper&lt;ExecutorService&gt; {
 
-  private final ExecutorService wrapped;
+  private final ExecutorService es;
 
-<span class="fc" id="L53">  public ContextPropagatingExecutorService(final ExecutorService wrapped) {</span>
-<span class="fc" id="L54">    this.wrapped = wrapped;</span>
-<span class="fc" id="L55">  }</span>
+<span class="fc" id="L54">  public ContextPropagatingExecutorService(final ExecutorService wrapped) {</span>
+<span class="fc" id="L55">    this.es = wrapped;</span>
+<span class="fc" id="L56">  }</span>
 
   @Override
   public final void shutdown() {
-<span class="nc" id="L59">    wrapped.shutdown();</span>
-<span class="nc" id="L60">  }</span>
+<span class="nc" id="L60">    es.shutdown();</span>
+<span class="nc" id="L61">  }</span>
 
   @Override
   public final List&lt;Runnable&gt; shutdownNow() {
-<span class="nc" id="L64">    return wrapped.shutdownNow();</span>
+<span class="nc" id="L65">    return es.shutdownNow();</span>
   }
 
   @Override
   public final boolean isShutdown() {
-<span class="nc" id="L69">    return wrapped.isShutdown();</span>
+<span class="nc" id="L70">    return es.isShutdown();</span>
   }
 
   @Override
   public final boolean isTerminated() {
-<span class="nc" id="L74">    return wrapped.isTerminated();</span>
+<span class="nc" id="L75">    return es.isTerminated();</span>
   }
 
   @Override
   public final boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="nc" id="L79">    return wrapped.awaitTermination(timeout, unit);</span>
+<span class="nc" id="L80">    return es.awaitTermination(timeout, unit);</span>
   }
 
   @Override
   public final &lt;T&gt; Future&lt;T&gt; submit(final Callable&lt;T&gt; task) {
-<span class="nc" id="L84">    return wrapped.submit(ExecutionContexts.propagatingCallable(task));</span>
+<span class="nc" id="L85">    return es.submit(ExecutionContexts.propagatingCallable(task));</span>
   }
 
   @Override
   public final &lt;T&gt; Future&lt;T&gt; submit(final Runnable task, final T result) {
-<span class="nc" id="L89">    return wrapped.submit(ExecutionContexts.propagatingRunnable(task), result);</span>
+<span class="nc" id="L90">    return es.submit(ExecutionContexts.propagatingRunnable(task), result);</span>
   }
 
   @Override
   public final Future&lt;?&gt; submit(final Runnable task) {
-<span class="nc" id="L94">    return wrapped.submit(ExecutionContexts.propagatingRunnable(task));</span>
+<span class="nc" id="L95">    return es.submit(ExecutionContexts.propagatingRunnable(task));</span>
   }
 
   @Override
   public final &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)
           throws InterruptedException {
 
-<span class="nc" id="L101">    return wrapped.invokeAll(ExecutionContexts.propagatingCallables(tasks));</span>
+<span class="nc" id="L102">    return es.invokeAll(ExecutionContexts.propagatingCallables(tasks));</span>
   }
 
   @Override
   public final &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
           final long timeout, final TimeUnit unit)
           throws InterruptedException {
-<span class="nc" id="L108">    ExecutionContext current = ExecutionContexts.current();</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L110">      return wrapped.invokeAll(tasks, timeout, unit);</span>
+<span class="nc" id="L109">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L111">      return es.invokeAll(tasks, timeout, unit);</span>
     } else {
       TimeoutDeadline td;
       try {
-<span class="nc" id="L114">        td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);</span>
-<span class="nc" id="L115">      } catch (TimeoutException ex) {</span>
-<span class="nc" id="L116">        return Futures.timedOutFutures(tasks.size(), ex);</span>
-<span class="nc" id="L117">      }</span>
-<span class="nc" id="L118">      return wrapped.invokeAll(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),</span>
-<span class="nc" id="L119">              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L115">        td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);</span>
+<span class="nc" id="L116">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L117">        return Futures.timedOutFutures(tasks.size(), ex);</span>
+<span class="nc" id="L118">      }</span>
+<span class="nc" id="L119">      return es.invokeAll(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),</span>
+<span class="nc" id="L120">              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
     }
   }
 
   @Override
   public final &lt;T&gt; T invokeAny(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)
           throws InterruptedException, ExecutionException {
-<span class="nc" id="L126">    return wrapped.invokeAny(ExecutionContexts.propagatingCallables(tasks));</span>
+<span class="nc" id="L127">    return es.invokeAny(ExecutionContexts.propagatingCallables(tasks));</span>
   }
 
   @Override
   public final &lt;T&gt; T invokeAny(final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks, final long timeout, final TimeUnit unit)
           throws InterruptedException, ExecutionException, TimeoutException {
-<span class="nc" id="L132">    ExecutionContext current = ExecutionContexts.current();</span>
-<span class="nc bnc" id="L133" title="All 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L134">      return wrapped.invokeAny(tasks, timeout, unit);</span>
+<span class="nc" id="L133">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L135">      return es.invokeAny(tasks, timeout, unit);</span>
     } else {
-<span class="nc" id="L136">      TimeoutDeadline td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);</span>
-<span class="nc" id="L137">      return wrapped.invokeAny(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),</span>
-<span class="nc" id="L138">              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L137">      TimeoutDeadline td = ExecutionContexts.computeTimeoutDeadline(current, unit, timeout);</span>
+<span class="nc" id="L138">      return es.invokeAny(ExecutionContexts.deadlinedPropagatingCallables(tasks, current, td.getDeadlineNanos()),</span>
+<span class="nc" id="L139">              td.getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
     }
   }
 
   @Override
   public final void execute(final Runnable command) {
-<span class="fc" id="L144">    wrapped.execute(ExecutionContexts.propagatingRunnable(command));</span>
-<span class="fc" id="L145">  }</span>
+<span class="fc" id="L145">    es.execute(ExecutionContexts.propagatingRunnable(command));</span>
+<span class="fc" id="L146">  }</span>
 
   @Override
   public final String toString() {
-<span class="nc" id="L149">    return &quot;ContextPropagatingExecutorService{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
+<span class="nc" id="L150">    return &quot;ContextPropagatingExecutorService{&quot; + &quot;wrapped=&quot; + es + '}';</span>
   }
+
+  /**
+   * Overwrite as needed for a ScheduledExecutorService, etc
+   */
+  @Override
+  public ExecutorService getWrapped() {
+<span class="nc" id="L158">    return es;</span>
+  }
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

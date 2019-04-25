@@ -42,7 +42,7 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> com.sun.jna.Native;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> com.sun.jna.platform.unix.Resource;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.spf4j.base.Runtime;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.spf4j.os.OperatingSystem;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> * Possible values of the first parameter to getrlimit()/setrlimit()</em>
@@ -165,9 +165,9 @@
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>   }
 <a class="jxr_linenumber" name="L158" href="#L158">158</a> 
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Resource.Rlimit getRLimit(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/unix/UnixResources.html">UnixResources</a> resourceId) <strong class="jxr_keyword">throws</strong> UnixException {
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>     <strong class="jxr_keyword">int</strong> id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     <strong class="jxr_keyword">int</strong> id = OperatingSystem.isMacOsx() ? resourceId.macId : resourceId.gnuId;
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>     <strong class="jxr_keyword">if</strong> (id &lt; 0) {
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/unix/UnixException.html">UnixException</a>(<span class="jxr_string">"Unsupported "</span> + id + <span class="jxr_string">" limit on "</span> + Runtime.OS_NAME, 0);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/unix/UnixException.html">UnixException</a>(<span class="jxr_string">"Unsupported "</span> + id + <span class="jxr_string">" limit on "</span> + OperatingSystem.getOsName(), 0);
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>     }
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>     <strong class="jxr_keyword">final</strong> Resource.Rlimit limit = <strong class="jxr_keyword">new</strong> Resource.Rlimit();
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>     <strong class="jxr_keyword">int</strong> err = CLibrary.INSTANCE.getrlimit(id, limit);
@@ -181,9 +181,9 @@
 <a class="jxr_linenumber" name="L173" href="#L173">173</a> 
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setRLimit(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/unix/UnixResources.html">UnixResources</a> resourceId, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> softValue, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> hardValue)
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>           <strong class="jxr_keyword">throws</strong> <a href="../../../org/spf4j/unix/UnixException.html">UnixException</a> {
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">int</strong> id = Runtime.isMacOsx() ? resourceId.macId : resourceId.gnuId;
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">int</strong> id = OperatingSystem.isMacOsx() ? resourceId.macId : resourceId.gnuId;
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>     <strong class="jxr_keyword">if</strong> (id &lt; 0) {
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/unix/UnixException.html">UnixException</a>(<span class="jxr_string">"Unsupported "</span> + id + <span class="jxr_string">" limit on "</span> + Runtime.OS_NAME, 0);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/unix/UnixException.html">UnixException</a>(<span class="jxr_string">"Unsupported "</span> + id + <span class="jxr_string">" limit on "</span> + OperatingSystem.getOsName(), 0);
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>     }
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>     <strong class="jxr_keyword">final</strong> Resource.Rlimit limit = <strong class="jxr_keyword">new</strong> Resource.Rlimit();
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>     limit.rlim_cur = softValue;
@@ -199,6 +199,6 @@
 <a class="jxr_linenumber" name="L191" href="#L191">191</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

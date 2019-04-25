@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProfilingTLAttacher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">ProfilingTLAttacher.java</span></div><h1>ProfilingTLAttacher.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.base.ThreadLocalContextAttacher;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public final class ProfilingTLAttacher implements ThreadLocalContextAttacher {
+
+  private final ConcurrentMap&lt;Thread, ExecutionContext&gt; currentContexts;
+
+<span class="fc" id="L51">  public ProfilingTLAttacher() {</span>
+<span class="fc" id="L52">    this.currentContexts =</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">            Boolean.getBoolean(&quot;spf4j.ctxtProfiler.regDs.skipList&quot;)</span>
+            ? new ConcurrentSkipListMap&lt;&gt;(ProfilingTLAttacher::compare)
+<span class="fc" id="L55">            : new ConcurrentHashMap&lt;&gt;(Integer.getInteger(&quot;spf4j.ctxtProfiler.regDs.concMap.initialSize&quot;, 64),</span>
+<span class="fc" id="L56">                    Float.parseFloat(System.getProperty(&quot;spf4j.ctxtProfiler.regDs.concMap.loadFactor&quot;, &quot;0.8&quot;)),</span>
+<span class="fc" id="L57">                    Integer.getInteger(&quot;spf4j.ctxtProfiler.regDs.concMap.concurrencyLevel&quot;, 32));</span>
+<span class="fc" id="L58">  }</span>
+
+  private static int compare(final Thread o1, final Thread o2) {
+<span class="nc" id="L61">    return Long.compare(o1.getId(), o2.getId());</span>
+  }
+
+  public Iterable&lt;Thread&gt; getCurrentThreads() {
+<span class="fc" id="L65">    return currentContexts.keySet();</span>
+  }
+
+  public Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt; getCurrentThreadContexts() {
+<span class="fc" id="L69">    return currentContexts.entrySet();</span>
+  }
+
+  @Override
+  public ThreadLocalContextAttacher.Attached attach(final ExecutionContext ctx) {
+<span class="fc" id="L74">    ThreadLocalContextAttacher.Attached attached = ExecutionContexts.defaultThreadLocalAttacher().attach(ctx);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">    if (attached.isTopOfStack()) {</span>
+<span class="fc" id="L76">      currentContexts.put(attached.attachedThread(), ctx);</span>
+<span class="fc" id="L77">      return new ThreadLocalContextAttacher.Attached() {</span>
+        @Override
+        public void detach() {
+<span class="fc" id="L80">          currentContexts.remove(attached.attachedThread());</span>
+<span class="fc" id="L81">          attached.detach();</span>
+<span class="fc" id="L82">        }</span>
+
+        @Override
+        public boolean isTopOfStack() {
+<span class="nc" id="L86">          return attached.isTopOfStack();</span>
+        }
+
+        @Override
+        public Thread attachedThread() {
+<span class="nc" id="L91">          return attached.attachedThread();</span>
+        }
+      };
+    } else {
+<span class="fc" id="L95">      return attached;</span>
+    }
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L101">    return &quot;ProfilingTLAttacher{&quot; + &quot;currentContexts=&quot; + currentContexts + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

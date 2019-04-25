@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AvroLogRecordImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.log</a> &gt; <span class="el_source">AvroLogRecordImpl.java</span></div><h1>AvroLogRecordImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.log;
+
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Set;
+import javax.annotation.Nullable;
+import org.slf4j.Marker;
+import org.spf4j.base.avro.Converters;
+import org.spf4j.base.avro.LogRecord;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class AvroLogRecordImpl implements Slf4jLogRecord {
+
+  private final LogRecord record;
+
+  private boolean isLogged;
+
+  public AvroLogRecordImpl(final LogRecord record) {
+<span class="nc" id="L53">    this(record, false);</span>
+<span class="nc" id="L54">  }</span>
+
+<span class="nc" id="L56">  public AvroLogRecordImpl(final LogRecord record, final boolean isLogged) {</span>
+<span class="nc" id="L57">    this.record = record;</span>
+<span class="nc" id="L58">    this.isLogged = isLogged;</span>
+<span class="nc" id="L59">  }</span>
+
+  @Override
+  public LogRecord toLogRecord(final String origin, final String traceId) {
+<span class="nc" id="L63">    return record;</span>
+  }
+
+  @Override
+  public Object[] getArguments() {
+<span class="nc" id="L68">    return new Object[] {record};</span>
+  }
+
+  @Override
+  public Object[] getExtraArgumentsRaw() {
+<span class="nc" id="L73">    return getArguments();</span>
+  }
+
+  @Override
+  public Object[] getExtraArguments() {
+<span class="nc" id="L78">    return getArguments();</span>
+  }
+
+  @Override
+  public Throwable getExtraThrowable() {
+<span class="nc" id="L83">    return Converters.convert(record.getOrigin(), record.getThrowable());</span>
+  }
+
+  @Override
+  public Level getLevel() {
+<span class="nc" id="L88">    return Level.fromAvroLevel(record.getLevel());</span>
+  }
+
+  @Override
+  public String getLoggerName() {
+<span class="nc" id="L93">    return record.getLogger();</span>
+  }
+
+  @Override
+  @Nullable
+  public Marker getMarker() {
+<span class="nc" id="L99">    return null;</span>
+  }
+
+  @Override
+  public String getMessage() {
+<span class="nc" id="L104">    return &quot;RemoteLog&quot;;</span>
+  }
+
+  @Override
+  public String getMessageFormat() {
+<span class="nc" id="L109">    return getMessage();</span>
+  }
+
+  @Override
+  public int getNrMessageArguments() {
+<span class="nc" id="L114">    return 0;</span>
+  }
+
+  @Override
+  public String getThreadName() {
+<span class="nc" id="L119">    return record.getThr();</span>
+  }
+
+  @Override
+  public long getTimeStamp() {
+<span class="nc" id="L124">    return record.getTs().toEpochMilli();</span>
+  }
+
+  @Override
+  public Instant getTimeStampInstant() {
+<span class="nc" id="L129">    return record.getTs();</span>
+  }
+
+  @Override
+  public synchronized boolean isLogged() {
+<span class="nc" id="L134">    return isLogged;</span>
+  }
+
+  @Override
+  public synchronized void setIsLogged() {
+<span class="nc" id="L139">    this.isLogged = true;</span>
+<span class="nc" id="L140">  }</span>
+
+  @Override
+  public void attach(final Object obj) {
+    // do not attach;
+<span class="nc" id="L145">  }</span>
+
+  @Override
+  public Set&lt;Object&gt; getAttachments() {
+<span class="nc" id="L149">    return Collections.EMPTY_SET;</span>
+  }
+
+  @Override
+  public boolean hasAttachment(final Object obj) {
+<span class="nc" id="L154">    return false;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L159">    return &quot;AvroLogRecordImpl{&quot; + &quot;record=&quot; + record + &quot;, isLogged=&quot; + isLogged + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

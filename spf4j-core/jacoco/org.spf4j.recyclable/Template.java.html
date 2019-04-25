@@ -94,28 +94,30 @@ public final class Template&lt;T, R, E extends Exception&gt; {
       try {
 <span class="nc" id="L95">        pool.recycle(object, e);</span>
 <span class="nc" id="L96">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L97">        throw Throwables.suppress(ex, e);</span>
-<span class="nc" id="L98">      }</span>
-<span class="nc" id="L99">      throw e;</span>
-<span class="fc" id="L100">    } catch (Exception e) {</span>
+<span class="nc" id="L97">        Throwables.suppressLimited(ex, e);</span>
+<span class="nc" id="L98">        throw ex;</span>
+<span class="nc" id="L99">      }</span>
+<span class="nc" id="L100">      throw e;</span>
+<span class="fc" id="L101">    } catch (Exception e) {</span>
       try {
-<span class="fc" id="L102">        pool.recycle(object, e);</span>
-<span class="nc" id="L103">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L104">        throw Throwables.suppress(ex, e);</span>
-<span class="fc" id="L105">      }</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">      if (exClass.isAssignableFrom(e.getClass())) {</span>
-<span class="fc" id="L107">        throw (E) e;</span>
+<span class="fc" id="L103">        pool.recycle(object, e);</span>
+<span class="nc" id="L104">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L105">        Throwables.suppressLimited(ex, e);</span>
+<span class="nc" id="L106">        throw ex;</span>
+<span class="fc" id="L107">      }</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">      if (exClass.isAssignableFrom(e.getClass())) {</span>
+<span class="fc" id="L109">        throw (E) e;</span>
       } else {
-<span class="nc" id="L109">        throw new UncheckedExecutionException(e);</span>
+<span class="nc" id="L111">        throw new UncheckedExecutionException(e);</span>
       }
-<span class="fc" id="L111">    }</span>
-<span class="fc" id="L112">    pool.recycle(object, null);</span>
-<span class="fc" id="L113">    return result;</span>
+<span class="fc" id="L113">    }</span>
+<span class="fc" id="L114">    pool.recycle(object, null);</span>
+<span class="fc" id="L115">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L118">    return &quot;Template{&quot; + &quot;pool=&quot; + pool + &quot;, exClass=&quot; + exClass + &quot;, retryPolicy=&quot; + retryPolicy + '}';</span>
+<span class="nc" id="L120">    return &quot;Template{&quot; + &quot;pool=&quot; + pool + &quot;, exClass=&quot; + exClass + &quot;, retryPolicy=&quot; + retryPolicy + '}';</span>
   }
 
 }

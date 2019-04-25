@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Json.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Json.java</span></div><h1>Json.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.io.IOException;
+import java.util.ServiceLoader;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class Json {
+
+<span class="fc" id="L50">  public static final JsonFactory FACTORY = new JsonFactory();</span>
+
+<span class="fc" id="L52">  public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);</span>
+
+  private Json() { }
+
+  static {
+<span class="fc" id="L57">    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);</span>
+<span class="fc" id="L58">    SimpleModule module = new SimpleModule(&quot;spf4j&quot;);</span>
+<span class="fc" id="L59">    loadServices(module);</span>
+<span class="fc" id="L60">    module.addSerializer(JsonWriteable.class, jsonWritableSerializer());</span>
+<span class="fc" id="L61">    MAPPER.registerModule(module);</span>
+<span class="fc" id="L62">    ServiceLoader&lt;Module&gt; loader = ServiceLoader.load(Module.class);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    for (Module mod : loader) {</span>
+<span class="nc" id="L64">      MAPPER.registerModule(mod);</span>
+<span class="nc" id="L65">    }</span>
+<span class="fc" id="L66">  }</span>
+
+  private static void loadServices(final SimpleModule module) {
+<span class="fc" id="L69">    ServiceLoader&lt;JsonSerializer&gt; loader = ServiceLoader.load(JsonSerializer.class);</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">    for (JsonSerializer ser : loader) {</span>
+<span class="fc" id="L71">      module.addSerializer(ser);</span>
+<span class="fc" id="L72">    }</span>
+<span class="fc" id="L73">  }</span>
+
+  public static JsonSerializer&lt;JsonWriteable&gt; jsonWritableSerializer() {
+<span class="fc" id="L76">    return new JsonSerializer&lt;JsonWriteable&gt;() {</span>
+      @Override
+      public void serialize(final JsonWriteable value, final JsonGenerator jgen, final SerializerProvider provider)
+              throws IOException {
+<span class="fc" id="L80">        Object outputTarget = jgen.getOutputTarget();</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (outputTarget instanceof Appendable) {</span>
+<span class="fc" id="L82">          jgen.flush();</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">          if (jgen.getOutputContext().getCurrentName() != null) {</span>
+<span class="fc" id="L84">            ((Appendable) outputTarget).append(':');</span>
+          }
+<span class="fc" id="L86">          value.writeJsonTo((Appendable) outputTarget);</span>
+<span class="fc" id="L87">          return;</span>
+        }
+<span class="nc" id="L89">        StringBuilder json = new StringBuilder(32);</span>
+<span class="nc" id="L90">        value.writeJsonTo(json);</span>
+<span class="nc" id="L91">        jgen.writeRawValue(json.toString());</span>
+<span class="nc" id="L92">      }</span>
+    };
+  }
+
+  public static JsonSerializer&lt;Object&gt; toStringJsonWritableSerializer() {
+<span class="nc" id="L97">    return new JsonSerializer&lt;Object&gt;() {</span>
+      @Override
+      public void serialize(final Object value, final JsonGenerator jgen, final SerializerProvider provider)
+              throws IOException {
+<span class="nc" id="L101">        jgen.writeString(value.toString());</span>
+<span class="nc" id="L102">      }</span>
+    };
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import java.util.Set;
+import org.spf4j.log.Level;
 
 /**
  * @author Zoltan Farkas
@@ -24,28 +25,28 @@ final class DefaultAsserter implements LogHandler {
 
   private final Set&lt;String&gt; excludeCategories;
 
-<span class="fc" id="L27">  DefaultAsserter(final Set&lt;String&gt; excludeCategories) {</span>
-<span class="fc" id="L28">    this.excludeCategories = excludeCategories;</span>
-<span class="fc" id="L29">  }</span>
+<span class="fc" id="L28">  DefaultAsserter(final Set&lt;String&gt; excludeCategories) {</span>
+<span class="fc" id="L29">    this.excludeCategories = excludeCategories;</span>
+<span class="fc" id="L30">  }</span>
 
   @Override
   public Handling handles(final Level level) {
-<span class="fc bfc" id="L33" title="All 2 branches covered.">    return level == Level.ERROR ? Handling.HANDLE_CONSUME : Handling.NONE;</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">    return level == Level.ERROR ? Handling.HANDLE_CONSUME : Handling.NONE;</span>
   }
 
   @Override
-  public LogRecord handle(final LogRecord record) {
-<span class="pc bpc" id="L38" title="3 of 4 branches missed.">    if (!record.hasAttachment(Attachments.ASSERTED) &amp;&amp; !excludeCategories.contains(record.getLogger().getName())) {</span>
-<span class="nc" id="L39">      throw new AssertionError(&quot;Most test should not log errors, if a error scenario is validated,&quot;</span>
+  public TestLogRecord handle(final TestLogRecord record) {
+<span class="pc bpc" id="L39" title="3 of 4 branches missed.">    if (!record.hasAttachment(Attachments.ASSERTED) &amp;&amp; !excludeCategories.contains(record.getLoggerName())) {</span>
+<span class="nc" id="L40">      throw new AssertionError(&quot;Most test should not log errors, if a error scenario is validated,&quot;</span>
               + &quot; please assert this behavior using TestLoggers.expect, received:\n&quot; + record,
-<span class="nc" id="L41">              record.getExtraThrowable());</span>
+<span class="nc" id="L42">              record.getExtraThrowable());</span>
     }
-<span class="fc" id="L43">    return record;</span>
+<span class="fc" id="L44">    return record;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L48">    return &quot;DefaultAsserter{&quot; + &quot;excludeCategories=&quot; + excludeCategories + '}';</span>
+<span class="fc" id="L49">    return &quot;DefaultAsserter{&quot; + &quot;excludeCategories=&quot; + excludeCategories + '}';</span>
   }
 
 }

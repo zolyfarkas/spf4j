@@ -39,37 +39,53 @@
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">package</strong> org.spf4j.base;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.junit.Assert;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> * @author Zoltan Farkas</em>
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/TimingTest.html">TimingTest</a> {
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>    @Test
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTiming() {
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      Timing currentTiming = Timing.getCurrentTiming();
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">long</strong> currNanos = TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">long</strong> currMillis = System.currentTimeMillis();
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">long</strong> millisInTheFutureCalculated = currentTiming.fromNanoTimeToEpochMillis(currNanos
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>              + TimeUnit.MILLISECONDS.toNanos(10));
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      Assert.assertTrue(currMillis + 10 - millisInTheFutureCalculated &lt;= 1);
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">long</strong> fromEpochMillisToNanoTime = currentTiming.fromEpochMillisToNanoTime(Long.MAX_VALUE);
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>      Assert.assertTrue(fromEpochMillisToNanoTime - TimeSource.nanoTime() &gt; 0);
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>      currNanos = TimeSource.nanoTime();
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">long</strong> nanoTimeIn100ms = currentTiming.fromEpochMillisToNanoTime(System.currentTimeMillis() + 100);
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">long</strong> expectNanoTimeIn100ms = currNanos + TimeUnit.MILLISECONDS.toNanos(100);
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>      Assert.assertTrue(<span class="jxr_string">"expected = "</span> + expectNanoTimeIn100ms + <span class="jxr_string">", actual ="</span> + nanoTimeIn100ms,
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>              Math.abs(expectNanoTimeIn100ms - nanoTimeIn100ms) &lt; TimeUnit.MILLISECONDS.toNanos(1));
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>    }
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.time.Instant;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.junit.Assert;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.junit.Assume;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.spf4j.test.log.TestUtils;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment"> * @author Zoltan Farkas</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/TimingTest.html">TimingTest</a> {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>    @Test
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testTiming() {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      Assume.assumeFalse(TestUtils.isExecutedInTravis());
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">long</strong> nanoTime = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      Instant inst = Instant.now();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      Timing currentTiming = Timing.getCurrentTiming();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">long</strong> currNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">long</strong> currMillis = System.currentTimeMillis();
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">long</strong> millisInTheFutureCalculated = currentTiming.fromNanoTimeToEpochMillis(currNanos
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              + TimeUnit.MILLISECONDS.toNanos(10));
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      Assert.assertTrue(currMillis + 10 - millisInTheFutureCalculated &lt;= 1);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">long</strong> fromEpochMillisToNanoTime = currentTiming.fromEpochMillisToNanoTime(Long.MAX_VALUE);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      Assert.assertTrue(fromEpochMillisToNanoTime - TimeSource.nanoTime() &gt; 0);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      currNanos = TimeSource.nanoTime();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">long</strong> nanoTimeIn100ms = currentTiming.fromEpochMillisToNanoTime(System.currentTimeMillis() + 100);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">long</strong> expectNanoTimeIn100ms = currNanos + TimeUnit.MILLISECONDS.toNanos(100);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      Assert.assertTrue(<span class="jxr_string">"expected = "</span> + expectNanoTimeIn100ms + <span class="jxr_string">", actual ="</span> + nanoTimeIn100ms,
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              Math.abs(expectNanoTimeIn100ms - nanoTimeIn100ms) &lt; TimeUnit.MILLISECONDS.toNanos(1));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      Instant instant = currentTiming.fromNanoTimeToInstant(nanoTime);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      BigInteger oneMil = BigInteger.valueOf(1000000000L);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      BigInteger i1 =  BigInteger.valueOf(instant.getEpochSecond()).multiply(oneMil)
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              .add(BigInteger.valueOf(instant.getNano()));
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      BigInteger i2 =  BigInteger.valueOf(inst.getEpochSecond()).multiply(oneMil)
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>              .add(BigInteger.valueOf(inst.getNano()));
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      BigInteger diff = i2.subtract(i1).abs();
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      Assert.assertTrue(<span class="jxr_string">"Diff is "</span> + diff, diff.compareTo(BigInteger.valueOf(2000000)) &lt; 0);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>    }
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

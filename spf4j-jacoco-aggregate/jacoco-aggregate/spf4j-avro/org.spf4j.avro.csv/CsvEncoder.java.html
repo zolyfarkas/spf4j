@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CsvEncoder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.csv</a> &gt; <span class="el_source">CsvEncoder.java</span></div><h1>CsvEncoder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.csv;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.io.parsing.JsonGrammarGenerator;
+import org.apache.avro.io.parsing.Parser;
+import org.apache.avro.io.parsing.Symbol;
+import org.apache.avro.util.Utf8;
+import org.spf4j.base.Base64;
+import org.spf4j.io.csv.CsvWriter;
+
+/**
+ * A Csv decoder for avro records.
+ *
+ * @author Zoltan Farkas
+ */
+public final class CsvEncoder extends Encoder implements Parser.ActionHandler {
+
+  private final CsvWriter csvWriter;
+
+  private final Parser parser;
+
+  private final Schema writerSchema;
+
+<span class="fc" id="L43">  private boolean firstItem = true;</span>
+
+<span class="fc" id="L45">  public CsvEncoder(final CsvWriter csvWriter, final Schema writerSchema) throws IOException {</span>
+<span class="fc" id="L46">    this.csvWriter = csvWriter;</span>
+<span class="fc" id="L47">    this.parser = new Parser(new JsonGrammarGenerator().generate(writerSchema), this);</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">    if (writerSchema.getType() != Schema.Type.ARRAY) {</span>
+<span class="nc" id="L49">      throw new IllegalArgumentException(&quot;schema must be an array: &quot; + writerSchema);</span>
+    }
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">    if (writerSchema.getElementType().getType() != Schema.Type.RECORD) {</span>
+<span class="nc" id="L52">      throw new IllegalArgumentException(&quot;schema  array element must be record: &quot; + writerSchema);</span>
+    }
+<span class="fc" id="L54">    this.writerSchema = writerSchema;</span>
+<span class="fc" id="L55">  }</span>
+
+  public void writeHeader() throws IOException {
+<span class="fc" id="L58">    writeHeader(&quot;&quot;, writerSchema.getElementType());</span>
+<span class="fc" id="L59">    csvWriter.writeEol();</span>
+<span class="fc" id="L60">  }</span>
+
+  private void writeHeader(final String prefix, final Schema rowSchema) throws IOException {
+<span class="fc bfc" id="L63" title="All 2 branches covered.">    for (Schema.Field field : rowSchema.getFields()) {</span>
+<span class="fc" id="L64">      Schema schema = field.schema();</span>
+<span class="fc" id="L65">      Schema.Type type = schema.getType();</span>
+<span class="fc" id="L66">      String name = prefix + field.name();</span>
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">      switch (type) {</span>
+        case ARRAY:
+        case MAP:
+<span class="nc" id="L70">          throw new UnsupportedOperationException(type + &quot; unsupported in CSV row&quot; + rowSchema);</span>
+        case UNION:
+<span class="fc" id="L72">          csvWriter.writeElement(name + &quot;.type&quot;);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">          for (Schema us : schema.getTypes()) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">            switch (us.getType()) {</span>
+              case ARRAY:
+              case RECORD:
+              case MAP:
+<span class="nc" id="L78">                throw new UnsupportedOperationException(type + &quot; unsupported in CSV row union&quot; + rowSchema);</span>
+              default:
+<span class="fc" id="L80">                continue;</span>
+            }
+          }
+<span class="fc" id="L83">          csvWriter.writeElement(name);</span>
+<span class="fc" id="L84">          break;</span>
+        case RECORD:
+<span class="fc" id="L86">          writeHeader(name + '.', schema);</span>
+<span class="fc" id="L87">          break;</span>
+        default:
+<span class="fc" id="L89">          csvWriter.writeElement(name);</span>
+      }
+<span class="fc" id="L91">    }</span>
+<span class="fc" id="L92">  }</span>
+
+  @Override
+  public void writeNull() throws IOException {
+<span class="fc" id="L96">    parser.advance(Symbol.NULL);</span>
+<span class="fc" id="L97">    csvWriter.writeElement(&quot;&quot;);</span>
+<span class="fc" id="L98">  }</span>
+
+  @Override
+  public void writeBoolean(final boolean bln) throws IOException {
+<span class="fc" id="L102">    parser.advance(Symbol.BOOLEAN);</span>
+<span class="fc" id="L103">    csvWriter.writeElement(Boolean.toString(bln));</span>
+<span class="fc" id="L104">  }</span>
+
+  @Override
+  public void writeInt(final int i) throws IOException {
+<span class="fc" id="L108">    parser.advance(Symbol.INT);</span>
+<span class="fc" id="L109">    csvWriter.writeElement(Integer.toString(i));</span>
+<span class="fc" id="L110">  }</span>
+
+  @Override
+  public void writeLong(final long l) throws IOException {
+<span class="fc" id="L114">    parser.advance(Symbol.LONG);</span>
+<span class="fc" id="L115">    csvWriter.writeElement(Long.toString(l));</span>
+<span class="fc" id="L116">  }</span>
+
+  @Override
+  public void writeFloat(final float f) throws IOException {
+<span class="nc" id="L120">    parser.advance(Symbol.FLOAT);</span>
+<span class="nc" id="L121">    csvWriter.writeElement(Float.toString(f));</span>
+<span class="nc" id="L122">  }</span>
+
+  @Override
+  public void writeDouble(final double d) throws IOException {
+<span class="fc" id="L126">    parser.advance(Symbol.DOUBLE);</span>
+<span class="fc" id="L127">    csvWriter.writeElement(Double.toString(d));</span>
+<span class="fc" id="L128">  }</span>
+
+  @Override
+  public void writeString(final Utf8 utf8) throws IOException {
+<span class="fc" id="L132">    parser.advance(Symbol.STRING);</span>
+<span class="fc" id="L133">    csvWriter.writeElement(utf8);</span>
+<span class="fc" id="L134">  }</span>
+
+  @Override
+  public void writeBytes(final ByteBuffer bb) throws IOException {
+<span class="fc" id="L138">    parser.advance(Symbol.BYTES);</span>
+<span class="fc" id="L139">    int position = bb.position();</span>
+<span class="fc" id="L140">    csvWriter.writeElement(Base64.encodeBase64(bb.array(), bb.arrayOffset() + position, bb.limit() - position));</span>
+<span class="fc" id="L141">  }</span>
+
+  @Override
+  public void writeBytes(final byte[] bytes, final int i, final int length) throws IOException {
+<span class="nc" id="L145">    parser.advance(Symbol.BYTES);</span>
+<span class="nc" id="L146">    csvWriter.writeElement(Base64.encodeBase64(bytes, i, length));</span>
+<span class="nc" id="L147">  }</span>
+
+  @Override
+  public void writeFixed(final byte[] bytes, final int i, final int length) throws IOException {
+<span class="nc" id="L151">    parser.advance(Symbol.FIXED);</span>
+<span class="nc" id="L152">    csvWriter.writeElement(Base64.encodeBase64(bytes, i, length));</span>
+<span class="nc" id="L153">  }</span>
+
+  @Override
+  public void writeEnum(final int e) throws IOException {
+<span class="fc" id="L157">    parser.advance(Symbol.ENUM);</span>
+<span class="fc" id="L158">    Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();</span>
+<span class="fc" id="L159">    csvWriter.writeElement(top.getLabel(e));</span>
+<span class="fc" id="L160">  }</span>
+
+  @Override
+  public void writeArrayStart() throws IOException {
+<span class="fc" id="L164">    firstItem = true;</span>
+<span class="fc" id="L165">    parser.advance(Symbol.ARRAY_START);</span>
+    // do nothing.
+<span class="fc" id="L167">  }</span>
+
+  @Override
+  public void writeArrayEnd() throws IOException {
+<span class="fc" id="L171">    parser.advance(Symbol.ITEM_END);</span>
+<span class="fc" id="L172">    parser.advance(Symbol.ARRAY_END);</span>
+    // do nothing.
+<span class="fc" id="L174">  }</span>
+
+  @Override
+  public void writeMapStart() {
+<span class="nc" id="L178">    throw new UnsupportedOperationException();</span>
+  }
+
+  @Override
+  public void writeMapEnd() {
+<span class="nc" id="L183">    throw new UnsupportedOperationException();</span>
+  }
+
+  @Override
+  public void writeIndex(final int unionIndex) throws IOException {
+<span class="fc" id="L188">    parser.advance(Symbol.UNION);</span>
+<span class="fc" id="L189">    Symbol.Alternative top = (Symbol.Alternative) parser.popSymbol();</span>
+<span class="fc" id="L190">    Symbol symbol = top.getSymbol(unionIndex);</span>
+<span class="fc" id="L191">    csvWriter.writeElement(top.getLabel(unionIndex));</span>
+<span class="fc" id="L192">    parser.pushSymbol(Symbol.UNION_END);</span>
+<span class="fc" id="L193">    parser.pushSymbol(symbol);</span>
+<span class="fc" id="L194">  }</span>
+
+  @Override
+  public void flush() throws IOException {
+<span class="fc" id="L198">    csvWriter.flush();</span>
+<span class="fc" id="L199">  }</span>
+
+  @Override
+  @Nullable
+  public Symbol doAction(final Symbol symbol, final Symbol symbol1) {
+<span class="fc" id="L204">    return null;</span>
+  }
+
+  @Override
+  public void setItemCount(final long l) {
+    // nothing to do.
+<span class="fc" id="L210">  }</span>
+
+  @Override
+  public void startItem() throws IOException {
+<span class="fc bfc" id="L214" title="All 2 branches covered.">    if (!firstItem) {</span>
+<span class="fc" id="L215">      parser.advance(Symbol.ITEM_END);</span>
+<span class="fc" id="L216">      csvWriter.writeEol();</span>
+    } else {
+<span class="fc" id="L218">      firstItem = false;</span>
+    }
+    // nothing to do
+<span class="fc" id="L221">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L225">    return &quot;CsvEncoder{&quot; + &quot;csvWriter=&quot; + csvWriter + &quot;, parser=&quot; + parser</span>
+            + &quot;, writerSchema=&quot; + writerSchema + &quot;, firstItem=&quot; + firstItem + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

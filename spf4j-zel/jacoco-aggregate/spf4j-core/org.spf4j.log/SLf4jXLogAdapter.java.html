@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SLf4jXLogAdapter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.log</a> &gt; <span class="el_source">SLf4jXLogAdapter.java</span></div><h1>SLf4jXLogAdapter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.log;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+
+public final class SLf4jXLogAdapter implements XLog {
+
+  private final Logger wrapped;
+
+  @SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;)
+<span class="fc" id="L44">  public SLf4jXLogAdapter(final Logger wrapped) {</span>
+<span class="fc" id="L45">    this.wrapped = wrapped;</span>
+<span class="fc" id="L46">  }</span>
+
+  @Override
+  @SuppressFBWarnings({&quot;SA_LOCAL_SELF_COMPARISON&quot;, &quot;SF_SWITCH_FALLTHROUGH&quot;})
+  public void logUpgrade(@Nullable final Marker marker, final Level level, final String format,
+          final Object... pargs) {
+<span class="fc" id="L52">    LogUtils.logUpgrade(wrapped, marker, level, format, pargs);</span>
+<span class="fc" id="L53">  }</span>
+
+  @Override
+  public void log(@Nullable final Marker marker, final Level level, final String format, final Object... args) {
+<span class="pc bpc" id="L57" title="5 of 6 branches missed.">    switch (level) {</span>
+      case TRACE:
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (marker != null) {</span>
+<span class="nc" id="L60">          wrapped.trace(marker, format, args);</span>
+        } else {
+<span class="fc" id="L62">          wrapped.trace(format, args);</span>
+        }
+<span class="fc" id="L64">        break;</span>
+      case DEBUG:
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (marker != null) {</span>
+<span class="nc" id="L67">          wrapped.debug(marker, format, args);</span>
+        } else {
+<span class="nc" id="L69">          wrapped.debug(format, args);</span>
+        }
+<span class="nc" id="L71">        break;</span>
+      case INFO:
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (marker != null) {</span>
+<span class="nc" id="L74">          wrapped.info(marker, format, args);</span>
+        } else {
+<span class="nc" id="L76">          wrapped.info(format, args);</span>
+        }
+<span class="nc" id="L78">        break;</span>
+      case WARN:
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (marker != null) {</span>
+<span class="nc" id="L81">          wrapped.warn(marker, format, args);</span>
+        } else {
+<span class="nc" id="L83">          wrapped.warn(format, args);</span>
+        }
+<span class="nc" id="L85">        break;</span>
+      case ERROR:
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (marker != null) {</span>
+<span class="nc" id="L88">          wrapped.error(marker, format, args);</span>
+        } else {
+<span class="nc" id="L90">          wrapped.error(format, args);</span>
+        }
+<span class="nc" id="L92">        break;</span>
+      default:
+<span class="nc" id="L94">        throw new UnsupportedOperationException(&quot;Unsupported &quot; + level);</span>
+    }
+<span class="fc" id="L96">  }</span>
+
+  @Override
+  public boolean isEnabled(final Level level, @Nullable final Marker marker) {
+<span class="pc bpc" id="L100" title="5 of 6 branches missed.">    switch (level) {</span>
+      case TRACE:
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (marker == null) {</span>
+<span class="fc" id="L103">          return wrapped.isTraceEnabled();</span>
+        } else {
+<span class="nc" id="L105">          return wrapped.isTraceEnabled(marker);</span>
+        }
+      case DEBUG:
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (marker == null) {</span>
+<span class="nc" id="L109">          return wrapped.isDebugEnabled();</span>
+        } else {
+<span class="nc" id="L111">          return wrapped.isDebugEnabled(marker);</span>
+        }
+      case INFO:
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (marker == null) {</span>
+<span class="nc" id="L115">          return wrapped.isInfoEnabled();</span>
+        } else {
+<span class="nc" id="L117">          return wrapped.isInfoEnabled(marker);</span>
+        }
+      case WARN:
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (marker == null) {</span>
+<span class="nc" id="L121">          return wrapped.isWarnEnabled();</span>
+        } else {
+<span class="nc" id="L123">          return wrapped.isWarnEnabled(marker);</span>
+        }
+      case ERROR:
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (marker == null) {</span>
+<span class="nc" id="L127">          return wrapped.isErrorEnabled();</span>
+        } else {
+<span class="nc" id="L129">          return wrapped.isErrorEnabled(null);</span>
+        }
+      default:
+<span class="nc" id="L132">        throw new UnsupportedOperationException(&quot;Unsupported &quot; + level);</span>
+    }
+  }
+
+  @Override
+  public Logger getWrapped() {
+<span class="fc" id="L138">    return wrapped;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L143">    return &quot;SLf4jXLogAdapter{&quot; + &quot;wrapped=&quot; + wrapped + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AThrowables.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base.avro</a> &gt; <span class="el_source">AThrowables.java</span></div><h1>AThrowables.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base.avro;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import javax.annotation.Nullable;
+import org.spf4j.base.Throwables;
+import static org.spf4j.base.Throwables.CAUSE_CAPTION;
+import static org.spf4j.base.Throwables.SUPPRESSED_CAPTION;
+import static org.spf4j.base.Throwables.writeAbreviatedClassName;
+import org.spf4j.ds.IdentityHashSet;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class AThrowables {
+
+  private AThrowables() { }
+
+    public static void writeTo(final RemoteException t, final Appendable to, final Throwables.PackageDetail detail,
+          final boolean abbreviatedTraceElement, final String prefix) throws IOException {
+<span class="nc" id="L55">      to.append(prefix);</span>
+<span class="nc" id="L56">      Throwables.writeMessageString(to, t);</span>
+<span class="nc" id="L57">      to.append('\n');</span>
+<span class="nc" id="L58">      writeThrowableDetails(t.getRemoteCause(), to, detail, abbreviatedTraceElement, prefix);</span>
+<span class="nc" id="L59">    }</span>
+
+   public static void writeTo(final Throwable t, final Appendable to, final Throwables.PackageDetail detail,
+          final boolean abbreviatedTraceElement, final String prefix) throws IOException {
+<span class="nc" id="L63">    to.append(prefix);</span>
+<span class="nc" id="L64">    writeMessageString(to, t);</span>
+<span class="nc" id="L65">    to.append('\n');</span>
+<span class="nc" id="L66">    writeThrowableDetails(t, to, detail, abbreviatedTraceElement, prefix);</span>
+<span class="nc" id="L67">  }</span>
+
+  public static void writeThrowableDetails(final Throwable t, final Appendable to,
+          final Throwables.PackageDetail detail, final boolean abbreviatedTraceElement, final String prefix)
+          throws IOException {
+<span class="nc" id="L72">    List&lt;StackTraceElement&gt; trace = t.getStackTrace();</span>
+<span class="nc" id="L73">    writeTo(trace, to, detail, abbreviatedTraceElement, prefix);</span>
+
+<span class="nc" id="L75">    Throwable ourCause = t.getCause();</span>
+<span class="nc" id="L76">    List&lt;Throwable&gt; suppressed = t.getSuppressed();</span>
+<span class="nc bnc" id="L77" title="All 4 branches missed.">    if (ourCause == null &amp;&amp; suppressed.isEmpty()) {</span>
+<span class="nc" id="L78">      return;</span>
+    }
+<span class="nc" id="L80">    Set&lt;Throwable&gt; dejaVu = new IdentityHashSet&lt;Throwable&gt;();</span>
+<span class="nc" id="L81">    dejaVu.add(t);</span>
+    // Print suppressed exceptions, if any
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    for (Throwable se : suppressed) {</span>
+<span class="nc" id="L84">      printEnclosedStackTrace(se, to, trace, SUPPRESSED_CAPTION, prefix + &quot;\t&quot;,</span>
+              dejaVu, detail, abbreviatedTraceElement);
+<span class="nc" id="L86">    }</span>
+    // Print cause, if any
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (ourCause != null) {</span>
+<span class="nc" id="L89">      printEnclosedStackTrace(ourCause, to, trace, CAUSE_CAPTION, prefix, dejaVu, detail, abbreviatedTraceElement);</span>
+    }
+<span class="nc" id="L91">  }</span>
+
+  public static void writeTo(final List&lt;StackTraceElement&gt; trace, final Appendable to,
+          final Throwables.PackageDetail detail,
+          final boolean abbreviatedTraceElement, final String prefix)
+          throws IOException {
+<span class="nc" id="L97">    StackTraceElement prevElem = null;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    for (StackTraceElement traceElement : trace) {</span>
+<span class="nc" id="L99">      to.append(prefix);</span>
+<span class="nc" id="L100">      to.append(&quot;\tat &quot;);</span>
+<span class="nc" id="L101">      writeTo(traceElement, prevElem, to, detail, abbreviatedTraceElement);</span>
+<span class="nc" id="L102">      to.append('\n');</span>
+<span class="nc" id="L103">      prevElem = traceElement;</span>
+<span class="nc" id="L104">    }</span>
+<span class="nc" id="L105">  }</span>
+
+
+  public static void writeTo(final StackTraceElement element, @Nullable final StackTraceElement previous,
+          final Appendable to, final Throwables.PackageDetail detail,
+          final boolean abbreviatedTraceElement)
+          throws IOException {
+<span class="nc" id="L112">    Method method = element.getMethod();</span>
+<span class="nc" id="L113">    String currClassName = method.getDeclaringClass();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    String prevClassName = previous == null ? null : previous.getMethod().getDeclaringClass();</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (abbreviatedTraceElement) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">      if (currClassName.equals(prevClassName)) {</span>
+<span class="nc" id="L117">        to.append('^');</span>
+      } else {
+<span class="nc" id="L119">        writeAbreviatedClassName(currClassName, to);</span>
+      }
+    } else {
+<span class="nc" id="L122">      to.append(currClassName);</span>
+    }
+<span class="nc" id="L124">    to.append('.');</span>
+<span class="nc" id="L125">    to.append(method.getName());</span>
+<span class="nc" id="L126">    FileLocation location = element.getLocation();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    FileLocation prevLocation = previous == null ? null : previous.getLocation();</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    String currFileName = location != null ? location.getFileName() : &quot;&quot;;</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">    String prevFileName = prevLocation != null ? prevLocation.getFileName() : &quot;&quot;;</span>
+<span class="nc" id="L130">    String fileName = currFileName;</span>
+<span class="nc bnc" id="L131" title="All 4 branches missed.">    if (abbreviatedTraceElement &amp;&amp; java.util.Objects.equals(currFileName, prevFileName)) {</span>
+<span class="nc" id="L132">      fileName = &quot;^&quot;;</span>
+    }
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    final int lineNumber = location != null ? location.getLineNumber() : -1;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    if (fileName.isEmpty()) {</span>
+<span class="nc" id="L136">      to.append(&quot;(Unknown Source)&quot;);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    } else if (lineNumber &gt;= 0) {</span>
+<span class="nc" id="L138">      to.append('(').append(fileName).append(':')</span>
+<span class="nc" id="L139">              .append(Integer.toString(lineNumber)).append(')');</span>
+    } else {
+<span class="nc" id="L141">      to.append('(').append(fileName).append(')');</span>
+    }
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (detail == Throwables.PackageDetail.NONE) {</span>
+<span class="nc" id="L144">      return;</span>
+    }
+<span class="nc bnc" id="L146" title="All 4 branches missed.">    if (abbreviatedTraceElement &amp;&amp; currClassName.equals(prevClassName)) {</span>
+<span class="nc" id="L147">      to.append(&quot;[^]&quot;);</span>
+<span class="nc" id="L148">      return;</span>
+    }
+<span class="nc bnc" id="L150" title="All 2 branches missed.">    PackageInfo presPackageInfo = previous == null ? null : previous.getPackageInfo();</span>
+<span class="nc" id="L151">    org.spf4j.base.avro.PackageInfo pInfo = element.getPackageInfo();</span>
+<span class="nc bnc" id="L152" title="All 4 branches missed.">    if (abbreviatedTraceElement  &amp;&amp; Objects.equals(pInfo, presPackageInfo)) {</span>
+<span class="nc" id="L153">      to.append(&quot;[^]&quot;);</span>
+<span class="nc" id="L154">      return;</span>
+    }
+<span class="nc bnc" id="L156" title="All 4 branches missed.">    if (!pInfo.getUrl().isEmpty() || !pInfo.getVersion().isEmpty()) {</span>
+<span class="nc" id="L157">      String jarSourceUrl = pInfo.getUrl();</span>
+<span class="nc" id="L158">      String version = pInfo.getVersion();</span>
+<span class="nc" id="L159">      to.append('[');</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">      if (!jarSourceUrl.isEmpty()) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (detail == Throwables.PackageDetail.SHORT) {</span>
+<span class="nc" id="L162">          String url = jarSourceUrl;</span>
+<span class="nc" id="L163">          int lastIndexOf = url.lastIndexOf('/');</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">          if (lastIndexOf &gt;= 0) {</span>
+<span class="nc" id="L165">            int lpos = url.length() - 1;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (lastIndexOf == lpos) {</span>
+<span class="nc" id="L167">              int prevSlPos = url.lastIndexOf('/', lpos - 1);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">              if (prevSlPos &lt; 0) {</span>
+<span class="nc" id="L169">                to.append(url);</span>
+              } else {
+<span class="nc" id="L171">                to.append(url, prevSlPos + 1, url.length());</span>
+              }
+<span class="nc" id="L173">            } else {</span>
+<span class="nc" id="L174">              to.append(url, lastIndexOf + 1, url.length());</span>
+            }
+<span class="nc" id="L176">          } else {</span>
+<span class="nc" id="L177">            to.append(url);</span>
+          }
+<span class="nc" id="L179">        } else {</span>
+<span class="nc" id="L180">          to.append(jarSourceUrl);</span>
+        }
+      } else {
+<span class="nc" id="L183">        to.append(&quot;na&quot;);</span>
+      }
+<span class="nc bnc" id="L185" title="All 2 branches missed.">      if (!version.isEmpty()) {</span>
+<span class="nc" id="L186">        to.append(':');</span>
+<span class="nc" id="L187">        to.append(version);</span>
+      }
+<span class="nc" id="L189">      to.append(']');</span>
+    }
+<span class="nc" id="L191">  }</span>
+
+  private static void printEnclosedStackTrace(final Throwable t, final Appendable s,
+          final List&lt;StackTraceElement&gt; enclosingTrace,
+          final String caption,
+          final String prefix,
+          final Set&lt;Throwable&gt; dejaVu,
+          final Throwables.PackageDetail detail,
+          final boolean abbreviatedTraceElement) throws IOException {
+<span class="nc bnc" id="L200" title="All 2 branches missed.">    if (dejaVu.contains(t)) {</span>
+<span class="nc" id="L201">      s.append(&quot;\t[CIRCULAR REFERENCE:&quot;);</span>
+<span class="nc" id="L202">      writeMessageString(s, t);</span>
+<span class="nc" id="L203">      s.append(']');</span>
+    } else {
+<span class="nc" id="L205">      dejaVu.add(t);</span>
+      // Compute number of frames in common between this and enclosing trace
+<span class="nc" id="L207">      List&lt;StackTraceElement&gt; trace = t.getStackTrace();</span>
+<span class="nc" id="L208">      int framesInCommon = commonFrames(trace, enclosingTrace);</span>
+<span class="nc" id="L209">      int m = trace.size() - framesInCommon;</span>
+      // Print our stack trace
+<span class="nc" id="L211">      s.append(prefix).append(caption);</span>
+<span class="nc" id="L212">      writeMessageString(s, t);</span>
+<span class="nc" id="L213">      s.append('\n');</span>
+<span class="nc" id="L214">      StackTraceElement prev = null;</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">      for (int i = 0; i &lt; m; i++) {</span>
+<span class="nc" id="L216">        s.append(prefix).append(&quot;\tat &quot;);</span>
+<span class="nc" id="L217">        StackTraceElement ste = trace.get(i);</span>
+<span class="nc" id="L218">        writeTo(ste, prev, s, detail, abbreviatedTraceElement);</span>
+<span class="nc" id="L219">        s.append('\n');</span>
+<span class="nc" id="L220">        prev = ste;</span>
+      }
+<span class="nc bnc" id="L222" title="All 2 branches missed.">      if (framesInCommon != 0) {</span>
+<span class="nc" id="L223">        s.append(prefix).append(&quot;\t... &quot;).append(Integer.toString(framesInCommon)).append(&quot; more&quot;);</span>
+<span class="nc" id="L224">        s.append('\n');</span>
+      }
+
+      // Print suppressed exceptions, if any
+<span class="nc bnc" id="L228" title="All 2 branches missed.">      for (Throwable se : t.getSuppressed()) {</span>
+<span class="nc" id="L229">        printEnclosedStackTrace(se, s, trace, SUPPRESSED_CAPTION, prefix + '\t',</span>
+                dejaVu, detail, abbreviatedTraceElement);
+<span class="nc" id="L231">      }</span>
+
+      // Print cause, if any
+<span class="nc" id="L234">      Throwable ourCause = t.getCause();</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">      if (ourCause != null) {</span>
+<span class="nc" id="L236">        printEnclosedStackTrace(ourCause, s, trace, CAUSE_CAPTION, prefix,</span>
+                dejaVu, detail, abbreviatedTraceElement);
+      }
+    }
+<span class="nc" id="L240">  }</span>
+
+  public static int commonFrames(final List&lt;StackTraceElement&gt; trace,
+          final List&lt;StackTraceElement&gt; enclosingTrace) {
+<span class="nc" id="L244">    int from = trace.size() - 1;</span>
+<span class="nc" id="L245">    int m = from;</span>
+<span class="nc" id="L246">    int n = enclosingTrace.size() - 1;</span>
+<span class="nc bnc" id="L247" title="All 6 branches missed.">    while (m &gt;= 0 &amp;&amp; n &gt;= 0 &amp;&amp; trace.get(m).equals(enclosingTrace.get(n))) {</span>
+<span class="nc" id="L248">      m--;</span>
+<span class="nc" id="L249">      n--;</span>
+    }
+<span class="nc" id="L251">    return from - m;</span>
+  }
+
+  public static void writeMessageString(final Appendable to, final Throwable t) throws IOException {
+<span class="nc" id="L255">    to.append(t.getClass().getName());</span>
+<span class="nc" id="L256">    String message = t.getMessage();</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">    if (message != null) {</span>
+<span class="nc" id="L258">      to.append(':').append(message);</span>
+    }
+<span class="nc" id="L260">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

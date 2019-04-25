@@ -179,47 +179,51 @@
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>     <strong class="jxr_keyword">return</strong> TI_SUPP.getStackTraces(threads);
 <a class="jxr_linenumber" name="L172" href="#L172">172</a>   }
 <a class="jxr_linenumber" name="L173" href="#L173">173</a> 
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> dumpToPrintStream(<strong class="jxr_keyword">final</strong> PrintStream stream) {
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>     StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder(1024);
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>     Thread[] threads = getThreads();
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>     StackTraceElement[][] stackTraces = getStackTraces(threads);
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; threads.length; i++) {
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>       StackTraceElement[] stackTrace = stackTraces[i];
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>       <strong class="jxr_keyword">if</strong> (stackTrace != <strong class="jxr_keyword">null</strong> &amp;&amp; stackTrace.length &gt; 0) {
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>         Thread thread = threads[i];
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>         sb.append(<span class="jxr_string">"Thread "</span>).append(thread.getName()).append('\n');
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>           Throwables.writeTo(stackTrace, sb, Throwables.PackageDetail.SHORT, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedIOException(ex);
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>         }
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>       }
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>     }
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>     stream.append(sb);
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>   }
-<a class="jxr_linenumber" name="L192" href="#L192">192</a> 
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Threads.html">SlowThreadInfoSupplierImpl</a> <strong class="jxr_keyword">implements</strong> <a href="../../../org/spf4j/base/Threads.html">ThreadInfoSupplier</a> {
-<a class="jxr_linenumber" name="L194" href="#L194">194</a> 
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>     @Override
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>     <strong class="jxr_keyword">public</strong> Thread[] getThreads() {
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>       Set&lt;Thread&gt; keySet = Thread.getAllStackTraces().keySet();
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>       <strong class="jxr_keyword">return</strong> keySet.toArray(<strong class="jxr_keyword">new</strong> Thread[keySet.size()]);
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
-<a class="jxr_linenumber" name="L200" href="#L200">200</a> 
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>     @Override
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>     <strong class="jxr_keyword">public</strong> StackTraceElement[][] getStackTraces(<strong class="jxr_keyword">final</strong> Thread... threads) {
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>       Map&lt;Thread, StackTraceElement[]&gt; allStackTraces = Thread.getAllStackTraces();
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>       StackTraceElement[][] result = <strong class="jxr_keyword">new</strong> StackTraceElement[threads.length][];
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; threads.length; i++) {
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>         result[i] = allStackTraces.get(threads[i]);
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>       }
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>       <strong class="jxr_keyword">return</strong> result;
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>     }
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>   }
-<a class="jxr_linenumber" name="L211" href="#L211">211</a> 
-<a class="jxr_linenumber" name="L212" href="#L212">212</a> }
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> dumpTo(<strong class="jxr_keyword">final</strong> Appendable stream) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     Thread[] threads = getThreads();
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     StackTraceElement[][] stackTraces = getStackTraces(threads);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; threads.length; i++) {
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>       StackTraceElement[] stackTrace = stackTraces[i];
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>       <strong class="jxr_keyword">if</strong> (stackTrace != <strong class="jxr_keyword">null</strong> &amp;&amp; stackTrace.length &gt; 0) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         Thread thread = threads[i];
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         stream.append(<span class="jxr_string">"Thread "</span>).append(thread.getName()).append('\n');
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         Throwables.writeTo(stackTrace, stream, Throwables.PackageDetail.SHORT, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>       }
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>     }
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>   }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> dumpToPrintStream(<strong class="jxr_keyword">final</strong> PrintStream stream) {
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder(1024);
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>       dumpTo(sb);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedIOException(ex);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     }
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     stream.append(sb);
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>   }
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> 
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Threads.html">SlowThreadInfoSupplierImpl</a> <strong class="jxr_keyword">implements</strong> <a href="../../../org/spf4j/base/Threads.html">ThreadInfoSupplier</a> {
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> 
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     @Override
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <strong class="jxr_keyword">public</strong> Thread[] getThreads() {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>       Set&lt;Thread&gt; keySet = Thread.getAllStackTraces().keySet();
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>       <strong class="jxr_keyword">return</strong> keySet.toArray(<strong class="jxr_keyword">new</strong> Thread[keySet.size()]);
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> 
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     @Override
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>     <strong class="jxr_keyword">public</strong> StackTraceElement[][] getStackTraces(<strong class="jxr_keyword">final</strong> Thread... threads) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>       Map&lt;Thread, StackTraceElement[]&gt; allStackTraces = Thread.getAllStackTraces();
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>       StackTraceElement[][] result = <strong class="jxr_keyword">new</strong> StackTraceElement[threads.length][];
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>       <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; threads.length; i++) {
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         result[i] = allStackTraces.get(threads[i]);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>       }
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>       <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     }
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>   }
+<a class="jxr_linenumber" name="L215" href="#L215">215</a> 
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2018 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

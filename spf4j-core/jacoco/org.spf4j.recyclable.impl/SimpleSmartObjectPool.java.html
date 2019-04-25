@@ -156,8 +156,8 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
               }
             }
 <span class="fc" id="L158">          }</span>
-<span class="pc bpc" id="L159" title="1 of 2 branches missed.">          if (!hasValidBorowers) {</span>
-<span class="nc" id="L160">            throw new IllegalStateException(&quot;Borrower asks for more than possible &quot; + borower);</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">          if (!hasValidBorowers) {</span>
+<span class="fc" id="L160">            throw new IllegalStateException(&quot;Borrower asks for more than possible &quot; + borower);</span>
           }
 <span class="fc bfc" id="L162" title="All 2 branches covered.">          if (!requestMade) {</span>
             // probably was unable to acquire the locks
@@ -281,40 +281,40 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
       try {
 <span class="fc" id="L282">        factory.dispose(obj);</span>
 <span class="nc" id="L283">      } catch (ObjectDisposeException ex) {</span>
-<span class="nc bnc" id="L284" title="All 2 branches missed.">        if (result == null) {</span>
-<span class="nc" id="L285">          result = ex;</span>
-        } else {
-<span class="nc" id="L287">          result = Throwables.suppress(ex, result);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L285">          Throwables.suppressLimited(ex, result);</span>
         }
-<span class="nc" id="L289">      } catch (Exception ex) {</span>
-<span class="nc bnc" id="L290" title="All 2 branches missed.">        if (result == null) {</span>
-<span class="nc" id="L291">          result = new ObjectDisposeException(ex);</span>
+<span class="nc" id="L287">        result = ex;</span>
+<span class="nc" id="L288">      } catch (Exception ex) {</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L290">          result = new ObjectDisposeException(ex);</span>
         } else {
-<span class="nc" id="L293">          result = Throwables.suppress(new ObjectDisposeException(ex), result);</span>
+<span class="nc" id="L292">          ObjectDisposeException nex = new ObjectDisposeException(ex);</span>
+<span class="nc" id="L293">          Throwables.suppressLimited(nex, result);</span>
+<span class="nc" id="L294">          result = nex;</span>
         }
-<span class="pc" id="L295">      }</span>
-<span class="fc" id="L296">    }</span>
-<span class="fc" id="L297">    availableObjects.clear();</span>
-<span class="fc" id="L298">    return result;</span>
+<span class="pc" id="L296">      }</span>
+<span class="fc" id="L297">    }</span>
+<span class="fc" id="L298">    availableObjects.clear();</span>
+<span class="fc" id="L299">    return result;</span>
   }
 
   @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_HAS_CHECKED&quot;)
   @Override
   public boolean scan(final ScanHandler&lt;T&gt; handler) throws Exception {
-<span class="fc" id="L304">    lock.lock();</span>
-<span class="fc" id="L305">    Exception resEx = null;</span>
+<span class="fc" id="L305">    lock.lock();</span>
+<span class="fc" id="L306">    Exception resEx = null;</span>
     try {
-<span class="fc bfc" id="L307" title="All 2 branches covered.">      for (ObjectBorower&lt;T&gt; objectBorower : borrowedObjects.keySet()) {</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">      for (ObjectBorower&lt;T&gt; objectBorower : borrowedObjects.keySet()) {</span>
         try {
-<span class="pc bpc" id="L309" title="1 of 2 branches missed.">          if (!objectBorower.scan(handler)) {</span>
-<span class="nc" id="L310">            return false;</span>
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">          if (!objectBorower.scan(handler)) {</span>
+<span class="nc" id="L311">            return false;</span>
           }
-<span class="nc" id="L312">        } catch (Exception e) {</span>
-<span class="nc bnc" id="L313" title="All 2 branches missed.">          if (resEx == null) {</span>
-<span class="nc" id="L314">            resEx = e;</span>
-          } else {
-<span class="nc" id="L316">            resEx = Throwables.suppress(e, resEx);</span>
+<span class="nc" id="L313">        } catch (Exception e) {</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">          if (resEx != null) {</span>
+<span class="nc" id="L315">            Throwables.suppressLimited(e, resEx);</span>
           }
+<span class="nc" id="L317">          resEx = e;</span>
 <span class="fc" id="L318">        }</span>
 
 <span class="fc" id="L320">        Collection&lt;T&gt; returned = objectBorower.tryReturnObjectsIfNotNeededAnymore();</span>
@@ -332,58 +332,57 @@ final class SimpleSmartObjectPool&lt;T&gt; implements SmartRecyclingSupplier&lt;
 <span class="nc" id="L332">            return false;</span>
           }
 <span class="nc" id="L334">        } catch (Exception e) {</span>
-<span class="nc bnc" id="L335" title="All 2 branches missed.">          if (resEx == null) {</span>
-<span class="nc" id="L336">            resEx = e;</span>
-          } else {
-<span class="nc" id="L338">            resEx = Throwables.suppress(e, resEx);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">          if (resEx != null) {</span>
+<span class="nc" id="L336">            Throwables.suppressLimited(e, resEx);</span>
           }
-<span class="fc" id="L340">        }</span>
-<span class="fc" id="L341">      }</span>
-<span class="pc bpc" id="L342" title="1 of 2 branches missed.">      if (resEx != null) {</span>
-<span class="nc" id="L343">        throw resEx;</span>
+<span class="nc" id="L338">          resEx = e;</span>
+<span class="fc" id="L339">        }</span>
+<span class="fc" id="L340">      }</span>
+<span class="pc bpc" id="L341" title="1 of 2 branches missed.">      if (resEx != null) {</span>
+<span class="nc" id="L342">        throw resEx;</span>
       }
-<span class="fc" id="L345">      return true;</span>
+<span class="fc" id="L344">      return true;</span>
     } finally {
-<span class="fc" id="L347">      lock.unlock();</span>
+<span class="fc" id="L346">      lock.unlock();</span>
     }
   }
 
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public void requestReturnFromBorrowersIfNotInUse() throws InterruptedException {
-<span class="fc" id="L353">    lock.lock();</span>
+<span class="fc" id="L352">    lock.lock();</span>
     try {
-<span class="fc" id="L355">      List&lt;Pair&lt;ObjectBorower&lt;T&gt;, T&gt;&gt; returnedObjects = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L356" title="All 2 branches covered.">      for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
-<span class="fc" id="L357">        Collection&lt;T&gt; objects = b.tryReturnObjectsIfNotInUse();</span>
-<span class="fc bfc" id="L358" title="All 2 branches covered.">        for (T object : objects) {</span>
-<span class="fc" id="L359">          returnedObjects.add(Pair.of(b, object));</span>
-<span class="fc" id="L360">        }</span>
-<span class="fc" id="L361">      }</span>
-<span class="fc bfc" id="L362" title="All 2 branches covered.">      for (Pair&lt;ObjectBorower&lt;T&gt;, T&gt; ro : returnedObjects) {</span>
-<span class="fc" id="L363">        T object = ro.getSecond();</span>
-<span class="fc" id="L364">        borrowedObjects.remove(ro.getFirst(), object);</span>
-<span class="fc" id="L365">        availableObjects.add(object);</span>
-<span class="fc" id="L366">      }</span>
+<span class="fc" id="L354">      List&lt;Pair&lt;ObjectBorower&lt;T&gt;, T&gt;&gt; returnedObjects = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L355" title="All 2 branches covered.">      for (ObjectBorower&lt;T&gt; b : borrowedObjects.keySet()) {</span>
+<span class="fc" id="L356">        Collection&lt;T&gt; objects = b.tryReturnObjectsIfNotInUse();</span>
+<span class="fc bfc" id="L357" title="All 2 branches covered.">        for (T object : objects) {</span>
+<span class="fc" id="L358">          returnedObjects.add(Pair.of(b, object));</span>
+<span class="fc" id="L359">        }</span>
+<span class="fc" id="L360">      }</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">      for (Pair&lt;ObjectBorower&lt;T&gt;, T&gt; ro : returnedObjects) {</span>
+<span class="fc" id="L362">        T object = ro.getSecond();</span>
+<span class="fc" id="L363">        borrowedObjects.remove(ro.getFirst(), object);</span>
+<span class="fc" id="L364">        availableObjects.add(object);</span>
+<span class="fc" id="L365">      }</span>
     } finally {
-<span class="fc" id="L368">      lock.unlock();</span>
+<span class="fc" id="L367">      lock.unlock();</span>
     }
-<span class="fc" id="L370">  }</span>
+<span class="fc" id="L369">  }</span>
 
   @Override
   public String toString() {
-<span class="fc" id="L374">    lock.lock();</span>
+<span class="fc" id="L373">    lock.lock();</span>
     try {
-<span class="fc" id="L376">      return &quot;SimpleSmartObjectPool{&quot; + &quot;maxSize=&quot; + maxSize + &quot;, borrowedObjects=&quot;</span>
+<span class="fc" id="L375">      return &quot;SimpleSmartObjectPool{&quot; + &quot;maxSize=&quot; + maxSize + &quot;, borrowedObjects=&quot;</span>
               + borrowedObjects + &quot;, availableObjects=&quot; + availableObjects
               + &quot;, factory=&quot; + factory + '}';
     } finally {
-<span class="fc" id="L380">      lock.unlock();</span>
+<span class="fc" id="L379">      lock.unlock();</span>
     }
   }
 
   @Override
   public T getSample() {
-<span class="fc" id="L386">    return sample;</span>
+<span class="fc" id="L385">    return sample;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

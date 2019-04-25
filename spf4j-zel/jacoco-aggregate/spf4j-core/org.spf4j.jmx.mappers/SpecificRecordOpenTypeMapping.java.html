@@ -120,7 +120,7 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
   @Nonnull
   public static Type getGenericType(final Schema schema) {
 <span class="fc" id="L122">    Schema.Type type = schema.getType();</span>
-<span class="pc bpc" id="L123" title="1 of 4 branches missed.">    switch (type) {</span>
+<span class="pc bpc" id="L123" title="2 of 4 branches missed.">    switch (type) {</span>
       case ARRAY:
 <span class="fc" id="L125">        Type elementType = getGenericType(schema.getElementType());</span>
 <span class="fc" id="L126">        return listToken(TypeToken.of(elementType)).getType();</span>
@@ -128,10 +128,10 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
 <span class="nc" id="L128">        Type valueType = getGenericType(schema.getValueType());</span>
 <span class="nc" id="L129">        return mapToken(TypeToken.of(String.class), TypeToken.of(valueType)).getType();</span>
       case UNION:
-<span class="fc" id="L131">        List&lt;Schema&gt; types = schema.getTypes();     // elide unions with null</span>
-<span class="pc bpc" id="L132" title="2 of 4 branches missed.">        if ((types.size() == 2) &amp;&amp; types.contains(NULL_SCHEMA)) {</span>
-<span class="fc" id="L133">          return Reflections.primitiveToWrapper(</span>
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">                  getGenericType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)));</span>
+<span class="nc" id="L131">        List&lt;Schema&gt; types = schema.getTypes();     // elide unions with null</span>
+<span class="nc bnc" id="L132" title="All 4 branches missed.">        if ((types.size() == 2) &amp;&amp; types.contains(NULL_SCHEMA)) {</span>
+<span class="nc" id="L133">          return Reflections.primitiveToWrapper(</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                  getGenericType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)));</span>
         } else {
 <span class="nc" id="L136">          throw new IllegalArgumentException(&quot;Schema &quot; + schema</span>
                   + &quot;Cannot be mapped to an OpenType duw to multibranch union&quot;);

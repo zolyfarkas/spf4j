@@ -31,23 +31,22 @@
  */
 package org.spf4j.zel.instr.var;
 
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ThreadLocalRandom;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
-
 public final class RANDOM implements Method {
 
-<span class="fc" id="L42">    public static final Method INSTANCE = new RANDOM();</span>
+<span class="fc" id="L41">  public static final Method INSTANCE = new RANDOM();</span>
 
-    private RANDOM() {
-    }
+  private RANDOM() {
+  }
 
-    @Override
-    @SuppressFBWarnings(&quot;PREDICTABLE_RANDOM&quot;)
-    public Object invoke(final ExecutionContext context, final Object[] parameters) {
-<span class="fc" id="L50">        return Math.random();</span>
-    }
+  @Override
+  @SuppressFBWarnings(&quot;PREDICTABLE_RANDOM&quot;)
+  public Object invoke(final ExecutionContext context, final Object[] parameters) {
+<span class="fc" id="L49">    return ThreadLocalRandom.current().nextDouble();</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

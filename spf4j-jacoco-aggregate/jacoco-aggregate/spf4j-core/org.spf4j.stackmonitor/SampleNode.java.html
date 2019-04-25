@@ -31,9 +31,10 @@
  */
 package org.spf4j.stackmonitor;
 
-import org.spf4j.base.Method;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import org.spf4j.base.StackSamples;
 import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
 import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.IOException;
 import java.io.Reader;
@@ -49,180 +50,203 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
+import org.spf4j.base.Json;
 import org.spf4j.base.JsonWriteable;
+import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
+import org.spf4j.base.avro.Method;
 
 /**
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode implements Serializable, JsonWriteable {
+public final class SampleNode implements Serializable, JsonWriteable, StackSamples {
 
   private static final long serialVersionUID = 1L;
 
   private int sampleCount;
   private TMap&lt;Method, SampleNode&gt; subNodes;
 
-<span class="fc" id="L69">  SampleNode(final StackTraceElement[] stackTrace, final int from) {</span>
-<span class="fc" id="L70">    sampleCount = 1;</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">    if (from &gt;= 0) {</span>
-<span class="fc" id="L72">      subNodes = new THashMap(4);</span>
-<span class="fc" id="L73">      subNodes.put(Method.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));</span>
+<span class="fc" id="L70">  SampleNode(final StackTraceElement[] stackTrace, final int from) {</span>
+<span class="fc" id="L71">    sampleCount = 1;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    if (from &gt;= 0) {</span>
+<span class="fc" id="L73">      subNodes = new MethodMap&lt;&gt;();</span>
+<span class="fc" id="L74">      subNodes.put(Methods.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));</span>
     }
-<span class="fc" id="L75">  }</span>
+<span class="fc" id="L76">  }</span>
 
   public static SampleNode createSampleNode(final StackTraceElement... stackTrace) {
-<span class="fc" id="L78">    SampleNode result = new SampleNode(1, null);</span>
-<span class="fc" id="L79">    SampleNode prevResult = result;</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">    for (int i = stackTrace.length - 1; i &gt;= 0; i--) {</span>
-<span class="fc" id="L81">      StackTraceElement elem = stackTrace[i];</span>
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">      if (prevResult.subNodes == null) {</span>
-<span class="fc" id="L83">        prevResult.subNodes = new THashMap&lt;&gt;(4);</span>
+<span class="fc" id="L79">    SampleNode result = new SampleNode(1, null);</span>
+<span class="fc" id="L80">    SampleNode prevResult = result;</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">    for (int i = stackTrace.length - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L82">      StackTraceElement elem = stackTrace[i];</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">      if (prevResult.subNodes == null) {</span>
+<span class="fc" id="L84">        prevResult.subNodes = new MethodMap&lt;&gt;();</span>
       }
-<span class="fc" id="L85">      SampleNode node = new SampleNode(1, null);</span>
-<span class="fc" id="L86">      prevResult.subNodes.put(Method.getMethod(elem), node);</span>
-<span class="fc" id="L87">      prevResult = node;</span>
+<span class="fc" id="L86">      SampleNode node = new SampleNode(1, null);</span>
+<span class="fc" id="L87">      prevResult.subNodes.put(Methods.getMethod(elem), node);</span>
+<span class="fc" id="L88">      prevResult = node;</span>
     }
-<span class="fc" id="L89">    return result;</span>
+<span class="fc" id="L90">    return result;</span>
   }
 
   public static void addToSampleNode(final SampleNode node, final StackTraceElement... stackTrace) {
-<span class="fc" id="L93">    SampleNode prevResult = node;</span>
-<span class="fc" id="L94">    prevResult.sampleCount++;</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">    for (int i = stackTrace.length - 1; i &gt;= 0; i--) {</span>
-<span class="fc" id="L96">      StackTraceElement elem = stackTrace[i];</span>
-<span class="fc" id="L97">      final Method method = Method.getMethod(elem);</span>
+<span class="fc" id="L94">    SampleNode prevResult = node;</span>
+<span class="fc" id="L95">    prevResult.sampleCount++;</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    for (int i = stackTrace.length - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L97">      StackTraceElement elem = stackTrace[i];</span>
+<span class="fc" id="L98">      final Method method = Methods.getMethod(elem);</span>
       SampleNode nNode;
-<span class="fc bfc" id="L99" title="All 2 branches covered.">      if (prevResult.subNodes == null) {</span>
-<span class="fc" id="L100">        prevResult.subNodes = new THashMap&lt;&gt;(4);</span>
-<span class="fc" id="L101">        nNode = new SampleNode(1, null);</span>
-<span class="fc" id="L102">        prevResult.subNodes.put(method, nNode);</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">      if (prevResult.subNodes == null) {</span>
+<span class="fc" id="L101">        prevResult.subNodes = new MethodMap&lt;&gt;();</span>
+<span class="fc" id="L102">        nNode = new SampleNode(1, null);</span>
+<span class="fc" id="L103">        prevResult.subNodes.put(method, nNode);</span>
       } else {
-<span class="fc" id="L104">        nNode = prevResult.subNodes.get(method);</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (nNode != null) {</span>
-<span class="fc" id="L106">          nNode.sampleCount++;</span>
+<span class="fc" id="L105">        nNode = prevResult.subNodes.get(method);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (nNode != null) {</span>
+<span class="fc" id="L107">          nNode.sampleCount++;</span>
         } else {
-<span class="fc" id="L108">          nNode = new SampleNode(1, null);</span>
-<span class="fc" id="L109">          prevResult.subNodes.put(method, nNode);</span>
+<span class="fc" id="L109">          nNode = new SampleNode(1, null);</span>
+<span class="fc" id="L110">          prevResult.subNodes.put(method, nNode);</span>
         }
       }
-<span class="fc" id="L112">      prevResult = nNode;</span>
+<span class="fc" id="L113">      prevResult = nNode;</span>
     }
-<span class="fc" id="L114">  }</span>
+<span class="fc" id="L115">  }</span>
 
   public static SampleNode clone(final SampleNode node) {
-<span class="fc bfc" id="L117" title="All 2 branches covered.">    if (node.subNodes == null) {</span>
-<span class="fc" id="L118">      return new SampleNode(node.sampleCount, null);</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">    if (node.subNodes == null) {</span>
+<span class="fc" id="L119">      return new SampleNode(node.sampleCount, null);</span>
     }
-<span class="fc" id="L120">    final THashMap&lt;Method, SampleNode&gt; newSubNodes = new THashMap&lt;&gt;(node.subNodes.size());</span>
-<span class="fc" id="L121">    node.subNodes.forEachEntry((final Method a, final SampleNode b) -&gt; {</span>
-<span class="fc" id="L122">      newSubNodes.put(a, SampleNode.clone(b));</span>
-<span class="fc" id="L123">      return true;</span>
+<span class="fc" id="L121">    final TMap&lt;Method, SampleNode&gt; newSubNodes = new MethodMap&lt;&gt;(node.subNodes.size());</span>
+<span class="fc" id="L122">    node.subNodes.forEachEntry((final Method a, final SampleNode b) -&gt; {</span>
+<span class="fc" id="L123">      newSubNodes.put(a, SampleNode.clone(b));</span>
+<span class="fc" id="L124">      return true;</span>
     });
-<span class="fc" id="L125">    return new SampleNode(node.sampleCount, newSubNodes);</span>
+<span class="fc" id="L126">    return new SampleNode(node.sampleCount, newSubNodes);</span>
   }
 
   public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
-<span class="fc" id="L129">    int newSampleCount = node1.sampleCount + node2.sampleCount;</span>
+<span class="fc" id="L130">    int newSampleCount = node1.sampleCount + node2.sampleCount;</span>
     TMap&lt;Method, SampleNode&gt; newSubNodes;
-<span class="pc bpc" id="L131" title="1 of 4 branches missed.">    if (node1.subNodes == null &amp;&amp; node2.subNodes == null) {</span>
-<span class="fc" id="L132">      newSubNodes = null;</span>
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    } else if (node1.subNodes == null) {</span>
-<span class="nc" id="L134">      newSubNodes = cloneSubNodes(node2);</span>
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    } else if (node2.subNodes == null) {</span>
-<span class="nc" id="L136">      newSubNodes = cloneSubNodes(node1);</span>
+<span class="pc bpc" id="L132" title="1 of 4 branches missed.">    if (node1.subNodes == null &amp;&amp; node2.subNodes == null) {</span>
+<span class="fc" id="L133">      newSubNodes = null;</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">    } else if (node1.subNodes == null) {</span>
+<span class="nc" id="L135">      newSubNodes = cloneSubNodes(node2);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">    } else if (node2.subNodes == null) {</span>
+<span class="nc" id="L137">      newSubNodes = cloneSubNodes(node1);</span>
     } else {
-<span class="fc" id="L138">      final THashMap&lt;Method, SampleNode&gt; ns = new THashMap&lt;&gt;(node1.subNodes.size() + node2.subNodes.size());</span>
+<span class="fc" id="L139">      final TMap&lt;Method, SampleNode&gt; ns = new MethodMap&lt;&gt;((int) ((node1.subNodes.size()</span>
+<span class="fc" id="L140">              + node2.subNodes.size()) / 0.7));</span>
 
-<span class="fc" id="L140">      node1.subNodes.forEachEntry((final Method m, final SampleNode b) -&gt; {</span>
-<span class="fc" id="L141">        SampleNode other = node2.subNodes.get(m);</span>
-<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if (other == null) {</span>
-<span class="nc" id="L143">          ns.put(m, SampleNode.clone(b));</span>
+<span class="fc" id="L142">      node1.subNodes.forEachEntry((final Method m, final SampleNode b) -&gt; {</span>
+<span class="fc" id="L143">        SampleNode other = node2.subNodes.get(m);</span>
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (other == null) {</span>
+<span class="nc" id="L145">          ns.put(m, SampleNode.clone(b));</span>
         } else {
-<span class="fc" id="L145">          ns.put(m, aggregate(b, other));</span>
+<span class="fc" id="L147">          ns.put(m, aggregate(b, other));</span>
         }
-<span class="fc" id="L147">        return true;</span>
+<span class="fc" id="L149">        return true;</span>
       });
-<span class="fc" id="L149">      node2.subNodes.forEachEntry((final Method m, final SampleNode b) -&gt; {</span>
-<span class="pc bpc" id="L150" title="1 of 2 branches missed.">        if (!node1.subNodes.containsKey(m)) {</span>
-<span class="nc" id="L151">          ns.put(m, SampleNode.clone(b));</span>
+<span class="fc" id="L151">      node2.subNodes.forEachEntry((final Method m, final SampleNode b) -&gt; {</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (!node1.subNodes.containsKey(m)) {</span>
+<span class="nc" id="L153">          ns.put(m, SampleNode.clone(b));</span>
         }
-<span class="fc" id="L153">        return true;</span>
+<span class="fc" id="L155">        return true;</span>
       });
-<span class="fc" id="L155">      newSubNodes = ns;</span>
+<span class="fc" id="L157">      newSubNodes = ns;</span>
 
     }
-<span class="fc" id="L158">    return new SampleNode(newSampleCount, newSubNodes);</span>
+<span class="fc" id="L160">    return new SampleNode(newSampleCount, newSubNodes);</span>
   }
 
+  public void add(final SampleNode node) {
+<span class="fc" id="L164">    this.sampleCount += node.getSampleCount();</span>
+<span class="fc" id="L165">    TMap&lt;Method, SampleNode&gt; oSubNodes = (TMap&lt;Method, SampleNode&gt;) node.getSubNodes();</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">    if (this.subNodes == null) {</span>
+<span class="nc" id="L167">      this.subNodes = oSubNodes;</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">    } else if (oSubNodes != null) {</span>
+<span class="fc" id="L169">      oSubNodes.forEachEntry((final Method m, final SampleNode b) -&gt; {</span>
+<span class="fc" id="L170">        SampleNode other = subNodes.get(m);</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (other == null) {</span>
+<span class="fc" id="L172">          subNodes.put(m, b);</span>
+        } else {
+<span class="fc" id="L174">          other.sampleCount += b.sampleCount;</span>
+        }
+<span class="fc" id="L176">        return true;</span>
+      });
+    }
+<span class="fc" id="L179">  }</span>
+
+
+
   public static TMap&lt;Method, SampleNode&gt; cloneSubNodes(final SampleNode node) {
-<span class="nc" id="L162">    final TMap&lt;Method, SampleNode&gt; ns = new THashMap&lt;&gt;(node.subNodes.size());</span>
-<span class="nc" id="L163">    putAllClones(node.subNodes, ns);</span>
-<span class="nc" id="L164">    return ns;</span>
+<span class="nc" id="L184">    final TMap&lt;Method, SampleNode&gt; ns = new MethodMap&lt;&gt;(node.subNodes.size());</span>
+<span class="nc" id="L185">    putAllClones(node.subNodes, ns);</span>
+<span class="nc" id="L186">    return ns;</span>
   }
 
   public static void putAllClones(final TMap&lt;Method, SampleNode&gt; source,
           final TMap&lt;Method, SampleNode&gt; destination) {
-<span class="nc" id="L169">    source.forEachEntry((final Method a, final SampleNode b) -&gt; {</span>
-<span class="nc" id="L170">      destination.put(a, SampleNode.clone(b));</span>
-<span class="nc" id="L171">      return true;</span>
+<span class="nc" id="L191">    source.forEachEntry((final Method a, final SampleNode b) -&gt; {</span>
+<span class="nc" id="L192">      destination.put(a, SampleNode.clone(b));</span>
+<span class="nc" id="L193">      return true;</span>
     });
-<span class="nc" id="L173">  }</span>
+<span class="nc" id="L195">  }</span>
 
-<span class="fc" id="L175">  public SampleNode(final int count, @Nullable final TMap&lt;Method, SampleNode&gt; subNodes) {</span>
-<span class="fc" id="L176">    this.sampleCount = count;</span>
-<span class="fc" id="L177">    this.subNodes = subNodes;</span>
-<span class="fc" id="L178">  }</span>
+<span class="fc" id="L197">  public SampleNode(final int count, @Nullable final TMap&lt;Method, SampleNode&gt; subNodes) {</span>
+<span class="fc" id="L198">    this.sampleCount = count;</span>
+<span class="fc" id="L199">    this.subNodes = subNodes;</span>
+<span class="fc" id="L200">  }</span>
 
   void addSample(final StackTraceElement[] stackTrace, final int from) {
-<span class="fc" id="L181">    sampleCount++;</span>
-<span class="fc bfc" id="L182" title="All 2 branches covered.">    if (from &gt;= 0) {</span>
-<span class="fc" id="L183">      Method method = Method.getMethod(stackTrace[from]);</span>
-<span class="fc" id="L184">      SampleNode subNode = null;</span>
-<span class="pc bpc" id="L185" title="1 of 2 branches missed.">      if (subNodes == null) {</span>
-<span class="nc" id="L186">        subNodes = new THashMap(4);</span>
+<span class="fc" id="L203">    sampleCount++;</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">    if (from &gt;= 0) {</span>
+<span class="fc" id="L205">      Method method = Methods.getMethod(stackTrace[from]);</span>
+<span class="fc" id="L206">      SampleNode subNode = null;</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">      if (subNodes == null) {</span>
+<span class="nc" id="L208">        subNodes = new MethodMap();</span>
       } else {
-<span class="fc" id="L188">        subNode = subNodes.get(method);</span>
+<span class="fc" id="L210">        subNode = subNodes.get(method);</span>
       }
-<span class="fc bfc" id="L190" title="All 2 branches covered.">      if (subNode == null) {</span>
-<span class="fc" id="L191">        subNodes.put(method, new SampleNode(stackTrace, from - 1));</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">      if (subNode == null) {</span>
+<span class="fc" id="L213">        subNodes.put(method, new SampleNode(stackTrace, from - 1));</span>
       } else {
-<span class="fc" id="L193">        subNode.addSample(stackTrace, from - 1);</span>
+<span class="fc" id="L215">        subNode.addSample(stackTrace, from - 1);</span>
       }
     }
-<span class="fc" id="L196">  }</span>
+<span class="fc" id="L218">  }</span>
 
+  @Override
   public int getSampleCount() {
-<span class="fc" id="L199">    return sampleCount;</span>
+<span class="fc" id="L222">    return sampleCount;</span>
   }
 
   @Nullable
+  @Override
   public TMap&lt;Method, SampleNode&gt; getSubNodes() {
-<span class="fc" id="L204">    return subNodes;</span>
+<span class="fc" id="L228">    return subNodes;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L209">    StringBuilder sb = new StringBuilder(64);</span>
-<span class="fc" id="L210">    writeTo(sb);</span>
-<span class="fc" id="L211">    return sb.toString();</span>
+<span class="fc" id="L233">    StringBuilder sb = new StringBuilder(64);</span>
+<span class="fc" id="L234">    writeTo(sb);</span>
+<span class="fc" id="L235">    return sb.toString();</span>
   }
 
   public int height() {
-<span class="fc bfc" id="L215" title="All 2 branches covered.">    if (subNodes == null) {</span>
-<span class="fc" id="L216">      return 1;</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">    if (subNodes == null) {</span>
+<span class="fc" id="L240">      return 1;</span>
     } else {
-<span class="fc" id="L218">      int subHeight = 0;</span>
-<span class="fc bfc" id="L219" title="All 2 branches covered.">      for (SampleNode node : subNodes.values()) {</span>
-<span class="fc" id="L220">        int nHeight = node.height();</span>
-<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (nHeight &gt; subHeight) {</span>
-<span class="fc" id="L222">          subHeight = nHeight;</span>
+<span class="fc" id="L242">      int subHeight = 0;</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">      for (SampleNode node : subNodes.values()) {</span>
+<span class="fc" id="L244">        int nHeight = node.height();</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">        if (nHeight &gt; subHeight) {</span>
+<span class="fc" id="L246">          subHeight = nHeight;</span>
         }
-<span class="fc" id="L224">      }</span>
-<span class="fc" id="L225">      return subHeight + 1;</span>
+<span class="fc" id="L248">      }</span>
+<span class="fc" id="L249">      return subHeight + 1;</span>
     }
 
   }
@@ -233,14 +257,14 @@ public final class SampleNode implements Serializable, JsonWriteable {
    * @return the total number of nodes in this tree.
    */
   public int getNrNodes() {
-<span class="fc bfc" id="L236" title="All 2 branches covered.">    if (subNodes == null) {</span>
-<span class="fc" id="L237">      return 1;</span>
+<span class="fc bfc" id="L260" title="All 2 branches covered.">    if (subNodes == null) {</span>
+<span class="fc" id="L261">      return 1;</span>
     } else {
-<span class="fc" id="L239">      int nrNodes = 0;</span>
-<span class="fc bfc" id="L240" title="All 2 branches covered.">      for (SampleNode node : subNodes.values()) {</span>
-<span class="fc" id="L241">        nrNodes += node.getNrNodes();</span>
-<span class="fc" id="L242">      }</span>
-<span class="fc" id="L243">      return nrNodes + 1;</span>
+<span class="fc" id="L263">      int nrNodes = 0;</span>
+<span class="fc bfc" id="L264" title="All 2 branches covered.">      for (SampleNode node : subNodes.values()) {</span>
+<span class="fc" id="L265">        nrNodes += node.getNrNodes();</span>
+<span class="fc" id="L266">      }</span>
+<span class="fc" id="L267">      return nrNodes + 1;</span>
     }
   }
 
@@ -252,87 +276,87 @@ public final class SampleNode implements Serializable, JsonWriteable {
   @Nullable
   public SampleNode filteredBy(final Predicate&lt;Method&gt; predicate) {
 
-<span class="nc" id="L255">    int newCount = this.sampleCount;</span>
+<span class="nc" id="L279">    int newCount = this.sampleCount;</span>
 
-<span class="nc" id="L257">    THashMap&lt;Method, SampleNode&gt; sns = null;</span>
-<span class="nc bnc" id="L258" title="All 2 branches missed.">    if (this.subNodes != null) {</span>
-<span class="nc bnc" id="L259" title="All 2 branches missed.">      for (Map.Entry&lt;Method, SampleNode&gt; entry : this.subNodes.entrySet()) {</span>
-<span class="nc" id="L260">        Method method = entry.getKey();</span>
-<span class="nc" id="L261">        SampleNode sn = entry.getValue();</span>
-<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (predicate.test(method)) {</span>
-<span class="nc" id="L263">          newCount -= sn.getSampleCount();</span>
+<span class="nc" id="L281">    TMap&lt;Method, SampleNode&gt; sns = null;</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">    if (this.subNodes != null) {</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">      for (Map.Entry&lt;Method, SampleNode&gt; entry : this.subNodes.entrySet()) {</span>
+<span class="nc" id="L284">        Method method = entry.getKey();</span>
+<span class="nc" id="L285">        SampleNode sn = entry.getValue();</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (predicate.test(method)) {</span>
+<span class="nc" id="L287">          newCount -= sn.getSampleCount();</span>
         } else {
-<span class="nc bnc" id="L265" title="All 2 branches missed.">          if (sns == null) {</span>
-<span class="nc" id="L266">            sns = new THashMap&lt;&gt;(4);</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">          if (sns == null) {</span>
+<span class="nc" id="L290">            sns = new MethodMap&lt;&gt;();</span>
           }
-<span class="nc" id="L268">          SampleNode sn2 = sn.filteredBy(predicate);</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">          if (sn2 == null) {</span>
-<span class="nc" id="L270">            newCount -= sn.getSampleCount();</span>
+<span class="nc" id="L292">          SampleNode sn2 = sn.filteredBy(predicate);</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">          if (sn2 == null) {</span>
+<span class="nc" id="L294">            newCount -= sn.getSampleCount();</span>
           } else {
-<span class="nc" id="L272">            newCount -= sn.getSampleCount() - sn2.getSampleCount();</span>
-<span class="nc" id="L273">            sns.put(method, sn2);</span>
+<span class="nc" id="L296">            newCount -= sn.getSampleCount() - sn2.getSampleCount();</span>
+<span class="nc" id="L297">            sns.put(method, sn2);</span>
           }
 
         }
-<span class="nc" id="L277">      }</span>
+<span class="nc" id="L301">      }</span>
     }
-<span class="nc bnc" id="L279" title="All 2 branches missed.">    if (newCount == 0) {</span>
-<span class="nc" id="L280">      return null;</span>
-<span class="nc bnc" id="L281" title="All 2 branches missed.">    } else if (newCount &lt; 0) {</span>
-<span class="nc" id="L282">      throw new IllegalStateException(&quot;child sample counts must be &lt;= parent sample count, detail: &quot; + this);</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">    if (newCount == 0) {</span>
+<span class="nc" id="L304">      return null;</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    } else if (newCount &lt; 0) {</span>
+<span class="nc" id="L306">      throw new IllegalStateException(&quot;child sample counts must be &lt;= parent sample count, detail: &quot; + this);</span>
     } else {
-<span class="nc" id="L284">      return new SampleNode(newCount, sns);</span>
+<span class="nc" id="L308">      return new SampleNode(newCount, sns);</span>
     }
   }
 
   @Override
-  public void writeTo(final Appendable appendable) throws IOException {
-<span class="fc" id="L290">    writeTo(Method.ROOT, appendable);</span>
-<span class="fc" id="L291">  }</span>
+  public void writeJsonTo(final Appendable appendable) throws IOException {
+<span class="fc" id="L314">    writeTo(Methods.ROOT, appendable);</span>
+<span class="fc" id="L315">  }</span>
 
   public void writeTo(final Method m, final Appendable appendable) throws IOException {
-<span class="fc" id="L294">    Deque&lt;Object&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L295">    dq.add(Pair.of(m, this));</span>
-<span class="fc bfc" id="L296" title="All 2 branches covered.">    while (!dq.isEmpty()) {</span>
-<span class="fc" id="L297">      Object obj = dq.removeLast();</span>
-<span class="fc bfc" id="L298" title="All 2 branches covered.">      if (obj instanceof CharSequence) {</span>
-<span class="fc" id="L299">        appendable.append((CharSequence) obj);</span>
+<span class="fc" id="L318">    Deque&lt;Object&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L319">    dq.add(Pair.of(m, this));</span>
+<span class="fc bfc" id="L320" title="All 2 branches covered.">    while (!dq.isEmpty()) {</span>
+<span class="fc" id="L321">      Object obj = dq.removeLast();</span>
+<span class="fc bfc" id="L322" title="All 2 branches covered.">      if (obj instanceof CharSequence) {</span>
+<span class="fc" id="L323">        appendable.append((CharSequence) obj);</span>
       } else {
-<span class="fc" id="L301">        Map.Entry&lt;Method, SampleNode&gt; s = (Map.Entry&lt;Method, SampleNode&gt;) obj;</span>
-<span class="fc" id="L302">        appendable.append(&quot;{\&quot;&quot;);</span>
-<span class="fc" id="L303">        s.getKey().writeTo(appendable);</span>
-<span class="fc" id="L304">        appendable.append(&quot;\&quot;:&quot;);</span>
-<span class="fc" id="L305">        SampleNode sn = s.getValue();</span>
-<span class="fc" id="L306">        appendable.append(Integer.toString(sn.getSampleCount()));</span>
-<span class="fc" id="L307">        TMap&lt;Method, SampleNode&gt; cSn = sn.getSubNodes();</span>
-<span class="fc bfc" id="L308" title="All 2 branches covered.">        if (cSn != null) {</span>
-<span class="fc" id="L309">          Iterator&lt;Map.Entry&lt;Method, SampleNode&gt;&gt; iterator = cSn.entrySet().iterator();</span>
-<span class="fc bfc" id="L310" title="All 2 branches covered.">          if (iterator.hasNext()) {</span>
-<span class="fc" id="L311">            appendable.append(&quot;,\&quot;c\&quot;:[&quot;);</span>
-<span class="fc" id="L312">            dq.addLast(&quot;]}&quot;);</span>
-<span class="fc" id="L313">            dq.addLast(iterator.next());</span>
-<span class="fc bfc" id="L314" title="All 2 branches covered.">            while (iterator.hasNext()) {</span>
-<span class="fc" id="L315">              dq.addLast(&quot;,&quot;);</span>
-<span class="fc" id="L316">              dq.addLast(iterator.next());</span>
+<span class="fc" id="L325">        Map.Entry&lt;Method, SampleNode&gt; s = (Map.Entry&lt;Method, SampleNode&gt;) obj;</span>
+<span class="fc" id="L326">        appendable.append(&quot;{\&quot;&quot;);</span>
+<span class="fc" id="L327">        Methods.writeTo(s.getKey(), appendable);</span>
+<span class="fc" id="L328">        appendable.append(&quot;\&quot;:&quot;);</span>
+<span class="fc" id="L329">        SampleNode sn = s.getValue();</span>
+<span class="fc" id="L330">        appendable.append(Integer.toString(sn.getSampleCount()));</span>
+<span class="fc" id="L331">        TMap&lt;Method, SampleNode&gt; cSn = sn.getSubNodes();</span>
+<span class="fc bfc" id="L332" title="All 2 branches covered.">        if (cSn != null) {</span>
+<span class="fc" id="L333">          Iterator&lt;Map.Entry&lt;Method, SampleNode&gt;&gt; iterator = cSn.entrySet().iterator();</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">          if (iterator.hasNext()) {</span>
+<span class="fc" id="L335">            appendable.append(&quot;,\&quot;c\&quot;:[&quot;);</span>
+<span class="fc" id="L336">            dq.addLast(&quot;]}&quot;);</span>
+<span class="fc" id="L337">            dq.addLast(iterator.next());</span>
+<span class="fc bfc" id="L338" title="All 2 branches covered.">            while (iterator.hasNext()) {</span>
+<span class="fc" id="L339">              dq.addLast(&quot;,&quot;);</span>
+<span class="fc" id="L340">              dq.addLast(iterator.next());</span>
             }
           } else {
-<span class="fc" id="L319">            appendable.append('}');</span>
+<span class="fc" id="L343">            appendable.append('}');</span>
           }
-<span class="fc" id="L321">        } else {</span>
-<span class="fc" id="L322">          appendable.append('}');</span>
+<span class="fc" id="L345">        } else {</span>
+<span class="fc" id="L346">          appendable.append('}');</span>
         }
       }
-<span class="fc" id="L325">    }</span>
-<span class="fc" id="L326">  }</span>
+<span class="fc" id="L349">    }</span>
+<span class="fc" id="L350">  }</span>
 
   private static final class TraversalData {
     private final Method m;
     private final SampleNode n;
 
-<span class="fc" id="L332">    TraversalData(final Method m, final SampleNode n) {</span>
-<span class="fc" id="L333">      this.m = m;</span>
-<span class="fc" id="L334">      this.n = n;</span>
-<span class="fc" id="L335">    }</span>
+<span class="fc" id="L356">    TraversalData(final Method m, final SampleNode n) {</span>
+<span class="fc" id="L357">      this.m = m;</span>
+<span class="fc" id="L358">      this.n = n;</span>
+<span class="fc" id="L359">    }</span>
 
   }
 
@@ -342,108 +366,103 @@ public final class SampleNode implements Serializable, JsonWriteable {
   }
 
   public static void traverse(final Method m, final SampleNode node, final Invocation handler) {
-<span class="fc" id="L345">    traverse(m, node, handler, true);</span>
-<span class="fc" id="L346">  }</span>
+<span class="fc" id="L369">    traverse(m, node, handler, true);</span>
+<span class="fc" id="L370">  }</span>
 
   public static void traverse(final Method m, final SampleNode node, final Invocation handler,
           final boolean breadthFirst) {
-<span class="pc bpc" id="L350" title="1 of 2 branches missed.">    traverse(m, node, handler, breadthFirst ? Deque&lt;TraversalData&gt;::pollFirst : Deque&lt;TraversalData&gt;::pollLast);</span>
-<span class="fc" id="L351">  }</span>
+<span class="pc bpc" id="L374" title="1 of 2 branches missed.">    traverse(m, node, handler, breadthFirst ? Deque&lt;TraversalData&gt;::pollFirst : Deque&lt;TraversalData&gt;::pollLast);</span>
+<span class="fc" id="L375">  }</span>
 
   public static void traverse(final Method m, final SampleNode node, final Invocation handler,
           final Function&lt;Deque, TraversalData&gt; func) {
-<span class="fc" id="L355">    Deque&lt;TraversalData&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L356">    dq.add(new TraversalData(m, node));</span>
+<span class="fc" id="L379">    Deque&lt;TraversalData&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L380">    dq.add(new TraversalData(m, node));</span>
     TraversalData t;
-<span class="fc bfc" id="L358" title="All 2 branches covered.">    while ((t = func.apply(dq)) != null) {</span>
-<span class="fc bfc" id="L359" title="All 2 branches covered.">      if (t.n.subNodes != null) {</span>
-<span class="fc" id="L360">        Method from = t.m;</span>
-<span class="fc" id="L361">        boolean conti = t.n.subNodes.forEachEntry(new TObjectObjectProcedure&lt;Method, SampleNode&gt;() {</span>
+<span class="fc bfc" id="L382" title="All 2 branches covered.">    while ((t = func.apply(dq)) != null) {</span>
+<span class="fc bfc" id="L383" title="All 2 branches covered.">      if (t.n.subNodes != null) {</span>
+<span class="fc" id="L384">        Method from = t.m;</span>
+<span class="fc" id="L385">        boolean conti = t.n.subNodes.forEachEntry(new TObjectObjectProcedure&lt;Method, SampleNode&gt;() {</span>
           @Override
           public boolean execute(final Method a, final SampleNode b) {
-<span class="fc" id="L364">            boolean result = handler.invocation(from, a, b.sampleCount);</span>
-<span class="pc bpc" id="L365" title="1 of 2 branches missed.">            if (result) {</span>
-<span class="fc" id="L366">              dq.addLast(new TraversalData(a, b));</span>
+<span class="fc" id="L388">            boolean result = handler.invocation(from, a, b.sampleCount);</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">            if (result) {</span>
+<span class="fc" id="L390">              dq.addLast(new TraversalData(a, b));</span>
             }
-<span class="fc" id="L368">            return result;</span>
+<span class="fc" id="L392">            return result;</span>
           }
         });
-<span class="pc bpc" id="L371" title="1 of 2 branches missed.">        if (!conti) {</span>
-<span class="nc" id="L372">          return;</span>
+<span class="pc bpc" id="L395" title="1 of 2 branches missed.">        if (!conti) {</span>
+<span class="nc" id="L396">          return;</span>
         }
-<span class="fc" id="L374">      }</span>
+<span class="fc" id="L398">      }</span>
     }
-<span class="fc" id="L376">  }</span>
+<span class="fc" id="L400">  }</span>
 
-
-  private static final class Lazy {
-
-<span class="fc" id="L381">    private static final JsonFactory JSON = new JsonFactory();</span>
-  }
 
   public static Pair&lt;Method, SampleNode&gt; parse(@WillNotClose final Reader r) throws IOException {
-<span class="fc" id="L385">    JsonParser jsonP = Lazy.JSON.createJsonParser(r);</span>
-<span class="fc" id="L386">    consume(jsonP, JsonToken.START_OBJECT);</span>
-<span class="fc" id="L387">    return parse(jsonP);</span>
+<span class="fc" id="L404">    JsonParser jsonP = Json.FACTORY.createParser(r);</span>
+<span class="fc" id="L405">    consume(jsonP, JsonToken.START_OBJECT);</span>
+<span class="fc" id="L406">    return parse(jsonP);</span>
   }
 
   private static Pair&lt;Method, SampleNode&gt; parse(final JsonParser jsonP) throws IOException {
-<span class="fc" id="L391">    consume(jsonP, JsonToken.FIELD_NAME);</span>
-<span class="fc" id="L392">    String name = jsonP.getCurrentName();</span>
-<span class="fc" id="L393">    consume(jsonP, JsonToken.VALUE_NUMBER_INT);</span>
-<span class="fc" id="L394">    int sc = jsonP.getIntValue();</span>
-<span class="fc" id="L395">    JsonToken nextToken = jsonP.nextToken();</span>
-<span class="fc bfc" id="L396" title="All 2 branches covered.">    if (nextToken == JsonToken.END_OBJECT) {</span>
-<span class="fc" id="L397">      return Pair.of(Method.from(name), new SampleNode(sc, null));</span>
-<span class="pc bpc" id="L398" title="1 of 2 branches missed.">    } else if (nextToken == JsonToken.FIELD_NAME) {</span>
-<span class="fc" id="L399">      consume(jsonP, JsonToken.START_ARRAY);</span>
-<span class="fc" id="L400">      TMap&lt;Method, SampleNode&gt; nodes = new THashMap&lt;&gt;(4);</span>
-<span class="fc bfc" id="L401" title="All 2 branches covered.">      while (jsonP.nextToken() != JsonToken.END_ARRAY) {</span>
-<span class="fc" id="L402">        Pair&lt;Method, SampleNode&gt; parse = parse(jsonP);</span>
-<span class="fc" id="L403">        nodes.put(parse.getKey(), parse.getValue());</span>
-<span class="fc" id="L404">      }</span>
-<span class="fc" id="L405">      consume(jsonP, JsonToken.END_OBJECT);</span>
-<span class="fc" id="L406">      return Pair.of(Method.from(name), new SampleNode(sc, nodes));</span>
+<span class="fc" id="L410">    consume(jsonP, JsonToken.FIELD_NAME);</span>
+<span class="fc" id="L411">    String name = jsonP.getCurrentName();</span>
+<span class="fc" id="L412">    consume(jsonP, JsonToken.VALUE_NUMBER_INT);</span>
+<span class="fc" id="L413">    int sc = jsonP.getIntValue();</span>
+<span class="fc" id="L414">    JsonToken nextToken = jsonP.nextToken();</span>
+<span class="fc bfc" id="L415" title="All 2 branches covered.">    if (nextToken == JsonToken.END_OBJECT) {</span>
+<span class="fc" id="L416">      return Pair.of(Methods.from(name), new SampleNode(sc, null));</span>
+<span class="pc bpc" id="L417" title="1 of 2 branches missed.">    } else if (nextToken == JsonToken.FIELD_NAME) {</span>
+<span class="fc" id="L418">      consume(jsonP, JsonToken.START_ARRAY);</span>
+<span class="fc" id="L419">      TMap&lt;Method, SampleNode&gt; nodes = new MethodMap&lt;&gt;();</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">      while (jsonP.nextToken() != JsonToken.END_ARRAY) {</span>
+<span class="fc" id="L421">        Pair&lt;Method, SampleNode&gt; parse = parse(jsonP);</span>
+<span class="fc" id="L422">        nodes.put(parse.getKey(), parse.getValue());</span>
+<span class="fc" id="L423">      }</span>
+<span class="fc" id="L424">      consume(jsonP, JsonToken.END_OBJECT);</span>
+<span class="fc" id="L425">      return Pair.of(Methods.from(name), new SampleNode(sc, nodes));</span>
     } else {
-<span class="nc" id="L408">      throw new IllegalArgumentException(&quot;Expected field name or end Object, not: &quot; + nextToken);</span>
+<span class="nc" id="L427">      throw new IllegalArgumentException(&quot;Expected field name or end Object, not: &quot; + nextToken);</span>
     }
   }
 
   private static void consume(final JsonParser jsonP, final JsonToken token)
           throws IOException {
-<span class="fc" id="L414">    JsonToken nextToken = jsonP.nextToken();</span>
-<span class="pc bpc" id="L415" title="1 of 2 branches missed.">    if (nextToken != token) {</span>
-<span class="nc" id="L416">      throw new IllegalArgumentException(&quot;Expected start object, not &quot; + nextToken);</span>
+<span class="fc" id="L433">    JsonToken nextToken = jsonP.nextToken();</span>
+<span class="pc bpc" id="L434" title="1 of 2 branches missed.">    if (nextToken != token) {</span>
+<span class="nc" id="L435">      throw new IllegalArgumentException(&quot;Expected start object, not &quot; + nextToken);</span>
     }
-<span class="fc" id="L418">  }</span>
+<span class="fc" id="L437">  }</span>
 
   @Override
   public int hashCode() {
-<span class="nc" id="L422">    return 89 * this.sampleCount + Objects.hashCode(this.subNodes);</span>
+<span class="nc" id="L441">    return 89 * this.sampleCount + Objects.hashCode(this.subNodes);</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="pc bpc" id="L427" title="1 of 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L428">      return false;</span>
+<span class="pc bpc" id="L446" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L447">      return false;</span>
     }
-<span class="pc bpc" id="L430" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L431">      return false;</span>
+<span class="pc bpc" id="L449" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L450">      return false;</span>
     }
-<span class="fc" id="L433">    final SampleNode other = (SampleNode) obj;</span>
-<span class="pc bpc" id="L434" title="1 of 2 branches missed.">    if (this.sampleCount != other.sampleCount) {</span>
-<span class="nc" id="L435">      return false;</span>
+<span class="fc" id="L452">    final SampleNode other = (SampleNode) obj;</span>
+<span class="pc bpc" id="L453" title="1 of 2 branches missed.">    if (this.sampleCount != other.sampleCount) {</span>
+<span class="nc" id="L454">      return false;</span>
     }
-<span class="fc bfc" id="L437" title="All 2 branches covered.">    if (this.subNodes == other.subNodes) {</span>
-<span class="fc" id="L438">      return true;</span>
+<span class="fc bfc" id="L456" title="All 2 branches covered.">    if (this.subNodes == other.subNodes) {</span>
+<span class="fc" id="L457">      return true;</span>
     }
-<span class="pc bpc" id="L440" title="1 of 6 branches missed.">    if (this.subNodes != null &amp;&amp; other.subNodes == null &amp;&amp; this.subNodes.isEmpty()) {</span>
-<span class="fc" id="L441">      return true;</span>
+<span class="pc bpc" id="L459" title="1 of 6 branches missed.">    if (this.subNodes != null &amp;&amp; other.subNodes == null &amp;&amp; this.subNodes.isEmpty()) {</span>
+<span class="fc" id="L460">      return true;</span>
     }
-<span class="pc bpc" id="L443" title="2 of 6 branches missed.">    if (this.subNodes == null &amp;&amp; other.subNodes != null &amp;&amp; other.subNodes.isEmpty()) {</span>
-<span class="fc" id="L444">      return true;</span>
+<span class="pc bpc" id="L462" title="2 of 6 branches missed.">    if (this.subNodes == null &amp;&amp; other.subNodes != null &amp;&amp; other.subNodes.isEmpty()) {</span>
+<span class="fc" id="L463">      return true;</span>
     }
-<span class="fc" id="L446">    return Objects.equals(this.subNodes, other.subNodes);</span>
+<span class="fc" id="L465">    return Objects.equals(this.subNodes, other.subNodes);</span>
   }
 
 }

@@ -44,17 +44,17 @@ public interface RetryPredicate&lt;T, C extends Callable&lt;? extends T&gt;&gt; 
   /**
    * Simple predicate that does not retry anything.
    */
-<span class="nc" id="L47">  RetryPredicate NORETRY = new RetryPredicate&lt;Object, Callable&lt;Object&gt;&gt;() {</span>
+<span class="fc" id="L47">  RetryPredicate NORETRY = new RetryPredicate&lt;Object, Callable&lt;Object&gt;&gt;() {</span>
 
     @Override
     public RetryDecision getDecision(final Object value,
             final Callable&lt;Object&gt; what) {
-<span class="nc" id="L52">      return RetryDecision.abort();</span>
+<span class="fc" id="L52">      return RetryDecision.abort();</span>
     }
 
     @Override
-    public RetryDecision getExceptionDecision(final Exception value, final Callable&lt;Object&gt; what) {
-<span class="nc" id="L57">      return RetryDecision.abort();</span>
+    public RetryDecision getExceptionDecision(final Throwable value, final Callable&lt;Object&gt; what) {
+<span class="fc" id="L57">      return RetryDecision.abort();</span>
     }
 
   };
@@ -70,7 +70,7 @@ public interface RetryPredicate&lt;T, C extends Callable&lt;? extends T&gt;&gt; 
 
 
   @Nonnull
-  RetryDecision&lt;T, C&gt; getExceptionDecision(@Nonnull Exception value, @Nonnull C what);
+  RetryDecision&lt;T, C&gt; getExceptionDecision(@Nonnull Throwable value, @Nonnull C what);
 
 
 }

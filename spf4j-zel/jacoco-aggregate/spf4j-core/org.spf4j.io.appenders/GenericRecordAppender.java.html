@@ -33,13 +33,13 @@ package org.spf4j.io.appenders;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.activation.MimeType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.JsonEncoder;
+import org.apache.avro.io.Encoder;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.avro.MediaTypes;
 import org.spf4j.io.AppendableOutputStream;
-import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
 import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
@@ -51,8 +51,8 @@ import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationEr
 <span class="fc" id="L51">public final class GenericRecordAppender implements ObjectAppender&lt;GenericRecord&gt; {</span>
 
   @Override
-  public MimeType getAppendedType() {
-<span class="nc" id="L55">    return MimeTypes.APPLICATION_JSON;</span>
+  public MediaType getAppendedType() {
+<span class="nc" id="L55">    return MediaTypes.APPLICATION_JSON;</span>
   }
 
   @Override
@@ -62,7 +62,7 @@ import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationEr
 <span class="nc" id="L62">    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {</span>
 <span class="nc" id="L63">      final Schema schema = object.getSchema();</span>
 <span class="nc" id="L64">      GenericDatumWriter&lt;GenericRecord&gt; writer = new GenericDatumWriter&lt;&gt;(schema);</span>
-<span class="nc" id="L65">      JsonEncoder jsonEncoder = SpecificRecordAppender.EF.jsonEncoder(schema, bos);</span>
+<span class="nc" id="L65">      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);</span>
 <span class="nc" id="L66">      writer.write(object, jsonEncoder);</span>
 <span class="nc" id="L67">      jsonEncoder.flush();</span>
 <span class="nc" id="L68">    } catch (IOException | RuntimeException ex) {</span>

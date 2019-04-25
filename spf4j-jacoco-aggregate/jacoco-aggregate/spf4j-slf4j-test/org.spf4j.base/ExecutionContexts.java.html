@@ -37,12 +37,21 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.ExecutionContext.Relation;
+import org.spf4j.concurrent.ScalableSequence;
+import org.spf4j.concurrent.UIDGenerator;
+import org.spf4j.ds.SimpleStack;
 
 /**
  * @author Zoltan Farkas
@@ -51,53 +60,97 @@ import javax.annotation.concurrent.ThreadSafe;
 @ParametersAreNonnullByDefault
 public final class ExecutionContexts {
 
-<span class="fc" id="L54">  public static final long DEFAULT_TIMEOUT_NANOS</span>
-<span class="fc" id="L55">          = Long.getLong(&quot;spf4j.execContext.defaultTimeoutNanos&quot;, TimeUnit.HOURS.toNanos(8));</span>
+<span class="fc" id="L63">  private static final UIDGenerator ID_GEN = new UIDGenerator(new ScalableSequence(0, 10), &quot;X&quot;, 1544368928196L);</span>
 
-<span class="fc" id="L57">  private static final ThreadLocal&lt;ExecutionContext&gt; EXEC_CTX = new ThreadLocal&lt;ExecutionContext&gt;();</span>
+<span class="fc" id="L65">  public static final long DEFAULT_TIMEOUT_NANOS</span>
+<span class="fc" id="L66">          = Long.getLong(&quot;spf4j.execContext.defaultTimeoutNanos&quot;, TimeUnit.HOURS.toNanos(8));</span>
 
-<span class="fc" id="L59">  private static final ExecutionContextFactory&lt;ExecutionContext&gt; CTX_FACTORY = initFactory();</span>
+<span class="fc" id="L68">  private static final ThreadLocal&lt;SimpleStack&lt;ExecutionContext&gt;&gt; EXEC_CTX =</span>
+<span class="fc" id="L69">          new ThreadLocal&lt;SimpleStack&lt;ExecutionContext&gt;&gt;() {</span>
+    @Override
+    protected SimpleStack&lt;ExecutionContext&gt; initialValue() {
+<span class="fc" id="L72">      return new SimpleStack&lt;&gt;(4);</span>
+    }
+
+  };
+
+<span class="fc" id="L77">  private static final ThreadLocalContextAttacher DEFAULT_TL_ATTACHER = new ThreadLocalScopeImpl();</span>
+
+<span class="fc" id="L79">  private static final ExecutionContextFactory&lt;ExecutionContext&gt; CTX_FACTORY = initFactory();</span>
+
+<span class="fc" id="L81">  private static final ThreadLocalContextAttacher TL_ATTACHER =  initTLAttacher();</span>
 
   private ExecutionContexts() {
   }
 
-  private static ExecutionContextFactory&lt;ExecutionContext&gt; initFactory() {
-<span class="fc" id="L65">    String factoryClass = System.getProperty(&quot;spf4j.execContentFactoryClass&quot;);</span>
-    ExecutionContextFactory&lt;ExecutionContext&gt; factory;
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (factoryClass == null) {</span>
-<span class="fc" id="L68">      factory = new BasicExecutionContextFactory();</span>
+  private static ThreadLocalContextAttacher initTLAttacher() {
+<span class="fc" id="L87">    String factoryClass = System.getProperty(&quot;spf4j.execContext.tlAttacherClass&quot;);</span>
+    ThreadLocalContextAttacher factory;
+<span class="fc bfc" id="L89" title="All 2 branches covered.">    if (factoryClass == null) {</span>
+<span class="fc" id="L90">      factory = DEFAULT_TL_ATTACHER;</span>
     } else {
       try {
-<span class="nc" id="L71">        factory = ((Class&lt;ExecutionContextFactory&lt;ExecutionContext&gt;&gt;) Class.forName(factoryClass)).newInstance();</span>
-<span class="nc" id="L72">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
-<span class="nc" id="L73">        throw new ExceptionInInitializerError(ex);</span>
-<span class="nc" id="L74">      }</span>
+<span class="fc" id="L93">        factory = ((Class&lt;ThreadLocalContextAttacher&gt;) Class.forName(factoryClass)).newInstance();</span>
+<span class="nc" id="L94">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L95">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L96">      }</span>
     }
-<span class="fc" id="L76">    String factoryWrapperClass = System.getProperty(&quot;spf4j.execContentFactoryWrapperClass&quot;);</span>
-<span class="fc bfc" id="L77" title="All 2 branches covered.">    if (factoryWrapperClass != null) {</span>
+<span class="fc" id="L98">    return factory;</span>
+  }
+
+ private static ExecutionContextFactory&lt;ExecutionContext&gt; initFactory() {
+<span class="fc" id="L102">    String factoryClass = System.getProperty(&quot;spf4j.execContext.factoryClass&quot;);</span>
+    ExecutionContextFactory&lt;ExecutionContext&gt; factory;
+<span class="fc bfc" id="L104" title="All 2 branches covered.">    if (factoryClass == null) {</span>
+<span class="fc" id="L105">      factory = new BasicExecutionContextFactory();</span>
+    } else {
       try {
-<span class="fc" id="L79">        factory = (ExecutionContextFactory&lt;ExecutionContext&gt;) Class.forName(factoryWrapperClass)</span>
-<span class="fc" id="L80">                .getConstructor(ExecutionContextFactory.class).newInstance(factory);</span>
-<span class="nc" id="L81">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException</span>
-              | NoSuchMethodException | InvocationTargetException ex) {
-<span class="nc" id="L83">        throw new ExceptionInInitializerError(ex);</span>
-<span class="fc" id="L84">      }</span>
+<span class="fc" id="L108">        factory = ((Class&lt;ExecutionContextFactory&lt;ExecutionContext&gt;&gt;) Class.forName(factoryClass)).newInstance();</span>
+<span class="nc" id="L109">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {</span>
+<span class="nc" id="L110">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L111">      }</span>
     }
-<span class="fc" id="L86">    return factory;</span>
+<span class="fc" id="L113">    String factoryWrapperClass = System.getProperty(&quot;spf4j.execContext.factoryWrapperClass&quot;);</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    if (factoryWrapperClass != null) {</span>
+      try {
+<span class="nc" id="L116">        factory = (ExecutionContextFactory&lt;ExecutionContext&gt;) Class.forName(factoryWrapperClass)</span>
+<span class="nc" id="L117">                .getConstructor(ExecutionContextFactory.class).newInstance(factory);</span>
+<span class="nc" id="L118">      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException</span>
+              | NoSuchMethodException | InvocationTargetException ex) {
+<span class="nc" id="L120">        throw new ExceptionInInitializerError(ex);</span>
+<span class="nc" id="L121">      }</span>
+    }
+<span class="fc" id="L123">    return factory;</span>
+  }
+
+  public static ThreadLocalContextAttacher defaultThreadLocalAttacher() {
+<span class="fc" id="L127">    return DEFAULT_TL_ATTACHER;</span>
+  }
+
+  public static ThreadLocalContextAttacher threadLocalAttacher() {
+<span class="fc" id="L131">    return TL_ATTACHER;</span>
+  }
+
+  public static CharSequence genId() {
+<span class="fc" id="L135">    return ID_GEN.next();</span>
   }
 
   public static ExecutionContextFactory&lt;ExecutionContext&gt; getContextFactory() {
-<span class="fc" id="L90">    return CTX_FACTORY;</span>
+<span class="nc" id="L139">    return CTX_FACTORY;</span>
   }
 
   @Nullable
   public static ExecutionContext current() {
-<span class="fc" id="L95">    return EXEC_CTX.get();</span>
+<span class="fc" id="L144">    return EXEC_CTX.get().peek();</span>
   }
 
-  private static void setCurrent(@Nullable final ExecutionContext current) {
-<span class="fc" id="L99">    EXEC_CTX.set(current);</span>
-<span class="fc" id="L100">  }</span>
+  public static boolean inCurrentThread(final ExecutionContext ctx) {
+<span class="nc" id="L148">    return EXEC_CTX.get().contains(ctx);</span>
+  }
+
+  public static void clearCurrentThread() {
+<span class="nc" id="L152">     EXEC_CTX.get().clear();</span>
+<span class="nc" id="L153">  }</span>
 
   /**
    * start a execution context.
@@ -106,7 +159,7 @@ public final class ExecutionContexts {
    * @return the execution context.
    */
   public static ExecutionContext start(final long startTimeNanos, final long deadlineNanos) {
-<span class="nc" id="L109">    return start(&quot;anon&quot;, null, startTimeNanos, deadlineNanos);</span>
+<span class="nc" id="L162">    return start(&quot;anon&quot;, null, startTimeNanos, deadlineNanos);</span>
   }
 
   /**
@@ -117,175 +170,196 @@ public final class ExecutionContexts {
    * @return
    */
   public static ExecutionContext start(final long timeout, final TimeUnit tu) {
-<span class="fc" id="L120">    return start(&quot;anon&quot;, null, timeout, tu);</span>
+<span class="fc" id="L173">    return start(&quot;anon&quot;, current(), timeout, tu);</span>
   }
 
   public static ExecutionContext start(final String opname) {
-<span class="fc" id="L124">    return start(opname, null, DEFAULT_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L177">    return start(opname, current(), DEFAULT_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);</span>
   }
 
   public static ExecutionContext start(final String opname, final long timeout, final TimeUnit tu) {
-<span class="fc" id="L128">    return start(opname, null, timeout, tu);</span>
+<span class="fc" id="L181">    return start(opname, current(), timeout, tu);</span>
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
-<span class="nc" id="L132">    return start(&quot;anon&quot;, parent, timeout, tu);</span>
+<span class="nc" id="L185">    return start(&quot;anon&quot;, parent, timeout, tu);</span>
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent) {
-<span class="fc" id="L136">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L137" title="1 of 2 branches missed.">    return start(parent, nanoTime, parent != null ? parent.getDeadlineNanos() : nanoTime + DEFAULT_TIMEOUT_NANOS);</span>
+<span class="fc" id="L189">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">    return start(parent, nanoTime, parent != null ? parent.getDeadlineNanos() : nanoTime + DEFAULT_TIMEOUT_NANOS);</span>
   }
 
   public static ExecutionContext start(@Nullable final ExecutionContext parent,
           final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L142">    return start(&quot;anon&quot;, parent, startTimeNanos, deadlineNanos);</span>
+<span class="fc" id="L195">    return start(&quot;anon&quot;, parent, startTimeNanos, deadlineNanos);</span>
   }
 
   public static ExecutionContext start(final String name, final long startTimeNanos, final long deadlineNanos) {
-<span class="nc" id="L146">    return start(name, null, startTimeNanos, deadlineNanos);</span>
+<span class="nc" id="L199">    return start(name, current(), startTimeNanos, deadlineNanos);</span>
   }
 
   public static ExecutionContext start(final String name, final long deadlineNanos) {
-<span class="fc" id="L150">    return start(name, null, TimeSource.nanoTime(), deadlineNanos);</span>
+<span class="fc" id="L203">    return start(name, current(), TimeSource.nanoTime(), deadlineNanos);</span>
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent) {
-<span class="fc" id="L155">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">    return start(name, parent, nanoTime, parent != null ? parent.getDeadlineNanos()</span>
+<span class="fc" id="L208">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L209" title="1 of 2 branches missed.">    return start(name, parent, nanoTime, parent != null ? parent.getDeadlineNanos()</span>
             : nanoTime + DEFAULT_TIMEOUT_NANOS);
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
-<span class="fc" id="L162">    ExecutionContext localCtx = EXEC_CTX.get();</span>
-<span class="fc" id="L163">    long nanoTime = TimeSource.nanoTime();</span>
-    ExecutionContext nCtx;
-<span class="fc bfc" id="L165" title="All 2 branches covered.">    if (localCtx == null) {</span>
-<span class="fc" id="L166">      nCtx = CTX_FACTORY.startThreadRoot(name, parent,</span>
-<span class="fc" id="L167">              nanoTime, computeDeadline(nanoTime, parent, tu, timeout), () -&gt; ExecutionContexts.setCurrent(null));</span>
-<span class="pc bpc" id="L168" title="1 of 2 branches missed.">    } else if (parent == null) {</span>
-<span class="fc" id="L169">      nCtx = CTX_FACTORY.start(name, localCtx, nanoTime, computeDeadline(nanoTime, localCtx, tu, timeout),</span>
-<span class="fc" id="L170">              () -&gt; ExecutionContexts.setCurrent(localCtx));</span>
-    } else {
-<span class="nc" id="L172">      nCtx = CTX_FACTORY.start(name, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout),</span>
-<span class="nc" id="L173">              () -&gt; ExecutionContexts.setCurrent(localCtx));</span>
-    }
-<span class="fc" id="L175">    EXEC_CTX.set(nCtx);</span>
-<span class="fc" id="L176">    return nCtx;</span>
+<span class="fc" id="L215">    return start(name, null, parent, timeout, tu);</span>
+  }
+
+  public static ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+<span class="fc" id="L220">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L221">    return start(name, id, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout));</span>
+  }
+
+  public static ExecutionContext createDetached(final String name,
+          @Nullable final ExecutionContext parent, final long timeout, final TimeUnit tu) {
+<span class="nc" id="L226">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="nc" id="L227">    return createDetached(name, parent, nanoTime, computeDeadline(nanoTime, parent, tu, timeout));</span>
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long deadlineNanos) {
-<span class="nc" id="L181">    return start(name, parent, TimeSource.nanoTime(), deadlineNanos);</span>
+<span class="fc" id="L232">    return start(name, parent, TimeSource.nanoTime(), deadlineNanos);</span>
   }
 
   public static ExecutionContext start(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L186">    ExecutionContext localCtx = EXEC_CTX.get();</span>
-    ExecutionContext nCtx;
-<span class="fc bfc" id="L188" title="All 2 branches covered.">    if (localCtx == null) {</span>
-<span class="fc" id="L189">      nCtx = CTX_FACTORY.startThreadRoot(name, parent,</span>
-<span class="fc" id="L190">              startTimeNanos, deadlineNanos, () -&gt; ExecutionContexts.setCurrent(null));</span>
-    } else {
-<span class="pc bpc" id="L192" title="1 of 2 branches missed.">      nCtx = CTX_FACTORY.start(name, parent == null ? localCtx : parent,</span>
-<span class="fc" id="L193">              startTimeNanos, deadlineNanos, () -&gt; ExecutionContexts.setCurrent(localCtx));</span>
-    }
-<span class="fc" id="L195">    EXEC_CTX.set(nCtx);</span>
-<span class="fc" id="L196">    return nCtx;</span>
+<span class="fc" id="L237">    return start(name, null, parent, startTimeNanos, deadlineNanos);</span>
+  }
+
+  public static ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
+<span class="fc" id="L242">    return start(name, id, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);</span>
+  }
+
+  public static ExecutionContext start(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext parent, final Relation relation,
+          final long startTimeNanos, final long deadlineNanos) {
+<span class="fc" id="L248">    ExecutionContext nCtx = CTX_FACTORY.start(name, id, parent, relation,</span>
+              startTimeNanos, deadlineNanos);
+<span class="fc" id="L250">    nCtx.attach();</span>
+<span class="fc" id="L251">    return nCtx;</span>
   }
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-<span class="nc" id="L201">    return CTX_FACTORY.start(name, parent, startTimeNanos, deadlineNanos, () -&gt; { });</span>
+<span class="nc" id="L256">    return createDetached(name, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);</span>
   }
 
+  public static ExecutionContext createDetached(final String name, @Nullable final ExecutionContext parent,
+          final Relation relation, final long startTimeNanos, final long deadlineNanos) {
+<span class="nc" id="L261">    return createDetached(name, null, parent, relation, startTimeNanos, deadlineNanos);</span>
+  }
+
+  public static ExecutionContext createDetached(final String name,
+          @Nullable final CharSequence id, @Nullable final ExecutionContext parent,
+          final Relation relation, final long startTimeNanos, final long deadlineNanos) {
+<span class="nc" id="L267">    return CTX_FACTORY.start(name, id, parent, relation, startTimeNanos, deadlineNanos);</span>
+  }
 
   public static long getContextDeadlineNanos() {
-<span class="fc" id="L206">    ExecutionContext ec = ExecutionContexts.current();</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">    if (ec == null) {</span>
-<span class="fc" id="L208">      return TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS;</span>
+<span class="fc" id="L271">    ExecutionContext ec = ExecutionContexts.current();</span>
+<span class="fc bfc" id="L272" title="All 2 branches covered.">    if (ec == null) {</span>
+<span class="fc" id="L273">      return TimeSource.nanoTime() + DEFAULT_TIMEOUT_NANOS;</span>
     } else {
-<span class="fc" id="L210">      return ec.getDeadlineNanos();</span>
+<span class="fc" id="L275">      return ec.getDeadlineNanos();</span>
     }
   }
 
   public static long getContextDeadlineNanos(final long currentTime) {
-<span class="fc" id="L215">    ExecutionContext ec = ExecutionContexts.current();</span>
-<span class="fc bfc" id="L216" title="All 2 branches covered.">    if (ec == null) {</span>
-<span class="fc" id="L217">      return currentTime + DEFAULT_TIMEOUT_NANOS;</span>
+<span class="fc" id="L280">    ExecutionContext ec = ExecutionContexts.current();</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">    if (ec == null) {</span>
+<span class="nc" id="L282">      return currentTime + DEFAULT_TIMEOUT_NANOS;</span>
     } else {
-<span class="fc" id="L219">      return ec.getDeadlineNanos();</span>
+<span class="fc" id="L284">      return ec.getDeadlineNanos();</span>
     }
   }
 
   @Signed
   public static long getTimeRelativeToDeadline(final TimeUnit unit) {
-<span class="fc" id="L225">    return unit.convert(getContextDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L290">    return unit.convert(getContextDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
   @Nonnegative
   public static long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L230">    long timeRelativeToDeadline = getTimeRelativeToDeadline(unit);</span>
-<span class="fc bfc" id="L231" title="All 2 branches covered.">    if (timeRelativeToDeadline &lt;= 0) {</span>
-<span class="fc" id="L232">      throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-timeRelativeToDeadline) + ' ' + unit);</span>
+<span class="fc" id="L295">    long timeRelativeToDeadline = getTimeRelativeToDeadline(unit);</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">    if (timeRelativeToDeadline &lt;= 0) {</span>
+<span class="fc" id="L297">      throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-timeRelativeToDeadline) + ' ' + unit);</span>
     }
-<span class="fc" id="L234">    return timeRelativeToDeadline;</span>
+<span class="fc" id="L299">    return timeRelativeToDeadline;</span>
   }
 
   @Nonnegative
   public static int getTimeToDeadlineInt(final TimeUnit unit) throws TimeoutException {
-<span class="nc" id="L239">    long timeRelativeToDeadline = getTimeToDeadline(unit);</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">    if (timeRelativeToDeadline &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L241">      return Integer.MAX_VALUE;</span>
+<span class="nc" id="L304">    long timeRelativeToDeadline = getTimeToDeadline(unit);</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    if (timeRelativeToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L306">      return Integer.MAX_VALUE;</span>
     } else {
-<span class="nc" id="L243">      return (int) timeRelativeToDeadline;</span>
+<span class="nc" id="L308">      return (int) timeRelativeToDeadline;</span>
     }
   }
 
   @Nonnegative
   public static long getMillisToDeadline() throws TimeoutException {
-<span class="fc" id="L249">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L314">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   @Nonnegative
   public static int getSecondsToDeadline() throws TimeoutException {
-<span class="nc" id="L254">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
-<span class="nc bnc" id="L255" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L256">      return Integer.MAX_VALUE;</span>
+<span class="nc" id="L319">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L321">      return Integer.MAX_VALUE;</span>
     } else {
-<span class="nc" id="L258">      return (int) secondsToDeadline;</span>
+<span class="nc" id="L323">      return (int) secondsToDeadline;</span>
     }
   }
 
   public static long computeDeadline(final long timeout, final TimeUnit unit) {
-<span class="fc" id="L263">    return computeDeadline(current(), unit, timeout);</span>
+<span class="fc" id="L328">    return computeDeadline(current(), timeout, unit);</span>
   }
 
   public static long computeTimeout(final long timeout, final TimeUnit unit) throws TimeoutException {
-<span class="nc" id="L267">    return unit.convert(computeTimeoutDeadline(current(), unit, timeout).getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L332">    return unit.convert(computeTimeoutDeadline(current(), unit, timeout).getTimeoutNanos(), TimeUnit.NANOSECONDS);</span>
+  }
+
+  /**
+   * @deprecated use variant where the value and unit are it the natural order.
+   */
+  @Deprecated
+  public static long computeDeadline(@Nullable final ExecutionContext current,
+           final TimeUnit unit, final long timeout) {
+<span class="fc" id="L341">    return computeDeadline(current, timeout, unit);</span>
   }
 
   public static long computeDeadline(@Nullable final ExecutionContext current,
-          final TimeUnit unit, final long timeout) {
-<span class="fc bfc" id="L272" title="All 2 branches covered.">    if (current == null) {</span>
-<span class="fc" id="L273">      return TimeSource.getDeadlineNanos(timeout, unit);</span>
+          final long timeout, final TimeUnit unit) {
+<span class="fc bfc" id="L346" title="All 2 branches covered.">    if (current == null) {</span>
+<span class="fc" id="L347">      return TimeSource.getDeadlineNanos(timeout, unit);</span>
     }
-<span class="fc" id="L275">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="fc" id="L276">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
-<span class="fc" id="L277">    long timeoutNanos = unit.toNanos(timeout);</span>
-<span class="pc bpc" id="L278" title="1 of 2 branches missed.">    return (ctxDeadlinenanos - nanoTime &lt; timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;</span>
+<span class="fc" id="L349">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L350">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
+<span class="fc" id="L351">    long timeoutNanos = unit.toNanos(timeout);</span>
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">    return (ctxDeadlinenanos - nanoTime &lt; timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;</span>
   }
 
   public static long computeDeadline(final long startTimeNanos, @Nullable final ExecutionContext current,
           final TimeUnit unit, final long timeout) {
-<span class="fc bfc" id="L283" title="All 2 branches covered.">    if (current == null) {</span>
-<span class="fc" id="L284">      return TimeSource.getDeadlineNanos(startTimeNanos, timeout, unit);</span>
+<span class="fc bfc" id="L357" title="All 2 branches covered.">    if (current == null) {</span>
+<span class="fc" id="L358">      return TimeSource.getDeadlineNanos(startTimeNanos, timeout, unit);</span>
     }
-<span class="fc" id="L286">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
-<span class="fc" id="L287">    long timeoutNanos = unit.toNanos(timeout);</span>
-<span class="fc bfc" id="L288" title="All 2 branches covered.">    return (ctxDeadlinenanos - startTimeNanos &lt; timeoutNanos) ? ctxDeadlinenanos : startTimeNanos + timeoutNanos;</span>
+<span class="fc" id="L360">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
+<span class="fc" id="L361">    long timeoutNanos = unit.toNanos(timeout);</span>
+<span class="fc bfc" id="L362" title="All 2 branches covered.">    return (ctxDeadlinenanos - startTimeNanos &lt; timeoutNanos) ? ctxDeadlinenanos : startTimeNanos + timeoutNanos;</span>
   }
 
   /**
@@ -298,71 +372,77 @@ public final class ExecutionContexts {
    */
   public static TimeoutDeadline computeTimeoutDeadline(@Nullable final ExecutionContext current,
           final TimeUnit unit, final long timeout) throws TimeoutException {
-<span class="nc bnc" id="L301" title="All 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L302">      return TimeoutDeadline.of(unit.toNanos(timeout), TimeSource.getDeadlineNanos(timeout, unit));</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L376">      return TimeoutDeadline.of(unit.toNanos(timeout), TimeSource.getDeadlineNanos(timeout, unit));</span>
     }
-<span class="nc" id="L304">    long nanoTime = TimeSource.nanoTime();</span>
-<span class="nc" id="L305">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
-<span class="nc" id="L306">    long timeoutNanos = unit.toNanos(timeout);</span>
-<span class="nc" id="L307">    long contextTimeoutNanos = ctxDeadlinenanos - nanoTime;</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">    return (contextTimeoutNanos &lt; timeoutNanos)</span>
-<span class="nc" id="L309">            ? TimeoutDeadline.of(contextTimeoutNanos, ctxDeadlinenanos)</span>
-<span class="nc" id="L310">            : TimeoutDeadline.of(timeoutNanos, nanoTime + timeoutNanos);</span>
+<span class="nc" id="L378">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="nc" id="L379">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
+<span class="nc" id="L380">    long timeoutNanos = unit.toNanos(timeout);</span>
+<span class="nc" id="L381">    long contextTimeoutNanos = ctxDeadlinenanos - nanoTime;</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">    return (contextTimeoutNanos &lt; timeoutNanos)</span>
+<span class="nc" id="L383">            ? TimeoutDeadline.of(contextTimeoutNanos, ctxDeadlinenanos)</span>
+<span class="nc" id="L384">            : TimeoutDeadline.of(timeoutNanos, nanoTime + timeoutNanos);</span>
   }
 
   private static class BasicExecutionContextFactory implements ExecutionContextFactory&lt;ExecutionContext&gt; {
 
     @Override
-    public ExecutionContext start(final String name, final ExecutionContext parent,
-            final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {
-<span class="fc" id="L318">      return new BasicExecutionContext(name, parent, startTimeNanos, deadlineNanos, onClose);</span>
+    public ExecutionContext start(final String name, @Nullable final CharSequence id,
+            @Nullable final ExecutionContext parent, final Relation relation,
+            final long startTimeNanos, final long deadlineNanos) {
+<span class="fc" id="L393">      return new BasicExecutionContext(name, id, parent, relation, startTimeNanos, deadlineNanos);</span>
     }
 
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; propagatingCallable(final Callable&lt;T&gt; callable) {
-<span class="nc" id="L324">    ExecutionContext current = current();</span>
-<span class="nc bnc" id="L325" title="All 2 branches missed.">    return current == null ? callable : propagatingCallable(callable, current);</span>
+<span class="nc" id="L399">    ExecutionContext current = current();</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">    return current == null ? callable : propagatingCallable(callable, current);</span>
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; propagatingCallable(final Callable&lt;T&gt; callable, final ExecutionContext ctx) {
-<span class="nc" id="L329">    return new PropagatingCallable&lt;T&gt;(callable, ctx);</span>
+<span class="nc" id="L404">    return new PropagatingCallable&lt;T&gt;(callable, ctx);</span>
   }
 
   public static &lt;T&gt; Collection&lt;? extends Callable&lt;T&gt;&gt; propagatingCallables(
           final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks) {
-<span class="nc" id="L334">    ExecutionContext current = current();</span>
-<span class="nc bnc" id="L335" title="All 2 branches missed.">    return current == null ? tasks : propagatingCallables(tasks, current);</span>
+<span class="nc" id="L409">    ExecutionContext current = current();</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">    return current == null ? tasks : propagatingCallables(tasks, current);</span>
   }
 
   public static &lt;T&gt; Collection&lt;? extends Callable&lt;T&gt;&gt; propagatingCallables(
           final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
           final ExecutionContext ctx) {
-<span class="nc" id="L341">    return tasks.stream().map(</span>
-<span class="nc" id="L342">            (c) -&gt; new PropagatingCallable&lt;&gt;(c, ctx))</span>
-<span class="nc" id="L343">            .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(tasks.size())));</span>
+<span class="nc" id="L416">    return tasks.stream().map(</span>
+<span class="nc" id="L417">            (c) -&gt; new PropagatingCallable&lt;&gt;(c, ctx))</span>
+<span class="nc" id="L418">            .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(tasks.size())));</span>
   }
 
   public static &lt;T&gt; Collection&lt;? extends Callable&lt;T&gt;&gt; deadlinedPropagatingCallables(
           final Collection&lt;? extends Callable&lt;T&gt;&gt; tasks,
           final ExecutionContext ctx, final long deadlineNanos) {
-<span class="nc" id="L349">    return tasks.stream().map(</span>
-<span class="nc" id="L350">            (c) -&gt; new DeadlinedPropagatingCallable&lt;&gt;(c, ctx, deadlineNanos))</span>
-<span class="nc" id="L351">            .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(tasks.size())));</span>
+<span class="nc" id="L424">    return tasks.stream().map(</span>
+<span class="nc" id="L425">            (c) -&gt; new PropagatingNamedCallable&lt;&gt;(c, ctx, null, deadlineNanos))</span>
+<span class="nc" id="L426">            .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(tasks.size())));</span>
   }
 
   public static &lt;T&gt; Callable&lt;T&gt; deadlinedPropagatingCallable(final Callable&lt;T&gt; callable,
           final ExecutionContext ctx, final long deadlineNanos) {
-<span class="nc" id="L356">    return new DeadlinedPropagatingCallable&lt;T&gt;(callable, ctx, deadlineNanos);</span>
+<span class="nc" id="L431">    return new PropagatingNamedCallable&lt;T&gt;(callable, ctx, null, deadlineNanos);</span>
   }
 
   public static Runnable propagatingRunnable(final Runnable runnable) {
-<span class="fc" id="L360">    ExecutionContext current = current();</span>
-<span class="fc bfc" id="L361" title="All 2 branches covered.">    return current == null ? runnable : propagatingRunnable(runnable, current);</span>
+<span class="fc" id="L435">    ExecutionContext current = current();</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">    return current == null ? runnable : propagatingRunnable(runnable, current);</span>
   }
 
   public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx) {
-<span class="fc" id="L365">    return new PropagatingRunnable(runnable, ctx);</span>
+<span class="fc" id="L440">    return new PropagatingRunnable(runnable, ctx, null, ctx.getDeadlineNanos());</span>
+  }
+
+  public static Runnable propagatingRunnable(final Runnable runnable, final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="nc" id="L445">    return new PropagatingRunnable(runnable, ctx, name, deadlineNanos);</span>
   }
 
   private static final class PropagatingCallable&lt;T&gt; implements Callable&lt;T&gt; {
@@ -370,57 +450,354 @@ public final class ExecutionContexts {
     private final Callable&lt;T&gt; task;
     private final ExecutionContext current;
 
-<span class="nc" id="L373">    PropagatingCallable(final Callable&lt;T&gt; task, final ExecutionContext current) {</span>
-<span class="nc" id="L374">      this.task = task;</span>
-<span class="nc" id="L375">      this.current = current;</span>
-<span class="nc" id="L376">    }</span>
+<span class="nc" id="L453">    PropagatingCallable(final Callable&lt;T&gt; task, final ExecutionContext current) {</span>
+<span class="nc" id="L454">      this.task = task;</span>
+<span class="nc" id="L455">      this.current = current;</span>
+<span class="nc" id="L456">    }</span>
 
     @Override
     public T call() throws Exception {
-<span class="nc" id="L380">      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {</span>
-<span class="nc" id="L381">        return task.call();</span>
+<span class="nc" id="L460">      try (ExecutionContext ctx = current.startChild(task.toString())) {</span>
+<span class="nc" id="L461">        return task.call();</span>
       }
     }
   }
 
-  private static final class DeadlinedPropagatingCallable&lt;T&gt; implements Callable&lt;T&gt; {
+  public static &lt;T&gt; Callable&lt;T&gt; propagatingCallable(final Callable&lt;T&gt; callable, final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="nc" id="L468">    return new PropagatingNamedCallable&lt;T&gt;(callable, ctx, name, deadlineNanos);</span>
+  }
+
+
+  private static final class PropagatingNamedCallable&lt;T&gt; implements Callable&lt;T&gt;, Wrapper&lt;Callable&lt;T&gt;&gt; {
 
     private final Callable&lt;T&gt; task;
     private final ExecutionContext current;
+
+    private final String name;
+
     private final long deadlineNanos;
 
-    DeadlinedPropagatingCallable(final Callable&lt;T&gt; task, final ExecutionContext current,
-<span class="nc" id="L393">            final long deadlineNanos) {</span>
-<span class="nc" id="L394">      this.task = task;</span>
-<span class="nc" id="L395">      this.current = current;</span>
-<span class="nc" id="L396">      this.deadlineNanos = deadlineNanos;</span>
-<span class="nc" id="L397">    }</span>
+    PropagatingNamedCallable(final Callable&lt;T&gt; task, final ExecutionContext current,
+<span class="nc" id="L482">            @Nullable final String name, final long deadlineNanos) {</span>
+<span class="nc" id="L483">      this.task = task;</span>
+<span class="nc" id="L484">      this.current = current;</span>
+<span class="nc" id="L485">      this.name = name;</span>
+<span class="nc" id="L486">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L487">    }</span>
 
     @Override
     public T call() throws Exception {
-<span class="nc" id="L401">      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current,</span>
-<span class="nc" id="L402">              TimeSource.nanoTime(), deadlineNanos)) {</span>
-<span class="nc" id="L403">        return task.call();</span>
+<span class="nc" id="L491">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="nc" id="L492">        return task.call();</span>
       }
     }
+
+    @Override
+    public String toString() {
+<span class="nc bnc" id="L498" title="All 2 branches missed.">      return  name == null ? task.toString() : name;</span>
+    }
+
+    @Override
+    public Callable&lt;T&gt; getWrapped() {
+<span class="nc" id="L503">      return task;</span>
+    }
+
   }
 
-  private static final class PropagatingRunnable implements Runnable {
+  public static &lt;X, Y&gt; Function&lt;X, Y&gt; propagatingFunction(final Function&lt;X, Y&gt; callable, final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="nc" id="L510">    return new PropagatingFunction&lt;X, Y&gt;(callable, ctx, name, deadlineNanos);</span>
+  }
+
+  private static final class PropagatingFunction&lt;X, Y&gt; implements Function&lt;X, Y&gt;, Wrapper&lt;Function&lt;X, Y&gt;&gt; {
+
+    private final Function&lt;X, Y&gt; function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingFunction(final Function&lt;X, Y&gt; task, final ExecutionContext current,
+<span class="nc" id="L523">            final String name, final long deadlineNanos) {</span>
+<span class="nc" id="L524">      this.function = task;</span>
+<span class="nc" id="L525">      this.current = current;</span>
+<span class="nc" id="L526">      this.name = name;</span>
+<span class="nc" id="L527">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L528">    }</span>
+
+    @Override
+    public Y apply(final X in) {
+<span class="nc" id="L532">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="nc" id="L533">        return function.apply(in);</span>
+      }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc bnc" id="L539" title="All 2 branches missed.">      return name == null ? function.toString() : name;</span>
+    }
+
+    @Override
+    public Function&lt;X, Y&gt; getWrapped() {
+<span class="nc" id="L544">      return function;</span>
+    }
+
+  }
+
+  public static &lt;X, Y, Z&gt; BiFunction&lt;X, Y, Z&gt; propagatingBiFunction(final BiFunction&lt;X, Y, Z&gt; callable,
+          final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="nc" id="L552">    return new PropagatingBiFunction&lt;X, Y, Z&gt;(callable, ctx, name, deadlineNanos);</span>
+  }
+
+ private static final class PropagatingBiFunction&lt;X, Y, Z&gt;
+         implements BiFunction&lt;X, Y, Z&gt;, Wrapper&lt;BiFunction&lt;X, Y, Z&gt;&gt; {
+
+    private final BiFunction&lt;X, Y, Z&gt; function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingBiFunction(final BiFunction&lt;X, Y, Z&gt; task, final ExecutionContext current,
+<span class="nc" id="L566">            final String name, final long deadlineNanos) {</span>
+<span class="nc" id="L567">      this.function = task;</span>
+<span class="nc" id="L568">      this.current = current;</span>
+<span class="nc" id="L569">      this.name = name;</span>
+<span class="nc" id="L570">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L571">    }</span>
+
+    @Override
+    public Z apply(final X x, final Y y) {
+<span class="nc" id="L575">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="nc" id="L576">        return function.apply(x, y);</span>
+      }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc bnc" id="L582" title="All 2 branches missed.">      return name == null ? function.toString() : name;</span>
+    }
+
+    @Override
+    public BiFunction&lt;X, Y, Z&gt; getWrapped() {
+<span class="nc" id="L587">      return function;</span>
+    }
+
+  }
+
+
+  public static &lt;X&gt; Consumer&lt;X&gt; propagatingConsumer(final Consumer&lt;X&gt; callable, final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="nc" id="L595">    return new PropagatingConsumer&lt;X&gt;(callable, ctx, name, deadlineNanos);</span>
+  }
+
+  private static final class PropagatingConsumer&lt;X&gt; implements Consumer&lt;X&gt;, Wrapper&lt;Consumer&lt;X&gt;&gt; {
+
+    private final Consumer&lt;X&gt; function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingConsumer(final Consumer&lt;X&gt; task, final ExecutionContext current,
+<span class="nc" id="L608">            final String name, final long deadlineNanos) {</span>
+<span class="nc" id="L609">      this.function = task;</span>
+<span class="nc" id="L610">      this.current = current;</span>
+<span class="nc" id="L611">      this.name = name;</span>
+<span class="nc" id="L612">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L613">    }</span>
+
+    @Override
+    public void accept(final X in) {
+<span class="nc" id="L617">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="nc" id="L618">        function.accept(in);</span>
+      }
+<span class="nc" id="L620">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc bnc" id="L624" title="All 2 branches missed.">      return name == null ? function.toString() : name;</span>
+    }
+
+    @Override
+    public Consumer&lt;X&gt; getWrapped() {
+<span class="nc" id="L629">      return function;</span>
+    }
+
+  }
+
+  public static &lt;X&gt; Supplier&lt;X&gt; propagatingSupplier(final Supplier&lt;X&gt; callable, final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="nc" id="L636">    return new PropagatingSupplier&lt;X&gt;(callable, ctx, name, deadlineNanos);</span>
+  }
+
+private static final class PropagatingSupplier&lt;X&gt; implements Supplier&lt;X&gt;, Wrapper&lt;Supplier&lt;X&gt;&gt; {
+
+    private final Supplier&lt;X&gt; function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingSupplier(final Supplier&lt;X&gt; task, final ExecutionContext current,
+<span class="nc" id="L649">            final String name, final long deadlineNanos) {</span>
+<span class="nc" id="L650">      this.function = task;</span>
+<span class="nc" id="L651">      this.current = current;</span>
+<span class="nc" id="L652">      this.name = name;</span>
+<span class="nc" id="L653">      this.deadlineNanos = deadlineNanos;</span>
+<span class="nc" id="L654">    }</span>
+
+    @Override
+    public X get() {
+<span class="nc" id="L658">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="nc" id="L659">        return function.get();</span>
+      }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc bnc" id="L665" title="All 2 branches missed.">      return name == null ? function.toString() : name;</span>
+    }
+
+    @Override
+    public Supplier&lt;X&gt; getWrapped() {
+<span class="nc" id="L670">      return function;</span>
+    }
+
+  }
+
+
+  public static &lt;X, Y&gt; BiConsumer&lt;X, Y&gt; propagatingBiConsumer(final BiConsumer&lt;X, Y&gt; callable,
+          final ExecutionContext ctx,
+          @Nullable final String name, final long deadlineNanos) {
+<span class="fc" id="L679">    return new PropagatingBiConsumer&lt;&gt;(callable, ctx, name, deadlineNanos);</span>
+  }
+
+  private static final class PropagatingBiConsumer&lt;X, Y&gt; implements BiConsumer&lt;X, Y&gt;, Wrapper&lt;BiConsumer&lt;X, Y&gt;&gt; {
+
+    private final BiConsumer&lt;X, Y&gt; function;
+    private final ExecutionContext current;
+
+    private final String name;
+
+    private final long deadlineNanos;
+
+    PropagatingBiConsumer(final BiConsumer&lt;X, Y&gt; task, final ExecutionContext current,
+<span class="fc" id="L692">            final String name, final long deadlineNanos) {</span>
+<span class="fc" id="L693">      this.function = task;</span>
+<span class="fc" id="L694">      this.current = current;</span>
+<span class="fc" id="L695">      this.name = name;</span>
+<span class="fc" id="L696">      this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L697">    }</span>
+
+    @Override
+    public void accept(final X x, final Y y) {
+<span class="fc" id="L701">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="fc" id="L702">        function.accept(x, y);</span>
+      }
+<span class="fc" id="L704">    }</span>
+
+    @Override
+    public String toString() {
+<span class="pc bpc" id="L708" title="1 of 2 branches missed.">      return name == null ? function.toString() : name;</span>
+    }
+
+    @Override
+    public BiConsumer&lt;X, Y&gt; getWrapped() {
+<span class="nc" id="L713">      return function;</span>
+    }
+
+  }
+
+
+
+  private static final class PropagatingRunnable implements Runnable, Wrapper&lt;Runnable&gt; {
 
     private final Runnable task;
     private final ExecutionContext current;
+    private final String name;
+    private final long deadlineNanos;
 
-<span class="fc" id="L413">    PropagatingRunnable(final Runnable task, final ExecutionContext current) {</span>
-<span class="fc" id="L414">      this.task = task;</span>
-<span class="fc" id="L415">      this.current = current;</span>
-<span class="fc" id="L416">    }</span>
+    PropagatingRunnable(final Runnable task, final ExecutionContext current, final String name,
+<span class="fc" id="L728">            final long deadlineNanos) {</span>
+<span class="fc" id="L729">      this.task = task;</span>
+<span class="fc" id="L730">      this.current = current;</span>
+<span class="fc" id="L731">      this.name = name;</span>
+<span class="fc" id="L732">      this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L733">    }</span>
 
     @Override
     public void run() {
-<span class="fc" id="L420">      try (ExecutionContext ctx = ExecutionContexts.start(task.toString(), current)) {</span>
-<span class="fc" id="L421">        task.run();</span>
+<span class="fc" id="L737">      try (ExecutionContext ctx = start(toString(), current, deadlineNanos)) {</span>
+<span class="fc" id="L738">        task.run();</span>
       }
-<span class="fc" id="L423">    }</span>
+<span class="fc" id="L740">    }</span>
+
+    @Override
+    public Runnable getWrapped() {
+<span class="nc" id="L744">      return task;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="pc bpc" id="L749" title="1 of 2 branches missed.">     return name == null ? task.toString() : name;</span>
+    }
+  }
+
+  private static class ThreadLocalScopeImpl implements ThreadLocalContextAttacher {
+
+    @Override
+    public Attached attach(final ExecutionContext ctx) {
+<span class="fc" id="L757">      final Thread currentThread = Thread.currentThread();</span>
+<span class="fc" id="L758">      SimpleStack&lt;ExecutionContext&gt; contextStack = ExecutionContexts.EXEC_CTX.get();</span>
+<span class="fc" id="L759">      int stackPtr = contextStack.pushAndGetIdx(ctx);</span>
+<span class="fc" id="L760">      return new AttachedImpl(currentThread, contextStack, ctx, stackPtr);</span>
+    }
+
+    private static class AttachedImpl implements Attached {
+
+      private final Thread thread;
+      private final SimpleStack&lt;ExecutionContext&gt; contextStack;
+      private final ExecutionContext ctx;
+      private final int stackPtr;
+
+      AttachedImpl(final Thread currentThread,
+              final SimpleStack&lt;ExecutionContext&gt; contextStack,
+<span class="fc" id="L772">              final ExecutionContext ctx, final int stackPtr) {</span>
+<span class="fc" id="L773">        this.thread = currentThread;</span>
+<span class="fc" id="L774">        this.contextStack = contextStack;</span>
+<span class="fc" id="L775">        this.ctx = ctx;</span>
+<span class="fc" id="L776">        this.stackPtr = stackPtr;</span>
+<span class="fc" id="L777">      }</span>
+
+      @Override
+      public void detach() {
+<span class="fc" id="L781">        Thread now = Thread.currentThread();</span>
+<span class="pc bpc" id="L782" title="1 of 2 branches missed.">        if (now != thread) {</span>
+<span class="nc" id="L783">          throw  new IllegalStateException(&quot;Detaching in different thread &quot; + thread + &quot; != &quot; + now);</span>
+        }
+<span class="fc" id="L785">        ExecutionContext pop = contextStack.pop();</span>
+<span class="pc bpc" id="L786" title="1 of 2 branches missed.">        if (pop != ctx) {</span>
+<span class="nc" id="L787">          contextStack.push(pop);</span>
+<span class="nc" id="L788">          throw new IllegalStateException(&quot;Detaching ctx that is not attached &quot; + ctx + &quot;, found: &quot; + pop);</span>
+        }
+<span class="fc" id="L790">      }</span>
+
+      public boolean isTopOfStack() {
+<span class="fc bfc" id="L793" title="All 2 branches covered.">        return stackPtr == 0;</span>
+      }
+
+      public Thread attachedThread() {
+<span class="fc" id="L797">        return thread;</span>
+      }
+
+    }
   }
 
 }

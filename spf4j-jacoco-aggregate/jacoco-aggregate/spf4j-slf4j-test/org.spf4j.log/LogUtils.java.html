@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LogUtils.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.log</a> &gt; <span class="el_source">LogUtils.java</span></div><h1>LogUtils.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.log;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.Marker;
+import org.spf4j.base.Arrays;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class LogUtils {
+
+  private LogUtils() {
+  }
+
+  @SuppressFBWarnings({&quot;SA_LOCAL_SELF_COMPARISON&quot;, &quot;SF_SWITCH_FALLTHROUGH&quot;})
+  public static void logUpgrade(final Logger log, @Nullable final Marker marker, final Level level,
+          final String format, final Object... pargs) {
+<span class="fc" id="L52">    Object[] args = pargs;</span>
+<span class="pc bpc" id="L53" title="5 of 6 branches missed.">    switch (level) {</span>
+      case TRACE:
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">          if (marker == null) {</span>
+<span class="nc" id="L57">            log.trace(format, args);</span>
+          } else {
+<span class="nc" id="L59">            log.trace(marker, format, args);</span>
+          }
+<span class="nc" id="L61">          break;</span>
+        } else {
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">          if (args == pargs) {</span>
+<span class="fc" id="L64">            args = Arrays.append(args, LogAttribute.origLevel(level));</span>
+          }
+        }
+      case DEBUG:
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">          if (marker == null) {</span>
+<span class="fc" id="L70">            log.debug(format, args);</span>
+          } else {
+<span class="nc" id="L72">            log.debug(marker, format, args);</span>
+          }
+<span class="nc" id="L74">          break;</span>
+        } else {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">          if (args == pargs) {</span>
+<span class="nc" id="L77">            args = Arrays.append(args, LogAttribute.origLevel(level));</span>
+          }
+        }
+      case INFO:
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (log.isInfoEnabled()) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">          if (marker == null) {</span>
+<span class="nc" id="L83">            log.info(format, args);</span>
+          } else {
+<span class="nc" id="L85">            log.info(marker, format, args);</span>
+          }
+<span class="nc" id="L87">          break;</span>
+        } else {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">          if (args == pargs) {</span>
+<span class="nc" id="L90">            args = Arrays.append(args, LogAttribute.origLevel(level));</span>
+          }
+        }
+      case WARN:
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (log.isWarnEnabled()) {</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">          if (marker == null) {</span>
+<span class="nc" id="L96">            log.warn(format, args);</span>
+          } else {
+<span class="nc" id="L98">            log.warn(marker, format, args);</span>
+          }
+<span class="nc" id="L100">          break;</span>
+        } else {
+<span class="nc bnc" id="L102" title="All 2 branches missed.">          if (args == pargs) {</span>
+<span class="nc" id="L103">            args = Arrays.append(args, LogAttribute.origLevel(level));</span>
+          }
+        }
+      case ERROR:
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (log.isErrorEnabled()) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">          if (marker == null) {</span>
+<span class="nc" id="L109">            log.error(format, args);</span>
+          } else {
+<span class="nc" id="L111">            log.error(marker, format, args);</span>
+          }
+<span class="nc" id="L113">          break;</span>
+        } else {
+<span class="nc" id="L115">          throw new IllegalStateException(&quot;Error not enabled for  &quot; + log.getName());</span>
+        }
+      default:
+<span class="nc" id="L118">        throw new IllegalStateException(&quot;Invalid level &quot; + level);</span>
+    }
+<span class="fc" id="L120">  }</span>
+
+  @SuppressFBWarnings({&quot;SA_LOCAL_SELF_COMPARISON&quot;, &quot;SF_SWITCH_FALLTHROUGH&quot;})
+  public static void logUpgrade(final java.util.logging.Logger log, final Level plevel,
+          final String format, final Object... pargs) {
+<span class="nc" id="L125">    Level[] values = Level.values();</span>
+<span class="nc" id="L126">    Level level = plevel;</span>
+    while (true) {
+<span class="nc" id="L128">      java.util.logging.Level julLevel = level.getJulLevel();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">      if (log.isLoggable(julLevel)) {</span>
+<span class="nc" id="L130">        log.log(julLevel, format, pargs);</span>
+<span class="nc" id="L131">        return;</span>
+      }
+<span class="nc bnc" id="L133" title="All 2 branches missed.">      if (level == Level.ERROR) {</span>
+<span class="nc" id="L134">        throw new IllegalStateException();</span>
+      }
+<span class="nc" id="L136">      level = values[level.ordinal() + 1];</span>
+<span class="nc" id="L137">    }</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

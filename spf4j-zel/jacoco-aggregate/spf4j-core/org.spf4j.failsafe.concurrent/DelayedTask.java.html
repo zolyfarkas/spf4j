@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DelayedTask.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe.concurrent</a> &gt; <span class="el_source">DelayedTask.java</span></div><h1>DelayedTask.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.failsafe.concurrent;
+
+import java.util.Objects;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.ScalableSequence;
+import org.spf4j.concurrent.Sequence;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+class DelayedTask&lt;R extends Runnable&gt; implements Delayed {
+
+<span class="fc" id="L47">  private static final Sequence SEQUENCE = new ScalableSequence(0, 50);</span>
+
+  private final R runnable;
+  private final long deadlineNanos;
+  private final long seq;
+
+<span class="fc" id="L53">  DelayedTask(final R runnable, final long delayNanos) {</span>
+<span class="fc" id="L54">    this.runnable = runnable;</span>
+<span class="fc" id="L55">    this.deadlineNanos = TimeSource.getDeadlineNanos(delayNanos, TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L56">    this.seq = SEQUENCE.next();</span>
+<span class="fc" id="L57">  }</span>
+
+  @Override
+  public long getDelay(final TimeUnit unit) {
+<span class="fc" id="L61">    return TimeSource.getTimeToDeadline(deadlineNanos, unit);</span>
+  }
+
+  @Override
+  public int compareTo(final Delayed o) {
+<span class="fc" id="L66">    DelayedTask&lt;R&gt; other = (DelayedTask&lt;R&gt;) o;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    if (this.deadlineNanos &gt; other.deadlineNanos) {</span>
+<span class="fc" id="L68">      return 1;</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    } else if (this.deadlineNanos &lt; other.deadlineNanos) {</span>
+<span class="fc" id="L70">      return -1;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    } else if (this.seq &gt; other.seq) {</span>
+<span class="nc" id="L72">      return 1;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    } else if (this.seq &gt; other.seq) {</span>
+<span class="nc" id="L74">      return -1;</span>
+    } else {
+<span class="nc" id="L76">      return 0;</span>
+    }
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="fc bfc" id="L82" title="All 2 branches covered.">    if (this == obj) {</span>
+<span class="fc" id="L83">      return true;</span>
+    }
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L86">      return false;</span>
+    }
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L89">      return false;</span>
+    }
+<span class="fc" id="L91">    final DelayedTask&lt;?&gt; other = (DelayedTask&lt;?&gt;) obj;</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (this.deadlineNanos != other.deadlineNanos) {</span>
+<span class="fc" id="L93">      return false;</span>
+    }
+<span class="nc" id="L95">    return Objects.equals(this.runnable, other.runnable);</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc" id="L100">    return this.runnable.hashCode();</span>
+  }
+
+  public R getRunnable() {
+<span class="fc" id="L104">    return runnable;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L109">    return &quot;DelayedTask{&quot; + &quot;runnable=&quot; + runnable + &quot;, deadlineNanos=&quot; + deadlineNanos + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

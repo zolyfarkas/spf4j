@@ -40,10 +40,10 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import javax.activation.MimeType;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.avro.MediaType;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 
@@ -97,90 +97,101 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
 <span class="pc bpc" id="L97" title="1 of 2 branches missed.">      if (type instanceof ParameterizedType) {</span>
 <span class="fc" id="L98">        ParameterizedType pType = (ParameterizedType) type;</span>
 <span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (pType.getRawType() == ObjectAppender.class) {</span>
-<span class="fc" id="L100">          appenderType = (Class) pType.getActualTypeArguments()[0];</span>
-<span class="fc" id="L101">          break;</span>
+<span class="fc" id="L100">          Type actualTypeArgument = pType.getActualTypeArguments()[0];</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">          if (actualTypeArgument instanceof ParameterizedType) {</span>
+<span class="fc" id="L102">            appenderType = (Class) ((ParameterizedType) actualTypeArgument).getRawType();</span>
+          } else {
+<span class="fc" id="L104">            appenderType = (Class) actualTypeArgument;</span>
+          }
+<span class="fc" id="L106">          break;</span>
         }
       }
     }
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">    if (appenderType == null) {</span>
-<span class="nc" id="L106">      throw new IllegalArgumentException(&quot;Improperly declared Appender &quot; + appender);</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">    if (appenderType == null) {</span>
+<span class="nc" id="L111">      throw new IllegalArgumentException(&quot;Improperly declared Appender &quot; + appender);</span>
     }
-<span class="fc" id="L108">    return appenderType;</span>
+<span class="fc" id="L113">    return appenderType;</span>
   }
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public &lt;T&gt; int register(final Class&lt;T&gt; type, final ObjectAppender&lt;? super T&gt;... appenders) {
-<span class="nc" id="L113">    int i = 0;</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">    for (ObjectAppender&lt;? super T&gt; appender : appenders) {</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (ConfigurableAppenderSupplier.this.tryRegister(type, appender)) {</span>
-<span class="nc" id="L116">        i++;</span>
+<span class="nc" id="L118">    int i = 0;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">    for (ObjectAppender&lt;? super T&gt; appender : appenders) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">      if (ConfigurableAppenderSupplier.this.tryRegister(type, appender)) {</span>
+<span class="nc" id="L121">        i++;</span>
       }
     }
-<span class="nc" id="L119">    return i;</span>
+<span class="nc" id="L124">    return i;</span>
   }
 
   public &lt;T&gt; void replace(final Class&lt;T&gt; type,
           final Function&lt;ObjectAppender&lt;? super T&gt;, ObjectAppender&lt;? super T&gt;&gt; replace) {
-<span class="fc" id="L124">    appenderMap.replace(type, (Function) replace);</span>
-<span class="fc" id="L125">  }</span>
+<span class="fc" id="L129">    appenderMap.replace(type, (Function) replace);</span>
+<span class="fc" id="L130">  }</span>
 
   public &lt;T&gt; void register(final Class&lt;T&gt; type, final ObjectAppender&lt;? super T&gt; appender) {
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">    if (!tryRegister(type, appender)) {</span>
-<span class="nc" id="L129">      throw new IllegalArgumentException(&quot;Cannnot Register &quot; + appender + &quot; for &quot; + type);</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    if (!tryRegister(type, appender)) {</span>
+<span class="nc" id="L134">      throw new IllegalArgumentException(&quot;Cannnot Register &quot; + appender + &quot; for &quot; + type);</span>
     }
-<span class="fc" id="L131">  }</span>
+<span class="fc" id="L136">  }</span>
 
   @CheckReturnValue
   public &lt;T&gt; boolean tryRegister(final Class&lt;T&gt; type, final ObjectAppender&lt;? super T&gt; appender) {
-<span class="fc" id="L135">    return appenderMap.putIfNotPresent(type, appender);</span>
+<span class="fc" id="L140">    return appenderMap.putIfNotPresent(type, appender);</span>
   }
 
-  public &lt;T&gt; void register(final Class&lt;T&gt; type, final MimeType contentType,
+  public &lt;T&gt; void register(final Class&lt;T&gt; type, final MediaType contentType,
           final ObjectAppender&lt;? super T&gt; appender) {
-<span class="nc bnc" id="L140" title="All 2 branches missed.">     if (!tryRegister(type, contentType, appender)) {</span>
-<span class="nc" id="L141">       throw new IllegalArgumentException(&quot;Cannnot Register &quot; + appender + &quot; for &quot; + type);</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">     if (!tryRegister(type, contentType, appender)) {</span>
+<span class="nc" id="L146">       throw new IllegalArgumentException(&quot;Cannnot Register &quot; + appender + &quot; for &quot; + type);</span>
      }
-<span class="nc" id="L143">  }</span>
+<span class="nc" id="L148">  }</span>
 
   @CheckReturnValue
-  public &lt;T&gt; boolean tryRegister(final Class&lt;T&gt; type, final MimeType contentType,
+  public &lt;T&gt; boolean tryRegister(final Class&lt;T&gt; type, final MediaType contentType,
           final ObjectAppender&lt;? super T&gt; appender) {
-<span class="nc" id="L148">    return appenderMap.putIfNotPresent(type, new ObjectAppenderContentTypeAdapter(appender, contentType));</span>
+<span class="nc" id="L153">    return appenderMap.putIfNotPresent(type, new ObjectAppenderContentTypeAdapter(appender, contentType));</span>
   }
 
 
   public boolean unregister(final Class&lt;?&gt; type) {
-<span class="nc" id="L153">    return appenderMap.remove(type);</span>
+<span class="nc" id="L158">    return appenderMap.remove(type);</span>
   }
 
   @Override
   public ObjectAppender get(final Type type) {
-<span class="fc" id="L158">    return appenderMap.get(type);</span>
+<span class="fc" id="L163">    return appenderMap.get(type);</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L163">    return &quot;ConfigurableAppenderSupplier{&quot; + &quot;lookup=&quot; + appenderMap  + '}';</span>
+<span class="fc" id="L168">    return &quot;ConfigurableAppenderSupplier{&quot; + &quot;lookup=&quot; + appenderMap  + '}';</span>
   }
 
   private static final class ObjectAppenderContentTypeAdapter&lt;T&gt; implements ObjectAppender&lt;T&gt; {
 
     private final ObjectAppender&lt;? super T&gt; appender;
-    private final MimeType contentType;
+    private final MediaType contentType;
 
-<span class="nc" id="L171">    ObjectAppenderContentTypeAdapter(final ObjectAppender&lt;? super T&gt; appender, final MimeType contentType) {</span>
-<span class="nc" id="L172">      this.appender = appender;</span>
-<span class="nc" id="L173">      this.contentType = contentType;</span>
-<span class="nc" id="L174">    }</span>
-
-    @Override
-    public void append(final T object, final Appendable appendTo) throws IOException {
-<span class="nc" id="L178">      appender.append(object, appendTo);</span>
+<span class="nc" id="L176">    ObjectAppenderContentTypeAdapter(final ObjectAppender&lt;? super T&gt; appender, final MediaType contentType) {</span>
+<span class="nc" id="L177">      this.appender = appender;</span>
+<span class="nc" id="L178">      this.contentType = contentType;</span>
 <span class="nc" id="L179">    }</span>
 
     @Override
-    public MimeType getAppendedType() {
-<span class="nc" id="L183">      return contentType;</span>
+    public void append(final T object, final Appendable appendTo) throws IOException {
+<span class="nc" id="L183">      appender.append(object, appendTo);</span>
+<span class="nc" id="L184">    }</span>
+
+    @Override
+    public void append(final T object, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+            throws IOException {
+<span class="nc" id="L189">      appender.append(object, appendTo, appenderSupplier);</span>
+<span class="nc" id="L190">    }</span>
+
+    @Override
+    public MediaType getAppendedType() {
+<span class="nc" id="L194">      return contentType;</span>
     }
   }
 

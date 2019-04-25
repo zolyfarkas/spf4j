@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Methods.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Methods.java</span></div><h1>Methods.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.hash.THashMap;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Map;
+import javax.annotation.concurrent.Immutable;
+import org.spf4j.base.avro.Converters;
+import org.spf4j.base.avro.Method;
+
+/**
+ * @author zoly
+ */
+@Immutable
+// using racy single check idiom makes findbugs think the Method obejct is mutable...
+@SuppressFBWarnings(&quot;JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS&quot;)
+public final class Methods  {
+
+<span class="fc" id="L53">  public static final Method ROOT = Converters.ROOT;</span>
+
+<span class="fc" id="L55">  private static final Map&lt;String, Map&lt;String, Method&gt;&gt; INSTANCE_REPO = new THashMap&lt;&gt;(1024);</span>
+
+
+  private Methods() { }
+
+  public static void writeHtml(final Method m, final Writer w) throws IOException {
+<span class="nc" id="L61">    Escaper htmlEscaper = HtmlEscapers.htmlEscaper();</span>
+<span class="nc" id="L62">    w.append(htmlEscaper.escape(m.getName())).append(htmlEscaper.escape(&quot;@&quot;)).</span>
+<span class="nc" id="L63">            append(htmlEscaper.escape(m.getDeclaringClass()));</span>
+<span class="nc" id="L64">  }</span>
+
+  public static Method getMethod(final StackTraceElement elem) {
+<span class="fc" id="L67">    return getMethod(elem.getClassName(), elem.getMethodName());</span>
+  }
+
+  /*
+     * this function is to allow reuse of Method instances.
+     * not thread safe, use with care, see description for suppressed findbugs bug for more detail.
+   */
+  @SuppressFBWarnings(&quot;PMB_POSSIBLE_MEMORY&quot;)
+  public static synchronized Method getMethod(final String className, final String methodName) {
+<span class="fc" id="L76">    Map&lt;String, Method&gt; mtom = INSTANCE_REPO.get(className);</span>
+    Method result;
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (mtom == null) {</span>
+<span class="fc" id="L79">      mtom = new THashMap&lt;&gt;(7, 0.7f);</span>
+<span class="fc" id="L80">      result = new Method(className, methodName);</span>
+<span class="fc" id="L81">      mtom.put(methodName, result);</span>
+<span class="fc" id="L82">      INSTANCE_REPO.put(className, mtom);</span>
+    } else {
+<span class="fc" id="L84">      result = mtom.get(methodName);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">      if (result == null) {</span>
+<span class="fc" id="L86">        result = new Method(className, methodName);</span>
+<span class="fc" id="L87">        mtom.put(methodName, result);</span>
+      }
+    }
+<span class="fc" id="L90">    return result;</span>
+  }
+
+  public static void writeTo(final Method m, final Appendable w) throws IOException {
+<span class="fc" id="L94">    w.append(m.getName()).append('@').append(m.getDeclaringClass());</span>
+<span class="fc" id="L95">  }</span>
+
+  public static void writeTo(final Method m, final StringBuilder w) {
+<span class="fc" id="L98">    w.append(m.getName()).append('@').append(m.getDeclaringClass());</span>
+<span class="fc" id="L99">  }</span>
+
+  public static CharSequence toCharSequence(final Method m) {
+<span class="fc" id="L102">    StringBuilder sb = new StringBuilder(32);</span>
+<span class="fc" id="L103">    writeTo(m, sb);</span>
+<span class="fc" id="L104">    return sb;</span>
+  }
+
+  public static String toString(final Method m) {
+<span class="fc" id="L108">    return toCharSequence(m).toString();</span>
+  }
+
+  public static Method from(final CharSequence cs) {
+<span class="fc" id="L112">    return from(cs, 0, cs.length());</span>
+  }
+
+  public static Method from(final CharSequence cs, final int start, final int end) {
+<span class="fc" id="L116">    int idx = CharSequences.indexOf(cs, start, end, '@');</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">    if (idx &lt; 0) {</span>
+<span class="nc" id="L118">      throw new IllegalArgumentException(&quot;Invalid method representation: &quot; + cs);</span>
+    }
+<span class="fc" id="L120">    return getMethod(cs.subSequence(idx + 1, end).toString(), cs.subSequence(start, idx).toString());</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

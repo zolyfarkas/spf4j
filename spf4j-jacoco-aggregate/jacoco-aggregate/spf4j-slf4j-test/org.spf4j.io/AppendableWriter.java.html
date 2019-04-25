@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AppendableWriter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io</a> &gt; <span class="el_source">AppendableWriter.java</span></div><h1>AppendableWriter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.io;
+
+import java.io.Closeable;
+import java.io.Flushable;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.CharBuffer;
+
+/**
+ * Utility class to adapt a Appendable to a Writer.
+ * this is a faster version of guava: CharStreams.asWriter
+ * @author zoly
+ */
+public final class AppendableWriter extends Writer {
+
+  private final Appendable appendable;
+
+  private final boolean flushable;
+
+  private boolean closed;
+
+<span class="fc" id="L53">  public AppendableWriter(final Appendable appendable) {</span>
+<span class="fc" id="L54">    this.appendable = appendable;</span>
+<span class="fc" id="L55">    this.flushable = appendable instanceof Flushable;</span>
+<span class="fc" id="L56">    this.closed = false;</span>
+<span class="fc" id="L57">  }</span>
+
+  @Override
+  public void write(final char[] cbuf, final int off, final int len) throws IOException {
+<span class="fc" id="L61">    checkNotClosed();</span>
+    /* Guava claims:
+    It turns out that creating a new String is usually as fast,
+    or faster than wrapping cbuf in a light-weight CharSequence.
+
+    Since I am suspicious of claims that do not make much sense and most developers write rubbish benchmarks
+    (Linus I start to be like you more and more),
+    I wrote a JMH benchmark, and the results are as expected the opposite:
+
+    Benchmark                                          Mode  Cnt      Score     Error  Units
+    AppendableWriterBenchmark.guavaAppendable         thrpt   10  10731.940 ± 427.258  ops/s
+    AppendableWriterBenchmark.spf4jAppendable         thrpt   10  17613.093 ± 344.769  ops/s
+
+     Using a light weight wrapper is more than 50% faster!
+
+     See AppendableWriterBenchmark for more detail...
+
+    */
+<span class="fc" id="L79">    appendable.append(CharBuffer.wrap(cbuf), off, off + len);</span>
+<span class="fc" id="L80">  }</span>
+
+  @Override
+  public void write(final int c) throws IOException {
+<span class="nc" id="L84">    checkNotClosed();</span>
+<span class="nc" id="L85">    appendable.append((char) c);</span>
+<span class="nc" id="L86">  }</span>
+
+  @Override
+  public Writer append(final char c) throws IOException {
+<span class="fc" id="L90">    checkNotClosed();</span>
+<span class="fc" id="L91">    appendable.append(c);</span>
+<span class="fc" id="L92">    return this;</span>
+  }
+
+  @Override
+  public Writer append(final CharSequence csq, final int start, final int end) throws IOException {
+<span class="fc" id="L97">    checkNotClosed();</span>
+<span class="fc" id="L98">    appendable.append(csq, start, end);</span>
+<span class="fc" id="L99">    return this;</span>
+  }
+
+  @Override
+  public Writer append(final CharSequence csq) throws IOException {
+<span class="nc" id="L104">    checkNotClosed();</span>
+<span class="nc" id="L105">    appendable.append(csq);</span>
+<span class="nc" id="L106">    return this;</span>
+  }
+
+  @Override
+  public void write(final String str, final int off, final int len) throws IOException {
+<span class="nc" id="L111">    checkNotClosed();</span>
+<span class="nc" id="L112">    appendable.append(str, off, off + len);</span>
+<span class="nc" id="L113">  }</span>
+
+  @Override
+  public void write(final String str) throws IOException {
+<span class="nc" id="L117">    appendable.append(str);</span>
+<span class="nc" id="L118">  }</span>
+
+  @Override
+  public void write(final char[] cbuf) throws IOException {
+<span class="nc" id="L122">    appendable.append(CharBuffer.wrap(cbuf));</span>
+<span class="nc" id="L123">  }</span>
+
+  @Override
+  public void flush() throws IOException {
+<span class="fc" id="L127">    checkNotClosed();</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">    if (flushable) {</span>
+<span class="fc" id="L129">      ((Flushable) appendable).flush();</span>
+    }
+<span class="fc" id="L131">  }</span>
+
+  private void checkNotClosed() throws IOException {
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">    if (closed) {</span>
+<span class="nc" id="L135">      throw new IOException(&quot;Cannot write to closed writer &quot; + this);</span>
+    }
+<span class="fc" id="L137">  }</span>
+
+  @Override
+  public void close() throws IOException {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    if (!closed) {</span>
+<span class="nc" id="L142">      flush();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (appendable instanceof Closeable) {</span>
+<span class="nc" id="L144">        ((Closeable) appendable).close();</span>
+      }
+<span class="nc" id="L146">      closed = true;</span>
+    }
+<span class="nc" id="L148">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L152">    return &quot;AppendableWriter{&quot; + &quot;appendable=&quot; + appendable + &quot;, flushable=&quot; + flushable + &quot;, closed=&quot; + closed + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

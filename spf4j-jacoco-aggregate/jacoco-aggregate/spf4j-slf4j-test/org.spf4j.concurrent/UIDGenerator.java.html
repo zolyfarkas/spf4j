@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UIDGenerator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">UIDGenerator.java</span></div><h1>UIDGenerator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.concurrent;
+
+import com.google.common.io.BaseEncoding;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Enumeration;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.AppendableUtils;
+import org.spf4j.os.ProcessUtil;
+
+/**
+ * Unique ID Generator Based on the assumptions: 1. host MAC address is used. (each network interface has a Unique ID)
+ * (encoded with provided encoder) 2. process id is used + current epoch seconds. it is assumed the PID is not recycled
+ * within a second. 3. A process sequence is used. UIDs will cycle after Long.MaxValue is reached.
+ *
+ * @author zoly
+ */
+@ParametersAreNonnullByDefault
+public final class UIDGenerator implements Supplier&lt;CharSequence&gt; {
+
+  private final Sequence sequence;
+
+  private final StringBuilder base;
+
+  private final int maxSize;
+
+  public UIDGenerator(final Sequence sequence) {
+<span class="nc" id="L66">    this(sequence, 0);</span>
+<span class="nc" id="L67">  }</span>
+
+  public UIDGenerator(final Sequence sequence, final String prefix) {
+<span class="nc" id="L70">    this(sequence, BaseEncoding.base64Url(), 0, '.', prefix);</span>
+<span class="nc" id="L71">  }</span>
+
+  public UIDGenerator(final Sequence sequence, final long customEpoch) {
+<span class="fc" id="L74">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', &quot;&quot;);</span>
+<span class="fc" id="L75">  }</span>
+
+  public UIDGenerator(final Sequence sequence, final String prefix, final long customEpoch) {
+<span class="fc" id="L78">    this(sequence, BaseEncoding.base64Url(), customEpoch, '.', prefix);</span>
+<span class="fc" id="L79">  }</span>
+
+  /**
+   * Construct a UID Generator
+   *
+   * @param sequence
+   * @param baseEncoding - if null MAC address based ID will not be included.
+   */
+  @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
+  public UIDGenerator(final Sequence sequence, final BaseEncoding baseEncoding,
+<span class="fc" id="L89">          final long customEpoch, final char separator, final String prefix) {</span>
+<span class="fc" id="L90">    this.sequence = sequence;</span>
+<span class="fc" id="L91">    StringBuilder sb = generateIdBase(prefix, baseEncoding, separator, customEpoch);</span>
+<span class="fc" id="L92">    base = sb;</span>
+<span class="fc" id="L93">    maxSize = base.length() + 16;</span>
+<span class="fc" id="L94">  }</span>
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final char separator) {
+<span class="nc" id="L98">    return generateIdBase(prefix, BaseEncoding.base64Url(), separator, 1509741164184L);</span>
+  }
+
+  public static StringBuilder generateIdBase(final String prefix,
+          final char separator,
+          final long customEpoch) {
+<span class="nc" id="L104">    return generateIdBase(prefix, BaseEncoding.base64Url(), separator, customEpoch);</span>
+  }
+
+  @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
+  public static StringBuilder generateIdBase(final String prefix,
+          final BaseEncoding baseEncoding, final char separator,
+          final long customEpoch) {
+<span class="fc" id="L111">    StringBuilder sb = new StringBuilder(16 + prefix.length());</span>
+<span class="fc" id="L112">    sb.append(prefix);</span>
+
+    byte[] intfMac;
+    try {
+<span class="fc" id="L116">      Enumeration&lt;NetworkInterface&gt; networkInterfaces = NetworkInterface.getNetworkInterfaces();</span>
+<span class="pc bpc" id="L117" title="2 of 4 branches missed.">      if (networkInterfaces != null &amp;&amp; networkInterfaces.hasMoreElements()) {</span>
+        do {
+<span class="fc" id="L119">          intfMac = networkInterfaces.nextElement().getHardwareAddress();</span>
+<span class="pc bpc" id="L120" title="2 of 6 branches missed.">        } while ((intfMac == null || intfMac.length == 0) &amp;&amp; networkInterfaces.hasMoreElements());</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (intfMac == null) {</span>
+<span class="nc" id="L122">          Logger.getLogger(UIDGenerator.class.getName()).warning(</span>
+                  &quot;Unable to get interface MAC address for ID generation&quot;);
+          try {
+<span class="nc" id="L125">            intfMac = ByteBuffer.allocate(Long.BYTES).putLong(SecureRandom.getInstanceStrong().nextLong()).array();</span>
+<span class="nc" id="L126">          } catch (NoSuchAlgorithmException ex) {</span>
+<span class="nc" id="L127">            throw new IllegalStateException(ex);</span>
+<span class="nc" id="L128">          }</span>
+        }
+      } else {
+<span class="nc" id="L131">        Logger.getLogger(UIDGenerator.class.getName()).warning(</span>
+                &quot;Unable to get interface MAC address for ID generation&quot;);
+        try {
+<span class="nc" id="L134">          intfMac = ByteBuffer.allocate(Long.BYTES).putLong(SecureRandom.getInstanceStrong().nextLong()).array();</span>
+<span class="nc" id="L135">        } catch (NoSuchAlgorithmException ex) {</span>
+<span class="nc" id="L136">          throw new IllegalStateException(ex);</span>
+<span class="nc" id="L137">        }</span>
+      }
+<span class="nc" id="L139">    } catch (SocketException ex) {</span>
+<span class="nc" id="L140">      Logger.getLogger(UIDGenerator.class.getName()).log(Level.WARNING,</span>
+              &quot;Unable to get interface MAC address for ID generation&quot;, ex);
+      try {
+<span class="nc" id="L143">        intfMac = ByteBuffer.allocate(Long.BYTES).putLong(SecureRandom.getInstanceStrong().nextLong()).array();</span>
+<span class="nc" id="L144">      } catch (NoSuchAlgorithmException ex2) {</span>
+<span class="nc" id="L145">        ex2.addSuppressed(ex);</span>
+<span class="nc" id="L146">        throw new IllegalStateException(ex2);</span>
+<span class="nc" id="L147">      }</span>
+<span class="fc" id="L148">    }</span>
+<span class="fc" id="L149">    sb.append(baseEncoding.encode(intfMac)).append(separator);</span>
+
+<span class="fc" id="L151">    AppendableUtils.appendUnsignedString(sb, ProcessUtil.getPid(), 5);</span>
+<span class="fc" id="L152">    sb.append(separator);</span>
+<span class="fc" id="L153">    AppendableUtils.appendUnsignedString(sb, (System.currentTimeMillis() - customEpoch) / 1000, 5);</span>
+<span class="fc" id="L154">    sb.append(separator);</span>
+<span class="fc" id="L155">    return sb;</span>
+  }
+
+  public int getMaxSize() {
+<span class="nc" id="L159">    return maxSize;</span>
+  }
+
+  public CharSequence next() {
+<span class="fc" id="L163">    StringBuilder result = new StringBuilder(maxSize);</span>
+<span class="fc" id="L164">    result.append(base);</span>
+<span class="fc" id="L165">    AppendableUtils.appendUnsignedString(result, sequence.next(), 5);</span>
+<span class="fc" id="L166">    return result;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L171">    return &quot;UIDGenerator{&quot; + &quot;sequence=&quot; + sequence + &quot;, base=&quot; + base + &quot;, maxSize=&quot; + maxSize + '}';</span>
+  }
+
+  @Override
+  public CharSequence get() {
+<span class="nc" id="L176">    return next();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

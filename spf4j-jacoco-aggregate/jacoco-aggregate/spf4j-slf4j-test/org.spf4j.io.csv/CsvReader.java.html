@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CsvReader.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.io.csv</a> &gt; <span class="el_source">CsvReader.java</span></div><h1>CsvReader.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.io.csv;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.function.Consumer;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+/**
+ * Char separated value file Reader.
+ * @author zoly
+ */
+public interface CsvReader {
+
+<span class="fc" id="L46">  enum TokenType {</span>
+<span class="fc" id="L47">     ELEMENT, END_ROW, END_DOCUMENT</span>
+  }
+
+  /**
+   * read next CSV element, and return its type.
+   *
+   * @return return CSV element type.
+   * @throws IOException exception is something goes wrong.
+   */
+  @Nonnull
+  TokenType next() throws IOException, CsvParseException;
+
+  /**
+   * @return the currently parsed token type,  null if no current token is available (next has never been called)
+   * @throws IOException
+   * @throws CsvParseException
+   */
+  @Nullable
+  TokenType current();
+
+  /**
+   * the CSV element string. the underlying instance is reused, so you will need to make a copy of this if planning to
+   * use it.
+   *
+   * @return CharSequence representing a csv cell.
+   */
+  CharSequence getElement();
+
+  default int skipRow() throws IOException, CsvParseException {
+<span class="fc" id="L76">    int skipped = 0;</span>
+<span class="fc" id="L77">    TokenType current = current();</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (current == null) { // beginning of file.</span>
+<span class="fc" id="L79">      next();</span>
+    }
+<span class="fc bfc" id="L81" title="All 4 branches covered.">    while ((current = current()) != CsvReader.TokenType.END_ROW</span>
+            &amp;&amp; current != CsvReader.TokenType.END_DOCUMENT) {
+<span class="fc" id="L83">      next();</span>
+<span class="fc" id="L84">      skipped++;</span>
+    }
+<span class="fc bfc" id="L86" title="All 2 branches covered.">    if (current != CsvReader.TokenType.END_DOCUMENT) {</span>
+<span class="fc" id="L87">      next();</span>
+    }
+<span class="fc" id="L89">    return skipped;</span>
+  }
+
+  default void readRow(final Consumer&lt;CharSequence&gt; consumer) throws IOException, CsvParseException {
+<span class="fc" id="L93">    TokenType current = current();</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">    if (current == null) { // beginning of file.</span>
+<span class="fc" id="L95">      next();</span>
+    }
+<span class="pc bpc" id="L97" title="1 of 4 branches missed.">    while ((current = current()) != CsvReader.TokenType.END_ROW</span>
+            &amp;&amp; current != CsvReader.TokenType.END_DOCUMENT) {
+<span class="fc" id="L99">      consumer.accept(getElement());</span>
+<span class="fc" id="L100">      next();</span>
+    }
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (current != CsvReader.TokenType.END_DOCUMENT) {</span>
+<span class="fc" id="L103">      next();</span>
+    }
+<span class="fc" id="L105">  }</span>
+
+
+  default CsvReader toReader(final Iterator&lt;? extends CharSequence&gt; it) {
+<span class="nc" id="L109">    return new IterableCsvReader(it);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

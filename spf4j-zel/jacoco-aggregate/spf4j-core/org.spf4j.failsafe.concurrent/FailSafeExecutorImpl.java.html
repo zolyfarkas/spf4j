@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FailSafeExecutorImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe.concurrent</a> &gt; <span class="el_source">FailSafeExecutorImpl.java</span></div><h1>FailSafeExecutorImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.failsafe.concurrent;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.AbstractRunnable;
+import org.spf4j.failsafe.RetryPredicate;
+import org.spf4j.base.UncheckedExecutionException;
+import org.spf4j.concurrent.DefaultExecutor;
+import org.spf4j.concurrent.InterruptibleCompletableFuture;
+
+/**
+ * Executor that will call Callables with retry. This executor cannot be used inside a Completion service.
+ *
+ *
+ * @author zoly
+ */
+public final class FailSafeExecutorImpl implements FailSafeExecutor {
+
+<span class="fc" id="L63">  private static final Logger LOG = LoggerFactory.getLogger(FailSafeExecutorImpl.class);</span>
+
+<span class="fc" id="L65">  private static final Future&lt;?&gt; SHUTDOWN = new Future() {</span>
+    @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+<span class="nc" id="L68">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public boolean isCancelled() {
+<span class="nc" id="L73">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public boolean isDone() {
+<span class="nc" id="L78">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public Object get()  {
+<span class="nc" id="L83">      throw new UnsupportedOperationException();</span>
+    }
+
+    @Override
+    public Object get(final long timeout, final TimeUnit unit) {
+<span class="nc" id="L88">      throw new UnsupportedOperationException();</span>
+    }
+  };
+
+  private final ExecutorService executionService;
+<span class="fc" id="L93">  private final DelayQueue&lt;DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;&gt; executionEvents = new DelayQueue&lt;&gt;();</span>
+  private volatile Future&lt;?&gt; retryManagerFuture;
+<span class="fc" id="L95">  private final Object sync = new Object();</span>
+
+  private void startRetryManager() {
+<span class="fc" id="L98">    Future&lt;?&gt; rm = retryManagerFuture;</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    if (rm == null) {</span>
+<span class="fc" id="L100">      synchronized (sync) {</span>
+<span class="fc" id="L101">        rm = retryManagerFuture;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (rm == null) {</span>
+<span class="fc" id="L103">          rm = DefaultExecutor.INSTANCE.submit(new RetryManager());</span>
+<span class="fc" id="L104">          this.retryManagerFuture = rm;</span>
+<span class="fc" id="L105">          LOG.debug(&quot;Retry manager started {}&quot;, rm);</span>
+        }
+<span class="fc" id="L107">      }</span>
+    }
+<span class="fc" id="L109">  }</span>
+
+  private void shutdownRetryManager() {
+<span class="fc" id="L112">    synchronized (sync) {</span>
+<span class="fc" id="L113">      Future&lt;?&gt; rmf = this.retryManagerFuture;</span>
+<span class="pc bpc" id="L114" title="1 of 4 branches missed.">      if (rmf != null &amp;&amp; rmf != SHUTDOWN) {</span>
+<span class="fc" id="L115">        rmf.cancel(true);</span>
+<span class="fc" id="L116">        retryManagerFuture = SHUTDOWN;</span>
+      }
+<span class="fc" id="L118">    }</span>
+<span class="fc" id="L119">  }</span>
+
+  private class RetryManager extends AbstractRunnable {
+
+<span class="fc" id="L123">    RetryManager() {</span>
+<span class="fc" id="L124">      super(&quot;RetryManager&quot;);</span>
+<span class="fc" id="L125">    }</span>
+
+    @Override
+    public void doRun() {
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">      while (retryManagerFuture != SHUTDOWN) {</span>
+        try {
+<span class="fc" id="L131">          DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  event = executionEvents.poll(1, TimeUnit.MINUTES);</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">          if (event != null) {</span>
+<span class="fc" id="L133">            RetryFutureTask&lt;?&gt; runnable = event.getRunnable();</span>
+<span class="fc" id="L134">            executionService.execute(runnable);</span>
+          }
+<span class="fc" id="L136">        } catch (InterruptedException ex) {</span>
+<span class="fc" id="L137">          LOG.debug(&quot;Interrupted Retry manager, shuting down, events scheduled: {}&quot;, executionEvents, ex);</span>
+<span class="fc" id="L138">          break;</span>
+<span class="fc" id="L139">        }</span>
+      }
+<span class="fc" id="L141">    }</span>
+
+  }
+
+<span class="fc" id="L145">  public FailSafeExecutorImpl(final ExecutorService exec) {</span>
+<span class="fc" id="L146">    executionService = exec;</span>
+<span class="fc" id="L147">  }</span>
+
+  @Override
+  public void close() throws InterruptedException {
+<span class="fc" id="L151">    synchronized (sync) {</span>
+<span class="fc" id="L152">      Future&lt;?&gt; rmf = this.retryManagerFuture;</span>
+<span class="pc bpc" id="L153" title="2 of 4 branches missed.">      if (rmf != null &amp;&amp; rmf != SHUTDOWN) {</span>
+<span class="fc" id="L154">        this.retryManagerFuture = SHUTDOWN;</span>
+<span class="fc" id="L155">        rmf.cancel(true);</span>
+        try {
+<span class="nc" id="L157">          rmf.get();</span>
+<span class="nc" id="L158">        } catch (ExecutionException ex) {</span>
+<span class="nc" id="L159">          throw new UncheckedExecutionException(ex);</span>
+<span class="fc" id="L160">        } catch (CancellationException ex) {</span>
+          // ignore, since we are the source
+<span class="nc" id="L162">        }</span>
+      }
+<span class="fc" id="L164">    }</span>
+<span class="fc" id="L165">  }</span>
+
+  public void initiateClose() {
+<span class="fc" id="L168">    shutdownRetryManager();</span>
+<span class="fc" id="L169">  }</span>
+
+
+  @Override
+  public &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;? extends A&gt; task,
+          final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate) {
+<span class="fc" id="L175">    RetryFutureTask&lt;A&gt; result =</span>
+            new RetryFutureTask(task, (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents,
+              this::startRetryManager);
+
+<span class="fc" id="L179">    executionService.execute(result);</span>
+<span class="fc" id="L180">    return (Future&lt;A&gt;) result;</span>
+  }
+
+  @Override
+  public &lt;A&gt; CompletableFuture&lt;A&gt; submitRx(final Callable&lt;? extends A&gt; task,
+          final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate,
+          final Supplier&lt;InterruptibleCompletableFuture&lt;A&gt;&gt; cfSupplier) {
+<span class="nc" id="L187">    InterruptibleCompletableFuture&lt;A&gt; result = cfSupplier.get();</span>
+<span class="nc" id="L188">    ConsumableRetryFutureTask&lt;A&gt; rft =</span>
+            new ConsumableRetryFutureTask&lt;&gt;(f -&gt; {
+              A r;
+              try {
+<span class="nc" id="L192">                r = f.get();</span>
+<span class="nc" id="L193">              } catch (ExecutionException ex)  {</span>
+<span class="nc" id="L194">                return result.completeExceptionally(ex.getCause());</span>
+<span class="nc" id="L195">              } catch (Throwable ex)  {</span>
+<span class="nc" id="L196">                return result.completeExceptionally(ex);</span>
+<span class="nc" id="L197">              }</span>
+<span class="nc" id="L198">              return result.complete(r);</span>
+            }, (Callable&lt;A&gt;) task,
+                    (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents,
+              this::startRetryManager);
+<span class="nc" id="L202">    result.setToCancel(rft);</span>
+<span class="nc" id="L203">    executionService.execute(rft);</span>
+<span class="nc" id="L204">    return result;</span>
+  }
+
+  @Override
+  public &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;? extends A&gt; task,
+          final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate,
+          final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">    if (nrHedges &lt;= 0) {</span>
+<span class="nc" id="L212">      return submit(task, predicate);</span>
+    }
+<span class="fc" id="L214">    int nrFut = nrHedges + 1;</span>
+<span class="fc" id="L215">    final Future[] futures = new Future[nrFut];</span>
+<span class="fc" id="L216">    ArrayBlockingQueue&lt;Future&lt;A&gt;&gt; queue = new ArrayBlockingQueue&lt;&gt;(1);</span>
+<span class="fc" id="L217">    FirstFuture&lt;A&gt; result = new FirstFuture&lt;A&gt;(futures, queue);</span>
+<span class="fc" id="L218">    ConsumableRetryFutureTask&lt;A&gt; future =  new ConsumableRetryFutureTask(result, task,</span>
+            (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents, this::startRetryManager);
+<span class="fc" id="L220">    startRetryManager();</span>
+<span class="fc" id="L221">    futures[0] = future;</span>
+<span class="fc" id="L222">    Runnable[] submits = new Runnable[nrFut];</span>
+<span class="fc" id="L223">    submits[0] = () -&gt; executionService.execute(future);</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">    for (int i = 1; i &lt; nrFut; i++) {</span>
+<span class="fc" id="L225">      ConsumableRetryFutureTask&lt;A&gt; f = new ConsumableRetryFutureTask(</span>
+                result, task, (RetryPredicate) predicate, executionEvents,
+                this::startRetryManager);
+<span class="fc" id="L228">      futures[i] = f;</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">      if (hedgeDelay &gt; 0) {</span>
+<span class="fc" id="L230">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  delayedExecution = new DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;(</span>
+<span class="fc" id="L231">                f, unit.toNanos(hedgeDelay));</span>
+<span class="fc" id="L232">        f.setExec(delayedExecution);</span>
+<span class="fc" id="L233">        submits[i] = () -&gt; executionEvents.add(delayedExecution);</span>
+<span class="fc" id="L234">      } else {</span>
+<span class="fc" id="L235">        submits[i] = () -&gt; executionService.execute(f);</span>
+      }
+    }
+<span class="fc bfc" id="L238" title="All 2 branches covered.">    for (Runnable submit : submits) {</span>
+<span class="fc" id="L239">      submit.run();</span>
+    }
+<span class="fc" id="L241">    return result;</span>
+  }
+
+  @Override
+  public &lt;A&gt; CompletableFuture&lt;A&gt; submitRx(final Callable&lt;? extends A&gt; task,
+          final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate,
+          final int nrHedges, final long hedgeDelay, final TimeUnit unit,
+          final Supplier&lt;InterruptibleCompletableFuture&lt;A&gt;&gt; cfSupplier) {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">    if (nrHedges &lt;= 0) {</span>
+<span class="nc" id="L250">      return submitRx(task, predicate);</span>
+    }
+<span class="nc" id="L252">    InterruptibleCompletableFuture&lt;A&gt; result = cfSupplier.get();</span>
+<span class="nc" id="L253">    int nrFut = nrHedges + 1;</span>
+<span class="nc" id="L254">    final Future&lt;A&gt;[] futures = new Future[nrFut];</span>
+<span class="nc" id="L255">    ArrayBlockingQueue&lt;Future&lt;A&gt;&gt; queue = new ArrayBlockingQueue&lt;&gt;(1);</span>
+<span class="nc" id="L256">    FirstFuture&lt;A&gt; resultX = new FirstFuture&lt;A&gt;(futures, queue) {</span>
+      @Override
+      @SuppressFBWarnings({ &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;, &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot; })
+      public boolean accept(final Future&lt;A&gt; finished) {
+<span class="nc" id="L260">        boolean accepted = super.accept(finished);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">          if (accepted) {</span>
+            A r;
+            try {
+<span class="nc" id="L264">              r = finished.get();</span>
+<span class="nc" id="L265">            } catch (ExecutionException ex) {</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">              if (!result.completeExceptionally(ex.getCause())) {</span>
+<span class="nc" id="L267">                throw new IllegalStateException(ex);</span>
+              }
+<span class="nc" id="L269">              return true;</span>
+<span class="nc" id="L270">            } catch (Throwable ex) {</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">              if (!result.completeExceptionally(ex)) {</span>
+<span class="nc" id="L272">                throw new IllegalStateException(ex);</span>
+              }
+<span class="nc" id="L274">              return true;</span>
+<span class="nc" id="L275">            }</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">            if (!result.complete(r)) {</span>
+<span class="nc" id="L277">              throw new IllegalStateException();</span>
+            }
+<span class="nc" id="L279">            return true;</span>
+          }
+<span class="nc" id="L281">          return false;</span>
+      }
+    };
+<span class="nc" id="L284">    result.setToCancel(resultX);</span>
+<span class="nc" id="L285">    ConsumableRetryFutureTask&lt;A&gt; future =  new ConsumableRetryFutureTask(resultX, task,</span>
+            (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents, this::startRetryManager);
+<span class="nc" id="L287">    startRetryManager();</span>
+<span class="nc" id="L288">    futures[0] = future;</span>
+<span class="nc" id="L289">    Runnable[] submits = new Runnable[nrFut];</span>
+<span class="nc" id="L290">    submits[0] = () -&gt; executionService.execute(future);</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">    for (int i = 1; i &lt; nrFut; i++) {</span>
+<span class="nc" id="L292">      ConsumableRetryFutureTask&lt;A&gt; f = new ConsumableRetryFutureTask(</span>
+                resultX, task, (RetryPredicate) predicate, executionEvents,
+                this::startRetryManager);
+<span class="nc" id="L295">      futures[i] = f;</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">      if (hedgeDelay &gt; 0) {</span>
+<span class="nc" id="L297">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  delayedExecution = new DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;(</span>
+<span class="nc" id="L298">                f, unit.toNanos(hedgeDelay));</span>
+<span class="nc" id="L299">        f.setExec(delayedExecution);</span>
+<span class="nc" id="L300">        submits[i] = () -&gt; executionEvents.add(delayedExecution);</span>
+<span class="nc" id="L301">      } else {</span>
+<span class="nc" id="L302">        submits[i] = () -&gt; executionService.execute(f);</span>
+      }
+    }
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    for (Runnable submit : submits) {</span>
+<span class="nc" id="L306">      submit.run();</span>
+    }
+<span class="nc" id="L308">    return result;</span>
+  }
+
+
+
+  @Override
+  public &lt;A&gt; void execute(final Callable&lt;? extends A&gt; task,
+          final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate) {
+<span class="nc" id="L316">    RetryFutureTask&lt;A&gt; result = new RetryFutureTask(task, predicate, executionEvents, this::startRetryManager);</span>
+<span class="nc" id="L317">    executionService.execute(result);</span>
+<span class="nc" id="L318">  }</span>
+
+
+  @Override
+  public String toString() {
+<span class="nc" id="L323">    return &quot;RetryExecutor{&quot; + &quot;executionService=&quot; + executionService + &quot;, executionEvents=&quot; + executionEvents</span>
+            + &quot;, retryManagerFuture=&quot; + retryManagerFuture
+            + &quot;, sync=&quot; + sync + '}';
+  }
+
+  @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;) // Actually I own it...
+  private static class FirstFuture&lt;T&gt; implements Future&lt;T&gt;, ConditionalConsumer&lt;Future&lt;T&gt;&gt; {
+
+    private final Future&lt;T&gt;[] futures;
+    private final BlockingQueue&lt;Future&lt;T&gt;&gt; queue;
+<span class="fc" id="L333">    private boolean first = true;</span>
+
+    FirstFuture(final Future&lt;T&gt;[] futures,
+<span class="fc" id="L336">            final BlockingQueue&lt;Future&lt;T&gt;&gt; queue) {</span>
+<span class="fc" id="L337">      this.futures = futures;</span>
+<span class="fc" id="L338">      this.queue = queue;</span>
+<span class="fc" id="L339">    }</span>
+
+    @Override
+    public boolean accept(final Future&lt;T&gt; finished) {
+<span class="fc" id="L343">      synchronized (this) {</span>
+<span class="fc bfc" id="L344" title="All 2 branches covered.">        if (first) {</span>
+<span class="fc" id="L345">          first = false;</span>
+<span class="fc" id="L346">          queue.add(finished);</span>
+<span class="fc bfc" id="L347" title="All 2 branches covered.">          for (int i = 0;  i &lt; futures.length; i++) {</span>
+<span class="fc" id="L348">            Future f = futures[i];</span>
+<span class="pc bpc" id="L349" title="1 of 4 branches missed.">            if (f != null &amp;&amp; f != finished) {</span>
+<span class="fc" id="L350">              f.cancel(true);</span>
+            }
+<span class="fc" id="L352">            futures[i] = null;</span>
+          }
+<span class="fc" id="L354">          return true;</span>
+        }
+<span class="fc" id="L356">        return false;</span>
+      }
+    }
+
+    @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+<span class="fc" id="L362">      synchronized (this) {</span>
+<span class="fc" id="L363">        boolean result = true;</span>
+<span class="fc bfc" id="L364" title="All 2 branches covered.">        for (int i = 0, l = futures.length; i &lt; l; i++) {</span>
+<span class="fc" id="L365">          Future f = futures[i];</span>
+<span class="pc bpc" id="L366" title="1 of 4 branches missed.">          if (f != null &amp;&amp; !f.cancel(mayInterruptIfRunning)) {</span>
+<span class="nc" id="L367">            result = false;</span>
+          }
+        }
+<span class="fc" id="L370">        return result;</span>
+      }
+    }
+
+    @Override
+    public boolean isCancelled() {
+<span class="nc" id="L376">      synchronized (this) {</span>
+<span class="nc" id="L377">        boolean result = true;</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        for (int i = 0, l = futures.length; i &lt; l; i++) {</span>
+<span class="nc" id="L379">          Future f = futures[i];</span>
+<span class="nc bnc" id="L380" title="All 4 branches missed.">          if (f != null &amp;&amp; !f.isCancelled()) {</span>
+<span class="nc" id="L381">            result = false;</span>
+          }
+        }
+<span class="nc" id="L384">        return result;</span>
+      }
+    }
+
+    @Override
+    public boolean isDone() {
+<span class="fc" id="L390">      boolean result = true;</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">      for (int i = 0, l =  futures.length; i &lt; l; i++) {</span>
+<span class="fc" id="L392">        Future f  = futures[i];</span>
+<span class="pc bpc" id="L393" title="3 of 4 branches missed.">        if (f != null &amp;&amp; !f.isDone()) {</span>
+<span class="nc" id="L394">          result =  false;</span>
+        }
+      }
+<span class="fc" id="L397">      return result;</span>
+    }
+
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+<span class="fc" id="L402">      return queue.take().get();</span>
+    }
+
+    @Override
+    public T get(final long timeout, final TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+<span class="fc" id="L408">      Future&lt;T&gt; poll = queue.poll(timeout, unit);</span>
+<span class="fc bfc" id="L409" title="All 2 branches covered.">      if (poll == null) {</span>
+<span class="fc" id="L410">        throw new TimeoutException(&quot;Timed out after &quot; + timeout + &quot; &quot; + unit);</span>
+      } else {
+<span class="fc" id="L412">        return poll.get();</span>
+      }
+    }
+  }
+
+  private static class ConsumableRetryFutureTask&lt;T&gt; extends RetryFutureTask&lt;T&gt; {
+
+    private final ConditionalConsumer&lt;Future&lt;T&gt;&gt; consumer;
+
+    ConsumableRetryFutureTask(final ConditionalConsumer&lt;Future&lt;T&gt;&gt; consumer, final Callable&lt;T&gt; callable,
+            final RetryPredicate&lt;T, Callable&lt;? extends T&gt;&gt; retryPredicate,
+            final DelayQueue&lt;DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;&gt; delayedTasks,
+            final Runnable onRetry) {
+<span class="fc" id="L425">      super(callable, retryPredicate, delayedTasks, onRetry);</span>
+<span class="fc" id="L426">      this.consumer = consumer;</span>
+<span class="fc" id="L427">    }</span>
+
+    @Override
+    public void done() {
+<span class="fc" id="L431">      consumer.accept(this);</span>
+<span class="fc" id="L432">    }</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -34,24 +34,23 @@ package org.spf4j.io.appenders;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.activation.MimeType;
 import org.apache.avro.Schema;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.io.JsonEncoder;
+import org.apache.avro.io.Encoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.avro.Converters;
-import org.spf4j.base.avro.JThrowable;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.avro.MediaTypes;
+import org.spf4j.base.avro.Throwable;
 import org.spf4j.io.AppendableOutputStream;
-import org.spf4j.io.MimeTypes;
 import org.spf4j.io.ObjectAppender;
 
 /**
  *
  * @author zoly
  */
-<span class="fc" id="L54">public final class SpecificRecordAppender implements ObjectAppender&lt;SpecificRecord&gt; {</span>
+<span class="fc" id="L53">public final class SpecificRecordAppender implements ObjectAppender&lt;SpecificRecord&gt; {</span>
 
   /**
    * Strict serialization means if something goes wrong with serializing an avro object.
@@ -59,67 +58,65 @@ import org.spf4j.io.ObjectAppender;
    * If lenient serialization is being used a JSON representation of the error along with a toString representation
    * of the object will be serialized in case something goes wrong with the serialization.
    */
-<span class="fc" id="L62">  private static final boolean STRICT_SERIALIZATION = Boolean.getBoolean(&quot;spf4j.strictAvroObjectAppenders&quot;);</span>
+<span class="fc" id="L61">  private static final boolean STRICT_SERIALIZATION = Boolean.getBoolean(&quot;spf4j.strictAvroObjectAppenders&quot;);</span>
 
-<span class="fc" id="L64">  static final EncoderFactory EF = new EncoderFactory();</span>
-
-<span class="fc" id="L66">  static final ThreadLocal&lt;StringBuilder&gt; TMP = new ThreadLocal&lt;StringBuilder&gt;() {</span>
+<span class="fc" id="L63">  static final ThreadLocal&lt;StringBuilder&gt; TMP = new ThreadLocal&lt;StringBuilder&gt;() {</span>
     @Override
     protected StringBuilder initialValue() {
-<span class="fc" id="L69">      return new StringBuilder(64);</span>
+<span class="fc" id="L66">      return new StringBuilder(64);</span>
     }
 
   };
 
   @Override
-  public MimeType getAppendedType() {
-<span class="nc" id="L76">    return MimeTypes.APPLICATION_JSON;</span>
+  public MediaType getAppendedType() {
+<span class="nc" id="L73">    return MediaTypes.APPLICATION_AVRO_JSON;</span>
   }
 
   @Override
   public void append(final SpecificRecord object, final Appendable appendTo) throws IOException {
-<span class="fc" id="L81">    StringBuilder sb = TMP.get();</span>
-<span class="fc" id="L82">    sb.setLength(0);</span>
-<span class="fc" id="L83">    try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {</span>
-<span class="fc" id="L84">      final Schema schema = object.getSchema();</span>
-<span class="fc" id="L85">      SpecificDatumWriter&lt;SpecificRecord&gt; writer = new SpecificDatumWriter&lt;&gt;(schema);</span>
-<span class="fc" id="L86">      JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos);</span>
-<span class="fc" id="L87">      writer.write(object, jsonEncoder);</span>
-<span class="fc" id="L88">      jsonEncoder.flush();</span>
-<span class="fc" id="L89">    } catch (IOException | RuntimeException ex) {</span>
-<span class="fc" id="L90">      writeSerializationError(object, sb, ex);</span>
-<span class="fc" id="L91">    }</span>
-<span class="fc" id="L92">    appendTo.append(sb);</span>
-<span class="fc" id="L93">  }</span>
+<span class="fc" id="L78">    StringBuilder sb = TMP.get();</span>
+<span class="fc" id="L79">    sb.setLength(0);</span>
+<span class="fc" id="L80">    try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L81">      final Schema schema = object.getSchema();</span>
+<span class="fc" id="L82">      SpecificDatumWriter&lt;SpecificRecord&gt; writer = new SpecificDatumWriter&lt;&gt;(schema);</span>
+<span class="fc" id="L83">      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);</span>
+<span class="fc" id="L84">      writer.write(object, jsonEncoder);</span>
+<span class="fc" id="L85">      jsonEncoder.flush();</span>
+<span class="fc" id="L86">    } catch (IOException | RuntimeException ex) {</span>
+<span class="fc" id="L87">      writeSerializationError(object, sb, ex);</span>
+<span class="fc" id="L88">    }</span>
+<span class="fc" id="L89">    appendTo.append(sb);</span>
+<span class="fc" id="L90">  }</span>
 
   @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
   static void writeSerializationError(final Object object, final StringBuilder sb, final Exception ex)
           throws IOException {
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">    if (STRICT_SERIALIZATION) {</span>
-<span class="nc bnc" id="L99" title="All 2 branches missed.">      if (ex instanceof IOException) {</span>
-<span class="nc" id="L100">        throw (IOException) ex;</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">      } else if (ex instanceof RuntimeException) {</span>
-<span class="nc" id="L102">        throw (RuntimeException) ex;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">    if (STRICT_SERIALIZATION) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">      if (ex instanceof IOException) {</span>
+<span class="nc" id="L97">        throw (IOException) ex;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">      } else if (ex instanceof RuntimeException) {</span>
+<span class="nc" id="L99">        throw (RuntimeException) ex;</span>
       } else {
-<span class="nc" id="L104">        throw new IllegalStateException(ex);</span>
+<span class="nc" id="L101">        throw new IllegalStateException(ex);</span>
       }
     }
-<span class="fc" id="L107">    sb.setLength(0);</span>
-<span class="fc" id="L108">    sb.append(&quot;{\&quot;SerializationError\&quot;:\n&quot;);</span>
-<span class="fc" id="L109">    try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {</span>
-<span class="fc" id="L110">      JThrowable at = Converters.convert(ex);</span>
-<span class="fc" id="L111">      Schema schema = at.getSchema();</span>
-<span class="fc" id="L112">      SpecificDatumWriter&lt;SpecificRecord&gt; writer = new SpecificDatumWriter&lt;&gt;(schema);</span>
-<span class="fc" id="L113">      JsonEncoder jsonEncoder = EF.jsonEncoder(schema, bos, true);</span>
-<span class="fc" id="L114">      writer.write(at, jsonEncoder);</span>
-<span class="fc" id="L115">      jsonEncoder.flush();</span>
+<span class="fc" id="L104">    sb.setLength(0);</span>
+<span class="fc" id="L105">    sb.append(&quot;{\&quot;SerializationError\&quot;:\n&quot;);</span>
+<span class="fc" id="L106">    try (AppendableOutputStream bos = new AppendableOutputStream(sb, StandardCharsets.UTF_8)) {</span>
+<span class="fc" id="L107">      Throwable at = Converters.convert(ex);</span>
+<span class="fc" id="L108">      Schema schema = at.getSchema();</span>
+<span class="fc" id="L109">      SpecificDatumWriter&lt;SpecificRecord&gt; writer = new SpecificDatumWriter&lt;&gt;(schema);</span>
+<span class="fc" id="L110">      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);</span>
+<span class="fc" id="L111">      writer.write(at, jsonEncoder);</span>
+<span class="fc" id="L112">      jsonEncoder.flush();</span>
     }
-<span class="fc" id="L117">    sb.append(&quot;,\n&quot;);</span>
-<span class="fc" id="L118">    sb.append(&quot;\&quot;ObjectAsString\&quot;:\n\&quot;&quot;);</span>
-<span class="fc" id="L119">    EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);</span>
-<span class="fc" id="L120">    escaper.append(object.toString());</span>
-<span class="fc" id="L121">    sb.append(&quot;\&quot;}&quot;);</span>
-<span class="fc" id="L122">  }</span>
+<span class="fc" id="L114">    sb.append(&quot;,\n&quot;);</span>
+<span class="fc" id="L115">    sb.append(&quot;\&quot;ObjectAsString\&quot;:\n\&quot;&quot;);</span>
+<span class="fc" id="L116">    EscapeJsonStringAppendableWrapper escaper = new EscapeJsonStringAppendableWrapper(sb);</span>
+<span class="fc" id="L117">    escaper.append(object.toString());</span>
+<span class="fc" id="L118">    sb.append(&quot;\&quot;}&quot;);</span>
+<span class="fc" id="L119">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

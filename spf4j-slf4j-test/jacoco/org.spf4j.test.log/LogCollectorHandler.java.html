@@ -20,84 +20,94 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.log.Level;
 
 /**
  *
  * @author Zoltan Farkas
  */
+@ThreadSafe
 final class LogCollectorHandler&lt;A, T&gt; implements LogHandler, LogCollection&lt;T&gt; {
 
   private final Level fromLevel;
   private final Level toLevel;
   private final boolean passThrough;
-  private final A accObj;
-  private final BiConsumer&lt;A, LogRecord&gt; acc;
+<span class="fc" id="L37">  private final Object sync = new Object();</span>
+  @GuardedBy(&quot;sync&quot;)
+  private A accObj;
+  private final BiConsumer&lt;A, TestLogRecord&gt; acc;
   private final Function&lt;A, T&gt; finisher;
   private final Consumer&lt;LogCollectorHandler&lt;A, T&gt;&gt; onClose;
   private boolean isClosed;
+  private final Collector&lt;TestLogRecord, A, T&gt; collector;
 
   LogCollectorHandler(final Level fromLevel, final Level toLevel,
           final boolean passThrough,
-<span class="fc" id="L41">          final Collector&lt;LogRecord, A, T&gt; collector, final Consumer&lt;LogCollectorHandler&lt;A, T&gt;&gt; onClose) {</span>
-<span class="fc" id="L42">    this.fromLevel = fromLevel;</span>
-<span class="fc" id="L43">    this.toLevel = toLevel;</span>
-<span class="fc" id="L44">    this.passThrough = passThrough;</span>
-<span class="fc" id="L45">    this.accObj = collector.supplier().get();</span>
-<span class="fc" id="L46">    this.acc = collector.accumulator();</span>
-<span class="fc" id="L47">    this.finisher = collector.finisher();</span>
-<span class="fc" id="L48">    this.onClose = onClose;</span>
-<span class="fc" id="L49">    this.isClosed = false;</span>
-<span class="fc" id="L50">  }</span>
+<span class="fc" id="L48">          final Collector&lt;TestLogRecord, A, T&gt; collector, final Consumer&lt;LogCollectorHandler&lt;A, T&gt;&gt; onClose) {</span>
+<span class="fc" id="L49">    this.collector = collector;</span>
+<span class="fc" id="L50">    this.fromLevel = fromLevel;</span>
+<span class="fc" id="L51">    this.toLevel = toLevel;</span>
+<span class="fc" id="L52">    this.passThrough = passThrough;</span>
+<span class="fc" id="L53">    this.accObj = collector.supplier().get();</span>
+<span class="fc" id="L54">    this.acc = collector.accumulator();</span>
+<span class="fc" id="L55">    this.finisher = collector.finisher();</span>
+<span class="fc" id="L56">    this.onClose = onClose;</span>
+<span class="fc" id="L57">    this.isClosed = false;</span>
+<span class="fc" id="L58">  }</span>
 
   @Override
   public LogHandler.Handling handles(final Level level) {
-<span class="pc bpc" id="L54" title="1 of 4 branches missed.">    if (level.ordinal() &gt;= fromLevel.ordinal() &amp;&amp; level.ordinal() &lt;= toLevel.ordinal()) {</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">      return passThrough ? LogHandler.Handling.HANDLE_PASS : LogHandler.Handling.HANDLE_CONSUME;</span>
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">    if (level.ordinal() &gt;= fromLevel.ordinal() &amp;&amp; level.ordinal() &lt;= toLevel.ordinal()) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">      return passThrough ? LogHandler.Handling.HANDLE_PASS : LogHandler.Handling.HANDLE_CONSUME;</span>
     } else {
-<span class="fc" id="L57">      return LogHandler.Handling.NONE;</span>
+<span class="fc" id="L65">      return LogHandler.Handling.NONE;</span>
     }
   }
 
   @Override
   @Nullable
-  public LogRecord handle(final LogRecord record) {
-<span class="fc" id="L64">    synchronized (accObj) {</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">      if (!isClosed) {</span>
-<span class="fc" id="L66">        acc.accept(accObj, record);</span>
+  public TestLogRecord handle(final TestLogRecord record) {
+<span class="fc" id="L72">    synchronized (sync) {</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">      if (!isClosed) {</span>
+<span class="fc" id="L74">        acc.accept(accObj, record);</span>
       }
-<span class="fc" id="L68">    }</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (passThrough) {</span>
-<span class="fc" id="L70">      return record;</span>
+<span class="fc" id="L76">    }</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (passThrough) {</span>
+<span class="fc" id="L78">      return record;</span>
     } else {
-<span class="nc" id="L72">      return null;</span>
+<span class="nc" id="L80">      return null;</span>
     }
   }
 
   @Override
   public T get() {
-<span class="fc" id="L78">    synchronized (accObj) {</span>
-<span class="fc" id="L79">      close();</span>
-<span class="fc" id="L80">      return finisher.apply(accObj);</span>
+<span class="fc" id="L86">    synchronized (sync) {</span>
+<span class="fc" id="L87">      T result = finisher.apply(accObj);</span>
+      // Create a copy... relies on combiner using left arg to mutate, if it mutates...
+<span class="fc" id="L89">      accObj = collector.combiner().apply(collector.supplier().get(), accObj);</span>
+<span class="fc" id="L90">      return result;</span>
     }
   }
 
 
   @Override
   public void close() {
-<span class="fc" id="L87">    synchronized (accObj) {</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">      if (!isClosed) {</span>
+<span class="fc" id="L97">    synchronized (sync) {</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">      if (!isClosed) {</span>
         try {
-<span class="fc" id="L90">          onClose.accept(this);</span>
+<span class="fc" id="L100">          onClose.accept(this);</span>
         } finally {
-<span class="fc" id="L92">          isClosed = true;</span>
+<span class="fc" id="L102">          isClosed = true;</span>
         }
       }
-<span class="fc" id="L95">    }</span>
-<span class="fc" id="L96">  }</span>
+<span class="fc" id="L105">    }</span>
+<span class="fc" id="L106">  }</span>
 
   @Override
   public String toString() {
-<span class="fc" id="L100">    return &quot;LogCollectorHandler{&quot; + &quot;accObj=&quot; + accObj + &quot;, fromLevel=&quot;</span>
+<span class="fc" id="L110">    return &quot;LogCollectorHandler{&quot; + &quot;accObj=&quot; + accObj + &quot;, fromLevel=&quot;</span>
             + fromLevel + &quot;, toLevel=&quot; + toLevel + &quot;, passThrough=&quot; + passThrough + '}';
   }
 

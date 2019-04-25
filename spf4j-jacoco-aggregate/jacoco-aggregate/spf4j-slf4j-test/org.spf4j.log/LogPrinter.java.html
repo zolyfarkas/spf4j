@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LogPrinter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.log</a> &gt; <span class="el_source">LogPrinter.java</span></div><h1>LogPrinter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.log;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.UncheckedIOException;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Marker;
+import org.spf4j.base.EscapeJsonStringAppendableWrapper;
+import org.spf4j.base.Json;
+import org.spf4j.base.Slf4jMessageFormatter;
+import org.spf4j.base.Throwables;
+import org.spf4j.base.avro.AThrowables;
+import org.spf4j.base.avro.LogRecord;
+import org.spf4j.base.avro.MediaType;
+import org.spf4j.io.AppendableWriter;
+import org.spf4j.io.ByteArrayBuilder;
+import org.spf4j.io.ConfigurableAppenderSupplier;
+import org.spf4j.io.ObjectAppender;
+import org.spf4j.recyclable.impl.ArraySuppliers;
+import org.spf4j.recyclable.impl.ThreadLocalRecyclingSupplier;
+
+/**
+ * A log printer. The format is not configurable, and this is intentional.
+ * create One instance of this printer and re-use it.
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+@ThreadSafe
+public final class LogPrinter {
+
+  private static final ConcurrentMap&lt;Charset, ThreadLocalRecyclingSupplier&lt;Buffer&gt;&gt;
+<span class="fc" id="L63">          BUFFERS = new ConcurrentHashMap&lt;&gt;();</span>
+
+  private final ThreadLocalRecyclingSupplier&lt;Buffer&gt; tlBuffer;
+
+  private final ConfigurableAppenderSupplier toStringer;
+
+  private final DateTimeFormatter fmt;
+
+  private final Charset charset;
+
+  private static final class Buffer {
+
+<span class="fc" id="L75">    private static final int MAX_BUFFER_SIZE = Integer.getInteger(&quot;spf4j.logPrinter&quot;, 1024 * 32);</span>
+
+    private final ByteArrayBuilder bab;
+
+    private final Writer writer;
+
+    private final EscapeJsonStringAppendableWrapper writerEscaper;
+
+<span class="fc" id="L83">    Buffer(final Charset charset) {</span>
+<span class="fc" id="L84">      bab = new ByteArrayBuilder(512, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="fc" id="L85">      writer = new BufferedWriter(new OutputStreamWriter(bab, charset));</span>
+<span class="fc" id="L86">      writerEscaper = new EscapeJsonStringAppendableWrapper(writer);</span>
+<span class="fc" id="L87">    }</span>
+
+    private void clear() {
+      try {
+<span class="fc" id="L91">        writer.flush();</span>
+<span class="nc" id="L92">      } catch (IOException ex) {</span>
+<span class="nc" id="L93">        throw new RuntimeException(ex);</span>
+<span class="fc" id="L94">      }</span>
+<span class="fc" id="L95">      bab.reset();</span>
+<span class="fc" id="L96">    }</span>
+
+    private Writer getWriter() {
+<span class="fc" id="L99">      return writer;</span>
+    }
+
+    private EscapeJsonStringAppendableWrapper getWriterEscaper() {
+<span class="fc" id="L103">      return writerEscaper;</span>
+    }
+
+    private void flush() {
+      try {
+<span class="fc" id="L108">        writer.flush();</span>
+<span class="nc" id="L109">      } catch (IOException ex) {</span>
+<span class="nc" id="L110">        throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L111">      }</span>
+<span class="fc" id="L112">    }</span>
+
+    private byte[] getBytes() {
+<span class="fc" id="L115">      return bab.getBuffer();</span>
+    }
+
+    private int size() {
+<span class="fc" id="L119">      return bab.size();</span>
+    }
+
+  }
+
+  public ConfigurableAppenderSupplier getAppenderSupplier() {
+<span class="fc" id="L125">    return toStringer;</span>
+  }
+
+  public LogPrinter() {
+<span class="nc" id="L129">    this(DateTimeFormatter.ISO_INSTANT, Charset.defaultCharset());</span>
+<span class="nc" id="L130">  }</span>
+
+  public LogPrinter(final Charset charset) {
+<span class="nc" id="L133">    this(DateTimeFormatter.ISO_INSTANT, charset);</span>
+<span class="nc" id="L134">  }</span>
+
+<span class="fc" id="L136">  public LogPrinter(final DateTimeFormatter fmt, final Charset charset) {</span>
+<span class="fc" id="L137">    this.fmt = fmt;</span>
+<span class="fc" id="L138">    this.toStringer = new ConfigurableAppenderSupplier();</span>
+<span class="fc" id="L139">    tlBuffer =  BUFFERS.computeIfAbsent(charset,</span>
+<span class="fc" id="L140">            (cs) -&gt; new ThreadLocalRecyclingSupplier&lt;Buffer&gt;(() -&gt; new Buffer(cs)));</span>
+<span class="fc" id="L141">    this.charset = charset;</span>
+<span class="fc" id="L142">  }</span>
+
+
+  public OutputStream print(final Slf4jLogRecord record, final OutputStream os, final OutputStream errStream) {
+<span class="fc bfc" id="L146" title="All 2 branches covered.">    if (record.getLevel() == Level.ERROR) {</span>
+<span class="fc" id="L147">      print(record, errStream);</span>
+<span class="fc" id="L148">      return errStream;</span>
+    } else {
+<span class="fc" id="L150">      print(record, os);</span>
+<span class="fc" id="L151">      return os;</span>
+    }
+  }
+
+  public void print(final Slf4jLogRecord record, final OutputStream os) {
+<span class="fc" id="L156">    Buffer buff = tlBuffer.get();</span>
+<span class="fc" id="L157">    boolean recycle = true;</span>
+    try {
+<span class="fc" id="L159">      buff.clear();</span>
+<span class="fc" id="L160">      print(record, buff.getWriter(), buff.getWriterEscaper(), &quot;&quot;);</span>
+<span class="fc" id="L161">      buff.flush();</span>
+<span class="fc" id="L162">      int len = buff.size();</span>
+<span class="fc" id="L163">      os.write(buff.getBytes(), 0, len);</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">      if (len &gt; Buffer.MAX_BUFFER_SIZE) {</span>
+<span class="fc" id="L165">        recycle = false;</span>
+      }
+<span class="nc" id="L167">    } catch (IOException ex) {</span>
+<span class="nc" id="L168">      throw new UncheckedIOException(ex);</span>
+    } finally {
+<span class="fc bfc" id="L170" title="All 2 branches covered.">      if (recycle) {</span>
+<span class="fc" id="L171">        tlBuffer.recycle(buff);</span>
+      }
+    }
+<span class="fc" id="L174">  }</span>
+
+  public byte[] printToBytes(final Slf4jLogRecord record) {
+<span class="nc" id="L177">    Buffer buff = tlBuffer.get();</span>
+<span class="nc" id="L178">    boolean recycle = true;</span>
+    try {
+<span class="nc" id="L180">      buff.clear();</span>
+<span class="nc" id="L181">      print(record, buff.getWriter(), buff.getWriterEscaper(), &quot;&quot;);</span>
+<span class="nc" id="L182">      buff.flush();</span>
+<span class="nc" id="L183">      int size = buff.size();</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">      if (size &gt; Buffer.MAX_BUFFER_SIZE) {</span>
+<span class="nc" id="L185">        recycle = false;</span>
+      }
+<span class="nc" id="L187">      return Arrays.copyOf(buff.getBytes(), size);</span>
+<span class="nc" id="L188">    } catch (IOException ex) {</span>
+<span class="nc" id="L189">      throw new UncheckedIOException(ex);</span>
+    } finally {
+<span class="nc bnc" id="L191" title="All 2 branches missed.">      if (recycle) {</span>
+<span class="nc" id="L192">        tlBuffer.recycle(buff);</span>
+      }
+    }
+  }
+
+  public void print(final LogRecord record, final OutputStream os) throws IOException {
+<span class="nc" id="L198">    OutputStreamWriter osw = new OutputStreamWriter(os, charset);</span>
+<span class="nc" id="L199">    printTo(osw, record, &quot;&quot;);</span>
+<span class="nc" id="L200">    osw.flush();</span>
+<span class="nc" id="L201">  }</span>
+
+  public void printTo(final Appendable stream, final Slf4jLogRecord record, final String annotate) {
+    try {
+<span class="fc" id="L205">      print(record, stream, new EscapeJsonStringAppendableWrapper(stream), annotate);</span>
+<span class="nc" id="L206">    } catch (IOException ex) {</span>
+<span class="nc" id="L207">      throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L208">    }</span>
+<span class="fc" id="L209">  }</span>
+
+  public void printTo(final Appendable stream, final LogRecord record, final String annotate) throws IOException {
+<span class="nc" id="L212">      print(record, stream, new EscapeJsonStringAppendableWrapper(stream), annotate);</span>
+<span class="nc" id="L213">  }</span>
+
+  public void printTo(final PrintStream stream, final Slf4jLogRecord record, final String annotate) {
+<span class="nc" id="L216">    Buffer buff = tlBuffer.get();</span>
+<span class="nc" id="L217">    buff.clear();</span>
+    try {
+<span class="nc" id="L219">      print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);</span>
+<span class="nc" id="L220">      buff.flush();</span>
+<span class="nc" id="L221">      stream.write(buff.getBytes(), 0, buff.size());</span>
+<span class="nc" id="L222">      stream.flush();</span>
+<span class="nc" id="L223">    } catch (IOException ex) {</span>
+<span class="nc" id="L224">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L225">    }</span>
+<span class="nc" id="L226">  }</span>
+
+   static void printMarker(final Marker marker, final Appendable wr,
+          final EscapeJsonStringAppendableWrapper wrapper)
+          throws IOException {
+<span class="fc bfc" id="L231" title="All 2 branches covered.">      if (marker.hasReferences()) {</span>
+<span class="fc" id="L232">        wr.append('{');</span>
+<span class="fc" id="L233">        wr.append('&quot;');</span>
+<span class="fc" id="L234">        wrapper.append(marker.getName());</span>
+<span class="fc" id="L235">        wr.append(&quot;\&quot;:[&quot;);</span>
+<span class="fc" id="L236">        Iterator&lt;Marker&gt; it = marker.iterator();</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (it.hasNext()) {</span>
+<span class="fc" id="L238">          printMarker(it.next(), wr, wrapper);</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">          while (it.hasNext()) {</span>
+<span class="fc" id="L240">            wr.append(',');</span>
+<span class="fc" id="L241">            printMarker(it.next(), wr, wrapper);</span>
+          }
+        }
+<span class="fc" id="L244">        wr.append(&quot;]}&quot;);</span>
+<span class="fc" id="L245">      } else {</span>
+<span class="fc" id="L246">        wr.append('&quot;');</span>
+<span class="fc" id="L247">        wrapper.append(marker.getName());</span>
+<span class="fc" id="L248">        wr.append('&quot;');</span>
+      }
+<span class="fc" id="L250">   }</span>
+
+
+   private void print(final Slf4jLogRecord record, final Appendable wr,
+          final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
+          throws IOException {
+<span class="fc" id="L256">    wr.append(annotate);</span>
+<span class="fc" id="L257">    fmt.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);</span>
+<span class="fc" id="L258">    wr.append(' ');</span>
+<span class="fc" id="L259">    String level = record.getLevel().toString();</span>
+<span class="fc" id="L260">    wr.append(level);</span>
+<span class="fc" id="L261">    wr.append(' ');</span>
+<span class="fc" id="L262">    Marker marker = record.getMarker();</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">    if (marker != null) {</span>
+<span class="fc" id="L264">      printMarker(marker, wr, wrapper);</span>
+<span class="fc" id="L265">      wr.append(' ');</span>
+    }
+<span class="fc" id="L267">    Throwables.writeAbreviatedClassName(record.getLoggerName(), wr);</span>
+<span class="fc" id="L268">    wr.append(&quot; \&quot;&quot;);</span>
+<span class="fc" id="L269">    wrapper.append(record.getThreadName());</span>
+<span class="fc" id="L270">    wr.append(&quot;\&quot; \&quot;&quot;);</span>
+<span class="fc" id="L271">    Object[] arguments = record.getArguments();</span>
+<span class="fc" id="L272">    int i = Slf4jMessageFormatter.format(LogPrinter::exHandle, 0, wrapper, record.getMessageFormat(),</span>
+            toStringer, arguments);
+<span class="fc" id="L274">    wr.append(&quot;\&quot; &quot;);</span>
+<span class="fc" id="L275">    Throwable t = null;</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">    if (i &lt; arguments.length) {</span>
+<span class="fc" id="L277">      boolean first = true;</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">      for (; i &lt; arguments.length; i++) {</span>
+<span class="fc" id="L279">        Object arg = arguments[i];</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">        if (arg instanceof Throwable) {</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">          if (t == null) {</span>
+<span class="fc" id="L282">            t = (Throwable) arg;</span>
+          } else {
+<span class="nc" id="L284">            t.addSuppressed((Throwable) arg); // not ideal</span>
+          }
+        } else {
+<span class="fc bfc" id="L287" title="All 2 branches covered.">          if (!first) {</span>
+<span class="fc" id="L288">            wr.append(&quot;, &quot;);</span>
+          } else {
+<span class="fc" id="L290">            wr.append('[');</span>
+<span class="fc" id="L291">            first = false;</span>
+          }
+<span class="fc" id="L293">          printObject(arg, wr, wrapper);</span>
+        }
+      }
+<span class="fc bfc" id="L296" title="All 2 branches covered.">      if (!first) {</span>
+<span class="fc" id="L297">        wr.append(']');</span>
+      }
+    }
+<span class="fc bfc" id="L300" title="All 2 branches covered.">    if (t != null) {</span>
+<span class="fc" id="L301">      wr.append('\n');</span>
+<span class="fc" id="L302">      Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT);</span>
+    } else {
+<span class="fc" id="L304">      wr.append('\n');</span>
+    }
+<span class="fc" id="L306">  }</span>
+
+   private void print(final LogRecord record, final Appendable wr,
+          final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
+          throws IOException {
+<span class="nc" id="L311">    wr.append(annotate);</span>
+<span class="nc" id="L312">    wr.append('&quot;');</span>
+<span class="nc" id="L313">    wrapper.append(record.getOrigin());</span>
+<span class="nc" id="L314">    wr.append(&quot;\&quot; &quot;);</span>
+<span class="nc" id="L315">    fmt.formatTo(record.getTs(), wr);</span>
+<span class="nc" id="L316">    wr.append(' ');</span>
+<span class="nc" id="L317">    String level = record.getLevel().toString();</span>
+<span class="nc" id="L318">    wr.append(level);</span>
+<span class="nc" id="L319">    wr.append(' ');</span>
+<span class="nc" id="L320">    wr.append(record.getLogger());</span>
+<span class="nc" id="L321">    wr.append(&quot; \&quot;&quot;);</span>
+<span class="nc" id="L322">    wrapper.append(record.getThr());</span>
+<span class="nc" id="L323">    wrapper.append(':');</span>
+<span class="nc" id="L324">    wrapper.append(record.getTrId());</span>
+<span class="nc" id="L325">    wr.append(&quot;\&quot; \&quot;&quot;);</span>
+<span class="nc" id="L326">    wrapper.append(record.getMsg());</span>
+<span class="nc" id="L327">    wr.append(&quot;\&quot; &quot;);</span>
+<span class="nc" id="L328">    Map&lt;String, Object&gt; attrs = record.getAttrs();</span>
+<span class="nc" id="L329">    List&lt;Object&gt; xtra = record.getXtra();</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">    if (attrs.size() + xtra.size() &gt; 0) {</span>
+<span class="nc" id="L331">      boolean first = true;</span>
+<span class="nc" id="L332">      wr.append('[');</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">      for (Map.Entry&lt;String, Object&gt; entry : attrs.entrySet()) {</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if (first) {</span>
+<span class="nc" id="L335">          first = false;</span>
+        } else {
+<span class="nc" id="L337">          wr.append(',');</span>
+        }
+<span class="nc" id="L339">        printJsonObject(entry, wr);</span>
+<span class="nc" id="L340">      }</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">      for (Object obj : xtra) {</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">        if (first) {</span>
+<span class="nc" id="L343">          first = false;</span>
+        } else {
+<span class="nc" id="L345">          wr.append(',');</span>
+        }
+<span class="nc" id="L347">        printJsonObject(obj, wr);</span>
+<span class="nc" id="L348">      }</span>
+<span class="nc" id="L349">      wr.append(']');</span>
+    }
+<span class="nc" id="L351">    org.spf4j.base.avro.Throwable t = record.getThrowable();</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">    if (t != null) {</span>
+<span class="nc" id="L353">      wr.append('\n');</span>
+<span class="nc" id="L354">      AThrowables.writeTo(t, wr, Throwables.PackageDetail.SHORT, true, &quot;&quot;);</span>
+    } else {
+<span class="nc" id="L356">      wr.append('\n');</span>
+    }
+<span class="nc" id="L358">  }</span>
+
+
+
+  private void printObject(@Nullable final Object obj,
+          final Appendable wr, final EscapeJsonStringAppendableWrapper wrapper) throws IOException {
+<span class="fc bfc" id="L364" title="All 2 branches covered.">    if (obj == null) {</span>
+<span class="fc" id="L365">      wr.append(&quot;null&quot;);</span>
+    } else {
+<span class="fc" id="L367">      ObjectAppender ostrApp = toStringer.get(obj.getClass());</span>
+<span class="fc" id="L368">      MediaType type = ostrApp.getAppendedType();</span>
+<span class="fc bfc" id="L369" title="All 2 branches covered.">      if (type.getSubType().endsWith(&quot;json&quot;)) {</span>
+<span class="fc" id="L370">        ostrApp.append(obj, wr, toStringer);</span>
+      } else {
+<span class="fc" id="L372">        wr.append('&quot;');</span>
+<span class="fc" id="L373">        ostrApp.append(obj, wrapper, toStringer);</span>
+<span class="fc" id="L374">        wr.append('&quot;');</span>
+      }
+    }
+<span class="fc" id="L377">  }</span>
+
+  private void printJsonObject(@Nullable final Object obj,
+          final Appendable wr) throws IOException {
+<span class="nc bnc" id="L381" title="All 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L382">      wr.append(&quot;null&quot;);</span>
+    } else {
+<span class="nc" id="L384">      JsonGenerator jsonGen = Json.FACTORY.createGenerator(new AppendableWriter(wr));</span>
+<span class="nc" id="L385">      jsonGen.writeObject(obj);</span>
+<span class="nc" id="L386">      jsonGen.flush();</span>
+    }
+<span class="nc" id="L388">  }</span>
+
+  static void exHandle(final Object obj, final Appendable sbuf, final Throwable t) throws IOException {
+<span class="fc" id="L391">    String className = obj.getClass().getName();</span>
+<span class="fc" id="L392">    sbuf.append(&quot;[FAILED toString() for &quot;);</span>
+<span class="fc" id="L393">    sbuf.append(className);</span>
+<span class="fc" id="L394">    sbuf.append(&quot;]{&quot;);</span>
+<span class="fc" id="L395">    Throwables.writeTo(t, sbuf, Throwables.PackageDetail.SHORT);</span>
+<span class="fc" id="L396">    sbuf.append('}');</span>
+<span class="fc" id="L397">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L401">    return &quot;LogPrinter{&quot; + &quot;toStringer=&quot; + toStringer + &quot;, fmt=&quot; + fmt + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -33,9 +33,13 @@ package org.spf4j.failsafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.spf4j.failsafe.concurrent.RetryExecutor;
+import java.util.function.Supplier;
+import org.spf4j.concurrent.InterruptibleCompletableFuture;
+import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 
 /**
  *
@@ -47,34 +51,74 @@ final class AsyncRetryExecutorImpl&lt;T, C extends Callable&lt;? extends T&gt;&g
 
   private final RetryPolicy&lt;T, C&gt; retryPolicy;
 
-  private final RetryExecutor executor;
+  private final HedgePolicy hedgePolicy;
 
-  AsyncRetryExecutorImpl(final RetryPolicy&lt;T, C&gt; retryPolicy,
-<span class="fc" id="L53">          final RetryExecutor executor) {</span>
-<span class="fc" id="L54">    this.executor = executor;</span>
-<span class="fc" id="L55">    this.retryPolicy = retryPolicy;</span>
-<span class="fc" id="L56">  }</span>
+  private final FailSafeExecutor executor;
+
+  AsyncRetryExecutorImpl(final RetryPolicy&lt;T, C&gt; retryPolicy, final HedgePolicy hedgePolicy,
+<span class="fc" id="L59">          final FailSafeExecutor executor) {</span>
+<span class="fc" id="L60">    this.executor = executor;</span>
+<span class="fc" id="L61">    this.retryPolicy = retryPolicy;</span>
+<span class="fc" id="L62">    this.hedgePolicy =  hedgePolicy;</span>
+<span class="fc" id="L63">  }</span>
 
 
   @Override
   public &lt;R extends T, W extends C&gt; Future&lt;R&gt; submit(final W pwhat,
           final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L62">    return (Future&lt;R&gt;) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
+<span class="fc" id="L69">    Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);</span>
+<span class="fc" id="L70">    int hedgeCount = hedge.getHedgeCount();</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    if (hedgeCount &lt;= 0) {</span>
+<span class="fc" id="L72">      return (Future&lt;R&gt;) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
+    } else {
+<span class="fc" id="L74">      return (Future&lt;R&gt;) executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),</span>
+<span class="fc" id="L75">              hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);</span>
+    }
   }
 
+  @Override
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public &lt;R extends T, W extends C&gt; CompletableFuture&lt;R&gt; submitRx(final W pwhat,
+          final long startTimeNanos, final long deadlineNanos,
+          final Supplier&lt;InterruptibleCompletableFuture&lt;R&gt;&gt; cfSupplier) {
+<span class="nc" id="L84">    Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);</span>
+<span class="nc" id="L85">    int hedgeCount = hedge.getHedgeCount();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">    if (hedgeCount &lt;= 0) {</span>
+<span class="nc" id="L87">      return  executor.submitRx((Callable) pwhat,</span>
+<span class="nc" id="L88">              (RetryPredicate) retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);</span>
+    } else {
+<span class="nc" id="L90">      long hedgeDelayNanos = hedge.getHedgeDelayNanos();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">      if (hedgeDelayNanos &gt;= (deadlineNanos - startTimeNanos)) {</span>
+<span class="nc" id="L92">        return executor.submitRx((Callable) pwhat,</span>
+<span class="nc" id="L93">              (RetryPredicate) retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);</span>
+      }
+<span class="nc" id="L95">      return (CompletableFuture&lt;R&gt;) executor.submitRx((Callable) pwhat,</span>
+<span class="nc" id="L96">              (RetryPredicate) retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),</span>
+              hedgeCount, hedgeDelayNanos, TimeUnit.NANOSECONDS, cfSupplier);
+    }
+  }
+
+
   public &lt;W extends C&gt; void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L66">    executor.execute(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
-<span class="fc" id="L67">  }</span>
+<span class="nc" id="L103">    Hedge hedge = hedgePolicy.getHedge(startTimeNanos, deadlineNanos);</span>
+<span class="nc" id="L104">    int hedgeCount = hedge.getHedgeCount();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">    if (hedgeCount &lt;= 0) {</span>
+<span class="nc" id="L106">      executor.execute(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos));</span>
+    } else {
+<span class="nc" id="L108">      executor.submit(pwhat, retryPolicy.getRetryPredicate(startTimeNanos, deadlineNanos),</span>
+<span class="nc" id="L109">              hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);</span>
+    }
+<span class="nc" id="L111">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L71">    return &quot;AsyncRetryPolicy{&quot; + &quot;executor=&quot; + executor + '}';</span>
+<span class="nc" id="L115">    return &quot;AsyncRetryPolicy{&quot; + &quot;executor=&quot; + executor + '}';</span>
   }
 
   @Override
   public &lt;R extends T, W extends C, EX extends Exception&gt; R call(final W pwhat, final Class&lt;EX&gt; exceptionClass,
           final long startNanos, final long deadlineNanos) throws InterruptedException, TimeoutException, EX {
-<span class="fc" id="L77">    return retryPolicy.call(pwhat, exceptionClass, startNanos, deadlineNanos);</span>
+<span class="fc" id="L121">    return retryPolicy.call(pwhat, exceptionClass, startNanos, deadlineNanos);</span>
   }
 
 

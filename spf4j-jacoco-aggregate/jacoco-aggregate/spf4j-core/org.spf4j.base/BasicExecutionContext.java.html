@@ -31,15 +31,27 @@
  */
 package org.spf4j.base;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.io.AppendableWriter;
+import org.spf4j.log.Level;
+import org.spf4j.log.Slf4jLogRecord;
+import org.spf4j.base.ThreadLocalContextAttacher.Attached;
 
 /**
  * The simplest execution context possible.
@@ -50,115 +62,370 @@ import javax.annotation.concurrent.ThreadSafe;
 @ParametersAreNonnullByDefault
 public class BasicExecutionContext implements ExecutionContext {
 
+<span class="fc" id="L65">  private static final int MX_NR_LOGS_PER_CTXT = Integer.getInteger(&quot;spf4j.execContext.maxNrLogsPerContext&quot;, 100);</span>
+
+<span class="fc" id="L67">  private static final Level MIN_LOG_LEVEL</span>
+<span class="fc" id="L68">          = Level.valueOf(System.getProperty(&quot;spf4j.execContext.minLogLevel&quot;, &quot;TRACE&quot;));</span>
+
   private final String name;
 
-  private final ExecutionContext parent;
+  private final CharSequence id;
+
+  private final ExecutionContext source;
+
+  private final Relation relation;
 
   private final long startTimeNanos;
 
   private final long deadlineNanos;
 
-  private final Runnable onClose;
+  private ArrayDeque&lt;Slf4jLogRecord&gt; logs;
 
-  private Map&lt;Object, Object&gt; baggage;
+  private List&lt;AutoCloseable&gt; closeables;
 
-<span class="fc" id="L65">  private boolean isClosed = false;</span>
+  private Map&lt;Tag, Object&gt; baggage;
+
+  private long childCount;
+
+<span class="fc" id="L90">  private boolean isClosed = false;</span>
+
+  private Level minBackendLogLevel;
+
+  private Attached attached;
 
   @SuppressWarnings(&quot;unchecked&quot;)
-  public BasicExecutionContext(final String name, @Nullable final ExecutionContext parent,
-<span class="fc" id="L69">          final long startTimeNanos, final long deadlineNanos, final Runnable onClose) {</span>
-<span class="fc" id="L70">    this.isClosed = false;</span>
-<span class="fc" id="L71">    this.name = name;</span>
-<span class="fc" id="L72">    this.onClose = onClose;</span>
-<span class="fc" id="L73">    this.startTimeNanos = startTimeNanos;</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">    if (parent != null) {</span>
-<span class="fc" id="L75">      long parentDeadline = parent.getDeadlineNanos();</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
-<span class="nc" id="L77">        this.deadlineNanos = parentDeadline;</span>
+  @SuppressFBWarnings(&quot;STT_TOSTRING_STORED_IN_FIELD&quot;)
+  public BasicExecutionContext(final String name, @Nullable final CharSequence id,
+          @Nullable final ExecutionContext source, final Relation relation,
+<span class="fc" id="L100">          final long startTimeNanos, final long deadlineNanos) {</span>
+<span class="fc" id="L101">    this.isClosed = false;</span>
+<span class="fc" id="L102">    this.relation = relation;</span>
+<span class="fc" id="L103">    this.name = name;</span>
+<span class="fc" id="L104">    this.startTimeNanos = startTimeNanos;</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">    if (source != null) {</span>
+<span class="fc" id="L106">      long parentDeadline = source.getDeadlineNanos();</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">      if (parentDeadline &lt; deadlineNanos) {</span>
+<span class="nc" id="L108">        this.deadlineNanos = parentDeadline;</span>
       } else {
-<span class="fc" id="L79">        this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L110">        this.deadlineNanos = deadlineNanos;</span>
       }
-<span class="fc" id="L81">    } else {</span>
-<span class="fc" id="L82">      this.deadlineNanos = deadlineNanos;</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">      if (id == null) {</span>
+<span class="fc" id="L113">        CharSequence pId = source.getId();</span>
+<span class="fc" id="L114">        StringBuilder sb = new StringBuilder(pId.length() + 2).append(pId).append('/');</span>
+<span class="fc" id="L115">        AppendableUtils.appendUnsignedString(sb, source.nextChildId(), 5);</span>
+<span class="fc" id="L116">        this.id  = sb;</span>
+<span class="fc" id="L117">      } else {</span>
+<span class="nc" id="L118">        this.id  = id;</span>
+      }
+<span class="fc" id="L120">      this.minBackendLogLevel = source.getBackendMinLogLevel();</span>
+<span class="fc" id="L121">    } else {</span>
+<span class="fc" id="L122">      this.deadlineNanos = deadlineNanos;</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">      this.id  = id == null ? ExecutionContexts.genId() : id;</span>
+<span class="fc" id="L124">      this.minBackendLogLevel = null;</span>
     }
-<span class="fc" id="L84">    this.parent = parent;</span>
-<span class="fc" id="L85">    this.baggage = Collections.EMPTY_MAP;</span>
-<span class="fc" id="L86">  }</span>
+<span class="fc" id="L126">    this.source = source;</span>
+<span class="fc" id="L127">    this.baggage = Collections.EMPTY_MAP;</span>
+<span class="fc" id="L128">    this.logs = null;</span>
+<span class="fc" id="L129">    this.closeables = Collections.EMPTY_LIST;</span>
+<span class="fc" id="L130">  }</span>
 
   @Override
   public final String getName() {
-<span class="fc" id="L90">    return name;</span>
+<span class="fc" id="L134">    return name;</span>
   }
 
   @Override
   public final long getDeadlineNanos() {
-<span class="fc" id="L95">    return deadlineNanos;</span>
+<span class="fc" id="L139">    return deadlineNanos;</span>
   }
 
   public final long getStartTimeNanos() {
-<span class="nc" id="L99">    return startTimeNanos;</span>
+<span class="nc" id="L143">    return startTimeNanos;</span>
   }
 
   @Nullable
   @Beta
   @Override
-  public final synchronized &lt;T&gt; T put(@Nonnull final Object key, @Nonnull final T data) {
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (baggage == Collections.EMPTY_MAP) {</span>
-<span class="fc" id="L107">      baggage = new HashMap&lt;&gt;(4);</span>
+  public final synchronized &lt;T&gt; T put(@Nonnull final Tag&lt;T&gt; key, @Nonnull final T data) {
+<span class="fc bfc" id="L150" title="All 2 branches covered.">    if (baggage == Collections.EMPTY_MAP) {</span>
+<span class="fc" id="L151">      baggage = new HashMap&lt;&gt;(4);</span>
     }
-<span class="fc" id="L109">    return (T) baggage.put(key, data);</span>
+<span class="fc" id="L153">    return (T) baggage.put(key, data);</span>
   }
 
   @Nullable
   @Beta
   @Override
-  public final synchronized Object get(@Nonnull final Object key) {
-<span class="fc" id="L116">    Object res = baggage.get(key);</span>
-<span class="pc bpc" id="L117" title="1 of 2 branches missed.">    if (res == null) {</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L119">        return parent.get(key);</span>
+  public final synchronized &lt;T&gt; T get(@Nonnull final Tag&lt;T&gt; key) {
+<span class="fc" id="L160">    Object res = baggage.get(key);</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">    if (res == null) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">      if (source != null) {</span>
+<span class="nc" id="L163">        return source.get(key);</span>
       } else {
-<span class="nc" id="L121">        return null;</span>
+<span class="nc" id="L165">        return null;</span>
       }
     } else {
-<span class="fc" id="L124">      return res;</span>
+<span class="fc" id="L168">      return (T) res;</span>
     }
   }
 
   @Override
   @Nullable
-  public final synchronized &lt;K, V&gt; V compute(@Nonnull final K key, final BiFunction&lt;K, V, V&gt; compute) {
-<span class="fc bfc" id="L131" title="All 2 branches covered.">    if (baggage == Collections.EMPTY_MAP) {</span>
-<span class="fc" id="L132">      baggage = new HashMap(4);</span>
+  public final synchronized &lt;V&gt; V compute(@Nonnull final Tag&lt;V&gt; key, final BiFunction&lt;Tag&lt;V&gt;, V, V&gt; compute) {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">    if (baggage == Collections.EMPTY_MAP) {</span>
+<span class="nc" id="L176">      baggage = new HashMap(4);</span>
     }
-<span class="fc" id="L134">    return (V) baggage.compute(key, (BiFunction) compute);</span>
+<span class="nc" id="L178">    return (V) baggage.compute(key, (BiFunction) compute);</span>
   }
 
   @Override
-  public final ExecutionContext getParent() {
-<span class="fc" id="L139">    return parent;</span>
+  public final ExecutionContext getSource() {
+<span class="fc" id="L183">    return source;</span>
   }
 
   /**
-   * Close might be overridable to close any additional stuff added in the extendsd class.
+   * Close might be overridable to close any additional stuff added in the extended class.
    */
   @Override
-  public void close() {
-<span class="pc bpc" id="L147" title="1 of 2 branches missed.">    if (!isClosed) {</span>
-<span class="fc" id="L148">      onClose.run();</span>
-<span class="fc" id="L149">      isClosed = true;</span>
+  public synchronized void close() {
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">    if (!isClosed) {</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">      if (attached !=  null) {</span>
+<span class="fc" id="L193">        detach();</span>
+      }
+<span class="fc" id="L195">      Exception ex = null;</span>
+<span class="fc bfc" id="L196" title="All 2 branches covered.">      for (int i = closeables.size() - 1; i &gt;= 0; i--) {</span>
+        try {
+<span class="fc" id="L198">          closeables.get(i).close();</span>
+<span class="nc" id="L199">        } catch (Exception e) {</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">          if (ex != null) {</span>
+<span class="nc" id="L201">            Throwables.suppressLimited(e, ex);</span>
+          }
+<span class="nc" id="L203">          ex = e;</span>
+<span class="fc" id="L204">        }</span>
+      }
+<span class="fc" id="L206">      ExecutionContext parent = getNotClosedParent();</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">      if (parent != null) {</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (logs != null) {</span>
+<span class="fc" id="L209">            parent.addLogs(logs);</span>
+        }
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        for (Map.Entry&lt;Tag, Object&gt; be : baggage.entrySet()) {</span>
+<span class="fc" id="L212">          Tag key = be.getKey();</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">          if (key.pushOnClose(this.relation))  {</span>
+<span class="nc" id="L214">            parent.combine(key, be.getValue());</span>
+          }
+<span class="fc" id="L216">        }</span>
+      }
+<span class="fc" id="L218">      isClosed = true;</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">      if (ex != null) {</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (ex instanceof RuntimeException) {</span>
+<span class="nc" id="L221">          throw (RuntimeException) ex;</span>
+        } else {
+<span class="nc" id="L223">          throw new RuntimeException(ex);</span>
+        }
+      }
     }
-<span class="fc" id="L151">  }</span>
+<span class="fc" id="L227">  }</span>
+
+  @Override
+  public final synchronized void detach() {
+<span class="fc" id="L231">    attached.detach();</span>
+<span class="fc" id="L232">    attached = null;</span>
+<span class="fc" id="L233">  }</span>
+
+  @Override
+  public final synchronized void attach() {
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">    if (attached != null) {</span>
+<span class="nc" id="L238">      throw new IllegalStateException(&quot;Context already attached, can only be attached to one thread at a time: &quot;</span>
+              + attached);
+    }
+<span class="fc" id="L241">    attached = ExecutionContexts.threadLocalAttacher().attach(this);</span>
+<span class="fc" id="L242">  }</span>
 
   /**
    * Overwrite as needed for debug string.
    */
   @Override
   public String toString() {
-<span class="nc" id="L158">    return &quot;BasicExecutionContext{&quot; + &quot;name=&quot; + name + &quot;, parent=&quot;</span>
-<span class="nc" id="L159">            + parent + &quot;, deadline=&quot; + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos)</span>
-            + &quot;, baggage=&quot; + baggage + '}';
+<span class="nc" id="L249">    StringBuilder sb = new StringBuilder(64);</span>
+<span class="nc" id="L250">    writeTo(sb);</span>
+<span class="nc" id="L251">    return sb.toString();</span>
   }
+
+  /**
+   * Overwrite this method to change default json format.
+   * @param appendable
+   */
+  @Override
+  public synchronized void writeJsonTo(final Appendable appendable) throws IOException {
+<span class="nc" id="L260">    JsonGenerator gen = Json.FACTORY.createGenerator(new AppendableWriter(appendable));</span>
+<span class="nc" id="L261">    gen.setCodec(Json.MAPPER);</span>
+<span class="nc" id="L262">    gen.writeStartObject();</span>
+<span class="nc" id="L263">    gen.writeFieldName(&quot;name&quot;);</span>
+<span class="nc" id="L264">    gen.writeString(name);</span>
+<span class="nc" id="L265">    gen.writeFieldName(&quot;startTs&quot;);</span>
+<span class="nc" id="L266">    Timing currentTiming = Timing.getCurrentTiming();</span>
+<span class="nc" id="L267">    gen.writeString(currentTiming.fromNanoTimeToInstant(startTimeNanos).toString());</span>
+<span class="nc" id="L268">    gen.writeFieldName(&quot;deadlineTs&quot;);</span>
+<span class="nc" id="L269">    gen.writeString(currentTiming.fromNanoTimeToInstant(deadlineNanos).toString());</span>
+<span class="nc" id="L270">    gen.writeEndObject();</span>
+<span class="nc" id="L271">    gen.flush();</span>
+<span class="nc" id="L272">  }</span>
+
+  @Override
+  public final synchronized void addLog(final Slf4jLogRecord log) {
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">    if (isClosed) {</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">      if (source == null) {</span>
+<span class="nc" id="L278">        return;</span>
+      } else {
+<span class="nc" id="L280">        source.addLog(log);</span>
+<span class="nc" id="L281">        return;</span>
+      }
+    }
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">    if (logs == null) {</span>
+<span class="fc" id="L285">      logs = new ArrayDeque&lt;&gt;(4);</span>
+    }
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">    if (logs.size() &gt;= MX_NR_LOGS_PER_CTXT) {</span>
+<span class="nc" id="L288">      logs.removeFirst();</span>
+    }
+<span class="fc" id="L290">    logs.addLast(log);</span>
+<span class="fc" id="L291">  }</span>
+
+  @Beta
+  @Override
+  public final synchronized void addCloseable(final AutoCloseable closeable) {
+<span class="fc bfc" id="L296" title="All 2 branches covered.">    if (this.closeables.isEmpty()) {</span>
+<span class="fc" id="L297">      this.closeables = new ArrayList&lt;&gt;(4);</span>
+    }
+<span class="fc" id="L299">    this.closeables.add(closeable);</span>
+<span class="fc" id="L300">  }</span>
+
+  @Override
+  public final synchronized void addLogs(final Collection&lt;Slf4jLogRecord&gt; pLogs) {
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">    if (isClosed) {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">      if (source == null) {</span>
+<span class="nc" id="L306">        return;</span>
+      } else {
+<span class="nc" id="L308">        source.addLogs(pLogs);</span>
+<span class="nc" id="L309">        return;</span>
+      }
+    }
+<span class="fc bfc" id="L312" title="All 2 branches covered.">    if (logs == null) {</span>
+<span class="fc" id="L313">      logs = new ArrayDeque&lt;&gt;(pLogs);</span>
+<span class="fc" id="L314">      return;</span>
+    }
+<span class="fc" id="L316">    int xNrLogs = logs.size();</span>
+<span class="fc" id="L317">    int toRemove = xNrLogs + pLogs.size() - MX_NR_LOGS_PER_CTXT;</span>
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">    if (toRemove &gt;= xNrLogs) {</span>
+<span class="nc" id="L319">      logs.clear();</span>
+    } else {
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">      for (int i = 0; i &lt; toRemove; i++) { // TODO</span>
+<span class="nc" id="L322">        logs.removeFirst();</span>
+      }
+    }
+<span class="fc" id="L325">    logs.addAll(pLogs);</span>
+<span class="fc" id="L326">  }</span>
+
+  @Override
+  public final synchronized void streamLogs(final Consumer&lt;Slf4jLogRecord&gt; to) {
+<span class="pc bpc" id="L330" title="1 of 2 branches missed.">    if (logs != null) {</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">      for (Slf4jLogRecord log : logs) {</span>
+<span class="fc" id="L332">        to.accept(log);</span>
+<span class="fc" id="L333">      }</span>
+    }
+<span class="fc" id="L335">  }</span>
+
+  /**
+   * Overwrite for more configurable implementation.
+   * @param loggerName
+   * @return
+   */
+  @Override
+  public Level getContextMinLogLevel(final String loggerName) {
+<span class="fc" id="L344">    return MIN_LOG_LEVEL;</span>
+  }
+
+  /**
+   * Overwrite for more configurable implementation.
+   * @param loggerName
+   * @return
+   */
+  @Override
+  public synchronized Level getBackendMinLogLevel(final String loggerName) {
+<span class="fc" id="L354">    return minBackendLogLevel;</span>
+  }
+
+  /**
+   * Overwrite for more configurable implementation.
+   * @param loggerName
+   * @return
+   */
+  @Override
+  public synchronized Level setBackendMinLogLevel(final String loggerName, final Level level) {
+<span class="fc" id="L364">    Level result = minBackendLogLevel;</span>
+<span class="fc" id="L365">    minBackendLogLevel = level;</span>
+<span class="fc" id="L366">    return result;</span>
+  }
+
+  @Override
+  public final CharSequence getId() {
+<span class="fc" id="L371">    return id;</span>
+  }
+
+  @Override
+  public final synchronized long nextChildId() {
+<span class="fc" id="L376">    return childCount++;</span>
+  }
+
+  /**
+   * Add a sample to this execution context.
+   * this implementation does not retain them.
+   * @param sample
+   */
+  @Override
+  public void add(final StackTraceElement[] sample) {
+    // Basic Context will not staore samples
+<span class="nc" id="L387">  }</span>
+
+  /**
+   * get the collected stack samples.
+   * This implementation will always return null.
+   * overwrite in a context that supports this functionality.
+   * @return
+   */
+  @Override
+  @Nullable
+  public StackSamples getAndClearStackSamples() {
+<span class="fc" id="L398">    return null;</span>
+  }
+
+  /**
+   * overwrite in a context that supports this functionality.
+   * @return a copy of the collected samples.
+   */
+  @Override
+  @Nullable
+  public StackSamples getStackSamples() {
+<span class="nc" id="L408">    return null;</span>
+  }
+
+  @Override
+  public final synchronized boolean isClosed() {
+<span class="fc" id="L413">    return isClosed;</span>
+  }
+
+  @Override
+  public final Relation getRelationToSource() {
+<span class="fc" id="L418">    return relation;</span>
+  }
+
+  /**
+   * add a bunch of samples to this context.
+   * @param samples
+   */
+  @Override
+  public void add(final StackSamples samples) {
+    //Basic Context will not staore samples
+<span class="nc" id="L428">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
