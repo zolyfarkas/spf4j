@@ -8,7 +8,7 @@
  This library also contains useful general purpose utilities and components that are currently not available in 
  high quality form in other OS libraries (Retry utils, object pool, [test logging backend](http://www.spf4j.org/spf4j-slf4j-test/index.html) ...)
  This library also contains ZEL, a simple expression language that can be easily used in any java application.
- Zel is easy to extend to your needs and also has some cool features like async functions, memorization...
+ ZEL is easy to extend to your needs and also has some cool features like async functions, memorization...
  You can learn more by checking out the [spf4j-zel](http://www.spf4j.org/spf4j-zel/index.html) module.
 
 ## 2. License and Contributions
@@ -22,9 +22,7 @@
 
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
- Available on [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/)
-
- More info can be found on the [blog] (https://blogs.zoltran.com)
+ Available on: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/)
 
  [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j.png)](https://gitter.im/spf4j/Lobby)
 
@@ -38,12 +36,10 @@
 
 ## 4. Performance monitoring
 
-### 4.1. Why not use jamon, metrics, netflix servo ?
+### 4.1. Motivation
 
   Observing a system changes the system. The goal of this library is to minimize the observer effect.
-  The code in spf4j is carefully written to be as high performance as possible,
-  it should outperform all competing libraries on any modern JVM(implementing biased locking)
-  running on a CCNUMA system.
+  The code in spf4j is carefully written to be as high performance and to provide minimum overhead / functionality.
 
   To achieve the lowest overhead we utilize Thread Local Counters, for a good evaluation see:
   [Concurrent counters by numbers](http://psy-lob-saw.blogspot.com/2013/06/java-concurrent-counters-by-numbers.html)
@@ -564,7 +560,7 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
 
  Unique ID and Scalable sequence generators: org.spf4j.concurrent.UIDgenerator and org.spf4j.concurrent.ScalableSequence 
 
- Csv: org.spf4j.io.Csv
+ Csv: org.spf4j.io.Csv, org.spf4j.avro.csv.CsvEncoder, org.spf4j.avro.csv.CsvDecoder
 
  IPC: org.spf4j.concurrent.FileBasedLock
 
