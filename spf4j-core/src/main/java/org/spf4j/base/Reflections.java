@@ -65,9 +65,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.concurrent.UnboundedLoadingCache;
 
 @ParametersAreNonnullByDefault
+@SuppressFBWarnings("PMB_POSSIBLE_MEMORY_BLOAT") // PRIMITIVES is private.
 public final class Reflections {
 
-  private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(8);
+  private static final BiMap<Class<?>, Class<?>> PRIMITIVE_MAP = HashBiMap.create(12);
+  private static final Map<String, Class<?>> PRIMITIVES = new HashMap<>(12);
 
   private static final MethodHandle PARAMETER_TYPES_METHOD_FIELD_GET;
   private static final MethodHandle PARAMETER_TYPES_CONSTR_FIELD_GET;
@@ -148,6 +150,9 @@ public final class Reflections {
     PRIMITIVE_MAP.put(long.class, Long.class);
     PRIMITIVE_MAP.put(float.class, Float.class);
     PRIMITIVE_MAP.put(double.class, Double.class);
+    for (Class<?> clasz : PRIMITIVE_MAP.keySet()) {
+      PRIMITIVES.put(clasz.getName(), clasz);
+    }
   }
 
 
@@ -577,6 +582,37 @@ public final class Reflections {
       throw new UncheckedExecutionException(ex);
     }
 
+  }
+
+  /**
+   * utility method that will work for primittives as well.
+   * @param name the class name
+   * @return
+   * @throws ClassNotFoundException
+   */
+  public static Class<?> forName(final String name) throws ClassNotFoundException {
+    Class<?> primitive = PRIMITIVES.get(name);
+    if (primitive == null) {
+      return Class.forName(name);
+    } else {
+      return primitive;
+    }
+  }
+
+  /**
+   * utility method that will work for primittives as well.
+   * @param name the class name
+   * @param loader the class loader
+   * @return
+   * @throws ClassNotFoundException
+   */
+  public static Class<?> forName(final String name, final ClassLoader loader) throws ClassNotFoundException {
+    Class<?> primitive = PRIMITIVES.get(name);
+    if (primitive == null) {
+      return Class.forName(name, true, loader);
+    } else {
+      return primitive;
+    }
   }
 
 }
