@@ -49,6 +49,7 @@ import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.spf4j.base.Reflections;
@@ -187,7 +188,7 @@ public final class SpecificRecordOpenTypeMapping extends MXBeanMapping implement
   }
 
 
-  private static  CompositeType typeFromSpecificRecord(final SpecificRecordBase r,
+  private static CompositeType typeFromSpecificRecord(final GenericRecord r,
           final JMXBeanMappingSupplier typeMapper) throws NotSerializableException {
     Schema schema = r.getSchema();
     List<Schema.Field> fields = schema.getFields();
