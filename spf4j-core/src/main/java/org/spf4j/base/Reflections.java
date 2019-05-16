@@ -150,6 +150,7 @@ public final class Reflections {
     PRIMITIVE_MAP.put(long.class, Long.class);
     PRIMITIVE_MAP.put(float.class, Float.class);
     PRIMITIVE_MAP.put(double.class, Double.class);
+    PRIMITIVE_MAP.put(void.class, Void.class);
     for (Class<?> clasz : PRIMITIVE_MAP.keySet()) {
       PRIMITIVES.put(clasz.getName(), clasz);
     }
