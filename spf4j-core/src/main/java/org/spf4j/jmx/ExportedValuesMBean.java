@@ -59,7 +59,7 @@ import javax.management.openmbean.OpenType;
 import org.spf4j.base.Throwables;
 
 // We att the ex history to the message string, since the client is not required to have the exception classes
-@SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 final class ExportedValuesMBean implements DynamicMBean {
 
 

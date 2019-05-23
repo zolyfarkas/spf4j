@@ -34,6 +34,7 @@ package org.spf4j.base;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.URL;
 import java.security.CodeSource;
 import javax.annotation.Nonnull;
@@ -42,6 +43,7 @@ import javax.annotation.Nullable;
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY") // calling Throwables.writeTo
 public final class PackageInfo  {
 
   public static final org.spf4j.base.avro.PackageInfo NONE = new org.spf4j.base.avro.PackageInfo("", "");
@@ -60,13 +62,19 @@ public final class PackageInfo  {
   }
 
 
+  @SuppressWarnings("checkstyle:regexp")
+  public static void errorNoPackageDetail(final String message, final Throwable t) {
+    System.err.println(message);
+    Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+  }
+
   @Nonnull
   public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class<?> aClass;
     try {
       aClass = Class.forName(className);
     } catch (Throwable ex) { // NoClassDefFoundError if class fails during init.
-      Runtime.errorNoPackageDetail("Error getting package detail for " + className, ex);
+      errorNoPackageDetail("Error getting package detail for " + className, ex);
       return NONE;
     }
     return getPackageInfoDirect(aClass);
