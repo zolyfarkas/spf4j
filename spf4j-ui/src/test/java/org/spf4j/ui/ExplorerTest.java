@@ -34,12 +34,10 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.test.log.ObservationAssert;
 import org.spf4j.test.log.TestLoggers;
-import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 
 /**
@@ -63,7 +61,6 @@ public class ExplorerTest {
   @Test
   @SuppressFBWarnings("MDM_THREAD_YIELD") // need to since assertj does not seem to apply things otherwise...
   public void testExplorer() throws InterruptedException {
-    Assume.assumeTrue(TestUtils.isExecutedInCI());
     ObservationAssert expectation = TestLoggers.sys().expectUncaughtException(2, TimeUnit.SECONDS,
             UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
     JFrame tFrame = GuiActionRunner.execute(() -> new Explorer());
