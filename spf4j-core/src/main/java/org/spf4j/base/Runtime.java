@@ -281,6 +281,12 @@ public final class Runtime {
     Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
   }
 
+  @SuppressWarnings("checkstyle:regexp")
+  public static void errorNoPackageDetail(final String message, final Throwable t) {
+    System.err.println(message);
+    Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+  }
+
 
   public static void goDownWithError(final SysExits exitCode) {
     goDownWithError(null, exitCode.exitCode());

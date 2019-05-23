@@ -65,7 +65,8 @@ public final class PackageInfo  {
     Class<?> aClass;
     try {
       aClass = Class.forName(className);
-    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.
+    } catch (Throwable ex) { // NoClassDefFoundError if class fails during init.
+      Runtime.errorNoPackageDetail("Error getting package detail for " + className, ex);
       return NONE;
     }
     return getPackageInfoDirect(aClass);
