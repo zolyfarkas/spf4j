@@ -89,16 +89,18 @@ public final class TracingExecutionContexSampler implements ISampler {
         break;
       }
     }
-    Arrays.fill(requestFor, i, requestFor.length, null);
-    StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);
-    for (int j = 0; j < i; j++) {
-      StackTraceElement[] stackTrace = stackTraces[j];
-      if (stackTrace != null && stackTrace.length > 0) {
-        ExecutionContext context = contexts[j];
-        context.add(stackTrace);
-        String name = ctxToCategory.apply(context);
-        StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
-        c.collect(stackTrace);
+    if (i > 0) {
+      Arrays.fill(requestFor, i, requestFor.length, null);
+      StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);
+      for (int j = 0; j < i; j++) {
+        StackTraceElement[] stackTrace = stackTraces[j];
+        if (stackTrace != null && stackTrace.length > 0) {
+          ExecutionContext context = contexts[j];
+          context.add(stackTrace);
+          String name = ctxToCategory.apply(context);
+          StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
+          c.collect(stackTrace);
+        }
       }
     }
   }
