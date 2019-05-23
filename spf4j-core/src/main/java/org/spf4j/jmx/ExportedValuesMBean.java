@@ -177,8 +177,9 @@ final class ExportedValuesMBean implements DynamicMBean {
               "Exception while setting attr {0}", attribute);
       Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
               "Exception detail", ex);
-      throw new InvalidAttributeValueException("Invalid value " + attribute
-              + " detail:\n" + Throwables.toString(ex));
+      InvalidAttributeValueException jx = new InvalidAttributeValueException("Invalid value " + attribute);
+      jx.addSuppressed(ex);
+      throw jx;
     }
   }
 
@@ -200,8 +201,10 @@ final class ExportedValuesMBean implements DynamicMBean {
                   "Exception getting attribute {0}", name);
           Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
               "Exception detail", ex);
-          throw new JMRuntimeException("Exception while getting attributes " + Arrays.toString(names) + ", detail:\n"
-                  + Throwables.toString(ex));
+          JMRuntimeException jx = new JMRuntimeException("Exception while getting attributes "
+                + Arrays.toString(names));
+          jx.addSuppressed(ex);
+          throw jx;
       }
     }
     return list;
@@ -224,8 +227,9 @@ final class ExportedValuesMBean implements DynamicMBean {
                   "Exception while setting attr {}", attr);
           Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
               "Exception detail", ex);
-          throw new JMRuntimeException("Exception while setting attributes " + list + ", detail:\n"
-                    + Throwables.toString(ex));
+          JMRuntimeException jx = new JMRuntimeException("Exception while setting attributes " + list);
+          jx.addSuppressed(ex);
+          throw jx;
         }
       }
     }
