@@ -43,97 +43,164 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 public final class Streams {
 
-    private Streams() {
-    }
+  private Streams() {
+  }
 
-    /**
-     * see copy(final InputStream is, final OutputStream os, final int buffSize) for detail.
-     *
-     * @param is
-     * @param os
-     * @return
-     * @throws IOException
-     */
-    public static long copy(final InputStream is, final OutputStream os) throws IOException {
-        return copy(is, os, 8192);
-    }
+  /**
+   * see copy(final InputStream is, final OutputStream os, final int buffSize) for detail.
+   *
+   * @param is
+   * @param os
+   * @return
+   * @throws IOException
+   */
+  public static long copy(final InputStream is, final OutputStream os) throws IOException {
+    return copy(is, os, 8192);
+  }
 
-    /**
-     * Equivalent to guava ByteStreams.copy, with one special behavior: if is has no bytes immediately available for
-     * read, the os is flushed prior to the next read that will probably block.
-     *
-     * I believe this behavior will yield better performance in most scenarios. This method also makes use of:
-     * Arrays.getBytesTmp. THis method should not be invoked from any context making use of Arrays.getBytesTmp.
-     *
-     * @param is
-     * @param os
-     * @param buffSize
-     * @throws IOException
-     */
-    public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
-        if (buffSize < 2) {
-            int val;
-            long count = 0;
-            while ((val = is.read()) >= 0) {
-                os.write(val);
-                count++;
-            }
-            return count;
-        }
-        long total = 0;
-        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);
-        try {
-            boolean done = false;
-            long bytesCopiedSinceLastFlush = 0;
-            while (true) {
-                // non-blocking(if input is implemented correctly) read+write as long as data is available.
-                while (is.available() > 0) {
-                    int nrRead = is.read(buffer, 0, buffSize);
-                    if (nrRead < 0) {
-                        done = true;
-                        break;
-                    } else {
-                        os.write(buffer, 0, nrRead);
-                        total += nrRead;
-                        bytesCopiedSinceLastFlush += nrRead;
-                    }
-                }
-            // there seems to be nothing available to read anymore,
-                // lets flush the os instead of blocking for another read.
-                if (bytesCopiedSinceLastFlush > 0) {
-                    os.flush();
-                    bytesCopiedSinceLastFlush = 0;
-                }
-                if (done) {
-                    break;
-                }
-                // most likely a blocking read.
-                int nrRead = is.read(buffer, 0, buffSize);
-                if (nrRead < 0) {
-                    break;
-                } else {
-                    os.write(buffer, 0, nrRead);
-                    total += nrRead;
-                    bytesCopiedSinceLastFlush += nrRead;
-                }
-            }
-        } finally {
-            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-        }
-        return total;
-    }
-
-    /**
-     * faster variant than guava CharStreams.asWriter.
-     * @param appendable - the appendable to transform.
-     * @return - the writer that will write to the appendable.
-     */
-    public static Writer asWriter(final Appendable appendable) {
-      if (appendable instanceof Writer) {
-        return (Writer) appendable;
-      } else {
-        return new AppendableWriter(appendable);
+  /**
+   * Equivalent to guava ByteStreams.copy, with one special behavior: if is has no bytes immediately available for read,
+   * the os is flushed prior to the next read that will probably block.
+   *
+   * I believe this behavior will yield better performance in most scenarios. This method also makes use of:
+   * Arrays.getBytesTmp. THis method should not be invoked from any context making use of Arrays.getBytesTmp.
+   *
+   * @param is
+   * @param os
+   * @param buffSize
+   * @throws IOException
+   */
+  public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
+    if (buffSize < 2) {
+      int val;
+      long count = 0;
+      while ((val = is.read()) >= 0) {
+        os.write(val);
+        count++;
       }
+      return count;
     }
+    long total = 0;
+    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);
+    try {
+      boolean done = false;
+      long bytesCopiedSinceLastFlush = 0;
+      while (true) {
+        // non-blocking(if input is implemented correctly) read+write as long as data is available.
+        while (is.available() > 0) {
+          int nrRead = is.read(buffer, 0, buffSize);
+          if (nrRead < 0) {
+            done = true;
+            break;
+          } else {
+            os.write(buffer, 0, nrRead);
+            total += nrRead;
+            bytesCopiedSinceLastFlush += nrRead;
+          }
+        }
+        // there seems to be nothing available to read anymore,
+        // lets flush the os instead of blocking for another read.
+        if (bytesCopiedSinceLastFlush > 0) {
+          os.flush();
+          bytesCopiedSinceLastFlush = 0;
+        }
+        if (done) {
+          break;
+        }
+        // most likely a blocking read.
+        int nrRead = is.read(buffer, 0, buffSize);
+        if (nrRead < 0) {
+          break;
+        } else {
+          os.write(buffer, 0, nrRead);
+          total += nrRead;
+          bytesCopiedSinceLastFlush += nrRead;
+        }
+      }
+    } finally {
+      ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+    }
+    return total;
+  }
+
+  public static long copy(final InputStream is, final OutputStream os, final int buffSize, final long maxBytes)
+          throws IOException {
+    if (buffSize < 2) {
+      int val;
+      long count = 0;
+      while (count < maxBytes && (val = is.read()) >= 0) {
+        os.write(val);
+        count++;
+      }
+      return count;
+    }
+    long count = 0;
+    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);
+    try {
+      boolean done = false;
+      long bytesCopiedSinceLastFlush = 0;
+      while (true) {
+        // non-blocking(if input is implemented correctly) read+write as long as data is available.
+        while (is.available() > 0) {
+          long left = maxBytes - count;
+          int toRead = Math.min(buffSize, left > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) left);
+          int nrRead = is.read(buffer, 0, toRead);
+          if (nrRead < 0) {
+            done = true;
+            break;
+          } else {
+            os.write(buffer, 0, nrRead);
+            count += nrRead;
+            bytesCopiedSinceLastFlush += nrRead;
+          }
+          if (count >= maxBytes) {
+            done = true;
+            break;
+          }
+        }
+        // there seems to be nothing available to read anymore,
+        // lets flush the os instead of blocking for another read.
+        if (bytesCopiedSinceLastFlush > 0) {
+          os.flush();
+          bytesCopiedSinceLastFlush = 0;
+        }
+        if (done) {
+          break;
+        }
+        // most likely a blocking read.
+        long left = maxBytes - count;
+        int toRead = Math.min(buffSize, left > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) left);
+        int nrRead = is.read(buffer, 0, toRead);
+        if (nrRead < 0) {
+          break;
+        } else {
+          os.write(buffer, 0, nrRead);
+          count += nrRead;
+          bytesCopiedSinceLastFlush += nrRead;
+        }
+        if (count >= maxBytes) {
+          done = true;
+          break;
+        }
+      }
+    } finally {
+      ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+    }
+    return count;
+  }
+
+  /**
+   * faster variant than guava CharStreams.asWriter.
+   *
+   * @param appendable - the appendable to transform.
+   * @return - the writer that will write to the appendable.
+   */
+  public static Writer asWriter(final Appendable appendable) {
+    if (appendable instanceof Writer) {
+      return (Writer) appendable;
+    } else {
+      return new AppendableWriter(appendable);
+    }
+  }
 
 }
