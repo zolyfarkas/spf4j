@@ -57,6 +57,8 @@ public interface CLibrary extends LibCAPI, Library {
 
   int fork();
 
+  int gethostname(byte[] name, int len);
+
   /**
    * returns signal name from a signal number.
    * @param sigNumber the signal number.
@@ -65,7 +67,7 @@ public interface CLibrary extends LibCAPI, Library {
   String strsignal(int sigNumber);
 
   int kill(int pid, int signum);
-  
+
   int setsid();
 
   int setuid(short newuid);

@@ -31,6 +31,9 @@
  */
 package org.spf4j.os;
 
+import com.sun.jna.Native;
+import com.sun.jna.Platform;
+import com.sun.jna.platform.win32.Kernel32Util;
 import com.sun.management.UnixOperatingSystemMXBean;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
@@ -61,9 +64,11 @@ import org.spf4j.base.SysExits;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.Futures;
+import org.spf4j.unix.CLibrary;
 import org.spf4j.unix.Lsof;
 import org.spf4j.unix.UnixException;
 import org.spf4j.unix.UnixResources;
+import org.spf4j.unix.UnixRuntimeException;
 
 /**
  * Utility to wrap access to JDK specific Operating system Mbean attributes.
@@ -192,6 +197,24 @@ public final class OperatingSystem {
           return -1;
         }
       }
+    }
+  }
+
+  public static String getHostName() {
+    if (Platform.isWindows()) {
+      return Kernel32Util.getComputerName();
+    } else {
+      // For now, we'll consider anyhting other than Windows to be unix-ish enough to have gethostname
+      // TODO - Consider http://stackoverflow.com/a/10543006 as a possibly better MacOS option
+
+      byte[] hostnameBuffer = new byte[256];
+      int result = CLibrary.INSTANCE.gethostname(hostnameBuffer, hostnameBuffer.length);
+      if (result != 0) {
+        int lastError = Native.getLastError();
+        throw new UnixRuntimeException("Error code " + CLibrary.INSTANCE.strerror(lastError)
+              + " for gethostname(byyte[], 256)", lastError);
+      }
+      return Native.toString(hostnameBuffer);
     }
   }
 
