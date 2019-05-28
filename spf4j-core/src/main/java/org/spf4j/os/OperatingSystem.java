@@ -207,7 +207,7 @@ public final class OperatingSystem {
       // For now, we'll consider anyhting other than Windows to be unix-ish enough to have gethostname
       // TODO - Consider http://stackoverflow.com/a/10543006 as a possibly better MacOS option
 
-      byte[] hostnameBuffer = new byte[256];
+      byte[] hostnameBuffer = new byte[257];
       int result = CLibrary.INSTANCE.gethostname(hostnameBuffer, hostnameBuffer.length);
       if (result != 0) {
         int lastError = Native.getLastError();
