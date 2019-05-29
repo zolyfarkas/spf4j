@@ -74,7 +74,7 @@ public final class DemoTest {
     stopTestThreads(threads);
   }
 
-  public static void stopTestThreads(final List<Thread> threads) throws InterruptedException {
+  public static void stopTestThreads(final Iterable<Thread> threads) throws InterruptedException {
     stopped = true;
     for (Thread t : threads) {
       t.join(3000);

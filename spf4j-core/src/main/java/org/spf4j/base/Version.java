@@ -35,6 +35,7 @@ import com.google.common.primitives.Ints;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -67,7 +68,7 @@ public final class Version implements Comparable<Version>, Serializable {
       char c = version.charAt(i);
       final int length = sb.length();
       if (c == '.') {
-        addPart(sb, comps);
+        addPart(sb.toString(), comps);
         sb.setLength(0);
       } else if (Character.isDigit(c)) {
         if (length > 0) {
@@ -90,13 +91,12 @@ public final class Version implements Comparable<Version>, Serializable {
       }
     }
     if (sb.length() > 0) {
-      addPart(sb, comps);
+      addPart(sb.toString(), comps);
     }
     components = comps.toArray(new Comparable[comps.size()]);
   }
 
-  private static void addPart(final StringBuilder sb, final List<Comparable<?>> comps) {
-    final String strPart = sb.toString();
+  private static void addPart(final String strPart, final Collection<Comparable<?>> comps) {
     Integer nr = Ints.tryParse(strPart);
     if (nr == null) {
       comps.add(strPart);

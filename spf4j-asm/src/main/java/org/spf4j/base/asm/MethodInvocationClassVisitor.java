@@ -379,7 +379,7 @@ class MethodInvocationClassVisitor extends ClassVisitor {
     }
 
     @Override
-    public void visitVarInsn(final int opcode, final int var) {
+    public void visitVarInsn(final int opcode, final int localVarIdx) {
       if (opcode >= 21 && opcode <= 45) { // *LOAD* from local var instructions
         stack.push(new UnknownValue(opcode));
       } else if (opcode >= 54 && opcode <= 78) { // *STORE* to local var instructions

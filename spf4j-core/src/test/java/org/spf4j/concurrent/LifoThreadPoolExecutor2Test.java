@@ -34,6 +34,7 @@ package org.spf4j.concurrent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -166,7 +167,7 @@ public class LifoThreadPoolExecutor2Test {
   }
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
-  public static int consume(final List<Future<?>> futures) throws InterruptedException {
+  public static int consume(final Collection<Future<?>> futures) throws InterruptedException {
     int nrEx = 0;
     for (Future fut : futures) {
       try {
