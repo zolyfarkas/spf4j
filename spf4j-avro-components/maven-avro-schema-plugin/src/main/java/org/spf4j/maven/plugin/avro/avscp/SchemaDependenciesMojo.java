@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,7 @@ public final class SchemaDependenciesMojo
   private List<String> excludes = Collections.EMPTY_LIST;
 
 
-  private static List<Pattern> getPatterns(final List<String> patterns) {
+  private static List<Pattern> getPatterns(final Collection<String> patterns) {
     List<Pattern> result = new ArrayList<>(patterns.size());
     for (String sp : patterns) {
       result.add(Pattern.compile(sp));
@@ -56,7 +57,7 @@ public final class SchemaDependenciesMojo
     return result;
   }
 
-  private static boolean matches(final List<Pattern> patterns, final String what) {
+  private static boolean matches(final Iterable<Pattern> patterns, final String what) {
     for (Pattern p : patterns) {
       if (p.matcher(what).matches()) {
         return true;

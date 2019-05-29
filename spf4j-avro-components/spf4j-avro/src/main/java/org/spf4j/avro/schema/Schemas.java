@@ -352,7 +352,7 @@ public final class Schemas {
 
 
 
-  private static Schema.Field extract(final List<Field> fields, final List<CharSequence> paths) {
+  private static Schema.Field extract(final Iterable<Field> fields, final Iterable<CharSequence> paths) {
     Iterator<CharSequence> iterator = paths.iterator();
     if (iterator.hasNext()) {
       List<CharSequence> proj = new ArrayList<>(2);
@@ -390,7 +390,7 @@ public final class Schemas {
 
 
   @Nullable
-  public static Schema.Field getField(final String name, final List<Field> fields) {
+  public static Schema.Field getField(final String name, final Iterable<Field> fields) {
     for (Schema.Field field : fields) {
       if (isNamed(name, field)) {
         return field;
