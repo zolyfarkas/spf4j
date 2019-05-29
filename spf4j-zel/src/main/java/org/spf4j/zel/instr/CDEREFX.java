@@ -31,14 +31,106 @@
  */
 package org.spf4j.zel.instr;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import static org.spf4j.zel.instr.DEREF.pushDeref;
+import org.apache.avro.generic.GenericRecord;
+import org.spf4j.reflect.CachingTypeMapWrapper;
+import org.spf4j.reflect.GraphTypeMap;
 import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 
 public final class CDEREFX extends Instruction {
 
   private static final long serialVersionUID = 1L;
+
+  private static final CachingTypeMapWrapper<DEREF.ReferenceHandler> TYPE_HANDLER
+          = new CachingTypeMapWrapper<>(new GraphTypeMap());
+
+  static {
+    TYPE_HANDLER.safePut(Map.class,
+            (Object relativeTo, Object ref, ExecutionContext context)
+            -> context.push(((Map) relativeTo).get(ref)))
+            .safePut(GenericRecord.class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    ->  {
+                      GenericRecord gr = (GenericRecord) relativeTo;
+                      String fName = ref.toString();
+                      if (gr.getSchema().getField(fName) != null) {
+                        context.push(gr.get(fName));
+                      } else {
+                        context.pushNull();
+                      }
+                    })
+            .safePut(Object.class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> context.push(new JavaMethodCall(relativeTo, ref.toString())))
+            .safePut(Object[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((Object[]) relativeTo).length);
+              } else {
+                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(int[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((int[]) relativeTo).length);
+              } else {
+                context.push(((int[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(byte[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((byte[]) relativeTo).length);
+              } else {
+                context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(char[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((char[]) relativeTo).length);
+              } else {
+                context.push(((char[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(long[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((long[]) relativeTo).length);
+              } else {
+                context.push(((long[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(short[].class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((short[]) relativeTo).length);
+              } else {
+                context.push(((short[]) relativeTo)[((Number) ref).intValue()]);
+              }
+            })
+            .safePut(List.class,
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -> {
+              if ("length".equals(ref)) {
+                context.push(((List) relativeTo).size());
+              } else {
+                context.push(((List) relativeTo).get(((Number) ref).intValue()));
+              }
+            });
+  }
+
 
   private final Object ref;
 
@@ -56,6 +148,11 @@ public final class CDEREFX extends Instruction {
       context.pushNull();
     }
     return 1;
+  }
+
+  private static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
+    DEREF.ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());
+    rh.pushDeref(relativeTo, ref, context);
   }
 
   @Override
