@@ -38,48 +38,47 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 public final class ABS extends Instruction {
 
-    private static final long serialVersionUID = -2668500366026272510L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new ABS();
+  public static final Instruction INSTANCE = new ABS();
 
-    private ABS() {
+  private ABS() {
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, SuspendedException {
+    Number nr = (Number) context.popSyncStackVal();
+    if (nr instanceof Integer) {
+      int integer = ((Integer) nr);
+      if (integer < 0) {
+        nr = -integer;
+      }
+    } else if (nr instanceof Long) {
+      long val = ((Long) nr);
+      if (val < 0) {
+        nr = -val;
+      }
+    } else if (nr instanceof Double) {
+      double val = ((Double) nr);
+      if (val < 0) {
+        nr = -val;
+      }
+    } else if (nr instanceof BigDecimal) {
+      BigDecimal val = ((BigDecimal) nr);
+      nr = val.abs();
+    } else if (nr instanceof BigInteger) {
+      BigInteger val = ((BigInteger) nr);
+      nr = val.abs();
     }
+    context.push(nr);
+    return 1;
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, SuspendedException {
-        Number nr = (Number) context.popSyncStackVal();
-        if (nr instanceof Integer) {
-            int integer = ((Integer) nr);
-            if (integer < 0) {
-                nr = -integer;
-            }
-        } else if (nr instanceof Long) {
-            long val = ((Long) nr);
-            if (val < 0) {
-                nr = -val;
-            }
-        } else if (nr instanceof Double) {
-            double val = ((Double) nr);
-            if (val < 0) {
-                nr = -val;
-            }
-        } else if (nr instanceof BigDecimal) {
-            BigDecimal val = ((BigDecimal) nr);
-            nr = val.abs();
-        } else if (nr instanceof BigInteger) {
-            BigInteger val = ((BigInteger) nr);
-            nr = val.abs();
-        }
-        context.push(nr);
-        return 1;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

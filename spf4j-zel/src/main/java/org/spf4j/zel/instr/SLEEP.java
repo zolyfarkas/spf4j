@@ -47,55 +47,55 @@ import org.spf4j.zel.vm.VMASyncFuture;
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class SLEEP extends Instruction {
 
-    private static final long serialVersionUID = -104479947741779060L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new SLEEP();
+  public static final Instruction INSTANCE = new SLEEP();
 
-    private SLEEP() {
+  private SLEEP() {
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, InterruptedException, ExecutionException {
+    Number param = (Number) context.popSyncStackVal();
+    final long sleepMillis = param.longValue();
+    if (sleepMillis > 0) {
+      if (context.getExecService() == null) {
+        Thread.sleep(sleepMillis);
+      } else {
+        final VMASyncFuture<Object> future = new VMASyncFuture<>();
+        DefaultScheduler.INSTANCE.schedule(
+                new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+        context.incrementInstructionPointer();
+        context.suspend(future);
+      }
+    }
+    return 1;
+
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
+
+  private static final class RunnableImpl implements Runnable {
+
+    private final ExecutionContext context;
+    private final VMASyncFuture<Object> future;
+
+    RunnableImpl(final ExecutionContext context, final VMASyncFuture<Object> future) {
+      this.context = context;
+      this.future = future;
     }
 
     @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, InterruptedException, ExecutionException {
-        Number param = (Number) context.popSyncStackVal();
-        final long sleepMillis = param.longValue();
-        if (sleepMillis > 0) {
-            if (context.getExecService() == null) {
-                Thread.sleep(sleepMillis);
-            } else {
-                final VMASyncFuture<Object> future = new VMASyncFuture<>();
-                DefaultScheduler.INSTANCE.schedule(
-                        new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-                context.incrementInstructionPointer();
-                context.suspend(future);
-            }
-        }
-        return 1;
-
+    public void run() {
+      Object stuff;
+      do {
+        stuff = context.getExecService().resumeSuspendables(future);
+      } while (stuff == null);
     }
-
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
-
-    private static final  class RunnableImpl implements Runnable {
-
-        private final ExecutionContext context;
-        private final VMASyncFuture<Object> future;
-
-        RunnableImpl(final ExecutionContext context, final VMASyncFuture<Object> future) {
-            this.context = context;
-            this.future = future;
-        }
-
-        @Override
-        public void run() {
-            Object stuff;
-            do {
-                stuff = context.getExecService().resumeSuspendables(future);
-            } while (stuff == null);
-        }
-    }
+  }
 
 }

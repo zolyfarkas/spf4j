@@ -35,24 +35,23 @@ import org.spf4j.zel.vm.ExecutionContext;
 
 public final class PUSH extends Instruction {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final Object param;
-    
-    public PUSH(final Object param) {
-        this.param = param;
-    }
-    
-    
-    @Override
-    public int execute(final ExecutionContext context) {
-        context.push(param);
-        return 1;
-    }
+  private final Object param;
 
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {param};
-    }
-    
+  public PUSH(final Object param) {
+    this.param = param;
+  }
+
+  @Override
+  public int execute(final ExecutionContext context) {
+    context.push(param);
+    return 1;
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{param};
+  }
+
 }

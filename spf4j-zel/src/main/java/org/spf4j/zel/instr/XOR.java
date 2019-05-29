@@ -36,34 +36,32 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
-
 /**
  *
  * @author zoly
  */
 public final class XOR extends Instruction {
 
-    private static final long serialVersionUID = 173371262128951181L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new XOR();
+  public static final Instruction INSTANCE = new XOR();
 
-    private XOR() {
-    }
+  private XOR() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-        final Object[] vals = context.tuple();
-        context.popSyncStackVals(vals);
-        boolean v1 = (java.lang.Boolean) vals[0];
-        boolean v2 = (java.lang.Boolean) vals[1];
-        context.push(v1 ^ v2);
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    boolean v1 = (java.lang.Boolean) vals[0];
+    boolean v2 = (java.lang.Boolean) vals[1];
+    context.push(v1 ^ v2);
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

@@ -43,23 +43,23 @@ import org.spf4j.zel.vm.ZExecutionException;
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class THROW extends Instruction {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new THROW();
+  public static final Instruction INSTANCE = new THROW();
 
-    private THROW() {
-    }
+  private THROW() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws ZExecutionException {
-        Object param = context.popStackVal();
-        throw new ZExecutionException(param);
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ZExecutionException {
+    Object param = context.popStackVal();
+    throw new ZExecutionException(param);
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 
 }

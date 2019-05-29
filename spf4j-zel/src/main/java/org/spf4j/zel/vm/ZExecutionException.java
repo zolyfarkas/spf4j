@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutionException;
 
 public final class ZExecutionException extends ExecutionException {
 
-  private static final long serialVersionUID = 8823469923479284L;
+  private static final long serialVersionUID = 1L;
 
   private List<ZelFrame> zelframes;
 

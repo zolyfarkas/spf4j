@@ -38,28 +38,26 @@ import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
-
 public final class POW extends Instruction {
 
-    private static final long serialVersionUID = 2547392478211590371L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new POW();
+  public static final Instruction INSTANCE = new POW();
 
-    private POW() {
-    }
+  private POW() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, SuspendedException {
-        final Object[] vals = context.tuple();
-        context.popSyncStackVals(vals);
-        context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, SuspendedException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    context.push(Operators.apply(Operator.Enum.Pow, vals[0], vals[1]));
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

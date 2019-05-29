@@ -39,34 +39,34 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOVN extends Instruction {
 
-    private static final long serialVersionUID = -7101682855885757988L;
+  private static final long serialVersionUID = 1L;
 
-    private final int nr;
+  private final int nr;
 
-    public MOVN(final int nr) {
-        this.nr = nr;
+  public MOVN(final int nr) {
+    this.nr = nr;
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException, InterruptedException {
+    Object[] what = (Object[]) context.popSyncStackVal();
+    Object[] tos = context.popStackVals(what.length);
+    int i = 0;
+    for (Object to : tos) {
+      if (to instanceof AssignableValue) {
+        AssignableValue assignTo = (AssignableValue) to;
+        assignTo.assign(what[i++]);
+        context.push(what);
+      } else {
+        throw new ZExecutionException("Lvalue expected insted of " + to);
+      }
     }
+    return 1;
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException, InterruptedException {
-        Object[] what = (Object[]) context.popSyncStackVal();
-        Object[] tos = context.popStackVals(what.length);
-        int i = 0;
-        for (Object to : tos) {
-            if (to instanceof AssignableValue) {
-                AssignableValue assignTo = (AssignableValue) to;
-                assignTo.assign(what[i++]);
-                context.push(what);
-            } else {
-                throw new ZExecutionException("Lvalue expected insted of " + to);
-            }
-        }
-        return 1;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {nr};
-    }
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{nr};
+  }
 }

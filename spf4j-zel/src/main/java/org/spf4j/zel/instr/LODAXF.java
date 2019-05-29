@@ -36,45 +36,44 @@ import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
 public final class LODAXF extends Instruction {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
-    private final Address fromAddr;
-    
-    public LODAXF(final Address fromAddr) {
-        this.fromAddr = fromAddr;
-    }
+  private final Address fromAddr;
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        context.push(new AssignableValue() {
+  public LODAXF(final Address fromAddr) {
+    this.fromAddr = fromAddr;
+  }
 
-            @Override
-            public void assign(final Object object) throws ZExecutionException {
-                if (fromAddr.getScope() == Address.Scope.LOCAL) {
-                  context.localPoke(fromAddr.getAddress(), object);
-                } else {
-                    throw new ZExecutionException("Cannot assign " + object + "to a global refference");
-                }
-            }
+  @Override
+  public int execute(final ExecutionContext context) {
+    context.push(new AssignableValue() {
 
-            @Override
-            public Object get() {
-                if (fromAddr.getScope() == Address.Scope.LOCAL) {
-                    return context.localPeek(fromAddr.getAddress());
-                } else {
-                    return context.globalPeek(fromAddr.getAddress());
-                }
-            }
-        });
-        return 1;
-    }
+      @Override
+      public void assign(final Object object) throws ZExecutionException {
+        if (fromAddr.getScope() == Address.Scope.LOCAL) {
+          context.localPoke(fromAddr.getAddress(), object);
+        } else {
+          throw new ZExecutionException("Cannot assign " + object + "to a global refference");
+        }
+      }
 
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {fromAddr};
-    }
+      @Override
+      public Object get() {
+        if (fromAddr.getScope() == Address.Scope.LOCAL) {
+          return context.localPeek(fromAddr.getAddress());
+        } else {
+          return context.globalPeek(fromAddr.getAddress());
+        }
+      }
+    });
+    return 1;
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{fromAddr};
+  }
 
 }

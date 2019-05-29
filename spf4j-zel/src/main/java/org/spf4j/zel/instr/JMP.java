@@ -35,23 +35,22 @@ import org.spf4j.zel.vm.ExecutionContext;
 
 public final class JMP extends Instruction {
 
-    private static final long serialVersionUID = -3763337334172149636L;
+  private static final long serialVersionUID = 1L;
 
-    private final int relAddr;
-    
-    public JMP(final int relAddr) {
-        this.relAddr = relAddr;
-    }
+  private final int relAddr;
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        return relAddr;
-    }
+  public JMP(final int relAddr) {
+    this.relAddr = relAddr;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {relAddr};
-    }
+  @Override
+  public int execute(final ExecutionContext context) {
+    return relAddr;
+  }
 
-    
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{relAddr};
+  }
+
 }

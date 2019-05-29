@@ -36,24 +36,24 @@ import org.spf4j.zel.vm.ExecutionContext;
 
 public final class NOP extends Instruction {
 
-    private static final long serialVersionUID = -5452813246760275419L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new NOP();
+  public static final Instruction INSTANCE = new NOP();
 
-    private NOP() {
-    }
+  private NOP() {
+  }
 
-    /**
-     * does nothing, my favorite instruction
-     */
-    @Override
-    public int execute(final ExecutionContext context) {
-        // Do nothing, guaranteed no bugs
-        return 1;
-    }
+  /**
+   * does nothing, my favorite instruction
+   */
+  @Override
+  public int execute(final ExecutionContext context) {
+    // Do nothing, guaranteed no bugs
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

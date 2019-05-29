@@ -42,88 +42,88 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class CALLREF extends Instruction {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    private final int nrParameters;
+  private final int nrParameters;
 
-    public CALLREF(final int nrParameters) {
-        this.nrParameters = nrParameters;
+  public CALLREF(final int nrParameters) {
+    this.nrParameters = nrParameters;
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, InterruptedException, SuspendedException {
+    final Object[] parameters = context.popSyncStackVals(nrParameters);
+    final Object function = ((AssignableValue) context.pop()).get();
+
+    context.push(new FunctionDeref(context, function, parameters));
+
+    return 1;
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{nrParameters};
+  }
+
+  private static final class FunctionDeref implements AssignableValue {
+
+    private final ExecutionContext context;
+    private final Object function;
+    private final Object[] parameters;
+
+    FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {
+      this.context = context;
+      this.function = function;
+      this.parameters = parameters;
     }
 
     @Override
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, InterruptedException, SuspendedException {
-        final Object[] parameters = context.popSyncStackVals(nrParameters);
-        final Object function = ((AssignableValue) context.pop()).get();
-
-        context.push(new FunctionDeref(context, function, parameters));
-
-        return 1;
+    public void assign(final Object object) throws ExecutionException {
+      if (function instanceof Program && ((Program) function).getType() == Program.Type.DETERMINISTIC) {
+        context.getResultCache().putPermanentResult((Program) function,
+                Arrays.asList(parameters), object);
+      } else {
+        throw new ZExecutionException("Function " + function + " must be deterministic to memorize value ");
+      }
     }
 
     @Override
-    public Object[] getParameters() {
-        return new Object[] {nrParameters};
-    }
+    public Object get() throws ExecutionException, InterruptedException {
 
-    private static final class FunctionDeref implements AssignableValue {
+      if (function instanceof Program) {
+        final Program p = (Program) function;
+        final ExecutionContext nctx;
+        Object obj;
+        switch (p.getType()) {
+          case DETERMINISTIC:
+            nctx = context.getSyncSubProgramContext(p, parameters);
+            obj = context.getResultCache().getResult(p, Arrays.asList(parameters),
+                    nctx::call);
 
-        private final ExecutionContext context;
-        private final Object function;
-        private final Object[] parameters;
-
-        FunctionDeref(final ExecutionContext context, final Object function, final Object[] parameters) {
-            this.context = context;
-            this.function = function;
-            this.parameters = parameters;
-        }
-
-        @Override
-        public void assign(final Object object) throws ExecutionException {
-          if (function instanceof Program && ((Program) function).getType() == Program.Type.DETERMINISTIC) {
-            context.getResultCache().putPermanentResult((Program) function,
-                      Arrays.asList(parameters), object);
-          } else {
-            throw new ZExecutionException("Function " + function  + " must be deterministic to memorize value ");
-          }
-        }
-
-        @Override
-        public Object get() throws ExecutionException, InterruptedException {
-
-            if (function instanceof Program) {
-                final Program p = (Program) function;
-                final ExecutionContext nctx;
-                Object obj;
-                switch (p.getType()) {
-                    case DETERMINISTIC:
-                        nctx = context.getSyncSubProgramContext(p, parameters);
-                        obj = context.getResultCache().getResult(p, Arrays.asList(parameters),
-                                nctx::call);
-
-                        break;
-                    case NONDETERMINISTIC:
-                        nctx = context.getSyncSubProgramContext(p, parameters);
-                        try {
-                          obj = nctx.call();
-                        } catch (SuspendedException ex) {
-                          throw new ZExecutionException("Suspension not supported for " + p, ex);
-                        }
-                        break;
-                    default:
-                        throw new UnsupportedOperationException(p.getType().toString());
-                }
-                return obj;
-            } else if (function instanceof Method) {
-                try {
-                    return ((Method) function).invoke(context, parameters);
-                } catch (Exception ex) {
-                    throw new ZExecutionException("cannot invoke " + function, ex);
-                }
-            } else {
-                throw new ZExecutionException("cannot invoke " + function);
+            break;
+          case NONDETERMINISTIC:
+            nctx = context.getSyncSubProgramContext(p, parameters);
+            try {
+              obj = nctx.call();
+            } catch (SuspendedException ex) {
+              throw new ZExecutionException("Suspension not supported for " + p, ex);
             }
-
+            break;
+          default:
+            throw new UnsupportedOperationException(p.getType().toString());
         }
+        return obj;
+      } else if (function instanceof Method) {
+        try {
+          return ((Method) function).invoke(context, parameters);
+        } catch (Exception ex) {
+          throw new ZExecutionException("cannot invoke " + function, ex);
+        }
+      } else {
+        throw new ZExecutionException("cannot invoke " + function);
+      }
+
     }
+  }
 }

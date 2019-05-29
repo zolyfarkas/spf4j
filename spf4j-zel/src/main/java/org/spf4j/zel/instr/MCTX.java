@@ -35,41 +35,40 @@ import java.math.MathContext;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
 
-
 public final class MCTX extends Instruction {
 
-    private static final long serialVersionUID = 6127414006563169983L;
+  private static final long serialVersionUID = 1L;
 
-    private final int precission;
-    
-    public MCTX(final int precission) {
-        this.precission = precission;
-    }
+  private final int precission;
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        MathContext mc;
-        switch (precission) {
-            case 32:
-                mc = MathContext.DECIMAL32;
-                break;
-            case 64:
-                mc = MathContext.DECIMAL64;
-                break;
-            case 128:
-                mc = MathContext.DECIMAL128;
-                break;
-            default:
-                mc = new MathContext(precission);
-        }
-        context.setMathContext(mc);
-        Operator.MATH_CONTEXT.set(mc);
-        return 1;
-    }
+  public MCTX(final int precission) {
+    this.precission = precission;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {precission};
+  @Override
+  public int execute(final ExecutionContext context) {
+    MathContext mc;
+    switch (precission) {
+      case 32:
+        mc = MathContext.DECIMAL32;
+        break;
+      case 64:
+        mc = MathContext.DECIMAL64;
+        break;
+      case 128:
+        mc = MathContext.DECIMAL128;
+        break;
+      default:
+        mc = new MathContext(precission);
     }
+    context.setMathContext(mc);
+    Operator.MATH_CONTEXT.set(mc);
+    return 1;
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{precission};
+  }
 
 }

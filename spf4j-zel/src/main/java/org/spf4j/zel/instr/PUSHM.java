@@ -34,25 +34,24 @@ package org.spf4j.zel.instr;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 
-
 public final class PUSHM extends Instruction {
 
-    private static final long serialVersionUID = 6127414006563169983L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new PUSHM();
+  public static final Instruction INSTANCE = new PUSHM();
 
-    private PUSHM() {
-    }
+  private PUSHM() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        context.push(context.getMem());
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context) {
+    context.push(context.getMem());
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 
 }

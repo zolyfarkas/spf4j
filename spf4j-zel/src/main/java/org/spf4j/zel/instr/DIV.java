@@ -40,23 +40,23 @@ import org.spf4j.zel.vm.SuspendedException;
 
 public final class DIV extends Instruction {
 
-    private static final long serialVersionUID = -2148283081301406237L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new DIV();
+  public static final Instruction INSTANCE = new DIV();
 
-    private DIV() {
-    }
+  private DIV() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
-        final Object[] vals = context.tuple();
-        context.popSyncStackVals(vals);
-        context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    context.push(Operators.apply(Operator.Enum.Div, vals[0], vals[1]));
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

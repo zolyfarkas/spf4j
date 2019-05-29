@@ -36,30 +36,27 @@ import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 @SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class ARR extends Instruction {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
+  private final int nr;
 
-    private final int nr;
+  public ARR(final int nr) {
+    this.nr = nr;
+  }
 
-    public ARR(final int nr) {
-        this.nr = nr;
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+    context.push(context.popSyncStackVals(nr));
+    return 1;
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-        context.push(context.popSyncStackVals(nr));
-        return 1;
-    }
-
-
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {nr};
-    }
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{nr};
+  }
 
 }

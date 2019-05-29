@@ -37,11 +37,12 @@ import org.spf4j.zel.vm.SuspendedException;
 
 /**
  * Jump to a address is top of the stack is null. (Null jump)
+ *
  * @author Zoltan Farkas
  */
 public final class NJMP extends Instruction {
 
-  private static final long serialVersionUID = 584597000187469774L;
+  private static final long serialVersionUID = 1L;
 
   private final int relAddr;
 
@@ -52,7 +53,7 @@ public final class NJMP extends Instruction {
   @Override
   public int execute(final ExecutionContext context)
           throws SuspendedException, ExecutionException {
-    Object obj =  context.peekSyncStackVal();
+    Object obj = context.peekSyncStackVal();
     if (obj == null) {
       return relAddr;
     } else {

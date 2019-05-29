@@ -42,21 +42,21 @@ import org.spf4j.zel.vm.SuspendedException;
  */
 public final class SYNC extends Instruction {
 
-    private static final long serialVersionUID = -5165232100964035429L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new SYNC();
+  public static final Instruction INSTANCE = new SYNC();
 
-    private SYNC() {
-    }
+  private SYNC() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
-            context.syncStackVal();
-            return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
+    context.syncStackVal();
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

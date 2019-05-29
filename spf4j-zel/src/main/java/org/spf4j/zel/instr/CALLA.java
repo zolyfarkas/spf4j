@@ -44,75 +44,75 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class CALLA extends Instruction {
 
-    private static final long serialVersionUID = 759722625722456554L;
+  private static final long serialVersionUID = 1L;
 
-    private final int nrParameters;
+  private final int nrParameters;
 
-    public CALLA(final int nrParameters) {
-        this.nrParameters = nrParameters;
+  public CALLA(final int nrParameters) {
+    this.nrParameters = nrParameters;
+  }
+
+  @Override
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, InterruptedException, SuspendedException {
+    final Object function = context.peekFromTop(nrParameters);
+    if (function instanceof Program) {
+      final Program p = (Program) function;
+      final ExecutionContext nctx;
+      Object obj;
+      switch (p.getType()) {
+        case DETERMINISTIC:
+          nctx = context.getSubProgramContext(p, nrParameters);
+          context.pop();
+          List<Object> params = CALL.getParameters(nctx, nrParameters);
+          obj = context.getResultCache().getResult(p, params, nctx::executeAsync);
+          break;
+        case NONDETERMINISTIC:
+          nctx = context.getSubProgramContext(p, nrParameters);
+          context.pop();
+          obj = nctx.executeAsync();
+          break;
+        default:
+          throw new UnsupportedOperationException(p.getType().toString());
+      }
+      context.push(obj);
+    } else if (function instanceof Method) {
+      Object[] parameters = context.popSyncStackVals(nrParameters);
+      context.pop();
+      Future<Object> obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));
+      context.push(obj);
+    } else {
+      throw new ZExecutionException("cannot invoke " + function);
+    }
+    return 1;
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{nrParameters};
+  }
+
+  private static class MethodVMExecutor implements VMExecutor.Suspendable<Object> {
+
+    private final Object function;
+    private final ExecutionContext context;
+    private final Object[] parameters;
+
+    MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {
+      this.function = function;
+      this.context = context;
+      this.parameters = parameters;
     }
 
     @Override
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, InterruptedException, SuspendedException {
-        final Object function = context.peekFromTop(nrParameters);
-        if (function instanceof Program) {
-            final Program p = (Program) function;
-            final ExecutionContext nctx;
-            Object obj;
-            switch (p.getType()) {
-                case DETERMINISTIC:
-                    nctx = context.getSubProgramContext(p, nrParameters);
-                    context.pop();
-                    List<Object> params = CALL.getParameters(nctx, nrParameters);
-                    obj = context.getResultCache().getResult(p, params, nctx::executeAsync);
-                    break;
-                case NONDETERMINISTIC:
-                    nctx = context.getSubProgramContext(p, nrParameters);
-                    context.pop();
-                    obj = nctx.executeAsync();
-                    break;
-                default:
-                    throw new UnsupportedOperationException(p.getType().toString());
-            }
-            context.push(obj);
-        } else if (function instanceof Method) {
-            Object[] parameters = context.popSyncStackVals(nrParameters);
-            context.pop();
-            Future<Object> obj = context.getExecService().submit(new MethodVMExecutor(function, context, parameters));
-            context.push(obj);
-        } else {
-            throw new ZExecutionException("cannot invoke " + function);
-        }
-        return 1;
+    public Object call() {
+      return ((Method) function).invoke(context, parameters);
     }
 
     @Override
-    public Object[] getParameters() {
-        return new Object[] {nrParameters};
+    public List<VMFuture<Object>> getSuspendedAt() {
+      throw new UnsupportedOperationException("Not supported yet.");
     }
-
-    private static class MethodVMExecutor implements VMExecutor.Suspendable<Object> {
-
-        private final Object function;
-        private final ExecutionContext context;
-        private final Object[] parameters;
-
-        MethodVMExecutor(final Object function, final ExecutionContext context, final Object[] parameters) {
-            this.function = function;
-            this.context = context;
-            this.parameters = parameters;
-        }
-
-        @Override
-        public Object call() {
-            return ((Method) function).invoke(context, parameters);
-        }
-
-        @Override
-        public List<VMFuture<Object>> getSuspendedAt() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-    }
+  }
 }

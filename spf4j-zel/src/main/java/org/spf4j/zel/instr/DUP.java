@@ -34,24 +34,23 @@ package org.spf4j.zel.instr;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 
-
 public final class DUP extends Instruction {
 
-    private static final long serialVersionUID = -5165232100964035429L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new DUP();
+  public static final Instruction INSTANCE = new DUP();
 
-    private DUP() {
-    }
+  private DUP() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        context.push(context.peek());
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context) {
+    context.push(context.peek());
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

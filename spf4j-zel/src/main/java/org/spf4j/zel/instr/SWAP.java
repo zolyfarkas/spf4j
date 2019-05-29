@@ -39,32 +39,32 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class SWAP extends Instruction {
 
-    private static final long serialVersionUID = -7101682855885757988L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new SWAP();
+  public static final Instruction INSTANCE = new SWAP();
 
-    private SWAP() {
+  private SWAP() {
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, InterruptedException {
+    Object v1 = context.pop();
+    Object v2 = context.pop();
+    if (v1 instanceof AssignableValue && v2 instanceof AssignableValue) {
+      AssignableValue a1 = (AssignableValue) v1;
+      AssignableValue a2 = (AssignableValue) v2;
+      Object tmp = a1.get();
+      a1.assign(a2.get());
+      a2.assign(tmp);
+    } else {
+      throw new ZExecutionException("Lvalue expected insted of " + v1 + " and " + v2);
     }
+    return 1;
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, InterruptedException {
-        Object v1 = context.pop();
-        Object v2 = context.pop();
-        if (v1 instanceof AssignableValue &&  v2 instanceof AssignableValue) {
-            AssignableValue a1 = (AssignableValue) v1;
-            AssignableValue a2 = (AssignableValue) v2;
-            Object tmp = a1.get();
-            a1.assign(a2.get());
-            a2.assign(tmp);
-        } else {
-            throw new ZExecutionException("Lvalue expected insted of " + v1 + " and " + v2);
-        }
-        return 1;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

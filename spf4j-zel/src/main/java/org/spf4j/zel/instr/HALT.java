@@ -40,20 +40,20 @@ import org.spf4j.zel.vm.ExecutionContext;
  */
 public final class HALT extends Instruction {
 
-    private static final long serialVersionUID = 569446978264434892L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new HALT();
+  public static final Instruction INSTANCE = new HALT();
 
-    private HALT() {
-    }
+  private HALT() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        return context.getProgram().size(); // get you end.
-    }
+  @Override
+  public int execute(final ExecutionContext context) {
+    return context.getProgram().size(); // get you end.
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

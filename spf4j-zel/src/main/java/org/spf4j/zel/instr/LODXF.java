@@ -35,33 +35,31 @@ import org.spf4j.zel.vm.Address;
 import org.spf4j.zel.vm.Address.Scope;
 import org.spf4j.zel.vm.ExecutionContext;
 
-
 public final class LODXF extends Instruction {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
-    private final Address fromAddr;
-    
-    public LODXF(final Address fromAddr) {
-        this.fromAddr = fromAddr;
+  private final Address fromAddr;
+
+  public LODXF(final Address fromAddr) {
+    this.fromAddr = fromAddr;
+  }
+
+  @Override
+  public int execute(final ExecutionContext context) {
+    Address adr = fromAddr;
+    Object obj;
+    if (adr.getScope() == Scope.LOCAL) {
+      obj = context.localPeek(adr.getAddress());
+    } else {
+      obj = context.globalPeek(adr.getAddress());
     }
+    context.push(obj);
+    return 1;
+  }
 
-
-    @Override
-    public int execute(final ExecutionContext context) {
-        Address adr = fromAddr;
-        Object obj;
-        if (adr.getScope() == Scope.LOCAL) {
-            obj = context.localPeek(adr.getAddress());
-        } else {
-            obj = context.globalPeek(adr.getAddress());
-        }
-        context.push(obj);
-        return 1;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {fromAddr};
-    }
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{fromAddr};
+  }
 }

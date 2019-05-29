@@ -38,25 +38,25 @@ import org.spf4j.zel.vm.SuspendedException;
 
 public final class GT extends Instruction {
 
-    private static final long serialVersionUID = 9127950519503616845L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new GT();
+  public static final Instruction INSTANCE = new GT();
 
-    private GT() {
-    }
+  private GT() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-        final Object[] vals = context.tuple();
-        context.popSyncStackVals(vals);
-        context.push(((Comparable) vals[1]).
-                compareTo(vals[0]) < 0);
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    context.push(((Comparable) vals[1]).
+            compareTo(vals[0]) < 0);
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

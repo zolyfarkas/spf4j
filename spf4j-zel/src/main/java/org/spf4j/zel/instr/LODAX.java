@@ -37,60 +37,58 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
 @SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
 public final class LODAX extends Instruction implements LValRef {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
-    private final String symbol;
-    
-    public LODAX(final String symbol) {
-        this.symbol = symbol;
+  private final String symbol;
+
+  public LODAX(final String symbol) {
+    this.symbol = symbol;
+  }
+
+  public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
+          throws ZExecutionException {
+    Program code = context.getProgram();
+    Integer addr = code.getLocalSymbolTable().get(symbol);
+    if (addr == null) {
+      addr = code.getGlobalSymbolTable().get(symbol);
+      if (addr == null) {
+        throw new ZExecutionException("unalocated symbol encountered " + symbol);
+      }
+      context.globalPoke(addr, what);
+    } else {
+      context.localPoke(addr, what);
     }
-    
-    
-    public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
-            throws ZExecutionException {
-        Program code = context.getProgram();
-        Integer addr  = code.getLocalSymbolTable().get(symbol);
-        if (addr == null) {
-            addr = code.getGlobalSymbolTable().get(symbol);
-            if (addr == null) {
-                throw new ZExecutionException("unalocated symbol encountered " + symbol);
-            }
-            context.globalPoke(addr, what);
-        } else {
-            context.localPoke(addr, what);
-        }
-    }
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) {
-           
-        context.push(new AssignableValue() {
+  @Override
+  public int execute(final ExecutionContext context) {
 
-            @Override
-            public void assign(final Object object) throws ZExecutionException {
-                writeTo(symbol, context, object);
-            }
+    context.push(new AssignableValue() {
 
-            @Override
-            public Object get() throws ZExecutionException {
-                return LODX.readFrom(symbol, context);
-            }
-        });
-        return 1;
-    }
+      @Override
+      public void assign(final Object object) throws ZExecutionException {
+        writeTo(symbol, context, object);
+      }
 
-    @Override
-    public String getSymbol() {
-        return symbol;
-    }
+      @Override
+      public Object get() throws ZExecutionException {
+        return LODX.readFrom(symbol, context);
+      }
+    });
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {symbol};
-    }
+  @Override
+  public String getSymbol() {
+    return symbol;
+  }
+
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{symbol};
+  }
 
 }

@@ -41,56 +41,55 @@ import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.SuspendedException;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
 public final class CALL extends Instruction {
 
-    private static final long serialVersionUID = 759722625722456554L;
+  private static final long serialVersionUID = 1L;
 
-    private final int nrParameters;
+  private final int nrParameters;
 
-    public CALL(final int nrParameters) {
-        this.nrParameters = nrParameters;
+  public CALL(final int nrParameters) {
+    this.nrParameters = nrParameters;
+  }
+
+  @Override
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, InterruptedException, SuspendedException {
+    Object function = context.peekFromTop(nrParameters);
+    if (function instanceof Program) {
+      final Program p = (Program) function;
+      final ExecutionContext nctx;
+      Object obj;
+      switch (p.getType()) {
+        case DETERMINISTIC:
+          nctx = context.getSubProgramContext(p, nrParameters);
+          context.pop();
+          List<Object> params = getParameters(nctx, nrParameters);
+          obj = context.getResultCache().getResult(p, params, nctx::executeSyncOrAsync);
+          break;
+        case NONDETERMINISTIC:
+          nctx = context.getSubProgramContext(p, nrParameters);
+          context.pop();
+          obj = nctx.executeSyncOrAsync();
+          break;
+        default:
+          throw new UnsupportedOperationException(p.getType().toString());
+      }
+      context.push(obj);
+    } else if (function instanceof Method) {
+      Object[] parameters = context.popSyncStackVals(nrParameters);
+      context.pop();
+      try {
+        Object result = ((Method) function).invoke(context, parameters);
+        context.push(result);
+      } catch (RuntimeException ex) {
+        throw new ZExecutionException("cannot invoke " + function, ex);
+      }
+    } else {
+      throw new ZExecutionException("cannot invoke " + function);
     }
-
-    @Override
-    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, InterruptedException, SuspendedException {
-        Object function = context.peekFromTop(nrParameters);
-        if (function instanceof Program) {
-            final Program p = (Program) function;
-            final ExecutionContext nctx;
-            Object obj;
-            switch (p.getType()) {
-                case DETERMINISTIC:
-                    nctx = context.getSubProgramContext(p, nrParameters);
-                    context.pop();
-                    List<Object> params = getParameters(nctx, nrParameters);
-                    obj = context.getResultCache().getResult(p,  params, nctx::executeSyncOrAsync);
-                    break;
-                case NONDETERMINISTIC:
-                        nctx = context.getSubProgramContext(p, nrParameters);
-                        context.pop();
-                        obj = nctx.executeSyncOrAsync();
-                    break;
-                default:
-                    throw new UnsupportedOperationException(p.getType().toString());
-            }
-            context.push(obj);
-        } else if (function instanceof Method) {
-            Object[] parameters = context.popSyncStackVals(nrParameters);
-            context.pop();
-            try {
-              Object result = ((Method) function).invoke(context, parameters);
-              context.push(result);
-            } catch (RuntimeException ex) {
-                throw new ZExecutionException("cannot invoke " + function, ex);
-            }
-        } else {
-            throw new ZExecutionException("cannot invoke " + function);
-        }
-        return 1;
-    }
+    return 1;
+  }
 
   public static List<Object> getParameters(final ExecutionContext nctx, final int nrParameters) {
     List<Object> params = new ArrayList<>(nrParameters);
@@ -100,9 +99,9 @@ public final class CALL extends Instruction {
     return params;
   }
 
-    @Override
-    public Object[] getParameters() {
-        return new Object[] {nrParameters};
-    }
+  @Override
+  public Object[] getParameters() {
+    return new Object[]{nrParameters};
+  }
 
 }

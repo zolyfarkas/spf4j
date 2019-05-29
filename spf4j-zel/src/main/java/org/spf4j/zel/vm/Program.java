@@ -83,7 +83,7 @@ import org.spf4j.zel.vm.ParsingContext.Location;
 @Immutable
 public final class Program implements Serializable {
 
-  private static final long serialVersionUID = 748365748433474932L;
+  private static final long serialVersionUID = 1L;
 
   private static final MemoryBuilder ZEL_GLOBAL_FUNC;
 

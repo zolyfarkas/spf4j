@@ -36,31 +36,29 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
-
 public final class OR extends Instruction {
 
-    private static final long serialVersionUID = 1052309045965557132L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new OR();
+  public static final Instruction INSTANCE = new OR();
 
-    private OR() {
-    }
+  private OR() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-        final Object[] vals = context.tuple();
-        context.popSyncStackVals(vals);
-        // TODO: optimize this for or we don't need to sync wait for both values
-        boolean v1 = (java.lang.Boolean) vals[0];
-        boolean v2 = (java.lang.Boolean) vals[1];
-        context.push(v1 || v2);
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    // TODO: optimize this for or we don't need to sync wait for both values
+    boolean v1 = (java.lang.Boolean) vals[0];
+    boolean v2 = (java.lang.Boolean) vals[1];
+    context.push(v1 || v2);
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

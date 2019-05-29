@@ -36,27 +36,26 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 public final class GE extends Instruction {
 
-    private static final long serialVersionUID = 3547837369204585282L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new GE();
+  public static final Instruction INSTANCE = new GE();
 
-    private GE() {
-    }
+  private GE() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
-        final Object[] vals = context.tuple();
-        context.popSyncStackVals(vals);
-        context.push(((Comparable) vals[0]).
-                compareTo(vals[1]) >= 0);
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context) throws SuspendedException, ExecutionException {
+    final Object[] vals = context.tuple();
+    context.popSyncStackVals(vals);
+    context.push(((Comparable) vals[0]).
+            compareTo(vals[1]) >= 0);
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

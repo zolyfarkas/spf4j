@@ -36,25 +36,24 @@ import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 public final class NOT extends Instruction {
 
-    private static final long serialVersionUID = -2668500366026272510L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new NOT();
+  public static final Instruction INSTANCE = new NOT();
 
-    private NOT() {
-    }
+  private NOT() {
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-        context.push(!((java.lang.Boolean) context.popSyncStackVal()));
-        return 1;
-    }
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+    context.push(!((java.lang.Boolean) context.popSyncStackVal()));
+    return 1;
+  }
 
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

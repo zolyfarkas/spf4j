@@ -40,31 +40,31 @@ import org.spf4j.zel.vm.ZExecutionException;
 
 public final class MOV extends Instruction {
 
-    private static final long serialVersionUID = -7101682855885757988L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new MOV();
+  public static final Instruction INSTANCE = new MOV();
 
-    private MOV() {
+  private MOV() {
+  }
+
+  @Override
+  @SuppressFBWarnings("BAS_BLOATED_ASSIGNMENT_SCOPE")
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, InterruptedException {
+    Object what = context.pop();
+    Object to = context.pop();
+    if (to instanceof AssignableValue) {
+      AssignableValue assignTo = (AssignableValue) to;
+      assignTo.assign(what);
+      context.push(what);
+    } else {
+      throw new ZExecutionException("Lvalue expected insted of " + to);
     }
+    return 1;
+  }
 
-    @Override
-    @SuppressFBWarnings("BAS_BLOATED_ASSIGNMENT_SCOPE")
-    public int execute(final ExecutionContext context)
-            throws ExecutionException, InterruptedException {
-        Object what = context.pop();
-        Object to = context.pop();
-        if (to instanceof AssignableValue) {
-            AssignableValue assignTo = (AssignableValue) to;
-            assignTo.assign(what);
-            context.push(what);
-        } else {
-            throw new ZExecutionException("Lvalue expected insted of " + to);
-        }
-        return 1;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return Arrays.EMPTY_OBJ_ARRAY;
+  }
 }

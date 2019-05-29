@@ -38,36 +38,34 @@ import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 public final class DEC extends Instruction {
 
-    private static final long serialVersionUID = 6127414006563169983L;
+  private static final long serialVersionUID = 1L;
 
-    public static final Instruction INSTANCE = new DEC();
+  public static final Instruction INSTANCE = new DEC();
 
-    private DEC() {
+  private DEC() {
+  }
+
+  @Override
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException, InterruptedException {
+    final Object val = context.popSyncStackVal();
+    if (val instanceof AssignableValue) {
+      AssignableValue aval = (AssignableValue) val;
+      Number nr = (Number) aval.get();
+      Number result = (Number) Operators.apply(Operator.Enum.Sub, nr, 1);
+      aval.assign(result);
+    } else {
+      context.push(Operators.apply(Operator.Enum.Sub, val, 1));
     }
+    return 1;
+  }
 
-
-    @Override
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException, InterruptedException {
-        final Object val = context.popSyncStackVal();
-        if (val instanceof AssignableValue) {
-            AssignableValue aval = (AssignableValue) val;
-            Number nr = (Number) aval.get();
-            Number result = (Number) Operators.apply(Operator.Enum.Sub, nr, 1);
-            aval.assign(result);
-        } else {
-            context.push(Operators.apply(Operator.Enum.Sub, val, 1));
-        }
-        return 1;
-    }
-
-    @Override
-    public Object[] getParameters() {
-        return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
-    }
+  @Override
+  public Object[] getParameters() {
+    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+  }
 
 }
