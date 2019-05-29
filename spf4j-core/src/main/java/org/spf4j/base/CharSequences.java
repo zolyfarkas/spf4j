@@ -422,7 +422,7 @@ public final class CharSequences {
     int multmin = limit / radix;
     int length = idxTo;
     int digit;
-    while (i < length && (digit = Character.digit(cs.charAt(i++), radix)) >= 0) {
+    while (i < length && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
       if (result < multmin) {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
       }
@@ -431,6 +431,7 @@ public final class CharSequences {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
       }
       result -= digit;
+      i++;
     }
     if (i == idxFrom) {
       throw new NumberFormatException("No numnber in \"" + cs + "\" at " + idxFrom);
@@ -456,7 +457,7 @@ public final class CharSequences {
     long multmin = limit / radix;
     int digit;
     int length = cs.length();
-    while (i < length && (digit = Character.digit(cs.charAt(i++), radix)) >= 0) {
+    while (i < length && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
       if (result < multmin) {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
       }
@@ -465,6 +466,7 @@ public final class CharSequences {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
       }
       result -= digit;
+      i++;
     }
     if (i == idxFrom) {
       throw new NumberFormatException("No numnber in " + cs + " at " + idxFrom);

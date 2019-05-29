@@ -124,6 +124,11 @@ public class CharSequencesTest {
     }
   }
 
+  @Test(expected = NumberFormatException.class)
+  public void testUnsignedInvalidLongParsing() {
+    CharSequences.parseUnsignedLong("abc", 10, 0);
+  }
+
   @Test
   public void testOccurenceCount() {
     Assert.assertEquals(3, CharSequences.countIgnoreCase(" aab Aab aaab", "aab"));
