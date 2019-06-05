@@ -200,7 +200,7 @@ public final class Arrays {
   public static <T> T[] concat(final T[]... arrays) {
     if (arrays.length < 2) {
       throw new IllegalArgumentException("You should concatenate at least 2 arrays: "
-              + java.util.Arrays.deepToString(arrays));
+              + arrays.length);
     }
     int newLength = 0;
     for (T[] arr : arrays) {
@@ -218,7 +218,7 @@ public final class Arrays {
   public static byte[] concat(final  byte[]... arrays) {
     if (arrays.length < 2) {
       throw new IllegalArgumentException("You should concatenate at least 2 arrays: "
-              + java.util.Arrays.deepToString(arrays));
+              + arrays.length);
     }
     int newLength = 0;
     for (byte[] arr : arrays) {

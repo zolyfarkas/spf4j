@@ -92,16 +92,14 @@ public final class Base64 {
    * If the base64 text is tightly packed with no indentation nor illegal char (like what most web services produce),
    * then the speculation of this method will be correct, so we get the performance benefit.
    */
-  private static int guessLength(final CharSequence text, final int from, final int len) {
-    final int to = from + len;
-
+  private static int guessLength2(final CharSequence text, final int from, final int to) {
     // compute the tail '=' chars
     int j = to - 1;
     for (; j >= 0; j--) {
       byte code = DECODE_MAP[text.charAt(j)];
       if (code != PADDING) {
         if (code == -1) { // most likely this base64 text is indented. go with the upper bound
-          return len / 4 * 3;
+          return (to - from) / 4 * 3;
         }
         break;
       }
@@ -110,13 +108,16 @@ public final class Base64 {
     j++;    // text.charAt(j) is now at some base64 char, so +1 to make it the size
     int padSize = to - j;
     if (padSize > 2) { // something is wrong with base64. be safe and go with the upper bound
-      return len / 4 * 3;
+      return (to - from) / 4 * 3;
     }
 
     // so far this base64 looks like it's unindented tightly packed base64.
     // take a chance and create an array with the expected size
-    return len / 4 * 3 - padSize;
+    return (to - from) / 4 * 3 - padSize;
   }
+
+
+
 
   private static int guessLength(final char[] text, final int from, final int len) {
     final int to = from + len;
@@ -170,7 +171,7 @@ public final class Base64 {
    *
    */
   public static byte[] decodeBase64(final CharSequence text, final int from, final int len) {
-    final int buflen = guessLength(text, from, len);
+    final int buflen = guessLength2(text, from, from + len);
     final byte[] out = new byte[buflen];
     int o = decodeInto(text, from, len, out, 0);
     if (buflen == o) { // speculation worked out to be OK
@@ -183,14 +184,32 @@ public final class Base64 {
     return nb;
   }
 
+  public static byte[] decodeBase64V2(final CharSequence text, final int from, final int to) {
+    final int buflen = guessLength2(text, from, to);
+    final byte[] out = new byte[buflen];
+    int o = decodeInto2(text, from, to, out, 0);
+    if (buflen == o) { // speculation worked out to be OK
+      return out;
+    }
+
+    // we overestimated, so need to create a new buffer
+    byte[] nb = new byte[o];
+    System.arraycopy(out, 0, nb, 0, o);
+    return nb;
+  }
+
   public static int decodeInto(final CharSequence text, final int from, final int len,
+          final byte[] out, final int outStartIdx) {
+    return decodeInto2(text, from, from + len, out, outStartIdx);
+  }
+
+  public static int decodeInto2(final CharSequence text, final int from, final int to,
           final byte[] out, final int outStartIdx) {
     int o = outStartIdx;
     int i;
     final byte[] quadruplet = new byte[4];
     int q = 0;
     // convert each quadruplet to three bytes.
-    int to = from + len;
     for (i = from; i < to; i++) {
       char ch = text.charAt(i);
       byte v = DECODE_MAP[ch];
