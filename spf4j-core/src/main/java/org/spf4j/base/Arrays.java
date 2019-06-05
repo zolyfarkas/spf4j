@@ -215,6 +215,24 @@ public final class Arrays {
     return result;
   }
 
+  public static byte[] concat(final  byte[]... arrays) {
+    if (arrays.length < 2) {
+      throw new IllegalArgumentException("You should concatenate at least 2 arrays: "
+              + java.util.Arrays.deepToString(arrays));
+    }
+    int newLength = 0;
+    for (byte[] arr : arrays) {
+      newLength += arr.length;
+    }
+    byte[] result = new byte[newLength];
+    int destIdx = 0;
+    for (byte[] arr : arrays) {
+      System.arraycopy(arr, 0, result, destIdx, arr.length);
+      destIdx += arr.length;
+    }
+    return result;
+  }
+
   public static <T> int indexOf(final T[] array, final T content) {
     int result = -1;
     for (int i = 0; i < array.length; i++) {
