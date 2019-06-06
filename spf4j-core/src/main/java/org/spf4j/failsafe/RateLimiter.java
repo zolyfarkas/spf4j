@@ -102,7 +102,7 @@ public final class RateLimiter
 
   private final Object sync;
 
-  private final int concurrencyLevel;
+  private final int maxBackoffNanos;
 
   public RateLimiter(final double maxReqPerSecond,
           final int maxBurstSize, final long minReplenishInterval, final TimeUnit tu) {
@@ -139,37 +139,74 @@ public final class RateLimiter
             scheduler, nanoTimeSupplier, Atomics.MAX_BACKOFF_NANOS);
   }
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize,
+  /**
+   * create the rate limiter.
+   *
+   * @param permitsPerSecond the throughput limit that this limiter tries to implement.
+   * @param marAvailablePermits the maximum number of permits that can accumulate.
+   * @param minReplenishInterval the minimum replenish interval, since a scheduler replenishes the tokens asynchronously
+   * there is a limit that is relative to the system clock resolution.
+   * @param tu the time unit of the minimum replenish interval.
+   * @param scheduler the scheduler to use to replenish the bucket.
+   * @param nanoTimeSupplier the time supplier.
+   * @param maxBackoffNanos expected concurrency level
+   */
+  public RateLimiter(final double permitsPerSecond,
+          final int marAvailablePermits,
           final long minReplenishInterval,
           final TimeUnit tu,
           final ScheduledExecutorService scheduler,
-          final LongSupplier nanoTimeSupplier, final int concurrencyLevel) {
-    this.concurrencyLevel = concurrencyLevel;
+          final LongSupplier nanoTimeSupplier,
+          final int maxBackoffNanos) {
+    this(permitsPerSecond, 0, marAvailablePermits, minReplenishInterval, tu,
+            scheduler, nanoTimeSupplier, maxBackoffNanos);
+  }
+
+  /**
+   * create the rate limiter.
+   *
+   * @param permitsPerSecond the throughput limit that this limiter tries to implement.
+   * @param marAvailablePermits the maximum number of permits that can accumulate.
+   * @param minReplenishInterval the minimum replenish interval, since a scheduler replenishes the tokens asynchronously
+   * there is a limit that is relative to the system clock resolution.
+   * @param tu the time unit of the minimum replenish interval.
+   * @param scheduler the scheduler to use to replenish the bucket.
+   * @param nanoTimeSupplier the time supplier.
+   * @param maxBackoffNanos expected concurrency level
+   */
+  public RateLimiter(final double permitsPerSecond,
+          final int initialNrOfPermits,
+          final int marAvailablePermits,
+          final long minReplenishInterval,
+          final TimeUnit tu,
+          final ScheduledExecutorService scheduler,
+          final LongSupplier nanoTimeSupplier,
+          final int maxBackoffNanos) {
+    this.maxBackoffNanos = maxBackoffNanos;
     this.sync = new Object();
     this.nanoTimeSupplier = nanoTimeSupplier;
-    double nsPerReq = 1000000000d / maxReqPerSecond;
+    double nsPerReq = 1000000000d / permitsPerSecond;
     long minReplenishIntervalNanos = tu.toNanos(minReplenishInterval);
     if (nsPerReq < minReplenishIntervalNanos) {
       nsPerReq = minReplenishIntervalNanos;
     }
     this.permitReplenishIntervalNanos = (long) nsPerReq;
-    this.permitsPerReplenishInterval = maxReqPerSecond * nsPerReq / 1000000000;
+    this.permitsPerReplenishInterval = permitsPerSecond * nsPerReq / 1000000000;
     assert permitsPerReplenishInterval >= 1;
-    if (maxBurstSize < permitsPerReplenishInterval) {
-      throw new IllegalArgumentException("Invalid max burst size: " + maxBurstSize
+    if (marAvailablePermits < permitsPerReplenishInterval) {
+      throw new IllegalArgumentException("Invalid max burst size: " + marAvailablePermits
               + ",  increase maxBurstSize to something larger than " + permitsPerReplenishInterval
               + " we assume a clock resolution of " + permitReplenishIntervalNanos
               + " and that is the minimum replenish interval");
     }
-    this.permits = new AtomicLong(Double.doubleToRawLongBits(0)); //permitsPerReplenishInterval
+    this.permits = new AtomicLong(Double.doubleToRawLongBits(initialNrOfPermits));
     lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
     this.replenisher = scheduler.scheduleAtFixedRate(() -> {
       synchronized (sync) {
         Atomics.accumulate(permits, permitsPerReplenishInterval, (left, right) -> {
           double result = left + right;
-          return (result > maxBurstSize) ? maxBurstSize : result;
-        }, concurrencyLevel);
+          return (result > marAvailablePermits) ? marAvailablePermits : result;
+        }, maxBackoffNanos);
         lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
       }
     }, permitReplenishIntervalNanos, permitReplenishIntervalNanos, TimeUnit.NANOSECONDS);
@@ -192,7 +229,7 @@ public final class RateLimiter
       double dif = prev - x;
       // right will be -1d.
       return (dif < 0) ? prev : dif;
-    }, concurrencyLevel);
+    }, maxBackoffNanos);
   }
 
   private final class ReservationHandler implements DoubleUnaryOperator {
@@ -302,7 +339,7 @@ public final class RateLimiter
       ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos, nrPermits);
       boolean accd;
       synchronized (sync) {
-        accd = Atomics.maybeAccumulate(permits, rh, concurrencyLevel);
+        accd = Atomics.maybeAccumulate(permits, rh, maxBackoffNanos);
       }
       if (accd) {
         return rh.getNsUntilResourcesAvailable();
