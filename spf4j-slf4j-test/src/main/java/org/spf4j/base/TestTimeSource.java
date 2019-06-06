@@ -63,6 +63,28 @@ public final class TestTimeSource implements LongSupplier {
     timeStream = new TLongArrayList(times).iterator();
   }
 
+  public static long freezeTime() {
+    long nanoTime = TimeSource.nanoTime();
+    setTimeStream(new TLongIterator() {
+      @Override
+      public long next() {
+        return nanoTime;
+      }
+
+      @Override
+      public boolean hasNext() {
+        return true;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    });
+    return nanoTime;
+  }
+
+
   @Override
   @Nonnull
   @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")

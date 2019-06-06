@@ -162,7 +162,7 @@ public final class RateLimiter
               + " we assume a clock resolution of " + permitReplenishIntervalNanos
               + " and that is the minimum replenish interval");
     }
-    this.permits = new AtomicLong(Double.doubleToRawLongBits(permitsPerReplenishInterval));
+    this.permits = new AtomicLong(Double.doubleToRawLongBits(0)); //permitsPerReplenishInterval
     lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
     this.replenisher = scheduler.scheduleAtFixedRate(() -> {
       synchronized (sync) {
@@ -298,7 +298,7 @@ public final class RateLimiter
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
       return 0L;
-    } else { // no curent permits available, reserve some slots and wait for them.
+    } else { // no curent permits available, reserve the slots and get the wait time
       ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos, nrPermits);
       boolean accd;
       synchronized (sync) {
