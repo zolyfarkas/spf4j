@@ -38,6 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongUnaryOperator;
 import java.util.function.UnaryOperator;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -99,6 +101,23 @@ public final class Atomics {
     } while (true);
   }
 
+  public static void accumulate(final AtomicLong dval, final long x,
+          final LongBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
+    long prev, next;
+    do {
+      prev = dval.get();
+      next = accumulatorFunction.applyAsLong(prev, x);
+      if (next == prev) {
+        return;
+      }
+      if (dval.compareAndSet(prev, next)) {
+        return;
+      }
+      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff
+    } while (true);
+  }
+
+
   private  static long getBackoffNanos(final int maxBackoffNanos) {
     return maxBackoffNanos > 0 ? Thread.currentThread().getId() % maxBackoffNanos : 0;
   }
@@ -109,6 +128,22 @@ public final class Atomics {
     do {
       prev = dval.get();
       next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev)));
+      if (prev == next) {
+        return false;
+      }
+      if (dval.compareAndSet(prev, next)) {
+        return true;
+      }
+      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff
+    } while (true);
+  }
+
+  public static boolean maybeAccumulate(final AtomicLong dval,
+          final LongUnaryOperator accumulatorFunction, final int maxBackoffNanos) {
+    long prev, next;
+    do {
+      prev = dval.get();
+      next = accumulatorFunction.applyAsLong(prev);
       if (prev == next) {
         return false;
       }

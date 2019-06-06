@@ -32,6 +32,7 @@
 package org.spf4j.failsafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ public class LimitingExecutorTest {
   public void testRateLimit() throws Exception {
     LogAssert expect = TestLoggers.sys().expect(LimitingExecutorTest.class.getName(), Level.DEBUG,
             LogMatchers.hasFormat("executed nr {}"));
-    try (RateLimiter limiter = new RateLimiter(10, 10)) {
+    try (RateLimiter limiter = new RateLimiter(10, Duration.ofSeconds(1), 10)) {
       LimitingExecutor<?, Callable<?>> executor = new LimitingExecutor<>(limiter);
       Assert.assertEquals(1d, limiter.getPermitsPerReplenishInterval(), 0.001);
       Assert.assertEquals(100000000, limiter.getPermitReplenishIntervalNanos(), 0.001);
@@ -78,7 +79,7 @@ public class LimitingExecutorTest {
   public void testRateLimit2() throws Exception {
     LogAssert expect = TestLoggers.sys().expect(LimitingExecutorTest.class.getName(), Level.DEBUG, 10,
             LogMatchers.hasFormat("executed nr {}"));
-    try (RateLimiter limiter = new RateLimiter(10, 10)) {
+    try (RateLimiter limiter = new RateLimiter(10, Duration.ofSeconds(1), 10)) {
       LimitingExecutor.RejectedExecutionHandler rejectedExecutionHandler
               = new LimitingExecutor.RejectedExecutionHandler() {
         @Override

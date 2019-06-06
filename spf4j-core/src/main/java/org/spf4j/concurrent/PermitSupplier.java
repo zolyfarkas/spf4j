@@ -47,6 +47,21 @@ import org.spf4j.base.ExecutionContexts;
 @ParametersAreNonnullByDefault
 public interface PermitSupplier {
 
+  PermitSupplier UNLIMITED = new PermitSupplier() {
+    @Override
+    public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
+      return true;
+    }
+  };
+
+
+  PermitSupplier EMPTY = new PermitSupplier() {
+    @Override
+    public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
+      return false;
+    }
+  };
+
   /**
    * Acquire one permit.
    *

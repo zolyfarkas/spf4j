@@ -31,6 +31,7 @@
  */
 package org.spf4j.concurrent;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
@@ -45,7 +46,7 @@ public class CompoundSemaphoreTest {
 
   @Test
   public void testCompoundSemaphore() throws InterruptedException, TimeoutException {
-    try (RateLimiter rateLimiter = new RateLimiter(1, 2)) {
+    try (RateLimiter rateLimiter = new RateLimiter(1, Duration.ofSeconds(1), 2)) {
       CompoundSemaphore sem = new CompoundSemaphore(rateLimiter.toSemaphore(), new LocalSemaphore(2, false));
       sem.acquire(2, 4, TimeUnit.SECONDS);
       sem.release(2);
