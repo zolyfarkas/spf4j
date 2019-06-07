@@ -37,7 +37,6 @@ import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongSupplier;
@@ -343,7 +342,9 @@ public final class RateLimiter
       return false;
     }
     long tryAcquireGetDelayNanos = forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);
-    if (tryAcquireGetDelayNanos > 0) {
+    if (tryAcquireGetDelayNanos == 0) {
+      return true;
+    } else if (tryAcquireGetDelayNanos > 0) {
       TimeUnit.NANOSECONDS.sleep(tryAcquireGetDelayNanos);
       return true;
     } else {
@@ -362,8 +363,7 @@ public final class RateLimiter
    * @throws InterruptedException
    */
   @Signed
-  long tryAcquireGetDelayNanos(final int nrPermits, final long deadlineNanos)
-          throws InterruptedException {
+  long tryAcquireGetDelayNanos(final int nrPermits, final long deadlineNanos) {
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
       return 0L;
