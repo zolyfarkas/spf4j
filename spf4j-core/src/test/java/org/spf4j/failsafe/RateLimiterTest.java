@@ -61,6 +61,7 @@ public class RateLimiterTest {
   @Test
   public void testRateLimitInvalidTryReservation() throws InterruptedException {
     long nanoTime = TestTimeSource.freezeTime();
+    try {
     ScheduledExecutorService mockExec = Mockito.mock(ScheduledExecutorService.class);
     ScheduledFuture mockFut = Mockito.mock(ScheduledFuture.class);
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.anyLong(), Mockito.anyLong(),
@@ -69,6 +70,9 @@ public class RateLimiterTest {
       long s1Nanos = TimeUnit.SECONDS.toNanos(1);
       long timeToWait = rateLimiter.tryAcquireGetDelayNanos(1000, nanoTime + s1Nanos);
       Assert.assertEquals(s1Nanos, timeToWait);
+    }
+    } finally {
+      TestTimeSource.clear();
     }
   }
 

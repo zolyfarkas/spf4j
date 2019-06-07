@@ -38,8 +38,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongBinaryOperator;
 import java.util.function.LongSupplier;
-import java.util.function.LongUnaryOperator;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.GuardedBy;
 import org.spf4j.base.TimeSource;
@@ -104,6 +104,8 @@ public final class RateLimiter
   private final Object sync;
 
   private final int maxBackoffNanos;
+
+  private final LongBinaryOperator accumulate;
 
   public RateLimiter(final long permitsPerReplenishInterval,
           final Duration replenishmentInterval,
@@ -202,15 +204,21 @@ public final class RateLimiter
     }
     this.permits = new AtomicLong(initialNrOfPermits);
     lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
+    accumulate = (long left, long right) -> {
+      long result = left + right;
+      return (result > maxAvailablePermits) ? maxAvailablePermits : result;
+    };
     this.replenisher = scheduler.scheduleAtFixedRate(() -> {
       synchronized (sync) {
-        Atomics.accumulate(permits, permitsPerReplenishInterval, (long left, long right) -> {
-          long result = left + right;
-          return (result > maxAvailablePermits) ? maxAvailablePermits : result;
-        }, maxBackoffNanos);
+        Atomics.accumulate(permits, permitsPerReplenishInterval, accumulate, maxBackoffNanos);
         lastReplenishmentNanos = nanoTimeSupplier.getAsLong();
       }
     }, permitReplenishIntervalNanos, permitReplenishIntervalNanos, TimeUnit.NANOSECONDS);
+  }
+
+  @Override
+  public boolean addPermits(final int nrPermits) {
+    return Atomics.maybeAccumulate(permits, nrPermits, accumulate, maxBackoffNanos);
   }
 
   /**
@@ -223,36 +231,33 @@ public final class RateLimiter
   }
 
   public boolean tryAcquire(final int nrPermits) {
-    return Atomics.maybeAccumulate(permits, (double) nrPermits, (prev, x) -> {
-      double dif = prev - x;
+    return Atomics.maybeAccumulate(permits, nrPermits, (long prev, long x) -> {
+      long dif = prev - x;
       // right will be -1d.
       return (dif < 0) ? prev : dif;
     }, maxBackoffNanos);
   }
 
-  private final class ReservationHandler implements LongUnaryOperator {
+  private final class ReservationHandler implements LongBinaryOperator {
 
     private long currTimeNanos;
 
     private final long deadlineNanos;
 
-    private final int permits;
-
     private long nsUntilResourcesAvailable;
 
     private int reTimeCount;
 
-    ReservationHandler(final long currTimeNanos, final long deadlineNanos, final int permits) {
+    ReservationHandler(final long currTimeNanos, final long deadlineNanos) {
       this.currTimeNanos = currTimeNanos;
       this.deadlineNanos = deadlineNanos;
-      this.permits = permits;
       this.nsUntilResourcesAvailable = -1;
       this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;
     }
 
     @Override
-    public long applyAsLong(final long prev) {
-      long remaimingPermits = prev - permits;
+    public long applyAsLong(final long prev, final long nrPermits) {
+      long remaimingPermits = prev - nrPermits;
       if (remaimingPermits >= 0) {
         return remaimingPermits;
       }
@@ -337,10 +342,10 @@ public final class RateLimiter
       if (replenisher.isCancelled()) {
         throw new IllegalStateException("RateLimiter is closed: " + this);
       }
-      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos, nrPermits);
+      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos);
       boolean accd;
       synchronized (sync) {
-        accd = Atomics.maybeAccumulate(permits, rh, maxBackoffNanos);
+        accd = Atomics.maybeAccumulate(permits, nrPermits, rh, maxBackoffNanos);
       }
       if (accd) {
         return rh.getNsUntilResourcesAvailable();

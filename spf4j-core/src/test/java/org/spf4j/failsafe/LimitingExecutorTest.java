@@ -54,14 +54,12 @@ public class LimitingExecutorTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(LimitingExecutorTest.class);
 
-  @Test
+  @Test(expected = RejectedExecutionException.class)
   public void testRateLimit() throws Exception {
-    LogAssert expect = TestLoggers.sys().expect(LimitingExecutorTest.class.getName(), Level.DEBUG,
-            LogMatchers.hasFormat("executed nr {}"));
     try (RateLimiter limiter = new RateLimiter(10, Duration.ofSeconds(1), 10)) {
       LimitingExecutor<?, Callable<?>> executor = new LimitingExecutor<>(limiter);
-      Assert.assertEquals(1d, limiter.getPermitsPerReplenishInterval(), 0.001);
-      Assert.assertEquals(100000000, limiter.getPermitReplenishIntervalNanos(), 0.001);
+      Assert.assertEquals(10, limiter.getPermitsPerReplenishInterval());
+      Assert.assertEquals(1000000000, limiter.getPermitReplenishIntervalNanos());
       for (int i = 0; i < 10; i++) {
         final int val = i;
         executor.execute(() -> {
@@ -70,8 +68,6 @@ public class LimitingExecutorTest {
         });
       }
       Assert.fail();
-    } catch (RejectedExecutionException ex) {
-      expect.assertObservation();
     }
   }
 
@@ -80,18 +76,22 @@ public class LimitingExecutorTest {
     LogAssert expect = TestLoggers.sys().expect(LimitingExecutorTest.class.getName(), Level.DEBUG, 10,
             LogMatchers.hasFormat("executed nr {}"));
     try (RateLimiter limiter = new RateLimiter(10, Duration.ofSeconds(1), 10)) {
+      long replenishInterval = limiter.getPermitReplenishIntervalNanos();
+       LOG.debug("replenish interval = {} ", replenishInterval);
       LimitingExecutor.RejectedExecutionHandler rejectedExecutionHandler
               = new LimitingExecutor.RejectedExecutionHandler() {
         @Override
         @SuppressFBWarnings("MDM_THREAD_YIELD")
         public Object reject(final LimitingExecutor executor, final Callable callable)
                 throws Exception {
-          long waitNs = limiter.getPermitReplenishIntervalNanos()
-                  - (TimeSource.nanoTime() - limiter.getLastReplenishmentNanos());
+          long nanoTime = TimeSource.nanoTime();
+          long lastReplenishmentNanos = limiter.getLastReplenishmentNanos();
+          long waitNs = replenishInterval - (nanoTime - lastReplenishmentNanos);
           if (waitNs >= 0) {
             TimeUnit.NANOSECONDS.sleep(waitNs);
           } else {
-            LOG.debug("negative wait time {}", waitNs);
+            LOG.debug("negative wait time {}, current = {}, lastUpdated = {}, permits = {} ", waitNs,
+                    nanoTime, lastReplenishmentNanos, limiter.getNrPermits());
           }
           return executor.execute(callable);
         }

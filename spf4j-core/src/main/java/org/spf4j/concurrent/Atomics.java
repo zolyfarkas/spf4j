@@ -39,7 +39,6 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.LongBinaryOperator;
-import java.util.function.LongUnaryOperator;
 import java.util.function.UnaryOperator;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -138,12 +137,12 @@ public final class Atomics {
     } while (true);
   }
 
-  public static boolean maybeAccumulate(final AtomicLong dval,
-          final LongUnaryOperator accumulatorFunction, final int maxBackoffNanos) {
+  public static boolean maybeAccumulate(final AtomicLong dval, final long val,
+          final LongBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
       prev = dval.get();
-      next = accumulatorFunction.applyAsLong(prev);
+      next = accumulatorFunction.applyAsLong(prev, val);
       if (prev == next) {
         return false;
       }

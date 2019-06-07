@@ -123,6 +123,15 @@ public interface PermitSupplier {
   boolean tryAcquire(@Nonnegative int nrPermits, long deadlineNanos) throws InterruptedException;
 
 
+  /**
+   * @param nrPermits
+   * @return true if at least one permit is added.
+   */
+  default boolean addPermits(final int nrPermits) {
+    return false;
+  }
+
+
   default Semaphore toSemaphore() {
     return new Semaphore() {
       @Override
