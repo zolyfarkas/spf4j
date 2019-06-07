@@ -118,7 +118,7 @@ public interface PermitSupplier {
           throws InterruptedException {
     if (timeout < 0) {
       throw new IllegalArgumentException("incalid timeout " + timeout + ' ' + unit);
-    }    
+    }
     return tryAcquire(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));
   }
 
