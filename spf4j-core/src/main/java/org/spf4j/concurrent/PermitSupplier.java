@@ -116,6 +116,9 @@ public interface PermitSupplier {
   @CheckReturnValue
   default boolean tryAcquire(@Nonnegative final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException {
+    if (timeout < 0) {
+      throw new IllegalArgumentException("incalid timeout " + timeout + ' ' + unit);
+    }    
     return tryAcquire(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));
   }
 

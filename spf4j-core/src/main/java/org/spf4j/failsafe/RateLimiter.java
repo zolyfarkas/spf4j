@@ -37,11 +37,15 @@ import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongBinaryOperator;
 import java.util.function.LongSupplier;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnegative;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.GuardedBy;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.Atomics;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -323,6 +327,31 @@ public final class RateLimiter
     }
   }
 
+
+  @CheckReturnValue
+  @Override
+  public boolean tryAcquire(@Nonnegative final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    if (timeout < 0) {
+      throw new IllegalArgumentException("incalid timeout " + timeout + ' ' + unit);
+    }
+    boolean tryAcquire = tryAcquire(nrPermits);
+    if (tryAcquire) {
+      return true;
+    }
+    if (timeout == 0) {
+      return false;
+    }
+    long tryAcquireGetDelayNanos = forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);
+    if (tryAcquireGetDelayNanos > 0) {
+      TimeUnit.NANOSECONDS.sleep(tryAcquireGetDelayNanos);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+
   /**
    * @param nrPermits nr of permits to acquire
    * @param timeout the maximum time to wait to acquire the permits.
@@ -338,20 +367,25 @@ public final class RateLimiter
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
       return 0L;
-    } else { // no curent permits available, reserve the slots and get the wait time
-      if (replenisher.isCancelled()) {
-        throw new IllegalStateException("RateLimiter is closed: " + this);
-      }
-      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos);
-      boolean accd;
-      synchronized (sync) {
-        accd = Atomics.maybeAccumulate(permits, nrPermits, rh, maxBackoffNanos);
-      }
-      if (accd) {
-        return rh.getNsUntilResourcesAvailable();
-      } else {
-        return -1L;
-      }
+    } else {
+      return forceReserve(deadlineNanos, nrPermits);
+    }
+  }
+
+  private long forceReserve(final long deadlineNanos, final int nrPermits) {
+    // no curent permits available, reserve the slots and get the wait time
+    if (replenisher.isCancelled()) {
+      throw new IllegalStateException("RateLimiter is closed: " + this);
+    }
+    ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos);
+    boolean accd;
+    synchronized (sync) {
+      accd = Atomics.maybeAccumulate(permits, nrPermits, rh, maxBackoffNanos);
+    }
+    if (accd) {
+      return rh.getNsUntilResourcesAvailable();
+    } else {
+      return -1L;
     }
   }
 
