@@ -54,13 +54,51 @@ public interface PermitSupplier {
     }
   };
 
-
   PermitSupplier EMPTY = new PermitSupplier() {
     @Override
     public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
       return false;
     }
   };
+
+  public interface Acquisition {
+
+    Acquisition SUCCESS = new Acquisition() {
+      @Override
+      public boolean isSuccess() {
+        return true;
+      }
+
+      @Override
+      public long permitAvailableEstimateInNanos() {
+        return 0L;
+      }
+    };
+
+    static Acquisition failed(final long nanosUntilAvailable) {
+      return new Acquisition() {
+        @Override
+        public boolean isSuccess() {
+          return false;
+        }
+
+        @Override
+        public long permitAvailableEstimateInNanos() {
+          return nanosUntilAvailable;
+        }
+      };
+    }
+
+    /**
+     * @return true is permit acquisition request successful. false otherwise.
+     */
+    boolean isSuccess();
+
+    /**
+     * @return if acquisition not successful the number of nanos in which permits will be available. -1L if N/A
+     */
+    long permitAvailableEstimateInNanos();
+  }
 
   /**
    * Acquire one permit.
@@ -107,23 +145,46 @@ public interface PermitSupplier {
 
   /**
    * try to acquire a number of permits.
-   * @param nrPermits  number of permits to acquire.
-   * @param timeout  time to wait for permits to become available.
-   * @param unit  units of time.
-   * @return  true if permits acquired, false if timed out.
+   *
+   * @param nrPermits number of permits to acquire.
+   * @param timeout time to wait for permits to become available.
+   * @param unit units of time.
+   * @return true if permits acquired, false if timed out.
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
   default boolean tryAcquire(@Nonnegative final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException {
     if (timeout < 0) {
-      throw new IllegalArgumentException("incalid timeout " + timeout + ' ' + unit);
+      throw new IllegalArgumentException("Invalid timeout " + timeout + ' ' + unit);
     }
     return tryAcquire(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));
   }
 
   @CheckReturnValue
   boolean tryAcquire(@Nonnegative int nrPermits, long deadlineNanos) throws InterruptedException;
+
+
+  @CheckReturnValue
+  default Acquisition tryAcquireEx(@Nonnegative final int nrPermits,
+          @Nonnegative final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    if (timeout < 0) {
+      throw new IllegalArgumentException("Invalid timeout " + timeout + ' ' + unit);
+    }
+    return tryAcquireEx(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));
+  }
+
+  @CheckReturnValue
+  default Acquisition tryAcquireEx(@Nonnegative final int nrPermits, final long deadlineNanos)
+          throws InterruptedException {
+    boolean  res = tryAcquire(nrPermits, deadlineNanos);
+    if (res) {
+      return Acquisition.SUCCESS;
+    } else {
+      return Acquisition.failed(-1L);
+    }
+  }
 
 
   /**
@@ -133,7 +194,6 @@ public interface PermitSupplier {
   default boolean addPermits(final int nrPermits) {
     return false;
   }
-
 
   default Semaphore toSemaphore() {
     return new Semaphore() {

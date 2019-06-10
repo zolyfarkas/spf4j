@@ -101,6 +101,9 @@ public final class RateLimiter
 
   private final LongSupplier nanoTimeSupplier;
 
+  /**
+   * the time at which replenishment has been made.
+   */
   @GuardedBy("sync")
   private long lastReplenishmentNanos;
 
@@ -241,7 +244,7 @@ public final class RateLimiter
     }, maxBackoffNanos);
   }
 
-  private final class ReservationHandler implements LongBinaryOperator {
+  private final class ReservationHandler implements LongBinaryOperator, Acquisition {
 
     private long currTimeNanos;
 
@@ -251,17 +254,21 @@ public final class RateLimiter
 
     private int reTimeCount;
 
+    private boolean isSuccess;
+
     ReservationHandler(final long currTimeNanos, final long deadlineNanos) {
       this.currTimeNanos = currTimeNanos;
       this.deadlineNanos = deadlineNanos;
-      this.nsUntilResourcesAvailable = -1;
+      this.nsUntilResourcesAvailable = 0;
       this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;
+      this.isSuccess = false;
     }
 
     @Override
     public long applyAsLong(final long prev, final long nrPermits) {
       long remaimingPermits = prev - nrPermits;
       if (remaimingPermits >= 0) {
+        isSuccess = true;
         return remaimingPermits;
       }
       if (reTimeCount > 0) {
@@ -272,25 +279,22 @@ public final class RateLimiter
         currTimeNanos = nanoTimeSupplier.getAsLong();
       }
       long timeoutNs = deadlineNanos - currTimeNanos;
-      if (timeoutNs <= 0) {
-        return prev;
-      }
       long nsUntilNextReplenishment
               = permitReplenishIntervalNanos - (currTimeNanos - lastReplenishmentNanos);
-      if (timeoutNs < nsUntilNextReplenishment) {
-          return prev; // not enough time to wait.
-      }
-      double permitsNeeded = -remaimingPermits;
+      long permitsNeeded = -remaimingPermits;
       if (permitsNeeded <= permitsPerReplenishInterval) {
         nsUntilResourcesAvailable = nsUntilNextReplenishment;
         return remaimingPermits;
       } else {
-        int numberOfReplenishMentsNeed = (int) Math.ceil(permitsNeeded / permitsPerReplenishInterval);
+        int numberOfReplenishMentsNeed = permitsNeeded % permitsPerReplenishInterval == 0
+                ? (int) (permitsNeeded / permitsPerReplenishInterval)
+                : (int) (permitsNeeded / permitsPerReplenishInterval + 1);
         long nsNeeded = nsUntilNextReplenishment
                 + (numberOfReplenishMentsNeed - 1) * permitReplenishIntervalNanos;
+        nsUntilResourcesAvailable = nsNeeded;
         if (nsNeeded <= timeoutNs) {
-          nsUntilResourcesAvailable = nsNeeded;
-          return remaimingPermits;
+          isSuccess = true;
+          return remaimingPermits; // make reservation.
         } else {
           return prev;
         }
@@ -306,6 +310,16 @@ public final class RateLimiter
       return "ReservationHandler{" + "deadlineNanos=" + deadlineNanos + ", permits=" + permits
               + ", nsUntilResourcesAvailable=" + nsUntilResourcesAvailable + '}';
     }
+
+    @Override
+    public boolean isSuccess() {
+      return isSuccess;
+    }
+
+    @Override
+    public long permitAvailableEstimateInNanos() {
+      return nsUntilResourcesAvailable;
+    }
   }
 
   public long getNrPermits() {
@@ -315,11 +329,12 @@ public final class RateLimiter
   @Override
   @SuppressFBWarnings("MDM_THREAD_YIELD") //fb has a point here...
   public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
-    long tryAcquireGetDelayNanos = tryAcquireGetDelayNanos(nrPermits, deadlineNanos);
-    if (tryAcquireGetDelayNanos == 0) {
-      return true;
-    } else if (tryAcquireGetDelayNanos > 0) {
-      TimeUnit.NANOSECONDS.sleep(tryAcquireGetDelayNanos);
+    Acquisition acq = tryAcquireGetDelayNanos(nrPermits, deadlineNanos);
+    if (acq.isSuccess()) {
+      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();
+      if (permitAvailableEstimateInNanos > 0) {
+        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);
+      }
       return true;
     } else {
       return false;
@@ -341,17 +356,47 @@ public final class RateLimiter
     if (timeout == 0) {
       return false;
     }
-    long tryAcquireGetDelayNanos = forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);
-    if (tryAcquireGetDelayNanos == 0) {
-      return true;
-    } else if (tryAcquireGetDelayNanos > 0) {
-      TimeUnit.NANOSECONDS.sleep(tryAcquireGetDelayNanos);
+    Acquisition acq = forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);
+    if (acq.isSuccess()) {
+      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();
+      if (permitAvailableEstimateInNanos > 0) {
+        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);
+      }
       return true;
     } else {
       return false;
     }
   }
 
+  @Override
+  public Acquisition tryAcquireEx(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+    boolean tryAcquire = tryAcquire(nrPermits);
+    if (tryAcquire) {
+      return Acquisition.SUCCESS;
+    }
+    Acquisition acq =  forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);
+    if (acq.isSuccess()) {
+      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();
+      if (permitAvailableEstimateInNanos > 0) {
+        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);
+      }
+    }
+    return acq;
+  }
+
+  @Override
+  public Acquisition tryAcquireEx(final int nrPermits, final long deadlineNanos)
+          throws InterruptedException {
+    Acquisition acq = tryAcquireGetDelayNanos(nrPermits, deadlineNanos);
+    if (acq.isSuccess()) {
+      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();
+      if (permitAvailableEstimateInNanos > 0) {
+        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);
+      }
+    }
+    return acq;
+  }
 
   /**
    * @param nrPermits nr of permits to acquire
@@ -363,30 +408,25 @@ public final class RateLimiter
    * @throws InterruptedException
    */
   @Signed
-  long tryAcquireGetDelayNanos(final int nrPermits, final long deadlineNanos) {
+  Acquisition tryAcquireGetDelayNanos(final int nrPermits, final long deadlineNanos) {
     boolean tryAcquire = tryAcquire(nrPermits);
     if (tryAcquire) {
-      return 0L;
+      return Acquisition.SUCCESS;
     } else {
       return forceReserve(deadlineNanos, nrPermits);
     }
   }
 
-  private long forceReserve(final long deadlineNanos, final int nrPermits) {
+  private ReservationHandler forceReserve(final long deadlineNanos, final int nrPermits) {
     // no curent permits available, reserve the slots and get the wait time
     if (replenisher.isCancelled()) {
       throw new IllegalStateException("RateLimiter is closed: " + this);
     }
     ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos);
-    boolean accd;
     synchronized (sync) {
-      accd = Atomics.maybeAccumulate(permits, nrPermits, rh, maxBackoffNanos);
+      Atomics.accumulate(permits, nrPermits, rh, maxBackoffNanos);
     }
-    if (accd) {
-      return rh.getNsUntilResourcesAvailable();
-    } else {
-      return -1L;
-    }
+    return rh;
   }
 
   @Override

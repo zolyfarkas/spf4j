@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.TestTimeSource;
 import org.spf4j.base.TimeSource;
+import org.spf4j.concurrent.PermitSupplier;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.annotations.PrintLogs;
 
@@ -68,8 +69,8 @@ public class RateLimiterTest {
             Mockito.eq(TimeUnit.NANOSECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(10, Duration.ofNanos(10000000), 100, mockExec)) {
       long s1Nanos = TimeUnit.SECONDS.toNanos(1);
-      long timeToWait = rateLimiter.tryAcquireGetDelayNanos(1000, nanoTime + s1Nanos);
-      Assert.assertEquals(s1Nanos, timeToWait);
+      PermitSupplier.Acquisition acq = rateLimiter.tryAcquireGetDelayNanos(1000, nanoTime + s1Nanos);
+      Assert.assertEquals(s1Nanos, acq.permitAvailableEstimateInNanos());
     }
     } finally {
       TestTimeSource.clear();
@@ -109,14 +110,17 @@ public class RateLimiterTest {
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(100000000L), Mockito.eq(100000000L),
             Mockito.eq(TimeUnit.NANOSECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(1, Duration.ofNanos(100000000L), 10, mockExec, () -> 0L)) {
-      long tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(10, TimeUnit.SECONDS.toNanos(10));
+      PermitSupplier.Acquisition acq = rateLimiter.tryAcquireGetDelayNanos(10, TimeUnit.SECONDS.toNanos(10));
+      long tryAcquireGetDelayNs = acq.permitAvailableEstimateInNanos();
       LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayNs);
       Assert.assertEquals(1000000000, tryAcquireGetDelayNs);
       Assert.assertEquals(-10, rateLimiter.getNrPermits(), 0.0001);
-      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(10, TimeUnit.MILLISECONDS.toNanos(10));
-      Assert.assertTrue(tryAcquireGetDelayNs < 0);
-      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(1, TimeUnit.MILLISECONDS.toNanos(2000));
-      Assert.assertEquals(1100000000, tryAcquireGetDelayNs);
+      long notEnoughNanos = TimeUnit.MILLISECONDS.toNanos(10);
+      acq = rateLimiter.tryAcquireGetDelayNanos(10, notEnoughNanos);
+      Assert.assertFalse(acq.isSuccess());
+      Assert.assertTrue(acq.permitAvailableEstimateInNanos() > notEnoughNanos);
+      acq = rateLimiter.tryAcquireGetDelayNanos(1, TimeUnit.MILLISECONDS.toNanos(2000));
+      Assert.assertEquals(1100000000, acq.permitAvailableEstimateInNanos());
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(100000000L), Mockito.eq(100000000L),
             Mockito.eq(TimeUnit.NANOSECONDS));
@@ -132,12 +136,16 @@ public class RateLimiterTest {
     Mockito.when(mockExec.scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000000000L), Mockito.eq(10000000000L),
             Mockito.eq(TimeUnit.NANOSECONDS))).thenReturn(mockFut);
     try (RateLimiter rateLimiter = new RateLimiter(100, Duration.ofSeconds(10), 100, mockExec, () -> 0L)) {
-      long tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(2, TimeUnit.SECONDS.toNanos(20));
+      long tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(2, TimeUnit.SECONDS.toNanos(20))
+              .permitAvailableEstimateInNanos();
       LOG.debug("Rate Limiter = {}, waitMs = {}", rateLimiter, tryAcquireGetDelayNs);
       Assert.assertEquals(10000000000L, tryAcquireGetDelayNs);
       Assert.assertEquals(-2, rateLimiter.getNrPermits());
-      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(1, TimeUnit.MILLISECONDS.toNanos(10));
-      Assert.assertTrue(tryAcquireGetDelayNs < 0);
+      long notEnoughNanos = TimeUnit.MILLISECONDS.toNanos(10);
+      tryAcquireGetDelayNs = rateLimiter.tryAcquireGetDelayNanos(1, notEnoughNanos)
+              .permitAvailableEstimateInNanos();
+
+      Assert.assertTrue(tryAcquireGetDelayNs > notEnoughNanos);
     }
     Mockito.verify(mockExec).scheduleAtFixedRate(Mockito.any(), Mockito.eq(10000000000L), Mockito.eq(10000000000L),
             Mockito.eq(TimeUnit.NANOSECONDS));
