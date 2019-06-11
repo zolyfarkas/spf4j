@@ -68,6 +68,28 @@ public final class CompoundPermitSupplier implements PermitSupplier {
     return true;
   }
 
+  @Override
+  public Acquisition tryAcquireEx(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+    PermitSupplier[] acquired = new PermitSupplier[suppliers.length];
+    int i = 0;
+    for (PermitSupplier sem : suppliers) {
+      Acquisition tryAcquire;
+      try {
+        tryAcquire = sem.tryAcquireEx(nrPermits, deadlineNanos);
+      } catch (InterruptedException | RuntimeException ex) {
+        returnPermits(acquired, i, nrPermits);
+        throw ex;
+      }
+      if (tryAcquire.isSuccess()) {
+        acquired[i++] = sem;
+      } else {
+        returnPermits(acquired, i, nrPermits);
+        return tryAcquire;
+      }
+    }
+    return Acquisition.SUCCESS;
+  }
+
   private static void returnPermits(final PermitSupplier[] pss, final int nr, final int nrPermits) {
     RuntimeException ex = null;
     for (int i = nr - 1; i >= 0; i--) {
