@@ -450,8 +450,7 @@ public final class RateLimiter
 
   @Override
   public String toString() {
-    return "RateLimiter{" + "permits=" + permits.get()
-            + ", replenisher=" + replenisher + ", permitsPerReplenishInterval="
+    return "RateLimiter{" + "permits=" + permits.get() + ", permitsPerReplenishInterval="
             + permitsPerReplenishInterval + ", permitReplenishIntervalNanos=" + permitReplenishIntervalNanos + '}';
   }
 

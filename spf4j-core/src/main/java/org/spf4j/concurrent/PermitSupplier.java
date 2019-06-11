@@ -52,6 +52,14 @@ public interface PermitSupplier {
     public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
       return true;
     }
+
+    @Override
+    public String toString() {
+      return "Unlimited";
+    }
+
+
+
   };
 
   PermitSupplier EMPTY = new PermitSupplier() {
@@ -59,6 +67,12 @@ public interface PermitSupplier {
     public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
       return false;
     }
+
+    @Override
+    public String toString() {
+      return "Empty";
+    }
+
   };
 
   public interface Acquisition {
