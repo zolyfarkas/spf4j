@@ -31,48 +31,19 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.base.TimeSource;
-
 /**
- *
+ * an informational "attachment" exception, to explain why no retry reason for a exception.
  * @author Zoltan Farkas
  */
-public class SyncRetryExecutorTest {
+public class NotEnoughTimeToRetry extends RuntimeException {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SyncRetryExecutorTest.class);
-
-  @Test
-  public void testExHandling() throws InterruptedException, TimeoutException {
-    try {
-      RetryPolicy.defaultPolicy().run(() -> {
-        throw new RuntimeException("fail");
-      }, RuntimeException.class,
-              TimeSource.nanoTime() - 10000000);
-      Assert.fail();
-    } catch (RuntimeException ex) {
-      LOG.debug("Expected exception", ex);
-      Assert.assertEquals("fail", ex.getMessage());
-    }
+  public NotEnoughTimeToRetry(final String message) {
+    super(message);
   }
 
-  @Test
-  public void testExHandling2() throws InterruptedException {
-    try {
-      RetryPolicy.defaultPolicy().async().submit(() -> {
-        throw new RuntimeException("fail");
-      }, TimeSource.nanoTime() - 10000000).get();
-      Assert.fail();
-    } catch (ExecutionException ex) {
-      LOG.debug("Expected exception", ex);
-      Throwable t = ex.getCause();
-      Assert.assertEquals("fail", t.getMessage());
-    }
+  @Override
+  public void setStackTrace(final StackTraceElement[] stackTrace) {
+    //No stack trace.
   }
 
 
