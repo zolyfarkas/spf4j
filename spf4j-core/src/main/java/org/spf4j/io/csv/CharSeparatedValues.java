@@ -271,14 +271,11 @@ public final class CharSeparatedValues {
    * @param preader
    * @return
    * @throws IOException
+   * @deprecated use reader
    */
+  @Deprecated
   public CsvReader readerILEL(final Reader preader) throws IOException {
-    PushbackReader reader = new PushbackReader(preader);
-    int firstChar = reader.read();
-    if (firstChar != UTF_BOM && firstChar >= 0) {
-      reader.unread(firstChar);
-    }
-    return readerNoBOMILEL(reader);
+    return reader(preader);
   }
 
   /**
@@ -294,7 +291,9 @@ public final class CharSeparatedValues {
    * reader that there is not BOM. (byte order marker) and will ignore last empty line.
    * @param reader
    * @return
+   * @deprecated use readerNoBOM.
    */
+  @Deprecated
   public CsvReader readerNoBOMILEL(final PushbackReader reader) {
     return new CsvReaderImpl(reader);
   }

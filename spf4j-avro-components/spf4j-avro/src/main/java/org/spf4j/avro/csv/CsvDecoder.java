@@ -52,7 +52,7 @@ public final class CsvDecoder extends ParsingDecoder {
     super(new JsonGrammarGenerator().generate(readerSchema));
     this.csvReader = csvReader;
     try {
-      if (csvReader.current() == null) {
+      if (csvReader.current() == CsvReader.TokenType.START_DOCUMENT) {
         csvReader.next();
       }
     } catch (CsvParseException ex) {
@@ -260,7 +260,7 @@ public final class CsvDecoder extends ParsingDecoder {
   @Override
   public long readArrayStart() throws IOException {
     CsvReader.TokenType current = csvReader.current();
-    if (current == null) {
+    if (current == CsvReader.TokenType.START_DOCUMENT) {
       throw new IllegalStateException("cannot be at the beginning of " + csvReader);
     }
     parser.advance(Symbol.ARRAY_START);
@@ -275,7 +275,7 @@ public final class CsvDecoder extends ParsingDecoder {
   public long arrayNext() throws IOException {
     parser.advance(Symbol.ITEM_END);
     CsvReader.TokenType current = csvReader.current();
-    if (current == null) {
+    if (current == CsvReader.TokenType.START_DOCUMENT) {
       throw new IllegalStateException("cannot be at the beginning of " + csvReader);
     }
     if (current == CsvReader.TokenType.END_ROW) {
