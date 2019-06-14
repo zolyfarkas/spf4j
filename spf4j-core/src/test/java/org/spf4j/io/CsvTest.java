@@ -59,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.io.csv.CsvReader;
 import org.spf4j.io.csv.CsvReader.TokenType;
-import org.spf4j.io.csv.CsvRuntimeException;
 import org.spf4j.io.csv.UncheckedCsvParseException;
 
 /**
@@ -70,6 +69,40 @@ import org.spf4j.io.csv.UncheckedCsvParseException;
 public final class CsvTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(CsvTest.class);
+
+  @Test
+  public void testCsvReadNrRows() throws IOException, CsvParseException {
+    Integer read = Csv.read(new StringReader("a,b,c\nc,d,e\n"), new Csv.CsvHandler<Integer>() {
+
+      private int sr;
+      private int er;
+      private int count = 0;
+      private String[] elems = new String[] {"a", "b", "c", "c", "d", "e"};
+
+      @Override
+      public void endRow() {
+        er++;
+      }
+
+      @Override
+      public void startRow() {
+        sr++;
+      }
+
+      @Override
+      public void element(final CharSequence elem) {
+        Assert.assertEquals(elems[count++], elem.toString());
+      }
+
+      @Override
+      public Integer eof() {
+        Assert.assertEquals(sr, er);
+        return sr;
+      }
+    });
+    Assert.assertEquals(2, read.intValue());
+  }
+
 
   @Test
   public void testCsvReadWrite() throws IOException, CsvParseException {
@@ -145,7 +178,7 @@ public final class CsvTest {
   }
 
 
-  @Test(expected = CsvRuntimeException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testCsvReadWriteException2() throws IOException, CsvParseException {
     File testFile = createTestCsv();
 
@@ -267,6 +300,7 @@ public final class CsvTest {
     CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("")));
     Assert.assertEquals(TokenType.ELEMENT, reader.next());
     Assert.assertEquals("", reader.getElement().toString());
+    Assert.assertEquals(TokenType.END_ROW, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
   }
@@ -278,6 +312,7 @@ public final class CsvTest {
     Assert.assertEquals("", reader.getElement().toString());
     Assert.assertEquals(TokenType.ELEMENT, reader.next());
     Assert.assertEquals("", reader.getElement().toString());
+    Assert.assertEquals(TokenType.END_ROW, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
   }
@@ -287,6 +322,7 @@ public final class CsvTest {
     CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("bla")));
     Assert.assertEquals(TokenType.ELEMENT, reader.next());
     Assert.assertEquals("bla", reader.getElement().toString());
+    Assert.assertEquals(TokenType.END_ROW, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
   }
@@ -296,6 +332,7 @@ public final class CsvTest {
     CsvReader reader = Csv.readerNoBOM(new PushbackReader(new StringReader("\"bla\"")));
     Assert.assertEquals(TokenType.ELEMENT, reader.next());
     Assert.assertEquals("bla", reader.getElement().toString());
+    Assert.assertEquals(TokenType.END_ROW, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
   }
@@ -308,8 +345,6 @@ public final class CsvTest {
     Assert.assertEquals(TokenType.ELEMENT, reader.next());
     Assert.assertEquals("bla", reader.getElement().toString());
     Assert.assertEquals(TokenType.END_ROW, reader.next());
-    Assert.assertEquals(TokenType.ELEMENT, reader.next());
-    Assert.assertEquals("", reader.getElement().toString());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
   }
@@ -327,8 +362,6 @@ public final class CsvTest {
     Assert.assertEquals(TokenType.ELEMENT, reader.next());
     Assert.assertEquals("uhu2", reader.getElement().toString());
     Assert.assertEquals(TokenType.END_ROW, reader.next());
-    Assert.assertEquals(TokenType.ELEMENT, reader.next());
-    Assert.assertEquals("", reader.getElement().toString());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(TokenType.END_DOCUMENT, reader.next());
   }
@@ -340,7 +373,7 @@ public final class CsvTest {
       LOG.debug("{}", line);
       nr++;
     }
-    Assert.assertEquals(3, nr);
+    Assert.assertEquals(2, nr);
   }
 
   @Test(expected = UncheckedCsvParseException.class)
@@ -372,6 +405,33 @@ public final class CsvTest {
       Assert.assertEquals(3, nr);
     }
   }
+
+  @Test
+  public void testCsvFileParsingReader() throws IOException, CsvParseException {
+    try (InputStream resourceAsStream = CsvTest.class.getResourceAsStream("/test.csv")) {
+      Iterable<Iterable<String>> asIterable
+              = Csv.asIterable(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
+      int i = 0;
+      for (Iterable<String> row : asIterable) {
+        LOG.debug("Row {}", row);
+        i++;
+      }
+      Assert.assertEquals(4, i);
+    }
+  }
+
+  @Test
+  public void testCsvFileParsingReader2() throws IOException, CsvParseException {
+    try (InputStream resourceAsStream = CsvTest.class.getResourceAsStream("/test.csv")) {
+      CsvReader reader = Csv.reader(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
+      CsvReader.TokenType token;
+      while ((token = reader.next()) != TokenType.END_DOCUMENT) {
+        LOG.debug("Token {}", token);
+      }
+      Assert.assertNotNull(reader);
+    }
+  }
+
 
   @Test
   public void testCsvFileParsing2() throws IOException {

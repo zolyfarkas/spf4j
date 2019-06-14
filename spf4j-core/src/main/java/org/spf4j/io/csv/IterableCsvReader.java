@@ -40,6 +40,7 @@ import java.util.Iterator;
  */
 class IterableCsvReader implements CsvReader {
 
+  private CsvReader.TokenType currentToken;
   private CharSequence current;
   private final Iterator<? extends CharSequence> it;
   private boolean finished;
@@ -48,39 +49,46 @@ class IterableCsvReader implements CsvReader {
     this.it = it;
     current = null;
     finished = false;
+    currentToken = TokenType.START_DOCUMENT;
   }
 
   @Override
   public CsvReader.TokenType next() throws EOFException {
     if (finished) {
-      throw new EOFException();
+      currentToken = CsvReader.TokenType.END_DOCUMENT;
+      return currentToken;
     }
     if (it.hasNext()) {
       current = it.next();
-      return CsvReader.TokenType.ELEMENT;
+      currentToken = CsvReader.TokenType.ELEMENT;
     } else {
       finished = true;
-      return CsvReader.TokenType.END_DOCUMENT;
+      currentToken = CsvReader.TokenType.END_ROW;
     }
+    return currentToken;
   }
 
   @Override
   public CsvReader.TokenType current() {
-    if (finished) {
-      return CsvReader.TokenType.END_DOCUMENT;
-    } else {
-      return CsvReader.TokenType.ELEMENT;
-    }
+    return currentToken;
   }
 
   @Override
   public CharSequence getElement() {
+    if (currentToken != TokenType.ELEMENT) {
+      throw new IllegalStateException("Not at a element " + currentToken);
+    }
     return current;
   }
 
   @Override
   public String toString() {
     return "IterableCsvReader{" + "current=" + current + ", it=" + it + ", finished=" + finished + '}';
+  }
+
+  @Override
+  public long currentLineNumber() {
+    return 0;
   }
 
 }

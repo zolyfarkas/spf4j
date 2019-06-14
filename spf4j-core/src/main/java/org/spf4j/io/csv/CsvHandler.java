@@ -37,7 +37,7 @@ package org.spf4j.io.csv;
  */
 public interface CsvHandler<T> {
 
-  default void startRow(int rowNr) {
+  default void startRow(long rowNr) {
     startRow();
   }
 

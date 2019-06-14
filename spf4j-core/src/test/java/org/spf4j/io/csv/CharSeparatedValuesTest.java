@@ -61,13 +61,14 @@ public class CharSeparatedValuesTest {
     Assert.assertEquals("d", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("e", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
   }
 
   @Test
   public void testCsvReaderX() throws IOException, CsvParseException {
     CharSeparatedValues csv = new CharSeparatedValues(' ');
-    CsvReader reader = csv.readerILEL(new StringReader("a b c\nd e\n"));
+    CsvReader reader = csv.reader(new StringReader("a b c\nd e\n"));
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("a", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
@@ -81,6 +82,7 @@ public class CharSeparatedValuesTest {
     Assert.assertEquals("d", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("e", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
   }
 
@@ -88,6 +90,7 @@ public class CharSeparatedValuesTest {
   public void testCsvReaderXX() throws IOException, CsvParseException {
     CharSeparatedValues csv = new CharSeparatedValues(' ');
     CsvReader reader = csv.readerILEL(new StringReader("a b c\r\nd e\r\n"));
+    Assert.assertEquals(CsvReader.TokenType.START_DOCUMENT, reader.current());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("a", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
@@ -101,6 +104,7 @@ public class CharSeparatedValuesTest {
     Assert.assertEquals("d", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("e", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
   }
 
@@ -121,6 +125,7 @@ public class CharSeparatedValuesTest {
     Assert.assertEquals("d", reader.getElement().toString());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("e", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
   }
 
@@ -128,9 +133,10 @@ public class CharSeparatedValuesTest {
   public void testCsvReader2() throws IOException, CsvParseException {
     CharSeparatedValues csv = new CharSeparatedValues(' ');
     CsvReader reader = csv.reader(new StringReader(""));
-    Assert.assertNull(reader.current());
+    Assert.assertEquals(CsvReader.TokenType.START_DOCUMENT, reader.current());
     Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
     Assert.assertEquals("", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
     Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.current());
   }

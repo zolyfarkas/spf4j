@@ -35,16 +35,19 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Char separated value file Reader.
+ * A newly created reader will initially be positioned at START_DOCUMENT. (current())
+ * A example Token sequence will be:
+ * START_DOCUMENT, ELEMENT, ELEMENT, END_ROW, ELEMENT, ELEMENT, END_ROW, END_DOCUMENT
+ *
  * @author zoly
  */
 public interface CsvReader {
 
   enum TokenType {
-     ELEMENT, END_ROW, END_DOCUMENT
+     START_DOCUMENT, ELEMENT, END_ROW, END_DOCUMENT
   }
 
   /**
@@ -61,7 +64,7 @@ public interface CsvReader {
    * @throws IOException
    * @throws CsvParseException
    */
-  @Nullable
+  @Nonnull
   TokenType current();
 
   /**
@@ -72,10 +75,16 @@ public interface CsvReader {
    */
   CharSequence getElement();
 
+  /**
+   * Current CSV line number.
+   * @return
+   */
+  long currentLineNumber();
+
   default int skipRow() throws IOException, CsvParseException {
     int skipped = 0;
     TokenType current = current();
-    if (current == null) { // beginning of file.
+    if (current == TokenType.START_DOCUMENT) { // beginning of file.
       next();
     }
     while ((current = current()) != CsvReader.TokenType.END_ROW
@@ -91,7 +100,7 @@ public interface CsvReader {
 
   default void readRow(final Consumer<CharSequence> consumer) throws IOException, CsvParseException {
     TokenType current = current();
-    if (current == null) { // beginning of file.
+    if (current == TokenType.START_DOCUMENT) { // beginning of file.
       next();
     }
     while ((current = current()) != CsvReader.TokenType.END_ROW
@@ -105,7 +114,7 @@ public interface CsvReader {
   }
 
 
-  default CsvReader toReader(final Iterator<? extends CharSequence> it) {
+  static CsvReader toReader(final Iterator<? extends CharSequence> it) {
     return new IterableCsvReader(it);
   }
 }

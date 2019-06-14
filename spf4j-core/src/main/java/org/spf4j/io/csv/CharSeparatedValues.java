@@ -220,60 +220,21 @@ public final class CharSeparatedValues {
    */
   public <T> T readNoBom(final PushbackReader reader, final CsvHandler<T> handler)
           throws IOException, CsvParseException {
-    boolean start = true;
-    StringBuilder strB = new StringBuilder();
-    boolean loop = true;
-    int lineNr = 0;
-    try {
-      do {
-        if (start) {
-          handler.startRow(lineNr);
-          start = false;
+    CsvReader r = reader(reader);
+    handler.startRow(0);
+    CsvReader.TokenType token = r.next();
+    while (token != CsvReader.TokenType.END_DOCUMENT) {
+      if (token == CsvReader.TokenType.ELEMENT) {
+        handler.element(r.getElement());
+        token = r.next();
+      } else if (token == CsvReader.TokenType.END_ROW) {
+        handler.endRow();
+        token = r.next();
+        if (token == CsvReader.TokenType.ELEMENT) {
+          handler.startRow(r.currentLineNumber());
         }
-        strB.setLength(0);
-        int c = readCsvElement(reader, strB, lineNr);
-        handler.element(strB);
-        switch (c) {
-          case '\r':
-            handler.endRow();
-            start = true;
-            int c2 = reader.read();
-            if (c2 < 0) {
-              loop = false;
-              break;
-            }
-            if (c2 != '\n') {
-              reader.unread(c2);
-            }
-            break;
-          case '\n':
-            handler.endRow();
-            start = true;
-            c2 = reader.read();
-            if (c2 < 0) {
-              loop = false;
-              break;
-            }
-            if (c2 != '\r') {
-              reader.unread(c2);
-            }
-            break;
-          default:
-            if (c != separator) {
-              if (c < 0) {
-                loop = false;
-              } else {
-                throw new CsvParseException("Unexpected character " + c + " at line " + lineNr);
-              }
-            }
-        }
-      } while (loop);
-    } catch (IOException ex) {
-      throw new IOException("IO issue at line " + lineNr, ex);
-    } catch (RuntimeException ex) {
-      throw new CsvRuntimeException("Exception at line " + lineNr, ex);
+      }
     }
-    handler.endRow();
     return handler.eof();
   }
 
@@ -302,7 +263,7 @@ public final class CharSeparatedValues {
     if (firstChar != UTF_BOM && firstChar >= 0) {
       reader.unread(firstChar);
     }
-    return readerNoBOM(reader);
+    return readerNoBOMILEL(reader);
   }
 
   /**
@@ -335,7 +296,7 @@ public final class CharSeparatedValues {
    * @return
    */
   public CsvReader readerNoBOMILEL(final PushbackReader reader) {
-    return new CsvReaderIgnoreLastEmptyLine(reader);
+    return new CsvReaderImpl(reader);
   }
 
   public CsvWriter writer(final Writer writer) {
@@ -411,7 +372,7 @@ public final class CharSeparatedValues {
    * @throws IOException
    */
   @CheckReturnValue
-  public int readCsvElement(final Reader reader, final StringBuilder addElemTo, final int lineNr)
+  public int readCsvElement(final Reader reader, final StringBuilder addElemTo, final long lineNr)
           throws IOException, CsvParseException {
     int c = reader.read();
     if (c < 0) {
@@ -473,7 +434,7 @@ public final class CharSeparatedValues {
     private final List<String> header = new ArrayList<>();
     private int elemIdx;
     private Map<String, String> row = null;
-    private int lineNr;
+    private long lineNr;
 
 
     CsvMapHandler2CsvHandler(final CsvMapHandler<T> handler) {
@@ -481,7 +442,7 @@ public final class CharSeparatedValues {
     }
 
     @Override
-    public void startRow(final int ln) {
+    public void startRow(final long ln) {
       lineNr = ln;
       elemIdx = 0;
       if (!first) {
@@ -517,153 +478,86 @@ public final class CharSeparatedValues {
     }
   }
 
-  private class CsvReaderImpl implements CsvReader {
-
-    private final PushbackReader reader;
-    private final StringBuilder currentElement = new StringBuilder();
-    private TokenType currentToken;
-    private TokenType nextToken;
-    private int lineNr = 0;
-
-    CsvReaderImpl(final PushbackReader reader) {
-      this.reader = reader;
-    }
-
-    private void readCurrentElement() throws IOException, CsvParseException {
-      currentElement.setLength(0);
-      int next = readCsvElement(reader, currentElement, lineNr);
-      currentToken = TokenType.ELEMENT;
-      switch (next) {
-        case '\r':
-          int c2 = reader.read();
-          if (c2 != '\n' && c2 >= 0) {
-            reader.unread(c2);
-          }
-          lineNr++;
-          nextToken = TokenType.END_ROW;
-          break;
-        case '\n':
-          c2 = reader.read();
-          if (c2 != '\r' && c2 >= 0) {
-            reader.unread(c2);
-          }
-          lineNr++;
-          nextToken = TokenType.END_ROW;
-          break;
-        default:
-          if (next != separator) {
-            if (next < 0) {
-              nextToken = TokenType.END_DOCUMENT;
-            } else {
-              throw new CsvParseException("Unexpected character " + next + " at line" + lineNr);
-            }
-          }
-      }
-
-    }
-
-    @Override
-    public TokenType next() throws IOException, CsvParseException {
-      if (nextToken == null) {
-        readCurrentElement();
-        return currentToken;
-      } else {
-        TokenType result = nextToken;
-        if (result != TokenType.END_DOCUMENT) {
-          nextToken = null;
-        }
-        currentToken = result;
-        return result;
-      }
-    }
-
-    @Override
-    public TokenType current() {
-      return currentToken;
-    }
-
-    @Override
-    public CharSequence getElement() {
-      return currentElement;
-    }
-
-  }
-
- private class CsvReaderIgnoreLastEmptyLine implements CsvReader {
+ private class CsvReaderImpl implements CsvReader {
 
     private final PushbackReader reader;
     private final StringBuilder currentElement = new StringBuilder();
     private CsvReader.TokenType currentToken;
     private CsvReader.TokenType nextToken;
-    private int lineNr = 0;
+    private long lineNr = 0;
 
-    CsvReaderIgnoreLastEmptyLine(final PushbackReader reader) {
+    CsvReaderImpl(final PushbackReader reader) {
       this.reader = reader;
+      this.currentToken = CsvReader.TokenType.START_DOCUMENT;
+      this.nextToken = null;
     }
 
-    private void readCurrentElement() throws IOException, CsvParseException {
-      currentElement.setLength(0);
-      int next = readCsvElement(reader, currentElement, lineNr);
-      currentToken = CsvReader.TokenType.ELEMENT;
-      switch (next) {
-        case '\r':
-          int c2 = reader.read();
-          if (c2 < 0) {
-            nextToken = CsvReader.TokenType.END_DOCUMENT;
-            break;
-          }
-          if (c2 != '\n') {
-            reader.unread(c2);
-            lineNr++;
-            nextToken = CsvReader.TokenType.END_ROW;
-            break;
-          }
-          int c3 = reader.read();
-          if (c3 < 0) {
-             nextToken = CsvReader.TokenType.END_DOCUMENT;
-          } else {
-            reader.unread(c3);
-            lineNr++;
-            nextToken = CsvReader.TokenType.END_ROW;
-          }
-          break;
-        case '\n':
-          c2 = reader.read();
-          if (c2 < 0) {
-            nextToken = CsvReader.TokenType.END_DOCUMENT;
-            break;
-          }
-          if (c2 != '\r') {
-            reader.unread(c2);
-            lineNr++;
-            nextToken = CsvReader.TokenType.END_ROW;
-            break;
-          }
-          c3 = reader.read();
-          if (c3 < 0) {
-             nextToken = CsvReader.TokenType.END_DOCUMENT;
-          } else {
-            reader.unread(c3);
-            lineNr++;
-            nextToken = CsvReader.TokenType.END_ROW;
-          }
-          break;
-        default:
-          if (next != separator) {
-            if (next < 0) {
-              nextToken = CsvReader.TokenType.END_DOCUMENT;
-            } else {
-              throw new CsvParseException("Unexpected character " + next + " at line" + lineNr);
-            }
-          }
-      }
+   @SuppressFBWarnings("SF_SWITCH_FALLTHROUGH")
+   private void readNext() throws IOException, CsvParseException {
+     // nextToken will always be null;
+     switch (currentToken) {
+       case END_DOCUMENT:
+         nextToken = TokenType.END_DOCUMENT;
+         return;
+       case END_ROW:
+         // handle special case of EOF followed by EOL.
+         int peek = reader.read();
+         if (peek < 0) {
+           currentToken = TokenType.END_DOCUMENT;
+           nextToken = TokenType.END_DOCUMENT;
+           return;
+         }
+         reader.unread(peek);
+       case START_DOCUMENT:
+       case ELEMENT:
+         currentElement.setLength(0);
+         int next = readCsvElement(reader, currentElement, lineNr);
+         currentToken = CsvReader.TokenType.ELEMENT;
+         switch (next) {
+           case '\r':
+             lineNr++;
+             nextToken = CsvReader.TokenType.END_ROW;
+             int c2 = reader.read();
+             if (c2 < 0) {
+               return;
+             }
+             if (c2 != '\n') {
+               reader.unread(c2);
+             }
+             return;
+           case '\n':
+             lineNr++;
+             nextToken = CsvReader.TokenType.END_ROW;
+             c2 = reader.read();
+             if (c2 < 0) {
+               return;
+             }
+             if (c2 != '\r') {
+               reader.unread(c2);
+               break;
+             }
+             break;
+           default:
+             if (next != separator) {
+               if (next < 0) {
+                 nextToken = CsvReader.TokenType.END_ROW;
+               } else {
+                 throw new CsvParseException("Unexpected character " + next + " at line" + lineNr);
+               }
+             }
+         }
+         return;
+       default:
+         throw new IllegalStateException("Invalid current token " + currentToken);
 
-    }
+     }
+
+   }
 
     @Override
     public CsvReader.TokenType next() throws IOException, CsvParseException {
       if (nextToken == null) {
-        readCurrentElement();
+        readNext();
         return currentToken;
       } else {
         CsvReader.TokenType result = nextToken;
@@ -682,18 +576,18 @@ public final class CharSeparatedValues {
 
     @Override
     public CharSequence getElement() {
+      if (currentToken != TokenType.ELEMENT) {
+        throw new IllegalStateException("No current element, current token is " + currentToken);
+      }
       return currentElement;
     }
 
+    @Override
+    public long currentLineNumber() {
+      return lineNr;
+    }
+
   }
-
-
-
-
-
-
-
-
 
   private static class OneRowHandler<T> implements CsvHandler<T> {
 
@@ -705,7 +599,7 @@ public final class CharSeparatedValues {
     }
 
     @Override
-    public void startRow(final int rowNr) {
+    public void startRow(final long rowNr) {
       if (rowNr > 0) {
         throw new IllegalArgumentException("Multiple rows encountered for " + this);
       }
