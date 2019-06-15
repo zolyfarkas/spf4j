@@ -70,39 +70,6 @@ public final class CsvTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(CsvTest.class);
 
-  @Test
-  public void testCsvReadNrRows() throws IOException, CsvParseException {
-    Integer read = Csv.read(new StringReader("a,b,c\nc,d,e\n"), new Csv.CsvHandler<Integer>() {
-
-      private int sr;
-      private int er;
-      private int count = 0;
-      private String[] elems = new String[] {"a", "b", "c", "c", "d", "e"};
-
-      @Override
-      public void endRow() {
-        er++;
-      }
-
-      @Override
-      public void startRow() {
-        sr++;
-      }
-
-      @Override
-      public void element(final CharSequence elem) {
-        Assert.assertEquals(elems[count++], elem.toString());
-      }
-
-      @Override
-      public Integer eof() {
-        Assert.assertEquals(sr, er);
-        return sr;
-      }
-    });
-    Assert.assertEquals(2, read.intValue());
-  }
-
 
   @Test
   public void testCsvReadWrite() throws IOException, CsvParseException {
@@ -465,6 +432,45 @@ public final class CsvTest {
           return null;
         }
       });
+    }
+  }
+
+  @Test
+  public void testCsvReadNrRows() throws IOException, CsvParseException {
+    Integer read = Csv.read(new StringReader("a,b,c\nc,d,e\n"), new AssertCsv());
+    Assert.assertEquals(2, read.intValue());
+    read = Csv.read(new StringReader("a,b,c\r\nc,d,e\n\r"), new AssertCsv());
+    Assert.assertEquals(2, read.intValue());
+    read = Csv.read(new StringReader("a,b,c\r\nc,d,e"), new AssertCsv());
+    Assert.assertEquals(2, read.intValue());
+  }
+
+  private static class AssertCsv implements Csv.CsvHandler<Integer> {
+
+    private int sr;
+    private int er;
+    private int count = 0;
+    private String[] elems = new String[] {"a", "b", "c", "c", "d", "e"};
+
+    @Override
+    public void endRow() {
+      er++;
+    }
+
+    @Override
+    public void startRow() {
+      sr++;
+    }
+
+    @Override
+    public void element(final CharSequence elem) {
+      Assert.assertEquals(elems[count++], elem.toString());
+    }
+
+    @Override
+    public Integer eof() {
+      Assert.assertEquals(sr, er);
+      return sr;
     }
   }
 

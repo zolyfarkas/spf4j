@@ -45,6 +45,26 @@ public class CharSeparatedValuesTest {
 
 
   @Test
+  public void testCsvReaderEmpty() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    CsvReader reader = csv.reader(new StringReader(""));
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals("", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
+    Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
+  }
+
+  @Test
+  public void testCsvReaderEmpty2() throws IOException, CsvParseException {
+    CharSeparatedValues csv = new CharSeparatedValues(' ');
+    CsvReader reader = csv.reader(new StringReader("\r"));
+    Assert.assertEquals(CsvReader.TokenType.ELEMENT, reader.next());
+    Assert.assertEquals("", reader.getElement().toString());
+    Assert.assertEquals(CsvReader.TokenType.END_ROW, reader.next());
+    Assert.assertEquals(CsvReader.TokenType.END_DOCUMENT, reader.next());
+  }
+
+  @Test
   public void testCsvReader() throws IOException, CsvParseException {
     CharSeparatedValues csv = new CharSeparatedValues(' ');
     CsvReader reader = csv.reader(new StringReader("a b c\nd e"));
