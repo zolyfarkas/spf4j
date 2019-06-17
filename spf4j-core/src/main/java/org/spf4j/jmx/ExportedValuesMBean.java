@@ -54,6 +54,7 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
@@ -142,7 +143,7 @@ final class ExportedValuesMBean implements DynamicMBean {
    * {@inheritDoc}
    */
   @Override
-  public Object getAttribute(final String name) throws AttributeNotFoundException, MBeanException {
+  public Object getAttribute(final String name) throws AttributeNotFoundException, MBeanException, ReflectionException {
     ExportedValue<?> result = exportedValues.get(name);
     if (result == null) {
       throw new AttributeNotFoundException(name);
@@ -163,7 +164,7 @@ final class ExportedValuesMBean implements DynamicMBean {
    */
   @Override
   public void setAttribute(final Attribute attribute)
-          throws AttributeNotFoundException, InvalidAttributeValueException {
+          throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
     String name = attribute.getName();
     ExportedValue<Object> result = (ExportedValue<Object>) exportedValues.get(name);
     if (result == null) {
@@ -195,7 +196,7 @@ final class ExportedValuesMBean implements DynamicMBean {
           throw new IllegalArgumentException("No attribute with name " + name);
         }
         list.add(new Attribute(name, attr.get()));
-      } catch (OpenDataException | RuntimeException ex) {
+      } catch (OpenDataException | MBeanException | ReflectionException | RuntimeException ex) {
           Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
                   "Exception getting attribute {0}", name);
           Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
@@ -221,7 +222,8 @@ final class ExportedValuesMBean implements DynamicMBean {
         try {
           eval.set(attr.getValue());
           result.add(attr);
-        } catch (InvalidAttributeValueException | InvalidObjectException | RuntimeException ex) {
+        } catch (AttributeNotFoundException | InvalidAttributeValueException | MBeanException | ReflectionException
+                | InvalidObjectException | RuntimeException ex) {
           Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
                   "Exception while setting attr {}", attr);
           Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
@@ -239,7 +241,8 @@ final class ExportedValuesMBean implements DynamicMBean {
    * {@inheritDoc}
    */
   @Override
-  public Object invoke(final String name, final Object[] args, final String[] sig) throws MBeanException {
+  public Object invoke(final String name, final Object[] args, final String[] sig)
+          throws MBeanException, ReflectionException {
     try {
       return exportedOperations.get(name).invoke(args);
     } catch (OpenDataException | InvalidObjectException | RuntimeException ex) {

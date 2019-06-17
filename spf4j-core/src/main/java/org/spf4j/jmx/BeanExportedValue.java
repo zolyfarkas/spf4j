@@ -38,7 +38,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
@@ -103,7 +105,7 @@ class BeanExportedValue implements ExportedValue<Object> {
   }
 
   @Override
-  public Object get() throws OpenDataException {
+  public Object get() throws OpenDataException, ReflectionException {
 
     try {
       if (converter != null) {
@@ -111,17 +113,25 @@ class BeanExportedValue implements ExportedValue<Object> {
       } else {
         return getMethod.invoke(object);
       }
-    } catch (IllegalAccessException | InvocationTargetException ex) {
-      OpenDataException thr = new OpenDataException("Cannot get " + getMethod);
-      thr.addSuppressed(ex);
-      throw thr;
+    } catch (IllegalAccessException  ex) {
+      throw new ReflectionException(ex, "Cannot get " + getMethod);
+    } catch (InvocationTargetException ex) {
+      Throwable cause = ex.getCause();
+      if (cause instanceof Exception) {
+        throw new ReflectionException((Exception) cause, "Cannot get " + getMethod);
+      } else {
+        throw new ReflectionException(new RuntimeException(ex),
+                "Cannot get " + getMethod);
+      }
     }
+
   }
 
   @Override
-  public void set(final Object value) throws InvalidAttributeValueException, InvalidObjectException {
+  public void set(final Object value) throws InvalidAttributeValueException,
+          InvalidObjectException, ReflectionException, AttributeNotFoundException {
     if (setMethod == null) {
-      throw new InvalidAttributeValueException(name + " is a read only attribute ");
+      throw new AttributeNotFoundException(name + " is a read only attribute ");
     }
     try {
       if (converter != null) {
@@ -129,10 +139,16 @@ class BeanExportedValue implements ExportedValue<Object> {
       } else {
         setMethod.invoke(object, value);
       }
-    } catch (IllegalAccessException | InvocationTargetException ex) {
-      InvalidObjectException iox = new InvalidObjectException("Cannot set " + value);
-      iox.addSuppressed(ex);
-      throw iox;
+    } catch (IllegalAccessException  ex) {
+      throw new ReflectionException(ex, "Cannot set " + getMethod + " with " + value);
+    }  catch (InvocationTargetException ex) {
+      Throwable cause = ex.getCause();
+      if (cause instanceof Exception) {
+        throw new ReflectionException((Exception) cause, "Cannot set " + getMethod + " with " + value);
+      } else {
+        throw new ReflectionException(new RuntimeException(ex),
+                "Cannot get " + getMethod);
+      }
     }
   }
 

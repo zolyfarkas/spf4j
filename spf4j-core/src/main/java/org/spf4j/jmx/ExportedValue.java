@@ -34,8 +34,11 @@ package org.spf4j.jmx;
 import java.io.InvalidObjectException;
 import java.lang.reflect.Type;
 import javax.annotation.Nullable;
+import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
@@ -47,9 +50,10 @@ public interface ExportedValue<T> {
 
   String getDescription();
 
-  T get() throws OpenDataException;
+  T get() throws MBeanException, ReflectionException, OpenDataException;
 
-  void set(T value) throws InvalidAttributeValueException, InvalidObjectException;
+  void set(T value) throws  AttributeNotFoundException,
+          MBeanException, ReflectionException, InvalidAttributeValueException, InvalidObjectException;
 
   boolean isWriteable();
 

@@ -35,6 +35,7 @@ import java.io.InvalidObjectException;
 import javax.annotation.Nullable;
 import javax.management.MBeanException;
 import javax.management.MBeanParameterInfo;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
@@ -48,7 +49,8 @@ public interface ExportedOperation extends Comparable<ExportedOperation> {
 
     String getDescription();
 
-    Object invoke(Object[] parameters) throws MBeanException, OpenDataException, InvalidObjectException;
+    Object invoke(Object[] parameters) throws  MBeanException, ReflectionException,
+            OpenDataException, InvalidObjectException;
 
     MBeanParameterInfo[] getParameterInfos();
 

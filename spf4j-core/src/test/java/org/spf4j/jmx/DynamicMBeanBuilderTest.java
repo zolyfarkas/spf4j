@@ -33,6 +33,7 @@ package org.spf4j.jmx;
 
 import java.lang.reflect.Type;
 import javax.management.MBeanException;
+import javax.management.ReflectionException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,7 +44,7 @@ import org.junit.Test;
 public class DynamicMBeanBuilderTest {
 
   @Test
-  public void testGenericExportedOperation() throws MBeanException {
+  public void testGenericExportedOperation() throws MBeanException, ReflectionException {
     ExportedValuesMBean replace = new DynamicMBeanBuilder()
             .withOperation(new GenericExportedOperation("testOp",
                     "some TestOp",
