@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import javax.annotation.Nullable;
+import javax.management.MBeanException;
 import javax.management.MBeanParameterInfo;
 
 import javax.management.openmbean.OpenDataException;
@@ -138,7 +139,7 @@ final class ExportedOperationImpl implements ExportedOperation {
   }
 
   @Override
-  public Object invoke(final Object[] parameters) throws OpenDataException, InvalidObjectException {
+  public Object invoke(final Object[] parameters) throws MBeanException, OpenDataException, InvalidObjectException {
     try {
       for (int i = 0; i < parameters.length; i++) {
         JMXBeanMapping argConverter = argConverters[i];
@@ -153,10 +154,7 @@ final class ExportedOperationImpl implements ExportedOperation {
         return rVal;
       }
     } catch (IllegalAccessException | InvocationTargetException ex) {
-      OpenDataException x
-              = new OpenDataException("Cannot invoke " + method + " with " + Arrays.toString(parameters));
-      x.addSuppressed(ex);
-      throw x;
+      throw new MBeanException(ex, "Failure invoking " + method + " with " + Arrays.toString(parameters));
     }
   }
 

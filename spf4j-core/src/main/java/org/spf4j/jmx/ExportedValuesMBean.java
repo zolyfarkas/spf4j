@@ -56,7 +56,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import org.spf4j.base.Throwables;
 
 // We att the ex history to the message string, since the client is not required to have the exception classes
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
@@ -155,7 +154,7 @@ final class ExportedValuesMBean implements DynamicMBean {
               "Exception while getting attr {0}", name);
       Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
               "Exception detail", ex);
-      throw new MBeanException(null, "Error getting attribute" + name + " detail:\n" + Throwables.toString(ex));
+      throw new MBeanException(ex, "Error getting attribute" + name);
     }
   }
 
@@ -248,8 +247,7 @@ final class ExportedValuesMBean implements DynamicMBean {
               "Exception while invoking operation {0}({1})", new Object[] {name, args});
       Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.WARNING,
               "Exception detail", ex);
-      throw new MBeanException(null, "Exception invoking" + name + " with " +  Arrays.toString(args) + ", detail:\n"
-              + Throwables.toString(ex));
+      throw new MBeanException(ex, "Exception invoking " + name + " with " +  Arrays.toString(args));
     }
   }
 
