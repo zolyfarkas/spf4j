@@ -38,8 +38,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.Handler;
+import org.spf4j.ds.IdentityHashSet;
 import org.spf4j.log.Slf4jLogRecord;
 
 /**
@@ -72,32 +74,44 @@ public final class Converters {
     return result;
   }
 
-  public static List<Throwable> convert(final java.lang.Throwable[] throwables) {
+  public static List<Throwable> convert(final java.lang.Throwable[] throwables, final Set<java.lang.Throwable> seen) {
     int l = throwables.length;
     if (l == 0) {
       return Collections.EMPTY_LIST;
     }
     List<Throwable> result = new ArrayList<>(l);
     for (java.lang.Throwable t : throwables) {
-      result.add(convert(t));
+      result.add(convert(t, seen));
     }
     return result;
   }
 
   public static Throwable convert(final java.lang.Throwable throwable) {
+    return convert(throwable, new IdentityHashSet<>(4));
+  }
+
+  public static Throwable convert(final java.lang.Throwable throwable,
+          final Set<java.lang.Throwable> seen) {
+    if (seen.contains(throwable)) {
+      return new Throwable(throwable.getClass().getName(),
+              "CIRCULAR REFERENCE:" + throwable.getMessage(),
+              Collections.EMPTY_LIST, null, Collections.EMPTY_LIST);
+    } else {
+      seen.add(throwable);
+    }
     String message = throwable.getMessage();
     if (throwable instanceof RemoteException) {
         return new Throwable(throwable.getClass().getName(),
                 message == null ? "" : message, convert(throwable.getStackTrace()),
                 ((RemoteException) throwable).getRemoteCause(),
-                convert(throwable.getSuppressed()));
+                convert(throwable.getSuppressed(), seen));
     }
     java.lang.Throwable cause = throwable.getCause();
     return new Throwable(throwable.getClass().getName(),
             message == null ? "" : message,
             convert(throwable.getStackTrace()),
-            cause == null ? null : convert(cause),
-            convert(throwable.getSuppressed()));
+            cause == null ? null : convert(cause, seen),
+            convert(throwable.getSuppressed(), seen));
   }
 
   public static RemoteException convert(final String source, final Throwable throwable) {
