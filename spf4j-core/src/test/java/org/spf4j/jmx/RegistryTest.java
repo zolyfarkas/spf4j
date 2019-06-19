@@ -47,6 +47,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.JMException;
 import javax.management.MBeanException;
 import javax.management.ReflectionException;
+import javax.management.RuntimeMBeanException;
 import javax.management.openmbean.CompositeData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -322,7 +323,7 @@ public final class RegistryTest {
       Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
               "test", "Test", "doubleVal", 0.0);
       Assert.fail();
-    } catch (InvalidAttributeValueException e) {
+    } catch (RuntimeMBeanException e) {
       Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
     }
 //        Thread.sleep(1000000000);
@@ -369,7 +370,7 @@ public final class RegistryTest {
       Client.setAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
               "test", "Test", "doubleVal", 0.0);
       Assert.fail();
-    } catch (InvalidAttributeValueException e) {
+    } catch (RuntimeMBeanException e) {
       Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
     }
 

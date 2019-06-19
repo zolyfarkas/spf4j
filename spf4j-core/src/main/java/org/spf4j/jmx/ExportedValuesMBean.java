@@ -150,6 +150,8 @@ final class ExportedValuesMBean implements DynamicMBean {
     }
     try {
       return result.get();
+    } catch (SecurityException ex) {
+      throw ex;
     } catch (OpenDataException | RuntimeException ex) {
       Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
               "Exception while getting attr {0}", name);
@@ -172,6 +174,8 @@ final class ExportedValuesMBean implements DynamicMBean {
     }
     try {
       result.set(attribute.getValue());
+    } catch (SecurityException ex) {
+      throw ex;
     } catch (InvalidObjectException | RuntimeException ex) {
       Logger.getLogger(ExportedValuesMBean.class.getName()).log(Level.SEVERE,
               "Exception while setting attr {0}", attribute);

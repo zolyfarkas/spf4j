@@ -131,7 +131,7 @@ class BeanExportedValue implements ExportedValue<Object> {
   public void set(final Object value) throws InvalidAttributeValueException,
           InvalidObjectException, ReflectionException, AttributeNotFoundException {
     if (setMethod == null) {
-      throw new AttributeNotFoundException(name + " is a read only attribute ");
+      throw new SecurityException(name + " is a read only attribute ");
     }
     try {
       if (converter != null) {
