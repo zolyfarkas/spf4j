@@ -89,7 +89,7 @@ public class TcpServerTest {
 
   private static final String TEST_SITE = "localhost"; //"charizard.homeunix.net";
 
-  private static final int TEST_PORT = 8080;
+  private static final int TEST_PORT = 10999;
 
   private static HttpServer server;
 
