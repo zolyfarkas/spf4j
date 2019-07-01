@@ -206,6 +206,8 @@ or a more complex print config:
       spf4j.test.log.collectmaxLogs = 100
       # collect printed logs.
       spf4j.test.log.collectPrintedLogs
+      # loggers where ERROR should not fail your unit tests. (comma separated)
+      spf4j.testLog.expectingErrorsIn
 
 #### Configuring the default log printing configuration.
 
