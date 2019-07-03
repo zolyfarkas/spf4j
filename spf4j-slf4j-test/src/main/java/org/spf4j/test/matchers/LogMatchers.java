@@ -72,11 +72,11 @@ public final class LogMatchers {
 
   public static Matcher<TestLogRecord> hasNotLoggers(final Set<String> loggers) {
     Iterable<Matcher<String>> matchers = loggers.stream()
-            .map((x)  -> Matchers.equalTo(x)).collect(Collectors.toList());
+            .map((x)  -> Matchers.startsWith(x)).collect(Collectors.toList());
     return Matchers.not(Matchers.hasProperty("loggerName", Matchers.anyOf((Iterable) matchers)));
   }
 
-  
+
 
   public static Matcher<TestLogRecord> hasMatchingArguments(final Matcher<Object[]> matcher) {
      return Matchers.hasProperty("arguments", matcher);

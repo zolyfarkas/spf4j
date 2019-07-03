@@ -15,7 +15,7 @@
  */
 package org.spf4j.test.log;
 
-import java.util.Set;
+import java.util.SortedSet;
 import org.spf4j.log.Level;
 
 /**
@@ -23,11 +23,26 @@ import org.spf4j.log.Level;
  */
 final class DefaultAsserter implements LogHandler {
 
-  private final Set<String> excludeCategories;
+  private final SortedSet<String> excludeCategories;
 
-  DefaultAsserter(final Set<String> excludeCategories) {
+  DefaultAsserter(final SortedSet<String> excludeCategories) {
     this.excludeCategories = excludeCategories;
   }
+
+  public static boolean isInCategories(final SortedSet<String> categories, final String loggername) {
+    if (categories.isEmpty()) {
+      return false;
+    }
+    for (String cat : categories.tailSet(loggername)) {
+      if (loggername.startsWith(cat)) {
+        return true;
+      } else if (!loggername.isEmpty() && cat.charAt(0) != loggername.charAt(0)) {
+        break;
+      }
+    }
+    return false;
+  }
+
 
   @Override
   public Handling handles(final Level level) {
@@ -36,7 +51,7 @@ final class DefaultAsserter implements LogHandler {
 
   @Override
   public TestLogRecord handle(final TestLogRecord record) {
-    if (!record.hasAttachment(Attachments.ASSERTED) && !excludeCategories.contains(record.getLoggerName())) {
+    if (!record.hasAttachment(Attachments.ASSERTED) && !isInCategories(excludeCategories, record.getLoggerName())) {
       throw new AssertionError("Most test should not log errors, if a error scenario is validated,"
               + " please assert this behavior using TestLoggers.expect, received:\n" + record,
               record.getExtraThrowable());

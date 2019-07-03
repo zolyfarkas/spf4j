@@ -24,14 +24,18 @@ import org.slf4j.LoggerFactory;
  *
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("LO_SUSPECT_LOG_CLASS") // in this case we are testing.
 public class TestGlobalErrorIgnore {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestGlobalErrorIgnore.class);
+
+  private static final Logger LOG2 = LoggerFactory.getLogger("a.b");
 
   static {
     java.util.logging.Logger.getLogger(TestGlobalErrorIgnore.class.getName())
             .severe("This will not fail due to surefirre setup to ignore 0");
      LOG.error("This will not fail due to surefire setup to ignore 1");
+     LOG2.error("l2");
   }
 
 
@@ -42,5 +46,6 @@ public class TestGlobalErrorIgnore {
     LOG.error("This will not fail due to surefirre setup to ignore 2");
     java.util.logging.Logger.getLogger(TestGlobalErrorIgnore.class.getName())
             .severe("This will not fail due to surefirre setup to ignore 3");
+    LOG2.error("l2");
   }
 }

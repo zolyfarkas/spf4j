@@ -36,7 +36,7 @@ import org.spf4j.log.Level;
 @ParametersAreNonnullByDefault
 final class LogConfigImpl implements LogConfig {
 
-  private static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
+  static final Comparator<String> REV_STR_COMPARATOR = ((Comparator<String>) String::compareTo).reversed();
 
   private static final int DEFAULT_HANDLER_COUNT = Integer.getInteger("spf4j.test.log.defaultNrOfHandlers", 4);
 

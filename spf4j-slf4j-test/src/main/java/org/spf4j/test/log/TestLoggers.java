@@ -17,14 +17,14 @@ package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +70,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julRoot;
 
-  private final Set<String> expectingErrorsIn;
+  private final SortedSet<String> expectingErrorsIn;
 
   @GuardedBy("sync")
   @Contended
@@ -117,9 +117,9 @@ public final class TestLoggers implements ILoggerFactory {
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
     String vals = System.getProperty("spf4j.testLog.expectingErrorsIn");
     if (vals != null) {
-      expectingErrorsIn = ImmutableSet.copyOf(vals.split(","));
+      expectingErrorsIn = ImmutableSortedSet.orderedBy(LogConfigImpl.REV_STR_COMPARATOR).add(vals.split(",")).build();
     } else {
-      expectingErrorsIn = Collections.EMPTY_SET;
+      expectingErrorsIn = ImmutableSortedSet.of();
     }
     config = new LogConfigImpl(
             ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter(expectingErrorsIn)), catHandlers);
@@ -131,7 +131,7 @@ public final class TestLoggers implements ILoggerFactory {
     resetJulConfig();
   }
 
-  public Set<String> getExpectingErrorsIn() {
+  public SortedSet<String> getExpectingErrorsIn() {
     return expectingErrorsIn;
   }
 
