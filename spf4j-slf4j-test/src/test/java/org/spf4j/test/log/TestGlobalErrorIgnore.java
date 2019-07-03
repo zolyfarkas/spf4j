@@ -29,6 +29,8 @@ public class TestGlobalErrorIgnore {
   private static final Logger LOG = LoggerFactory.getLogger(TestGlobalErrorIgnore.class);
 
   static {
+    java.util.logging.Logger.getLogger(TestGlobalErrorIgnore.class.getName())
+            .severe("This will not fail due to surefirre setup to ignore 0");
      LOG.error("This will not fail due to surefire setup to ignore 1");
   }
 
@@ -38,5 +40,7 @@ public class TestGlobalErrorIgnore {
   // no need for assert, asserting that this test passes while logging an error.
   public void testSomeHandler() {
     LOG.error("This will not fail due to surefirre setup to ignore 2");
+    java.util.logging.Logger.getLogger(TestGlobalErrorIgnore.class.getName())
+            .severe("This will not fail due to surefirre setup to ignore 3");
   }
 }
