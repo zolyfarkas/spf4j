@@ -17,6 +17,7 @@ package org.spf4j.test.matchers;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -76,7 +77,9 @@ public final class LogMatchers {
     return Matchers.not(Matchers.hasProperty("loggerName", Matchers.anyOf((Iterable) matchers)));
   }
 
-
+  public static Matcher<TestLogRecord> hasNotLogger(final Predicate<String> pred) {
+    return Matchers.not(Matchers.hasProperty("loggerName", PredicateMatcher.matchesPredicate(pred)));
+  }
 
   public static Matcher<TestLogRecord> hasMatchingArguments(final Matcher<Object[]> matcher) {
      return Matchers.hasProperty("arguments", matcher);

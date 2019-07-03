@@ -122,7 +122,8 @@ public final class TestLoggers implements ILoggerFactory {
       expectingErrorsIn = ImmutableSortedSet.of();
     }
     config = new LogConfigImpl(
-            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter(expectingErrorsIn)), catHandlers);
+            ImmutableList.of(new LogPrinter(rootPrintLevel),
+                    new DefaultAsserter(this::isInExpectingErrorCategories)), catHandlers);
     LogManager.getLogManager().reset();
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
@@ -131,8 +132,18 @@ public final class TestLoggers implements ILoggerFactory {
     resetJulConfig();
   }
 
-  public SortedSet<String> getExpectingErrorsIn() {
-    return expectingErrorsIn;
+  public boolean isInExpectingErrorCategories(final String loggername) {
+    if (expectingErrorsIn.isEmpty()) {
+      return false;
+    }
+    for (String cat : expectingErrorsIn.tailSet(loggername)) {
+      if (loggername.startsWith(cat)) {
+        return true;
+      } else if (!loggername.isEmpty() && cat.charAt(0) != loggername.charAt(0)) {
+        break;
+      }
+    }
+    return false;
   }
 
   private void resetJulConfig() {

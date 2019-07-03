@@ -64,7 +64,7 @@ import org.spf4j.test.matchers.LogMatchers;
  *
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
+@SuppressFBWarnings({"FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY", "CE_CLASS_ENVY"})
 public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private static final ScheduledExecutorService SCHEDULER  =
@@ -187,7 +187,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       assertions.add(
                   sysTest.dontExpect("", Level.ERROR,
                   Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),
-                  LogMatchers.hasNotLoggers(sysTest.getExpectingErrorsIn()),
+                  LogMatchers.hasNotLogger(sysTest::isInExpectingErrorCategories),
                   LogMatchers.hasLevel(Level.ERROR))));
       ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);
       if (expectLogs != null) {
