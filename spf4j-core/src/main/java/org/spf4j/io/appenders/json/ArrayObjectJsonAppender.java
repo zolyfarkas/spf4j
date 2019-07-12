@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
 import org.spf4j.base.CoreTextMediaType;
@@ -40,7 +40,7 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-public final class ArrayShortAppender implements ObjectAppender<short[]> {
+public final class ArrayObjectJsonAppender implements ObjectAppender<Object[]> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
@@ -48,7 +48,7 @@ public final class ArrayShortAppender implements ObjectAppender<short[]> {
   }
 
   @Override
-  public void append(final short[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final Object[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
     int l = iter.length;
     if (l == 0) {
@@ -56,17 +56,19 @@ public final class ArrayShortAppender implements ObjectAppender<short[]> {
       return;
     }
     appendTo.append('[');
-    appendTo.append(Short.toString(iter[0]));
+    Object o = iter[0];
+    ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
     for (int i = 1; i < l; i++) {
       appendTo.append(',');
-       appendTo.append(Short.toString(iter[i]));
+      o = iter[i];
+      ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
     }
     appendTo.append(']');
   }
 
 
   @Override
-  public void append(final short[] object, final Appendable appendTo) {
+  public void append(final Object[] object, final Appendable appendTo) {
     throw new UnsupportedOperationException();
   }
 

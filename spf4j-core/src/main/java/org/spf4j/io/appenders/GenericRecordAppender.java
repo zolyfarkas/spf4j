@@ -31,6 +31,7 @@
  */
 package org.spf4j.io.appenders;
 
+import org.spf4j.io.appenders.json.JsonEncoderFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.avro.Schema;

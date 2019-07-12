@@ -31,45 +31,17 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
 import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  *
  * @author zoly
  */
-public final class ArrayBooleanAppender implements ObjectAppender<boolean[]> {
+public final class ArrayBooleanAppender extends  org.spf4j.io.appenders.json.ArrayBooleanJsonAppender {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
-  }
-
-  @Override
-  public void append(final boolean[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
-       throws IOException {
-    int l = iter.length;
-    if (l == 0) {
-      appendTo.append("[]");
-      return;
-    }
-    appendTo.append('[');
-    appendTo.append(Boolean.toString(iter[0]));
-    for (int i = 1; i < l; i++) {
-      appendTo.append(',');
-       appendTo.append(Boolean.toString(iter[i]));
-    }
-    appendTo.append(']');
-  }
-
-
-  @Override
-  public void append(final boolean[] object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
 }

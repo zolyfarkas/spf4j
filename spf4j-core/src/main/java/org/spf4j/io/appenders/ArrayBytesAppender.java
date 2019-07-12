@@ -45,15 +45,13 @@ public final class ArrayBytesAppender implements ObjectAppender<byte[]> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
   @Override
   public void append(final byte[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-    appendTo.append('"');
     Base64.encodeBase64(iter, 0, iter.length, appendTo);
-    appendTo.append('"');
   }
 
 

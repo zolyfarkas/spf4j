@@ -29,10 +29,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import org.spf4j.base.CoreTextMediaType;
+import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.ObjectAppenderSupplier;
 
@@ -40,7 +44,7 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-public final class ArrayShortAppender implements ObjectAppender<short[]> {
+public final class MapJsonAppender implements ObjectAppender<Map<Object, Object>> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
@@ -48,26 +52,47 @@ public final class ArrayShortAppender implements ObjectAppender<short[]> {
   }
 
   @Override
-  public void append(final short[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final Map<Object, Object> map,
+          final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-    int l = iter.length;
-    if (l == 0) {
-      appendTo.append("[]");
-      return;
-    }
     appendTo.append('[');
-    appendTo.append(Short.toString(iter[0]));
-    for (int i = 1; i < l; i++) {
-      appendTo.append(',');
-       appendTo.append(Short.toString(iter[i]));
+    Set<Map.Entry<Object, Object>> entrySet = map.entrySet();
+    Iterator<Map.Entry<Object, Object>> it = entrySet.iterator();
+    if (it.hasNext()) {
+      Map.Entry<Object, Object> o = it.next();
+      appendEntry(o, appendTo, appenderSupplier);
+      while (it.hasNext()) {
+        o = it.next();
+        appendTo.append(',');
+        appendEntry(o, appendTo, appenderSupplier);
+      }
     }
     appendTo.append(']');
   }
 
+  private static void appendEntry(final Map.Entry<Object, Object> o, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier) throws IOException {
+    Object key = o.getKey();
+    Object value = o.getValue();
+    if (key instanceof CharSequence) {
+      appendTo.append("{\"");
+      EscapeJsonStringAppendableWrapper sEsc = new EscapeJsonStringAppendableWrapper(appendTo);
+      appenderSupplier.get(key.getClass()).append(key, sEsc, appenderSupplier);
+      appendTo.append("\":");
+      ObjectAppender.appendNullableJson(value, appendTo, appenderSupplier);
+      appendTo.append('}');
+    } else {
+      appendTo.append('[');
+      ObjectAppender.appendNullableJson(key, appendTo, appenderSupplier);
+      appendTo.append(',');
+      ObjectAppender.appendNullableJson(value, appendTo, appenderSupplier);
+      appendTo.append(']');
+    }
+  }
 
   @Override
-  public void append(final short[] object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+  public void append(final Map<Object, Object> object, final Appendable appendTo) throws IOException {
+    appendTo.append(object.toString());
   }
 
 }

@@ -29,26 +29,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
-import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.base.JsonWriteable;
-import org.spf4j.io.ObjectAppender;
+import java.io.OutputStream;
+import org.apache.avro.Schema;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.ExtendedJsonEncoder;
 
 /**
- * @author zoly
+ * @author Zoltan Farkas
  */
-public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
+public final class JsonEncoderFactory {
 
-  @Override
-  public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
-    object.writeJsonTo(appendTo);
+  private static final EncoderSupplier  DECODER_SUPPLIER;
+
+  static {
+
+    Class<?> clasz  = null;
+    try {
+      clasz = Class.forName("org.apache.avro.io.ExtendedJsonDecoder");
+    } catch (ClassNotFoundException ex) {
+      // Extended decoder not available.
+    }
+    if (clasz == null) {
+      DECODER_SUPPLIER = EncoderFactory.get()::jsonEncoder;
+    } else {
+      DECODER_SUPPLIER = (s, os) -> new ExtendedJsonEncoder(s, os);
+    }
   }
 
-  @Override
-  public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+  private JsonEncoderFactory() { }
+
+  interface EncoderSupplier {
+    Encoder getEncoder(Schema writerSchema, OutputStream os) throws IOException;
   }
+
+  public static Encoder getEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+    return DECODER_SUPPLIER.getEncoder(writerSchema, os);
+  }
+
 
 }

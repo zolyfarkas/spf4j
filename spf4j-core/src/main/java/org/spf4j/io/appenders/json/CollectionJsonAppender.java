@@ -29,9 +29,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.ObjectAppenderSupplier;
@@ -40,7 +42,7 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-public final class ArrayShortAppender implements ObjectAppender<short[]> {
+public final class CollectionJsonAppender implements ObjectAppender<Collection> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
@@ -48,26 +50,30 @@ public final class ArrayShortAppender implements ObjectAppender<short[]> {
   }
 
   @Override
-  public void append(final short[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final Collection iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-    int l = iter.length;
-    if (l == 0) {
-      appendTo.append("[]");
-      return;
-    }
     appendTo.append('[');
-    appendTo.append(Short.toString(iter[0]));
-    for (int i = 1; i < l; i++) {
-      appendTo.append(',');
-       appendTo.append(Short.toString(iter[i]));
+    Iterator it = iter.iterator();
+    if (it.hasNext()) {
+      Object o = it.next();
+      if (o.equals(iter)) {
+         ObjectAppender.appendNullableJson(o.toString(), appendTo, appenderSupplier);
+      } else {
+        ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+        while (it.hasNext()) {
+          appendTo.append(',');
+          o = it.next();
+          ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+        }
+      }
     }
     appendTo.append(']');
   }
 
 
   @Override
-  public void append(final short[] object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+  public void append(final Collection object, final Appendable appendTo) throws IOException {
+    appendTo.append(object.toString());
   }
 
 }

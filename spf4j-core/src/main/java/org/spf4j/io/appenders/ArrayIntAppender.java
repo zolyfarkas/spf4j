@@ -31,43 +31,17 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
 import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  *
  * @author zoly
  */
-public final class ArrayIntAppender implements ObjectAppender<int[]> {
+public final class ArrayIntAppender extends org.spf4j.io.appenders.json.ArrayIntJsonAppender {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
-  }
-
-  @Override
-  public void append(final int[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
-       throws IOException {
-    int l = iter.length;
-    if (l == 0) {
-      appendTo.append("[]");
-      return;
-    }
-    appendTo.append('[');
-    appendTo.append(Integer.toString(iter[0]));
-    for (int i = 1; i < l; i++) {
-      appendTo.append(',');
-       appendTo.append(Integer.toString(iter[i]));
-    }
-    appendTo.append(']');
-  }
-
-
-  @Override
-  public void append(final int[] object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
 }

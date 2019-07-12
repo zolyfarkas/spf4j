@@ -45,7 +45,7 @@ public class MemorizedCallableTest {
   @Test
   public void testMemorizedCallable() throws Exception  {
     MemorizedCallable<String> mc = new MemorizedCallable(new Callable() {
-      int i  = 0;
+      private int i  = 0;
       @Override
       public Object call()  {
         return "val" + (i++);

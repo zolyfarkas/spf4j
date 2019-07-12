@@ -29,9 +29,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
+import org.spf4j.base.Base64;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.ObjectAppenderSupplier;
@@ -40,33 +41,27 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-public final class ArrayShortAppender implements ObjectAppender<short[]> {
+public final class ArrayBytesJsonAppender implements ObjectAppender<byte[]> {
 
+  /**
+   * Override for plain text.
+   */
   @Override
   public CoreTextMediaType getAppendedType() {
     return CoreTextMediaType.APPLICATION_JSON;
   }
 
   @Override
-  public void append(final short[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final byte[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-    int l = iter.length;
-    if (l == 0) {
-      appendTo.append("[]");
-      return;
-    }
-    appendTo.append('[');
-    appendTo.append(Short.toString(iter[0]));
-    for (int i = 1; i < l; i++) {
-      appendTo.append(',');
-       appendTo.append(Short.toString(iter[i]));
-    }
-    appendTo.append(']');
+    appendTo.append('"');
+    Base64.encodeBase64(iter, 0, iter.length, appendTo);
+    appendTo.append('"');
   }
 
 
   @Override
-  public void append(final short[] object, final Appendable appendTo) {
+  public void append(final byte[] object, final Appendable appendTo) {
     throw new UnsupportedOperationException();
   }
 

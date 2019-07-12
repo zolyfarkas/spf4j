@@ -46,7 +46,7 @@ public final class CollectionAppender implements ObjectAppender<Collection> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
   @Override
@@ -57,13 +57,13 @@ public final class CollectionAppender implements ObjectAppender<Collection> {
     if (it.hasNext()) {
       Object o = it.next();
       if (o.equals(iter)) {
-         ObjectAppender.appendNullableJson(o.toString(), appendTo, appenderSupplier);
+         ObjectAppender.appendNullable(o.toString(), appendTo, appenderSupplier);
       } else {
-        ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+        ObjectAppender.appendNullable(o, appendTo, appenderSupplier);
         while (it.hasNext()) {
           appendTo.append(',');
           o = it.next();
-          ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+          ObjectAppender.appendNullable(o, appendTo, appenderSupplier);
         }
       }
     }

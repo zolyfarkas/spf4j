@@ -29,45 +29,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
 import org.spf4j.base.CoreTextMediaType;
+import org.spf4j.base.JsonWriteable;
 import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
- *
  * @author zoly
  */
-public final class ArrayShortAppender implements ObjectAppender<short[]> {
+public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
+
+  @Override
+  public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
+    object.writeJsonTo(appendTo);
+  }
 
   @Override
   public CoreTextMediaType getAppendedType() {
     return CoreTextMediaType.APPLICATION_JSON;
-  }
-
-  @Override
-  public void append(final short[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
-       throws IOException {
-    int l = iter.length;
-    if (l == 0) {
-      appendTo.append("[]");
-      return;
-    }
-    appendTo.append('[');
-    appendTo.append(Short.toString(iter[0]));
-    for (int i = 1; i < l; i++) {
-      appendTo.append(',');
-       appendTo.append(Short.toString(iter[i]));
-    }
-    appendTo.append(']');
-  }
-
-
-  @Override
-  public void append(final short[] object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
   }
 
 }

@@ -44,7 +44,7 @@ public final class ArrayObjectAppender implements ObjectAppender<Object[]> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
   @Override
@@ -57,11 +57,11 @@ public final class ArrayObjectAppender implements ObjectAppender<Object[]> {
     }
     appendTo.append('[');
     Object o = iter[0];
-    ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+    ObjectAppender.appendNullable(o, appendTo, appenderSupplier);
     for (int i = 1; i < l; i++) {
       appendTo.append(',');
       o = iter[i];
-      ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);
+      ObjectAppender.appendNullable(o, appendTo, appenderSupplier);
     }
     appendTo.append(']');
   }

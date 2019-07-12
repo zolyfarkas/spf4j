@@ -81,10 +81,11 @@ public interface ObjectAppender<T> extends BiConsumer<T, Appendable> {
     if (o == null) {
       appendTo.append("null");
     } else {
-      ObjectAppender app = appenderSupplier.get(o.getClass());
-      if (app.getAppendedType().getSubType().endsWith("json")) {
+      ObjectAppender app = appenderSupplier.get(CoreTextMediaType.APPLICATION_JSON, o.getClass());
+      if (app != null) {
          app.append(o, appendTo, appenderSupplier);
       } else {
+        app = appenderSupplier.get(CoreTextMediaType.TEXT_PLAIN, o.getClass());
         EscapeJsonStringAppendableWrapper sEsc = new EscapeJsonStringAppendableWrapper(appendTo);
         appendTo.append('"');
         app.append(o, sEsc, appenderSupplier);

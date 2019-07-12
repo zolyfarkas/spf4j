@@ -45,15 +45,13 @@ public final class ArrayCharsAppender implements ObjectAppender<char[]> {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
   @Override
   public void append(final char[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-    appendTo.append('"');
     appendTo.append(CharBuffer.wrap(iter));
-    appendTo.append('"');
   }
 
 

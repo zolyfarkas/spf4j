@@ -29,46 +29,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import org.apache.avro.Schema;
-import org.apache.avro.io.Encoder;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.io.ExtendedJsonEncoder;
+import org.spf4j.base.CoreTextMediaType;
+import org.spf4j.io.ObjectAppender;
+import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
- * @author Zoltan Farkas
+ *
+ * @author zoly
  */
-public final class JsonEncoderFactory {
+public class ArrayLongJsonAppender implements ObjectAppender<long[]> {
 
-  private static final EncoderSupplier  DECODER_SUPPLIER;
+  /**
+   * Override for plain text.
+   */
+  @Override
+  public CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.APPLICATION_JSON;
+  }
 
-  static {
-
-    Class<?> clasz  = null;
-    try {
-      clasz = Class.forName("org.apache.avro.io.ExtendedJsonDecoder");
-    } catch (ClassNotFoundException ex) {
-      // Extended decoder not available.
+  @Override
+  public final void append(final long[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+       throws IOException {
+    int l = iter.length;
+    if (l == 0) {
+      appendTo.append("[]");
+      return;
     }
-    if (clasz == null) {
-      DECODER_SUPPLIER = EncoderFactory.get()::jsonEncoder;
-    } else {
-      DECODER_SUPPLIER = (s, os) -> new ExtendedJsonEncoder(s, os);
+    appendTo.append('[');
+    appendTo.append(Long.toString(iter[0]));
+    for (int i = 1; i < l; i++) {
+      appendTo.append(',');
+       appendTo.append(Long.toString(iter[i]));
     }
+    appendTo.append(']');
   }
 
-  private JsonEncoderFactory() { }
 
-  interface EncoderSupplier {
-    Encoder getEncoder(Schema writerSchema, OutputStream os) throws IOException;
+  @Override
+  public final void append(final long[] object, final Appendable appendTo) {
+    throw new UnsupportedOperationException();
   }
-
-  public static Encoder getEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
-    return DECODER_SUPPLIER.getEncoder(writerSchema, os);
-  }
-
 
 }

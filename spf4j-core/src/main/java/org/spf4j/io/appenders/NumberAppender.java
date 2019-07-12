@@ -31,32 +31,18 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
 import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.ObjectAppenderSupplier;
+
 
 /**
  *
  * @author zoly
  */
-public final class NumberAppender implements ObjectAppender<Number> {
+public final class NumberAppender extends  org.spf4j.io.appenders.json.NumberJsonAppender {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
-  }
-
-  @Override
-  public void append(final Number nr, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
-       throws IOException {
-    appendTo.append(nr.toString());
-  }
-
-
-  @Override
-  public void append(final Number object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
 }
