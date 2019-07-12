@@ -94,12 +94,7 @@ public final class UnboundedLoadingCache<K, V> implements LoadingCache<K, V> {
   public V get(final K key) throws ExecutionException {
     Callable<? extends V> existingValHolder = map.get(key);
     if (existingValHolder == null) {
-      Callable<? extends V> newHolder = Callables.memorized(new Callable<V>() {
-        @Override
-        public V call() throws Exception {
-          return loader.load(key);
-        }
-      });
+      Callable<? extends V> newHolder = Callables.memorized(() -> loader.load(key));
       existingValHolder = map.putIfAbsent(key, newHolder);
       if (existingValHolder == null) {
         existingValHolder = newHolder;
