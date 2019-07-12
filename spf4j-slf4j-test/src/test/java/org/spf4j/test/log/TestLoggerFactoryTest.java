@@ -31,8 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.avro.MediaTypes;
 import org.spf4j.base.avro.Method;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.annotations.CollectLogs;
@@ -247,7 +247,7 @@ public class TestLoggerFactoryTest {
             Matchers.allOf(LogMatchers.hasFormat("Json Payload"),
                     LogMatchers.hasMatchingExtraArguments(Matchers.arrayContaining(this))));
     LogPrinter.PRINTER.getAppenderSupplier().register(TestLoggerFactoryTest.class,
-            MediaTypes.APPLICATION_JSON, (o, a) -> {
+            CoreTextMediaType.APPLICATION_JSON, (o, a) -> {
               a.append("{\"a\" : \"b\"}");
             });
     LOG.info("Json Payload", this);

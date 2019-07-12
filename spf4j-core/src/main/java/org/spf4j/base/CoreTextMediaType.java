@@ -29,26 +29,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
-
-import java.io.IOException;
-import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.base.JsonWriteable;
-import org.spf4j.io.ObjectAppender;
+package org.spf4j.base;
 
 /**
- * @author zoly
+ * @author Zoltan Farkas
  */
-public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
+public enum CoreTextMediaType {
 
-  @Override
-  public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
-    object.writeJsonTo(appendTo);
+  TEXT_PLAIN("text", "plain"), APPLICATION_JSON("application", "json");
+
+  private final String type;
+
+  private final String subType;
+
+  private final String strImage;
+
+  CoreTextMediaType(final String type, final String subType) {
+    this.type = type;
+    this.subType = subType;
+    this.strImage = type + '/' + subType;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public String getSubType() {
+    return subType;
   }
 
   @Override
-  public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+  public String toString() {
+    return strImage;
   }
 
 }

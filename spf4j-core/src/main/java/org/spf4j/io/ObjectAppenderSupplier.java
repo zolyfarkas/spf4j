@@ -31,7 +31,10 @@
  */
 package org.spf4j.io;
 
+import java.lang.reflect.Type;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.reflect.ByTypeSupplier;
 
 
@@ -43,6 +46,15 @@ import org.spf4j.reflect.ByTypeSupplier;
 @SuppressWarnings("checkstyle:InterfaceIsType")
 public interface ObjectAppenderSupplier extends
         ByTypeSupplier<ObjectAppender, RuntimeException> {
+
+    @Nullable
+    ObjectAppender get(CoreTextMediaType mr,  Type type);
+
+    @Override
+    @Nullable
+    default ObjectAppender get(final Type type) {
+      return get(CoreTextMediaType.TEXT_PLAIN, type);
+    }
 
     ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
 

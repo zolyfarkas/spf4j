@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * @author zoly
  */
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
-final class MemorizedCallable<V> implements Callable<V> {
+public final class MemorizedCallable<V> implements Callable<V> {
 
     private static final Object NOTHING = new Object();
 
@@ -65,6 +65,25 @@ final class MemorizedCallable<V> implements Callable<V> {
             }
         }
         return result;
+    }
+
+    public V clear() {
+      V result = value;
+      value = (V) NOTHING;
+      return result;
+    }
+
+    public NullAbleOptional<V> getIfMemorized() {
+      V rv = value;
+      if (rv == NOTHING) {
+        return NullAbleOptional.EMPTY;
+      } else {
+        return NullAbleOptional.of(rv);
+      }
+    }
+
+    public void set(final V v) {
+      this.value = v;
     }
 
     @Override

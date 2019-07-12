@@ -35,6 +35,7 @@ import com.google.common.net.HostAndPort;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.CoreTextMediaType;
 
 /**
  *
@@ -59,9 +60,9 @@ public class ConfigurableAppenderSupplierTest {
               appendTo.append(object);
     };
 
-    supplier.replace(Object.class, (x) -> objectAppender);
+    supplier.replace(CoreTextMediaType.TEXT_PLAIN, Object.class, (x) -> objectAppender);
     supplier.register(ConfigurableAppenderSupplierTest.class, testObjAppender);
-    supplier.replace(CharSequence.class, x -> testObjAppender2);
+    supplier.replace(CoreTextMediaType.TEXT_PLAIN, CharSequence.class, x -> testObjAppender2);
 
     Assert.assertEquals(testObjAppender, supplier.get(ConfigurableAppenderSupplierTest.class));
     Assert.assertEquals(objectAppender, supplier.get(Object.class));

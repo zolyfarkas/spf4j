@@ -36,6 +36,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import java.util.function.Function;
@@ -43,7 +44,7 @@ import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
-import org.spf4j.base.avro.MediaType;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 
@@ -57,7 +58,7 @@ import org.spf4j.reflect.GraphTypeMap;
 public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplier {
 
 
-  private final CachingTypeMapWrapper<ObjectAppender> appenderMap;
+  private final CachingTypeMapWrapper<ObjectAppender>[] appenderMap;
 
   public ConfigurableAppenderSupplier() {
     this(true, (t) -> false);
@@ -66,7 +67,10 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public ConfigurableAppenderSupplier(final boolean registerFromServiceLoader, final Predicate<Class<?>> except,
           final ObjectAppender<?>... appenders) {
-    appenderMap = new CachingTypeMapWrapper<>(new GraphTypeMap());
+    appenderMap = new CachingTypeMapWrapper[CoreTextMediaType.values().length];
+    for (int i = 0; i < appenderMap.length; i++) {
+      appenderMap[i] = new CachingTypeMapWrapper<>(new GraphTypeMap());
+    }
     if (registerFromServiceLoader) {
       @SuppressWarnings("unchecked")
       ServiceLoader<ObjectAppender<?>> load = (ServiceLoader) ServiceLoader.load(ObjectAppender.class);
@@ -87,7 +91,8 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
         throw new IllegalArgumentException("Cannot register appender " + appender);
       }
     }
-    appenderMap.putIfNotPresent(Object.class, ObjectAppender.TOSTRING_APPENDER);
+    appenderMap[ObjectAppender.TOSTRING_APPENDER.getAppendedType().ordinal()]
+            .putIfNotPresent(Object.class, ObjectAppender.TOSTRING_APPENDER);
   }
 
   public static Class<?> getAppenderType(final ObjectAppender<?> appender) {
@@ -124,9 +129,9 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     return i;
   }
 
-  public <T> void replace(final Class<T> type,
+  public <T> void replace(final CoreTextMediaType mt, final Class<T> type,
           final Function<ObjectAppender<? super T>, ObjectAppender<? super T>> replace) {
-    appenderMap.replace(type, (Function) replace);
+    appenderMap[mt.ordinal()].replace(type, (Function) replace);
   }
 
   public <T> void register(final Class<T> type, final ObjectAppender<? super T> appender) {
@@ -137,10 +142,10 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
 
   @CheckReturnValue
   public <T> boolean tryRegister(final Class<T> type, final ObjectAppender<? super T> appender) {
-    return appenderMap.putIfNotPresent(type, appender);
+    return appenderMap[appender.getAppendedType().ordinal()].putIfNotPresent(type, appender);
   }
 
-  public <T> void register(final Class<T> type, final MediaType contentType,
+  public <T> void register(final Class<T> type, final CoreTextMediaType contentType,
           final ObjectAppender<? super T> appender) {
      if (!tryRegister(type, contentType, appender)) {
        throw new IllegalArgumentException("Cannnot Register " + appender + " for " + type);
@@ -148,32 +153,40 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   }
 
   @CheckReturnValue
-  public <T> boolean tryRegister(final Class<T> type, final MediaType contentType,
+  public <T> boolean tryRegister(final Class<T> type, final CoreTextMediaType contentType,
           final ObjectAppender<? super T> appender) {
-    return appenderMap.putIfNotPresent(type, new ObjectAppenderContentTypeAdapter(appender, contentType));
+    return appenderMap[contentType.ordinal()].putIfNotPresent(type,
+            new ObjectAppenderContentTypeAdapter(appender, contentType));
   }
 
 
   public boolean unregister(final Class<?> type) {
-    return appenderMap.remove(type);
+    boolean result = false;
+    for (int i = 0, l = CoreTextMediaType.values().length;  i < l; i++) {
+      boolean removed = appenderMap[i].remove(type);
+      if (removed) {
+        result = true;
+      }
+    }
+    return result;
   }
 
   @Override
-  public ObjectAppender get(final Type type) {
-    return appenderMap.get(type);
+  public ObjectAppender get(final CoreTextMediaType mt,  final Type type) {
+    return appenderMap[mt.ordinal()].get(type);
   }
 
   @Override
   public String toString() {
-    return "ConfigurableAppenderSupplier{" + "lookup=" + appenderMap  + '}';
+    return "ConfigurableAppenderSupplier{" + "lookup=" + Arrays.toString(appenderMap)  + '}';
   }
 
   private static final class ObjectAppenderContentTypeAdapter<T> implements ObjectAppender<T> {
 
     private final ObjectAppender<? super T> appender;
-    private final MediaType contentType;
+    private final CoreTextMediaType contentType;
 
-    ObjectAppenderContentTypeAdapter(final ObjectAppender<? super T> appender, final MediaType contentType) {
+    ObjectAppenderContentTypeAdapter(final ObjectAppender<? super T> appender, final CoreTextMediaType contentType) {
       this.appender = appender;
       this.contentType = contentType;
     }
@@ -190,7 +203,7 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     }
 
     @Override
-    public MediaType getAppendedType() {
+    public CoreTextMediaType getAppendedType() {
       return contentType;
     }
   }

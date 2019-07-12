@@ -29,26 +29,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.base;
 
-import java.io.IOException;
-import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.base.JsonWriteable;
-import org.spf4j.io.ObjectAppender;
+import java.util.concurrent.Callable;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
+public class MemorizedCallableTest {
 
-  @Override
-  public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
-    object.writeJsonTo(appendTo);
-  }
 
-  @Override
-  public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+  @Test
+  public void testMemorizedCallable() throws Exception  {
+    MemorizedCallable<String> mc = new MemorizedCallable(new Callable() {
+      int i  = 0;
+      @Override
+      public Object call()  {
+        return "val" + (i++);
+      }
+    });
+    Assert.assertEquals("val0", mc.call());
+    Assert.assertEquals("val0", mc.call());
+    mc.clear();
+    Assert.assertEquals("val1", mc.call());
   }
 
 }

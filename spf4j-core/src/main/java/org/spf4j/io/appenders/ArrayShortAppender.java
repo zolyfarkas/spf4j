@@ -32,6 +32,7 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.avro.MediaType;
 import org.spf4j.base.avro.MediaTypes;
 import org.spf4j.io.ObjectAppender;
@@ -44,8 +45,8 @@ import org.spf4j.io.ObjectAppenderSupplier;
 public final class ArrayShortAppender implements ObjectAppender<short[]> {
 
   @Override
-  public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_JSON;
+  public CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.APPLICATION_JSON;
   }
 
   @Override

@@ -740,7 +740,7 @@ public final class Callables {
     }
   }
 
-  public static <V> Callable<V> memorized(final Callable<V> source) {
+  public static <V> MemorizedCallable<V> memorized(final Callable<V> source) {
     return new MemorizedCallable<>(source);
   }
 

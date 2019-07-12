@@ -37,8 +37,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Encoder;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ObjectAppender;
 import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
@@ -51,8 +50,8 @@ import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationEr
 public final class GenericRecordAppender implements ObjectAppender<GenericRecord> {
 
   @Override
-  public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_JSON;
+  public CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.APPLICATION_JSON;
   }
 
   @Override

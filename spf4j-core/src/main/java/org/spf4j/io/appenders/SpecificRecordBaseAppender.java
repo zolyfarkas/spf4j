@@ -33,8 +33,7 @@ package org.spf4j.io.appenders;
 
 import java.io.IOException;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 
 /**
@@ -46,8 +45,8 @@ public final class SpecificRecordBaseAppender implements ObjectAppender<Specific
   private static final SpecificRecordAppender SA = new SpecificRecordAppender();
 
   @Override
-  public MediaType getAppendedType() {
-    return MediaTypes.APPLICATION_JSON;
+  public CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.APPLICATION_JSON;
   }
 
   @Override

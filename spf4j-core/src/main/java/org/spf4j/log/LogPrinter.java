@@ -36,13 +36,13 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Marker;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Json;
 import org.spf4j.base.Slf4jMessageFormatter;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.avro.AThrowables;
 import org.spf4j.base.avro.LogRecord;
-import org.spf4j.base.avro.MediaType;
 import org.spf4j.io.AppendableWriter;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.io.ConfigurableAppenderSupplier;
@@ -364,11 +364,11 @@ public final class LogPrinter {
     if (obj == null) {
       wr.append("null");
     } else {
-      ObjectAppender ostrApp = toStringer.get(obj.getClass());
-      MediaType type = ostrApp.getAppendedType();
-      if (type.getSubType().endsWith("json")) {
+      ObjectAppender ostrApp = toStringer.get(CoreTextMediaType.APPLICATION_JSON, obj.getClass());
+      if (ostrApp != null) {
         ostrApp.append(obj, wr, toStringer);
       } else {
+        ostrApp = toStringer.get(CoreTextMediaType.TEXT_PLAIN, obj.getClass());
         wr.append('"');
         ostrApp.append(obj, wrapper, toStringer);
         wr.append('"');

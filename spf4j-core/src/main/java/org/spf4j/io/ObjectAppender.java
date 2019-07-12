@@ -37,9 +37,8 @@ import java.util.ConcurrentModificationException;
 import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
 
 /**
  * @author zoly
@@ -53,8 +52,8 @@ public interface ObjectAppender<T> extends BiConsumer<T, Appendable> {
    * the MimeType of the format used to write the Object.
    * @return
    */
-  default MediaType getAppendedType() {
-    return MediaTypes.TEXT_PLAIN;
+  default CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.TEXT_PLAIN;
   }
 
   /**

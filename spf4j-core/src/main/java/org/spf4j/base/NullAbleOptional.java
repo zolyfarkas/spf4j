@@ -29,26 +29,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.base;
 
-import java.io.IOException;
-import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.base.JsonWriteable;
-import org.spf4j.io.ObjectAppender;
+import javax.annotation.Nullable;
 
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public final class JsonWriteableAppender implements ObjectAppender<JsonWriteable> {
+public abstract class NullAbleOptional<T> {
 
-  @Override
-  public void append(final JsonWriteable object, final Appendable appendTo) throws IOException {
-    object.writeJsonTo(appendTo);
+  public static final NullAbleOptional EMPTY = new NullAbleOptional() {
+    @Override
+    public Object get() {
+      throw new UnsupportedOperationException("Optional is empty");
+    }
+
+    @Override
+    public boolean isPresent() {
+      return false;
+    }
+  };
+
+  public static NullAbleOptional empty() {
+    return EMPTY;
   }
 
+  @Nullable
+  public abstract T get();
+
+  public abstract boolean isPresent();
+
   @Override
-  public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+  public final String toString() {
+    return "Optional{present = " + isPresent() + ", value=" + get() + '}';
+  }
+
+  public static <T> NullAbleOptional<T> of(@Nullable final T value) {
+    return new NullAbleOptional<T>() {
+      @Override
+      @Nullable
+      public T get() {
+        return value;
+      }
+
+      @Override
+      public boolean isPresent() {
+        return true;
+      }
+    };
   }
 
 }
+

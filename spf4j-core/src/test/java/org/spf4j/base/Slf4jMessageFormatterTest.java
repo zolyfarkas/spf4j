@@ -108,7 +108,8 @@ public class Slf4jMessageFormatterTest {
             new int[]{1, 2, 3});
     LOG.debug("formatted message: {}", sb);
     Assert.assertEquals("bla bla \\n–\\u0010 [1, 2, 3]", sb.toString());
-    appSupp.replace(String.class, (final ObjectAppender<? super String> input) -> new ObjectAppender<String>() {
+    appSupp.replace(CoreTextMediaType.TEXT_PLAIN,
+            String.class, (final ObjectAppender<? super String> input) -> new ObjectAppender<String>() {
       @Override
       public void append(final String object, final Appendable appendTo) throws IOException {
         try (AppendableLimiterWithOverflow limiter
