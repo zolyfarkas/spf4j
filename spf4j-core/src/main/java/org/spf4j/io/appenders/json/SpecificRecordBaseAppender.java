@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
 import java.io.IOException;
 import org.apache.avro.specific.SpecificRecordBase;

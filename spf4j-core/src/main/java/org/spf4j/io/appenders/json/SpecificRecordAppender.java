@@ -29,9 +29,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
-import org.spf4j.io.appenders.json.JsonEncoderFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +46,6 @@ import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ObjectAppender;
 
 /**
- *
  * @author zoly
  */
 public final class SpecificRecordAppender implements ObjectAppender<SpecificRecord> {

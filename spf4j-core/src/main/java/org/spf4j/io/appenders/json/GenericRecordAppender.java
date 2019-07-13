@@ -29,9 +29,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders;
+package org.spf4j.io.appenders.json;
 
-import org.spf4j.io.appenders.json.JsonEncoderFactory;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.avro.Schema;
@@ -41,11 +41,10 @@ import org.apache.avro.io.Encoder;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.AppendableOutputStream;
 import org.spf4j.io.ObjectAppender;
-import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
-import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
+import static org.spf4j.io.appenders.json.SpecificRecordAppender.TMP;
+import static org.spf4j.io.appenders.json.SpecificRecordAppender.writeSerializationError;
 
 /**
- *
  * @author zoly
  */
 public final class GenericRecordAppender implements ObjectAppender<GenericRecord> {
