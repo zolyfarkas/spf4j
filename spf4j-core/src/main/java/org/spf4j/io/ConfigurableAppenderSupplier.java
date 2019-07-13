@@ -96,22 +96,27 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
   }
 
   public static Class<?> getAppenderType(final ObjectAppender<?> appender) {
-    Type[] genericInterfaces = appender.getClass().getGenericInterfaces();
+
+    Class<?> aClass = appender.getClass();
     Class<?> appenderType = null;
-    for (Type type : genericInterfaces) {
-      if (type instanceof ParameterizedType) {
-        ParameterizedType pType = (ParameterizedType) type;
-        if (pType.getRawType() == ObjectAppender.class) {
-          Type actualTypeArgument = pType.getActualTypeArguments()[0];
-          if (actualTypeArgument instanceof ParameterizedType) {
-            appenderType = (Class) ((ParameterizedType) actualTypeArgument).getRawType();
-          } else {
-            appenderType = (Class) actualTypeArgument;
+    do {
+      Type[] genericInterfaces = aClass.getGenericInterfaces();
+      for (Type type : genericInterfaces) {
+        if (type instanceof ParameterizedType) {
+          ParameterizedType pType = (ParameterizedType) type;
+          if (pType.getRawType() == ObjectAppender.class) {
+            Type actualTypeArgument = pType.getActualTypeArguments()[0];
+            if (actualTypeArgument instanceof ParameterizedType) {
+              appenderType = (Class) ((ParameterizedType) actualTypeArgument).getRawType();
+            } else {
+              appenderType = (Class) actualTypeArgument;
+            }
+            break;
           }
-          break;
         }
       }
-    }
+      aClass = aClass.getSuperclass();
+    } while (appenderType == null && aClass != null);
     if (appenderType == null) {
       throw new IllegalArgumentException("Improperly declared Appender " + appender);
     }
