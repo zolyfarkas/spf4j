@@ -37,7 +37,7 @@ import org.spf4j.base.CoreTextMediaType;
  *
  * @author zoly
  */
-public final class ArrayBooleanAppender extends  org.spf4j.io.appenders.json.ArrayBooleanJsonAppender {
+public final class ArrayBooleanAppender extends org.spf4j.io.appenders.json.ArrayBooleanJsonAppender {
 
   @Override
   public CoreTextMediaType getAppendedType() {
