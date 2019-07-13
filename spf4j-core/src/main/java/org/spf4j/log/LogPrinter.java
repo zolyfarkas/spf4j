@@ -15,7 +15,7 @@
  */
 package org.spf4j.log;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,12 +38,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Marker;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
-import org.spf4j.base.Json;
 import org.spf4j.base.Slf4jMessageFormatter;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.avro.AThrowables;
 import org.spf4j.base.avro.LogRecord;
-import org.spf4j.io.AppendableWriter;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.io.ConfigurableAppenderSupplier;
 import org.spf4j.io.ObjectAppender;
@@ -68,9 +66,50 @@ public final class LogPrinter {
 
   private final DateTimeFormatter fmt;
 
-  private final Charset charset;
+  interface BufferedAppendable {
 
-  private static final class Buffer {
+    Appendable getAppendable();
+
+    Appendable getJsonStringEscapingAppendable();
+
+    int getCurrentPos();
+
+    void resetPos(int pos);
+
+    static BufferedAppendable from(final StringBuilder sb) {
+
+      return new BufferedAppendable() {
+
+        private Appendable escaper = null;
+
+        @Override
+        public Appendable getAppendable() {
+          return sb;
+        }
+
+        @Override
+        public Appendable getJsonStringEscapingAppendable() {
+          if (escaper == null) {
+            escaper = new EscapeJsonStringAppendableWrapper(sb);
+          }
+          return escaper;
+        }
+
+        @Override
+        public int getCurrentPos() {
+          return sb.length();
+        }
+
+        @Override
+        public void resetPos(final int pos) {
+          sb.setLength(pos);
+        }
+      };
+    }
+
+  }
+
+  private static final class Buffer implements BufferedAppendable {
 
     private static final int MAX_BUFFER_SIZE = Integer.getInteger("spf4j.logPrinter", 1024 * 32);
 
@@ -95,11 +134,11 @@ public final class LogPrinter {
       bab.reset();
     }
 
-    private Writer getWriter() {
+    public Appendable getAppendable() {
       return writer;
     }
 
-    private EscapeJsonStringAppendableWrapper getWriterEscaper() {
+    public Appendable getJsonStringEscapingAppendable() {
       return writerEscaper;
     }
 
@@ -117,6 +156,22 @@ public final class LogPrinter {
 
     private int size() {
       return bab.size();
+    }
+
+    @Override
+    public int getCurrentPos() {
+      return bab.size();
+    }
+
+    @Override
+    @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED") //on purpose.
+    public void resetPos(final int pos) {
+      try {
+        writer.flush();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+      bab.resetCountTo(pos);
     }
 
   }
@@ -138,7 +193,6 @@ public final class LogPrinter {
     this.toStringer = new ConfigurableAppenderSupplier();
     tlBuffer =  BUFFERS.computeIfAbsent(charset,
             (cs) -> new ThreadLocalRecyclingSupplier<Buffer>(() -> new Buffer(cs)));
-    this.charset = charset;
   }
 
 
@@ -157,7 +211,7 @@ public final class LogPrinter {
     boolean recycle = true;
     try {
       buff.clear();
-      print(record, buff.getWriter(), buff.getWriterEscaper(), "");
+      print(record, buff, "");
       buff.flush();
       int len = buff.size();
       os.write(buff.getBytes(), 0, len);
@@ -178,7 +232,7 @@ public final class LogPrinter {
     boolean recycle = true;
     try {
       buff.clear();
-      print(record, buff.getWriter(), buff.getWriterEscaper(), "");
+      print(record, buff, "");
       buff.flush();
       int size = buff.size();
       if (size > Buffer.MAX_BUFFER_SIZE) {
@@ -195,28 +249,23 @@ public final class LogPrinter {
   }
 
   public void print(final LogRecord record, final OutputStream os) throws IOException {
-    OutputStreamWriter osw = new OutputStreamWriter(os, charset);
-    printTo(osw, record, "");
-    osw.flush();
+    printTo(os, record, "");
+    os.flush();
   }
 
-  public void printTo(final Appendable stream, final Slf4jLogRecord record, final String annotate) {
+  public void printTo(final StringBuilder sb, final Slf4jLogRecord record, final String annotate) {
     try {
-      print(record, stream, new EscapeJsonStringAppendableWrapper(stream), annotate);
+      print(record, BufferedAppendable.from(sb), annotate);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
   }
 
-  public void printTo(final Appendable stream, final LogRecord record, final String annotate) throws IOException {
-      print(record, stream, new EscapeJsonStringAppendableWrapper(stream), annotate);
-  }
-
-  public void printTo(final PrintStream stream, final Slf4jLogRecord record, final String annotate) {
+  public void printTo(final OutputStream stream, final LogRecord record, final String annotate) {
     Buffer buff = tlBuffer.get();
     buff.clear();
     try {
-      print(record, buff.getWriter(), buff.getWriterEscaper(), annotate);
+      print(record, buff, annotate);
       buff.flush();
       stream.write(buff.getBytes(), 0, buff.size());
       stream.flush();
@@ -225,8 +274,21 @@ public final class LogPrinter {
     }
   }
 
-   static void printMarker(final Marker marker, final Appendable wr,
-          final EscapeJsonStringAppendableWrapper wrapper)
+  public void printTo(final PrintStream stream, final Slf4jLogRecord record, final String annotate) {
+    Buffer buff = tlBuffer.get();
+    buff.clear();
+    try {
+      print(record, buff, annotate);
+      buff.flush();
+      stream.write(buff.getBytes(), 0, buff.size());
+      stream.flush();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  static void printMarker(final Marker marker, final Appendable wr,
+          final Appendable wrapper)
           throws IOException {
       if (marker.hasReferences()) {
         wr.append('{');
@@ -250,9 +312,10 @@ public final class LogPrinter {
    }
 
 
-   private void print(final Slf4jLogRecord record, final Appendable wr,
-          final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
+   private void print(final Slf4jLogRecord record, final BufferedAppendable app, final String annotate)
           throws IOException {
+    Appendable wr = app.getAppendable();
+    Appendable wrapper = app.getJsonStringEscapingAppendable();
     wr.append(annotate);
     fmt.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);
     wr.append(' ');
@@ -290,7 +353,7 @@ public final class LogPrinter {
             wr.append('[');
             first = false;
           }
-          printObject(arg, wr, wrapper);
+          printJsonObject(arg, app);
         }
       }
       if (!first) {
@@ -305,9 +368,10 @@ public final class LogPrinter {
     }
   }
 
-   private void print(final LogRecord record, final Appendable wr,
-          final EscapeJsonStringAppendableWrapper wrapper, final String annotate)
+   private void print(final LogRecord record, final BufferedAppendable ba, final String annotate)
           throws IOException {
+    Appendable wr = ba.getAppendable();
+    Appendable wrapper = ba.getJsonStringEscapingAppendable();
     wr.append(annotate);
     wr.append('"');
     wrapper.append(record.getOrigin());
@@ -336,7 +400,7 @@ public final class LogPrinter {
         } else {
           wr.append(',');
         }
-        printJsonObject(entry, wr);
+        printJsonObject(entry, ba);
       }
       for (Object obj : xtra) {
         if (first) {
@@ -344,7 +408,7 @@ public final class LogPrinter {
         } else {
           wr.append(',');
         }
-        printJsonObject(obj, wr);
+        printJsonObject(obj, ba);
       }
       wr.append(']');
     }
@@ -357,33 +421,41 @@ public final class LogPrinter {
     }
   }
 
-
-
-  private void printObject(@Nullable final Object obj,
-          final Appendable wr, final EscapeJsonStringAppendableWrapper wrapper) throws IOException {
+  /**
+   * Function that will write the Object as a json representation.
+   * If json appender not available a json string value will be written.
+   * @param obj
+   * @param wr
+   * @param wrapper
+   * @throws IOException
+   */
+  private void printJsonObject(@Nullable final Object obj,
+          final BufferedAppendable app) throws IOException {
     if (obj == null) {
-      wr.append("null");
+      app.getAppendable().append("null");
     } else {
       ObjectAppender ostrApp = toStringer.get(CoreTextMediaType.APPLICATION_JSON, obj.getClass());
       if (ostrApp != null) {
-        ostrApp.append(obj, wr, toStringer);
-      } else {
-        ostrApp = toStringer.get(CoreTextMediaType.TEXT_PLAIN, obj.getClass());
-        wr.append('"');
-        ostrApp.append(obj, wrapper, toStringer);
-        wr.append('"');
+        int currentPos = app.getCurrentPos();
+        try {
+          ostrApp.append(obj, app.getAppendable(), toStringer);
+          return;
+        } catch (IOException | RuntimeException e) {
+          app.resetPos(currentPos);
+        }
       }
-    }
-  }
-
-  private void printJsonObject(@Nullable final Object obj,
-          final Appendable wr) throws IOException {
-    if (obj == null) {
-      wr.append("null");
-    } else {
-      JsonGenerator jsonGen = Json.FACTORY.createGenerator(new AppendableWriter(wr));
-      jsonGen.writeObject(obj);
-      jsonGen.flush();
+      Appendable wr = app.getAppendable();
+      Appendable wrapper = app.getJsonStringEscapingAppendable();
+      ostrApp = toStringer.get(CoreTextMediaType.TEXT_PLAIN, obj.getClass());
+      wr.append('"');
+      int currentPos = app.getCurrentPos();
+      try {
+        ostrApp.append(obj, wrapper, toStringer);
+      }  catch (IOException | RuntimeException e) {
+        app.resetPos(currentPos);
+        exHandle(obj, wrapper, e);
+      }
+      wr.append('"');
     }
   }
 

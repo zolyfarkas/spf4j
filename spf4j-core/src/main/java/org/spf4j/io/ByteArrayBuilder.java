@@ -222,6 +222,11 @@ public final class ByteArrayBuilder extends OutputStream {
         count = 0;
     }
 
+    public synchronized void resetCountTo(final int pos) {
+        count = pos;
+    }
+
+
     /**
      * Creates a newly allocated byte array. Its size is the current
      * size of this output stream and the valid contents of the buffer

@@ -29,29 +29,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.io.appenders.json;
+package org.spf4j.io.appenders;
 
-import java.io.IOException;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.spf4j.base.CoreTextMediaType;
-import org.spf4j.io.ObjectAppender;
+import org.spf4j.io.appenders.json.SpecificRecordBaseJsonAppender;
 
 /**
- * This is to disambiguate the choice between SpecificRecord and genericRecord.
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public final class SpecificRecordBaseAppender implements ObjectAppender<SpecificRecordBase> {
-
-  private static final SpecificRecordAppender SA = new SpecificRecordAppender();
+public final class SpecificRecordBaseAppender extends SpecificRecordBaseJsonAppender {
 
   @Override
   public CoreTextMediaType getAppendedType() {
-    return CoreTextMediaType.APPLICATION_JSON;
+    return CoreTextMediaType.TEXT_PLAIN;
   }
-
-  @Override
-  public void append(final SpecificRecordBase object, final Appendable appendTo) throws IOException {
-    SA.append(object, appendTo);
-  }
-
 }

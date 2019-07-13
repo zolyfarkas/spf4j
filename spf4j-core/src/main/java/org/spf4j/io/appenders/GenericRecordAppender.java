@@ -31,37 +31,17 @@
  */
 package org.spf4j.io.appenders;
 
-import org.spf4j.io.appenders.json.SpecificRecordJsonAppender;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
-import java.util.Collections;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.base.avro.Throwable;
+import org.spf4j.base.CoreTextMediaType;
+import org.spf4j.io.appenders.json.GenericRecordJsonAppender;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS")
-public class SpecificRecordAppenderTest {
+public final  class GenericRecordAppender extends GenericRecordJsonAppender {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SpecificRecordAppenderTest.class);
-
-  @Test
-  @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // this is exactly what we are testing
-  public void testSpecificRecordAppender() throws IOException {
-    Throwable jThrowable = new Throwable(null,
-            null, Collections.EMPTY_LIST, null, Collections.EMPTY_LIST);
-    LOG.debug("Broken Object", jThrowable);
-    SpecificRecordJsonAppender ap = new SpecificRecordJsonAppender();
-    StringBuilder sb = new StringBuilder();
-    ap.append(jThrowable, sb);
-    String str = sb.toString();
-    Assert.assertThat(str, Matchers.containsString("SerializationError"));
-    Assert.assertThat(str, Matchers.containsString("java.lang.NullPointerException"));
+  @Override
+  public CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.TEXT_PLAIN;
   }
-
 }

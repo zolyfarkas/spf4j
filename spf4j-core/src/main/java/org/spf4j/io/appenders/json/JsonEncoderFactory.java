@@ -37,6 +37,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.ExtendedJsonEncoder;
+import org.spf4j.io.AppendableWriter;
 
 /**
  * @author Zoltan Farkas
@@ -54,9 +55,34 @@ public final class JsonEncoderFactory {
       // Extended decoder not available.
     }
     if (clasz == null) {
-      DECODER_SUPPLIER = EncoderFactory.get()::jsonEncoder;
+      DECODER_SUPPLIER = new EncoderSupplier() {
+
+        private EncoderFactory factory = EncoderFactory.get();
+
+        @Override
+        public Encoder getEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+          return factory.jsonEncoder(writerSchema, os);
+        }
+
+        @Override
+        public Encoder getEncoder(final Schema writerSchema, final Appendable os) throws IOException {
+          return factory.jsonEncoder(writerSchema, new AppendableWriter(os));
+        }
+      };
     } else {
-      DECODER_SUPPLIER = (s, os) -> new ExtendedJsonEncoder(s, os);
+
+       DECODER_SUPPLIER = new EncoderSupplier() {
+         @Override
+         public Encoder getEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+           return new ExtendedJsonEncoder(writerSchema, os);
+         }
+
+         @Override
+         public Encoder getEncoder(final Schema writerSchema, final Appendable os) throws IOException {
+           return new ExtendedJsonEncoder(writerSchema,
+                   Schema.FACTORY.createGenerator(new AppendableWriter(os)));
+         }
+       };
     }
   }
 
@@ -64,9 +90,16 @@ public final class JsonEncoderFactory {
 
   interface EncoderSupplier {
     Encoder getEncoder(Schema writerSchema, OutputStream os) throws IOException;
+
+    Encoder getEncoder(Schema writerSchema, Appendable os) throws IOException;
+
   }
 
   public static Encoder getEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+    return DECODER_SUPPLIER.getEncoder(writerSchema, os);
+  }
+
+  public static Encoder getEncoder(final Schema writerSchema, final Appendable os) throws IOException {
     return DECODER_SUPPLIER.getEncoder(writerSchema, os);
   }
 
