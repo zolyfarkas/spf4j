@@ -31,16 +31,21 @@
  */
 package org.spf4j.io.appenders;
 
-import org.spf4j.io.appenders.json.SpecificRecordJsonAppender;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.Collections;
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.avro.Throwable;
+import org.spf4j.log.Level;
+import org.spf4j.log.LogPrinter;
+import org.spf4j.test.log.LogCollection;
+import org.spf4j.test.log.TestLogRecord;
+import org.spf4j.test.log.TestLoggers;
 
 /**
  * @author Zoltan Farkas
@@ -53,15 +58,21 @@ public class SpecificRecordAppenderTest {
   @Test
   @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // this is exactly what we are testing
   public void testSpecificRecordAppender() throws IOException {
+    LogCollection<ArrayDeque<TestLogRecord>> collect = TestLoggers.sys().collect(Level.DEBUG, 1000, true);
     Throwable jThrowable = new Throwable(null,
             null, Collections.EMPTY_LIST, null, Collections.EMPTY_LIST);
     LOG.debug("Broken Object", jThrowable);
-    SpecificRecordJsonAppender ap = new SpecificRecordJsonAppender();
-    StringBuilder sb = new StringBuilder();
-    ap.append(jThrowable, sb);
-    String str = sb.toString();
-    Assert.assertThat(str, Matchers.containsString("SerializationError"));
-    Assert.assertThat(str, Matchers.containsString("java.lang.NullPointerException"));
+    ArrayDeque<TestLogRecord> get = collect.get();
+    boolean matched = false;
+    LogPrinter printer = new LogPrinter(StandardCharsets.UTF_8);
+    for (TestLogRecord rec : get) {
+      String logStr = new String(printer.printToBytes(rec), StandardCharsets.UTF_8);
+      if (logStr.contains("[\"[FAILED toString()"
+              + " for org.spf4j.base.avro.Throwable]{java.lang.NullPointerException:null")) {
+        matched = true;
+      }
+    }
+    Assert.assertTrue(matched);
   }
 
 }
