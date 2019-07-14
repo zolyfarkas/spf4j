@@ -160,17 +160,14 @@ public final class LogPrinter {
 
     @Override
     public int getCurrentPos() {
+      flush();
       return bab.size();
     }
 
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED") //on purpose.
     public void resetPos(final int pos) {
-      try {
-        writer.flush();
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
+      flush();
       bab.resetCountTo(pos);
     }
 
