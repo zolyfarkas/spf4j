@@ -187,7 +187,7 @@ public final class LogMatchers {
 
 
   public static Matcher<TestLogRecord> hasMatchingExtraArgumentsContaining(final Matcher<Object>... matcher) {
-     return Matchers.hasProperty("extraArguments", Matchers.arrayContaining(matcher));
+     return Matchers.hasProperty("extraArguments", Matchers.hasItems(matcher));
   }
 
   public static Matcher<TestLogRecord> hasMatchingExtraArguments(final Matcher<Object[]> matcher) {
