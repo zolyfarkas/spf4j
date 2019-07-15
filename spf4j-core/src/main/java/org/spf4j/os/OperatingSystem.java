@@ -258,7 +258,7 @@ public final class OperatingSystem {
   public static <T, E> ProcessResponse<T, E> forkExec(final String[] command, final ProcessHandler<T, E> handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    LOG.log(Level.FINE, "Executing {}", (Object) command);
+    LOG.log(Level.FINE, "Executing {0}", (Object) command);
     final Process proc = java.lang.Runtime.getRuntime().exec(command);
     handler.started(proc);
     try (InputStream pos = proc.getInputStream();
