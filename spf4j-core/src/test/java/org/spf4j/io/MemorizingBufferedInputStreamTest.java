@@ -153,8 +153,10 @@ public class MemorizingBufferedInputStreamTest {
       int val = mbis.read();
       Assert.assertEquals(val, mbis.getReadBytesFromBuffer()[0]);
       byte[] buff = new byte[8];
-      ByteStreams.readFully(mbis, buff);
-      Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
+      if (utf8Bytes.length > 8) {
+        ByteStreams.readFully(mbis, buff);
+        Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
+      }
       int result;
       do {
         result = mbis.read(buff);
