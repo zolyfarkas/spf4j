@@ -148,6 +148,46 @@ public final class Futures {
     return Pair.of(results, exception);
   }
 
+ /**
+   * Gets all futures resuls for futures that return Void (no return).
+   *
+   * @param deadlineNanos
+   * @param futures
+   * @return
+   */
+  @CheckReturnValue
+  @Nullable
+  public static Exception getAllWithDeadlineNanosRetVoid(final long deadlineNanos,
+          final Future... futures) {
+    Exception exception = null;
+    for (int i = 0; i < futures.length; i++) {
+      Future future = futures[i];
+      try {
+        final long toNanos = deadlineNanos - TimeSource.nanoTime();
+        future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        if (exception == null) {
+          exception = ex;
+        } else {
+          Throwables.suppressLimited(ex, exception);
+          exception = ex;
+        }
+        RuntimeException cex = cancelAll(true, futures, i + 1);
+        if (cex != null) {
+          Throwables.suppressLimited(exception, cex);
+        }
+      } catch (TimeoutException | ExecutionException | RuntimeException ex) {
+        if (exception == null) {
+          exception = ex;
+        } else {
+          Throwables.suppressLimited(exception, ex);
+        }
+      }
+    }
+    return exception;
+  }
+
   @CheckReturnValue
   @Nonnull
   public static Pair<Map<Future, Object>, Exception> getAll(final long timeoutMillis, final Iterable<Future> futures)  {
