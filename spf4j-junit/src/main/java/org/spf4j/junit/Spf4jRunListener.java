@@ -37,7 +37,6 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,15 +100,6 @@ public final class Spf4jRunListener extends RunListener {
 
     if (!destinationFolder.mkdirs() && !destinationFolder.canWrite()) {
       throw new ExceptionInInitializerError("Unable to write to " + destinationFolder);
-    }
-  }
-
-  @Override
-  public void testFailure(final Failure failure)
-          throws IOException {
-    File dumpToFile = sampler.dumpToFile(new File(destinationFolder, failure.getTestHeader() + ".ssdump2"));
-    if (dumpToFile != null) {
-      LOG.info("Profile saved to {}", dumpToFile);
     }
   }
 
