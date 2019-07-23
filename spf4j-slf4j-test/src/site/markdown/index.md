@@ -166,7 +166,7 @@ or a more complex print config:
  control this at test level like:
 
       @Test
-      @CollectTrobleshootingLogs(minLevel = Level.TRACE)
+      @CollectLogs(minLevel = Level.TRACE)
       public void testLogging4() {
         LOG.trace("lala");
         LOG.debug("log {}", 1);
