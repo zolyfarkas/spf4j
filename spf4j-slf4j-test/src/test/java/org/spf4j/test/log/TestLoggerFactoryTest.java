@@ -231,6 +231,13 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
+  @CollectLogs(minLevel = Level.OFF)
+  public void testNoIgnore() {
+    Assert.assertFalse(LOG.isDebugEnabled());
+  }
+
+
+  @Test
   @CollectLogs(minLevel = Level.TRACE)
   public void testCollect() {
     TestLoggers config = TestLoggers.sys();
