@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.WillNotClose;
+import javax.annotation.concurrent.ThreadSafe;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.Description;
@@ -65,6 +66,7 @@ import org.spf4j.test.matchers.LogMatchers;
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings({"FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY", "CE_CLASS_ENVY"})
+@ThreadSafe
 public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private static final ScheduledExecutorService SCHEDULER  =
@@ -113,7 +115,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   }
 
   @Override
-  public void testRunFinished(final Result result) {
+  public synchronized void testRunFinished(final Result result) {
     List<UncaughtExceptionDetail> exceptions = uncaughtExceptionHandler.getUncaughtExceptions();
     if (!exceptions.isEmpty()) {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
@@ -161,7 +163,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testStarted(final Description description) throws Exception {
+  public synchronized void testStarted(final Description description) throws Exception {
     Test ta = description.getAnnotation(Test.class);
     ExecutionContext ctx;
     if (TestUtils.isExecutedWithDebuggerAgent()) {
@@ -259,7 +261,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  private  void closeAllContextCloseables(final TestBaggage baggage) {
+  private void closeAllContextCloseables(final TestBaggage baggage) {
     ExecutionContext ctx = baggage.getCtx();
     ExecutionContext currentThreadContext = ExecutionContexts.current();
     if (ctx == currentThreadContext) {
@@ -271,7 +273,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   }
 
   @Override
-  public void testFailure(final Failure failure) {
+  public synchronized void testFailure(final Failure failure) {
     Description description = failure.getDescription();
     TestBaggage bg = baggages.get(description);
     if (bg != null) { // will Happen when a Uncaught Exception causes a test to fail.

@@ -15,11 +15,14 @@
  */
 package org.spf4j.test.log.junit4;
 
+import org.junit.runner.notification.RunListener;
+
 /**
  * @author Zoltan Farkas
  * @deprecated use Spf4jTestLogRunListener instead.
  */
 @Deprecated
+@RunListener.ThreadSafe
 public final class DetailOnFailureRunListener extends Spf4jTestLogRunListener {
 
 }

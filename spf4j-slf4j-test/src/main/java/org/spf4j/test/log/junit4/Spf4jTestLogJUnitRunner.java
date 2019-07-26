@@ -15,6 +15,11 @@
  */
 package org.spf4j.test.log.junit4;
 
+import java.lang.reflect.Field;
+import java.util.List;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
@@ -22,7 +27,10 @@ import org.junit.runners.model.InitializationError;
 /**
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public class Spf4jTestLogJUnitRunner extends BlockJUnit4ClassRunner {
+
+  private static final Field LISTERES_FIELD = getListenersField();
 
   public Spf4jTestLogJUnitRunner(final Class<?> klass) throws InitializationError {
     super(klass);
@@ -33,11 +41,36 @@ public class Spf4jTestLogJUnitRunner extends BlockJUnit4ClassRunner {
    * @param notifier
    */
   @Override
-  public void run(final RunNotifier notifier) {
+  public synchronized void run(final RunNotifier notifier) {
+    if (LISTERES_FIELD != null) {
+      try {
+        List<RunListener> lstnrs =  (List<RunListener>) LISTERES_FIELD.get(notifier);
+        for (RunListener lstnr : lstnrs) {
+          if (lstnr instanceof Spf4jTestLogRunListener) {
+            super.run(notifier);
+            return;
+          }
+        }
+      } catch (IllegalArgumentException | IllegalAccessException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
     Spf4jTestLogRunListenerSingleton listener = Spf4jTestLogRunListenerSingleton.getInstance();
     notifier.removeListener(listener);
     notifier.addListener(listener);
     super.run(notifier);
+  }
+
+  @Nullable
+  private static Field getListenersField() {
+    Field field;
+    try {
+      field = RunNotifier.class.getDeclaredField("listeners");
+    } catch (NoSuchFieldException | SecurityException ex) {
+      return null;
+    }
+    field.setAccessible(true);
+    return field;
   }
 
 }

@@ -23,6 +23,7 @@ import org.junit.runner.notification.RunListener;
 /**
  * @author Zoltan Farkas
  */
+@RunListener.ThreadSafe
 public class Spf4jTestLogRunListener extends RunListener {
 
   private final Spf4jTestLogRunListenerSingleton instance;
