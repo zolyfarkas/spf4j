@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -257,21 +258,46 @@ public final class Reflections {
    */
   @Nullable
   @SuppressFBWarnings(value = "ES_COMPARING_STRINGS_WITH_EQ", justification = "comparing interned strings")
-  public static Method getMethod(final Class<?> c,
+  public static Method getDeclaredMethod(final Class<?> c,
           final String methodName,
           final Class<?>... paramTypes) {
-
     String internedName = methodName.intern();
     for (Method m : c.getDeclaredMethods()) {
       if (m.getName() == internedName
               && Arrays.equals(paramTypes, getParameterTypes(m))) {
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-          @Override
-          public Void run() {
-             m.setAccessible(true);
-             return null;
-          }
-        });
+        if (!m.isAccessible()) {
+          AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+               m.setAccessible(true);
+               return null;
+            }
+          });
+        }
+        return m;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Equivalent to Class.getDeclaredMethod which returns a null instead of throwing an exception.
+   * returned method is also made accessible.
+   *
+   * @param c
+   * @param methodName
+   * @param paramTypes
+   * @return
+   */
+  @Nullable
+  @SuppressFBWarnings(value = "ES_COMPARING_STRINGS_WITH_EQ", justification = "comparing interned strings")
+  public static Method getMethod(final Class<?> c,
+          final String methodName,
+          final Class<?>... paramTypes) {
+    String internedName = methodName.intern();
+    for (Method m : c.getMethods()) {
+      if (m.getName() == internedName
+              && Arrays.equals(paramTypes, getParameterTypes(m))) {
         return m;
       }
     }
@@ -601,7 +627,7 @@ public final class Reflections {
   }
 
   /**
-   * utility method that will work for primittives as well.
+   * utility method that will work for primitives as well.
    * @param name the class name
    * @param loader the class loader
    * @return
@@ -614,6 +640,55 @@ public final class Reflections {
     } else {
       return primitive;
     }
+  }
+
+  @Nullable
+  public static <A extends Annotation> A getInheritedAnnotation(
+          final Class<A> annotationClass, final AnnotatedElement element) {
+    A annotation = element.getAnnotation(annotationClass);
+    if (annotation == null && element instanceof Method) {
+      annotation = getOverriddenAnnotation(annotationClass, (Method) element);
+    }
+    return annotation;
+  }
+
+  @Nullable
+  private static <A extends Annotation> A getOverriddenAnnotation(
+          final Class<A> annotationClass, final Method method) {
+    final Class<?> methodClass = method.getDeclaringClass();
+    final String name = method.getName();
+    final Class<?>[] params = method.getParameterTypes();
+    final Class<?> superclass = methodClass.getSuperclass();
+    if (superclass != null) {
+      final A annotation
+              = getOverriddenMethodAnnotationFrom(annotationClass, superclass, name, params);
+      if (annotation != null) {
+        return annotation;
+      }
+    }
+    for (final Class<?> intf : methodClass.getInterfaces()) {
+      final A annotation = getOverriddenMethodAnnotationFrom(annotationClass, intf, name, params);
+      if (annotation != null) {
+        return annotation;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static <A extends Annotation> A getOverriddenMethodAnnotationFrom(
+          final Class<A> annotationClass, final Class<?> searchClass,
+          final String methodName, final Class<?>[] params) {
+      final Method method = getMethod(searchClass, methodName, params);
+      if (method == null) {
+        return null;
+      }
+      final A annotation = method.getAnnotation(annotationClass);
+      if (annotation != null) {
+        return annotation;
+      }
+      return getOverriddenAnnotation(annotationClass, method);
   }
 
 }
