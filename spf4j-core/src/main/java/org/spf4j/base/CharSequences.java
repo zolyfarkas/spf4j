@@ -40,7 +40,7 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import static java.lang.Math.min;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Special methods to use for character sequences...
@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
  * @author zoly
  */
 @GwtCompatible
+@ParametersAreNonnullByDefault
 public final class CharSequences {
 
   private CharSequences() {
@@ -61,7 +62,7 @@ public final class CharSequences {
    * @param s2
    * @return the number of operations required to transfor s1 into s2
    */
-  public static int distance(@Nonnull final CharSequence s1, @Nonnull final CharSequence s2) {
+  public static int distance(final CharSequence s1, final CharSequence s2) {
     int l1 = s1.length();
     int l2 = s2.length();
 
@@ -98,16 +99,16 @@ public final class CharSequences {
    * @deprecated use compare.
    */
   @Deprecated
-  public static int compareTo(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+  public static int compareTo(final CharSequence s, final CharSequence t) {
     return compare(s, t);
   }
 
-  public static int compare(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+  public static int compare(final CharSequence s, final CharSequence t) {
     return compare(s, 0, s.length(), t, 0, t.length());
   }
 
-  public static int compare(@Nonnull final CharSequence s, final int sLength,
-          @Nonnull final CharSequence t, final int tLength) {
+  public static int compare(final CharSequence s, final int sLength,
+          final CharSequence t, final int tLength) {
     return compare(s, 0, sLength, t, 0, tLength);
   }
 
@@ -122,8 +123,8 @@ public final class CharSequences {
    * @param tLength the number of characters to compare to.
    * @return
    */
-  public static int compare(@Nonnull final CharSequence s, final int sFrom, final int sLength,
-          @Nonnull final CharSequence t, final int tFrom, final int tLength) {
+  public static int compare(final CharSequence s, final int sFrom, final int sLength,
+          final CharSequence t, final int tFrom, final int tLength) {
 
     int lim = min(sLength, tLength);
     int i = sFrom;
@@ -141,7 +142,7 @@ public final class CharSequences {
     return sLength - tLength;
   }
 
-  public static boolean equalsNullables(@Nullable final CharSequence s, @Nullable final CharSequence t) {
+  public static boolean equalsNullables(final CharSequence s, final CharSequence t) {
     if (s == null) {
       return null == t;
     } else if (t == null) {
@@ -151,7 +152,7 @@ public final class CharSequences {
     }
   }
 
-  public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+  public static boolean equals(final CharSequence s, final CharSequence t) {
     final int sl = s.length();
     final int tl = t.length();
     if (sl != tl) {
@@ -166,7 +167,7 @@ public final class CharSequences {
     }
   }
 
-  public static int hashcode(@Nonnull final CharSequence cs) {
+  public static int hashcode(final CharSequence cs) {
     if (cs instanceof String) {
       return ((String) cs).hashCode();
     }
@@ -181,7 +182,7 @@ public final class CharSequences {
     return h;
   }
 
-  public static CharSequence subSequence(@Nonnull final CharSequence seq, final int startIdx, final int endIdx) {
+  public static CharSequence subSequence(final CharSequence seq, final int startIdx, final int endIdx) {
     if (startIdx == 0 && endIdx == seq.length()) {
       return seq;
     } else if (startIdx >= endIdx) {
