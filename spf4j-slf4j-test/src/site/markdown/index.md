@@ -21,6 +21,7 @@ with tons of debug info dumped to output all the time. But making it available w
  *  Environment specific configurations with best defaults right out of the box. (DEBUG when running from IDE, INFO otherwise)
  *  Assert logging made from various logging APIs. java.util.logging supported out of the box, for everything else [see](https://www.slf4j.org/legacy.html)
  *  Ability to control your timing based on TimeSource.
+ *  Dump thread states when unit test does not finish after a default timeout (spf4j.test.log.defaultTestTimeoutMillis=120000ms)
 
 ## 2. How to use it.
 
