@@ -217,9 +217,19 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   private LogCollection<ArrayDeque<TestLogRecord>> handleLogCollections(final Description description,
           final TestLoggers sysTest) {
     CollectLogs ca = description.getAnnotation(CollectLogs.class);
-    Level mll = ca == null ? minLogLevel : ca.minLevel();
-    boolean clp = ca == null ? collectPrinted : ca.collectPrinted();
-    return sysTest.collect(mll, maxDebugLogsCollected, clp);
+    Level mll;
+    boolean clp;
+    int nrLogs;
+    if (ca == null) {
+      mll = minLogLevel;
+      clp = collectPrinted;
+      nrLogs = maxDebugLogsCollected;
+    } else {
+      mll = ca.minLevel();
+      clp = ca.collectPrinted();
+      nrLogs = ca.nrLogs();
+    }
+    return sysTest.collect(mll, nrLogs, clp);
   }
 
   private void handlePrintLogAnnotations(final Description description, final TestLoggers sysTest) {

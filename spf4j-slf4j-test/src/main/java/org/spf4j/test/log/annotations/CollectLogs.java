@@ -23,7 +23,8 @@ import org.spf4j.log.Level;
 
 /**
  * Annotation to specify custom log collection for a particular unit test.
- * By default all unprinted logs above and including DEBUG level are collected.
+ * By default all unprinted logs above and including DEBUG level are collected for the purpose of being logged
+ * in case of unit test failure.
  * @author Zoltan Farkas
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,4 +32,5 @@ import org.spf4j.log.Level;
 public @interface CollectLogs {
   Level minLevel() default Level.DEBUG;
   boolean collectPrinted() default false;
+  int nrLogs() default 256;
 }
