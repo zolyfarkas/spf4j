@@ -199,7 +199,7 @@ public final class Csv {
 
   public static CharSequence toCsvElement(final CharSequence elem) {
     if (CharSequences.containsAnyChar(elem, TO_ESCAPE)) {
-      StringWriter sw = new StringWriter(elem.length() - 1);
+      StringBuilder sw = new StringBuilder(elem.length() + 2);
       try {
         writeQuotedCsvElement(elem, sw);
       } catch (IOException ex) {
