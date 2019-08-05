@@ -304,7 +304,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         long nanosSincelLastHB = TimeSource.nanoTime() - lrn;
         long delayNanos = intervalNanos - nanosSincelLastHB;
         if (delayNanos < (-intervalNanos) * missedHBRatio) {
-          throw new HeartBeatError("Missed heartbeat since last one was " + nanosSincelLastHB + " ns ago");
+          throw new HeartBeatError("Missed heartbeat, last one was " + nanosSincelLastHB + " ns ago");
         }
         if (delayNanos < 0) {
           delayNanos = 0;
@@ -527,7 +527,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
         long nanosSinceLastBeat = currentTimeNanos - lrn;
         if (maxMissedNanos < nanosSinceLastBeat) {
           // Unable to beat at inteval!
-          HeartBeatError err = new HeartBeatError("System to busy to provide regular heartbeat, last heartbeat "
+          HeartBeatError err = new HeartBeatError("System too busy to provide regular heartbeat, last heartbeat "
                   + nanosSinceLastBeat + " ns ago");
 
           handleError(err);
