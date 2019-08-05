@@ -43,8 +43,11 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
+import org.spf4j.base.StackSamples;
+import org.spf4j.base.avro.Converters;
 import static org.spf4j.base.avro.Converters.convert;
 import org.spf4j.base.avro.LogRecord;
+import org.spf4j.base.avro.StackSampleElement;
 
 /**
  * @author Zoltan Farkas
@@ -122,23 +125,37 @@ public interface Slf4jLogRecord {
   }
 
   @SuppressFBWarnings("WOC_WRITE_ONLY_COLLECTION_LOCAL")
-  default LogRecord toLogRecord(final String origin, final String traceId) {
+  default LogRecord toLogRecord(final String origin, final String ptraceId) {
     java.lang.Throwable extraThrowable = this.getExtraThrowable();
     Marker marker = this.getMarker();
     Object[] extraArguments = this.getExtraArguments();
     Map<String, Object> attribs = null;
     List<Object> xArgs;
+    String traceId = ptraceId;
+    List<StackSampleElement> profiles = Collections.EMPTY_LIST;
     if (extraArguments.length == 0) {
       xArgs = Collections.EMPTY_LIST;
     } else {
       int nrAttribs = 0;
       for (Object obj : extraArguments) {
         if (obj instanceof LogAttribute) {
+          LogAttribute la = (LogAttribute) obj;
+          String name = la.getName();
+          switch (name) {
+            case LogAttribute.ID_ATTR_NAME:
+              traceId = la.getValue().toString();
+              break;
+            case LogAttribute.PROFILE_SAMPLES_ATTR_NAME:
+              profiles = Converters.convert((StackSamples) la.getValue());
+              break;
+            default:
+              // nothiing to do.
+          }
           nrAttribs++;
         }
       }
       if (nrAttribs == 0) {
-        xArgs = Arrays.asList(this.getExtraArguments());
+        xArgs = Arrays.asList(extraArguments);
       } else {
         if (nrAttribs == extraArguments.length) {
           xArgs = Collections.EMPTY_LIST;
@@ -148,7 +165,15 @@ public interface Slf4jLogRecord {
         attribs = Maps.newHashMapWithExpectedSize(nrAttribs + (marker == null ? 0 : 1));
         for (Object obj : extraArguments) {
           if (obj instanceof LogAttribute) {
-            attribs.put(((LogAttribute) obj).getName(), ((LogAttribute) obj).getValue());
+            LogAttribute la = (LogAttribute) obj;
+            String aName = la.getName();
+            switch (aName) {
+              case LogAttribute.ID_ATTR_NAME:
+              case LogAttribute.PROFILE_SAMPLES_ATTR_NAME:
+                break;
+              default:
+                attribs.put(aName, la.getValue());
+            }
           } else {
             xArgs.add(obj);
           }
@@ -162,7 +187,7 @@ public interface Slf4jLogRecord {
             Instant.ofEpochMilli(this.getTimeStamp()),
             this.getLoggerName(), this.getThreadName(), this.getMessage(), xArgs,
             attribs == null ? Collections.EMPTY_MAP : attribs,
-            extraThrowable == null ? null : convert(extraThrowable));
+            extraThrowable == null ? null : convert(extraThrowable), profiles);
   }
 
 }

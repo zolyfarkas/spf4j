@@ -39,8 +39,11 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.base.Handler;
+import org.spf4j.base.Methods;
 import org.spf4j.ds.IdentityHashSet;
 import org.spf4j.log.Slf4jLogRecord;
 
@@ -129,9 +132,9 @@ public final class Converters {
   }
 
 
-  public static <E extends Exception> int convert(final Method method, final org.spf4j.base.StackSamples node,
+  public static int convert(final Method method, final org.spf4j.base.StackSamples node,
           final int parentId, final int id,
-          final Handler<StackSampleElement, E> handler) throws E {
+          final Consumer<StackSampleElement> handler) {
 
     final Deque<TraversalNode> dq = new ArrayDeque<>();
     dq.addLast(new TraversalNode(method, node, parentId));
@@ -149,7 +152,7 @@ public final class Converters {
           return true;
         });
       }
-      handler.handle(sample, parentId);
+      handler.accept(sample);
       nid++;
     }
     return nid;
@@ -185,6 +188,17 @@ public final class Converters {
       return "TraversalNode{" + "method=" + method + ", node=" + node + ", parentId=" + parentId + '}';
     }
 
+  }
+
+  @Nonnull
+  public static List<StackSampleElement> convert(@Nullable final org.spf4j.base.StackSamples stackSamples) {
+    if (stackSamples != null) {
+        final List<StackSampleElement> samples = new ArrayList<>();
+        Converters.convert(Methods.ROOT, stackSamples, -1, 0, samples::add);
+        return samples;
+    } else {
+      return Collections.EMPTY_LIST;
+    }
   }
 
 }

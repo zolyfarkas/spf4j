@@ -396,13 +396,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
     }
     Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);
     StackSamples ss = this.getAndClearStackSamples();
-    List<StackSampleElement> sses;
-    if (ss == null) {
-      sses = Collections.EMPTY_LIST;
-    } else {
-      sses = new ArrayList<>(64);
-      Converters.convert(Converters.ROOT, ss, -1, 0, (a, b) -> sses.add(a));
-    }
+    List<StackSampleElement> sses = Converters.convert(ss);
     return new DebugDetail(origin + '/' + this.getName(),
             Converters.convert("", this.getId().toString(), ctxLogs),
             throwable == null ? null : Converters.convert(throwable),

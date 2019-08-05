@@ -93,12 +93,16 @@ public final class Converter {
   public static void save(final File file, final SampleNode collected) throws IOException {
     try (BufferedOutputStream bos = new BufferedOutputStream(
             Files.newOutputStream(file.toPath()))) {
-      final SpecificDatumWriter<StackSampleElement> writer =
-              new SpecificDatumWriter<>(StackSampleElement.getClassSchema());
+      final SpecificDatumWriter<StackSampleElement> writer
+              = new SpecificDatumWriter<>(StackSampleElement.getClassSchema());
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
       Converters.convert(Methods.ROOT, collected,
-              -1, 0, (final StackSampleElement object, final long deadline) -> {
-                writer.write(object, encoder);
+              -1, 0, (StackSampleElement object) -> {
+                try {
+                  writer.write(object, encoder);
+                } catch (IOException ex) {
+                  throw new UncheckedIOException(ex);
+                }
               });
       encoder.flush();
     }
@@ -164,10 +168,14 @@ public final class Converter {
         encoder.writeString(entry.getKey());
         encoder.writeArrayStart();
         Converters.convert(Methods.ROOT, entry.getValue(),
-                -1, 0, (final StackSampleElement object, final long deadline) -> {
+                -1, 0, (final StackSampleElement object) -> {
+                  try {
                   encoder.setItemCount(1L);
                   encoder.startItem();
                   writer.write(object, encoder);
+                  } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                  }
                 });
         encoder.writeArrayEnd();
       }

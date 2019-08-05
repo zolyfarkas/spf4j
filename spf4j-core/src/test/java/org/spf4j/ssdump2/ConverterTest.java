@@ -84,9 +84,7 @@ public class ConverterTest {
     public void test() {
         SampleNode testSample = testSample();
         final List<StackSampleElement> samples = new ArrayList<>();
-        Converters.convert(Methods.ROOT, testSample, -1, 0, (final StackSampleElement object, final long deadline) -> {
-          samples.add(object);
-        });
+        Converters.convert(Methods.ROOT, testSample, -1, 0,  samples::add);
         SampleNode back = Converter.convert(samples.iterator());
         Assert.assertEquals(testSample.toString(), back.toString());
     }
