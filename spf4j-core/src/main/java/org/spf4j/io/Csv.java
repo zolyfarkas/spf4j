@@ -75,6 +75,21 @@ public final class Csv {
   public interface CsvMapHandler<T> extends org.spf4j.io.csv.CsvMapHandler<T> {
   }
 
+  public static String[] readSystemProperty(final String propertyName, final String... defaults) {
+    String propertyVal = System.getProperty(propertyName);
+    if (propertyVal == null) {
+      return defaults;
+    } else {
+      List<String> row;
+      try {
+        row = readRow(propertyVal);
+      } catch (CsvParseException ex) {
+         throw new RuntimeException("Unable to parser property " + propertyName + " = " + propertyVal, ex);
+      }
+      return row.toArray(new String[row.size()]);
+    }
+  }
+
   public static void writeCsvRow(final Appendable writer, final Object... elems) throws IOException {
     CSV.writeCsvRow(writer, elems);
   }

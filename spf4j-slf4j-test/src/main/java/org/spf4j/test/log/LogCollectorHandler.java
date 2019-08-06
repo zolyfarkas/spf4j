@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,12 +42,10 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
   private final Function<A, T> finisher;
   private final Consumer<LogCollectorHandler<A, T>> onClose;
   private boolean isClosed;
-  private final Collector<TestLogRecord, A, T> collector;
 
   LogCollectorHandler(final Level fromLevel, final Level toLevel,
           final boolean passThrough,
           final Collector<TestLogRecord, A, T> collector, final Consumer<LogCollectorHandler<A, T>> onClose) {
-    this.collector = collector;
     this.fromLevel = fromLevel;
     this.toLevel = toLevel;
     this.passThrough = passThrough;
@@ -85,8 +84,13 @@ final class LogCollectorHandler<A, T> implements LogHandler, LogCollection<T> {
   public T get() {
     synchronized (sync) {
       T result = finisher.apply(accObj);
-      // Create a copy... relies on combiner using left arg to mutate, if it mutates...
-      accObj = collector.combiner().apply(collector.supplier().get(), accObj);
+      if (result == accObj) {
+        try {
+          return (T) result.getClass().getMethod("clone").invoke(result);
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException  | InvocationTargetException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
       return result;
     }
   }

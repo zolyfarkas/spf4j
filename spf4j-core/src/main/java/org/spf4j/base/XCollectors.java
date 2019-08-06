@@ -65,21 +65,27 @@ public final class XCollectors {
     );
   }
 
-  public static <T, X extends T> Collector<T, ?, ArrayDeque<T>> last(final int limit, final X addIfLimited) {
-    return Collector.of(ArrayDeque<T>::new,
+  public static <T, X extends T> Collector<T, ArrayDeque<T>,
+         ArrayDeque<T>> last(final int limit, final X addIfLimited) {
+    return  last(() -> new ArrayDeque<T>(), limit, addIfLimited);
+  }
+
+  public static <T, X extends T, D extends Deque<T>> Collector<T, D, D> last(final Supplier<D> dqSupp,
+          final int limit, final X addIfLimited) {
+    return Collector.of(dqSupp,
             (l, e) -> {
               l.addLast(e);
               limitDequeue(l, limit, addIfLimited);
-            }, new BinaryOperator<ArrayDeque<T>>() {
+            }, new BinaryOperator<D>() {
       @Override
       @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
       // Agree with FB here, however this confusing behavior is documented in Collector javadoc...
-      public ArrayDeque<T> apply(final ArrayDeque<T> l1, final ArrayDeque<T> l2) {
+      public D apply(final D l1, final D l2) {
         l1.addAll(l2);
         limitDequeue(l1, limit, addIfLimited);
         return l1;
       }
-    });
+    }, Collector.Characteristics.IDENTITY_FINISH);
   }
 
   public static <T> void limitDequeue(final Deque<T> l1, final int limit, final T addIfLimited) {
@@ -120,13 +126,13 @@ public final class XCollectors {
     private final BiConsumer<A, T> accumulator;
     private final BinaryOperator<A> combiner;
     private final Function<A, R> finisher;
-    private final Set<Characteristics> characteristics;
+    private final Set<Collector.Characteristics> characteristics;
 
     CollectorImpl(final Supplier<A> supplier,
             final BiConsumer<A, T> accumulator,
             final BinaryOperator<A> combiner,
             final Function<A, R> finisher,
-            final Set<Characteristics> characteristics) {
+            final Set<Collector.Characteristics> characteristics) {
       this.supplier = supplier;
       this.accumulator = accumulator;
       this.combiner = combiner;
@@ -137,7 +143,7 @@ public final class XCollectors {
     CollectorImpl(final Supplier<A> supplier,
             final BiConsumer<A, T> accumulator,
             final BinaryOperator<A> combiner,
-            final Set<Characteristics> characteristics) {
+            final Set<Collector.Characteristics> characteristics) {
       this(supplier, accumulator, combiner, castingIdentity(), characteristics);
     }
 
@@ -162,7 +168,7 @@ public final class XCollectors {
     }
 
     @Override
-    public Set<Characteristics> characteristics() {
+    public Set<Collector.Characteristics> characteristics() {
       return characteristics;
     }
   }

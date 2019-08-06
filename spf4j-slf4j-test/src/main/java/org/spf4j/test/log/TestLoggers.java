@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
@@ -301,7 +302,7 @@ public final class TestLoggers implements ILoggerFactory {
        config = config.remove(category, c);
        resetJulConfig();
     });
-    addConfig(category, handler, ExecutionContexts.current(),  handler);
+    addConfig(category, handler, ExecutionContexts.current(),  handler, whereTo);
     return handler;
   }
 
@@ -311,6 +312,15 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
 
+  /**
+   * Add a new handler configuration.
+   * @param category the category this handler is registered to.
+   * @param handler the log handler to register.
+   * @param ctx current execution context.
+   * @param reg the handler registration.
+   * @param whereTo if multiple handlers registered at this category level,
+   * this function will provide the insert location.
+   */
   private void addConfig(final String category, final LogHandler handler,
           @Nullable final ExecutionContext ctx, final HandlerRegistration reg,
           final ToIntFunction<List<LogHandler>> whereTo) {
@@ -494,30 +504,58 @@ public final class TestLoggers implements ILoggerFactory {
    */
   public LogCollection<ArrayDeque<TestLogRecord>> collect(final Level minimumLogLevel, final int maxNrLogs,
           final boolean collectPrinted) {
-    return collect("", minimumLogLevel, maxNrLogs, collectPrinted);
+    return collect("", minimumLogLevel, maxNrLogs, collectPrinted, null);
   }
 
-  private LogCollection<ArrayDeque<TestLogRecord>> collect(final String category, final Level minimumLogLevel,
+  public LogCollection<ArrayDeque<TestLogRecord>> collect(final Level minimumLogLevel, final int maxNrLogs,
+          final boolean collectPrinted, final String include, final String... excludeCategories) {
+    ArrayDeque adq = new ArrayDeque(maxNrLogs + 1);
+    Collector<TestLogRecord, ArrayDeque<TestLogRecord>, ArrayDeque<TestLogRecord>> truncationCollector
+            = XCollectors.last(() -> adq, maxNrLogs,
+                    new TestLogRecordImpl("test", Level.INFO, "Truncated beyond {} ", maxNrLogs));
+      if (excludeCategories.length == 0) {
+         return collect(include, minimumLogLevel, collectPrinted, (Predicate<TestLogRecord>) null, truncationCollector);
+      } else {
+         return collect(include, minimumLogLevel, collectPrinted, (log) -> {
+          String loggerName = log.getLoggerName();
+          for (String cat : excludeCategories) {
+            if (loggerName.startsWith(cat)) {
+              return false;
+            }
+          }
+          return true;
+        }, truncationCollector);
+      }
+  }
+
+
+  public LogCollection<ArrayDeque<TestLogRecord>> collect(final String category, final Level minimumLogLevel,
           final int maxNrLogs,
-          final boolean collectPrinted) {
+          final boolean collectPrinted, @Nullable final Predicate<TestLogRecord> collectorFilter) {
+    Collector<TestLogRecord, ArrayDeque<TestLogRecord>, ArrayDeque<TestLogRecord>> truncationCollector
+            = XCollectors.last(maxNrLogs,
+            new TestLogRecordImpl("test", Level.INFO, "Truncated beyond {} ", maxNrLogs));
+    return collect(category, minimumLogLevel, collectPrinted, collectorFilter, truncationCollector);
+  }
+
+  public LogCollection<ArrayDeque<TestLogRecord>> collect(
+          final String category, final Level minimumLogLevel,
+          final boolean collectPrinted,
+          final Predicate<TestLogRecord> collectorFilter,
+          final Collector<TestLogRecord, ?, ArrayDeque<TestLogRecord>> pcollector) {
+    Collector<TestLogRecord, ?, ArrayDeque<TestLogRecord>>  collector = pcollector;
+    if (collectorFilter != null) {
+      collector = XCollectors.filtering(collectorFilter, collector);
+    }
     if (!collectPrinted) {
       return collect(category,
-            minimumLogLevel,
-            Level.ERROR,
-            true,
-            XCollectors.filtering(
-                 (l) -> !l.hasAttachment(Attachments.PRINTED),
-                 XCollectors.last(maxNrLogs,
-                 new TestLogRecordImpl("test", Level.INFO, "Truncated beyond {} ", maxNrLogs))),
-            List::size);
+              minimumLogLevel,
+              Level.ERROR,
+              true,
+              XCollectors.filtering((l) -> !l.hasAttachment(Attachments.PRINTED), collector),
+              List::size);
     } else {
-      return collect(category,
-            minimumLogLevel,
-            Level.ERROR,
-            true,
-            XCollectors.last(maxNrLogs,
-                 new TestLogRecordImpl("test", Level.INFO, "Truncated beyond {} ", maxNrLogs)),
-            (c)  -> 0);
+      return collect(category, minimumLogLevel, Level.ERROR, true, collector, (c)  -> 0);
     }
   }
 

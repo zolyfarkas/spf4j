@@ -30,7 +30,31 @@ import org.spf4j.log.Level;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface CollectLogs {
+  /**
+   * The minimum level of logs to collect.
+   */
   Level minLevel() default Level.DEBUG;
+
+  /**
+   * Collect logs that have been printed(logged).
+   */
   boolean collectPrinted() default false;
+
+  /**
+   * Maximum number of logs to collect.
+   * @return
+   */
   int nrLogs() default 256;
+
+  /**
+   * logs to include from collection. by default all categories are.
+   * @return
+   */
+  String includeLogs() default "";
+
+  /**
+   * logs to exclude from collection.
+   * @return
+   */
+  String[] excludeLogs() default {};
 }

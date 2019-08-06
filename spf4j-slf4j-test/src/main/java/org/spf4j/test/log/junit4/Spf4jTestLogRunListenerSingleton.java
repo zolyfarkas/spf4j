@@ -43,6 +43,7 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TestTimeSource;
 import org.spf4j.base.Threads;
 import org.spf4j.concurrent.CustomThreadFactory;
+import org.spf4j.io.Csv;
 import org.spf4j.test.log.Attachments;
 import org.spf4j.test.log.ExceptionHandoverRegistry;
 import org.spf4j.log.Level;
@@ -96,12 +97,14 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private  final long defaultTestTimeoutMillis;
 
+  private final String[] excludeLogsFromCollection;
 
   private Spf4jTestLogRunListenerSingleton() {
     minLogLevel = Level.valueOf(System.getProperty("spf4j.test.log.collectMinLevel", "DEBUG"));
     maxDebugLogsCollected = Integer.getInteger("spf4j.test.log.collectmaxLogs", 100);
     defaultTestTimeoutMillis =  Long.getLong("spf4j.test.log.defaultTestTimeoutMillis", 120000);
     collectPrinted = Boolean.getBoolean("spf4j.test.log.collectPrintedLogs");
+    excludeLogsFromCollection = Csv.readSystemProperty("spf4j.test.log.collectExclusions");
     baggages = new ConcurrentHashMap<>();
     synchronized (Thread.class) {
       final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
@@ -220,16 +223,22 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     Level mll;
     boolean clp;
     int nrLogs;
+    String include;
+    String[] exclude;
     if (ca == null) {
       mll = minLogLevel;
       clp = collectPrinted;
       nrLogs = maxDebugLogsCollected;
+      include = "";
+      exclude = excludeLogsFromCollection;
     } else {
       mll = ca.minLevel();
       clp = ca.collectPrinted();
       nrLogs = ca.nrLogs();
+      include = ca.includeLogs();
+      exclude = ca.excludeLogs();
     }
-    return sysTest.collect(mll, nrLogs, clp);
+    return sysTest.collect(mll, nrLogs, clp, include, exclude);
   }
 
   private void handlePrintLogAnnotations(final Description description, final TestLoggers sysTest) {
