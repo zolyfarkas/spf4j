@@ -40,7 +40,6 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import static java.lang.Math.min;
 import java.util.function.IntPredicate;
-import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -423,9 +422,8 @@ public final class CharSequences {
     int i = idxFrom;
     int limit = -Integer.MAX_VALUE;
     int multmin = limit / radix;
-    int length = idxTo;
     int digit;
-    while (i < length && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
+    while (i < idxTo && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
       if (result < multmin) {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
       }
@@ -445,12 +443,12 @@ public final class CharSequences {
 
  @SuppressWarnings("checkstyle:InnerAssignment")
   public static long parseUnsignedLong(@Nonnull final CharSequence cs, final int radix, final int idxFrom) {
-    return parseUnsignedLong(cs, radix, idxFrom, cs.length());
+    return parseUnsignedLong(cs, radix, idxFrom, cs.length(), false);
   }
 
   @SuppressWarnings("checkstyle:InnerAssignment")
   public static long parseUnsignedLong(@Nonnull final CharSequence cs, final int radix,
-          final int idxFrom, final int idxTo) {
+          final int idxFrom, final int idxTo, final boolean strict) {
     if (radix < Character.MIN_RADIX) {
       throw new NumberFormatException("radix " + radix
               + " less than Character.MIN_RADIX");
@@ -465,8 +463,7 @@ public final class CharSequences {
     long limit = -Long.MAX_VALUE;
     long multmin = limit / radix;
     int digit;
-    int length = idxTo;
-    while (i < length && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
+    while (i < idxTo && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
       if (result < multmin) {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
       }
@@ -479,6 +476,9 @@ public final class CharSequences {
     }
     if (i == idxFrom) {
       throw new NumberFormatException("No number in " + cs + " at " + idxFrom);
+    }
+    if (strict && i < idxTo) {
+      throw new NumberFormatException("No valid number in " + cs + " at " + idxFrom + " to " + idxTo);
     }
     return -result;
   }
