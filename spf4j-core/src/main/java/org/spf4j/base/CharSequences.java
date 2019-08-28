@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import static java.lang.Math.min;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -703,6 +705,15 @@ public final class CharSequences {
   public static int indexOf(final CharSequence cs, final int from, final int to, final char c) {
     for (int i = from; i < to; i++) {
       if (c == cs.charAt(i)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public static int indexOf(final CharSequence cs, final int from, final int to, final IntPredicate cp) {
+    for (int i = from; i < to; i++) {
+      if (cp.test(cs.charAt(i))) {
         return i;
       }
     }
