@@ -435,7 +435,7 @@ public final class CharSequences {
       i++;
     }
     if (i == idxFrom) {
-      throw new NumberFormatException("No numnber in \"" + cs + "\" at " + idxFrom);
+      throw new NumberFormatException("No number in \"" + cs + "\" at " + idxFrom);
     }
     return -result;
   }
@@ -443,6 +443,12 @@ public final class CharSequences {
 
  @SuppressWarnings("checkstyle:InnerAssignment")
   public static long parseUnsignedLong(@Nonnull final CharSequence cs, final int radix, final int idxFrom) {
+    return parseUnsignedLong(cs, radix, idxFrom, cs.length());
+  }
+
+  @SuppressWarnings("checkstyle:InnerAssignment")
+  public static long parseUnsignedLong(@Nonnull final CharSequence cs, final int radix,
+          final int idxFrom, final int idxTo) {
     if (radix < Character.MIN_RADIX) {
       throw new NumberFormatException("radix " + radix
               + " less than Character.MIN_RADIX");
@@ -457,7 +463,7 @@ public final class CharSequences {
     long limit = -Long.MAX_VALUE;
     long multmin = limit / radix;
     int digit;
-    int length = cs.length();
+    int length = idxTo;
     while (i < length && (digit = Character.digit(cs.charAt(i), radix)) >= 0) {
       if (result < multmin) {
         throw new NumberFormatException("For input char sequence: \"" + cs + "\" at " + i);
