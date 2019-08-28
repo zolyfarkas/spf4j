@@ -111,7 +111,7 @@ public class ExplorerTest {
     JMenuItemFixture openJsonText = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
       protected boolean isMatching(final JMenuItem component) {
-        return "FromText".equals(component.getText());
+        return "From Text/URL".equals(component.getText());
       }
     });
     openJsonText.click();
@@ -122,7 +122,7 @@ public class ExplorerTest {
             + "{\"m3@C1\":4,\"c\":[{\"m2@C1\":4,\"c\":[{\"m1@C1\":4}]}]},"
             + "{\"m4@C1\":2,\"c\":[{\"m2@C1\":2,\"c\":[{\"m1@C1\":2}]}]}]}");
     dialog.button("display").click();
-    Assert.assertNotNull(window.internalFrame("text entry"));
+    Assert.assertNotNull(window.internalFrame("SampleNode Tree"));
     window.close();
     window.cleanUp();
     expectation.assertObservation();

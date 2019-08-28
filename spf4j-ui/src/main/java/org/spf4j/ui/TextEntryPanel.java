@@ -20,9 +20,14 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +43,7 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.avro.LogRecord;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleNode;
@@ -49,14 +55,14 @@ import org.spf4j.stackmonitor.SampleNode;
 @SuppressFBWarnings({"SE_TRANSIENT_FIELD_NOT_RESTORED", "SE_BAD_FIELD"})
 public class TextEntryPanel extends javax.swing.JPanel {
 
-  private transient Consumer<SampleNode> nodeConsumer;
+  private transient BiConsumer<String, SampleNode> nodeConsumer;
 
   private transient Consumer<Exception> errorConsumer;
 
   /**
    * Creates new form TextEntryPanel
    */
-  public TextEntryPanel(final Consumer<SampleNode> nodeConsumer,
+  public TextEntryPanel(final BiConsumer<String, SampleNode> nodeConsumer,
           final Consumer<Exception> errorConsumer) {
     initComponents();
     this.nodeConsumer = nodeConsumer;
@@ -77,6 +83,7 @@ public class TextEntryPanel extends javax.swing.JPanel {
     jTextPane1 = new javax.swing.JTextPane();
     javax.swing.JButton display = new javax.swing.JButton();
 
+    jTextPane1.setText("Enter stack sample json represetation or url to retrieve Log Records containing stack samples ( https://demo.spf4j.org/logs/cluster?filter=log.stackSamples.length!=0 )");
     jTextPane1.setName("textBox"); // NOI18N
     jTextPane1.setOpaque(false);
     jTextPane1.setRequestFocusEnabled(false);
@@ -95,7 +102,7 @@ public class TextEntryPanel extends javax.swing.JPanel {
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-        .addComponent(jScrollPane1)
+        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
         .addContainerGap())
       .addGroup(layout.createSequentialGroup()
         .addGap(152, 152, 152)
@@ -113,11 +120,40 @@ public class TextEntryPanel extends javax.swing.JPanel {
     );
   }// </editor-fold>//GEN-END:initComponents
 
-  @SuppressFBWarnings("UP_UNUSED_PARAMETER")
+  public static Object readAvroBin(final InputStream input, final Schema writerSchema)
+          throws IOException {
+    DatumReader reader = new SpecificDatumReader(writerSchema);
+    DecoderFactory decoderFactory = DecoderFactory.get();
+    Decoder decoder = decoderFactory.binaryDecoder(input, null);
+    return reader.read(null, decoder);
+  }
+
+
+  @SuppressFBWarnings({"UP_UNUSED_PARAMETER", "URLCONNECTION_SSRF_FD"})
   private void displayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayActionPerformed
     try {
       String text = jTextPane1.getText().trim();
-      if (text.startsWith("[")) {
+      if (text.startsWith("http")) {
+        URL url = new URL(text);
+        URLConnection conn = url.openConnection();
+        conn.setRequestProperty("Accept", "application/avro");
+        conn.connect();
+        String contentType = conn.getContentType();
+        if (!"application/avro".equals(contentType)) {
+          throw new IOException("Unsupported content type " + contentType);
+        }
+        try (InputStream is = new BufferedInputStream(conn.getInputStream())) {
+          List<LogRecord> recs =
+                  (List<LogRecord>) readAvroBin(is, Schema.createArray(LogRecord.SCHEMA$));
+          for (LogRecord rec : recs) {
+            List<StackSampleElement> stackSamples = rec.getStackSamples();
+            if (!stackSamples.isEmpty()) {
+              nodeConsumer.accept(rec.getMsg() + "; with trId=" + rec.getTrId(),
+                      Converter.convert(stackSamples.iterator()));
+            }
+          }
+        }
+      } else if (text.startsWith("[")) {
         Schema schema = Schema.createArray(StackSampleElement.getClassSchema());
         DatumReader reader = new SpecificDatumReader(schema);
         List<StackSampleElement> samples;
@@ -127,9 +163,9 @@ public class TextEntryPanel extends javax.swing.JPanel {
         } catch (IOException | RuntimeException ex) {
           throw new RuntimeException("Unable to read samples: " + text, ex);
         }
-        nodeConsumer.accept(Converter.convert(samples.iterator()));
+        nodeConsumer.accept("SampleNode Array", Converter.convert(samples.iterator()));
       } else {
-        nodeConsumer.accept(SampleNode.parse(new StringReader(text)).getSecond());
+        nodeConsumer.accept("SampleNode Tree", SampleNode.parse(new StringReader(text)).getSecond());
       }
     } catch (IOException | RuntimeException ex) {
       errorConsumer.accept(ex);

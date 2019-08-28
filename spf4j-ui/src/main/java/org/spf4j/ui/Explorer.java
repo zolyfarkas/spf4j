@@ -130,7 +130,7 @@ public class Explorer extends javax.swing.JFrame {
     fileMenu.add(openMenuItem);
 
     fromTextMenuItem.setMnemonic('o');
-    fromTextMenuItem.setText("FromText");
+    fromTextMenuItem.setText("From Text/URL");
     fromTextMenuItem.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         fromTextMenuItemActionPerformed(evt);
@@ -213,7 +213,7 @@ public class Explorer extends javax.swing.JFrame {
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-      .add(desktopPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 668, Short.MAX_VALUE)
+      .add(org.jdesktop.layout.GroupLayout.TRAILING, desktopPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 668, Short.MAX_VALUE)
     );
 
     pack();
@@ -298,8 +298,8 @@ public class Explorer extends javax.swing.JFrame {
     final JDialog frame = new JDialog(this, "Enter json stack samples", true);
     frame.setName("fromTextDialog");
     frame.setJMenuBar(createContextMenuBar());
-    TextEntryPanel panel = new TextEntryPanel((samples) -> {
-        JInternalFrame f = new StackDumpJInternalFrame(samples, "text entry", true);
+    TextEntryPanel panel = new TextEntryPanel((title, samples) -> {
+        JInternalFrame f = new StackDumpJInternalFrame(samples, title, true);
         frame.setVisible(false);
         f.setVisible(true);
         desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
