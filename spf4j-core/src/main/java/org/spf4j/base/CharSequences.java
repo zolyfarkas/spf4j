@@ -470,7 +470,7 @@ public final class CharSequences {
       i++;
     }
     if (i == idxFrom) {
-      throw new NumberFormatException("No numnber in " + cs + " at " + idxFrom);
+      throw new NumberFormatException("No number in " + cs + " at " + idxFrom);
     }
     return -result;
   }
