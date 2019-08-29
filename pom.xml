@@ -64,7 +64,7 @@
         <mavenVersion>3.3.9</mavenVersion>
         <aetherVersion>1.1.0</aetherVersion>
         <core-schema.version>0.21</core-schema.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.9.20190807</jackson.version>
         <!-- avro 1.8.2 generated classes depend on org.apache.avro.message.* which is not yet ported to my fork. -->
         <!--  need to use 1.8.0.51p or newer my for to validate the build, since this version is more correct -->
         <!-- official avro version to build against is 1.8.1 -->
@@ -74,7 +74,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <maven.compile.target>1.8</maven.compile.target>
-        <jackson.version>2.9.9</jackson.version>
         <jacoco.version>0.8.2</jacoco.version>
         <jacoco.instruction.ratio>0.4</jacoco.instruction.ratio>
         <jacoco.class.ratio>0.5</jacoco.class.ratio>
@@ -207,37 +206,34 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
         <version>${jackson.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-    <dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro</artifactId>
-      <version>${avro.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.xerial.snappy</groupId>
-          <artifactId>snappy-java</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-compress</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.thoughtworks.paranamer</groupId>
-          <artifactId>paranamer</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.tukaani</groupId>
-          <artifactId>xz</artifactId>
-        </exclusion>
-      </exclusions>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${avro.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.thoughtworks.paranamer</groupId>
+            <artifactId>paranamer</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.tukaani</groupId>
+            <artifactId>xz</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>
