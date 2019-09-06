@@ -42,9 +42,11 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLTimeoutException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import org.spf4j.jdbc.DataSourceEx;
 import org.spf4j.recyclable.ObjectBorrowException;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
@@ -56,7 +58,7 @@ import org.spf4j.recyclable.impl.RecyclingSupplierBuilder;
  * @author zoly
  */
 @Beta
-public final class PooledDataSource implements DataSource, AutoCloseable {
+public final class PooledDataSource implements DataSourceEx, AutoCloseable {
 
   private final RecyclingSupplier<Connection> pool;
 
@@ -91,36 +93,22 @@ public final class PooledDataSource implements DataSource, AutoCloseable {
       throw new SQLTimeoutException(ex);
     }
     return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-            new Class<?>[]{Connection.class}, new InvocationHandler() {
+            new Class<?>[]{Connection.class}, new PooledConnectionInvocationHandler(raw, pool));
+  }
 
-      private Exception ex;
-
-      private boolean closed = false;
-
-      @Override
-      public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
-        String mName = method.getName();
-        if ("close".equals(mName)) {
-          if (!closed) {
-            pool.recycle(raw, ex);
-            ex = null;
-            closed = true;
-          }
-          return null;
-        } else {
-          if (closed) {
-            throw new IllegalStateException("not aowner of this connection,"
-                    + " it has been returned already to " + pool);
-          }
-          try {
-            return method.invoke(raw, args);
-          } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {
-            ex = e;
-            throw e;
-          }
-        }
+  @Override
+  public Connection getConnection(final long timeout, final TimeUnit unit) throws SQLException {
+    Connection raw;
+    try {
+      raw = pool.tryGet(timeout, unit);
+      if (raw == null) {
+        throw new SQLTimeoutException("Unable to obtain connection in " + timeout + " " + unit);
       }
-    });
+    } catch (InterruptedException | ObjectBorrowException | ObjectCreationException ex) {
+      throw new SQLException(ex);
+    }
+    return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+            new Class<?>[]{Connection.class}, new PooledConnectionInvocationHandler(raw, pool));
   }
 
   @Override
@@ -176,6 +164,44 @@ public final class PooledDataSource implements DataSource, AutoCloseable {
   @Override
   public void close() throws ObjectDisposeException, InterruptedException {
     pool.dispose();
+  }
+
+  private static final class PooledConnectionInvocationHandler implements InvocationHandler {
+
+    private final Connection raw;
+
+    private final RecyclingSupplier<Connection> pool;
+
+    PooledConnectionInvocationHandler(final Connection raw, final RecyclingSupplier<Connection> pool) {
+      this.raw = raw;
+      this.pool = pool;
+    }
+    private Exception ex;
+    private boolean closed = false;
+
+    @Override
+    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Exception {
+      String mName = method.getName();
+      if ("close".equals(mName)) {
+        if (!closed) {
+          pool.recycle(raw, ex);
+          ex = null;
+          closed = true;
+        }
+        return null;
+      } else {
+        if (closed) {
+          throw new IllegalStateException("not aowner of this connection,"
+                  + " it has been returned already to " + pool);
+        }
+        try {
+          return method.invoke(raw, args);
+        } catch (IllegalAccessException | InvocationTargetException | RuntimeException e) {
+          ex = e;
+          throw e;
+        }
+      }
+    }
   }
 
 }
