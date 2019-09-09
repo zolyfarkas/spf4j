@@ -187,30 +187,37 @@ import org.spf4j.base.CharSequences;
  * <td headers="sc">{@link NumberFormat#getIntegerInstance(Locale) NumberFormat.getIntegerInstance}{@code (getLocale())}
  * <tr>
  * <td headers="fs"><code>currency</code>
- * <td headers="sc">{@link NumberFormat#getCurrencyInstance(Locale) NumberFormat.getCurrencyInstance}{@code (getLocale())}
+ * <td headers="sc">{@link NumberFormat#getCurrencyInstance(Locale) NumberFormat.getCurrencyInstance}
+ * {@code (getLocale())}
  * <tr>
  * <td headers="fs"><code>percent</code>
  * <td headers="sc">{@link NumberFormat#getPercentInstance(Locale) NumberFormat.getPercentInstance}{@code (getLocale())}
  * <tr>
  * <td headers="fs"><i>SubformatPattern</i>
  * <td headers="sc">{@code new}
- * {@link DecimalFormat#DecimalFormat(String,DecimalFormatSymbols) DecimalFormat}{@code (subformatPattern,} {@link DecimalFormatSymbols#getInstance(Locale) DecimalFormatSymbols.getInstance}{@code (getLocale()))}
+ * {@link DecimalFormat#DecimalFormat(String,DecimalFormatSymbols) DecimalFormat}{@code (subformatPattern,}
+ * {@link DecimalFormatSymbols#getInstance(Locale) DecimalFormatSymbols.getInstance}{@code (getLocale()))}
  * <tr>
  * <td headers="ft" rowspan=6><code>date</code>
  * <td headers="fs"><i>(none)</i>
- * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}{@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}
+ * {@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>short</code>
- * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}{@code (}{@link DateFormat#SHORT}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}
+ * {@code (}{@link DateFormat#SHORT}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>medium</code>
- * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}{@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}
+ * {@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>long</code>
- * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}{@code (}{@link DateFormat#LONG}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}
+ * {@code (}{@link DateFormat#LONG}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>full</code>
- * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}{@code (}{@link DateFormat#FULL}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getDateInstance(int,Locale) DateFormat.getDateInstance}
+ * {@code (}{@link DateFormat#FULL}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><i>SubformatPattern</i>
  * <td headers="sc">{@code new}
@@ -218,19 +225,24 @@ import org.spf4j.base.CharSequences;
  * <tr>
  * <td headers="ft" rowspan=6><code>time</code>
  * <td headers="fs"><i>(none)</i>
- * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}{@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}
+ * {@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>short</code>
- * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}{@code (}{@link DateFormat#SHORT}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}
+ * {@code (}{@link DateFormat#SHORT}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>medium</code>
- * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}{@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}
+ * {@code (}{@link DateFormat#DEFAULT}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>long</code>
- * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}{@code (}{@link DateFormat#LONG}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}
+ * {@code (}{@link DateFormat#LONG}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><code>full</code>
- * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}{@code (}{@link DateFormat#FULL}{@code , getLocale())}
+ * <td headers="sc">{@link DateFormat#getTimeInstance(int,Locale) DateFormat.getTimeInstance}
+ * {@code (}{@link DateFormat#FULL}{@code , getLocale())}
  * <tr>
  * <td headers="fs"><i>SubformatPattern</i>
  * <td headers="sc">{@code new}
@@ -885,7 +897,8 @@ public final class MessageFormat extends Format {
   /**
    * Creates a MessageFormat with the given pattern and uses it to format the given arguments. This is equivalent to
    * <blockquote>
-   * <code>(new {@link #MessageFormat(String) MessageFormat}(pattern)).{@link #format(java.lang.Object[], java.lang.StringBuffer, java.text.FieldPosition) format}(arguments,
+   * <code>(new {@link #MessageFormat(String) MessageFormat}(pattern)).
+   * {@link #format(java.lang.Object[], java.lang.StringBuffer, java.text.FieldPosition) format}(arguments,
    * new StringBuffer(), null).toString()</code>
    * </blockquote>
    *

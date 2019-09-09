@@ -41,8 +41,8 @@ import static java.text.CharacterIterator.DONE;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -587,7 +587,8 @@ public final class AttributedString {
         }
     }
 
-    // gets an attribute value, but returns an annotation only if it's range does not extend outside the range beginIndex..endIndex
+    // gets an attribute value, but returns an annotation only
+    // if it's range does not extend outside the range beginIndex..endIndex
     @Nullable
     private Object getAttributeCheckRange(Attribute attribute, int runIndex, int beginIndex, int endIndex) {
         Object value = getAttribute(attribute, runIndex);
@@ -708,7 +709,8 @@ public final class AttributedString {
 
         // note on synchronization:
         // we don't synchronize on the iterator, assuming that an iterator is only used in one thread.
-        // we do synchronize access to the AttributedString however, since it's more likely to be shared between threads.
+        // we do synchronize access to the AttributedString however,
+        // since it's more likely to be shared between threads.
 
         // start and end index for our iteration
         private int beginIndex;
@@ -911,9 +913,7 @@ public final class AttributedString {
         @SuppressFBWarnings("SEO_SUBOPTIMAL_EXPRESSION_ORDER") // looks like a FP
         public Map<Attribute,Object> getAttributes() {
             if (runAttributes == null || currentRunIndex == -1 || runAttributes[currentRunIndex] == null) {
-                // ??? would be nice to return null, but current spec doesn't allow it
-                // returning Hashtable saves AttributeMap from dealing with emptiness
-                return new Hashtable<>();
+                return Collections.EMPTY_MAP;
             }
             return new AttributeMap(currentRunIndex, beginIndex, endIndex);
         }

@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,7 +60,7 @@ public final class Futures {
 
   @Nullable
   @CheckReturnValue
-  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future... futures) {
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future<?>... futures) {
     return cancelAll(mayInterrupt, futures, 0);
   }
 
@@ -83,7 +84,7 @@ public final class Futures {
   }
 
   @Nullable
-  public static RuntimeException cancelAll(final boolean mayInterrupt, final Iterator<Future> iterator) {
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Iterator<Future<?>> iterator) {
     RuntimeException ex = null;
     while (iterator.hasNext()) {
       Future future = iterator.next();
@@ -107,49 +108,18 @@ public final class Futures {
     return getAllWithDeadlineNanos(deadlineNanos, futures);
   }
 
-  /**
-   * Gets all futures resuls.
-   *
-   * @param deadlineNanos
-   * @param futures
-   * @return
-   */
+
+
   @CheckReturnValue
   @Nonnull
-  public static Pair<Map<Future, Object>, Exception> getAllWithDeadlineNanos(final long deadlineNanos,
+  public static  Pair<Map<Future, Object>, Exception> getAllWithDeadlineNanos(final long deadlineNanos,
           final Future... futures) {
-    Exception exception = null;
-    Map<Future, Object> results = new HashMap<>(futures.length);
-    for (int i = 0; i < futures.length; i++) {
-      Future future = futures[i];
-      try {
-        final long toNanos = deadlineNanos - TimeSource.nanoTime();
-        results.put(future, future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS));
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
-        if (exception == null) {
-          exception = ex;
-        } else {
-          Throwables.suppressLimited(ex, exception);
-          exception = ex;
-        }
-        RuntimeException cex = cancelAll(true, futures, i + 1);
-        if (cex != null) {
-          Throwables.suppressLimited(exception, cex);
-        }
-      } catch (TimeoutException | ExecutionException | RuntimeException ex) {
-        if (exception == null) {
-          exception = ex;
-        } else {
-          Throwables.suppressLimited(exception, ex);
-        }
-      }
-    }
-    return Pair.of(results, exception);
+    Map<Future, Object> res = Maps.newHashMapWithExpectedSize(futures.length);
+    Exception ex = getAllWithDeadlineNanos(deadlineNanos, res::put, futures);
+    return Pair.of(res, ex);
   }
 
- /**
-   * Gets all futures resuls for futures that return Void (no return).
+  /**
    *
    * @param deadlineNanos
    * @param futures
@@ -157,14 +127,16 @@ public final class Futures {
    */
   @CheckReturnValue
   @Nullable
-  public static Exception getAllWithDeadlineNanosRetVoid(final long deadlineNanos,
-          final Future... futures) {
+  public static <T> Exception getAllWithDeadlineNanos(final long deadlineNanos,
+          final BiConsumer<Future<T>, T> consumer,
+          final Future<T>... futures) {
     Exception exception = null;
     for (int i = 0; i < futures.length; i++) {
-      Future future = futures[i];
+      Future<T> future = futures[i];
       try {
         final long toNanos = deadlineNanos - TimeSource.nanoTime();
-        future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS);
+        T get = future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS);
+        consumer.accept(future, get);
       } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
         if (exception == null) {
@@ -188,6 +160,21 @@ public final class Futures {
     return exception;
   }
 
+ /**
+   * Gets all futures resuls for futures that return Void (no return).
+   *
+   * @param deadlineNanos
+   * @param futures
+   * @return
+   */
+  @CheckReturnValue
+  @Nullable
+  @SuppressWarnings("unchecked")
+  public static Exception getAllWithDeadlineNanosRetVoid(final long deadlineNanos,
+          final Future... futures) {
+    return getAllWithDeadlineNanos(deadlineNanos, (a, b) -> { }, futures);
+  }
+
   @CheckReturnValue
   @Nonnull
   public static Pair<Map<Future, Object>, Exception> getAll(final long timeoutMillis, final Iterable<Future> futures)  {
@@ -200,19 +187,30 @@ public final class Futures {
   @Nonnull
   public static Pair<Map<Future, Object>, Exception> getAllWithDeadlineNanos(final long deadlineNanos,
           final Iterable<Future> futures) {
-    Exception exception = null;
     Map<Future, Object> results;
     if (futures instanceof Collection) {
       results = Maps.newHashMapWithExpectedSize(((Collection) futures).size());
     } else {
       results = new HashMap<>();
     }
-    Iterator<Future> iterator = futures.iterator();
+    @SuppressWarnings("unchecked")
+    Exception ex = getAllWithDeadlineNanos(deadlineNanos, results::put, (Iterable) futures);
+    return Pair.of(results, ex);
+  }
+
+  @CheckReturnValue
+  @Nullable
+  public static <T> Exception getAllWithDeadlineNanos(final long deadlineNanos,
+          final BiConsumer<Future<T>, T> consumer,
+          final Iterable<Future<T>> futures) {
+    Exception exception = null;
+    Iterator<Future<T>> iterator = futures.iterator();
     while (iterator.hasNext()) {
-      Future future = iterator.next();
+      Future<T> future = iterator.next();
       try {
         final long toNanos = deadlineNanos - TimeSource.nanoTime();
-        results.put(future, future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS));
+        T get = future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS);
+        consumer.accept(future, get);
       } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
         if (exception == null) {
@@ -221,7 +219,7 @@ public final class Futures {
           Throwables.suppressLimited(ex, exception);
           exception = ex;
         }
-        RuntimeException cex = cancelAll(true, iterator);
+        RuntimeException cex = cancelAll(true, (Iterator) iterator);
         if (cex != null) {
           Throwables.suppressLimited(exception, cex);
         }
@@ -234,7 +232,7 @@ public final class Futures {
         }
       }
     }
-    return Pair.of(results, exception);
+    return exception;
   }
 
   public static <T> List<Future<T>> timedOutFutures(final int copies, final TimeoutException ex) {
