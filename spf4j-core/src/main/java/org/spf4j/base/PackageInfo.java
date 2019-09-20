@@ -64,8 +64,10 @@ public final class PackageInfo  {
 
   @SuppressWarnings("checkstyle:regexp")
   public static void errorNoPackageDetail(final String message, final Throwable t) {
-    System.err.println(message);
-    Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+    if (Boolean.getBoolean("spf4j.reportPackageDetailIssues")) {
+      System.err.println(message);
+      Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+    }
   }
 
   @Nonnull

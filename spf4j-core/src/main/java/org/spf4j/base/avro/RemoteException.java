@@ -31,8 +31,12 @@
  */
 package org.spf4j.base.avro;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.io.csv.CharSeparatedValues;
 
 /**
  * @author Zoltan Farkas
@@ -56,13 +60,39 @@ public class RemoteException extends RuntimeException {
     java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];
     int i = 0;
     for (StackTraceElement ste : stackTrace) {
+      PackageInfo packageInfo = ste.getPackageInfo();
       FileLocation location = ste.getLocation();
       Method method = ste.getMethod();
-      jste[i++] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),
-              location == null ? "N/A" : location.getFileName(), location == null ? -1 : location.getLineNumber());
+      if (location == null) {
+       jste[i] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),
+               encodeRemotePackageName(packageInfo, "N/A"), -1);
+      } else  {
+       jste[i] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),
+               encodeRemotePackageName(packageInfo, location.getFileName()), location.getLineNumber());
+      }
+      i++;
     }
     this.setStackTrace(jste);
   }
+
+  private static final  CharSeparatedValues CSV = new CharSeparatedValues(':');
+
+  public static final String encodeRemotePackageName(@Nullable final PackageInfo pInfo, final String fileName) {
+    StringBuilder result = new StringBuilder(80);
+    try {
+      if (pInfo == null) {
+        CSV.writeCsvRow(result, "remote", "N/A", "N/A", fileName);
+      } else {
+        CSV.writeCsvRow(result, "remote", pInfo.getUrl(), pInfo.getVersion(), fileName);
+      }
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    return result.toString();
+  }
+
+
+
 
   public final Throwable getRemoteCause() {
     return remote;
