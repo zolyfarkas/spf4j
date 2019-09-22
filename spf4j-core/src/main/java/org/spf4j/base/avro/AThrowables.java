@@ -62,7 +62,7 @@ public final class AThrowables {
     to.append(t.getClass().getName());
     to.append('@');
     to.append(t.getSource());
-    String message = t.getMessage();
+    String message = t.getRemoteCause().getMessage();
     if (message != null) {
       to.append(':').append(message);
     }

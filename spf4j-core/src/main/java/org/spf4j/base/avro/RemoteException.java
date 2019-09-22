@@ -71,7 +71,7 @@ public class RemoteException extends org.spf4j.base.RemoteException {
   public final Throwable getRemoteCause() {
     return (Throwable) getRemoteDetail();
   }
-
+  
   public final String getSource() {
     return getOrigin();
   }
