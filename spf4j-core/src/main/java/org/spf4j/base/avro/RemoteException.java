@@ -31,28 +31,18 @@
  */
 package org.spf4j.base.avro;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import org.spf4j.io.csv.CharSeparatedValues;
 
 /**
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public class RemoteException extends RuntimeException {
-
-  private final String source;
-
-  private final Throwable remote;
+public class RemoteException extends org.spf4j.base.RemoteException {
 
   public RemoteException(final String source, final Throwable remote) {
-    super(remote.getClassName() + '@' + source + ": " + remote.getMessage(),
-            remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
-    this.remote = remote;
-    this.source = source;
+    super(remote.getMessage(),
+            source, remote, remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
     for (Throwable suppressed : remote.getSuppressed()) {
       addSuppressed(new RemoteException(source, suppressed));
     }
@@ -60,46 +50,30 @@ public class RemoteException extends RuntimeException {
     java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];
     int i = 0;
     for (StackTraceElement ste : stackTrace) {
-      PackageInfo packageInfo = ste.getPackageInfo();
       FileLocation location = ste.getLocation();
       Method method = ste.getMethod();
+      String declaringClass = method.getDeclaringClass();
+      if (!declaringClass.startsWith("remote.")) { // add this to protect from reflectiion use.
+        declaringClass = "remote." + declaringClass;
+      }
       if (location == null) {
-       jste[i] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),
-               encodeRemotePackageName(packageInfo, "N/A"), -1);
+       jste[i] = new java.lang.StackTraceElement(declaringClass, method.getName(),
+               "N/A", -1);
       } else  {
-       jste[i] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),
-               encodeRemotePackageName(packageInfo, location.getFileName()), location.getLineNumber());
+       jste[i] = new java.lang.StackTraceElement(declaringClass, method.getName(),
+               location.getFileName(), location.getLineNumber());
       }
       i++;
     }
     this.setStackTrace(jste);
   }
 
-  private static final  CharSeparatedValues CSV = new CharSeparatedValues(':');
-
-  public static final String encodeRemotePackageName(@Nullable final PackageInfo pInfo, final String fileName) {
-    StringBuilder result = new StringBuilder(80);
-    try {
-      if (pInfo == null) {
-        CSV.writeCsvRow(result, "remote", "N/A", "N/A", fileName);
-      } else {
-        CSV.writeCsvRow(result, "remote", pInfo.getUrl(), pInfo.getVersion(), fileName);
-      }
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
-    return result.toString();
-  }
-
-
-
-
   public final Throwable getRemoteCause() {
-    return remote;
+    return (Throwable) getRemoteDetail();
   }
 
   public final String getSource() {
-    return source;
+    return getOrigin();
   }
 
   /**

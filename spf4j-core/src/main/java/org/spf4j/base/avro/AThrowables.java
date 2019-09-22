@@ -53,10 +53,20 @@ public final class AThrowables {
     public static void writeTo(final RemoteException t, final Appendable to, final Throwables.PackageDetail detail,
           final boolean abbreviatedTraceElement, final String prefix) throws IOException {
       to.append(prefix);
-      Throwables.writeMessageString(to, t);
+      writeMessageString(to, t);
       to.append('\n');
       writeThrowableDetails(t.getRemoteCause(), to, detail, abbreviatedTraceElement, prefix);
     }
+
+   public static void writeMessageString(final Appendable to, final RemoteException t) throws IOException {
+    to.append(t.getClass().getName());
+    to.append('@');
+    to.append(t.getSource());
+    String message = t.getMessage();
+    if (message != null) {
+      to.append(':').append(message);
+    }
+  }
 
    public static void writeTo(final Throwable t, final Appendable to, final Throwables.PackageDetail detail,
           final boolean abbreviatedTraceElement, final String prefix) throws IOException {
