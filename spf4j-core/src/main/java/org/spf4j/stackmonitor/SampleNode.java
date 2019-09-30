@@ -51,7 +51,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.spf4j.base.Json;
-import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Methods;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.Method;
@@ -60,7 +59,7 @@ import org.spf4j.base.avro.Method;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode implements Serializable, JsonWriteable, StackSamples {
+public final class SampleNode implements Serializable, StackSamples {
 
   private static final long serialVersionUID = 1L;
 
