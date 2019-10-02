@@ -319,7 +319,7 @@ public final class Sampler {
     if (!stopped) {
       stopped = true;
       try {
-        samplerFuture.get(STOP_FLAG_READ_MILLIS * 2, TimeUnit.MILLISECONDS);
+        samplerFuture.get(STOP_FLAG_READ_MILLIS * 3, TimeUnit.MILLISECONDS);
       } catch (TimeoutException ex) {
         samplerFuture.cancel(true);
         throw new Spf4jProfilerException(ex);
