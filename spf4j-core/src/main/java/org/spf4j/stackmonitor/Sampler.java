@@ -377,4 +377,14 @@ public final class Sampler {
     this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
   }
 
+  @JmxExport
+  public String getFilePrefix() {
+    return filePrefix;
+  }
+
+  @JmxExport
+  public String getDumpFolder() {
+    return dumpFolder.toString();
+  }
+
 }
