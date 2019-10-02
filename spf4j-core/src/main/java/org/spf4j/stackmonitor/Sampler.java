@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -53,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.DateTimeFormats;
+import org.spf4j.base.SuppressForbiden;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -75,7 +77,7 @@ public final class Sampler {
 
   private static Sampler instance;
 
-  private static final int STOP_FLAG_READ_MILLIS = Integer.getInteger("spf4j.perf.ms.stopFlagReadMIllis", 2000);
+  private static final int STOP_FLAG_READ_MILLIS = Integer.getInteger("spf4j.perf.ms.stopFlagReadMillis", 2000);
 
   public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
           System.getProperty("java.io.tmpdir"));
@@ -85,7 +87,7 @@ public final class Sampler {
                   ManagementFactory.getRuntimeMXBean().getName()));
 
   private volatile boolean stopped;
-  private volatile int sampleTimeNanos;
+  private volatile long sampleTimeNanos;
   private volatile long dumpTimeNanos;
   private final SamplerSupplier stackCollectorSupp;
   private volatile long lastDumpTimeNanos;
@@ -151,7 +153,7 @@ public final class Sampler {
     if (sampleTimeMillis < 1) {
       throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
     }
-    this.sampleTimeNanos = (int) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
+    this.sampleTimeNanos = TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);
     if (sampleTimeNanos < 0) {
       throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
     }
@@ -201,7 +203,7 @@ public final class Sampler {
   public synchronized void start() {
     if (stopped) {
       stopped = false;
-      final int stNanos = sampleTimeNanos;
+      final long stNanos = sampleTimeNanos;
       samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
 
         @SuppressWarnings("SleepWhileInLoop")
@@ -213,16 +215,16 @@ public final class Sampler {
             stackCollector = stackCollectorSupp.get(Thread.currentThread());
           }
           final ThreadLocalRandom random = ThreadLocalRandom.current();
-          int dumpCounterNanos = 0;
+          long dumpCounterNanos = 0;
           int coarseCounter = 0;
-          int coarseCount = STOP_FLAG_READ_MILLIS / stNanos;
+          long coarseCount = TimeUnit.MILLISECONDS.toNanos(STOP_FLAG_READ_MILLIS) / stNanos;
           boolean lstopped = stopped;
-          int sleepTimeNanos = 0;
-          int halfStNanos = stNanos / 2;
+          long sleepTimeNanos = 0;
+          long halfStNanos = stNanos / 2;
           if (halfStNanos == 0) {
             halfStNanos = 1;
           }
-          int maxSleeepNanos = stNanos + halfStNanos;
+          long maxSleeepNanos = stNanos + halfStNanos;
           while (!lstopped) {
             synchronized (sync) {
               stackCollector.sample();
@@ -242,7 +244,7 @@ public final class Sampler {
                 LOG.info("Stack samples written to {}", dumpFile);
               }
             }
-            sleepTimeNanos = random.nextInt(halfStNanos, maxSleeepNanos);
+            sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);
             TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
           }
         }
@@ -317,7 +319,7 @@ public final class Sampler {
     if (!stopped) {
       stopped = true;
       try {
-        samplerFuture.get(STOP_FLAG_READ_MILLIS << 2, TimeUnit.MILLISECONDS);
+        samplerFuture.get(STOP_FLAG_READ_MILLIS * 2, TimeUnit.MILLISECONDS);
       } catch (TimeoutException ex) {
         samplerFuture.cancel(true);
         throw new Spf4jProfilerException(ex);
@@ -386,5 +388,14 @@ public final class Sampler {
   public String getDumpFolder() {
     return dumpFolder.toString();
   }
+
+  @JmxExport
+  @SuppressForbiden // need to use an openType
+  public Date getLastDumpTimeNanos() {
+    return new Date(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastDumpTimeNanos));
+  }
+
+
+
 
 }

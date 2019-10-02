@@ -74,5 +74,11 @@ public class SamplerTest {
     sampler.stop();
   }
 
+  @Test
+  public void testSampler3() throws InterruptedException, IOException {
+    Sampler sampler = Sampler.getSampler(5, 3600000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
+    Assert.assertEquals(3600000, sampler.getDumpTimeMillis());
+  }
+
 
 }
