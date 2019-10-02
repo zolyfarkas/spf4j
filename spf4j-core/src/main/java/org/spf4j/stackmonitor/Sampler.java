@@ -77,8 +77,6 @@ public final class Sampler {
 
   private static Sampler instance;
 
-  private static final int STOP_FLAG_READ_MILLIS = Integer.getInteger("spf4j.perf.ms.stopFlagReadMillis", 2000);
-
   public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty("spf4j.perf.ms.defaultSsdumpFolder",
           System.getProperty("java.io.tmpdir"));
 
@@ -86,7 +84,9 @@ public final class Sampler {
           System.getProperty("spf4j.perf.ms.defaultSsdumpFilePrefix",
                   ManagementFactory.getRuntimeMXBean().getName()));
 
-  private volatile boolean stopped;
+  @GuardedBy("sync")
+  private boolean stopped;
+
   private volatile long sampleTimeNanos;
   private volatile long dumpTimeNanos;
   private final SamplerSupplier stackCollectorSupp;
@@ -97,7 +97,7 @@ public final class Sampler {
   @GuardedBy("sync")
   private ISampler stackCollector;
 
-  @GuardedBy("this")
+  @GuardedBy("sync")
   private Future<?> samplerFuture;
 
   private final String filePrefix;
@@ -200,59 +200,57 @@ public final class Sampler {
   }
 
   @JmxExport(description = "start stack sampling")
-  public synchronized void start() {
-    if (stopped) {
-      stopped = false;
-      final long stNanos = sampleTimeNanos;
-      samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
+  public void start() {
+    synchronized (sync) {
+      if (stopped) {
+        stopped = false;
+        final long stNanos = sampleTimeNanos;
+        samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable("SPF4J-Sampling-Thread") {
 
-        @SuppressWarnings("SleepWhileInLoop")
-        @SuppressFBWarnings({"MDM_THREAD_YIELD", "PREDICTABLE_RANDOM"})
-        @Override
-        public void doRun() throws IOException, InterruptedException {
-          lastDumpTimeNanos = TimeSource.nanoTime();
-          synchronized (sync) {
-            stackCollector = stackCollectorSupp.get(Thread.currentThread());
-          }
-          final ThreadLocalRandom random = ThreadLocalRandom.current();
-          long dumpCounterNanos = 0;
-          int coarseCounter = 0;
-          long coarseCount = TimeUnit.MILLISECONDS.toNanos(STOP_FLAG_READ_MILLIS) / stNanos;
-          boolean lstopped = stopped;
-          long sleepTimeNanos = 0;
-          long halfStNanos = stNanos / 2;
-          if (halfStNanos == 0) {
-            halfStNanos = 1;
-          }
-          long maxSleeepNanos = stNanos + halfStNanos;
-          while (!lstopped) {
+          @SuppressWarnings("SleepWhileInLoop")
+          @SuppressFBWarnings({"MDM_THREAD_YIELD", "PREDICTABLE_RANDOM"})
+          @Override
+          public void doRun() throws IOException, InterruptedException {
+            lastDumpTimeNanos = TimeSource.nanoTime();
+            boolean lstopped;
             synchronized (sync) {
-              stackCollector.sample();
-            }
-            dumpCounterNanos += sleepTimeNanos;
-            coarseCounter++;
-            if (coarseCounter >= coarseCount) {
-              coarseCounter = 0;
+              stackCollector = stackCollectorSupp.get(Thread.currentThread());
               lstopped = stopped;
             }
-            if (dumpCounterNanos >= dumpTimeNanos) {
-              long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
-              if (nanosSinceLastDump >= dumpTimeNanos) {
-                dumpCounterNanos = 0;
-                File dumpFile = dumpToFile();
-                lastDumpTimeNanos = TimeSource.nanoTime();
-                LOG.info("Stack samples written to {}", dumpFile);
-              }
+            final long lDumpTimeNanos = dumpTimeNanos;
+            final ThreadLocalRandom random = ThreadLocalRandom.current();
+            long dumpCounterNanos = 0;
+            long sleepTimeNanos = 0;
+            long halfStNanos = stNanos / 2;
+            if (halfStNanos == 0) {
+              halfStNanos = 1;
             }
-            sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);
-            TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
+            long maxSleeepNanos = stNanos + halfStNanos;
+            while (!lstopped) {
+              synchronized (sync) {
+                stackCollector.sample();
+                lstopped = stopped;
+              }
+              dumpCounterNanos += sleepTimeNanos;
+              if (dumpCounterNanos >= lDumpTimeNanos) {
+                long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
+                if (nanosSinceLastDump >= lDumpTimeNanos) {
+                  dumpCounterNanos = 0;
+                  File dumpFile = dumpToFile();
+                  LOG.info("Stack samples written to {}", dumpFile);
+                } else {
+                  dumpCounterNanos = nanosSinceLastDump;
+                }
+              }
+              sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);
+              TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
+            }
           }
-        }
-      });
-    } else {
-      throw new IllegalStateException("Sampling can only be started once for " + this);
+        });
+      } else {
+        throw new IllegalStateException("Sampling can only be started once for " + this);
+      }
     }
-
   }
 
   @JmxExport(description = "save stack samples to file")
@@ -271,7 +269,7 @@ public final class Sampler {
   @JmxExport(value = "dumpToSpecificFile", description = "save stack samples to file")
   @Nullable
   @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not possible the provided ID is validated for path separators.
-  public synchronized File dumpToFile(
+  public File dumpToFile(
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
     String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
@@ -288,6 +286,7 @@ public final class Sampler {
     Map<String, SampleNode> collections;
     synchronized (sync) {
       collections = stackCollector.getCollectionsAndReset();
+      lastDumpTimeNanos = TimeSource.nanoTime();
     }
     if (collections.isEmpty()) {
       return null;
@@ -315,18 +314,24 @@ public final class Sampler {
   }
 
   @JmxExport(description = "stop stack sampling")
-  public synchronized void stop() throws InterruptedException {
-    if (!stopped) {
-      stopped = true;
-      try {
-        samplerFuture.get(STOP_FLAG_READ_MILLIS * 3, TimeUnit.MILLISECONDS);
-      } catch (TimeoutException ex) {
-        samplerFuture.cancel(true);
-        throw new Spf4jProfilerException(ex);
-      } catch (ExecutionException ex) {
-        throw new Spf4jProfilerException(ex);
+  public void stop() throws InterruptedException {
+    Future<?> toCancel = null;
+    synchronized (sync) {
+      if (!stopped) {
+        stopped = true;
+        toCancel = samplerFuture;
       }
     }
+    if (toCancel != null) {
+        try {
+          toCancel.get(dumpTimeNanos * 3, TimeUnit.NANOSECONDS);
+        } catch (TimeoutException ex) {
+          toCancel.cancel(true);
+          throw new Spf4jProfilerException(ex);
+        } catch (ExecutionException ex) {
+          throw new Spf4jProfilerException(ex);
+        }
+      }
   }
 
   @JmxExport(description = "stack sample time in milliseconds")
