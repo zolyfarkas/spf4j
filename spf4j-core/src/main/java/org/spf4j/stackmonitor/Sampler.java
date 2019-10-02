@@ -395,7 +395,4 @@ public final class Sampler {
     return new Date(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastDumpTimeNanos));
   }
 
-
-
-
 }
