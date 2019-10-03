@@ -212,10 +212,8 @@ public final class Sampler {
           @Override
           public void doRun() throws IOException, InterruptedException {
             lastDumpTimeNanos = TimeSource.nanoTime();
-            boolean lstopped;
             synchronized (sync) {
               stackCollector = stackCollectorSupp.get(Thread.currentThread());
-              lstopped = stopped;
             }
             final long lDumpTimeNanos = dumpTimeNanos;
             final ThreadLocalRandom random = ThreadLocalRandom.current();
