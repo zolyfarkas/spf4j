@@ -226,10 +226,12 @@ public final class Sampler {
               halfStNanos = 1;
             }
             long maxSleeepNanos = stNanos + halfStNanos;
-            while (!lstopped) {
+            while (true) {
               synchronized (sync) {
                 stackCollector.sample();
-                lstopped = stopped;
+                if (stopped) {
+                  break;
+                }
               }
               dumpCounterNanos += sleepTimeNanos;
               if (dumpCounterNanos >= lDumpTimeNanos) {
