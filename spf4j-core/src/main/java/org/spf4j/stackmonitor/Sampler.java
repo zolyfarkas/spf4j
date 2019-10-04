@@ -137,7 +137,6 @@ public final class Sampler {
             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
   }
 
-
   @SuppressFBWarnings("PATH_TRAVERSAL_IN")
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
           final String dumpFolder, final String dumpFilePrefix) {
@@ -186,7 +185,7 @@ public final class Sampler {
         instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
                 dumpFolder.getCanonicalFile(), dumpFilePrefix);
       } catch (IOException ex) {
-       throw new UncheckedIOException(ex);
+        throw new UncheckedIOException(ex);
       }
       instance.registerJmx();
       return instance;
@@ -208,7 +207,7 @@ public final class Sampler {
           @SuppressWarnings("SleepWhileInLoop")
           @SuppressFBWarnings({"MDM_THREAD_YIELD", "PREDICTABLE_RANDOM"})
           @Override
-          public void doRun() throws IOException, InterruptedException {
+          public void doRun() {
             lastDumpTimeNanos = TimeSource.nanoTime();
             synchronized (sync) {
               stackCollector = stackCollectorSupp.get(Thread.currentThread());
@@ -223,27 +222,35 @@ public final class Sampler {
             }
             long maxSleeepNanos = stNanos + halfStNanos;
             while (true) {
-              synchronized (sync) {
-                stackCollector.sample();
-                if (stopped) {
-                  break;
-                }
-              }
-              dumpCounterNanos += sleepTimeNanos;
-              if (dumpCounterNanos >= lDumpTimeNanos) {
-                long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
-                if (nanosSinceLastDump >= lDumpTimeNanos) {
-                  dumpCounterNanos = 0;
-                  File dumpFile = dumpToFile();
-                  if (dumpFile !=  null) {
-                    Logger.getLogger(Sampler.class.getName()).log(Level.INFO, "Stack samples written to {0}", dumpFile);
+              try {
+                synchronized (sync) {
+                  stackCollector.sample();
+                  if (stopped) {
+                    break;
                   }
-                } else {
-                  dumpCounterNanos = nanosSinceLastDump;
                 }
+                dumpCounterNanos += sleepTimeNanos;
+                if (dumpCounterNanos >= lDumpTimeNanos) {
+                  long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;
+                  if (nanosSinceLastDump >= lDumpTimeNanos) {
+                    dumpCounterNanos = 0;
+                    File dumpFile = dumpToFile();
+                    if (dumpFile != null) {
+                      Logger.getLogger(Sampler.class.getName()).log(Level.INFO, "Stack samples written to {0}", dumpFile);
+                    }
+                  } else {
+                    dumpCounterNanos = nanosSinceLastDump;
+                  }
+                }
+                sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);
+                TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
+              } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return;
+              } catch (IOException | RuntimeException ex) {
+                Logger.getLogger(Sampler.class.getName()).log(Level.SEVERE,
+                        "Exception encountered while samplig, will continue sampling", ex);
               }
-              sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);
-              TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);
             }
           }
         });
@@ -297,7 +304,7 @@ public final class Sampler {
       if (pfile.getName().endsWith(".ssdump2")) {
         file = pfile;
       } else {
-        file = new File(pfile.getParentFile(), pfile.getName() + '_' + es.getKey()  + ".ssdump2");
+        file = new File(pfile.getParentFile(), pfile.getName() + '_' + es.getKey() + ".ssdump2");
       }
       Converter.save(file, es.getValue());
       return file;
@@ -323,15 +330,15 @@ public final class Sampler {
       }
     }
     if (toCancel != null) {
-        try {
-          toCancel.get(dumpTimeNanos * 3, TimeUnit.NANOSECONDS);
-        } catch (TimeoutException ex) {
-          toCancel.cancel(true);
-          throw new Spf4jProfilerException(ex);
-        } catch (ExecutionException ex) {
-          throw new Spf4jProfilerException(ex);
-        }
+      try {
+        toCancel.get(dumpTimeNanos * 3, TimeUnit.NANOSECONDS);
+      } catch (TimeoutException ex) {
+        toCancel.cancel(true);
+        throw new Spf4jProfilerException(ex);
+      } catch (ExecutionException ex) {
+        throw new Spf4jProfilerException(ex);
       }
+    }
   }
 
   @JmxExport(description = "stack sample time in milliseconds")
