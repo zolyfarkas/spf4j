@@ -236,7 +236,8 @@ public final class Sampler {
                     dumpCounterNanos = 0;
                     File dumpFile = dumpToFile();
                     if (dumpFile != null) {
-                      Logger.getLogger(Sampler.class.getName()).log(Level.INFO, "Stack samples written to {0}", dumpFile);
+                      Logger.getLogger(Sampler.class.getName())
+                              .log(Level.INFO, "Stack samples written to {0}", dumpFile);
                     }
                   } else {
                     dumpCounterNanos = nanosSinceLastDump;
