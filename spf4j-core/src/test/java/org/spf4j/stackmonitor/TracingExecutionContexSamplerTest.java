@@ -32,20 +32,30 @@
 package org.spf4j.stackmonitor;
 
 import java.util.Map;
-import javax.annotation.Nonnull;
+import java.util.function.Supplier;
+import org.junit.Assert;
+import org.junit.Test;
+import org.spf4j.base.ExecutionContext;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public interface ISampler {
+public class TracingExecutionContexSamplerTest {
 
-  void sample();
 
-  @Nonnull
-  Map<String, SampleNode> getCollectionsAndReset();
-
-  @Nonnull
-  Map<String, SampleNode> getCollections();
+  @Test
+  public void tesECtSampler() {
+    TracingExecutionContexSampler sampler = new TracingExecutionContexSampler(
+            new Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>>() {
+              public Iterable<Map.Entry<Thread, ExecutionContext>> get() {
+                return java.util.Collections.EMPTY_LIST;
+              }
+            },
+             (a) -> "GLOBAL");
+    sampler.sample();
+    Map<String, SampleNode> sampleMap = sampler.getCollectionsAndReset();
+    Assert.assertTrue(sampleMap.isEmpty());
+  }
 
 }

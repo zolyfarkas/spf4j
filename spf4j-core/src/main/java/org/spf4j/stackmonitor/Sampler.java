@@ -44,13 +44,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.DateTimeFormats;
@@ -72,8 +72,6 @@ import org.spf4j.ssdump2.Converter;
  */
 @ThreadSafe
 public final class Sampler {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Sampler.class);
 
   private static Sampler instance;
 
@@ -237,7 +235,9 @@ public final class Sampler {
                 if (nanosSinceLastDump >= lDumpTimeNanos) {
                   dumpCounterNanos = 0;
                   File dumpFile = dumpToFile();
-                  LOG.info("Stack samples written to {}", dumpFile);
+                  if (dumpFile !=  null) {
+                    Logger.getLogger(Sampler.class.getName()).log(Level.INFO, "Stack samples written to {0}", dumpFile);
+                  }
                 } else {
                   dumpCounterNanos = nanosSinceLastDump;
                 }

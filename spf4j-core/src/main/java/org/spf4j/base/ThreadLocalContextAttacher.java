@@ -32,11 +32,13 @@
 package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Zoltan Farkas
  */
 @Beta
+@ParametersAreNonnullByDefault
 public interface ThreadLocalContextAttacher {
 
   public interface Attached {
