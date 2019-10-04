@@ -396,7 +396,7 @@ public final class Sampler {
 
   @JmxExport
   @SuppressForbiden // need to use an openType
-  public Date getLastDumpTimeNanos() {
+  public Date getLastDumpTime() {
     return new Date(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastDumpTimeNanos));
   }
 

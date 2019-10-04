@@ -149,7 +149,18 @@ public final class Futures {
         if (cex != null) {
           Throwables.suppressLimited(exception, cex);
         }
-      } catch (TimeoutException | ExecutionException | RuntimeException ex) {
+      }  catch (TimeoutException  ex) {
+        try {
+          future.cancel(true);
+        } catch (RuntimeException ex2) {
+          ex.addSuppressed(ex2);
+        }
+        if (exception == null) {
+          exception = ex;
+        } else {
+          Throwables.suppressLimited(exception, ex);
+        }
+      } catch (ExecutionException | RuntimeException ex) {
         if (exception == null) {
           exception = ex;
         } else {
@@ -224,7 +235,18 @@ public final class Futures {
           Throwables.suppressLimited(exception, cex);
         }
         break;
-      } catch (TimeoutException | ExecutionException | RuntimeException ex) {
+      } catch (TimeoutException ex) {
+        try {
+          future.cancel(true);
+        } catch (RuntimeException ex2) {
+          ex.addSuppressed(ex2);
+        }
+        if (exception == null) {
+          exception = ex;
+        } else {
+          Throwables.suppressLimited(exception, ex);
+        }
+      } catch (ExecutionException | RuntimeException ex) {
         if (exception == null) {
           exception = ex;
         } else {
