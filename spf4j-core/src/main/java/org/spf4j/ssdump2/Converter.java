@@ -164,10 +164,14 @@ public final class Converter {
       encoder.writeMapStart();
       encoder.setItemCount(collected.size());
       for (Map.Entry<String, SampleNode> entry : collected.entrySet()) {
+        SampleNode sn = entry.getValue();
+        if (sn == null) {
+          continue;
+        }
         encoder.startItem();
         encoder.writeString(entry.getKey());
         encoder.writeArrayStart();
-        Converters.convert(Methods.ROOT, entry.getValue(),
+        Converters.convert(Methods.ROOT, sn,
                 -1, 0, (final StackSampleElement object) -> {
                   try {
                   encoder.setItemCount(1L);

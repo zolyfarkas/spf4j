@@ -31,6 +31,7 @@
  */
 package org.spf4j.stackmonitor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -75,9 +76,16 @@ public class SamplerTest {
   }
 
   @Test
+  @SuppressFBWarnings({ "MDM_THREAD_YIELD", "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS" })
   public void testSampler3() throws InterruptedException, IOException {
-    Sampler sampler = Sampler.getSampler(5, 3600000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
+    Sampler sampler = Sampler.getSampler(1, 3600000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
+    sampler.dumpToFile();
+    sampler.start();
+    Thread.sleep(5);
+    sampler.dumpToFile();
+    sampler.dumpToFile();
     Assert.assertEquals(3600000, sampler.getDumpTimeMillis());
+    sampler.stop();
   }
 
 

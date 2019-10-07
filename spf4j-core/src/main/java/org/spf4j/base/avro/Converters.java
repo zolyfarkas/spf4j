@@ -159,6 +159,7 @@ public final class Converters {
   }
 
 
+  @ParametersAreNonnullByDefault
   private static final class TraversalNode {
 
     private final Method method;

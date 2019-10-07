@@ -293,6 +293,9 @@ public final class Sampler {
   public File dumpToFile(@Nonnull final File pfile) throws IOException {
     Map<String, SampleNode> collections;
     synchronized (sync) {
+      if (stackCollector == null) {
+        return null;
+      }
       collections = stackCollector.getCollectionsAndReset();
       lastDumpTimeNanos = TimeSource.nanoTime();
     }
