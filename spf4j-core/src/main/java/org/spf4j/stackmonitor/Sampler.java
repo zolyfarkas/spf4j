@@ -304,13 +304,17 @@ public final class Sampler {
     }
     if (collections.size() == 1) {
       Map.Entry<String, SampleNode> es = collections.entrySet().iterator().next();
+      SampleNode samples = es.getValue();
+      if (samples == null) {
+        return null;
+      }
       File file;
       if (pfile.getName().endsWith(".ssdump2")) {
         file = pfile;
       } else {
         file = new File(pfile.getParentFile(), pfile.getName() + '_' + es.getKey() + ".ssdump2");
       }
-      Converter.save(file, es.getValue());
+      Converter.save(file, samples);
       return file;
     } else {
       File file;

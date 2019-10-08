@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
@@ -65,6 +66,7 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class Converter {
 
   private Converter() {
