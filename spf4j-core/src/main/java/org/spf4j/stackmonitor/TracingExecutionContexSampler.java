@@ -96,7 +96,10 @@ public final class TracingExecutionContexSampler implements ISampler {
         StackTraceElement[] stackTrace = stackTraces[j];
         if (stackTrace != null && stackTrace.length > 0) {
           ExecutionContext context = contexts[j];
-          context.add(stackTrace);
+          // child execution contexts might not finish before parent due to improper timeouts, etc
+          // and their samples might get lost.
+          // It is better to add all samples to root.
+          context.getRootParent().add(stackTrace);
           String name = ctxToCategory.apply(context);
           StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
           c.collect(stackTrace);
