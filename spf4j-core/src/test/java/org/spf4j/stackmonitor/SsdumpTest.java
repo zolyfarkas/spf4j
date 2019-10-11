@@ -70,7 +70,7 @@ public final class SsdumpTest {
             (ProfilingTLAttacher) ExecutionContexts.threadLocalAttacher();
 
     Sampler sampler = new Sampler(1,
-            (t) -> new TracingExecutionContexSampler(contextFactory::getCurrentThreadContexts,
+            (t) -> new ThreadSpecificTracingExecutionContextHandler(contextFactory::getCurrentThreadContexts,
                     ExecutionContext::getName));
     Map<String, SampleNode> collected = sampleTest(sampler, "ecTracingStackSample");
     Assert.assertThat(collected.keySet(), Matchers.hasItems(

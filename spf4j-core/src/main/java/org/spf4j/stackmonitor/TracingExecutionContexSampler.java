@@ -50,13 +50,14 @@ import org.spf4j.base.Threads;
  * @author Zoltan Farkas
  */
 @NotThreadSafe
-public final class TracingExecutionContexSampler implements ISampler {
+@SuppressWarnings("checkstyle:VisibilityModifier")
+public class TracingExecutionContexSampler implements ISampler {
 
   private final Supplier<Iterable<Map.Entry<Thread, ExecutionContext>>> execCtxSupplier;
 
-  private Thread[] requestFor;
+  protected Thread[] requestFor;
 
-  private ExecutionContext[] contexts;
+  protected ExecutionContext[] contexts;
 
   private final TMap<String, StackCollector> collections;
 
@@ -79,27 +80,17 @@ public final class TracingExecutionContexSampler implements ISampler {
   }
 
   @Override
-  public void sample() {
+  public final void sample() {
     Iterable<Map.Entry<Thread, ExecutionContext>> currentThreads = execCtxSupplier.get();
-    int i = 0;
-    for (Map.Entry<Thread, ExecutionContext> entry : currentThreads) {
-      requestFor[i] = entry.getKey();
-      contexts[i++] = entry.getValue();
-      if (i >= requestFor.length) {
-        break;
-      }
-    }
-    if (i > 0) {
-      Arrays.fill(requestFor, i, requestFor.length, null);
+    int nrThreads = prepareThreadsAndContexts(currentThreads);
+    if (nrThreads > 0) {
+      Arrays.fill(requestFor, nrThreads, requestFor.length, null);
       StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);
-      for (int j = 0; j < i; j++) {
+      for (int j = 0; j < nrThreads; j++) {
         StackTraceElement[] stackTrace = stackTraces[j];
         if (stackTrace != null && stackTrace.length > 0) {
           ExecutionContext context = contexts[j];
-          // child execution contexts might not finish before parent due to improper timeouts, etc
-          // and their samples might get lost.
-          // It is better to add all samples to root.
-          context.getRootParent().add(stackTrace);
+          context.add(stackTrace);
           String name = ctxToCategory.apply(context);
           StackCollector c = collections.computeIfAbsent(name, (k) -> new StackCollectorImpl());
           c.collect(stackTrace);
@@ -108,8 +99,28 @@ public final class TracingExecutionContexSampler implements ISampler {
     }
   }
 
+  /**
+   * Overwrite to filter what to sample
+   * @param currentThreads
+   * @return
+   */
+  protected int prepareThreadsAndContexts(final Iterable<Map.Entry<Thread, ExecutionContext>> currentThreads) {
+    int i = 0;
+    for (Map.Entry<Thread, ExecutionContext> entry : currentThreads) {
+      requestFor[i] = entry.getKey();
+      // child execution contexts might not finish before parent due to improper timeouts, etc
+      // and their samples might get lost.
+      // It is better to add all samples to root.
+      contexts[i++] = entry.getValue().getRootParent();
+      if (i >= requestFor.length) {
+        break;
+      }
+    }
+    return i;
+  }
+
   @Override
-  public Map<String, SampleNode> getCollectionsAndReset() {
+  public final Map<String, SampleNode> getCollectionsAndReset() {
     TMap<String, SampleNode> result = new THashMap<>(collections.size());
     collections.forEachEntry((k, v) -> {
       result.put(k, v.getAndReset());
@@ -119,7 +130,7 @@ public final class TracingExecutionContexSampler implements ISampler {
   }
 
   @Override
-  public Map<String, SampleNode> getCollections() {
+  public final Map<String, SampleNode> getCollections() {
     TMap<String, SampleNode> result = new THashMap<>(collections.size());
     collections.forEachEntry((k, v) -> {
       result.put(k, v.get());
@@ -128,12 +139,13 @@ public final class TracingExecutionContexSampler implements ISampler {
     return result;
   }
 
+  /**
+   * @inherited
+   */
   @Override
   public String toString() {
     return "TracingExecutionContextStackCollector{" + "execCtxSupplier=" + execCtxSupplier
             + ", collections=" + collections + '}';
   }
-
-
 
 }
