@@ -32,18 +32,38 @@
 package org.spf4j.avro.schema;
 
 import com.google.common.io.Resources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.apache.avro.SchemaCompatibility;
+import org.apache.avro.generic.GenericData;
+import org.apache.calcite.config.Lex;
+import org.apache.calcite.interpreter.Interpreter;
+import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.rel.RelRoot;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.Frameworks;
+import org.apache.calcite.tools.Planner;
+import org.apache.calcite.tools.RelConversionException;
+import org.apache.calcite.tools.ValidationException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.avro.calcite.AvroScannableTable;
+import org.spf4j.avro.calcite.EmbededDataContext;
+import org.spf4j.base.CloseableIterable;
 import org.spf4j.demo.avro.DemoRecordInfo;
 
 /**
@@ -178,6 +198,55 @@ public class SchemasTest {
     Assert.assertEquals(DemoRecordInfo.SCHEMA$.getField("metaData").schema(), project.getField("metaData").schema());
   }
 
+
+
+  @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  public void testAvroSql() throws SqlParseException, RelConversionException, ValidationException {
+    Schema recASchema = SchemaBuilder.record("RecordA")
+            .fields().name("id").type().intType().noDefault()
+            .requiredString("name").endRecord();
+    Schema recBSchema = SchemaBuilder.record("RecordB")
+            .fields().name("id").type().intType().noDefault()
+            .requiredString("name").endRecord();
+    SqlParser.Config cfg = SqlParser.configBuilder()
+            .setCaseSensitive(true)
+            .setIdentifierMaxLength(255)
+            .setLex(Lex.JAVA).build();
+    SqlParser parser = SqlParser.create("select a.id, a.name as n1, b.name as n2 from a, b where  a.id = b.id", cfg);
+    SqlSelect select = (SqlSelect) parser.parseQuery();
+    LOG.debug("Select", select);
+
+    GenericData.Record reca1 = new GenericData.Record(recASchema);
+    reca1.put("id", 1);
+    reca1.put("name", "Jim");
+
+    GenericData.Record recb1 = new GenericData.Record(recBSchema);
+    recb1.put("id", 1);
+    recb1.put("name", "Beam");
+
+
+    SchemaPlus schema = Frameworks.createRootSchema(true);
+    schema.add("a", new AvroScannableTable(recASchema,
+            () -> CloseableIterable.fromIterable(Collections.singletonList(reca1))));
+    schema.add("b", new AvroScannableTable(recBSchema,
+            () -> CloseableIterable.fromIterable(Collections.singletonList(recb1))));
+    FrameworkConfig config = Frameworks.newConfigBuilder()
+            .parserConfig(cfg)
+            .defaultSchema(schema).build();
+    Planner planner = Frameworks.getPlanner(config);
+    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2 from a, b where  a.id = b.id");
+    SqlNode validated = planner.validate(s);
+    RelRoot rel = planner.rel(validated);
+    LOG.debug("exec plan", RelOptUtil.toString(rel.project()));
+
+    Interpreter interpreter = new Interpreter(new EmbededDataContext(planner), rel.project());
+    for (Object[] row : interpreter) {
+      LOG.debug("Row", row);
+      Assert.assertNotNull(row);
+    }
+
+  }
 
 
 }
