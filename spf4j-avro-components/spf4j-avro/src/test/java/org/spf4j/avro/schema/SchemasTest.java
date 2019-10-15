@@ -199,6 +199,32 @@ public class SchemasTest {
   }
 
 
+  @Test
+  public void testSqlParser() throws SqlParseException {
+    SqlParser.Config cfg = SqlParser.configBuilder()
+            .setCaseSensitive(true)
+            .setIdentifierMaxLength(255)
+            .setLex(Lex.JAVA).build();
+    SqlParser parser = SqlParser.create("select a.id, a.name as n1, b.name as n2 from a, b where  a.id = b.id", cfg);
+    SqlSelect select = (SqlSelect) parser.parseQuery();
+    LOG.debug("Select", select);
+    Assert.assertNotNull(select);
+  }
+
+  @Test
+  public void testSqlFilter() throws SqlParseException {
+    SqlParser.Config cfg = SqlParser.configBuilder()
+            .setCaseSensitive(true)
+            .setIdentifierMaxLength(255)
+            .setLex(Lex.JAVA).build();
+    SqlParser parser = SqlParser.create("a = b and c=d", cfg);
+    SqlNode expr = parser.parseExpression();
+    LOG.debug("expression", expr);
+    Assert.assertNotNull(expr);
+  }
+
+
+
 
   @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
@@ -209,13 +235,7 @@ public class SchemasTest {
     Schema recBSchema = SchemaBuilder.record("RecordB")
             .fields().name("id").type().intType().noDefault()
             .requiredString("name").endRecord();
-    SqlParser.Config cfg = SqlParser.configBuilder()
-            .setCaseSensitive(true)
-            .setIdentifierMaxLength(255)
-            .setLex(Lex.JAVA).build();
-    SqlParser parser = SqlParser.create("select a.id, a.name as n1, b.name as n2 from a, b where  a.id = b.id", cfg);
-    SqlSelect select = (SqlSelect) parser.parseQuery();
-    LOG.debug("Select", select);
+
 
     GenericData.Record reca1 = new GenericData.Record(recASchema);
     reca1.put("id", 1);
@@ -231,6 +251,11 @@ public class SchemasTest {
             () -> CloseableIterable.fromIterable(Collections.singletonList(reca1))));
     schema.add("b", new AvroScannableTable(recBSchema,
             () -> CloseableIterable.fromIterable(Collections.singletonList(recb1))));
+
+    SqlParser.Config cfg = SqlParser.configBuilder()
+            .setCaseSensitive(true)
+            .setIdentifierMaxLength(255)
+            .setLex(Lex.JAVA).build();
     FrameworkConfig config = Frameworks.newConfigBuilder()
             .parserConfig(cfg)
             .defaultSchema(schema).build();
