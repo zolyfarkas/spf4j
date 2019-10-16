@@ -15,7 +15,6 @@
  */
 package org.spf4j.avro.calcite;
 
-import com.google.common.collect.ImmutableList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -31,10 +30,6 @@ import org.apache.calcite.interpreter.Spf4jDataContext;
 import org.apache.calcite.linq4j.AbstractEnumerable;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Enumerator;
-import org.apache.calcite.rel.RelCollations;
-import org.apache.calcite.rel.RelFieldCollation;
-import org.apache.calcite.rel.RelFieldCollation.Direction;
-import org.apache.calcite.rel.RelFieldCollation.NullDirection;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
@@ -42,10 +37,8 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.ProjectableFilterableTable;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Statistic;
-import org.apache.calcite.schema.Statistics;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlNode;
-import org.apache.calcite.util.ImmutableBitSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.CloseableIterable;
@@ -75,11 +68,9 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
   }
 
   @Override
+  @Nullable
   public Statistic getStatistic() {
-    Direction dir = Direction.ASCENDING;
-    RelFieldCollation collation = new RelFieldCollation(0, dir, NullDirection.UNSPECIFIED);
-    return Statistics.of(5, ImmutableList.of(ImmutableBitSet.of(0)),
-            ImmutableList.of(RelCollations.of(collation)));
+    return null;
   }
 
   @Override
