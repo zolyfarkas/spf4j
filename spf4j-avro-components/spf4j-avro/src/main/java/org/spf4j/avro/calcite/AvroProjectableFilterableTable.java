@@ -40,7 +40,6 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.ProjectableFilterableTable;
-import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Statistic;
 import org.apache.calcite.schema.Statistics;
@@ -54,14 +53,14 @@ import org.spf4j.base.CloseableIterable;
 /**
  * @author Zoltan Farkas
  */
-public final class AvroScannableTable implements ScannableTable,  ProjectableFilterableTable {
+public final class AvroProjectableFilterableTable implements  ProjectableFilterableTable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AvroScannableTable.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AvroProjectableFilterableTable.class);
 
   private final org.apache.avro.Schema componentType;
   private final Supplier<CloseableIterable<IndexedRecord>> stream;
 
-  public AvroScannableTable(final org.apache.avro.Schema componentType,
+  public AvroProjectableFilterableTable(final org.apache.avro.Schema componentType,
           final Supplier<CloseableIterable<IndexedRecord>> stream) {
     if (componentType.getType() != org.apache.avro.Schema.Type.RECORD) {
       throw new IllegalArgumentException("Invalid table compoent " + componentType);
@@ -85,7 +84,7 @@ public final class AvroScannableTable implements ScannableTable,  ProjectableFil
 
   @Override
   public Schema.TableType getJdbcTableType() {
-    return Schema.TableType.STREAM;
+    return Schema.TableType.TABLE;
   }
 
   @Override
@@ -97,62 +96,6 @@ public final class AvroScannableTable implements ScannableTable,  ProjectableFil
   public boolean rolledUpColumnValidInsideAgg(final String column, final SqlCall call,
           final SqlNode parent, final CalciteConnectionConfig config) {
     return false;
-  }
-
-  @Override
-  public Enumerable<Object[]> scan(final DataContext root) {
-    LOG.debug("Full Table scan of {}", stream);
-    return new AbstractEnumerable<Object[]>() {
-      public Enumerator<Object[]> enumerator() {
-        return new Enumerator<Object[]>() {
-          private Object[] current = null;
-
-          private CloseableIterable<IndexedRecord> iterable = stream.get();
-
-          private Iterator<IndexedRecord> iterator = iterable.iterator();
-
-          @Override
-          public Object[] current() {
-            if (current == null) {
-              throw new IllegalStateException("Use moveNext on " + this);
-            }
-            return current;
-          }
-
-          @Override
-          public boolean moveNext() {
-            if (iterator.hasNext()) {
-              IndexedRecord ir = iterator.next();
-              List<org.apache.avro.Schema.Field> fields = ir.getSchema().getFields();
-              int size = fields.size();
-              current = new Object[size];
-              for (org.apache.avro.Schema.Field f : fields) {
-                int pos = f.pos();
-                current[pos] = ir.get(pos);
-              }
-              return true;
-            } else {
-              current = null;
-              return false;
-            }
-          }
-
-          @Override
-          public void reset() {
-            iterable.close();
-            iterable = stream.get();
-            iterator = iterable.iterator();
-            current = null;
-          }
-
-          @Override
-          public void close() {
-            iterable.close();
-          }
-        };
-      }
-    };
-
   }
 
   @Override
@@ -187,7 +130,8 @@ public final class AvroScannableTable implements ScannableTable,  ProjectableFil
     private final Scalar scalar;
     private final int[] projects;
 
-    public AbstractEnumerableImpl(Object[] rawRow, Spf4jDataContext spf4jDataContext, Scalar scalar, int[] projects) {
+    AbstractEnumerableImpl(final Object[] rawRow,
+            final Spf4jDataContext spf4jDataContext, final Scalar scalar, final int[] projects) {
       this.rawRow = rawRow;
       this.spf4jDataContext = spf4jDataContext;
       this.scalar = scalar;

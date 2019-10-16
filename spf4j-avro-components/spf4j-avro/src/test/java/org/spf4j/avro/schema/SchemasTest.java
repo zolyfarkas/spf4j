@@ -35,6 +35,7 @@ import com.google.common.io.Resources;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,15 @@ import org.apache.avro.generic.GenericData;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.interpreter.Interpreter;
 import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.plan.hep.HepPlanner;
+import org.apache.calcite.plan.hep.HepProgram;
+import org.apache.calcite.plan.hep.HepProgramBuilder;
+import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
+import org.apache.calcite.rel.rules.FilterJoinRule.FilterIntoJoinRule;
+import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
+import org.apache.calcite.rel.rules.FilterTableScanRule;
+import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlSelect;
@@ -55,13 +64,14 @@ import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.Frameworks;
 import org.apache.calcite.tools.Planner;
 import org.apache.calcite.tools.RelConversionException;
+import org.apache.calcite.tools.RuleSets;
 import org.apache.calcite.tools.ValidationException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.avro.calcite.AvroScannableTable;
+import org.spf4j.avro.calcite.AvroProjectableFilterableTable;
 import org.spf4j.avro.calcite.EmbededDataContext;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.demo.avro.DemoRecordInfo;
@@ -234,7 +244,9 @@ public class SchemasTest {
             .requiredString("name").endRecord();
     Schema recBSchema = SchemaBuilder.record("RecordB")
             .fields().name("id").type().intType().noDefault()
-            .requiredString("name").endRecord();
+            .requiredString("name")
+            .requiredString("text")
+            .endRecord();
 
 
     GenericData.Record reca1 = new GenericData.Record(recASchema);
@@ -244,13 +256,19 @@ public class SchemasTest {
     GenericData.Record recb1 = new GenericData.Record(recBSchema);
     recb1.put("id", 1);
     recb1.put("name", "Beam");
+    recb1.put("text", "bla");
+
+    GenericData.Record recb2 = new GenericData.Record(recBSchema);
+    recb2.put("id", 2);
+    recb2.put("name", "Xi");
+    recb2.put("text", "blabla");
 
 
     SchemaPlus schema = Frameworks.createRootSchema(true);
-    schema.add("a", new AvroScannableTable(recASchema,
+    schema.add("a", new AvroProjectableFilterableTable(recASchema,
             () -> CloseableIterable.fromIterable(Collections.singletonList(reca1))));
-    schema.add("b", new AvroScannableTable(recBSchema,
-            () -> CloseableIterable.fromIterable(Collections.singletonList(recb1))));
+    schema.add("b", new AvroProjectableFilterableTable(recBSchema,
+            () -> CloseableIterable.fromIterable(Arrays.asList(recb1, recb2))));
 
     SqlParser.Config cfg = SqlParser.configBuilder()
             .setCaseSensitive(true)
@@ -258,14 +276,19 @@ public class SchemasTest {
             .setLex(Lex.JAVA).build();
     FrameworkConfig config = Frameworks.newConfigBuilder()
             .parserConfig(cfg)
+            .ruleSets(RuleSets.ofList(FilterTableScanRule.INSTANCE,
+                    FilterProjectTransposeRule.INSTANCE, FilterIntoJoinRule.FILTER_ON_JOIN))
             .defaultSchema(schema).build();
     Planner planner = Frameworks.getPlanner(config);
-    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2 from a, b where  a.id = b.id");
+    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2 from a"
+            + " inner join  b on a.id = b.id where b.text = 'bla'");
     SqlNode validated = planner.validate(s);
     RelRoot rel = planner.rel(validated);
     LOG.debug("exec plan", RelOptUtil.toString(rel.project()));
+    RelNode optimized = optimize(rel.project());
+    LOG.debug("exec plan optimized", RelOptUtil.toString(optimized));
 
-    Interpreter interpreter = new Interpreter(new EmbededDataContext(planner), rel.project());
+    Interpreter interpreter = new Interpreter(new EmbededDataContext(planner), optimized);
     for (Object[] row : interpreter) {
       LOG.debug("Row", row);
       Assert.assertNotNull(row);
@@ -273,5 +296,16 @@ public class SchemasTest {
 
   }
 
+  private RelNode optimize(final RelNode rootRel) {
+    final HepProgram hepProgram = new HepProgramBuilder()
+        //push down predicates
+        .addRuleInstance(FilterIntoJoinRule.FILTER_ON_JOIN)
+        //push down projections
+        .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
+            .build();
+    final HepPlanner planner = new HepPlanner(hepProgram);
+    planner.setRoot(rootRel);
+    return planner.findBestExp();
+  }
 
 }
