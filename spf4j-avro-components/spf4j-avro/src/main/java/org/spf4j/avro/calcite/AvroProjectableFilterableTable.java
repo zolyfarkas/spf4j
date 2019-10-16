@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
@@ -37,6 +38,7 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.ProjectableFilterableTable;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.Statistic;
+import org.apache.calcite.schema.Statistics;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlNode;
 import org.slf4j.Logger;
@@ -68,9 +70,9 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
   }
 
   @Override
-  @Nullable
+  @Nonnull
   public Statistic getStatistic() {
-    return null;
+    return Statistics.UNKNOWN;
   }
 
   @Override
@@ -86,7 +88,7 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
   @Override
   public boolean rolledUpColumnValidInsideAgg(final String column, final SqlCall call,
           final SqlNode parent, final CalciteConnectionConfig config) {
-    return false;
+    return true;
   }
 
   @Override
@@ -150,9 +152,7 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
           if (iterator.hasNext()) {
             while (true) {
               IndexedRecord ir = iterator.next();
-              for (int i =  0; i < rawRow.length; i++) {
-                rawRow[i] = ir.get(i);
-              }
+              IndexedRecords.copy(ir, rawRow);
               spf4jDataContext.values = rawRow;
               Boolean match = scalar == null || (Boolean) scalar.execute(spf4jDataContext);
               if (match) {

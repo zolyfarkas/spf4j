@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema.Field;
 import org.spf4j.base.CharSequences;
 import org.spf4j.ds.IdentityHashSet;
@@ -226,6 +227,24 @@ public final class Schemas {
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static Schema nullableUnionSchema(final Schema schema) {
+    if (!(schema.getType() == Schema.Type.UNION)) {
+      return null;
+    }
+    List<Schema> types = schema.getTypes();
+    if (types.size() != 2) {
+      return null;
+    }
+    if (types.get(0).getType() == Schema.Type.NULL) {
+      return types.get(1);
+    } else if (types.get(1).getType() == Schema.Type.NULL) {
+      return types.get(0);
+    } else {
+      return null;
+    }
   }
 
   public static Schema getSubSchema(final Schema schema, final CharSequence path) {
@@ -417,5 +436,27 @@ public final class Schemas {
     }
     return part;
   }
+
+  public static Schema dateString() {
+    Schema schema = Schema.create(Schema.Type.STRING);
+    schema.addProp("logicalType", "date");
+    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    return schema;
+  }
+
+  public static Schema instantString() {
+    Schema schema = Schema.create(Schema.Type.STRING);
+    schema.addProp("logicalType", "instant");
+    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    return schema;
+  }
+
+  public static Schema temporalString() {
+    Schema schema = Schema.create(Schema.Type.STRING);
+    schema.addProp("logicalType", "any_temporal");
+    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    return schema;
+  }
+
 
 }

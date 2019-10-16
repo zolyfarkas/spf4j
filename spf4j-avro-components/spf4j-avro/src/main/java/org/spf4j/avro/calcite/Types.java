@@ -15,18 +15,18 @@
  */
 package org.spf4j.avro.calcite;
 
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.calcite.rel.type.RelDataType;
 import java.util.Map;
+import org.apache.avro.LogicalType;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
 import org.apache.calcite.sql.type.SqlTypeName;
+import org.spf4j.avro.schema.Schemas;
 
 /**
  * @author Zoltan Farkas
@@ -35,34 +35,83 @@ public final class Types {
 
   private Types() { }
 
-  private static final Interner<RelDataType> TI = Interners.newStrongInterner();
+  public static Schema from(final RelDataType dataType) {
+    SqlTypeName sqlTypeName = dataType.getSqlTypeName();
+    Schema  result;
+    switch (sqlTypeName) {
+      case ROW:
+       List<RelDataTypeField> fieldList = dataType.getFieldList();
+       List<Schema.Field> aFields = new ArrayList<>(fieldList.size());
+       for (RelDataTypeField field : fieldList) {
+         aFields.add(new Schema.Field(field.getName(), from(field.getType()), null, (Object) null));
+       }
+       return Schema.createRecord(aFields);
+      case INTEGER:
+        result = Schema.create(Schema.Type.INT);
+        break;
+      case BIGINT:
+        result = Schema.create(Schema.Type.LONG);
+        break;
+      case VARCHAR:
+        result = Schema.create(Schema.Type.STRING);
+        break;
+      case DATE:
+        result = Schemas.dateString();
+        break;
+      default:
+        throw new UnsupportedOperationException("Unsupported data Type " + dataType);
+    }
+    if (dataType.isNullable()) {
+      result = Schema.createUnion(Schema.create(Schema.Type.NULL), result);
+    }
+    return result;
+  }
 
+
+  @SuppressWarnings("checkstyle:MissingSwitchDefault")
   public static RelDataType from(final JavaTypeFactory fact,
           final Schema schema, final Map<Schema, RelDataType> defined) {
     RelDataType ex = defined.get(schema);
     if (ex != null) {
       return ex;
     }
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType != null) {
+      switch (logicalType.getName()) {
+        case "date":
+          return fact.createSqlType(SqlTypeName.DATE);
+        case "instant":
+          return fact.createSqlType(SqlTypeName.TIMESTAMP);
+      }
+    }
     RelDataType result;
     switch (schema.getType())  {
       case STRING:
-        result = TI.intern(fact.createSqlType(SqlTypeName.VARCHAR));
+        result = fact.createSqlType(SqlTypeName.VARCHAR);
         break;
       case INT:
-        result = TI.intern(fact.createSqlType(SqlTypeName.INTEGER));
+        result = fact.createSqlType(SqlTypeName.INTEGER);
         break;
       case DOUBLE:
-        result = TI.intern(fact.createSqlType(SqlTypeName.DOUBLE));
+        result = fact.createSqlType(SqlTypeName.DOUBLE);
         break;
       case FLOAT:
-        result = TI.intern(fact.createSqlType(SqlTypeName.FLOAT));
+        result = fact.createSqlType(SqlTypeName.FLOAT);
         break;
       case LONG:
-        result = TI.intern(fact.createSqlType(SqlTypeName.BIGINT));
+        result = fact.createSqlType(SqlTypeName.BIGINT);
         break;
       case RECORD:
-        result = TI.intern(fact.createStructType(fromRecordSchema(fact, schema)));
+        result = fact.createStructType(fromRecordSchema(fact, schema));
         break;
+      case UNION:
+        Schema nullableUnionSchema = Schemas.nullableUnionSchema(schema);
+        if (nullableUnionSchema != null) {
+          result = fact.createTypeWithNullability(from(fact, nullableUnionSchema, defined), true);
+          break;
+        } else {
+          throw new UnsupportedOperationException("Unsupported: " + schema);
+        }
       default:
         throw new UnsupportedOperationException("Unsupported: " + schema);
     }
