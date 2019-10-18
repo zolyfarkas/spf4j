@@ -102,12 +102,12 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
           @Nullable final int[] projects) {
     LOG.debug("Filtered Table scan of {} with filter {} and projection {}", stream, filters, projects);
     JavaTypeFactory typeFactory = root.getTypeFactory();
-    RexBuilder rb = new RexBuilder(typeFactory);
-    JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
     Scalar scalar;
     if (filters.isEmpty()) {
       scalar = null;
     } else {
+      RexBuilder rb = new RexBuilder(typeFactory);
+      JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
       scalar = compiler.compile(filters, getRowType(typeFactory));
     }
     Spf4jDataContext spf4jDataContext = new Spf4jDataContext(root);
