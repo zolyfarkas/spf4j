@@ -107,7 +107,8 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
   @Override
   public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
           @Nullable final int[] projects) {
-    LOG.debug("Filtered Table scan of {} with filter {} and projection {}", stream, filters, projects);
+    LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", componentType.getName(),
+            filters, projects);
     JavaTypeFactory typeFactory = root.getTypeFactory();
     Scalar scalar;
     if (filters.isEmpty()) {
