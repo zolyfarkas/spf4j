@@ -15,9 +15,12 @@
  */
 package org.spf4j.avro.calcite;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,6 +49,10 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.CloseableIterable;
 
 /**
+ * Implementation that will scan a  stream of avro objects.
+ * will need to review if QueriableTable is something that fits the bill.
+ * https://www.programcreek.com/java-api-examples/?code=vlsi/mat-calcite-plugin/
+ * mat-calcite-plugin-master/MatCalcitePlugin/src/com/github/vlsi/mat/calcite/functions/TableFunctions.java
  * @author Zoltan Farkas
  */
 public final class AvroProjectableFilterableTable implements  ProjectableFilterableTable {
@@ -110,25 +117,29 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
       JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
       scalar = compiler.compile(filters, getRowType(typeFactory));
     }
-    Spf4jDataContext spf4jDataContext = new Spf4jDataContext(root);
-    List<org.apache.avro.Schema.Field> fields = componentType.getFields();
-    Object[] rawRow = new Object[fields.size()];
-    return new AbstractEnumerableImpl(rawRow, spf4jDataContext, scalar, projects);
+    return new AbstractEnumerableImpl(componentType, root, scalar, projects, stream);
   }
 
-  private class AbstractEnumerableImpl extends AbstractEnumerable<Object[]> {
+  private static class AbstractEnumerableImpl extends AbstractEnumerable<Object[]> {
 
     private final Object[] rawRow;
     private final Spf4jDataContext spf4jDataContext;
     private final Scalar scalar;
     private final int[] projects;
+    private final Supplier<CloseableIterable<IndexedRecord>> stream;
+    private final Supplier<Boolean> cancelFlag;
 
-    AbstractEnumerableImpl(final Object[] rawRow,
-            final Spf4jDataContext spf4jDataContext, final Scalar scalar, final int[] projects) {
-      this.rawRow = rawRow;
-      this.spf4jDataContext = spf4jDataContext;
+    AbstractEnumerableImpl(final org.apache.avro.Schema componentType,
+            final DataContext root,
+            @Nullable final Scalar scalar, final int[] projects,
+            final Supplier<CloseableIterable<IndexedRecord>> stream) {
+      this.rawRow = new Object[componentType.getFields().size()];
+      this.spf4jDataContext = new Spf4jDataContext(root);
       this.scalar = scalar;
       this.projects = projects;
+      this.stream = stream;
+      Supplier<Boolean> contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
+      cancelFlag = contextFlag == null ? () -> false  : contextFlag;
     }
 
     public Enumerator<Object[]> enumerator() {
@@ -149,6 +160,9 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
 
         @Override
         public boolean moveNext() {
+          if (cancelFlag.get()) {
+            throw new CancellationException("Operation cancelled on " + stream + " at "  + Arrays.toString(current));
+          }
           if (iterator.hasNext()) {
             while (true) {
               IndexedRecord ir = iterator.next();
