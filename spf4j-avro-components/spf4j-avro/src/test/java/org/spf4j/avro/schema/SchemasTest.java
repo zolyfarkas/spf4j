@@ -303,7 +303,7 @@ public class SchemasTest {
     Planner planner = Frameworks.getPlanner(config);
     SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2, b.adate as adate"
             + " from a"
-            + " inner join b on a.id = b.id where b.text = 'bla'");
+            + " inner join b on a.id = b.id where b.text like 'bla%'");
     SqlNode validated = planner.validate(s);
     RelRoot rel = planner.rel(validated);
     LOG.debug("exec plan", RelOptUtil.toString(rel.project()));

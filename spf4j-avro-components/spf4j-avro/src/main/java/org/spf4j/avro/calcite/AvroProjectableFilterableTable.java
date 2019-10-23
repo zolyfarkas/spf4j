@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -140,7 +139,7 @@ public final class AvroProjectableFilterableTable implements  ProjectableFiltera
       this.projects = projects;
       this.stream = stream;
       Supplier<Boolean> contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
-      cancelFlag = contextFlag == null ? () -> false  : contextFlag;
+      cancelFlag = contextFlag == null ? () -> Boolean.FALSE  : contextFlag;
     }
 
     public Enumerator<Object[]> enumerator() {
