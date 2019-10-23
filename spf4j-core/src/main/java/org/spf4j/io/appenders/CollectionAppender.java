@@ -56,7 +56,7 @@ public final class CollectionAppender implements ObjectAppender<Collection> {
     Iterator it = iter.iterator();
     if (it.hasNext()) {
       Object o = it.next();
-      if (o.equals(iter)) {
+      if (iter.equals(o)) {
          ObjectAppender.appendNullable(o.toString(), appendTo, appenderSupplier);
       } else {
         ObjectAppender.appendNullable(o, appendTo, appenderSupplier);
