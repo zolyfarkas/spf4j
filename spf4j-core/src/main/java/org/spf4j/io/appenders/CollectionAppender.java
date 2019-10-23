@@ -50,13 +50,14 @@ public final class CollectionAppender implements ObjectAppender<Collection> {
   }
 
   @Override
-  public void append(final Collection iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final Collection collection, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
     appendTo.append('[');
-    Iterator it = iter.iterator();
+    Iterator it = collection.iterator();
     if (it.hasNext()) {
       Object o = it.next();
-      if (iter.equals(o)) {
+      if (collection.equals(o)) {
          ObjectAppender.appendNullable(o.toString(), appendTo, appenderSupplier);
       } else {
         ObjectAppender.appendNullable(o, appendTo, appenderSupplier);
