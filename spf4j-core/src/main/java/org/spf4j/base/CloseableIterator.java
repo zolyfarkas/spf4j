@@ -42,7 +42,7 @@ public interface CloseableIterator<T> extends Iterator<T>, Closeable {
 
   void close();
 
-  static <T> CloseableIterator<T> fromIterator(final Iterator<T> it) {
+  static <T> CloseableIterator<T> from(final Iterator<T> it) {
     return new CloseableIterator<T>() {
       @Override
       public void close() {
