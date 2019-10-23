@@ -45,6 +45,7 @@ import org.apache.avro.SchemaBuilder;
 import org.apache.avro.SchemaCompatibility;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.interpreter.Interpreter;
 import org.apache.calcite.plan.RelOptUtil;
@@ -78,7 +79,7 @@ import org.spf4j.avro.calcite.AvroProjectableFilterableTable;
 import org.spf4j.avro.calcite.EmbededDataContext;
 import org.spf4j.avro.calcite.IndexedRecords;
 import org.spf4j.avro.calcite.Types;
-import org.spf4j.base.CloseableIterable;
+import org.spf4j.base.CloseableIterator;
 import org.spf4j.demo.avro.DemoRecordInfo;
 
 /**
@@ -287,9 +288,9 @@ public class SchemasTest {
 
     SchemaPlus schema = Frameworks.createRootSchema(true);
     schema.add("a", new AvroProjectableFilterableTable(recASchema,
-            () -> CloseableIterable.fromIterable(Collections.singletonList(reca1))));
+            () -> CloseableIterator.from(Collections.singletonList(reca1).iterator())));
     schema.add("b", new AvroProjectableFilterableTable(recBSchema,
-            () -> CloseableIterable.fromIterable(Arrays.asList(recb1, recb2))));
+            () -> CloseableIterator.from(Arrays.asList(recb1, recb2).iterator())));
 
     SqlParser.Config cfg = SqlParser.configBuilder()
             .setCaseSensitive(true)
@@ -303,7 +304,7 @@ public class SchemasTest {
     Planner planner = Frameworks.getPlanner(config);
     SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2, b.adate as adate"
             + " from a"
-            + " inner join b on a.id = b.id where b.text like 'bla%'");
+            + " inner join b on a.id = b.id where b.text like 'bla%' or b.text like 'cucu%'");
     SqlNode validated = planner.validate(s);
     RelRoot rel = planner.rel(validated);
     LOG.debug("exec plan", RelOptUtil.toString(rel.project()));

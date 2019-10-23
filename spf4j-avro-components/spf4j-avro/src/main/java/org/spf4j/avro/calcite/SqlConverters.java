@@ -27,9 +27,9 @@ import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
-public final class SqlFilters {
+public final class SqlConverters {
 
-  private SqlFilters() { }
+  private SqlConverters() { }
 
   private static final RexSqlStandardConvertletTable TABLE = new RexSqlStandardConvertletTable();
 

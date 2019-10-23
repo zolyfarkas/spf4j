@@ -27,19 +27,16 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.CloseableIterator;
 
 /**
- * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
+ * An avro table when the data is provided by the provided Supplier<CloseableIterable<IndexedRecord>>
  * @author Zoltan Farkas
  */
-public final class AvroProjectableFilterableTable extends AbstractAvroTable {
+public final class AvroPushDownProjectableFilterableTable extends AbstractAvroTable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AvroProjectableFilterableTable.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AvroPushDownProjectableFilterableTable.class);
 
-  private final Supplier<CloseableIterator<? extends IndexedRecord>> dataSupplier;
-
-  public AvroProjectableFilterableTable(final org.apache.avro.Schema componentType,
-          final Supplier<CloseableIterator<? extends IndexedRecord>> dataSupplier) {
+  public AvroPushDownProjectableFilterableTable(final org.apache.avro.Schema componentType,
+          final Supplier<CloseableIterator<IndexedRecord>> dataSupplier) {
     super(componentType);
-    this.dataSupplier = dataSupplier;
   }
 
   @Override
@@ -48,10 +45,7 @@ public final class AvroProjectableFilterableTable extends AbstractAvroTable {
     org.apache.avro.Schema componentType = getComponentType();
     LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", componentType.getName(),
             filters, projection);
-    Enumerable<Object[]> result
-            = new FilteringProjectingAvroEnumerable(componentType, root, filters, projection, dataSupplier);
-    filters.clear();
-    return result;
+    return null;
   }
 
 
