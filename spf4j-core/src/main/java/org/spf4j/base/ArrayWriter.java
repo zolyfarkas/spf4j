@@ -24,4 +24,12 @@ import java.util.function.Consumer;
  */
 public interface ArrayWriter<T> extends Flushable, Closeable, Consumer<T> {
 
+  default void close() {
+    // no close default
+  }
+
+  default void flush() {
+    // no flush default
+  }
+
 }
