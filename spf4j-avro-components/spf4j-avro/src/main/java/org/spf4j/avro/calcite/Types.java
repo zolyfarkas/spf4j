@@ -29,6 +29,11 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.spf4j.avro.schema.Schemas;
 
 /**
+ *
+ * similar is done in drill, seems like calcite issue I have also stumbled upon:
+ *
+ * https://github.com/apache/drill/blob/master/exec/java-exec/src
+ * /main/java/org/apache/drill/exec/store/avro/AvroDrillTable.java
  * @author Zoltan Farkas
  */
 public final class Types {

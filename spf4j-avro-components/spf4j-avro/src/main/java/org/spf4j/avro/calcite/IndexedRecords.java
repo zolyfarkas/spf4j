@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.calcite;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.time.LocalDate;
 import org.apache.avro.LogicalType;
@@ -26,6 +27,7 @@ import org.apache.avro.generic.IndexedRecord;
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("UCC_UNRELATED_COLLECTION_CONTENTS") // this is how a calcite row is...
 public final class IndexedRecords {
 
   private IndexedRecords() { }
@@ -34,7 +36,14 @@ public final class IndexedRecords {
     for (Schema.Field field : from.getSchema().getFields()) {
       int pos = field.pos();
       Object val = from.get(pos);
-      LogicalType logicalType = field.schema().getLogicalType();
+      Schema fs = field.schema();
+      if (fs.getType() == Schema.Type.UNION) {
+        fs = org.spf4j.avro.schema.Schemas.nullableUnionSchema(fs);
+        if (fs == null) {
+          throw new IllegalArgumentException("Unsupported field " + field);
+        }
+      }
+      LogicalType logicalType = fs.getLogicalType();
       if (logicalType != null) {
         switch (logicalType.getName()) {
           case "date":
@@ -47,7 +56,13 @@ public final class IndexedRecords {
             to[pos] = val;
         }
       } else {
-        to[pos] = val;
+        if (fs.getType() == Schema.Type.RECORD) {
+          Object[] recArr = new Object[fs.getFields().size()];
+          copy((IndexedRecord) val, recArr);
+          to[pos] = recArr;
+        } else {
+          to[pos] = val;
+        }
       }
     }
   }
@@ -56,7 +71,14 @@ public final class IndexedRecords {
     GenericData.Record record = new GenericData.Record(schema);
     for (Schema.Field field : schema.getFields()) {
       int pos = field.pos();
-      LogicalType logicalType = field.schema().getLogicalType();
+      Schema fs = field.schema();
+      if (fs.getType() == Schema.Type.UNION) {
+        fs = org.spf4j.avro.schema.Schemas.nullableUnionSchema(fs);
+        if (fs == null) {
+          throw new IllegalArgumentException("Unsupported field " + field);
+        }
+      }
+      LogicalType logicalType = fs.getLogicalType();
       if (logicalType != null) {
         switch (logicalType.getName()) {
           case "date":
@@ -69,7 +91,19 @@ public final class IndexedRecords {
             record.put(pos, from[pos]);
         }
       } else {
-        record.put(pos, from[pos]);
+        switch (fs.getType()) {
+          case RECORD:
+              Object recVal = from[pos];
+              if (recVal instanceof IndexedRecord || recVal == null) {
+                record.put(pos, recVal);
+              } else {
+                record.put(pos, from(fs, (Object[]) recVal));
+              }
+              break;
+          default:
+            record.put(pos, from[pos]);
+            break;
+        }
       }
     }
     return record;

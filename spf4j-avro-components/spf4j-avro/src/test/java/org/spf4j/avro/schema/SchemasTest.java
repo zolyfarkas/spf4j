@@ -79,6 +79,8 @@ import org.spf4j.avro.calcite.IndexedRecords;
 import org.spf4j.avro.calcite.Types;
 import org.spf4j.base.CloseableIterator;
 import org.spf4j.demo.avro.DemoRecordInfo;
+import org.spf4j.log.Level;
+import org.spf4j.test.log.annotations.PrintLogs;
 
 /**
  *
@@ -255,6 +257,7 @@ public class SchemasTest {
 
   @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  @PrintLogs(category = "org.codehaus.janino", ideMinLevel = Level.INFO, greedy = true)
   public void testAvroSql() throws SqlParseException, RelConversionException,
           ValidationException, InstantiationException, IllegalAccessException {
     Schema recASchema = SchemaBuilder.record("RecordA")
@@ -269,6 +272,7 @@ public class SchemasTest {
             .requiredString("text")
             .name("adate").type(Schemas.dateString()).noDefault()
             .name("meta").type(Schema.createArray(subRecSchema)).noDefault()
+            .name("meta2").type(subRecSchema).noDefault()
             .endRecord();
 
     GenericRecordBuilder rb = new GenericRecordBuilder(recASchema, subRecSchema, recBSchema);
@@ -293,13 +297,14 @@ public class SchemasTest {
     recb1.put("text", "bla");
     recb1.put("adate", LocalDate.now());
     recb1.put("meta", Collections.singletonList(subRec));
+    recb1.put("meta2", subRec);
 
     GenericRecord recb2 = rbC.newInstance();
     recb2.put("id", 2);
     recb2.put("name", "Xi");
     recb2.put("text", "blabla");
     recb2.put("adate", LocalDate.now());
-    recb2.put("meta", Collections.singletonList(subRec));
+    recb2.put("meta2", subRec);
 
 
     SchemaPlus schema = Frameworks.createRootSchema(true);
@@ -316,7 +321,8 @@ public class SchemasTest {
             .parserConfig(cfg)
             .defaultSchema(schema).build();
     Planner planner = Frameworks.getPlanner(config);
-    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2, b.adate as adate, b.meta[0].key as firstKey"
+    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2,"
+            + " b.adate as adate, b.meta as firstKey, b.meta2.key as blaKey"
             + " from a"
             + " inner join b on a.id = b.id where b.text like 'bla%' or b.text like 'cucu%'");
     SqlNode validated = planner.validate(s);
