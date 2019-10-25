@@ -152,6 +152,7 @@ public class AvroQueryTest {
     recb2.put("name", "Xi");
     recb2.put("text", "blabla");
     recb2.put("adate", LocalDate.now());
+    recb2.put("meta", Collections.singletonList(subRec));
     recb2.put("meta2", subRec);
 
 
@@ -186,8 +187,8 @@ public class AvroQueryTest {
     Interpreter interpreter = new Interpreter(new EmbededDataContext(new JavaTypeFactoryImpl()), plan);
     boolean empty = true;
     for (Object[] row : interpreter) {
-      GenericRecord record = IndexedRecords.from(from, row);
-      LOG.debug("RawRow",  row);
+      LOG.debug("RawRow {} with schema {}",  row, from);
+      GenericRecord record = IndexedRecords.fromRecord(from, row);
       LOG.debug("Row",  record);
       empty = false;
     }

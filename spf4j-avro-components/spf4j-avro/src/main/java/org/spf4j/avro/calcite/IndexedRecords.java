@@ -15,9 +15,16 @@
  */
 package org.spf4j.avro.calcite;
 
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -27,84 +34,141 @@ import org.apache.avro.generic.IndexedRecord;
 /**
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("UCC_UNRELATED_COLLECTION_CONTENTS") // this is how a calcite row is...
+@SuppressFBWarnings({ "UCC_UNRELATED_COLLECTION_CONTENTS", "URV_UNRELATED_RETURN_VALUES" })
+// this is how a calcite row is...
 public final class IndexedRecords {
 
-  private IndexedRecords() { }
+  private IndexedRecords() {
+  }
 
-  public static void copy(final IndexedRecord from,  final Object[] to) {
+  public static void copyRecord(final IndexedRecord from, final Object[] to) {
     for (Schema.Field field : from.getSchema().getFields()) {
       int pos = field.pos();
       Object val = from.get(pos);
       Schema fs = field.schema();
-      if (fs.getType() == Schema.Type.UNION) {
-        fs = org.spf4j.avro.schema.Schemas.nullableUnionSchema(fs);
-        if (fs == null) {
-          throw new IllegalArgumentException("Unsupported field " + field);
-        }
-      }
-      LogicalType logicalType = fs.getLogicalType();
-      if (logicalType != null) {
-        switch (logicalType.getName()) {
-          case "date":
-            to[pos] = ((LocalDate) val).toEpochDay();
-            break;
-          case "instant":
-            to[pos] = ((Instant) val).toEpochMilli();
-            break;
-          default:
-            to[pos] = val;
-        }
-      } else {
-        if (fs.getType() == Schema.Type.RECORD) {
-          Object[] recArr = new Object[fs.getFields().size()];
-          copy((IndexedRecord) val, recArr);
-          to[pos] = recArr;
-        } else {
-          to[pos] = val;
-        }
-      }
+      to[pos] = copy(val, fs);
     }
   }
 
-  public static GenericRecord from(final Schema schema,  final Object[] from) {
+  @Nullable
+  public static Object copy(@Nullable final Object from, @Nonnull final Schema schema) {
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType != null) {
+      switch (logicalType.getName()) {
+        case "date":
+          return ((LocalDate) from).toEpochDay();
+        case "instant":
+          return ((Instant) from).toEpochMilli();
+        default:
+          return from;
+      }
+    }
+    switch (schema.getType()) {
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case ENUM:
+      case FIXED:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+        return from;
+      case ARRAY:
+        Schema elType = schema.getElementType();
+        Collection<Object> col = (Collection<Object>) from;
+        return col.stream().map((x) -> copy(x, elType))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(col.size())));
+      case MAP:
+        Schema valueType = schema.getValueType();
+        Map<String, Object> map = (Map<String, Object>) from;
+        return map.entrySet().stream()
+                .collect(Collectors.toMap((x) -> x.getKey(), (x) -> copy(x.getValue(), valueType),
+                        (u, v) -> {
+                          throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        },
+                        () -> Maps.newHashMapWithExpectedSize(map.size())));
+      case RECORD:
+        Object[] res = new Object[schema.getFields().size()];
+        copyRecord((IndexedRecord) from, res);
+        return res;
+      case UNION:
+        Schema nSchema = org.spf4j.avro.schema.Schemas.nullableUnionSchema(schema);
+        if (nSchema == null) {
+          throw new UnsupportedOperationException("Not supported union " + schema);
+        }
+        if (from == null) {
+          return null;
+        }
+        return copy(from, nSchema);
+      default:
+        throw new UnsupportedOperationException("Not supported schema " + schema);
+    }
+  }
+
+  @Nullable
+  public static Object from(final Schema schema, @Nullable final Object from) {
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType != null) {
+      switch (logicalType.getName()) {
+        case "date":
+          return LocalDate.ofEpochDay((Integer) from);
+        case "instant":
+          return Instant.ofEpochMilli((Long) from);
+        default:
+          return from;
+      }
+    }
+    switch (schema.getType()) {
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case ENUM:
+      case FIXED:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+        return from;
+      case ARRAY:
+        Schema elType = schema.getElementType();
+        Collection<Object> col = (Collection<Object>) from;
+        return col.stream().map((x) -> from(elType, x))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(col.size())));
+      case MAP:
+        Schema valueType = schema.getValueType();
+        Map<String, Object> map = (Map<String, Object>) from;
+        return map.entrySet().stream()
+                .collect(Collectors.toMap((x) -> x.getKey(), (x) -> from(valueType, x.getValue()),
+                        (u, v) -> {
+                          throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        },
+                        () -> Maps.newHashMapWithExpectedSize(map.size())));
+      case RECORD:
+        return fromRecord(schema, (Object[]) from);
+      case UNION:
+        Schema nSchema = org.spf4j.avro.schema.Schemas.nullableUnionSchema(schema);
+        if (nSchema == null) {
+          throw new UnsupportedOperationException("Not supported union " + schema);
+        }
+        if (from == null) {
+          return null;
+        }
+        return from(nSchema, from);
+      default:
+        throw new UnsupportedOperationException("Not supported schema " + schema);
+    }
+  }
+
+  public static GenericRecord fromRecord(final Schema schema, final Object[] from) {
     GenericData.Record record = new GenericData.Record(schema);
     for (Schema.Field field : schema.getFields()) {
       int pos = field.pos();
       Schema fs = field.schema();
-      if (fs.getType() == Schema.Type.UNION) {
-        fs = org.spf4j.avro.schema.Schemas.nullableUnionSchema(fs);
-        if (fs == null) {
-          throw new IllegalArgumentException("Unsupported field " + field);
-        }
-      }
-      LogicalType logicalType = fs.getLogicalType();
-      if (logicalType != null) {
-        switch (logicalType.getName()) {
-          case "date":
-            record.put(pos, LocalDate.ofEpochDay((Integer) from[pos]));
-            break;
-          case "instant":
-            record.put(pos, Instant.ofEpochMilli((Long) from[pos]));
-            break;
-          default:
-            record.put(pos, from[pos]);
-        }
-      } else {
-        switch (fs.getType()) {
-          case RECORD:
-              Object recVal = from[pos];
-              if (recVal instanceof IndexedRecord || recVal == null) {
-                record.put(pos, recVal);
-              } else {
-                record.put(pos, from(fs, (Object[]) recVal));
-              }
-              break;
-          default:
-            record.put(pos, from[pos]);
-            break;
-        }
-      }
+      record.put(pos, from(fs, from[pos]));
+
     }
     return record;
   }

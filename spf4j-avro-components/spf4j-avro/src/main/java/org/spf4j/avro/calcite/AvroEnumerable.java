@@ -64,7 +64,7 @@ class AvroEnumerable extends AbstractEnumerable<Object[]> {
         if (iterator.hasNext()) {
           IndexedRecord ir = iterator.next();
           current = new Object[rowLength];
-          IndexedRecords.copy(ir, current);
+          IndexedRecords.copyRecord(ir, current);
           return true;
         } else {
           current = null;

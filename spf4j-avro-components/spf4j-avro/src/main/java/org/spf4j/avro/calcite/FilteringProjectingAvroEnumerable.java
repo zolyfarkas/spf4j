@@ -87,7 +87,7 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
         if (iterator.hasNext()) {
           while (true) {
             IndexedRecord ir = iterator.next();
-            IndexedRecords.copy(ir, rawRow);
+            IndexedRecords.copyRecord(ir, rawRow);
             spf4jDataContext.values = rawRow;
             Boolean match = filterExpression == null || (Boolean) filterExpression.execute(spf4jDataContext);
             if (match) {
