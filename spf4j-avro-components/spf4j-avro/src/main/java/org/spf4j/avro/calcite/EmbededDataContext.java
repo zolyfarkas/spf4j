@@ -20,17 +20,16 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.QueryProvider;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.tools.Frameworks;
-import org.apache.calcite.tools.Planner;
 
 /**
  * @author Zoltan Farkas
  */
 public final class EmbededDataContext implements DataContext {
 
-  private final Planner planner;
+  private final JavaTypeFactory typeFact;
 
-  public EmbededDataContext(final Planner planner) {
-    this.planner = planner;
+  public EmbededDataContext(final JavaTypeFactory typeFact) {
+    this.typeFact = typeFact;
   }
 
   public SchemaPlus getRootSchema() {
@@ -38,7 +37,7 @@ public final class EmbededDataContext implements DataContext {
   }
 
   public JavaTypeFactory getTypeFactory() {
-    return (JavaTypeFactory) planner.getTypeFactory();
+    return (JavaTypeFactory) typeFact;
   }
 
   public QueryProvider getQueryProvider() {
@@ -51,7 +50,7 @@ public final class EmbededDataContext implements DataContext {
 
   @Override
   public String toString() {
-    return "EmbededDataContext{" + "planner=" + planner + '}';
+    return "EmbededDataContext{" + "typeFact=" + typeFact + '}';
   }
 
 }

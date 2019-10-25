@@ -54,5 +54,9 @@ public final class AvroProjectableFilterableTable extends AbstractAvroTable {
     return result;
   }
 
+  @Override
+  public String toString() {
+    return "AvroProjectableFilterableTable{" + "dataSupplier=" + dataSupplier + '}';
+  }
 
 }

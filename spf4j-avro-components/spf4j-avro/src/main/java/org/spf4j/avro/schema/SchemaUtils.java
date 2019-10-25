@@ -151,7 +151,7 @@ public final class SchemaUtils {
     }
   }
 
-  public static boolean hasGeneratedJavaClass(final Schema schema) {
+  public static boolean isNamedType(final Schema schema) {
     Schema.Type type = schema.getType();
     switch (type) {
       case ENUM:

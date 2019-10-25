@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.calcite;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import javax.annotation.Nonnull;
 import org.apache.avro.Schema;
@@ -38,7 +39,7 @@ public abstract class AbstractAvroTable  implements ProjectableFilterableTable  
 
   private final org.apache.avro.Schema componentType;
 
-  public AbstractAvroTable(Schema componentType) {
+  public AbstractAvroTable(final Schema componentType) {
     if (componentType.getType() != org.apache.avro.Schema.Type.RECORD) {
       throw new IllegalArgumentException("Invalid table compoent " + componentType);
     }
@@ -46,6 +47,7 @@ public abstract class AbstractAvroTable  implements ProjectableFilterableTable  
   }
 
   @Override
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public final RelDataType getRowType(final RelDataTypeFactory typeFactory) {
     return Types.from((JavaTypeFactory) typeFactory, componentType, new HashMap<>());
   }
@@ -77,7 +79,7 @@ public abstract class AbstractAvroTable  implements ProjectableFilterableTable  
     return true;
   }
 
-  public Schema getComponentType() {
+  public final Schema getComponentType() {
     return componentType;
   }
 

@@ -16,7 +16,6 @@
 package org.apache.avro;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Arrays;
 import javax.annotation.concurrent.ThreadSafe;
 import org.apache.avro.io.DatumWriter;
@@ -56,7 +55,7 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
   }
 
   @Override
-  public synchronized void accept(final T t) {
+  public synchronized void write(final T t) throws IOException {
     if (isClosed) {
       throw new IllegalStateException("writer " + this + " already closed");
     }
@@ -66,8 +65,7 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
     }
   }
 
-  private void writeBuffer() {
-    try {
+  private void writeBuffer() throws IOException {
       if (start) {
         encoder.writeArrayStart();
         start = false;
@@ -79,9 +77,6 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
         buffer[i] = null;
       }
       at = 0;
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
   }
 
 

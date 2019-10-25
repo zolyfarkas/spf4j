@@ -43,11 +43,11 @@ import java.util.Map;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.SchemaCompatibility;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.interpreter.Interpreter;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
@@ -55,8 +55,6 @@ import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.rules.FilterJoinRule.FilterIntoJoinRule;
-import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
-import org.apache.calcite.rel.rules.FilterTableScanRule;
 import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.schema.SchemaPlus;
@@ -68,13 +66,13 @@ import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.Frameworks;
 import org.apache.calcite.tools.Planner;
 import org.apache.calcite.tools.RelConversionException;
-import org.apache.calcite.tools.RuleSets;
 import org.apache.calcite.tools.ValidationException;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.avro.GenericRecordBuilder;
 import org.spf4j.avro.calcite.AvroProjectableFilterableTable;
 import org.spf4j.avro.calcite.EmbededDataContext;
 import org.spf4j.avro.calcite.IndexedRecords;
@@ -257,33 +255,51 @@ public class SchemasTest {
 
   @Test
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
-  public void testAvroSql() throws SqlParseException, RelConversionException, ValidationException {
+  public void testAvroSql() throws SqlParseException, RelConversionException,
+          ValidationException, InstantiationException, IllegalAccessException {
     Schema recASchema = SchemaBuilder.record("RecordA")
             .fields().name("id").type().intType().noDefault()
             .requiredString("name").endRecord();
+    Schema subRecSchema = SchemaBuilder.record("SubRecord")
+            .fields().name("key").type().stringType().noDefault()
+            .requiredString("value").endRecord();
     Schema recBSchema = SchemaBuilder.record("RecordB")
             .fields().name("id").type().intType().noDefault()
             .requiredString("name")
             .requiredString("text")
             .name("adate").type(Schemas.dateString()).noDefault()
+            .name("meta").type(Schema.createArray(subRecSchema)).noDefault()
             .endRecord();
 
+    GenericRecordBuilder rb = new GenericRecordBuilder(recASchema, subRecSchema, recBSchema);
+    Class<? extends SpecificRecordBase> raC = rb.getRecordClass(recASchema);
+    Class<? extends SpecificRecordBase> rbC = rb.getRecordClass(recBSchema);
+    Class<? extends SpecificRecordBase> rsC = rb.getRecordClass(subRecSchema);
 
-    GenericData.Record reca1 = new GenericData.Record(recASchema);
+
+    GenericRecord reca1 = raC.newInstance();
     reca1.put("id", 1);
     reca1.put("name", "Jim");
 
-    GenericData.Record recb1 = new GenericData.Record(recBSchema);
+
+    GenericRecord subRec = rsC.newInstance();
+    subRec.put("key", "key1");
+    subRec.put("value", "val1");
+
+
+    GenericRecord recb1 = rbC.newInstance();
     recb1.put("id", 1);
     recb1.put("name", "Beam");
     recb1.put("text", "bla");
     recb1.put("adate", LocalDate.now());
+    recb1.put("meta", Collections.singletonList(subRec));
 
-    GenericData.Record recb2 = new GenericData.Record(recBSchema);
+    GenericRecord recb2 = rbC.newInstance();
     recb2.put("id", 2);
     recb2.put("name", "Xi");
     recb2.put("text", "blabla");
     recb2.put("adate", LocalDate.now());
+    recb2.put("meta", Collections.singletonList(subRec));
 
 
     SchemaPlus schema = Frameworks.createRootSchema(true);
@@ -298,26 +314,26 @@ public class SchemasTest {
             .setLex(Lex.JAVA).build();
     FrameworkConfig config = Frameworks.newConfigBuilder()
             .parserConfig(cfg)
-            .ruleSets(RuleSets.ofList(FilterTableScanRule.INSTANCE,
-                    FilterProjectTransposeRule.INSTANCE, FilterIntoJoinRule.FILTER_ON_JOIN))
             .defaultSchema(schema).build();
     Planner planner = Frameworks.getPlanner(config);
-    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2, b.adate as adate"
+    SqlNode s = planner.parse("select a.id, a.name as n1, b.name as n2, b.adate as adate, b.meta[0].key as firstKey"
             + " from a"
             + " inner join b on a.id = b.id where b.text like 'bla%' or b.text like 'cucu%'");
     SqlNode validated = planner.validate(s);
     RelRoot rel = planner.rel(validated);
-    LOG.debug("exec plan", RelOptUtil.toString(rel.project()));
-    RelNode optimized = optimize(rel.project());
-    LOG.debug("exec plan optimized", RelOptUtil.toString(optimized));
-    RelDataType rowType = optimized.getRowType();
+    RelNode plan = rel.project();
+    LOG.debug("exec plan", RelOptUtil.toString(plan));
+    plan = optimize(plan);
+    LOG.debug("exec plan optimized", RelOptUtil.toString(plan));
+    RelDataType rowType = plan.getRowType();
     LOG.debug("Return row type: {}", rowType);
     Schema from = Types.from(rowType);
     LOG.debug("Return row schema: {}", from);
-    Interpreter interpreter = new Interpreter(new EmbededDataContext(planner), optimized);
+    Interpreter interpreter = new Interpreter(new EmbededDataContext(new JavaTypeFactoryImpl()), plan);
     boolean empty = true;
     for (Object[] row : interpreter) {
       GenericRecord record = IndexedRecords.from(from, row);
+      LOG.debug("RawRow",  row);
       LOG.debug("Row",  record);
       empty = false;
     }

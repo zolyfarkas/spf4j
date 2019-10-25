@@ -58,6 +58,29 @@ public final class Types {
       case DATE:
         result = Schemas.dateString();
         break;
+      case BINARY:
+        int precision = dataType.getPrecision();
+        if (precision > 0) {
+          result = Schema.createFixed(null, null, null, precision);
+        } else {
+          result = Schema.create(Schema.Type.BYTES);
+        }
+        break;
+      case DOUBLE:
+        result = Schema.create(Schema.Type.DOUBLE);
+        break;
+      case FLOAT:
+        result = Schema.create(Schema.Type.FLOAT);
+        break;
+      case BOOLEAN:
+        result = Schema.create(Schema.Type.BOOLEAN);
+        break;
+      case ARRAY:
+        result = Schema.createArray(from(dataType.getComponentType()));
+        break;
+      case MAP:
+        result = Schema.createMap(from(dataType.getValueType()));
+        break;
       default:
         throw new UnsupportedOperationException("Unsupported data Type " + dataType);
     }
@@ -89,8 +112,20 @@ public final class Types {
       case STRING:
         result = fact.createSqlType(SqlTypeName.VARCHAR);
         break;
+      case BOOLEAN:
+        result = fact.createSqlType(SqlTypeName.BOOLEAN);
+        break;
+      case FIXED:
+        result = fact.createSqlType(SqlTypeName.BINARY, schema.getFixedSize());
+        break;
+      case BYTES:
+        result = fact.createSqlType(SqlTypeName.BINARY);
+        break;
       case INT:
         result = fact.createSqlType(SqlTypeName.INTEGER);
+        break;
+      case ENUM:
+        result = fact.createSqlType(SqlTypeName.SYMBOL);
         break;
       case DOUBLE:
         result = fact.createSqlType(SqlTypeName.DOUBLE);
@@ -103,6 +138,13 @@ public final class Types {
         break;
       case RECORD:
         result = fact.createStructType(fromRecordSchema(fact, schema));
+        break;
+      case MAP:
+        result = fact.createMapType(fact.createSqlType(SqlTypeName.VARCHAR),
+                from(fact, schema.getValueType(), defined));
+        break;
+      case ARRAY:
+        result = fact.createArrayType(from(fact, schema.getElementType(), defined), -1);
         break;
       case UNION:
         Schema nullableUnionSchema = Schemas.nullableUnionSchema(schema);

@@ -85,4 +85,11 @@ class AvroEnumerable extends AbstractEnumerable<Object[]> {
       }
     };
   }
+
+  @Override
+  public String toString() {
+    return "AvroEnumerable{" + "stream=" + stream + ", rowLength=" + rowLength + '}';
+  }
+
+
 }

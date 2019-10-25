@@ -126,7 +126,7 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public Class<? extends SpecificRecordBase> getRecordClass(final Schema schema) {
-    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
+    Preconditions.checkArgument(SchemaUtils.isNamedType(schema), "schema %s has no java class", schema);
     try {
       return (Class<? extends SpecificRecordBase>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
@@ -135,7 +135,7 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public Class<? extends GenericEnumSymbol> getEnumClass(final Schema schema) {
-    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
+    Preconditions.checkArgument(SchemaUtils.isNamedType(schema), "schema %s has no java class", schema);
     try {
       return (Class<? extends GenericEnumSymbol>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {
@@ -144,7 +144,7 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public Class<? extends GenericFixed> getFixedClass(final Schema schema) {
-    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), "schema %s has no java class", schema);
+    Preconditions.checkArgument(SchemaUtils.isNamedType(schema), "schema %s has no java class", schema);
     try {
       return (Class<? extends GenericFixed>) source.loadClass(SchemaUtils.getJavaClassName(schema));
     } catch (ClassNotFoundException ex) {

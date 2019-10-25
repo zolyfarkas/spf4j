@@ -126,4 +126,15 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
       }
     };
   }
+
+  @Override
+  public String toString() {
+    return "FilteringProjectingAvroEnumerable{" + "rawRow=" + Arrays.toString(rawRow)
+            + ", spf4jDataContext=" + spf4jDataContext + ", filterExpression="
+            + filterExpression + ", projection=" + Arrays.toString(projection) + ", stream="
+            + stream + ", cancelFlag=" + cancelFlag + '}';
+  }
+
+
+
 }
