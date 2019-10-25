@@ -17,18 +17,31 @@ package org.spf4j.base;
 
 import java.io.Closeable;
 import java.io.Flushable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.Consumer;
 
 /**
  * @author Zoltan Farkas
  */
+@FunctionalInterface
 public interface ArrayWriter<T> extends Flushable, Closeable, Consumer<T> {
 
-  default void close() {
+  void write(T t) throws IOException;
+
+  default void accept(final T t) {
+    try {
+      write(t);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  default void close() throws IOException {
     // no close default
   }
 
-  default void flush() {
+  default void flush() throws IOException {
     // no flush default
   }
 
