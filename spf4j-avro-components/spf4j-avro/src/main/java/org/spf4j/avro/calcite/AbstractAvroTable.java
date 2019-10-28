@@ -23,9 +23,9 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.schema.ProjectableFilterableTable;
 import org.apache.calcite.schema.Statistic;
 import org.apache.calcite.schema.Statistics;
+import org.apache.calcite.schema.Table;
 import org.apache.calcite.sql.SqlCall;
 import org.apache.calcite.sql.SqlNode;
 
@@ -35,7 +35,7 @@ import org.apache.calcite.sql.SqlNode;
  * mat-calcite-plugin-master/MatCalcitePlugin/src/com/github/vlsi/mat/calcite/functions/TableFunctions.java
  * @author Zoltan Farkas
  */
-public abstract class AbstractAvroTable  implements ProjectableFilterableTable  {
+public abstract class AbstractAvroTable  implements Table  {
 
   private final org.apache.avro.Schema componentType;
 

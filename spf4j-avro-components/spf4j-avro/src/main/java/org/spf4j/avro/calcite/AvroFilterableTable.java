@@ -17,12 +17,11 @@ package org.spf4j.avro.calcite;
 
 import java.util.List;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.schema.ProjectableFilterableTable;
+import org.apache.calcite.schema.FilterableTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.CloseableIterator;
@@ -31,34 +30,33 @@ import org.spf4j.base.CloseableIterator;
  * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
  * @author Zoltan Farkas
  */
-public final class AvroProjectableFilterableTable extends AbstractAvroTable
-        implements ProjectableFilterableTable {
+public final class AvroFilterableTable extends AbstractAvroTable
+        implements FilterableTable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AvroProjectableFilterableTable.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AvroFilterableTable.class);
 
   private final Supplier<CloseableIterator<? extends IndexedRecord>> dataSupplier;
 
-  public AvroProjectableFilterableTable(final org.apache.avro.Schema componentType,
+  public AvroFilterableTable(final org.apache.avro.Schema componentType,
           final Supplier<CloseableIterator<? extends IndexedRecord>> dataSupplier) {
     super(componentType);
     this.dataSupplier = dataSupplier;
   }
 
   @Override
-  public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
-          @Nullable final int[] projection)  {
+  public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters)  {
     org.apache.avro.Schema componentType = getComponentType();
-    LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", componentType.getName(),
-            filters, projection);
+    LOG.debug("Filtered Table scan of {} with filter {} and projection {}", componentType.getName(),
+            filters);
     Enumerable<Object[]> result
-            = new FilteringProjectingAvroEnumerable(componentType, root, filters, projection, dataSupplier);
+            = new FilteringProjectingAvroEnumerable(componentType, root, filters, null, dataSupplier);
     filters.clear();
     return result;
   }
 
   @Override
   public String toString() {
-    return "AvroProjectableFilterableTable{" + "dataSupplier=" + dataSupplier + '}';
+    return "AvroFilterableTable{" + "dataSupplier=" + dataSupplier + '}';
   }
 
 }

@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
@@ -35,6 +37,7 @@ import org.spf4j.base.CloseableIterator;
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
 
   private final Object[] rawRow;
@@ -46,7 +49,7 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
 
   FilteringProjectingAvroEnumerable(final org.apache.avro.Schema componentType,
           final DataContext root,
-          final List<RexNode> filters, final int[] projection,
+          final List<RexNode> filters, @Nullable final int[] projection,
           final Supplier<CloseableIterator<? extends IndexedRecord>> stream) {
     this.rawRow = new Object[componentType.getFields().size()];
     this.spf4jDataContext = new Spf4jDataContext(root);
