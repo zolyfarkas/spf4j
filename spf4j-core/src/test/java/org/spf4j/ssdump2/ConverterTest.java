@@ -34,6 +34,7 @@ package org.spf4j.ssdump2;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hamcrest.Matchers;
@@ -81,6 +82,18 @@ public class ConverterTest {
 
 
     @Test
+    public void testSaveLoad() throws IOException {
+      File test = File.createTempFile("test", ".ssdumnp3");
+      SampleNode testSample = testSample();
+      Map<String, SampleNode> dumps = new HashMap<>(4);
+      dumps.put("zero", null);
+      dumps.put("something", testSample);
+      Converter.saveLabeledDumps(test, dumps);
+      Map<String, SampleNode> loadLabeledDumps = Converter.loadLabeledDumps(test);
+      Assert.assertEquals(testSample, loadLabeledDumps.get("something"));
+    }
+
+     @Test
     public void test() {
         SampleNode testSample = testSample();
         final List<StackSampleElement> samples = new ArrayList<>();

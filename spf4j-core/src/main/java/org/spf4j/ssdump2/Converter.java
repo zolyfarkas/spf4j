@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.apache.avro.io.BinaryDecoder;
@@ -157,23 +158,22 @@ public final class Converter {
     }
   }
 
-  public static void saveLabeledDumps(final File file, final Map<String, SampleNode> collected) throws IOException {
+  public static void saveLabeledDumps(final File file, final Map<String, SampleNode> pcollected) throws IOException {
     try (BufferedOutputStream bos = new BufferedOutputStream(
             Files.newOutputStream(file.toPath()))) {
       final SpecificDatumWriter<StackSampleElement> writer = new SpecificDatumWriter<>(StackSampleElement.SCHEMA$);
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
 
       encoder.writeMapStart();
+      final Map<String, SampleNode> collected = pcollected.entrySet().stream()
+              .filter((e) -> e.getValue() != null)
+              .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
       encoder.setItemCount(collected.size());
       for (Map.Entry<String, SampleNode> entry : collected.entrySet()) {
-        SampleNode sn = entry.getValue();
-        if (sn == null) {
-          continue;
-        }
         encoder.startItem();
         encoder.writeString(entry.getKey());
         encoder.writeArrayStart();
-        Converters.convert(Methods.ROOT, sn,
+        Converters.convert(Methods.ROOT, entry.getValue(),
                 -1, 0, (final StackSampleElement object) -> {
                   try {
                   encoder.setItemCount(1L);
