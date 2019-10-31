@@ -27,13 +27,8 @@ import org.apache.calcite.config.Lex;
 import org.apache.calcite.interpreter.Interpreter;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.plan.RelOptUtil;
-import org.apache.calcite.plan.hep.HepPlanner;
-import org.apache.calcite.plan.hep.HepProgram;
-import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
-import org.apache.calcite.rel.rules.FilterJoinRule;
-import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -178,7 +173,7 @@ public class AvroQueryTest {
     RelRoot rel = planner.rel(validated);
     RelNode plan = rel.project();
     LOG.debug("exec plan", RelOptUtil.toString(plan));
-    plan = optimize(plan);
+    plan = PlannerUtils.pushDownPredicatesAndProjection(plan);
     LOG.debug("exec plan optimized", RelOptUtil.toString(plan));
     RelDataType rowType = plan.getRowType();
     LOG.debug("Return row type: {}", rowType);
@@ -196,15 +191,4 @@ public class AvroQueryTest {
 
   }
 
-  private static RelNode optimize(final RelNode rootRel) {
-    final HepProgram hepProgram = new HepProgramBuilder()
-        //push down predicates
-        .addRuleInstance(FilterJoinRule.FilterIntoJoinRule.FILTER_ON_JOIN)
-        //push down projections
-        .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
-            .build();
-    final HepPlanner planner = new HepPlanner(hepProgram);
-    planner.setRoot(rootRel);
-    return planner.findBestExp();
-  }
 }
