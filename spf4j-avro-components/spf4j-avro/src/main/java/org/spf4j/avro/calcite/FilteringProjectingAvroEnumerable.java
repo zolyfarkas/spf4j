@@ -16,22 +16,16 @@
 package org.spf4j.avro.calcite;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
-import org.apache.calcite.adapter.java.JavaTypeFactory;
-import org.apache.calcite.interpreter.JaninoRexCompiler;
 import org.apache.calcite.interpreter.Scalar;
 import org.apache.calcite.interpreter.Spf4jDataContext;
 import org.apache.calcite.linq4j.AbstractEnumerable;
 import org.apache.calcite.linq4j.Enumerator;
-import org.apache.calcite.rex.RexBuilder;
-import org.apache.calcite.rex.RexNode;
 import org.spf4j.base.CloseableIterator;
 
 /**
@@ -49,19 +43,11 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
 
   FilteringProjectingAvroEnumerable(final org.apache.avro.Schema componentType,
           final DataContext root,
-          final List<RexNode> filters, @Nullable final int[] projection,
+          @Nullable final Scalar filters, @Nullable final int[] projection,
           final Supplier<CloseableIterator<? extends IndexedRecord>> stream) {
     this.rawRow = new Object[componentType.getFields().size()];
     this.spf4jDataContext = new Spf4jDataContext(root);
-    if (filters.isEmpty()) {
-      filterExpression = null;
-    } else {
-      JavaTypeFactory typeFactory = root.getTypeFactory();
-      RexBuilder rb = new RexBuilder(typeFactory);
-      JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
-      filterExpression = compiler.compile(filters,
-              Types.from((JavaTypeFactory) typeFactory, componentType, new HashMap<>()));
-    }
+    filterExpression = filters;
     this.projection = projection;
     this.stream = stream;
     Supplier<Boolean> contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);

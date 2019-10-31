@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
+import org.apache.calcite.interpreter.Scalar;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.FilterableTable;
@@ -48,9 +49,12 @@ public final class AvroFilterableTable extends AbstractAvroTable
     org.apache.avro.Schema componentType = getComponentType();
     LOG.debug("Filtered Table scan of {} with filter {} and projection {}", componentType.getName(),
             filters);
+    Scalar filter = InterpreterUtils.toScalar(filters, root, componentType);
     Enumerable<Object[]> result
-            = new FilteringProjectingAvroEnumerable(componentType, root, filters, null, dataSupplier);
-    filters.clear();
+            = new FilteringProjectingAvroEnumerable(componentType, root, filter, null, dataSupplier);
+    if (filter != null) {
+      filters.clear();
+    }
     return result;
   }
 

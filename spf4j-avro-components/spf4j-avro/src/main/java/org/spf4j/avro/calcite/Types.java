@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.calcite;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.spf4j.avro.schema.Schemas;
  * /main/java/org/apache/drill/exec/store/avro/AvroDrillTable.java
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
 public final class Types {
 
   private Types() { }
@@ -81,6 +83,7 @@ public final class Types {
         result = Schema.create(Schema.Type.BOOLEAN);
         break;
       case ARRAY:
+      case MULTISET:
         result = Schema.createArray(from(dataType.getComponentType()));
         break;
       case MAP:
