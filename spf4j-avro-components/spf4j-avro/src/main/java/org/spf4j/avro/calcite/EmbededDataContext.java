@@ -15,6 +15,8 @@
  */
 package org.spf4j.avro.calcite;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.QueryProvider;
@@ -28,8 +30,11 @@ public final class EmbededDataContext implements DataContext {
 
   private final JavaTypeFactory typeFact;
 
+  private final ConcurrentMap<String, Object> data;
+
   public EmbededDataContext(final JavaTypeFactory typeFact) {
     this.typeFact = typeFact;
+    this.data = new ConcurrentHashMap<>();
   }
 
   public SchemaPlus getRootSchema() {
@@ -45,7 +50,11 @@ public final class EmbededDataContext implements DataContext {
   }
 
   public Object get(final String name) {
-    return null;
+    return data.get(name);
+  }
+
+  public Object put(final String name, final Object value) {
+    return data.put(name, value);
   }
 
   @Override
