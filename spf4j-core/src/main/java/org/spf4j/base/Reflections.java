@@ -52,8 +52,10 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.jar.JarInputStream;
@@ -639,6 +641,21 @@ public final class Reflections {
       return Class.forName(name, true, loader);
     } else {
       return primitive;
+    }
+  }
+
+  public static List<Type> getImplementedGenericInterfaces(final Class<?> clasz) {
+    Type[] genericInterfaces = clasz.getGenericInterfaces();
+    Class<?> superclass = clasz.getSuperclass();
+    if (superclass == null) {
+      return Arrays.asList(genericInterfaces);
+    } else {
+      List<Type> result = new ArrayList<>(genericInterfaces.length);
+      for (Type type : genericInterfaces) {
+        result.add(type);
+      }
+      result.addAll(getImplementedGenericInterfaces(superclass));
+      return result;
     }
   }
 
