@@ -86,6 +86,9 @@ public class RemoteException extends org.spf4j.base.RemoteException {
     return this;
   }
 
+  /**
+   * @inherited
+   */
   public String toString() {
     String s = "RemoteException:" + this.getRemoteCause().getClassName();
     String message = getLocalizedMessage();
