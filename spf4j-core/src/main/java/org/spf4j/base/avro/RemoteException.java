@@ -41,7 +41,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class RemoteException extends org.spf4j.base.RemoteException {
 
   public RemoteException(final String source, final Throwable remote) {
-    super(remote.getMessage(),
+    super(remote.getClassName() + ':' + remote.getMessage(),
             source, remote, remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
     for (Throwable suppressed : remote.getSuppressed()) {
       addSuppressed(new RemoteException(source, suppressed));
@@ -71,7 +71,7 @@ public class RemoteException extends org.spf4j.base.RemoteException {
   public final Throwable getRemoteCause() {
     return (Throwable) getRemoteDetail();
   }
-  
+
   public final String getSource() {
     return getOrigin();
   }
