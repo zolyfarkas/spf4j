@@ -42,7 +42,8 @@ public class RemoteException extends org.spf4j.base.RemoteException {
 
   public RemoteException(final String source, final Throwable remote) {
     super(remote.getMessage(),
-            source, remote, remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
+            source, remote.getClassName(),
+            remote, remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));
     for (Throwable suppressed : remote.getSuppressed()) {
       addSuppressed(new RemoteException(source, suppressed));
     }
@@ -84,15 +85,6 @@ public class RemoteException extends org.spf4j.base.RemoteException {
   public synchronized java.lang.Throwable fillInStackTrace() {
     // no need to do anything we will overwrite this.
     return this;
-  }
-
-  /**
-   * @inherited
-   */
-  public String toString() {
-    String s = "RemoteException:" + this.getRemoteCause().getClassName();
-    String message = getLocalizedMessage();
-    return (message != null) ? (s + ": " + message) : s;
   }
 
 }

@@ -41,19 +41,24 @@ public class RemoteException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 
+  private final String remoteClass;
+
   private final String origin;
 
   private final Serializable remoteDetail;
 
-  public RemoteException(final String message, final String origin, final Serializable remoteDetail) {
-    this(message, origin, remoteDetail, null);
+  public RemoteException(final String message, final String origin,
+          final String remoteClass, final Serializable remoteDetail) {
+    this(message, origin, remoteClass, remoteDetail, null);
   }
 
   protected RemoteException(final String message, final String origin,
+          final String remoteClass,
           final Serializable remoteDetail, final Throwable cause) {
     super(message, cause);
     this.origin = origin;
     this.remoteDetail = remoteDetail;
+    this.remoteClass = remoteClass;
   }
 
   public final String getOrigin() {
@@ -64,12 +69,16 @@ public class RemoteException extends RuntimeException {
     return remoteDetail;
   }
 
+  public final String getRemoteClass() {
+    return remoteClass;
+  }
+
   /**
    * @return string representation. (Class name + origin + message)
    */
   @Override
   public String toString() {
-    return "RemoteException@" + origin + ':' + this.getMessage();
+    return "RemoteException:" + getRemoteClass() +  '@' + origin + ':' + this.getMessage();
   }
 
 }

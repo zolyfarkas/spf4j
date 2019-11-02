@@ -60,6 +60,8 @@ public final class AThrowables {
 
    public static void writeMessageString(final Appendable to, final RemoteException t) throws IOException {
     to.append(t.getClass().getName());
+    to.append(':');
+    to.append(t.getRemoteClass());
     to.append('@');
     to.append(t.getSource());
     String message = t.getRemoteCause().getMessage();
