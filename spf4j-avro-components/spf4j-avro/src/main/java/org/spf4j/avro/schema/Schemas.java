@@ -33,6 +33,7 @@ package org.spf4j.avro.schema;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,6 +52,10 @@ import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.reflect.ExtendedReflectData;
+import org.apache.avro.specific.SpecificData;
 import org.spf4j.base.CharSequences;
 import org.spf4j.ds.IdentityHashSet;
 
@@ -297,6 +303,14 @@ public final class Schemas {
 
   }
 
+  /**
+   * create a schema projection(partial schema) from a destination schema.
+   *
+   * @param schema the schema to project.
+   * @param paths the paths to elements (paths to record fields) included in the subschema.
+   * @return the subschema.
+   */
+
   @Nullable
   public static Schema project(final Schema schema, final CharSequence... paths) {
     if (paths.length == 0 || (paths.length == 1 && paths[0].length() == 0)) {
@@ -366,6 +380,80 @@ public final class Schemas {
         return Schema.createUnion(nTypes);
       default:
         return null;
+    }
+  }
+
+
+  /**
+   * Project a avro object to a destination.
+   * @param toSchema the object schema
+   * @param fromSchema the destination schema
+   * @param object the object to project.
+   * @return the projected object.
+   */
+  @Nullable
+  @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
+  public static Object project(final Schema toSchema, final Schema fromSchema, final Object object) {
+    if (toSchema == fromSchema) {
+      return object;
+    }
+    Schema.Type type = toSchema.getType();
+    if (fromSchema.getType() != type) {
+      throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
+    }
+    switch (type) {
+      case INT:
+      case LONG:
+      case FLOAT:
+      case STRING:
+      case ENUM:
+      case FIXED:
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+        return object;
+      case NULL:
+        return null;
+      case ARRAY:
+        List from = (List) object;
+        List to = new ArrayList(from.size());
+        for (Object o : from) {
+          to.add(project(toSchema.getElementType(), fromSchema.getElementType(), o));
+        }
+        return to;
+      case MAP:
+        Map<String, Object> fromMap = (Map<String, Object>) object;
+        Map<String, Object> toMap = Maps.newLinkedHashMapWithExpectedSize(fromMap.size());
+        for (Map.Entry<String, Object> entry : fromMap.entrySet()) {
+          toMap.put(entry.getKey(), project(toSchema.getValueType(), fromSchema.getValueType(), entry.getValue()));
+        }
+        return toMap;
+      case UNION:
+        if (object == null) {
+          return null;
+        }
+        Schema tSchema = Schemas.nullableUnionSchema(toSchema);
+        if (tSchema != null) {
+          return project(tSchema, tSchema, object);
+        } else {
+          Schema objReflSchema = ExtendedReflectData.get().getSchema(object.getClass());
+          for (Schema matching : toSchema.getTypes()) {
+            if (matching.getType() == objReflSchema.getType()) {
+              return project(matching, objReflSchema, object);
+            }
+          }
+        }
+        throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
+
+      case RECORD:
+        GenericData.Record record = new SpecificData.Record(toSchema);
+        GenericRecord fromRec = (GenericRecord) object;
+        for (Field field : toSchema.getFields()) {
+          record.put(field.pos(), fromRec.get(field.name()));
+        }
+        return record;
+      default:
+        throw new IllegalStateException("Unsupported type " + type);
     }
   }
 
