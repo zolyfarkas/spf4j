@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
-import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.interpreter.JaninoRexCompiler;
 import org.apache.calcite.interpreter.Scalar;
@@ -39,11 +38,11 @@ public final class InterpreterUtils {
   private InterpreterUtils() { }
 
   @Nullable
-  public static Scalar toScalar(final List<RexNode> filters, final DataContext root, final Schema componentType) {
+  public static Scalar toScalar(final List<RexNode> filters, final JavaTypeFactory typeFactory,
+          final Schema componentType) {
     if (filters.isEmpty()) {
       return null;
     } else {
-      JavaTypeFactory typeFactory = root.getTypeFactory();
       RexBuilder rb = new RexBuilder(typeFactory);
       JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
       try {
