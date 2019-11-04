@@ -15,13 +15,12 @@
  */
 package org.spf4j.avro.calcite;
 
-import java.util.HashMap;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.apache.avro.Schema;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.interpreter.JaninoRexCompiler;
 import org.apache.calcite.interpreter.Scalar;
+import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexNode;
 import org.slf4j.Logger;
@@ -39,15 +38,14 @@ public final class InterpreterUtils {
 
   @Nullable
   public static Scalar toScalar(final List<RexNode> filters, final JavaTypeFactory typeFactory,
-          final Schema componentType) {
+          final RelDataType rowType) {
     if (filters.isEmpty()) {
       return null;
     } else {
       RexBuilder rb = new RexBuilder(typeFactory);
       JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
       try {
-        return compiler.compile(filters,
-              Types.from((JavaTypeFactory) typeFactory, componentType, new HashMap<>()));
+        return compiler.compile(filters, rowType);
       } catch (UnsupportedOperationException ex) {
         LOG.warn("Unable to compile filter: {}", filters, ex);
         return null;

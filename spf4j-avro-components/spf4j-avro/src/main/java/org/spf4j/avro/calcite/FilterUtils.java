@@ -16,8 +16,12 @@
 package org.spf4j.avro.calcite;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.config.Lex;
@@ -26,6 +30,7 @@ import org.apache.calcite.interpreter.Spf4jDataContext;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -41,6 +46,7 @@ import org.spf4j.base.CloseableIterator;
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public final class FilterUtils {
 
   private FilterUtils() { }
@@ -66,21 +72,37 @@ public final class FilterUtils {
             .parserConfig(PARSER_CFG)
             .defaultSchema(schema).build();
 
-
     Planner planner = Frameworks.getPlanner(config);
     SqlNode parse = planner.parse("select * from r where " + expr);
     parse = planner.validate(parse);
     RelNode project = planner.rel(parse).project();
     List<RexNode> childExps = ((LogicalFilter) project.getInput(0)).getChildExps();
-    Scalar scalar = InterpreterUtils.toScalar(childExps,
-            new JavaTypeFactoryImpl(), recSchema);
+    JavaTypeFactoryImpl javaTypeFactoryImpl = new JavaTypeFactoryImpl();
+    Scalar scalar = InterpreterUtils.toScalar(childExps, javaTypeFactoryImpl,
+            Types.from(javaTypeFactoryImpl, recSchema, new HashMap<Schema, RelDataType>()));
     return (x) -> {
-      Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(new JavaTypeFactoryImpl()));
+      Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl));
       Object[] to = new Object[recSchema.getFields().size()];
       IndexedRecords.copyRecord(x, to);
       context.values = to;
       return (Boolean) scalar.execute(context);
     };
+  }
+
+  public static Predicate<IndexedRecord> toPredicate(@Nullable final Iterable<String> expr,
+          final Schema recSchema) throws SqlParseException, ValidationException, RelConversionException {
+    if (expr == null) {
+      return (x) -> true;
+    }
+    Iterator<String> it = expr.iterator();
+    if (!it.hasNext()) {
+      return (x) -> true;
+    }
+    Predicate<IndexedRecord> result = toPredicate(it.next(), recSchema);
+    while (it.hasNext()) {
+      result = result.and(toPredicate(it.next(), recSchema));
+    }
+    return result;
   }
 
 
