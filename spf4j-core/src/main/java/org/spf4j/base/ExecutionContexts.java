@@ -300,6 +300,15 @@ public final class ExecutionContexts {
   }
 
   @Nonnegative
+  public static long getTimeToDeadlineUnchecked(final TimeUnit unit) {
+    long timeRelativeToDeadline = getTimeRelativeToDeadline(unit);
+    if (timeRelativeToDeadline <= 0) {
+      throw new UncheckedTimeoutException("Deadline exceeded by " + (-timeRelativeToDeadline) + ' ' + unit);
+    }
+    return timeRelativeToDeadline;
+  }
+
+  @Nonnegative
   public static int getTimeToDeadlineInt(final TimeUnit unit) throws TimeoutException {
     long timeRelativeToDeadline = getTimeToDeadline(unit);
     if (timeRelativeToDeadline > Integer.MAX_VALUE) {
