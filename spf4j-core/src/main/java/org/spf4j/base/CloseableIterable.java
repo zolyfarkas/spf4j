@@ -43,12 +43,22 @@ public interface CloseableIterable<T> extends Closeable, Iterable<T> {
     };
   }
 
-
   static <T> CloseableIterable<T> from(final Iterable<T> it) {
+    return from(it, () -> { });
+  }
+
+
+  static <T> CloseableIterable<T> from(final Iterable<T> it, final AutoCloseable close) {
     return new CloseableIterable<T>() {
       @Override
       public void close() {
-        // nothing to close;
+        try {
+          close.close();
+        } catch (RuntimeException | Error e) {
+          throw e;
+        } catch (Exception ex) {
+          throw new RuntimeException(ex);
+        }
       }
 
       @Override

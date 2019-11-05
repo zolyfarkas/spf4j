@@ -43,10 +43,20 @@ public interface CloseableIterator<T> extends Iterator<T>, Closeable {
   void close();
 
   static <T> CloseableIterator<T> from(final Iterator<T> it) {
+    return from(it, () -> {});
+  }
+
+  static <T> CloseableIterator<T> from(final Iterator<T> it, final AutoCloseable close) {
     return new CloseableIterator<T>() {
       @Override
       public void close() {
-        // nothing to close;
+        try {
+          close.close();
+        } catch (RuntimeException | Error e) {
+          throw e;
+        } catch (Exception ex) {
+          throw new RuntimeException(ex);
+        }
       }
 
       @Override
