@@ -56,13 +56,22 @@ public final class FilterUtils {
             .setIdentifierMaxLength(255)
             .setLex(Lex.JAVA).build();
 
+  private static final JavaTypeFactoryImpl JAVA_TYPE_FACTORY = new JavaTypeFactoryImpl();
+
   public static SqlNode parse(final String expr) throws SqlParseException {
     SqlParser parser = SqlParser.create(expr, PARSER_CFG);
     return parser.parseExpression();
   }
 
 
-  public static Predicate<IndexedRecord> toPredicate(final String expr,
+  public static Predicate<IndexedRecord> toPredicate(final String sqlExpr,
+          final Schema recSchema) throws SqlParseException,
+    ValidationException, RelConversionException {
+    return toPredicate(sqlExpr, JAVA_TYPE_FACTORY, recSchema);
+  }
+
+  public static Predicate<IndexedRecord> toPredicate(final String sqlExpr,
+          final JavaTypeFactoryImpl javaTypeFactoryImpl,
           final Schema recSchema) throws SqlParseException,
           ValidationException, RelConversionException {
     SchemaPlus schema = Frameworks.createRootSchema(true);
@@ -73,19 +82,34 @@ public final class FilterUtils {
             .defaultSchema(schema).build();
 
     Planner planner = Frameworks.getPlanner(config);
-    SqlNode parse = planner.parse("select * from r where " + expr);
+    SqlNode parse = planner.parse("select * from r where " + sqlExpr);
     parse = planner.validate(parse);
     RelNode project = planner.rel(parse).project();
     List<RexNode> childExps = ((LogicalFilter) project.getInput(0)).getChildExps();
-    JavaTypeFactoryImpl javaTypeFactoryImpl = new JavaTypeFactoryImpl();
-    Scalar scalar = InterpreterUtils.toScalar(childExps, javaTypeFactoryImpl,
-            Types.from(javaTypeFactoryImpl, recSchema, new HashMap<Schema, RelDataType>()));
-    return (x) -> {
-      Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl));
-      Object[] to = new Object[recSchema.getFields().size()];
-      IndexedRecords.copyRecord(x, to);
-      context.values = to;
-      return (Boolean) scalar.execute(context);
+    RelDataType from = Types.from(javaTypeFactoryImpl, recSchema, new HashMap<Schema, RelDataType>());
+    return toPredicate(childExps, javaTypeFactoryImpl, from);
+  }
+
+  public static Predicate<IndexedRecord> toPredicate(final List<RexNode> filter, final RelDataType rowType) {
+    return toPredicate(filter, JAVA_TYPE_FACTORY, rowType);
+  }
+
+
+  public static Predicate<IndexedRecord> toPredicate(final List<RexNode> filter,
+          final JavaTypeFactoryImpl javaTypeFactoryImpl, final RelDataType rowType) {
+    Scalar scalar = InterpreterUtils.toScalar(filter, javaTypeFactoryImpl, rowType);
+    return new Predicate<IndexedRecord>() {
+
+      private Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl));
+      {
+        context.values =  new Object[rowType.getFieldCount()];
+      }
+
+      @Override
+      public synchronized boolean test(final IndexedRecord x) {
+        IndexedRecords.copyRecord(x, context.values);
+        return (Boolean) scalar.execute(context);
+      }
     };
   }
 
