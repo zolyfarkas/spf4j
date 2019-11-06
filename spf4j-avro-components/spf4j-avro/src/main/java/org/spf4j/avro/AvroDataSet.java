@@ -46,7 +46,7 @@ public interface AvroDataSet<T extends IndexedRecord> {
     List<Type> intfs = Reflections.getImplementedGenericInterfaces(this.getClass());
     for (Type type : intfs) {
       TypeToken<?> tt = TypeToken.of(type);
-      if (tt.getRawType() == AvroDataSet.class) {
+      if (AvroDataSet.class.isAssignableFrom(tt.getRawType())) {
         if (type instanceof ParameterizedType) {
           Class<?> srClasz = TypeToken.of(((ParameterizedType) type).getActualTypeArguments()[0]).getRawType();
           if (SpecificRecord.class.isAssignableFrom(srClasz)) {
