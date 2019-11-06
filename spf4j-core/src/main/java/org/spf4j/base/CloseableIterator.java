@@ -31,24 +31,29 @@
  */
 package org.spf4j.base;
 
-import java.io.Closeable;
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Iterator;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public interface CloseableIterator<T> extends Iterator<T>, Closeable {
+@CleanupObligation
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 
+  @DischargesObligation
   void close();
 
   static <T> CloseableIterator<T> from(final Iterator<T> it) {
-    return from(it, () -> {});
+    return from(it, () -> { });
   }
 
   static <T> CloseableIterator<T> from(final Iterator<T> it, final AutoCloseable close) {
     return new CloseableIterator<T>() {
       @Override
+      @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
       public void close() {
         try {
           close.close();

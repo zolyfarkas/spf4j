@@ -16,16 +16,17 @@
 package org.spf4j.base;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
-import java.io.Closeable;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Iterator;
 
 /**
  * @author Zoltan Farkas
  */
 @CleanupObligation
-public interface CloseableIterable<T> extends Closeable, Iterable<T> {
+public interface CloseableIterable<T> extends AutoCloseable, Iterable<T> {
 
-
+  @DischargesObligation
   void close();
 
   static <T> CloseableIterable<T> from(final CloseableIterator<T> iterator) {
@@ -51,6 +52,7 @@ public interface CloseableIterable<T> extends Closeable, Iterable<T> {
   static <T> CloseableIterable<T> from(final Iterable<T> it, final AutoCloseable close) {
     return new CloseableIterable<T>() {
       @Override
+      @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
       public void close() {
         try {
           close.close();
