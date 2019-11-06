@@ -39,45 +39,38 @@ import javax.annotation.Nullable;
  */
 public interface SecurityContext {
 
-    /**
-     * Returns a <code>java.security.Principal</code> object containing the
-     * name of the current authenticated user. If the user
-     * has not been authenticated, the method returns null.
-     *
-     * @return a <code>java.security.Principal</code> containing the name
-     *         of the user making this request; null if the user has not been
-     *         authenticated
-     * @throws java.lang.IllegalStateException
-     *          if called outside the scope of a request
-     */
-    @Nullable
-    public Principal getUserPrincipal();
+  /**
+   * Returns a <code>java.security.Principal</code> object containing the name of the current authenticated user. If the
+   * user has not been authenticated, the method returns null.
+   *
+   * @return a <code>java.security.Principal</code> containing the name of the user making this request; null if the
+   * user has not been authenticated
+   * @throws java.lang.IllegalStateException if called outside the scope of a request
+   */
+  @Nullable
+  Principal getUserPrincipal();
 
-    /**
-     * Returns a boolean indicating whether the authenticated user is included
-     * in the specified logical "role". If the user has not been authenticated,
-     * the method returns <code>false</code>.
-     *
-     * @param role a <code>String</code> specifying the name of the role
-     * @return a <code>boolean</code> indicating whether the user making
-     *         the request belongs to a given role; <code>false</code> if the user
-     *         has not been authenticated
-     * @throws java.lang.IllegalStateException
-     *          if called outside the scope of a request
-     */
-    public boolean isUserInRole(String role);
+  /**
+   * Returns a boolean indicating whether the authenticated user is included in the specified logical "role". If the
+   * user has not been authenticated, the method returns <code>false</code>.
+   *
+   * @param role a <code>String</code> specifying the name of the role
+   * @return a <code>boolean</code> indicating whether the user making the request belongs to a given role;
+   * <code>false</code> if the user has not been authenticated
+   * @throws java.lang.IllegalStateException if called outside the scope of a request
+   */
+  boolean isUserInRole(String role);
 
-    SecurityContext NOAUTH = new SecurityContext() {
-      @Override
-      public Principal getUserPrincipal() {
-        return null;
-      }
+  SecurityContext NOAUTH = new SecurityContext() {
+    @Override
+    public Principal getUserPrincipal() {
+      return null;
+    }
 
-      @Override
-      public boolean isUserInRole(String role) {
-        return false;
-      }
-    };
-
+    @Override
+    public boolean isUserInRole(final String role) {
+      return false;
+    }
+  };
 
 }

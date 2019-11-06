@@ -33,6 +33,7 @@ import org.spf4j.avro.AvroDataSet;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.base.CloseableIterator;
 import org.spf4j.base.ExecutionContexts;
+import org.spf4j.security.SecurityContext;
 
 /**
  * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
@@ -62,23 +63,26 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     if (timeoutMillis == null) {
       timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);
     }
-
+    SecurityContext sc = (SecurityContext) root.get("SecurityContext");
+    if (sc == null) {
+      sc = SecurityContext.NOAUTH;
+    }
     CloseableIterable<IndexedRecord> it;
     Set<AvroDataSet.Feature> features = dataSet.getFeatures();
     if (features.contains(AvroDataSet.Feature.FILTERABLE)) {
       SqlRowPredicate predicate = new SqlRowPredicate(filters, rowType);
       if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
         List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-        it = dataSet.getData((Predicate) predicate, projectionString, timeoutMillis, TimeUnit.MINUTES);
+        it = dataSet.getData((Predicate) predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
       } else {
-        it = dataSet.getData((Predicate) predicate, null, timeoutMillis, TimeUnit.MINUTES);
+        it = dataSet.getData((Predicate) predicate, null, sc, timeoutMillis, TimeUnit.MINUTES);
       }
       filters.clear();
     } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
       List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-      it = dataSet.getData((Predicate) null, projectionString, timeoutMillis, TimeUnit.MINUTES);
+      it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
     } else {
-      it = dataSet.getData((Predicate) null, null, timeoutMillis, TimeUnit.MINUTES);
+      it = dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES);
     }
     return new AvroEnumerable(getComponentType(), root, () -> {
       return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);

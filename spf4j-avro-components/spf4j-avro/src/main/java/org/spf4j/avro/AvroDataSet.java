@@ -31,6 +31,7 @@ import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.base.Reflections;
+import org.spf4j.security.SecurityContext;
 
 /**
  * @author Zoltan Farkas
@@ -80,7 +81,9 @@ public interface AvroDataSet<T extends IndexedRecord> {
    * @return
    */
   CloseableIterable<? extends IndexedRecord> getData(@Nullable Predicate<T> filter,
-          @Nullable List<String> selectProjections, long timeout, TimeUnit timeUnit);
+          @Nullable List<String> selectProjections,
+          SecurityContext secCtx,
+          long timeout, TimeUnit timeUnit);
 
 
 }

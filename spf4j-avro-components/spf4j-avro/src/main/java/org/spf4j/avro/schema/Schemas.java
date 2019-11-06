@@ -54,6 +54,7 @@ import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.specific.SpecificData;
 import org.spf4j.base.CharSequences;
@@ -303,6 +304,15 @@ public final class Schemas {
 
   }
 
+  @Nullable
+  public static Schema project(final Schema schema, final List<? extends CharSequence> paths) {
+    CharSequence[] cp = new CharSequence[paths.size()];
+    for (int i = 0; i < cp.length; i++) {
+      cp[i] = paths.get(i);
+    }
+    return project(schema, cp);
+  }
+
   /**
    * create a schema projection(partial schema) from a destination schema.
    *
@@ -392,8 +402,21 @@ public final class Schemas {
    * @return the projected object.
    */
   @Nullable
+  public static IndexedRecord project(final Schema toSchema, final Schema fromSchema,
+          @Nullable final IndexedRecord object) {
+    return (IndexedRecord) project(toSchema, fromSchema, (Object) object);
+  }
+
+  /**
+   * Project a avro object to a destination.
+   * @param toSchema the object schema
+   * @param fromSchema the destination schema
+   * @param object the object to project.
+   * @return the projected object.
+   */
+  @Nullable
   @SuppressFBWarnings("URV_UNRELATED_RETURN_VALUES")
-  public static Object project(final Schema toSchema, final Schema fromSchema, final Object object) {
+  public static Object project(final Schema toSchema, final Schema fromSchema, @Nullable final Object object) {
     if (toSchema == fromSchema) {
       return object;
     }
