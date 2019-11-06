@@ -152,9 +152,9 @@ public class AvroQueryTest {
 
 
     SchemaPlus schema = Frameworks.createRootSchema(true);
-    schema.add("a", new AvroProjectableFilterableTable(recASchema,
+    schema.add("a", new AvroIteratorAsProjectableFilterableTable(recASchema,
             () -> CloseableIterator.from(Collections.singletonList(reca1).iterator())));
-    schema.add("b", new AvroProjectableFilterableTable(recBSchema,
+    schema.add("b", new AvroIteratorAsProjectableFilterableTable(recBSchema,
             () -> CloseableIterator.from(Arrays.asList(recb1, recb2).iterator())));
 
     SqlParser.Config cfg = SqlParser.configBuilder()

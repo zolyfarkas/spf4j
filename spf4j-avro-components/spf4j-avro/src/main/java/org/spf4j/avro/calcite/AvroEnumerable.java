@@ -17,6 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.Arrays;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
@@ -29,24 +30,24 @@ import org.spf4j.base.CloseableIterator;
  */
 class AvroEnumerable extends AbstractEnumerable<Object[]> {
 
-  private final Supplier<CloseableIterator<IndexedRecord>> stream;
+  private final Supplier<CloseableIterator<? extends IndexedRecord>> stream;
   private final Supplier<Boolean> cancelFlag;
   private final int rowLength;
 
   AvroEnumerable(final org.apache.avro.Schema componentType,
           final DataContext root,
-          final Supplier<CloseableIterator<IndexedRecord>> stream) {
+          final Supplier<CloseableIterator<? extends IndexedRecord>> stream) {
     this.rowLength = componentType.getFields().size();
     this.stream = stream;
-    Supplier<Boolean> contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
-    cancelFlag = contextFlag == null ? () -> Boolean.FALSE : contextFlag;
+    AtomicBoolean contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
+    cancelFlag = contextFlag == null ? () -> Boolean.FALSE : contextFlag::get;
   }
 
   public Enumerator<Object[]> enumerator() {
     return new Enumerator<Object[]>() {
       private Object[] current = null;
 
-      private CloseableIterator<IndexedRecord> iterator = stream.get();
+      private CloseableIterator<? extends IndexedRecord> iterator = stream.get();
 
       @Override
       public Object[] current() {

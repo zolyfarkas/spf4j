@@ -75,7 +75,7 @@ public final class FilterUtils {
           final Schema recSchema) throws SqlParseException,
           ValidationException, RelConversionException {
     SchemaPlus schema = Frameworks.createRootSchema(true);
-    schema.add("r", new AvroProjectableFilterableTable(recSchema,
+    schema.add("r", new AvroIteratorAsProjectableFilterableTable(recSchema,
             () -> CloseableIterator.from(Collections.EMPTY_LIST.iterator())));
     FrameworkConfig config = Frameworks.newConfigBuilder()
             .parserConfig(PARSER_CFG)

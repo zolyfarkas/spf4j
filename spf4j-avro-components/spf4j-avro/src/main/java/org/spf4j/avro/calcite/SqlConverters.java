@@ -35,6 +35,19 @@ public final class SqlConverters {
   private static final RexSqlStandardConvertletTable TABLE = new RexSqlStandardConvertletTable();
 
   @Nullable
+  public static List<String> projectionToString(@Nullable final int[] projection, final RelDataType rowType) {
+    if (projection == null) {
+      return null;
+    }
+    List<String> result = new ArrayList<>(projection.length);
+    List<String> fieldNames = rowType.getFieldNames();
+    for (int i = 0; i < projection.length; i++) {
+      result.add(fieldNames.get(i));
+    }
+    return result;
+  }
+
+  @Nullable
   public static SqlNode convert(final RexNode node, final RelDataType rowType) {
    RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {
      @Override

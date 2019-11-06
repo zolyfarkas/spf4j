@@ -17,6 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.Arrays;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -50,8 +51,8 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
     filterExpression = filters;
     this.projection = projection;
     this.stream = stream;
-    Supplier<Boolean> contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
-    cancelFlag = contextFlag == null ? () -> Boolean.FALSE : contextFlag;
+    AtomicBoolean contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
+    cancelFlag = contextFlag == null ? () -> Boolean.FALSE : contextFlag::get;
   }
 
   public Enumerator<Object[]> enumerator() {

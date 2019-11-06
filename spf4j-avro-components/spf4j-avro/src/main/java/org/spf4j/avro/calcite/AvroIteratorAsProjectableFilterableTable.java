@@ -32,14 +32,14 @@ import org.spf4j.base.CloseableIterator;
  * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
  * @author Zoltan Farkas
  */
-public final class AvroProjectableFilterableTable extends AbstractAvroTable
+public final class AvroIteratorAsProjectableFilterableTable extends AbstractAvroTable
         implements ProjectableFilterableTable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AvroProjectableFilterableTable.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AvroIteratorAsProjectableFilterableTable.class);
 
   private final Supplier<CloseableIterator<? extends IndexedRecord>> dataSupplier;
 
-  public AvroProjectableFilterableTable(final org.apache.avro.Schema componentType,
+  public AvroIteratorAsProjectableFilterableTable(final org.apache.avro.Schema componentType,
           final Supplier<CloseableIterator<? extends IndexedRecord>> dataSupplier) {
     super(componentType);
     this.dataSupplier = dataSupplier;
