@@ -18,13 +18,15 @@ package org.spf4j.base;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.Closeable;
 import java.util.Iterator;
 
 /**
+ * need to extend java.io.Closeable so that jaxrs does not interfere.
  * @author Zoltan Farkas
  */
 @CleanupObligation
-public interface CloseableIterable<T> extends AutoCloseable, Iterable<T> {
+public interface CloseableIterable<T> extends Closeable, Iterable<T> {
 
   @DischargesObligation
   void close();
