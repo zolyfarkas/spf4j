@@ -17,6 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -51,14 +52,13 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
   }
 
   @Override
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "unchecked"})
   public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
           @Nullable final int[] projection) {
     LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", dataSet.getName(),
             filters, projection);
     RelDataType rowType = this.getRowType(root.getTypeFactory());
     SqlRowPredicate predicate = new SqlRowPredicate(filters, rowType);
-    List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
     filters.clear();
     Long timeoutMillis = DataContext.Variable.TIMEOUT.get(root);
     if (timeoutMillis == null) {
@@ -66,8 +66,21 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     }
     long tMilis = timeoutMillis;
     return new AvroEnumerable(getComponentType(), root, () -> {
-      CloseableIterable<IndexedRecord> it
-              = dataSet.getData((Predicate) predicate, projectionString, tMilis, TimeUnit.MINUTES);
+      CloseableIterable<IndexedRecord> it;
+      Set<AvroDataSet.Feature> features = dataSet.getFeatures();
+      if (features.contains(AvroDataSet.Feature.FILTERABLE)) {
+        if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
+          List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
+          it = dataSet.getData((Predicate) predicate, projectionString, tMilis, TimeUnit.MINUTES);
+        } else {
+          it = dataSet.getData((Predicate) predicate, null, tMilis, TimeUnit.MINUTES);
+        }
+      } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
+          List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
+          it = dataSet.getData((Predicate) null, projectionString, tMilis, TimeUnit.MINUTES);
+        } else {
+          it = dataSet.getData((Predicate) null, null, tMilis, TimeUnit.MINUTES);
+        }
       return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);
     }
     );
