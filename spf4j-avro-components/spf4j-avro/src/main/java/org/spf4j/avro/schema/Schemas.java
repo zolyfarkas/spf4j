@@ -361,7 +361,7 @@ public final class Schemas {
         }
         return Schema.createMap(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));
       case RECORD:
-        Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(), schema.getNamespace(), schema.isError());
+
         List<Field> fields = schema.getFields();
         List<Schema.Field> nFields = new ArrayList<>(fields.size());
         List<CharSequence> tPaths = new LinkedList<>(Arrays.asList(paths));
@@ -372,6 +372,8 @@ public final class Schemas {
           }
           nFields.add(extract);
         } while (!tPaths.isEmpty());
+        Schema rec = Schema.createRecord(schema.getName() + "Projection", schema.getDoc(),
+                schema.getNamespace(), schema.isError());
         rec.setFields(nFields);
         return rec;
       case UNION:
