@@ -372,8 +372,8 @@ public final class Schemas {
           }
           nFields.add(extract);
         } while (!tPaths.isEmpty());
-        Schema rec = Schema.createRecord(schema.getName() + "Projection", schema.getDoc(),
-                schema.getNamespace(), schema.isError());
+        Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),
+                "_p." + schema.getNamespace(), schema.isError());
         rec.setFields(nFields);
         return rec;
       case UNION:
