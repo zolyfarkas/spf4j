@@ -97,10 +97,8 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
       it = dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES);
     }
     return new AvroEnumerable(getComponentType(), root, () -> {
-      return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);
-    }
-    );
-
+        return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);
+      });
   }
 
   @Override
