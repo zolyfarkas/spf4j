@@ -70,14 +70,26 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     CloseableIterable<IndexedRecord> it;
     Set<AvroDataSet.Feature> features = dataSet.getFeatures();
     if (features.contains(AvroDataSet.Feature.FILTERABLE)) {
-      SqlRowPredicate predicate = new SqlRowPredicate(filters, rowType);
-      if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
-        List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-        it = dataSet.getData((Predicate) predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
-      } else {
-        it = dataSet.getData((Predicate) predicate, null, sc, timeoutMillis, TimeUnit.MINUTES);
+      SqlRowPredicate predicate = null;
+      try {
+         predicate = new SqlRowPredicate(filters, rowType);
+      } catch (RuntimeException ex) {
+        LOG.debug("Unable to resulve filter {}", filters);
       }
-      filters.clear();
+      if (predicate != null) {
+        if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
+          List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
+          it = dataSet.getData((Predicate) predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+        } else {
+          it = dataSet.getData((Predicate) predicate, null, sc, timeoutMillis, TimeUnit.MINUTES);
+        }
+        filters.clear();
+      } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
+        List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
+        it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+      } else {
+        it = dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES);
+      }
     } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
       List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
       it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
