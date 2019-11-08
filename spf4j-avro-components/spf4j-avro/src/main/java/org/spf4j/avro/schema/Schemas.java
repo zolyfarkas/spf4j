@@ -424,7 +424,7 @@ public final class Schemas {
     }
     Schema.Type type = toSchema.getType();
     if (fromSchema.getType() != type) {
-      throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
+      throw new IllegalArgumentException("Unable to project " + object + " from "  + fromSchema +  " to " + toSchema);
     }
     switch (type) {
       case INT:
