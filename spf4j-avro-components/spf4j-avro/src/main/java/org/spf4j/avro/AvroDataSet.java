@@ -75,6 +75,13 @@ public interface AvroDataSet<T extends IndexedRecord> {
   }
 
   /**
+   * @return -1 for unknown. or number of elements.
+   */
+  default long getRowCountStatistic() {
+    return -1;
+  }
+
+  /**
    *
    * @param filter all results must comply to this filter, null means no filter.
    * @param selectProjections list of fields that are requested. null for no projections.
