@@ -42,7 +42,7 @@ public final class SqlConverters {
     List<String> result = new ArrayList<>(projection.length);
     List<String> fieldNames = rowType.getFieldNames();
     for (int i = 0; i < projection.length; i++) {
-      result.add(fieldNames.get(i));
+      result.add(fieldNames.get(projection[i]));
     }
     return result;
   }
