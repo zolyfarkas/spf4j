@@ -397,7 +397,7 @@ public final class CsvDecoder extends ParsingDecoder {
   public static DecodedSchema tryDecodeSchema(final InputStream is, @Nullable final Schema readerSchema)
           throws IOException {
     try {
-      CsvReader reader = Csv.CSV.readerILEL(new InputStreamReader(is, StandardCharsets.UTF_8));
+      CsvReader reader = Csv.CSV.reader(new InputStreamReader(is, StandardCharsets.UTF_8));
       Schema record;
       if (readerSchema == null) {
         record = Schema.createRecord("DynCsv", "Infered schema", "org.spf4j.avro", false);

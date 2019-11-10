@@ -305,12 +305,8 @@ public final class Schemas {
   }
 
   @Nullable
-  public static Schema project(final Schema schema, final List<? extends CharSequence> paths) {
-    CharSequence[] cp = new CharSequence[paths.size()];
-    for (int i = 0; i < cp.length; i++) {
-      cp[i] = paths.get(i);
-    }
-    return project(schema, cp);
+  public static Schema project(final Schema schema, final CharSequence... paths) {
+    return project(schema, Arrays.asList(paths));
   }
 
   /**
@@ -322,14 +318,15 @@ public final class Schemas {
    */
 
   @Nullable
-  public static Schema project(final Schema schema, final CharSequence... paths) {
-    if (paths.length == 0 || (paths.length == 1 && paths[0].length() == 0)) {
+  public static Schema project(final Schema schema, final List<CharSequence> paths) {
+    int length = paths.size();
+    if (length == 0 || (length == 1 && paths.get(0).length() == 0)) {
       return schema;
     }
     List<CharSequence> seqs;
     switch (schema.getType()) {
       case ARRAY:
-        seqs = new ArrayList<>(paths.length);
+        seqs = new ArrayList<>(length);
         for (CharSequence path : paths) {
           String part = getFirstRef(path);
           if ("[]".equals(part)) {
@@ -344,9 +341,9 @@ public final class Schemas {
         if (seqs.isEmpty()) {
           return null;
         }
-        return Schema.createArray(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));
+        return Schema.createArray(project(schema.getElementType(), seqs));
       case MAP:
-        seqs = new ArrayList<>(paths.length);
+        seqs = new ArrayList<>(length);
         for (CharSequence path : paths) {
           String part = getFirstRef(path);
           if ("{}".equals(part)) {
@@ -359,12 +356,11 @@ public final class Schemas {
         if (seqs.isEmpty()) {
           return null;
         }
-        return Schema.createMap(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));
+        return Schema.createMap(project(schema.getElementType(), seqs));
       case RECORD:
-
         List<Field> fields = schema.getFields();
         List<Schema.Field> nFields = new ArrayList<>(fields.size());
-        List<CharSequence> tPaths = new LinkedList<>(Arrays.asList(paths));
+        List<CharSequence> tPaths = new LinkedList<>(paths);
         do {
           Field extract = extract(fields, tPaths);
           if (extract == null) {
@@ -372,6 +368,9 @@ public final class Schemas {
           }
           nFields.add(extract);
         } while (!tPaths.isEmpty());
+        if (isSameFields(fields, nFields)) {
+          return schema;
+        }
         Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),
                 "_p." + schema.getNamespace(), schema.isError());
         rec.setFields(nFields);
@@ -393,6 +392,23 @@ public final class Schemas {
       default:
         return null;
     }
+  }
+
+  public static boolean isSameFields(final List<Schema.Field> f1s, final List<Schema.Field> f2s) {
+    int l1 = f1s.size();
+    int l2 = f2s.size();
+    if (l1 != l2) {
+      return false;
+    }
+    for (int i = 0; i < l1; i++) {
+      Schema.Field f1 = f1s.get(i);
+      Schema.Field f2 = f2s.get(i);
+      if (!f1.name().equals(f2.name())
+              || !f1.schema().equals(f2.schema())) {
+        return false;
+      }
+    }
+    return true;
   }
 
 
@@ -484,6 +500,7 @@ public final class Schemas {
 
 
 
+  @Nullable
   private static Schema.Field extract(final Iterable<Field> fields, final Iterable<CharSequence> paths) {
     Iterator<CharSequence> iterator = paths.iterator();
     if (iterator.hasNext()) {
@@ -513,7 +530,7 @@ public final class Schemas {
         }
       }
       return new Schema.Field(field.name(),
-                    project(field.schema(), proj.toArray(new CharSequence[proj.size()])),
+                    project(field.schema(), proj),
                     field.doc(), field.defaultVal(), field.order());
     } else {
       return null;
