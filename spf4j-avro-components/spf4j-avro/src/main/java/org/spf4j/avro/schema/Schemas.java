@@ -318,7 +318,7 @@ public final class Schemas {
    */
 
   @Nullable
-  public static Schema project(final Schema schema, final List<CharSequence> paths) {
+  public static Schema project(final Schema schema, final List<? extends CharSequence> paths) {
     int length = paths.size();
     if (length == 0 || (length == 1 && paths.get(0).length() == 0)) {
       return schema;
