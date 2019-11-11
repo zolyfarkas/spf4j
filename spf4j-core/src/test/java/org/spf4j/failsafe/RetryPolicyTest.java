@@ -327,8 +327,8 @@ public class RetryPolicyTest {
     Future<?> submit = DefaultScheduler.INSTANCE.schedule(
             () -> server.breakException(null), 100, TimeUnit.MILLISECONDS);
     rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
-            200, TimeUnit.MILLISECONDS).get();
-    submit.get();
+            200, TimeUnit.MILLISECONDS).get(10, TimeUnit.SECONDS);
+    submit.get(10, TimeUnit.SECONDS);
     // Test error response
     try (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
