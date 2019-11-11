@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.calcite;
 
+import com.google.common.collect.Iterables;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.linq4j.Enumerable;
@@ -33,6 +35,7 @@ import org.apache.calcite.schema.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.avro.AvroDataSet;
+import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.base.CloseableIterator;
 import org.spf4j.base.ExecutionContexts;
@@ -65,6 +68,17 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     }
   }
 
+  private  CloseableIterable<IndexedRecord> project(final CloseableIterable<IndexedRecord> iterable,
+          @Nullable final int[] projection) {
+    if (projection == null) {
+      return iterable;
+    }
+    Schema schema = getComponentType();
+    Schema nschema = Schemas.projectRecord(schema, projection);
+    Iterable<IndexedRecord> transformed = Iterables.transform(iterable, (x) -> Schemas.project(nschema, schema, x));
+    return CloseableIterable.from(transformed, iterable);
+  }
+
   @Override
   @SuppressWarnings({"unchecked", "unchecked"})
   public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
@@ -85,29 +99,31 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     if (features.contains(AvroDataSet.Feature.FILTERABLE)) {
       SqlRowPredicate predicate = null;
       try {
-         predicate = new SqlRowPredicate(filters, rowType);
+         if (!filters.isEmpty()) {
+           predicate = new SqlRowPredicate(filters, rowType);
+         }
       } catch (RuntimeException ex) {
-        LOG.debug("Unable to resulve filter {}", filters);
+        LOG.debug("Unable to resolve filter {}", filters, ex);
       }
       if (predicate != null) {
         if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
           List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
           it = dataSet.getData((Predicate) predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
         } else {
-          it = dataSet.getData((Predicate) predicate, null, sc, timeoutMillis, TimeUnit.MINUTES);
+          it = project(dataSet.getData((Predicate) predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
         }
         filters.clear();
       } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
         List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
         it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
       } else {
-        it = dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES);
+        it = project(dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
       }
     } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
       List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
       it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
     } else {
-      it = dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES);
+      it = project(dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
     }
     return new AvroEnumerable(getComponentType(), root, () -> {
         return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);

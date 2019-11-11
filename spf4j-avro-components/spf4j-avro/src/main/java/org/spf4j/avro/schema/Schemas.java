@@ -304,6 +304,24 @@ public final class Schemas {
 
   }
 
+  public static Schema projectRecord(final Schema schema, final int[] projection) {
+    List<Field> fields = schema.getFields();
+    List<Field> nFields = new ArrayList<>(projection.length);
+    for (int i = 0; i < projection.length; i++) {
+      Field of = fields.get(projection[i]);
+      nFields.add(new Schema.Field(of.name(), of.schema(),
+                    of.doc(), of.defaultVal(), of.order()));
+    }
+    if (isSameFields(fields, nFields)) {
+      return schema;
+    }
+    Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),
+                "_p." + schema.getNamespace(), schema.isError());
+    rec.setFields(nFields);
+    return rec;
+  }
+
+
   @Nullable
   public static Schema project(final Schema schema, final CharSequence... paths) {
     return project(schema, Arrays.asList(paths));
