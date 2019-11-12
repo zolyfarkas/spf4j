@@ -27,12 +27,13 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.tools.RelConversionException;
 import org.apache.calcite.tools.ValidationException;
+import org.spf4j.avro.SqlPredicate;
 
 /**
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD") // kind of valid, will deal with it later
-public final class SqlRowPredicate implements Predicate<IndexedRecord> {
+public final class SqlRowPredicate<T extends IndexedRecord> implements SqlPredicate<T> {
 
   private final String sqlExpr;
 
@@ -76,6 +77,11 @@ public final class SqlRowPredicate implements Predicate<IndexedRecord> {
 
   @Override
   public String toString() {
+    return sqlExpr;
+  }
+
+  @Override
+  public String getSqlString() {
     return sqlExpr;
   }
 

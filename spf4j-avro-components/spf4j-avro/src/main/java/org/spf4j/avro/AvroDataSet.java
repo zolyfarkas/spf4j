@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
@@ -87,7 +86,7 @@ public interface AvroDataSet<T extends IndexedRecord> {
    * @param selectProjections list of fields that are requested. null for no projections.
    * @return
    */
-  CloseableIterable<? extends IndexedRecord> getData(@Nullable Predicate<T> filter,
+  CloseableIterable<? extends IndexedRecord> getData(@Nullable SqlPredicate<T> filter,
           @Nullable List<String> selectProjections,
           SecurityContext secCtx,
           long timeout, TimeUnit timeUnit);

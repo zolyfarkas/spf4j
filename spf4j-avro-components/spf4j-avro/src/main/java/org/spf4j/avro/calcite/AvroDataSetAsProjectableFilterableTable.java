@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
@@ -35,6 +34,7 @@ import org.apache.calcite.schema.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.avro.AvroDataSet;
+import org.spf4j.avro.SqlPredicate;
 import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.base.CloseableIterator;
@@ -108,22 +108,22 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
       if (predicate != null) {
         if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
           List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-          it = dataSet.getData((Predicate) predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+          it = dataSet.getData(predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
         } else {
-          it = project(dataSet.getData((Predicate) predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
+          it = project(dataSet.getData(predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
         }
         filters.clear();
       } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
         List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-        it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+        it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
       } else {
-        it = project(dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
+        it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
       }
     } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
       List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-      it = dataSet.getData((Predicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+      it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
     } else {
-      it = project(dataSet.getData((Predicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
+      it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
     }
     return new AvroEnumerable(getComponentType(), root, () -> {
         return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);
