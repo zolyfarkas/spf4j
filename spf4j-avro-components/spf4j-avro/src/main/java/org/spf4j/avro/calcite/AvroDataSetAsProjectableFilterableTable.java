@@ -79,12 +79,25 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     return CloseableIterable.from(transformed, iterable);
   }
 
+  private void deprecations(@Nullable final int[] projection,
+          final DataContext ctx) {
+    Schema schema = getComponentType();
+    if (projection == null) {
+       EmbededDataContext.addDeprecations(schema, ctx);
+    } else {
+       Schema nschema = Schemas.projectRecord(schema, projection);
+       EmbededDataContext.addDeprecations(nschema, ctx);
+    }
+  }
+
+
   @Override
   @SuppressWarnings({"unchecked", "unchecked"})
   public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
           @Nullable final int[] projection) {
     LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", dataSet.getName(),
             filters, projection);
+    deprecations(projection, root);
     RelDataType rowType = this.getRowType(root.getTypeFactory());
     Long timeoutMillis = DataContext.Variable.TIMEOUT.get(root);
     if (timeoutMillis == null) {

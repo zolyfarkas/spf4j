@@ -40,11 +40,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,18 +75,32 @@ public final class Schemas {
   }
 
   @Nonnull
-  public static Map<String, String> deprecatedFields(final Schema schema) {
-    Map<String, String> result = null;
-    for (Schema.Field field : schema.getFields()) {
-      String msg = field.getProp("deprecated");
-      if (msg != null) {
-        if (result == null) {
-          result = new HashMap<>(4);
-        }
-        result.put(field.name(), msg);
-      }
+  public static void deprecations(final Schema schema,
+          final BiConsumer<String, String> toPut) {
+    String dMsg = schema.getProp("deprecated");
+    if (dMsg != null) {
+      toPut.accept(schema.getFullName(), dMsg);
     }
-    return result == null ? Collections.EMPTY_MAP : result;
+    switch (schema.getType()) {
+      case ARRAY:
+        deprecations(schema.getElementType(), toPut);
+        break;
+      case MAP:
+        deprecations(schema.getValueType(), toPut);
+        break;
+      case RECORD:
+        for (Schema.Field field : schema.getFields()) {
+          String msg = field.getProp("deprecated");
+          if (msg != null) {
+            toPut.accept(schema.getFullName() + '.' + field.name(), msg);
+          }
+          deprecations(field.schema(), toPut);
+        }
+        break;
+      default:
+        // do nothing
+    }
+
   }
 
 
@@ -326,15 +340,24 @@ public final class Schemas {
     List<Field> nFields = new ArrayList<>(projection.length);
     for (int i = 0; i < projection.length; i++) {
       Field of = fields.get(projection[i]);
-      nFields.add(new Schema.Field(of.name(), of.schema(),
-                    of.doc(), of.defaultVal(), of.order()));
+      Field nfield = new Schema.Field(of.name(), of.schema(),
+              of.doc(), of.defaultVal(), of.order());
+      String dep = of.getProp("deprecated");
+      if (dep != null) {
+        nfield.addProp("deprecated", dep);
+      }
+      nFields.add(nfield);
     }
     if (isSameFields(fields, nFields)) {
       return schema;
     }
     Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),
-                "_p." + schema.getNamespace(), schema.isError());
+            "_p." + schema.getNamespace(), schema.isError());
     rec.setFields(nFields);
+    String dep = schema.getProp("deprecated");
+    if (dep != null) {
+      rec.addProp("deprecated", dep);
+    }
     return rec;
   }
 
@@ -409,6 +432,10 @@ public final class Schemas {
         Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),
                 "_p." + schema.getNamespace(), schema.isError());
         rec.setFields(nFields);
+        String dep = schema.getProp("deprecated");
+        if (dep != null) {
+          rec.addProp("deprecated", dep);
+        }
         return rec;
       case UNION:
         List<Schema> types = schema.getTypes();
@@ -564,9 +591,14 @@ public final class Schemas {
           iterator.remove();
         }
       }
-      return new Schema.Field(field.name(),
+      Schema.Field nfield = new Schema.Field(field.name(),
                     project(field.schema(), proj),
                     field.doc(), field.defaultVal(), field.order());
+      String dep = field.getProp("deprecated");
+      if (dep != null) {
+        nfield.addProp("deprecated", dep);
+      }
+      return nfield;
     } else {
       return null;
     }
