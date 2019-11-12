@@ -17,6 +17,7 @@ package org.spf4j.avro.calcite;
 
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -46,21 +47,23 @@ public final class IndexedRecords {
       int pos = field.pos();
       Object val = from.get(pos);
       Schema fs = field.schema();
-      to[pos] = copy(val, fs);
+      to[pos] = fromAvroToCalcite(val, fs);
     }
   }
 
   @Nullable
-  public static Object copy(@Nullable final Object from, @Nonnull final Schema schema) {
+  public static Object fromAvroToCalcite(@Nullable final Object avro, @Nonnull final Schema schema) {
     LogicalType logicalType = schema.getLogicalType();
     if (logicalType != null) {
       switch (logicalType.getName()) {
         case "date":
-          return ((LocalDate) from).toEpochDay();
+          return ((LocalDate) avro).toEpochDay();
         case "instant":
-          return ((Instant) from).toEpochMilli();
+          return ((Instant) avro).toEpochMilli();
+        case "decimal":
+          return ((Number) avro).doubleValue();
         default:
-          return from;
+          return avro;
       }
     }
     switch (schema.getType()) {
@@ -74,50 +77,52 @@ public final class IndexedRecords {
       case LONG:
       case NULL:
       case STRING:
-        return from;
+        return avro;
       case ARRAY:
         Schema elType = schema.getElementType();
-        Collection<Object> col = (Collection<Object>) from;
-        return col.stream().map((x) -> copy(x, elType))
+        Collection<Object> col = (Collection<Object>) avro;
+        return col.stream().map((x) -> fromAvroToCalcite(x, elType))
                 .collect(Collectors.toCollection(() -> new ArrayList<>(col.size())));
       case MAP:
         Schema valueType = schema.getValueType();
-        Map<String, Object> map = (Map<String, Object>) from;
+        Map<String, Object> map = (Map<String, Object>) avro;
         return map.entrySet().stream()
-                .collect(Collectors.toMap((x) -> x.getKey(), (x) -> copy(x.getValue(), valueType),
+                .collect(Collectors.toMap((x) -> x.getKey(), (x) -> fromAvroToCalcite(x.getValue(), valueType),
                         (u, v) -> {
                           throw new IllegalStateException(String.format("Duplicate key %s", u));
                         },
                         () -> Maps.newHashMapWithExpectedSize(map.size())));
       case RECORD:
         Object[] res = new Object[schema.getFields().size()];
-        copyRecord((IndexedRecord) from, res);
+        copyRecord((IndexedRecord) avro, res);
         return res;
       case UNION:
         Schema nSchema = org.spf4j.avro.schema.Schemas.nullableUnionSchema(schema);
         if (nSchema == null) {
           throw new UnsupportedOperationException("Not supported union " + schema);
         }
-        if (from == null) {
+        if (avro == null) {
           return null;
         }
-        return copy(from, nSchema);
+        return fromAvroToCalcite(avro, nSchema);
       default:
         throw new UnsupportedOperationException("Not supported schema " + schema);
     }
   }
 
   @Nullable
-  public static Object from(final Schema schema, @Nullable final Object from) {
+  public static Object fromCalciteToAvro(final Schema schema, @Nullable final Object calc) {
     LogicalType logicalType = schema.getLogicalType();
     if (logicalType != null) {
       switch (logicalType.getName()) {
         case "date":
-          return LocalDate.ofEpochDay((Integer) from);
+          return LocalDate.ofEpochDay((Integer) calc);
         case "instant":
-          return Instant.ofEpochMilli((Long) from);
+          return Instant.ofEpochMilli((Long) calc);
+        case "decimal":
+          return BigDecimal.valueOf(((Number) calc).doubleValue());
         default:
-          return from;
+          return calc;
       }
     }
     switch (schema.getType()) {
@@ -131,32 +136,32 @@ public final class IndexedRecords {
       case LONG:
       case NULL:
       case STRING:
-        return from;
+        return calc;
       case ARRAY:
         Schema elType = schema.getElementType();
-        Collection<Object> col = (Collection<Object>) from;
-        return col.stream().map((x) -> from(elType, x))
+        Collection<Object> col = (Collection<Object>) calc;
+        return col.stream().map((x) -> fromCalciteToAvro(elType, x))
                 .collect(Collectors.toCollection(() -> new ArrayList<>(col.size())));
       case MAP:
         Schema valueType = schema.getValueType();
-        Map<String, Object> map = (Map<String, Object>) from;
+        Map<String, Object> map = (Map<String, Object>) calc;
         return map.entrySet().stream()
-                .collect(Collectors.toMap((x) -> x.getKey(), (x) -> from(valueType, x.getValue()),
+                .collect(Collectors.toMap((x) -> x.getKey(), (x) -> fromCalciteToAvro(valueType, x.getValue()),
                         (u, v) -> {
                           throw new IllegalStateException(String.format("Duplicate key %s", u));
                         },
                         () -> Maps.newHashMapWithExpectedSize(map.size())));
       case RECORD:
-        return fromRecord(schema, (Object[]) from);
+        return fromRecord(schema, (Object[]) calc);
       case UNION:
         Schema nSchema = org.spf4j.avro.schema.Schemas.nullableUnionSchema(schema);
         if (nSchema == null) {
           throw new UnsupportedOperationException("Not supported union " + schema);
         }
-        if (from == null) {
+        if (calc == null) {
           return null;
         }
-        return from(nSchema, from);
+        return fromCalciteToAvro(nSchema, calc);
       default:
         throw new UnsupportedOperationException("Not supported schema " + schema);
     }
@@ -167,7 +172,7 @@ public final class IndexedRecords {
     for (Schema.Field field : schema.getFields()) {
       int pos = field.pos();
       Schema fs = field.schema();
-      record.put(pos, from(fs, from[pos]));
+      record.put(pos, fromCalciteToAvro(fs, from[pos]));
 
     }
     return record;

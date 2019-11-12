@@ -74,8 +74,25 @@ public final class Types {
         }
         break;
       case DOUBLE:
+      case REAL:
+      case DECIMAL:
         result = Schema.create(Schema.Type.DOUBLE);
         break;
+          // disabled until: https://issues.apache.org/jira/browse/CALCITE-3494
+//        Schema stringSchema = Schema.create(Schema.Type.STRING)
+//            .withProp("logicalType", "decimal");
+//        int prec = dataType.getPrecision();
+//        if (prec != RelDataType.PRECISION_NOT_SPECIFIED) {
+//          stringSchema = stringSchema.withProp("precision", prec);
+//        }
+//        int scale = dataType.getScale();
+//        if (scale != RelDataType.SCALE_NOT_SPECIFIED) {
+//          stringSchema = stringSchema.withProp("scale", scale);
+//        }
+//        LogicalType dlt = new DecimalFactory().fromSchema(stringSchema);
+//        stringSchema.setLogicalType(dlt);
+//        result = stringSchema;
+//        break;
       case FLOAT:
         result = Schema.create(Schema.Type.FLOAT);
         break;
@@ -113,6 +130,24 @@ public final class Types {
           return fact.createSqlType(SqlTypeName.DATE);
         case "instant":
           return fact.createSqlType(SqlTypeName.TIMESTAMP);
+        case "decimal":
+          // disabled until: https://issues.apache.org/jira/browse/CALCITE-3494
+//          Number precision = (Number) logicalType.getProperty("precision");
+//          Number scale = (Number) logicalType.getProperty("precision");
+//          if (scale == null) {
+//            if (precision == null) {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, 36);
+//            } else {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, precision.intValue());
+//            }
+//          } else {
+//            if (precision == null) {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, 36, scale.intValue());
+//            } else {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, precision.intValue(), scale.intValue());
+//            }
+//          }
+          return fact.createSqlType(SqlTypeName.DOUBLE);
       }
     }
     RelDataType result;
