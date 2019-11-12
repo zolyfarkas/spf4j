@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,6 +73,22 @@ public final class Schemas {
 
   private Schemas() {
   }
+
+  @Nonnull
+  public static Map<String, String> deprecatedFields(final Schema schema) {
+    Map<String, String> result = null;
+    for (Schema.Field field : schema.getFields()) {
+      String msg = field.getProp("deprecated");
+      if (msg != null) {
+        if (result == null) {
+          result = new HashMap<>(4);
+        }
+        result.put(field.name(), msg);
+      }
+    }
+    return result == null ? Collections.EMPTY_MAP : result;
+  }
+
 
   @Nonnull
   public static ImmutableSchema immutable(final Schema schema) {
