@@ -34,10 +34,10 @@ class AvroEnumerable extends AbstractEnumerable<Object[]> {
   private final Supplier<Boolean> cancelFlag;
   private final int rowLength;
 
-  AvroEnumerable(final org.apache.avro.Schema componentType,
+  AvroEnumerable(final int rowLen,
           final DataContext root,
           final Supplier<CloseableIterator<? extends IndexedRecord>> stream) {
-    this.rowLength = componentType.getFields().size();
+    this.rowLength = rowLen;
     this.stream = stream;
     AtomicBoolean contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);
     cancelFlag = contextFlag == null ? () -> Boolean.FALSE : contextFlag::get;

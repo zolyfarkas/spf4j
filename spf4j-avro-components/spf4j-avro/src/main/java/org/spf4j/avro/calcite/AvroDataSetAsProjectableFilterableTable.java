@@ -138,7 +138,7 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     } else {
       it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
     }
-    return new AvroEnumerable(getComponentType(), root, () -> {
+    return new AvroEnumerable(projection == null ? rowType.getFieldCount() : projection.length, root, () -> {
         return CloseableIterator.from((Iterator<IndexedRecord>) it.iterator(), it);
       });
   }
