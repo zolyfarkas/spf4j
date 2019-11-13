@@ -175,10 +175,13 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
   public void validateCompatibility(final String groupId, final String artifactId,
           @Nullable final String classifier, final String extension,
           final Version version,
-          final List<RemoteRepository> remoteProjectRepositories, final RepositorySystem repoSystem,
+          final List<RemoteRepository> remoteProjectRepositories,
+          final RepositorySystem repoSystem,
           final RepositorySystemSession repositorySession,
           final ValidatorMojo mojo,
-          final boolean deprecationRemoval, final Instant instantToGoBack, final Consumer<String> issues)
+          final boolean deprecationRemoval,
+          final Instant instantToGoBack,
+          final Consumer<String> issues)
           throws IOException {
     Log log = mojo.getLog();
     log.info("Validating compatibility with version: " + version + ", " + groupId + ':' + artifactId
@@ -236,25 +239,31 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
         }
       } else {
         Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());
-        if (newSchema.getProp("beta") != null) {
-          log.debug("Skipping beta schema " + newSchema.getFullName());
-        } else {
-          if (newSchema.getProp("noOldToNewCompatibility") == null) {
-            SchemaCompatibility.SchemaPairCompatibility o2n
-                    = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
-            if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
-              issues.accept(newSchema.getFullName() + " cannot convert from previous version " + version
-                    + ", diff: \n" + diff(previousSchema, newSchema));
-            }
-          }
-          if (newSchema.getProp("noNewToOldCompatibility") == null) {
-            SchemaCompatibility.SchemaPairCompatibility n2o
-                    = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
-            if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
-              issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + version
-                    + ", diff: \n" + diff(previousSchema, newSchema));
-            }
-          }
+        validateCompatiblityBetween2Schemas(newSchema, previousSchema, version, issues, log);
+      }
+    }
+  }
+
+  public void validateCompatiblityBetween2Schemas(final Schema newSchema, final Schema previousSchema,
+          final Version previousVersion,
+          final Consumer<String> issues, final Log log) {
+    if (newSchema.getProp("beta") != null) {
+      log.debug("Skipping beta schema " + newSchema.getFullName());
+    } else {
+      if (newSchema.getProp("noOldToNewCompatibility") == null) {
+        SchemaCompatibility.SchemaPairCompatibility o2n
+                = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
+        if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
+          issues.accept(newSchema.getFullName() + " cannot convert from previous version " + previousVersion
+                  + ", diff: \n" + diff(previousSchema, newSchema));
+        }
+      }
+      if (newSchema.getProp("noNewToOldCompatibility") == null) {
+        SchemaCompatibility.SchemaPairCompatibility n2o
+                = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
+        if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
+          issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + previousVersion
+                  + ", diff: \n" + diff(previousSchema, newSchema));
         }
       }
     }
