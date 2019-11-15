@@ -90,16 +90,17 @@ public final class Schemas {
     if (visited.contains(schema)) {
       return;
     }
+    visited.add(schema);
     String dMsg = schema.getProp("deprecated");
     if (dMsg != null) {
       toPut.accept(schema.getFullName(), dMsg);
     }
     switch (schema.getType()) {
       case ARRAY:
-        deprecations(schema.getElementType(), toPut);
+        deprecations(schema.getElementType(), toPut, visited);
         break;
       case MAP:
-        deprecations(schema.getValueType(), toPut);
+        deprecations(schema.getValueType(), toPut, visited);
         break;
       case RECORD:
         for (Schema.Field field : schema.getFields()) {
@@ -107,13 +108,12 @@ public final class Schemas {
           if (msg != null) {
             toPut.accept(schema.getFullName() + '.' + field.name(), msg);
           }
-          deprecations(field.schema(), toPut);
+          deprecations(field.schema(), toPut, visited);
         }
         break;
       default:
         // do nothing
     }
-    visited.add(schema);
   }
 
 
