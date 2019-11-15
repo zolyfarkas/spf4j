@@ -179,7 +179,7 @@ public class AvroQueryTest {
     LOG.debug("Return row type: {}", rowType);
     Schema from = Types.from(rowType);
     LOG.debug("Return row schema: {}", from);
-    Interpreter interpreter = new Interpreter(new EmbededDataContext(new JavaTypeFactoryImpl()), plan);
+    Interpreter interpreter = new Interpreter(new EmbededDataContext(new JavaTypeFactoryImpl(), null), plan);
     boolean empty = true;
     for (Object[] row : interpreter) {
       LOG.debug("RawRow {} with schema {}",  row, from);
