@@ -32,6 +32,7 @@
 package org.spf4j.security;
 
 import java.security.Principal;
+import java.util.Properties;
 import javax.annotation.Nullable;
 
 /**
@@ -61,6 +62,15 @@ public interface SecurityContext {
    */
   boolean isUserInRole(String role);
 
+  /**
+   * Attribute bases access control, see https://en.wikipedia.org/wiki/Attribute-based_access_control
+   * @param resource  the properties of the accessed resource.
+   * @param action the properties of the action attempted.
+   * @param env environment params.
+   * @return
+   */
+  boolean canAccess(Properties resource, Properties action, Properties env);
+
   SecurityContext NOAUTH = new SecurityContext() {
     @Override
     public Principal getUserPrincipal() {
@@ -69,6 +79,11 @@ public interface SecurityContext {
 
     @Override
     public boolean isUserInRole(final String role) {
+      return false;
+    }
+
+    @Override
+    public boolean canAccess(final Properties resource, final Properties action, final Properties env) {
       return false;
     }
   };
