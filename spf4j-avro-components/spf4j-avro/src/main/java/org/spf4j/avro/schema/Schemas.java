@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -74,9 +75,21 @@ public final class Schemas {
   private Schemas() {
   }
 
+
+
   @Nonnull
   public static void deprecations(final Schema schema,
           final BiConsumer<String, String> toPut) {
+    IdentityHashSet<Schema> visited = new IdentityHashSet<>();
+    deprecations(schema, toPut, visited);
+  }
+
+  @Nonnull
+  public static void deprecations(final Schema schema,
+          final BiConsumer<String, String> toPut, final Set<Schema> visited) {
+    if (visited.contains(schema)) {
+      return;
+    }
     String dMsg = schema.getProp("deprecated");
     if (dMsg != null) {
       toPut.accept(schema.getFullName(), dMsg);
@@ -100,7 +113,7 @@ public final class Schemas {
       default:
         // do nothing
     }
-
+    visited.add(schema);
   }
 
 
