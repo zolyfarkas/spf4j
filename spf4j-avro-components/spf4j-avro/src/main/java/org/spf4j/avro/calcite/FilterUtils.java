@@ -100,7 +100,7 @@ public final class FilterUtils {
     Scalar scalar = InterpreterUtils.toScalar(filter, javaTypeFactoryImpl, rowType);
     return new Predicate<IndexedRecord>() {
 
-      private Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl));
+      private Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl, null));
       {
         context.values =  new Object[rowType.getFieldCount()];
       }

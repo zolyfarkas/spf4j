@@ -103,7 +103,7 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     if (timeoutMillis == null) {
       timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);
     }
-    SecurityContext sc = (SecurityContext) root.get("SecurityContext");
+    SecurityContext sc = (SecurityContext) root.get("security-context");
     if (sc == null) {
       sc = SecurityContext.NOAUTH;
     }

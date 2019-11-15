@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
@@ -27,6 +28,7 @@ import org.apache.calcite.linq4j.QueryProvider;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.tools.Frameworks;
 import org.spf4j.avro.schema.Schemas;
+import org.spf4j.security.SecurityContext;
 
 /**
  * @author Zoltan Farkas
@@ -35,6 +37,8 @@ import org.spf4j.avro.schema.Schemas;
 public final class EmbededDataContext implements DataContext {
 
   public static final String DEPRECATIONS = "deprecated-access";
+
+  public static final String SECURITY_CONTEXT = "security-context";
 
 
   public static void addDeprecations(final Schema schema,
@@ -62,10 +66,13 @@ public final class EmbededDataContext implements DataContext {
 
   private final ConcurrentMap<String, Object> data;
 
-  public EmbededDataContext(final JavaTypeFactory typeFact) {
+  public EmbededDataContext(final JavaTypeFactory typeFact, @Nullable final SecurityContext ctx) {
     this.typeFact = typeFact;
     this.data = new ConcurrentHashMap<>();
     this.data.put(DEPRECATIONS, new HashMap<Object, Object>(4));
+    if (ctx != null) {
+      this.data.put(SECURITY_CONTEXT, ctx);
+    }
   }
 
   public SchemaPlus getRootSchema() {
