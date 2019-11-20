@@ -255,7 +255,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
                 = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);
         if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
           issues.accept(newSchema.getFullName() + " cannot convert from previous version " + previousVersion
-                  + ", diff: \n" + diff(previousSchema, newSchema));
+                 +  ", incompatibilities: " + o2n.getResult().getIncompatibilities()
+                  + ",\n diff: \n" + diff(previousSchema, newSchema));
         }
       }
       if (newSchema.getProp("noNewToOldCompatibility") == null) {
@@ -263,7 +264,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
                 = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);
         if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {
           issues.accept(newSchema.getFullName() + " cannot convert current to previos version " + previousVersion
-                  + ", diff: \n" + diff(previousSchema, newSchema));
+                  +  ", incompatibilities: " + n2o.getResult().getIncompatibilities()
+                  + ",\n diff: \n" + diff(previousSchema, newSchema));
         }
       }
     }
