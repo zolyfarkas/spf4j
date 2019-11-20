@@ -43,6 +43,16 @@ public final class Types {
   private Types() { }
 
   public static Schema from(final RelDataType dataType) {
+    boolean orig = Schema.getNameValidationFlag();
+    try {
+      Schema.setNameValidationFlag(false);
+      return fromInternal(dataType);
+    } finally {
+      Schema.setNameValidationFlag(orig);
+    }
+  }
+
+  private static Schema fromInternal(final RelDataType dataType) {
     SqlTypeName sqlTypeName = dataType.getSqlTypeName();
     Schema  result;
     switch (sqlTypeName) {
@@ -50,7 +60,7 @@ public final class Types {
        List<RelDataTypeField> fieldList = dataType.getFieldList();
        List<Schema.Field> aFields = new ArrayList<>(fieldList.size());
        for (RelDataTypeField field : fieldList) {
-         aFields.add(new Schema.Field(field.getName(), from(field.getType()), null, (Object) null));
+         aFields.add(new Schema.Field(field.getName(), fromInternal(field.getType()), null, (Object) null));
        }
        return Schema.createRecord(aFields);
       case INTEGER:
@@ -101,10 +111,10 @@ public final class Types {
         break;
       case ARRAY:
       case MULTISET:
-        result = Schema.createArray(from(dataType.getComponentType()));
+        result = Schema.createArray(fromInternal(dataType.getComponentType()));
         break;
       case MAP:
-        result = Schema.createMap(from(dataType.getValueType()));
+        result = Schema.createMap(fromInternal(dataType.getValueType()));
         break;
       default:
         throw new UnsupportedOperationException("Unsupported data Type " + dataType);
