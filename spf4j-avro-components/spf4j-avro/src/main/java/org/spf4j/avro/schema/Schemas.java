@@ -353,12 +353,7 @@ public final class Schemas {
     List<Field> nFields = new ArrayList<>(projection.length);
     for (int i = 0; i < projection.length; i++) {
       Field of = fields.get(projection[i]);
-      Field nfield = new Schema.Field(of.name(), of.schema(),
-              of.doc(), of.defaultVal(), of.order());
-      String dep = of.getProp("deprecated");
-      if (dep != null) {
-        nfield.addProp("deprecated", dep);
-      }
+      Field nfield = new Schema.Field(of, of.schema());
       nFields.add(nfield);
     }
     if (isSameFields(fields, nFields)) {
@@ -604,9 +599,8 @@ public final class Schemas {
           iterator.remove();
         }
       }
-      Schema.Field nfield = new Schema.Field(field.name(),
-                    project(field.schema(), proj),
-                    field.doc(), field.defaultVal(), field.order());
+      Schema.Field nfield = new Schema.Field(field,
+                    project(field.schema(), proj));
       String dep = field.getProp("deprecated");
       if (dep != null) {
         nfield.addProp("deprecated", dep);

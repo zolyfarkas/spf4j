@@ -32,6 +32,7 @@ import org.apache.avro.io.ParsingDecoder;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.Base64;
 import org.spf4j.base.CharSequences;
@@ -361,32 +362,6 @@ public final class CsvDecoder extends ParsingDecoder {
     return "CsvDecoder{" + "csvReader=" + csvReader + '}';
   }
 
-  private static String validateName(final CharSequence name) {
-    int length = name.length();
-    if (length == 0) {
-      return "_";
-    }
-    StringBuilder result = null;
-    char first = name.charAt(0);
-    if (first != '_' && !Character.isLetter(first)) {
-      result = new StringBuilder(length);
-      result.append('_');
-    }
-    for (int i = 1; i < length; i++) {
-      char c = name.charAt(i);
-      if (c != '_' && !Character.isLetterOrDigit(c)) {
-        if (result == null) {
-          result = new StringBuilder(length);
-          result.append(name, 0, i);
-        }
-        result.append('_');
-      } else if (result != null) {
-        result.append(c);
-      }
-    }
-    return result == null ? name.toString() : result.toString();
-  }
-
   /**
    * Will try to decode the writer schema based on the csv headers, and the reader schema.
    * @param is
@@ -403,8 +378,8 @@ public final class CsvDecoder extends ParsingDecoder {
         record = Schema.createRecord("DynCsv", "Infered schema", "org.spf4j.avro", false);
         List<Schema.Field> bfields = new ArrayList<>();
         reader.readRow((cs) -> {
-          bfields.add(new Schema.Field(validateName(cs), Schema.create(Schema.Type.STRING),
-                  cs.toString(), (Object) null));
+          bfields.add(AvroCompatUtils.createField(cs.toString(), Schema.create(Schema.Type.STRING),
+                  null, null, false, false, Schema.Field.Order.IGNORE));
         });
         record.setFields(bfields);
       } else {

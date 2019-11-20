@@ -28,6 +28,7 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
 import org.apache.calcite.sql.type.SqlTypeName;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.avro.schema.Schemas;
 
 /**
@@ -52,8 +53,8 @@ public final class Types {
        List<RelDataTypeField> fieldList = dataType.getFieldList();
        List<Schema.Field> aFields = new ArrayList<>(fieldList.size());
        for (RelDataTypeField field : fieldList) {
-         aFields.add(new Schema.Field(field.getName(), from(field.getType()), null, null,
-                 null, true, false, Order.IGNORE));
+         aFields.add(AvroCompatUtils.createField(field.getName(), from(field.getType()), null,
+                 null, false, false, Order.IGNORE));
        }
        return Schema.createRecord(aFields);
       case INTEGER:
