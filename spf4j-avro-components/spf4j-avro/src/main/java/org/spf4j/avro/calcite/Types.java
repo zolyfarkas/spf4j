@@ -23,6 +23,7 @@ import org.apache.avro.Schema;
 import org.apache.calcite.rel.type.RelDataType;
 import java.util.Map;
 import org.apache.avro.LogicalType;
+import org.apache.avro.Schema.Field.Order;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
@@ -42,17 +43,8 @@ public final class Types {
 
   private Types() { }
 
-  public static Schema from(final RelDataType dataType) {
-    boolean orig = Schema.getNameValidationFlag();
-    try {
-      Schema.setNameValidationFlag(false);
-      return fromInternal(dataType);
-    } finally {
-      Schema.setNameValidationFlag(orig);
-    }
-  }
 
-  private static Schema fromInternal(final RelDataType dataType) {
+  public static Schema from(final RelDataType dataType) {
     SqlTypeName sqlTypeName = dataType.getSqlTypeName();
     Schema  result;
     switch (sqlTypeName) {
@@ -60,7 +52,8 @@ public final class Types {
        List<RelDataTypeField> fieldList = dataType.getFieldList();
        List<Schema.Field> aFields = new ArrayList<>(fieldList.size());
        for (RelDataTypeField field : fieldList) {
-         aFields.add(new Schema.Field(field.getName(), fromInternal(field.getType()), null, (Object) null));
+         aFields.add(new Schema.Field(field.getName(), from(field.getType()), null, null,
+                 null, true, false, Order.IGNORE));
        }
        return Schema.createRecord(aFields);
       case INTEGER:
@@ -111,10 +104,10 @@ public final class Types {
         break;
       case ARRAY:
       case MULTISET:
-        result = Schema.createArray(fromInternal(dataType.getComponentType()));
+        result = Schema.createArray(from(dataType.getComponentType()));
         break;
       case MAP:
-        result = Schema.createMap(fromInternal(dataType.getValueType()));
+        result = Schema.createMap(from(dataType.getValueType()));
         break;
       default:
         throw new UnsupportedOperationException("Unsupported data Type " + dataType);
