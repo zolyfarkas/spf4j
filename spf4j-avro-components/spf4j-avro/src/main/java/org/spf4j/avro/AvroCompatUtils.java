@@ -15,7 +15,6 @@
  */
 package org.spf4j.avro;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.lang.reflect.Constructor;
 import org.apache.avro.Schema;
 import org.spf4j.avro.official.OriginUtilInterface;
@@ -32,7 +31,7 @@ public final class AvroCompatUtils {
 
   static {
     Constructor<?> c = Reflections.getConstructor(Schema.Field.class, String.class, Schema.class,
-            String.class, JsonNode.class, Object.class,
+            String.class,  Object.class,
             boolean.class, boolean.class, Schema.Field.Order.class);
     INTF = c == null ? new OriginUtilInterface() : new ZFUtilInterface();
   }
