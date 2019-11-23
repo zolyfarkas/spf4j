@@ -48,6 +48,8 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.version.Version;
+import org.spf4j.avro.schema.SchemaDiff;
+import org.spf4j.avro.schema.Schemas;
 import org.spf4j.io.compress.Compress;
 import org.spf4j.maven.MavenRepositoryUtils;
 import org.spf4j.maven.plugin.avro.avscp.SchemaCompileMojo;
@@ -160,7 +162,7 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
       Version version  = rangeVersions.get(i);
       validateCompatibility(groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version,
               remoteProjectRepositories, repoSystem, repositorySession, mojo,
-              Boolean.parseBoolean(validatorConfigs.getOrDefault("deprecationRemoval", "false")),
+              Boolean.parseBoolean(validatorConfigs.getOrDefault("deprecationRemoval", "true")),
               instantToGoBack, issues::add);
     }
     if (issues.isEmpty()) {
@@ -234,21 +236,22 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
       log.debug("Validating compatibility for " + previousSchemaName + " "
               + prevSchemaPath + " -> "  + newSchemaPath);
       if (!Files.exists(newSchemaPath)) {
-        if (deprecationRemoval && previousSchema.getProp("deprecated") == null) {
+        if (deprecationRemoval && previousSchema.getProp("beta") == null
+                && previousSchema.getProp("deprecated") == null) {
           issues.accept(previousSchemaName + " is being removed without being deprecated first");
         }
       } else {
         Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());
-        validateCompatiblityBetween2Schemas(newSchema, previousSchema, version, issues, log);
+        validateCompatiblityBetween2Schemas(newSchema, previousSchema, version, issues, log, deprecationRemoval);
       }
     }
   }
 
   public void validateCompatiblityBetween2Schemas(final Schema newSchema, final Schema previousSchema,
           final Version previousVersion,
-          final Consumer<String> issues, final Log log) {
+          final Consumer<String> issues, final Log log, final boolean deprecationRemoval) {
     if (newSchema.getProp("beta") != null) {
-      log.debug("Skipping beta schema " + newSchema.getFullName());
+      log.debug("Skipping beta schema " + newSchema.getFullName() + " compatibility validation");
     } else {
       if (newSchema.getProp("noOldToNewCompatibility") == null) {
         SchemaCompatibility.SchemaPairCompatibility o2n
@@ -258,6 +261,8 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
                  +  ", incompatibilities: " + o2n.getResult().getIncompatibilities()
                   + ",\n diff: \n" + diff(previousSchema, newSchema));
         }
+      } else {
+        log.debug("Skipping  schema " + newSchema.getFullName() + " noOldToNewCompatibility validation");
       }
       if (newSchema.getProp("noNewToOldCompatibility") == null) {
         SchemaCompatibility.SchemaPairCompatibility n2o
@@ -267,6 +272,20 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
                   +  ", incompatibilities: " + n2o.getResult().getIncompatibilities()
                   + ",\n diff: \n" + diff(previousSchema, newSchema));
         }
+      } else {
+        log.debug("Skipping  schema " + newSchema.getFullName() + " noNewToOldCompatibility validation");
+      }
+      if (deprecationRemoval) {
+        Schemas.diff(previousSchema, newSchema, (diff) -> {
+          if (diff.getDiffType() == SchemaDiff.Type.FIELD_MISSING_RIGHT)  {
+            Schema.Field leftField = diff.getLeftField();
+            if (leftField.getProp("deprecated") == null) {
+              issues.accept(previousSchema.getFullName()  + " at " + diff.getPath()
+                      + "field  " + leftField + " is being removed without being deprecated first");
+
+            }
+          }
+        });
       }
     }
   }
@@ -307,9 +326,9 @@ public final class SchemaCompatibilityValidator implements Validator<Void> {
     return null;
   }
 
-  static String diff(final Schema reader, final Schema writer) {
-    String s1 = reader.toString(true);
-    String s2 = writer.toString(true);
+  static String diff(final Schema schema1, final Schema schema2) {
+    String s1 = schema1.toString(true);
+    String s2 = schema2.toString(true);
     DiffMatchPatch dmp = new DiffMatchPatch();
     LinkedList<DiffMatchPatch.Diff> diffs = dmp.diffMain(s1, s2, false);
     dmp.diffCleanupSemantic(diffs);
