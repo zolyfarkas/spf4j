@@ -96,6 +96,10 @@ public final class Schemas {
       toPut.accept(schema.getFullName(), dMsg);
     }
     switch (schema.getType()) {
+      case UNION:
+        for (Schema cs : schema.getTypes()) {
+          deprecations(cs, toPut, visited);
+        }
       case ARRAY:
         deprecations(schema.getElementType(), toPut, visited);
         break;
