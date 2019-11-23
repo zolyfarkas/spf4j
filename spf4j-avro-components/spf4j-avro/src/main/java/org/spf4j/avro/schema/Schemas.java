@@ -100,6 +100,7 @@ public final class Schemas {
         for (Schema cs : schema.getTypes()) {
           deprecations(cs, toPut, visited);
         }
+        break;
       case ARRAY:
         deprecations(schema.getElementType(), toPut, visited);
         break;
