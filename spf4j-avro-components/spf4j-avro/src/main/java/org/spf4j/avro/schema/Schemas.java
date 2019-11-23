@@ -44,7 +44,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -77,46 +76,8 @@ public final class Schemas {
 
   public static void deprecations(final Schema schema,
           final BiConsumer<String, String> toPut) {
-    IdentityHashSet<Schema> visited = new IdentityHashSet<>();
-    deprecations(schema, toPut, visited);
+    visit(schema, new DeprecationVisitor(toPut));
   }
-
-  public static void deprecations(final Schema schema,
-          final BiConsumer<String, String> toPut, final Set<Schema> visited) {
-    if (visited.contains(schema)) {
-      return;
-    }
-    visited.add(schema);
-    String dMsg = schema.getProp("deprecated");
-    if (dMsg != null) {
-      toPut.accept(schema.getFullName(), dMsg);
-    }
-    switch (schema.getType()) {
-      case UNION:
-        for (Schema cs : schema.getTypes()) {
-          deprecations(cs, toPut, visited);
-        }
-        break;
-      case ARRAY:
-        deprecations(schema.getElementType(), toPut, visited);
-        break;
-      case MAP:
-        deprecations(schema.getValueType(), toPut, visited);
-        break;
-      case RECORD:
-        for (Schema.Field field : schema.getFields()) {
-          String msg = field.getProp("deprecated");
-          if (msg != null) {
-            toPut.accept(schema.getFullName() + '.' + field.name(), msg);
-          }
-          deprecations(field.schema(), toPut, visited);
-        }
-        break;
-      default:
-        // do nothing
-    }
-  }
-
 
   @Nonnull
   public static ImmutableSchema immutable(final Schema schema) {
@@ -203,7 +164,6 @@ public final class Schemas {
             default:
               throw new UnsupportedOperationException("Invalid type " + type);
           }
-
         } else {
           terminate = visitTerminal(visitor, schema, dq);
         }
@@ -661,6 +621,50 @@ public final class Schemas {
     schema.addProp("logicalType", "any_temporal");
     schema.setLogicalType(LogicalTypes.fromSchema(schema));
     return schema;
+  }
+
+  private static class DeprecationVisitor implements SchemaVisitor<Void> {
+
+    private final BiConsumer<String, String> toPut;
+
+    DeprecationVisitor(final BiConsumer<String, String> toPut) {
+      this.toPut = toPut;
+    }
+
+    @Override
+    public SchemaVisitorAction visitTerminal(final Schema terminal) {
+      if (terminal.getType() == Schema.Type.FIXED) {
+        checkDeprecation(terminal);
+      }
+      // do nothing for base types (will ignore if somebody deprercates an int....)
+      return SchemaVisitorAction.CONTINUE;
+    }
+
+    public void checkDeprecation(final Schema terminal) {
+      String dMsg = terminal.getProp("deprecated");
+      if (dMsg != null) {
+        toPut.accept(terminal.getFullName(), dMsg);
+      }
+    }
+
+    @Override
+    public SchemaVisitorAction visitNonTerminal(final Schema nonTerminal) {
+      checkDeprecation(nonTerminal);
+      if  (nonTerminal.getType() == Schema.Type.RECORD) {
+        for (Schema.Field field : nonTerminal.getFields()) {
+          String msg = field.getProp("deprecated");
+          if (msg != null) {
+            toPut.accept(nonTerminal.getFullName() + '.' + field.name(), msg);
+          }
+        }
+      }
+      return SchemaVisitorAction.CONTINUE;
+    }
+
+    @Override
+    public SchemaVisitorAction afterVisitNonTerminal(final Schema nonTerminal) {
+      return SchemaVisitorAction.CONTINUE;
+    }
   }
 
 
