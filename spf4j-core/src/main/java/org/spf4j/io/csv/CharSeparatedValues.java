@@ -348,9 +348,23 @@ public final class CharSeparatedValues {
     writer.append('"');
   }
 
-  public CharSequence toCsvElement(final CharSequence elem) {
+   public CharSequence toCsvElement(final CharSequence elem) {
     if (CharSequences.containsAnyChar(elem, toEscape)) {
-      StringWriter sw = new StringWriter(elem.length() - 1);
+      StringBuilder sw = new StringBuilder(elem.length() + 4);
+      try {
+        writeQuotedCsvElement(elem, sw);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+      return sw;
+    } else {
+      return elem;
+    }
+  }
+
+   public String toCsvElement(final String elem) {
+    if (CharSequences.containsAnyChar(elem, toEscape)) {
+      StringBuilder sw = new StringBuilder(elem.length() + 4);
       try {
         writeQuotedCsvElement(elem, sw);
       } catch (IOException ex) {
