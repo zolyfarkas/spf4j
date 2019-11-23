@@ -75,16 +75,12 @@ public final class Schemas {
   private Schemas() {
   }
 
-
-
-  @Nonnull
   public static void deprecations(final Schema schema,
           final BiConsumer<String, String> toPut) {
     IdentityHashSet<Schema> visited = new IdentityHashSet<>();
     deprecations(schema, toPut, visited);
   }
 
-  @Nonnull
   public static void deprecations(final Schema schema,
           final BiConsumer<String, String> toPut, final Set<Schema> visited) {
     if (visited.contains(schema)) {
