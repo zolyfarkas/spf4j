@@ -45,6 +45,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.demo.avro.DemoRecordInfo;
+import org.spf4j.test.TestRecord;
+import org.spf4j.test.TestRecord2;
 
 /**
  *
@@ -150,6 +152,25 @@ public class SchemasTest {
   }
 
   @Test
+  public void testSchemaPath3() {
+    Schema subSchema = Schemas.getSubSchema(TestRecord.getClassSchema(), "children.[]");
+    Assert.assertEquals(Schema.Type.RECORD, subSchema.getType());
+  }
+
+  @Test
+  public void testSchemaPath4() {
+    Schema subSchema = Schemas.getSubSchema(TestRecord2.getClassSchema(), "children.[].hash");
+    Assert.assertEquals(Schema.Type.FIXED, subSchema.getType());
+  }
+
+  @Test
+  public void testSchemaPath5() {
+    Schema subSchema = Schemas.getSubSchema(TestRecord.getClassSchema(), "children.[].hash");
+    Assert.assertNull(subSchema);
+  }
+
+
+  @Test
   public void testProjections() {
     Schema project = Schemas.project(DemoRecordInfo.SCHEMA$, "demoRecord.id", "metaData");
     Schema.Field drF = project.getField("demoRecord");
@@ -176,6 +197,30 @@ public class SchemasTest {
     Schema.Field field = drf.get(0);
     Assert.assertEquals("id", field.name());
     Assert.assertEquals(DemoRecordInfo.SCHEMA$.getField("metaData").schema(), project.getField("metaData").schema());
+  }
+
+  @Test
+  public void testProjectionSame() {
+    Schema subSchema = Schemas.project(TestRecord.getClassSchema(), "");
+    Assert.assertEquals(TestRecord.getClassSchema(), subSchema);
+  }
+
+  @Test
+  public void testDiff1() {
+    Schemas.diff(TestRecord.getClassSchema(), TestRecord.getClassSchema(), (diff) -> Assert.fail(diff.toString()));
+  }
+
+  @Test
+  public void testDiff2() {
+    Schemas.diff(TestRecord.getClassSchema(), TestRecord2.getClassSchema(),
+            (diff) -> {
+              LOG.debug("Diff: {}", diff);
+              Schema atSchema = Schemas.getSubSchema(TestRecord.getClassSchema(), diff.getPath());
+              Assert.assertNotNull("Path does not resolve: " + diff.getPath(), atSchema);
+              LOG.debug("At Schema {}", atSchema.getFullName());
+              Assert.assertNotNull(
+                      Schemas.project(TestRecord.getClassSchema(), diff.getPath()).getFullName());
+            });
   }
 
 

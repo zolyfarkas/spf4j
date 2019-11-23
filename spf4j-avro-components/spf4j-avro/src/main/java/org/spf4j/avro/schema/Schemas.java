@@ -35,6 +35,8 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +46,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -60,6 +67,8 @@ import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.specific.SpecificData;
 import org.spf4j.base.CharSequences;
 import org.spf4j.ds.IdentityHashSet;
+import org.spf4j.io.csv.CharSeparatedValues;
+import org.spf4j.io.csv.CsvParseException;
 
 /**
  * Avro Schema utilities, to traverse...
@@ -71,8 +80,144 @@ import org.spf4j.ds.IdentityHashSet;
 @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE") // false positive
 public final class Schemas {
 
+  private static final CharSeparatedValues SCHEMA_PATH_CSV = new CharSeparatedValues('.');
+
   private Schemas() {
   }
+
+  public static void diff(final Schema s1, final Schema s2, Consumer<SchemaDiff> diffs) {
+    diff("", s1, s2, diffs, new IdentityHashSet<Schema>());
+  }
+
+  private static void diff(final String path, final Schema s1,
+          final Schema s2, Consumer<SchemaDiff> diffs, Set<Schema> visited) {
+    if (visited.contains(s1)) {
+      return;
+    }
+    Schema.Type type1 = s1.getType();
+    if (s2.getType() != type1) {
+      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_TYPES));
+      return;
+    } else {
+      switch (type1) {
+        case BOOLEAN:
+        case BYTES:
+        case DOUBLE:
+        case FLOAT:
+        case INT:
+        case LONG:
+        case NULL:
+        case STRING:
+          break;
+        case FIXED:
+          if (s1.getFixedSize() != s2.getFixedSize()) {
+            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_FIXED_SIZE));
+          }
+          if (!s1.getFullName().equals(s2.getFullName())) {
+            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));
+          }
+          break;
+        case ARRAY:
+          visited.add(s1);
+          diff(pathAdd(path, "[]"), s1.getElementType(), s2.getElementType(), diffs, visited);
+          break;
+        case MAP:
+          visited.add(s1);
+          diff(pathAdd(path, "{}"), s1.getValueType(), s2.getValueType(), diffs, visited);
+          break;
+        case ENUM:
+          if (!s1.getFullName().equals(s2.getFullName())) {
+            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));
+          }
+          if (!(s1.getEnumStringSymbols().containsAll(s2.getEnumStringSymbols())
+                  && s2.getEnumStringSymbols().containsAll(s1.getEnumStringSymbols()))) {
+            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_ENUM_VALUES));
+          }
+          break;
+        case UNION:
+          visited.add(s1);
+          for (Schema s : s1.getTypes()) {
+            Schema os = getFromUnion(s, s2);
+            if (os == null) {
+              diffs.accept(SchemaDiff.of(path, s, null, SchemaDiff.Type.SCHEMA_MISSING_RIGHT));
+            } else {
+              diff(path, s, os, diffs, visited);
+            }
+          }
+          for (Schema s : s2.getTypes()) {
+            Schema os = getFromUnion(s, s2);
+            if (os == null) {
+              diffs.accept(SchemaDiff.of(path, null, s, SchemaDiff.Type.SCHEMA_MISSING_LEFT));
+            }
+          }
+          break;
+        case RECORD:
+          visited.add(s1);
+         if (!s1.getFullName().equals(s2.getFullName())) {
+            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));
+          }
+          for (Schema.Field field1 : s1.getFields()) {
+            Field field2 = s2.getField(field1.name());
+            if (field2 == null) {
+              diffs.accept(SchemaDiff.of(path,
+                      field1, null, SchemaDiff.Type.FIELD_MISSING_RIGHT));
+            } else {
+              diff(pathAdd(path, field1.name()), field1.schema(), field2.schema(), diffs, visited);
+              if (!Objects.equals(field1.defaultVal(), field2.defaultVal())) {
+                diffs.accept(SchemaDiff.of(path,
+                        field1, field2, SchemaDiff.Type.DIFFERENT_FIELD_DEFAULTS));
+              }
+              if (!field1.getObjectProps().equals(field2.getObjectProps())) {
+                diffs.accept(SchemaDiff.of(path,
+                        field1, field2, SchemaDiff.Type.DIFFERENT_FIELD_PROPERTIES));
+              }
+              if (!Objects.equals(field1.doc(), field2.doc())) {
+                diffs.accept(SchemaDiff.of(path,
+                        field1, field2, SchemaDiff.Type.DIFFERRENT_FIELD_DOC));
+              }
+            }
+          }
+          for (Schema.Field field2 : s2.getFields()) {
+            Field field1 = s1.getField(field2.name());
+            if (field1 == null) {
+              diffs.accept(SchemaDiff.of(path, null, field2, SchemaDiff.Type.FIELD_MISSING_LEFT));
+            }
+          }
+          break;
+          default:
+            throw new IllegalStateException("Invalid Schema " + s1);
+      }
+    }
+    if (!Objects.equals(s1.getLogicalType(), s2.getLogicalType())) {
+      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_LOGICAL_TYPES));
+    }
+    if (!s1.getObjectProps().equals(s2.getObjectProps())) {
+      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_SCHEMA_PROPERTIES));
+    }
+    if (!Objects.equals(s1.getDoc(), s2.getDoc())) {
+      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERRENT_SCHEMA_DOC));
+    }
+  }
+
+  private static String pathAdd(final String p, final String ref) {
+    if (p.isEmpty()) {
+      return SCHEMA_PATH_CSV.toCsvElement(ref) ;
+    } else {
+      return p + '.' + SCHEMA_PATH_CSV.toCsvElement(ref);
+    }
+  }
+
+  @Nullable
+  public static Schema getFromUnion(final Schema what, final Schema unionSchema) {
+    String fullName = what.getFullName();
+    for (Schema s : unionSchema.getTypes()) {
+      if (fullName.equals(s.getFullName())) {
+        return s;
+      }
+    }
+    return null;
+  }
+
 
   public static void deprecations(final Schema schema,
           final BiConsumer<String, String> toPut) {
@@ -259,54 +404,68 @@ public final class Schemas {
     }
   }
 
+  @Nullable
   public static Schema getSubSchema(final Schema schema, final CharSequence path) {
-    return getSubSchema(schema, path, 0);
-  }
-
-  public static Schema getSubSchema(final Schema schema, final CharSequence path, final int at) {
-    int length = path.length();
-    if (at >= length) {
+    if (path.length() == 0) {
       return schema;
     }
-    int to = CharSequences.indexOf(path, at, length, '.');
-    if (to < 0) {
-      to = length;
+    List<String> parsedPath;
+    try {
+      parsedPath = SCHEMA_PATH_CSV.readRow(CharSequences.reader(path));
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    } catch (CsvParseException ex) {
+      throw new IllegalArgumentException("Invalid path " + path, ex);
     }
+    Schema result = schema;
+    for (int i = 0, l = parsedPath.size(); i < l; i++) {
+      String part = parsedPath.get(i);
+      result = getSegment(result, part);
+      if (result == null) {
+        return null;
+      }
+    }
+    return result;
+  }
 
-    String part = CharSequences.subSequence(path, at, to).toString().trim();
-    switch (schema.getType()) {
-      case ARRAY:
-        if ("[]".equals(part)) {
-          if (to == length) {
-            return schema.getElementType();
+  @Nullable
+  private static Schema getSegment(Schema result, String part) {
+    switch (result.getType()) {
+        case ARRAY:
+          if ("[]".equals(part)) {
+            return result.getElementType();
           }
-          return getSubSchema(schema.getElementType(), path, to + 1);
-        } else {
-          throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
-        }
-      case MAP:
-        if ("{}".equals(part)) {
-          if (to == length) {
-            return schema.getValueType();
+          break;
+        case MAP:
+          if ("{}".equals(part)) {
+            return result.getValueType();
           }
-          return getSubSchema(schema.getValueType(), path, to + 1);
-        } else {
-          throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
-        }
-      case RECORD:
-        for (Schema.Field field : schema.getFields()) {
-          if (part.equals(field.name()) || field.aliases().contains(part)) {
-            if (to == length) {
-              return field.schema();
+          break;
+        case UNION:
+          for (Schema us : result.getTypes()) {
+            Schema ur = getSegment(us, part);
+            if (ur != null) {
+              return ur;
             }
-            return getSubSchema(field.schema(), path, to + 1);
           }
-        }
-        throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
-      default:
-        throw new IllegalArgumentException("Invalid path " + path + " at " + at + ", " + schema);
-    }
-
+          break;
+        case RECORD:
+          Field field = result.getField(part);
+          if (field == null) {
+            for (Schema.Field f : result.getFields()) {
+              if (f.aliases().contains(part)) {
+                field = f;
+              }
+            }
+          }
+          if (field != null) {
+            return field.schema();
+          }
+          break;
+        default:
+          return null;
+      }
+      return null;
   }
 
   public static Schema projectRecord(final Schema schema, final int[] projection) {
@@ -343,24 +502,45 @@ public final class Schemas {
    * @param paths the paths to elements (paths to record fields) included in the subschema.
    * @return the subschema.
    */
-
   @Nullable
   public static Schema project(final Schema schema, final List<? extends CharSequence> paths) {
+    final List<List<String>> p = new ArrayList<>(paths.size());
+    for (CharSequence cs : paths) {
+      try {
+        p.add(SCHEMA_PATH_CSV.readRow(CharSequences.reader(cs)));
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      } catch (CsvParseException ex) {
+        throw new IllegalArgumentException("Invalid projection path " + cs);
+      }
+    }
+    return projectInternal(schema, p);
+  }
+
+  @Nullable
+  private static Schema projectInternal(final Schema schema, final List<List<String>> paths) {
     int length = paths.size();
-    if (length == 0 || (length == 1 && paths.get(0).length() == 0)) {
+    if (length == 0) {
       return schema;
     }
-    List<CharSequence> seqs;
+    if (length == 1) {
+       List<String> first = paths.get(0);
+       if (first.isEmpty() || (first.size() == 1 && first.get(0).isEmpty())) {
+         return schema;
+       }
+    }
+    List<List<String>> seqs;
     switch (schema.getType()) {
       case ARRAY:
         seqs = new ArrayList<>(length);
-        for (CharSequence path : paths) {
-          String part = getFirstRef(path);
+        for (List<String> path : paths) {
+          String part = path.get(0);
           if ("[]".equals(part)) {
-            if (part.length() == path.length()) {
+            int pSize = path.size();
+            if (pSize == 1) {
               return schema;
             }
-            seqs.add(part.substring(part.length() + 1));
+            seqs.add(path.subList(1, pSize));
           } else {
             return null;
           }
@@ -368,26 +548,27 @@ public final class Schemas {
         if (seqs.isEmpty()) {
           return null;
         }
-        return Schema.createArray(project(schema.getElementType(), seqs));
+        return Schema.createArray(projectInternal(schema.getElementType(), seqs));
       case MAP:
         seqs = new ArrayList<>(length);
-        for (CharSequence path : paths) {
-          String part = getFirstRef(path);
+        for (List<String>  path : paths) {
+          String part = path.get(0);
           if ("{}".equals(part)) {
-            if (part.length() == path.length()) {
+            int pSize = path.size();
+            if (1 == pSize) {
               return schema;
             }
-            seqs.add(part.substring("{}".length() + 1));
+            seqs.add(path.subList(1, pSize));
           }
         }
         if (seqs.isEmpty()) {
           return null;
         }
-        return Schema.createMap(project(schema.getElementType(), seqs));
+        return Schema.createMap(projectInternal(schema.getElementType(), seqs));
       case RECORD:
         List<Field> fields = schema.getFields();
         List<Schema.Field> nFields = new ArrayList<>(fields.size());
-        List<CharSequence> tPaths = new LinkedList<>(paths);
+        List<List<String>> tPaths = new LinkedList<>(paths);
         do {
           Field extract = extract(fields, tPaths);
           if (extract == null) {
@@ -413,7 +594,7 @@ public final class Schemas {
           if (us.getType() == Schema.Type.NULL) {
             nTypes.add(us);
           } else {
-            Schema project = project(us, paths);
+            Schema project = projectInternal(us, paths);
             if (project != null) {
               nTypes.add(project);
             }
@@ -532,40 +713,36 @@ public final class Schemas {
 
 
   @Nullable
-  private static Schema.Field extract(final Iterable<Field> fields, final Iterable<CharSequence> paths) {
-    Iterator<CharSequence> iterator = paths.iterator();
+  private static Schema.Field extract(final Iterable<Field> fields, final Iterable<List<String>> paths) {
+    Iterator<List<String>> iterator = paths.iterator();
     if (iterator.hasNext()) {
-      List<CharSequence> proj = new ArrayList<>(2);
-      CharSequence path = iterator.next();
-      String part = getFirstRef(path);
+      List<List<String>> proj = new ArrayList<>(2);
+      List<String> path = iterator.next();
+      String part = path.get(0);
       Field field = getField(part, fields);
       if (field == null) {
         return null;
       }
       iterator.remove();
-      if (part.length() == path.length()) {
-        proj.add("");
+      if (1 == path.size()) {
+        proj.add(Collections.EMPTY_LIST);
       } else {
-        proj.add(path.subSequence(part.length() + 1, path.length()));
+        proj.add(path.subList(1, path.size()));
       }
       while (iterator.hasNext()) {
         path = iterator.next();
-        part = getFirstRef(path);
+        part = path.get(0);
         if (isNamed(part, field)) {
-          if (part.length() == path.length()) {
-            proj.add("");
+          if (1 == path.size()) {
+            proj.add(Collections.EMPTY_LIST);
           } else {
-            proj.add(path.subSequence(part.length() + 1, path.length()));
+            proj.add(path.subList(1,  path.size()));
           }
           iterator.remove();
         }
       }
       Schema.Field nfield = new Schema.Field(field,
-                    project(field.schema(), proj));
-      String dep = field.getProp("deprecated");
-      if (dep != null) {
-        nfield.addProp("deprecated", dep);
-      }
+                    projectInternal(field.schema(), proj));
       return nfield;
     } else {
       return null;
