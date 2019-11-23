@@ -51,8 +51,6 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -85,12 +83,12 @@ public final class Schemas {
   private Schemas() {
   }
 
-  public static void diff(final Schema s1, final Schema s2, Consumer<SchemaDiff> diffs) {
+  public static void diff(final Schema s1, final Schema s2, final Consumer<SchemaDiff> diffs) {
     diff("", s1, s2, diffs, new IdentityHashSet<Schema>());
   }
 
   private static void diff(final String path, final Schema s1,
-          final Schema s2, Consumer<SchemaDiff> diffs, Set<Schema> visited) {
+          final Schema s2, final Consumer<SchemaDiff> diffs, final Set<Schema> visited) {
     if (visited.contains(s1)) {
       return;
     }
@@ -129,8 +127,10 @@ public final class Schemas {
           if (!s1.getFullName().equals(s2.getFullName())) {
             diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));
           }
-          if (!(s1.getEnumStringSymbols().containsAll(s2.getEnumStringSymbols())
-                  && s2.getEnumStringSymbols().containsAll(s1.getEnumStringSymbols()))) {
+          List<String> s1s = s1.getEnumStringSymbols();
+          List<String> s2s = s2.getEnumStringSymbols();
+          if (!(s1s.containsAll(s2s)
+                  && s2s.containsAll(s1s))) {
             diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_ENUM_VALUES));
           }
           break;
@@ -201,7 +201,7 @@ public final class Schemas {
 
   private static String pathAdd(final String p, final String ref) {
     if (p.isEmpty()) {
-      return SCHEMA_PATH_CSV.toCsvElement(ref) ;
+      return SCHEMA_PATH_CSV.toCsvElement(ref);
     } else {
       return p + '.' + SCHEMA_PATH_CSV.toCsvElement(ref);
     }
@@ -418,8 +418,7 @@ public final class Schemas {
       throw new IllegalArgumentException("Invalid path " + path, ex);
     }
     Schema result = schema;
-    for (int i = 0, l = parsedPath.size(); i < l; i++) {
-      String part = parsedPath.get(i);
+    for (String part : parsedPath) {
       result = getSegment(result, part);
       if (result == null) {
         return null;
@@ -429,7 +428,7 @@ public final class Schemas {
   }
 
   @Nullable
-  private static Schema getSegment(Schema result, String part) {
+  private static Schema getSegment(final Schema result, final String part) {
     switch (result.getType()) {
         case ARRAY:
           if ("[]".equals(part)) {
@@ -511,7 +510,7 @@ public final class Schemas {
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
       } catch (CsvParseException ex) {
-        throw new IllegalArgumentException("Invalid projection path " + cs);
+        throw new IllegalArgumentException("Invalid projection path " + cs, ex);
       }
     }
     return projectInternal(schema, p);
@@ -741,9 +740,7 @@ public final class Schemas {
           iterator.remove();
         }
       }
-      Schema.Field nfield = new Schema.Field(field,
-                    projectInternal(field.schema(), proj));
-      return nfield;
+      return  new Schema.Field(field, projectInternal(field.schema(), proj));
     } else {
       return null;
     }
@@ -765,18 +762,6 @@ public final class Schemas {
       return true;
     }
     return false;
-  }
-
-  private static String getFirstRef(final CharSequence path) {
-    int length = path.length();
-    int to = CharSequences.indexOf(path, 0, length, '.');
-    String part;
-    if (to < 0) {
-      part = path.toString();
-    } else {
-      part = path.subSequence(0, to).toString();
-    }
-    return part;
   }
 
   public static Schema dateString() {

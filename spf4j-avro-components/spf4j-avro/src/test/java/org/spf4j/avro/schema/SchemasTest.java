@@ -32,8 +32,10 @@
 package org.spf4j.avro.schema;
 
 import com.google.common.io.Resources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -201,26 +203,32 @@ public class SchemasTest {
 
   @Test
   public void testProjectionSame() {
-    Schema subSchema = Schemas.project(TestRecord.getClassSchema(), "");
-    Assert.assertEquals(TestRecord.getClassSchema(), subSchema);
+    Schema tSchema = TestRecord.getClassSchema();
+    Schema subSchema = Schemas.project(tSchema, "");
+    Assert.assertEquals(tSchema, subSchema);
   }
 
   @Test
+  @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT") // there is one
   public void testDiff1() {
-    Schemas.diff(TestRecord.getClassSchema(), TestRecord.getClassSchema(), (diff) -> Assert.fail(diff.toString()));
+    Schema tSchema = TestRecord.getClassSchema();
+    Schemas.diff(tSchema, tSchema, (diff) -> Assert.fail(diff.toString()));
   }
 
   @Test
   public void testDiff2() {
-    Schemas.diff(TestRecord.getClassSchema(), TestRecord2.getClassSchema(),
+    Schema tSchema = TestRecord.getClassSchema();
+    List<SchemaDiff> diffs = new ArrayList<>();
+    Schemas.diff(tSchema, TestRecord2.getClassSchema(),
             (diff) -> {
               LOG.debug("Diff: {}", diff);
-              Schema atSchema = Schemas.getSubSchema(TestRecord.getClassSchema(), diff.getPath());
+              Schema atSchema = Schemas.getSubSchema(tSchema, diff.getPath());
               Assert.assertNotNull("Path does not resolve: " + diff.getPath(), atSchema);
               LOG.debug("At Schema {}", atSchema.getFullName());
-              Assert.assertNotNull(
-                      Schemas.project(TestRecord.getClassSchema(), diff.getPath()).getFullName());
+              Assert.assertNotNull(Schemas.project(tSchema, diff.getPath()).getFullName());
+              diffs.add(diff);
             });
+    Assert.assertThat(diffs, Matchers.not(Matchers.empty()));
   }
 
 

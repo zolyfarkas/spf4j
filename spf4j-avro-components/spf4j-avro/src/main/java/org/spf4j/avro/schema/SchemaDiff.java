@@ -52,22 +52,22 @@ public interface SchemaDiff {
 
   Schema.Field getRightField();
 
-  static SchemaDiff of(String path, Schema left, Schema right, Type type) {
+  static SchemaDiff of(final String path, final Schema left, final Schema right, final Type type) {
     return new SchemaDiffImpl(path, type, left, right);
   }
 
-  static SchemaDiff of(String path, Schema.Field left, Schema.Field right, Type type) {
+  static SchemaDiff of(final String path, final Schema.Field left, final Schema.Field right, final Type type) {
     return new SchemaFieldDiffImpl(path, type, left, right);
   }
 
-   static class SchemaDiffImpl implements SchemaDiff {
+  final class SchemaDiffImpl implements SchemaDiff {
 
     private final String path;
     private final Type type;
     private final Schema left;
     private final Schema right;
 
-    public SchemaDiffImpl(String path, Type type, Schema left, Schema right) {
+    SchemaDiffImpl(final String path, final Type type, final Schema left, final Schema right) {
       this.path = path;
       this.type = type;
       this.left = left;
@@ -116,14 +116,14 @@ public interface SchemaDiff {
 
   }
 
-  static class SchemaFieldDiffImpl implements SchemaDiff {
+  final class SchemaFieldDiffImpl implements SchemaDiff {
 
     private final String path;
     private final Type type;
     private final Schema.Field left;
     private final Schema.Field right;
 
-    public SchemaFieldDiffImpl(String path, Type type, Schema.Field left, Schema.Field right) {
+    SchemaFieldDiffImpl(final String path, final Type type, final Schema.Field left, final Schema.Field right) {
       this.path = path;
       this.type = type;
       this.left = left;
