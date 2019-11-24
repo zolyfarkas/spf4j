@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
-import org.spf4j.concurrent.ScalableSequence;
+import org.spf4j.concurrent.AtomicSequence;
 import org.spf4j.concurrent.Sequence;
 
 /**
@@ -44,7 +44,7 @@ import org.spf4j.concurrent.Sequence;
  */
 class DelayedTask<R extends Runnable> implements Delayed {
 
-  private static final Sequence SEQUENCE = new ScalableSequence(0, 50);
+  private static final Sequence SEQUENCE = new AtomicSequence(0);
 
   private final R runnable;
   private final long deadlineNanos;
