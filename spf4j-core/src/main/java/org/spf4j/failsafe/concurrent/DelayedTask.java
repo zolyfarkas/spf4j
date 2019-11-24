@@ -64,16 +64,15 @@ class DelayedTask<R extends Runnable> implements Delayed {
   @Override
   public int compareTo(final Delayed o) {
     DelayedTask<R> other = (DelayedTask<R>) o;
-    if (this.deadlineNanos > other.deadlineNanos) {
-      return 1;
-    } else if (this.deadlineNanos < other.deadlineNanos) {
-      return -1;
-    } else if (this.seq > other.seq) {
-      return 1;
-    } else if (this.seq > other.seq) {
-      return -1;
-    } else {
+    long diff = this.deadlineNanos - other.deadlineNanos;
+    if (diff != 0)  {
+      return diff  > 0 ? 1 : -1;
+    }
+    diff = this.seq  - other.seq;
+    if (diff == 0) {
       return 0;
+    } else {
+      return diff  > 0 ? 1 : -1;
     }
   }
 
