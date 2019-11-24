@@ -54,7 +54,7 @@ public class CharSequencesTest {
 
   @Test
   public void testDistance2() {
-    Assert.assertEquals(4, CharSequences.distance("horse", "ros"));
+    Assert.assertEquals(3, CharSequences.distance("horse", "ros"));
   }
 
   @Test
