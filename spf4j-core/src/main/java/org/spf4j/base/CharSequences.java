@@ -61,31 +61,42 @@ public final class CharSequences {
    *
    * @param s1
    * @param s2
-   * @return the number of operations required to transfor s1 into s2
+   * @return the number of operations required to transform s1 into s2
    */
+  @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
   public static int distance(final CharSequence s1, final CharSequence s2) {
     int l1 = s1.length();
     int l2 = s2.length();
-
+    if (l1 == 0) {
+      return l2;
+    }
+    if (l2  == 0) {
+      return l1;
+    }
     int[] prev = new int[l2];
     char c1 = s1.charAt(0);
-    prev[0] = distance(c1, s2.charAt(0));
+    char cs20 = s2.charAt(0);
+    prev[0] = distance(c1, cs20);
     for (int j = 1; j < l2; j++) {
-      prev[j] = prev[j - 1] + distance(c1, s2.charAt(j));
+      int pd  = prev[j - 1];
+      prev[j] = pd == j ? pd + distance(c1, s2.charAt(j)) : pd + 1;
     }
-
+    int[] dist = new int[l2];
     for (int i = 1; i < l1; i++) {
-      int[] dist = new int[l2];
       c1 = s1.charAt(i);
-      dist[0] = prev[i - 1] + distance(c1, s2.charAt(0));
+      int pd = prev[0];
+      dist[0] = pd == i ? pd + distance(c1, cs20) : pd + 1;
       for (int j = 1; j < l2; j++) {
         dist[j] = min(prev[j - 1] + distance(c1, s2.charAt(j)),
                 min(prev[j] + 1, dist[j - 1] + 1));
       }
+      int[] tmp = prev;
       prev = dist;
+      dist = tmp;
     }
     return prev[l2 - 1];
   }
+
 
   public static int distance(final char c1, final char c2) {
     return (c1 == c2) ? 0 : 1;

@@ -45,14 +45,6 @@ import org.spf4j.test.log.TestLoggers;
  */
 public final class StringsTest {
 
-  @Test
-  public void testDistance() {
-    Assert.assertEquals(3, Strings.distance("abc", "abcdef"));
-    Assert.assertEquals(3, Strings.distance("def", "abcdef"));
-    Assert.assertEquals(1, Strings.distance("abc", "bc"));
-    Assert.assertEquals(3, Strings.distance("abc", "def"));
-    Assert.assertEquals(1, Strings.distance("zoltran", "zoltan"));
-  }
 
   @Test
   public void testEscaping() {

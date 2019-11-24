@@ -44,6 +44,27 @@ public class CharSequencesTest {
 
 
   @Test
+  public void testDistance() {
+    Assert.assertEquals(3, CharSequences.distance("abc", "abcdef"));
+    Assert.assertEquals(3, CharSequences.distance("def", "abcdef"));
+    Assert.assertEquals(1, CharSequences.distance("abc", "bc"));
+    Assert.assertEquals(3, CharSequences.distance("abc", "def"));
+    Assert.assertEquals(1, CharSequences.distance("zoltran", "zoltan"));
+  }
+
+  @Test
+  public void testDistance2() {
+    Assert.assertEquals(4, CharSequences.distance("horse", "ros"));
+  }
+
+  @Test
+  public void testDistance3() {
+    Assert.assertEquals(27, CharSequences.distance("pneumonoultramicroscopicsilicovolcanoconiosis",
+            "ultramicroscopically"));
+  }
+
+
+  @Test
   public void testLineNumbering() {
     CharSequence lineNumbered = CharSequences.toLineNumbered(0, "a\nbla\nc");
     Assert.assertEquals("/* 0 */ a\n/* 1 */ bla\n/* 2 */ c", lineNumbered.toString());
