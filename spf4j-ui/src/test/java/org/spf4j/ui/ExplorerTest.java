@@ -34,10 +34,12 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.test.log.ObservationAssert;
 import org.spf4j.test.log.TestLoggers;
+import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 
 /**
@@ -61,13 +63,14 @@ public class ExplorerTest {
   @Test
   @SuppressFBWarnings("MDM_THREAD_YIELD") // need to since assertj does not seem to apply things otherwise...
   public void testExplorer() throws InterruptedException {
+    Assume.assumeTrue(TestUtils.isExecutedInCI());
     ObservationAssert expectation = TestLoggers.sys().expectUncaughtException(2, TimeUnit.SECONDS,
             UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
     JFrame tFrame = GuiActionRunner.execute(() -> new Explorer());
     FrameFixture window = new FrameFixture(tFrame);
     Settings settings = window.robot().settings();
-    settings.delayBetweenEvents(100);
-    settings.eventPostingDelay(10);
+    settings.delayBetweenEvents(130);
+    settings.eventPostingDelay(100);
     window.show(); // shows the frame to test
     Assert.assertTrue(window.isEnabled());
     JMenuItemFixture openFileMenuItem = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
