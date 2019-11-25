@@ -375,7 +375,7 @@ public final class Schemas {
   }
 
   public static boolean isNullableUnion(final Schema schema) {
-    if (!(schema.getType() == Schema.Type.UNION)) {
+    if (schema.getType() != Schema.Type.UNION) {
       return false;
     }
     for (Schema ss : schema.getTypes()) {
