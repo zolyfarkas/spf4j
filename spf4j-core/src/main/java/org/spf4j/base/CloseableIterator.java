@@ -36,6 +36,9 @@ import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.util.Iterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * need to extend java.io.Closeable so that jaxrs does not interfere.
@@ -81,6 +84,14 @@ public interface CloseableIterator<T> extends Iterator<T>, Closeable {
       }
 
     };
+  }
+
+  default Stream<T> toStreamRemaining() {
+    return toStreamRemaining(false);
+  }
+
+  default Stream<T> toStreamRemaining(final boolean parallel) {
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(this, 0), parallel).onClose(() -> this.close());
   }
 
 }
