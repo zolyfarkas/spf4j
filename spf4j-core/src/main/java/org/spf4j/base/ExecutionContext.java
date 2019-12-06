@@ -386,6 +386,11 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable) {
+    return getDebugDetail(origin, throwable, true);
+  }
+
+  default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
+          boolean addStackSamples) {
     List<Slf4jLogRecord> ctxLogs = new ArrayList<>();
     ExecutionContext curr = this;
     while (curr != null) {
@@ -395,12 +400,19 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
       curr = curr.getSource();
     }
     Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);
-    StackSamples ss = this.getAndClearStackSamples();
-    List<StackSampleElement> sses = Converters.convert(ss);
-    return new DebugDetail(origin + '/' + this.getName(),
-            Converters.convert("", this.getId().toString(), ctxLogs),
-            throwable == null ? null : Converters.convert(throwable),
-            sses);
+    if (addStackSamples) {
+      StackSamples ss = this.getAndClearStackSamples();
+      List<StackSampleElement> sses = Converters.convert(ss);
+      return new DebugDetail(origin + '/' + this.getName(),
+              Converters.convert("", this.getId().toString(), ctxLogs),
+              throwable == null ? null : Converters.convert(throwable),
+              sses);
+    } else {
+            return new DebugDetail(origin + '/' + this.getName(),
+              Converters.convert("", this.getId().toString(), ctxLogs),
+              throwable == null ? null : Converters.convert(throwable),
+              Collections.emptyList());
+    }
 
   }
 
